@@ -1,5 +1,4 @@
 import { TextInput } from "@/src/theme/components/TextInput";
-import { isValidEmail, validatePassword } from "@/src/utils/validation";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
@@ -24,55 +23,40 @@ import Animated, {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { styles } from "../styles/auth.style";
 import { lightTheme } from "@/src/theme/colors";
+import { useAuthenticate } from "../hooks/useAuth";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { authSchema, AuthFormData } from "../validation/auth.schema";
 
 export default function RegisterScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
-
   const [apiError, setApiError] = useState<string | null>(null);
-  const [emailError, setEmailError] = useState("");
-  const [passwordError, setPasswordError] = useState("");
+
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<AuthFormData>({
+    resolver: zodResolver(authSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
+
+  const { mutate: authenticate, isPending: loading } = useAuthenticate();
 
   const passwordRef = useRef<RNTextInput>(null);
 
-  const handleContinue = async () => {
+  const onSubmit = (data: AuthFormData) => {
     setApiError(null);
-    let valid = true;
-
-    if (!email.trim() || !isValidEmail(email)) {
-      setEmailError("Please enter a valid email address");
-      valid = false;
-    } else {
-      setEmailError("");
-    }
-
-    const passErr = validatePassword(password);
-    if (passErr) {
-      setPasswordError(passErr);
-      valid = false;
-    } else {
-      setPasswordError("");
-    }
-
-    if (!valid) return;
-
-    setLoading(true);
-    try {
-      // Unified Sign In / Sign Up logic here
-      console.log("Authenticating:", { email, password });
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      router.replace("/home");
-    } catch (error: any) {
-      console.error("Auth error:", error);
-      setApiError("Authentication failed. Please try again.");
-    } finally {
-      setLoading(false);
-    }
+    authenticate(data, {
+      onError: (error: any) => {
+        setApiError(error.message || "Authentication failed. Please try again.");
+      },
+    });
   };
 
   const ANIMATION_START = 100;
@@ -148,69 +132,77 @@ export default function RegisterScreen() {
             entering={FadeInDown.delay(getDelay(2)).duration(600)}
           >
             {/* Email Input */}
-            <TextInput
-              label="Email Address"
-              variant="glass"
-              placeholder="name@example.com"
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoComplete="email"
-              returnKeyType="next"
-              onSubmitEditing={() => passwordRef.current?.focus()}
-              value={email}
-              onChangeText={(val) => {
-                setEmail(val);
-                setEmailError("");
-              }}
-              editable={!loading}
-              error={emailError}
-              icon={
-                <Ionicons
-                  name="mail-outline"
-                  size={20}
-                  color="rgba(255,255,255,0.7)"
+            <Controller
+              control={control}
+              name="email"
+              render={({ field: { onChange, onBlur, value } }) => (
+                <TextInput
+                  label="Email Address"
+                  variant="glass"
+                  placeholder="name@example.com"
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoComplete="email"
+                  returnKeyType="next"
+                  onSubmitEditing={() => passwordRef.current?.focus()}
+                  onBlur={onBlur}
+                  onChangeText={onChange}
+                  value={value}
+                  editable={!loading}
+                  error={errors.email?.message}
+                  icon={
+                    <Ionicons
+                      name="mail-outline"
+                      size={20}
+                      color="rgba(255,255,255,0.7)"
+                    />
+                  }
                 />
-              }
+              )}
             />
 
             {/* Password Input */}
             <View>
-              <TextInput
-                ref={passwordRef}
-                label="Password"
-                variant="glass"
-                placeholder="••••••••"
-                secureTextEntry={!showPassword}
-                autoComplete="current-password"
-                returnKeyType="done"
-                onSubmitEditing={handleContinue}
-                value={password}
-                onChangeText={(val) => {
-                  setPassword(val);
-                  setPasswordError("");
-                }}
-                editable={!loading}
-                error={passwordError}
-                icon={
-                  <Ionicons
-                    name="lock-closed-outline"
-                    size={20}
-                    color="rgba(255,255,255,0.7)"
+              <Controller
+                control={control}
+                name="password"
+                render={({ field: { onChange, onBlur, value } }) => (
+                  <TextInput
+                    ref={passwordRef}
+                    label="Password"
+                    variant="glass"
+                    placeholder="••••••••"
+                    secureTextEntry={!showPassword}
+                    autoComplete="current-password"
+                    returnKeyType="done"
+                    onSubmitEditing={handleSubmit(onSubmit)}
+                    onBlur={onBlur}
+                    onChangeText={onChange}
+                    value={value}
+                    editable={!loading}
+                    error={errors.password?.message}
+                    icon={
+                      <Ionicons
+                        name="lock-closed-outline"
+                        size={20}
+                        color="rgba(255,255,255,0.7)"
+                      />
+                    }
+                    rightIcon={
+                      <TouchableOpacity
+                        onPress={() => setShowPassword(!showPassword)}
+                        style={{ padding: 4 }}
+                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                      >
+                        <Ionicons
+                          name={showPassword ? "eye-off-outline" : "eye-outline"}
+                          size={20}
+                          color="rgba(255,255,255,0.6)"
+                        />
+                      </TouchableOpacity>
+                    }
                   />
-                }
-                rightIcon={
-                  <TouchableOpacity
-                    onPress={() => setShowPassword(!showPassword)}
-                    style={{ padding: 4 }}
-                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                  >
-                    <Ionicons
-                      name={showPassword ? "eye-off-outline" : "eye-outline"}
-                      size={20}
-                      color="rgba(255,255,255,0.6)"
-                    />
-                  </TouchableOpacity>
-                }
+                )}
               />
               <TouchableOpacity
                 style={{ alignSelf: "flex-end", marginTop: 8 }}
@@ -235,7 +227,7 @@ export default function RegisterScreen() {
             <TouchableOpacity
               style={[styles.continueBtn, loading && { opacity: 0.7 }]}
               activeOpacity={0.85}
-              onPress={handleContinue}
+              onPress={handleSubmit(onSubmit)}
               disabled={loading}
             >
               {loading ? (

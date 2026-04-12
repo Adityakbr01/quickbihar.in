@@ -6,15 +6,21 @@ import { createAccountStyles } from "../styles/accountStyles";
 import AccountHeader from "../components/AccountHeader";
 import AccountOption from "../components/AccountOption";
 import { ACCOUNT_SECTIONS, LOGOUT_OPTION } from "../lib/accountData";
+import { useLogout } from "../../auth/hooks/useAuth";
+import { useAuthStore } from "../../auth/store/authStore";
+import { ActivityIndicator } from "react-native";
 
 const AccountMain = () => {
   const theme = useTheme();
   const styles = createAccountStyles(theme);
+  const user = useAuthStore((state) => state.user);
+  const { mutate: logout, isPending: isLoggingOut } = useLogout();
 
   const handleOptionPress = (label: string) => {
     console.log(`Pressed: ${label}`);
     if (label === "Logout") {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+      logout();
     } else {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
@@ -30,8 +36,8 @@ const AccountMain = () => {
           <AccountHeader
             theme={theme}
             styles={styles}
-            name="Aditya"
-            email="aditya@quickbihar.in"
+            name={user?.fullName || "Guest"}
+            email={user?.email || "guest@quickbihar.in"}
           />
 
           {ACCOUNT_SECTIONS.map((section, sectionIndex) => (
@@ -56,17 +62,23 @@ const AccountMain = () => {
           ))}
 
           {/* Logout Section */}
-          <View style={styles.logoutRow}>
+          <View style={[styles.logoutRow, isLoggingOut && { opacity: 0.7 }]}>
             <AccountOption
               theme={theme}
               styles={styles}
               icon={LOGOUT_OPTION.icon}
               label={LOGOUT_OPTION.label}
-              onPress={() => handleOptionPress(LOGOUT_OPTION.onPressLabel!)}
+              onPress={isLoggingOut ? undefined : () => handleOptionPress(LOGOUT_OPTION.onPressLabel!)}
               showArrow={LOGOUT_OPTION.showArrow}
               danger={LOGOUT_OPTION.danger}
               isLast
             />
+            {isLoggingOut && (
+              <ActivityIndicator
+                style={{ position: "absolute", right: 20, top: 15 }}
+                color={theme.error}
+              />
+            )}
           </View>
         </ScrollView>
       </View>
