@@ -1,0 +1,116 @@
+import { StyleSheet } from "react-native";
+
+export const createDealProductCardStyles = (theme: any) =>
+  StyleSheet.create({
+    productCard: {
+      borderRadius: 16,
+      borderWidth: 1,
+      overflow: "hidden",
+    },
+    productImageContainer: {
+      width: "100%",
+      height: 180,
+      position: "relative",
+    },
+    productImage: {
+      width: "100%",
+      height: "100%",
+      resizeMode: "cover",
+    },
+    tagBadge: {
+      position: "absolute",
+      top: 8,
+      left: 8,
+      backgroundColor: "rgba(0,0,0,0.75)",
+      paddingHorizontal: 6,
+      paddingVertical: 4,
+      borderRadius: 6,
+    },
+    tagText: {
+      color: "#fff",
+      fontSize: 9,
+      fontWeight: "800",
+      textTransform: "uppercase",
+    },
+    addButton: {
+      position: "absolute",
+      bottom: 10,
+      right: 10,
+      backgroundColor: "#020617",
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+      borderRadius: 12,
+      gap: 6,
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.15,
+      shadowRadius: 4,
+      elevation: 3,
+    },
+    addText: {
+      color: "#fff",
+      fontSize: 12,
+      fontWeight: "700",
+    },
+    productInfo: {
+      padding: 12,
+    },
+    ratingRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 4,
+      marginBottom: 6,
+    },
+    ratingText: {
+      fontSize: 11,
+      fontWeight: "600",
+    },
+    productTitle: {
+      fontSize: 13,
+      fontWeight: "600",
+      marginBottom: 4,
+      lineHeight: 18,
+      height: 36, // Fixed height for two lines to keep grid aligned
+    },
+    benefitsText: {
+      fontSize: 11,
+      fontWeight: "500",
+      marginBottom: 8,
+    },
+    priceRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      flexWrap: "wrap",
+      gap: 6,
+      marginBottom: 8,
+    },
+    dealPrice: {
+      fontSize: 16,
+      fontWeight: "800",
+    },
+    originalPrice: {
+      fontSize: 12,
+      textDecorationLine: "line-through",
+    },
+    discountText: {
+      fontSize: 10,
+      color: "#ef4444",
+      fontWeight: "700",
+      backgroundColor: "rgba(239, 68, 68, 0.1)",
+      paddingHorizontal: 4,
+      paddingVertical: 2,
+      borderRadius: 4,
+      overflow: "hidden",
+    },
+    deliveryRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 4,
+    },
+    deliveryText: {
+      fontSize: 10,
+      fontWeight: "700",
+    },
+  });

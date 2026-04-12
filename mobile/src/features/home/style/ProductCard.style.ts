@@ -1,0 +1,129 @@
+import { StyleSheet, Platform } from "react-native";
+
+export const createProductCardStyles = (theme: any) =>
+  StyleSheet.create({
+    card: {
+      width: 240,
+      backgroundColor: theme.background,
+      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: theme.border,
+      overflow: "hidden",
+    },
+    imageContainer: {
+      width: "100%",
+      height: 200,
+      position: "relative",
+    },
+    image: {
+      width: "100%",
+      height: "100%",
+      resizeMode: "cover",
+    },
+    discountBadge: {
+      position: "absolute",
+      top: 8,
+      left: 8,
+      backgroundColor: "rgba(0,0,0,0.75)",
+      paddingHorizontal: 6,
+      paddingVertical: 4,
+      borderRadius: 6,
+    },
+    discountTextAbsolute: {
+      color: "#fff",
+      fontSize: 9,
+      fontWeight: "800",
+      textTransform: "uppercase",
+    },
+    favoriteBtn: {
+      position: "absolute",
+      top: 8,
+      right: 8,
+      backgroundColor: "rgba(255,255,255,0.9)",
+      width: 28,
+      height: 28,
+      borderRadius: 14,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    addButton: {
+      position: "absolute",
+      bottom: 10,
+      right: 10,
+      backgroundColor: "#020617",
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+      borderRadius: 12,
+      gap: 6,
+      ...Platform.select({
+        ios: {
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.15,
+          shadowRadius: 4,
+        },
+        android: {
+          elevation: 3,
+        },
+      }),
+    },
+    addText: {
+      color: "#fff",
+      fontSize: 12,
+      fontWeight: "700",
+    },
+    infoContainer: {
+      padding: 12,
+    },
+    ratingContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 4,
+      marginBottom: 6,
+    },
+    rating: {
+      fontSize: 11,
+      fontWeight: "600",
+    },
+    reviews: {
+      fontSize: 11,
+      color: theme.secondaryText,
+    },
+    name: {
+      fontSize: 13,
+      fontWeight: "600",
+      color: theme.text,
+      marginBottom: 4,
+      lineHeight: 18,
+      height: 36,
+    },
+    priceContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      flexWrap: "wrap",
+      gap: 6,
+      marginBottom: 8,
+    },
+    price: {
+      fontSize: 16,
+      fontWeight: "800",
+      color: theme.text,
+    },
+    originalPrice: {
+      fontSize: 12,
+      color: theme.secondaryText,
+      textDecorationLine: "line-through",
+    },
+    discountTextInline: {
+      fontSize: 10,
+      color: "#ef4444",
+      fontWeight: "700",
+      backgroundColor: "rgba(239, 68, 68, 0.1)",
+      paddingHorizontal: 4,
+      paddingVertical: 2,
+      borderRadius: 4,
+      overflow: "hidden",
+    },
+  });

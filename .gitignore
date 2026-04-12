@@ -1,0 +1,38 @@
+# Dependencies
+node_modules/
+venv/
+env/
+__pycache__/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Build
+dist/
+build/
+*.o
+*.exe
+
+# Environment
+.env
+.env.local
+
+# Database
+*.db
+*.sqlite
+
+# Temporary
+temp/
+tmp/
+*.tmp
