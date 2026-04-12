@@ -12,15 +12,25 @@ import {
 import { useCategories } from "../hooks/useCategories";
 import { Category } from "../types/category.types";
 import CategorySkeleton from "./CategorySkeleton";
-
-
-
+import { useRouter } from "expo-router";
+import * as Haptics from "expo-haptics";
 const HomeCategories = () => {
   const theme = useTheme();
+  const router = useRouter();
   const { data: categories, isLoading, error } = useCategories();
 
   const renderItem = ({ item }: { item: Category }) => (
-    <TouchableOpacity style={styles.categoryItem} activeOpacity={0.7}>
+    <TouchableOpacity
+      style={styles.categoryItem}
+      activeOpacity={0.7}
+      onPress={() => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        router.push({
+          pathname: "/(tabs)/search",
+          params: { query: item.title }
+        });
+      }}
+    >
       <View style={[styles.imageContainer, { borderColor: theme.border }]}>
         <Image
           source={{ uri: item.image }}
