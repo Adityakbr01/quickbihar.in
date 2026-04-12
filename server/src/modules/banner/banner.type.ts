@@ -5,6 +5,7 @@ export interface IBanner extends Document {
     title?: string;
     subtitle?: string;
     image: string;
+    imagePublicId: string;
     redirectType: "product" | "category" | "collection" | "external";
     redirectId?: mongoose.Types.ObjectId;
     externalUrl?: string;

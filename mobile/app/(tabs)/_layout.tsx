@@ -1,5 +1,7 @@
+import { useAuthStore } from "@/src/features/auth/store/authStore";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import {
+  DashboardCircleSettingsIcon,
   Home01Icon,
   Search01Icon,
   ShoppingCartCheck01Icon,
@@ -9,7 +11,7 @@ import { HugeiconsIcon } from "@hugeicons/react-native";
 import * as Haptics from "expo-haptics";
 import { Tabs } from "expo-router";
 import React from "react";
-import { Platform, useWindowDimensions } from "react-native";
+import { Platform } from "react-native";
 
 const TABS_CONFIG = [
   {
@@ -22,13 +24,11 @@ const TABS_CONFIG = [
     label: "Search",
     icon: Search01Icon,
   },
-
   {
     name: "cart",
     label: "Cart",
     icon: ShoppingCartCheck01Icon,
   },
-
   {
     name: "account",
     label: "Account",
@@ -38,9 +38,20 @@ const TABS_CONFIG = [
 
 export default function TabsLayout() {
   const theme = useTheme();
-  const { width: windowWidth } = useWindowDimensions();
+  const { user } = useAuthStore();
+  const isAdmin = user?.role === "admin";
+  console.log("[TabsLayout] Current User:", user?.username, "Role:", user?.role, "isAdmin:", isAdmin);
+
   const isWeb = Platform.OS === 'web';
-  const MAX_TAB_WIDTH = 600;
+
+  const ALL_TABS = [
+    ...TABS_CONFIG,
+    {
+      name: "admin",
+      label: "Admin",
+      icon: DashboardCircleSettingsIcon,
+    },
+  ];
 
   return (
     <Tabs
@@ -76,11 +87,12 @@ export default function TabsLayout() {
         },
       }}
     >
-      {TABS_CONFIG.map((tab) => (
+      {ALL_TABS.map((tab) => (
         <Tabs.Screen
           key={tab.name}
           name={tab.name}
           options={{
+            href: tab.name === "admin" && !isAdmin ? null : undefined,
             tabBarLabel: tab.label,
             tabBarIcon: ({ size, focused }) => (
               <HugeiconsIcon

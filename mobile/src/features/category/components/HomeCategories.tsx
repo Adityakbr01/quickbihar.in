@@ -1,3 +1,5 @@
+import { useTheme } from "@/src/theme/Provider/ThemeProvider";
+import { spacing } from "@/src/theme/spacing";
 import React from "react";
 import {
   FlatList,
@@ -5,19 +7,26 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
-import { useTheme } from "@/src/theme/Provider/ThemeProvider";
-import { categoriesData, CategoryItem } from "../lib/data";
-import { spacing } from "@/src/theme/spacing";
+import { useCategories } from "../hooks/useCategories";
+import { Category } from "../types/category.types";
+import CategorySkeleton from "./CategorySkeleton";
+
+
 
 const HomeCategories = () => {
   const theme = useTheme();
+  const { data: categories, isLoading, error } = useCategories();
 
-  const renderItem = ({ item }: { item: CategoryItem }) => (
+  const renderItem = ({ item }: { item: Category }) => (
     <TouchableOpacity style={styles.categoryItem} activeOpacity={0.7}>
       <View style={[styles.imageContainer, { borderColor: theme.border }]}>
-        <Image source={item.image} style={styles.image} resizeMode="cover" />
+        <Image
+          source={{ uri: item.image }}
+          style={styles.image}
+          resizeMode="cover"
+        />
       </View>
       <Text style={[styles.title, { color: theme.text }]} numberOfLines={1}>
         {item.title}
@@ -25,12 +34,31 @@ const HomeCategories = () => {
     </TouchableOpacity>
   );
 
+  if (isLoading) {
+    return (
+      <View style={styles.container}>
+        <FlatList
+          data={[1, 2, 3, 4, 5, 6]}
+          renderItem={() => <CategorySkeleton />}
+          keyExtractor={(item) => item.toString()}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.listContent}
+        />
+      </View>
+    );
+  }
+
+  if (error || !categories) {
+    return null; // Or show error toast
+  }
+
   return (
     <View style={styles.container}>
       <FlatList
-        data={categoriesData}
+        data={categories}
         renderItem={renderItem}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item._id}
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.listContent}

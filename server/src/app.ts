@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 import { errorHandler } from "./middlewares/error.middleware";
 import { ENV } from "./config/env.config";
 import { loggerMiddleware } from "./middlewares/logger.middleware";
@@ -17,15 +18,21 @@ app.use(
   })
 );
 
+app.use(cookieParser());
+
 app.use(express.json({ limit: "16kb" }));
 app.use(express.urlencoded({ extended: true, limit: "16kb" }));
 app.use(express.static("public"));
 
 // Routes Import
 import authRouter from "./modules/auth/auth.router";
+import bannerRouter from "./modules/banner/banner.router";
+import categoryRouter from "./modules/category/category.router";
 
 // Routes Declaration
 app.use("/api/v1/auth", authRouter);
+app.use("/api/v1/banners", bannerRouter);
+app.use("/api/v1/categories", categoryRouter);
 
 // Global Error Handler
 app.use(errorHandler);

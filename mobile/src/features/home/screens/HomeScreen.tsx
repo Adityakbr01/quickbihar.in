@@ -4,7 +4,7 @@ import { StyleSheet, View, ScrollView } from "react-native";
 import { useSharedValue } from "react-native-reanimated";
 import HomeHeader from "../components/HomeHeader";
 import TopHomeCarousel from "../components/TopHomeCarousel";
-import HomeCategories from "../components/HomeCategories";
+import HomeCategories from "../../category/components/HomeCategories";
 import TopSellingSection from "../sections/TopSellingSection";
 import TopMallSection from "../sections/TopMallSection";
 import {

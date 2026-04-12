@@ -19,6 +19,10 @@ const bannerSchema = new Schema<IBanner>(
             type: String,
             required: true,
         },
+        imagePublicId: {
+            type: String,
+            required: true,
+        },
 
         // 🔗 Where user will go
         redirectType: {

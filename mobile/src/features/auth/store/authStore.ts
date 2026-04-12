@@ -6,6 +6,7 @@ interface User {
   username: string;
   email: string;
   fullName: string;
+  role: "admin" | "user";
 }
 
 interface AuthState {
@@ -42,9 +43,9 @@ export const useAuthStore = create<AuthState>((set) => ({
       const userData = await SecureStore.getItemAsync("userData");
 
       if (token && userData) {
-        set({ 
-          user: JSON.parse(userData), 
-          token, 
+        set({
+          user: JSON.parse(userData),
+          token,
           isAuthenticated: true,
           isInitialized: true
         });
