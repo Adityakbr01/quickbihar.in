@@ -8,6 +8,8 @@ const app = express();
 
 app.use(loggerMiddleware);
 
+
+
 app.use(
   cors({
     origin: ENV.CORS_ORIGIN,

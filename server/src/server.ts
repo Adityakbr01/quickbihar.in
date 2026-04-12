@@ -1,13 +1,17 @@
 import connectDB from "./config/db";
 import { app } from "./app";
 import { ENV } from "./config/env.config";
+import { seedAdmin } from "./utils/seed";
 
 const port = ENV.PORT;
 
 connectDB()
-  .then(() => {
+  .then(async () => {
+    // Seed Admin on start
+    await seedAdmin();
+
     app.listen(port, () => {
-      console.log(`\n 🚀 Server is running at port : ${port}`);
+      console.log(`🚀 Server is running at port : ${port}`);
     });
   })
   .catch((err) => {

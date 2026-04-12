@@ -1,0 +1,78 @@
+[
+    {
+        "title": "Summer Sale",
+        "subtitle": "Up to 60% OFF on Dresses",
+        "image": "https://images.unsplash.com/photo-1520975922329-6b5b3b1c9c41?w=1200",
+        "redirectType": "category",
+        "redirectId": "64f1a2b3c4d5e6f7890a1111",
+        "placement": "home_top",
+        "priority": 10,
+        "startDate": "2026-04-01T00:00:00.000Z",
+        "endDate": "2026-04-30T23:59:59.000Z",
+        "isActive": true,
+        "clicks": 120,
+        "impressions": 5000
+    },
+    {
+        "title": "New Arrival",
+        "subtitle": "Trendy Oversized T-Shirts",
+        "image": "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=1200",
+        "redirectType": "product",
+        "redirectId": "64f1a2b3c4d5e6f7890a2222",
+        "placement": "home_top",
+        "priority": 8,
+        "isActive": true,
+        "clicks": 85,
+        "impressions": 3200
+    },
+    {
+        "title": "Exclusive Collection",
+        "subtitle": "Premium Women Wear",
+        "image": "https://images.unsplash.com/photo-1520974735194-50a21b92c6a3?w=1200",
+        "redirectType": "collection",
+        "redirectId": "64f1a2b3c4d5e6f7890a3333",
+        "placement": "home_middle",
+        "priority": 7,
+        "isActive": true,
+        "clicks": 60,
+        "impressions": 2800
+    },
+    {
+        "title": "Flat 50% OFF",
+        "subtitle": "On Shoes & Accessories",
+        "image": "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=1200",
+        "redirectType": "category",
+        "redirectId": "64f1a2b3c4d5e6f7890a4444",
+        "placement": "home_middle",
+        "priority": 9,
+        "isActive": true,
+        "clicks": 140,
+        "impressions": 6000
+    },
+    {
+        "title": "Limited Time Deal",
+        "subtitle": "Grab Now Before It’s Gone!",
+        "image": "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=1200",
+        "redirectType": "product",
+        "redirectId": "64f1a2b3c4d5e6f7890a5555",
+        "placement": "home_top",
+        "priority": 6,
+        "startDate": "2026-04-10T00:00:00.000Z",
+        "endDate": "2026-04-15T23:59:59.000Z",
+        "isActive": true,
+        "clicks": 45,
+        "impressions": 2100
+    },
+    {
+        "title": "Visit Our Website",
+        "subtitle": "Explore More Collections",
+        "image": "https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=1200",
+        "redirectType": "external",
+        "externalUrl": "https://quickbihar.in",
+        "placement": "category",
+        "priority": 5,
+        "isActive": true,
+        "clicks": 30,
+        "impressions": 1500
+    }
+]
