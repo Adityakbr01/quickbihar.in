@@ -10,5 +10,7 @@ router.get("/:id", SizeChartController.getChartById);
 
 // Admin routes
 router.post("/", verifyJWT, isAdmin, SizeChartController.createChart);
+router.patch("/:id", verifyJWT, isAdmin, SizeChartController.updateChart);
+router.delete("/:id", verifyJWT, isAdmin, SizeChartController.deleteChart);
 
 export default router;

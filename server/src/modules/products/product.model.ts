@@ -32,7 +32,16 @@ const productSchema = new Schema(
 
         currency: { type: String, default: "INR" },
 
-        images: [{ type: String }],
+        images: [{
+            url: { type: String, required: true },
+            fileId: { type: String, required: true }
+        }],
+
+        sellerId: {
+            type: Schema.Types.ObjectId,
+            ref: "User",
+            required: true,
+        },
 
         variants: { type: [variantSchema], required: true },
 
@@ -76,5 +85,12 @@ const productSchema = new Schema(
 
 
 productSchema.index({ title: "text", description: "text", tags: "text" });
+
+// Auto calculate totalStock
+productSchema.pre("save", async function () {
+    if (this.isModified("variants")) {
+        this.totalStock = this.variants.reduce((sum, variant) => sum + (variant.stock || 0), 0);
+    }
+});
 
 export const Product = mongoose.model("Product", productSchema);

@@ -46,4 +46,36 @@ export class SizeChartController {
             .status(200)
             .json(new ApiResponse(200, chart, "Size chart fetched successfully"));
     });
+
+    /**
+     * @desc    Update a size chart
+     * @route   PATCH /api/v1/size-charts/:id
+     * @access  Admin
+     */
+    static updateChart = asyncHandler(async (req: Request, res: Response) => {
+        const chart = await SizeChartService.updateChart(req.params.id as unknown as string, req.body);
+        if (!chart) {
+            throw new ApiError(404, "Size chart not found");
+        }
+
+        return res
+            .status(200)
+            .json(new ApiResponse(200, chart, "Size chart updated successfully"));
+    });
+
+    /**
+     * @desc    Delete a size chart
+     * @route   DELETE /api/v1/size-charts/:id
+     * @access  Admin
+     */
+    static deleteChart = asyncHandler(async (req: Request, res: Response) => {
+        const chart = await SizeChartService.deleteChart(req.params.id as unknown as string);
+        if (!chart) {
+            throw new ApiError(404, "Size chart not found");
+        }
+
+        return res
+            .status(200)
+            .json(new ApiResponse(200, null, "Size chart deleted successfully"));
+    });
 }

@@ -13,4 +13,12 @@ export class SizeChartService {
     static async getChartById(id: string) {
         return await SizeChartDAO.findById(id);
     }
+
+    static async updateChart(id: string, data: Partial<CreateSizeChartBody>) {
+        return await SizeChartDAO.updateById(id, data);
+    }
+
+    static async deleteChart(id: string) {
+        return await SizeChartDAO.deleteById(id);
+    }
 }

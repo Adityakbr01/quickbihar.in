@@ -23,7 +23,7 @@ export class CategoryDAO {
     }
 
     static async updateById(id: string, data: UpdateCategoryBody & { slug?: string }) {
-        return await Category.findByIdAndUpdate(id, data, { new: true });
+        return await Category.findByIdAndUpdate(id, data, { returnDocument: "after" });
     }
 
     static async deleteById(id: string) {

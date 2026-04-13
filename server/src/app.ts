@@ -28,12 +28,14 @@ app.use(express.static("public"));
 import authRouter from "./modules/auth/auth.router";
 import bannerRouter from "./modules/banner/banner.router";
 import categoryRouter from "./modules/category/category.router";
+import productRouter from "./modules/products/product.router";
 import sizeChartRouter from "./modules/sizeChart/sizeChart.router";
 
 // Routes Declaration
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/banners", bannerRouter);
 app.use("/api/v1/categories", categoryRouter);
+app.use("/api/v1/products", productRouter);
 app.use("/api/v1/size-charts", sizeChartRouter);
 
 // Global Error Handler

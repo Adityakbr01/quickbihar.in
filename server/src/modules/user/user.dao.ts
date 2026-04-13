@@ -17,7 +17,7 @@ export class UserDAO {
   }
 
   static async updateById(id: string, updateData: any) {
-    return await User.findByIdAndUpdate(id, updateData, { new: true });
+    return await User.findByIdAndUpdate(id, updateData, { returnDocument: "after" });
   }
 
   static async findByRefreshToken(refreshToken: string) {

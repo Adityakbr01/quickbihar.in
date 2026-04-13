@@ -8,7 +8,7 @@ export interface IUser extends Document {
   email: string;
   fullName: string;
   password: string;
-  role: "admin" | "user";
+  role: "admin" | "user" | "seller";
   refreshToken?: string;
   isPasswordCorrect(password: string): Promise<boolean>;
   generateAccessToken(): string;
@@ -44,7 +44,7 @@ const userSchema = new Schema<IUser>(
     },
     role: {
       type: String,
-      enum: ["admin", "user"],
+      enum: ["admin", "user", "seller"],
       default: "user",
     },
     refreshToken: {

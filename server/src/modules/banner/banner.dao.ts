@@ -4,7 +4,7 @@ export class BannerDAO {
     static async createBanner(bannerData: any) {
         return await Banner.create(bannerData);
     }
-    
+
     static async getMaxPriority(placement: string) {
         const topBanner = await Banner.findOne({ placement }).sort({ priority: -1 }).select("priority").lean();
         return topBanner ? topBanner.priority : 0;
@@ -34,7 +34,7 @@ export class BannerDAO {
     }
 
     static async updateById(id: string, updateData: any) {
-        return await Banner.findByIdAndUpdate(id, updateData, { new: true });
+        return await Banner.findByIdAndUpdate(id, updateData, { returnDocument: "after" });
     }
 
     static async deleteById(id: string) {
@@ -42,10 +42,10 @@ export class BannerDAO {
     }
 
     static async incrementClicks(id: string) {
-        return await Banner.findByIdAndUpdate(id, { $inc: { clicks: 1 } }, { new: true });
+        return await Banner.findByIdAndUpdate(id, { $inc: { clicks: 1 } }, { returnDocument: "after" });
     }
 
     static async incrementImpressions(id: string) {
-        return await Banner.findByIdAndUpdate(id, { $inc: { impressions: 1 } }, { new: true });
+        return await Banner.findByIdAndUpdate(id, { $inc: { impressions: 1 } }, { returnDocument: "after" });
     }
 }

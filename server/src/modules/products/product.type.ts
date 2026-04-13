@@ -21,7 +21,9 @@ export interface IProduct {
 
     currency: string;
 
-    images: string[];
+    images: { url: string; fileId: string }[];
+
+    sellerId: string; // reference to user
 
     variants: IVariant[];
     totalStock: number;

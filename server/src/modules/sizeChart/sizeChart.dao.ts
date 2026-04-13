@@ -17,4 +17,8 @@ export class SizeChartDAO {
     static async deleteById(id: string) {
         return await SizeChart.findByIdAndDelete(id);
     }
+
+    static async updateById(id: string, data: Partial<CreateSizeChartBody>) {
+        return await SizeChart.findByIdAndUpdate(id, data, { returnDocument: "after" });
+    }
 }

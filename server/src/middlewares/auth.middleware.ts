@@ -35,3 +35,23 @@ export const isAdmin = asyncHandler(async (req: Request, res: Response, next: Ne
 
   next();
 });
+
+export const isSeller = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+  const user = (req as any).user;
+
+  if (!user || user.role !== "seller") {
+    throw new ApiError(403, "Access denied. Seller role required.");
+  }
+
+  next();
+});
+
+export const isSellerOrAdmin = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+  const user = (req as any).user;
+
+  if (!user || (user.role !== "seller" && user.role !== "admin")) {
+    throw new ApiError(403, "Access denied. Seller or Admin role required.");
+  }
+
+  next();
+});

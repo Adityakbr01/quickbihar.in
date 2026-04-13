@@ -1,7 +1,6 @@
 import {
   Package01Icon,
-  User03Icon,
-  ShoppingCartCheck01Icon,
+  User03Icon, AddInvoiceIcon,
   Shield01Icon,
   DashboardCircleSettingsIcon
 } from "@hugeicons/core-free-icons";
@@ -42,6 +41,13 @@ export const ADMIN_CARDS: AdminCardItem[] = [
     icon: DashboardCircleSettingsIcon,
     color: "#F59E0B",
     route: "/admin/banners",
+  },
+  {
+    title: "Size Charts CRUD",
+    description: "Manage product measurements & sizes",
+    icon: AddInvoiceIcon,
+    color: "#EC4899",
+    route: "/admin/size-charts",
   },
   {
     title: "Security & Logs",
