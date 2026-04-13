@@ -29,8 +29,7 @@ export class BannerController {
     });
 
     static getPublicBanners = asyncHandler(async (req: Request, res: Response) => {
-        const { placement } = req.query;
-        const banners = await BannerService.getPublicBanners(placement as string);
+        const banners = await BannerService.getPublicBanners(req.query);
         return res
             .status(200)
             .json(new ApiResponse(200, banners, "Banners fetched successfully"));

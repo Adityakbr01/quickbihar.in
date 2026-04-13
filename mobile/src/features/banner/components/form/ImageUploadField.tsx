@@ -17,9 +17,8 @@ const ImageUploadField = ({ value, onChange, theme, styles, error }: ImageUpload
     const pickImage = async () => {
         const result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ['images'],
-            allowsEditing: true,
-            aspect: [16, 9],
-            quality: 0.8,
+            allowsEditing: true, // Reduced constraints for flexibility
+            quality: 1, // Maximum quality
         });
 
         if (!result.canceled) {
@@ -42,7 +41,7 @@ const ImageUploadField = ({ value, onChange, theme, styles, error }: ImageUpload
                         <Image
                             source={{ uri: typeof value === 'string' ? value : value.uri }}
                             style={styles.imagePreview}
-                            resizeMode="cover"
+                            resizeMode="contain"
                         />
                         <TouchableOpacity
                             style={styles.removeImageBadge}

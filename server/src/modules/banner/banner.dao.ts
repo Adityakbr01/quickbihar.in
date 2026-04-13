@@ -4,14 +4,19 @@ export class BannerDAO {
     static async createBanner(bannerData: any) {
         return await Banner.create(bannerData);
     }
+    
+    static async getMaxPriority(placement: string) {
+        const topBanner = await Banner.findOne({ placement }).sort({ priority: -1 }).select("priority").lean();
+        return topBanner ? topBanner.priority : 0;
+    }
 
     static async findAllBanners(query: any = {}) {
         return await Banner.find(query).sort({ priority: -1, createdAt: -1 });
     }
 
-    static async findActiveBanners(placement?: string) {
+    static async findActiveBanners(filters: any = {}) {
         const now = new Date();
-        const query: any = {
+        const baseQuery: any = {
             isActive: true,
             $and: [
                 { $or: [{ startDate: { $lte: now } }, { startDate: { $exists: false } }, { startDate: null }] },
@@ -19,9 +24,7 @@ export class BannerDAO {
             ]
         };
 
-        if (placement) {
-            query.placement = placement;
-        }
+        const query = { ...baseQuery, ...filters };
 
         return await Banner.find(query).sort({ priority: -1, createdAt: -1 });
     }

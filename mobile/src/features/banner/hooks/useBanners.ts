@@ -13,7 +13,7 @@ export const useBanners = (placement?: string) => {
   return useQuery({
     queryKey: ["banners", placement],
     queryFn: () => getBannersRequest(placement),
-    select: (response) => response?.data || [],
+    select: (response: any): Banner[] => response?.data || [],
   });
 };
 

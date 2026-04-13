@@ -6,6 +6,13 @@ import { ZodError } from "zod";
 export class BannerService {
     static async createBanner(bannerData: any) {
         try {
+            // Auto-handle priority if not provided
+            if (bannerData.priority === undefined || bannerData.priority === null || bannerData.priority === "") {
+                const placement = bannerData.placement || "home_top";
+                const maxPriority = await BannerDAO.getMaxPriority(placement);
+                bannerData.priority = maxPriority + 1;
+            }
+
             const validatedData: CreateBannerBody = createBannerSchema.parse(bannerData);
             const banner = await BannerDAO.createBanner(validatedData);
             if (!banner) {
@@ -20,8 +27,8 @@ export class BannerService {
         }
     }
 
-    static async getPublicBanners(placement?: string) {
-        return await BannerDAO.findActiveBanners(placement);
+    static async getPublicBanners(filters: any = {}) {
+        return await BannerDAO.findActiveBanners(filters);
     }
 
     static async getAllBanners() {

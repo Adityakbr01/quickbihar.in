@@ -42,7 +42,6 @@ export const createBannerStyles = (theme: any) => StyleSheet.create({
         paddingVertical: 4,
         borderRadius: 12,
         backgroundColor: "rgba(255,255,255,0.2)",
-        backdropFilter: "blur(10px)", // For web/iOS if supported
     },
     badgeText: {
         color: "#fff",
@@ -151,7 +150,8 @@ export const createBannerStyles = (theme: any) => StyleSheet.create({
     },
     // Image Picker Styles
     imagePickerContainer: {
-        height: 180,
+        width: "100%",
+        aspectRatio: 16 / 9,
         borderRadius: 24,
         backgroundColor: theme.tertiaryBackground,
         borderWidth: 2,

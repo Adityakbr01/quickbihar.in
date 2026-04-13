@@ -8,9 +8,11 @@ import Carousel from 'react-native-reanimated-carousel'
 import {
     useSharedValue,
 } from 'react-native-reanimated'
-import { carouselData } from '../lib/data'
-import CarouselSlide from './carousel/CarouselSlide'
-import DashIndicator from './carousel/DashIndicator'
+import Skeleton from '../../../components/common/Skeleton';
+import CarouselSlide from './carousel/CarouselSlide';
+import DashIndicator from './carousel/DashIndicator';
+import { useBanners } from '@/src/features/banner/hooks/useBanners';
+import { Banner } from '@/src/features/banner/types/banner.types';
 
 const MAX_WIDTH = 800
 
@@ -18,19 +20,37 @@ const TopHomeCarousel = () => {
     const { width: windowWidth } = useWindowDimensions()
     const progressValue = useSharedValue(0)
 
+    const { data: banners, isLoading } = useBanners("home_top");
+
     // Calculate responsive width and height
     const carouselWidth = Math.min(windowWidth, MAX_WIDTH)
     const isSmallScreen = windowWidth < 600
     // On small screens, keep 180 height. On larger, use a ~2:1 aspect ratio
     const carouselHeight = isSmallScreen ? 180 : carouselWidth * 0.48
 
+    if (isLoading) {
+        return (
+            <View style={[styles.container, { width: windowWidth, paddingHorizontal: isSmallScreen ? 20 : 0 }]}>
+                <Skeleton
+                    width={carouselWidth - (isSmallScreen ? 40 : 0)}
+                    height={carouselHeight}
+                    borderRadius={16}
+                />
+            </View>
+        );
+    }
+
+    if (!banners || banners.length === 0) {
+        return null;
+    }
+
     return (
         <View style={[styles.container, { width: windowWidth }]}>
             <View style={{ width: carouselWidth }}>
-                <Carousel
+                <Carousel<Banner>
                     width={carouselWidth}
                     height={carouselHeight}
-                    data={carouselData}
+                    data={banners}
                     autoPlay
                     loop
                     autoPlayInterval={3500}
@@ -50,14 +70,14 @@ const TopHomeCarousel = () => {
                     )}
                 />
 
-                {/* ── Flipkart-style dash indicators ── */}
+                {/* ── Dash indicators ── */}
                 <View style={styles.pagination}>
-                    {carouselData.map((_, i) => (
+                    {banners.map((_: Banner, i: number) => (
                         <DashIndicator
                             key={i}
                             index={i}
                             progressValue={progressValue}
-                            dataLength={carouselData.length}
+                            dataLength={banners.length}
                         />
                     ))}
                 </View>

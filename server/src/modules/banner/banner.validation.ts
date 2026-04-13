@@ -9,7 +9,7 @@ export const createBannerSchema = z.object({
   redirectId: z.string().optional(), // Expecting MongoDB ID as string
   externalUrl: z.string().url("Invalid external URL").optional(),
   placement: z.enum(["home_top", "home_middle", "category"]).default("home_top"),
-  priority: z.coerce.number().int().default(0),
+  priority: z.coerce.number().int().optional(),
   startDate: z.string().optional().transform((val) => (val ? new Date(val) : undefined)),
   endDate: z.string().optional().transform((val) => (val ? new Date(val) : undefined)),
   isActive: z.preprocess((val) => val === "true" || val === true, z.boolean()).default(true),
