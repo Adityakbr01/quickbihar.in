@@ -1,14 +1,15 @@
 import connectDB from "./config/db";
 import { app } from "./app";
 import { ENV } from "./config/env.config";
-import { seedAdmin } from "./utils/seed";
+import { seedAdmin, seedSizeCharts } from "./utils/seed";
 
 const port = ENV.PORT;
 
 connectDB()
   .then(async () => {
-    // Seed Admin on start
+    // Seed data on start
     await seedAdmin();
+    await seedSizeCharts();
 
     app.listen(port, () => {
       console.log(`🚀 Server is running at port : ${port}`);
