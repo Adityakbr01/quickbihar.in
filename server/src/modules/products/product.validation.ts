@@ -18,7 +18,7 @@ export const createProductSchema = z.object({
             size: z.string().min(1, "Size is required"),
             color: z.string().min(1, "Color is required"),
             stock: z.coerce.number().int().min(0, "Stock cannot be negative"),
-            sku: z.string().min(1, "SKU is required")
+            sku: z.string().optional()
         })).min(1, "At least one variant is required")
     ),
 

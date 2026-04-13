@@ -20,11 +20,11 @@ export class ProductService {
             const slug = this.generateSlug(validatedData.title);
 
             // Upload images to ImageKit
-            const imageUploadPromises = files.map(file => 
+            const imageUploadPromises = files.map(file =>
                 uploadToImageKit(file.buffer, file.originalname, "/products")
             );
             const uploadResults = await Promise.all(imageUploadPromises);
-            
+
             const images = uploadResults.map(res => ({
                 url: res.url,
                 fileId: res.fileId
@@ -85,7 +85,7 @@ export class ProductService {
 
             const updatedProduct = await ProductDAO.updateById(id, updatePayload);
             if (!updatedProduct) throw new ApiError(404, "Product update failed");
-            
+
             return updatedProduct;
         } catch (error) {
             if (error instanceof ZodError) {
@@ -106,7 +106,7 @@ export class ProductService {
         // Soft delete
         const result = await ProductDAO.softDeleteById(id);
         if (!result) throw new ApiError(500, "Failed to delete product");
-        
+
         return { success: true };
     }
 }

@@ -15,8 +15,8 @@ export interface AdminCardItem {
 
 export const ADMIN_CARDS: AdminCardItem[] = [
   {
-    title: "Product Stats",
-    description: "Manage and view product performance",
+    title: "Products CRUD",
+    description: "Manage inventory, variants and images",
     icon: Package01Icon,
     color: "#6366F1",
     route: "/admin/products",

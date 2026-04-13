@@ -5,7 +5,7 @@ const variantSchema = new Schema(
         size: { type: String, required: true },
         color: { type: String, required: true },
         stock: { type: Number, required: true },
-        sku: { type: String, required: true },
+        sku: { type: String },
     },
     { _id: false }
 );
@@ -45,7 +45,7 @@ const productSchema = new Schema(
 
         variants: { type: [variantSchema], required: true },
 
-        totalStock: { type: Number, required: true },
+        totalStock: { type: Number, default: 0 },
 
         ratings: {
             average: { type: Number, default: 0 },
@@ -53,7 +53,7 @@ const productSchema = new Schema(
         },
 
         sizeChartId: {
-            type: String, // ya ObjectId (better)
+            type: Schema.Types.ObjectId, // ya ObjectId (better)
             ref: "SizeChart",
         },
 
@@ -86,10 +86,28 @@ const productSchema = new Schema(
 
 productSchema.index({ title: "text", description: "text", tags: "text" });
 
-// Auto calculate totalStock
-productSchema.pre("save", async function () {
+// Auto calculate totalStock and generate SKUs before validation
+productSchema.pre("validate", async function () {
+    // Generate Product Base SKU if not exists
+    if (!this.details?.sku) {
+        const brandPart = (this.brand || "QB").toUpperCase().replace(/\s+/g, "").substring(0, 3);
+        const catPart = (this.category || "PRD").toUpperCase().replace(/\s+/g, "").substring(0, 3);
+        const randomPart = Math.random().toString(36).substring(2, 7).toUpperCase();
+        if (!this.details) this.details = {};
+        this.details.sku = `${brandPart}-${catPart}-${randomPart}`;
+    }
+
+    // Generate Variant SKUs
     if (this.isModified("variants")) {
         this.totalStock = this.variants.reduce((sum, variant) => sum + (variant.stock || 0), 0);
+
+        this.variants.forEach(variant => {
+            if (!variant.sku) {
+                const size = variant.size.toUpperCase().replace(/\s+/g, "");
+                const color = variant.color.toUpperCase().replace(/\s+/g, "");
+                variant.sku = `${this.details?.sku}-${size}-${color}`;
+            }
+        });
     }
 });
 
