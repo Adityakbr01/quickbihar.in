@@ -87,10 +87,12 @@ export const createBannerStyles = (theme: any) => StyleSheet.create({
         textTransform: "uppercase",
         marginBottom: 4,
         letterSpacing: 0.5,
+        color: theme.text
     },
     statValue: {
         fontSize: 15,
         fontWeight: "700",
+        color: theme.text
     },
 
     // Modal & Form Styles
