@@ -9,3 +9,6 @@ export interface Category {
     createdAt: string;
     updatedAt: string;
 }
+
+export type CreateCategoryData = Omit<Category, "_id" | "slug" | "createdAt" | "updatedAt">;
+export type UpdateCategoryData = Partial<CreateCategoryData>;

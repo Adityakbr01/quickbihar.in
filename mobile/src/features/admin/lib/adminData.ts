@@ -1,6 +1,6 @@
-import { 
-  Package01Icon, 
-  User03Icon, 
+import {
+  Package01Icon,
+  User03Icon,
   ShoppingCartCheck01Icon,
   Shield01Icon,
   DashboardCircleSettingsIcon
@@ -30,6 +30,13 @@ export const ADMIN_CARDS: AdminCardItem[] = [
     route: "/admin/users",
   },
   {
+    title: "Categories CRUD",
+    description: "Manage and organize product categories",
+    icon: DashboardCircleSettingsIcon,
+    color: "#8B5CF6",
+    route: "/admin/categories",
+  },
+  {
     title: "Banners CRUD",
     description: "Manage promotional home banners",
     icon: DashboardCircleSettingsIcon,
@@ -43,4 +50,5 @@ export const ADMIN_CARDS: AdminCardItem[] = [
     color: "#EF4444",
     route: "/admin/security",
   },
+
 ];
