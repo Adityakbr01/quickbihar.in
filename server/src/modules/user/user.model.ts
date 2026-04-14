@@ -7,6 +7,11 @@ export interface IUser extends Document {
   username: string;
   email: string;
   fullName: string;
+  phone?: string;
+  avatar?: {
+    url: string;
+    fileId: string;
+  };
   password: string;
   role: "admin" | "user" | "seller";
   refreshToken?: string;
@@ -37,6 +42,14 @@ const userSchema = new Schema<IUser>(
       required: true,
       trim: true,
       index: true,
+    },
+    phone: {
+      type: String,
+      trim: true,
+    },
+    avatar: {
+      url: String,
+      fileId: String
     },
     password: {
       type: String,

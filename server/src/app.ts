@@ -33,16 +33,27 @@ import sizeChartRouter from "./modules/sizeChart/sizeChart.router";
 import couponRouter from "./modules/coupon/coupon.router";
 import orderRouter from "./modules/order/order.router";
 import labelRouter from "./modules/label/label.router";
+import userRouter from "./modules/user/user.router";
+import addressRouter from "./modules/savedAddress/savedAddresses.router";
+import paymentMethodRouter from "./modules/paymentMethod/paymentMethod.router";
+import cartRouter from "./modules/cart/cart.router";
+import wishlistRouter from "./modules/wishlist/wishlist.router";
 
 // Routes Declaration
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/banners", bannerRouter);
 app.use("/api/v1/categories", categoryRouter);
 app.use("/api/v1/products", productRouter);
+// not tested
 app.use("/api/v1/size-charts", sizeChartRouter);
 app.use("/api/v1/coupons", couponRouter);
 app.use("/api/v1/orders", orderRouter);
 app.use("/api/v1/labels", labelRouter);
+app.use("/api/v1/users", userRouter);
+app.use("/api/v1/addresses", addressRouter);
+app.use("/api/v1/payment-methods", paymentMethodRouter);
+app.use("/api/v1/cart", cartRouter);
+app.use("/api/v1/wishlist", wishlistRouter);
 
 // Global Error Handler
 app.use(errorHandler);
