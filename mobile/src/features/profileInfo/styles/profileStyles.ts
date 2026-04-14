@@ -1,0 +1,185 @@
+import { StyleSheet, Platform } from "react-native";
+import { Theme } from "@/src/theme/Provider/ThemeProvider";
+
+export const createProfileStyles = (theme: Theme) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.background,
+    },
+    headerGradient: {
+      paddingBottom: 40,
+      borderBottomLeftRadius: 30,
+      borderBottomRightRadius: 30,
+      overflow: "hidden",
+    },
+    headerContent: {
+      alignItems: "center",
+      paddingTop: 10,
+    },
+    avatarContainer: {
+      position: "relative",
+    },
+    avatar: {
+      width: 120,
+      height: 120,
+      borderRadius: 60,
+      borderWidth: 4,
+      borderColor: theme.background,
+    },
+    editAvatarButton: {
+      position: "absolute",
+      right: 0,
+      bottom: 0,
+      backgroundColor: theme.primary,
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      justifyContent: "center",
+      alignItems: "center",
+      borderWidth: 3,
+      borderColor: theme.background,
+    },
+    nameContainer: {
+      alignItems: "center",
+      marginTop: 15,
+    },
+    fullName: {
+      fontSize: 24,
+      fontWeight: "800",
+      color: theme.text,
+    },
+    username: {
+      fontSize: 16,
+      color: theme.secondaryText,
+      marginTop: 4,
+    },
+    roleBadge: {
+      backgroundColor: theme.primary + "20",
+      paddingHorizontal: 12,
+      paddingVertical: 4,
+      borderRadius: 20,
+      marginTop: 10,
+    },
+    roleText: {
+      fontSize: 12,
+      fontWeight: "700",
+      color: theme.primary,
+      textTransform: "uppercase",
+    },
+    content: {
+      flex: 1,
+      padding: 20,
+      marginTop: -30,
+    },
+    infoCard: {
+      backgroundColor: theme.background,
+      borderRadius: 20,
+      padding: 20,
+      ...Platform.select({
+        ios: {
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.1,
+          shadowRadius: 12,
+        },
+        android: {
+          elevation: 4,
+        },
+      }),
+    },
+    infoRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingVertical: 15,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.border + "50",
+    },
+    iconContainer: {
+      width: 40,
+      height: 40,
+      borderRadius: 12,
+      backgroundColor: theme.background,
+      justifyContent: "center",
+      alignItems: "center",
+      marginRight: 15,
+    },
+    infoLabel: {
+      fontSize: 12,
+      color: theme.tertiaryText,
+      marginBottom: 2,
+    },
+    infoValue: {
+      fontSize: 16,
+      fontWeight: "600",
+      color: theme.text,
+    },
+    editButton: {
+      backgroundColor: theme.primary,
+      height: 56,
+      borderRadius: 16,
+      justifyContent: "center",
+      alignItems: "center",
+      marginTop: 30,
+      flexDirection: "row",
+      gap: 10,
+    },
+    editButtonText: {
+      color: "#fff",
+      fontSize: 16,
+      fontWeight: "700",
+    },
+    inputGroup: {
+      marginBottom: 20,
+    },
+    inputLabel: {
+      fontSize: 14,
+      fontWeight: "600",
+      color: theme.secondaryText,
+      marginBottom: 8,
+    },
+    input: {
+      backgroundColor: theme.background,
+      height: 54,
+      borderRadius: 12,
+      paddingHorizontal: 16,
+      fontSize: 16,
+      color: theme.text,
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    errorText: {
+      color: theme.error,
+      fontSize: 12,
+      marginTop: 4,
+    },
+    buttonRow: {
+      flexDirection: "row",
+      gap: 15,
+      marginTop: 20,
+    },
+    cancelButton: {
+      flex: 1,
+      height: 56,
+      borderRadius: 16,
+      backgroundColor: theme.background,
+      justifyContent: "center",
+      alignItems: "center",
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    saveButton: {
+      flex: 2,
+      height: 56,
+      borderRadius: 16,
+      backgroundColor: theme.primary,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    memberSince: {
+      textAlign: "center",
+      color: theme.tertiaryText,
+      fontSize: 12,
+      marginTop: 30,
+    },
+  });

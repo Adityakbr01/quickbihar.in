@@ -30,6 +30,7 @@
     "@react-navigation/native": "^7.1.8",
     "@tanstack/react-query": "^5.99.0",
     "axios": "^1.15.0",
+    "dayjs": "^1.11.20",
     "expo": "~54.0.33",
     "expo-blur": "~15.0.8",
     "expo-constants": "~18.0.13",

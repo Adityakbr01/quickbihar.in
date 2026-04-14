@@ -28,6 +28,9 @@ const AccountMain = () => {
     } else if (label === "Addresses") {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       router.push("/account/addresses");
+    } else if (label === "Profile Info") {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      router.push("/account/profile-info");
     } else {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
