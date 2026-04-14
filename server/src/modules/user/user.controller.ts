@@ -11,6 +11,7 @@ export class UserController {
     static updateProfile = asyncHandler(async (req, res) => {
         const userId = (req as any).user._id;
         const { fullName, phone } = req.body;
+        console.log(`[SERVER_DEBUG] Profile update request for user ${userId}:`, req.body);
 
         const updateData: any = {};
         if (fullName) updateData.fullName = fullName;

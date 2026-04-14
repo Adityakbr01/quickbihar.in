@@ -9,6 +9,7 @@ import { ACCOUNT_SECTIONS, LOGOUT_OPTION } from "../lib/accountData";
 import { useLogout } from "../../auth/hooks/useAuth";
 import { useAuthStore } from "../../auth/store/authStore";
 import { ActivityIndicator } from "react-native";
+import EditProfileModal from "../components/EditProfileModal";
 
 const AccountMain = () => {
   const theme = useTheme();
@@ -38,7 +39,11 @@ const AccountMain = () => {
             styles={styles}
             name={user?.fullName || "Guest"}
             email={user?.email || "guest@quickbihar.in"}
+            avatarUrl={user?.avatar?.url}
           />
+
+          {/* New Profile Edit Modal */}
+          <EditProfileModal />
 
           {ACCOUNT_SECTIONS.map((section, sectionIndex) => (
             <View key={section.title} style={styles.section}>

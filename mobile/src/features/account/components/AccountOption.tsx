@@ -1,16 +1,15 @@
-import React, { useState } from "react";
-import { View, Text, TouchableOpacity } from "react-native";
-import { HugeiconsIcon } from "@hugeicons/react-native";
-import { ArrowRight01Icon, ArrowDown01Icon } from "@hugeicons/core-free-icons";
-import * as Haptics from "expo-haptics";
-import Animated, { 
-  useAnimatedStyle, 
-  useSharedValue, 
-  withTiming,
-  interpolate,
-  Extrapolate
-} from "react-native-reanimated";
 import { Theme } from "@/src/theme/Provider/ThemeProvider";
+import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react-native";
+import * as Haptics from "expo-haptics";
+import React, { useState } from "react";
+import { Text, TouchableOpacity, View } from "react-native";
+import Animated, {
+  interpolate,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming
+} from "react-native-reanimated";
 
 interface SubItem {
   label: string;

@@ -6,7 +6,9 @@ interface User {
   username: string;
   email: string;
   fullName: string;
-  role: "admin" | "user";
+  role: "admin" | "user" | "seller";
+  avatar?: { url: string; fileId: string };
+  phone?: string;
 }
 
 interface AuthState {
