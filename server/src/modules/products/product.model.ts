@@ -80,9 +80,20 @@ const productSchema = new Schema(
         isActive: { type: Boolean, default: true },
         isDeleted: { type: Boolean, default: false },
     },
-    { timestamps: true }
+    { 
+        timestamps: true,
+        toJSON: { virtuals: true },
+        toObject: { virtuals: true }
+    }
 );
 
+// Virtual for formatted discount string (e.g., "45% OFF")
+productSchema.virtual("discountLabel").get(function () {
+    if (this.discountPercentage && this.discountPercentage > 0) {
+        return `${Math.round(this.discountPercentage)}% OFF`;
+    }
+    return null;
+});
 
 productSchema.index({ title: "text", description: "text", tags: "text" });
 
@@ -95,6 +106,15 @@ productSchema.pre("validate", async function () {
         const randomPart = Math.random().toString(36).substring(2, 7).toUpperCase();
         if (!this.details) this.details = {};
         this.details.sku = `${brandPart}-${catPart}-${randomPart}`;
+    }
+
+    // Calculate Discount Percentage
+    if (this.isModified("price") || this.isModified("originalPrice")) {
+        if (this.originalPrice && this.originalPrice > this.price) {
+            this.discountPercentage = ((this.originalPrice - this.price) / this.originalPrice) * 100;
+        } else {
+            this.discountPercentage = 0;
+        }
     }
 
     // Generate Variant SKUs

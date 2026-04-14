@@ -19,8 +19,9 @@ export interface IProduct {
   category: string;
   subCategory?: string;
   price: number;
-  originalPrice?: number;
-  discountPercentage?: number;
+  originalPrice: number;
+  discountPercentage: number;
+  discountLabel?: string;
   currency: string;
   images: IProductImage[];
   sellerId: string;

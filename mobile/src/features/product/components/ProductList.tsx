@@ -31,7 +31,20 @@ const ProductList = ({ products, onEdit, onDelete, loading }: ProductListProps) 
 
   const renderItem = ({ item }: { item: IProduct }) => (
     <View style={styles.card}>
-      <Image source={{ uri: item.images[0]?.url }} style={styles.thumbnail} />
+      <View style={styles.imageContainer}>
+        <Image
+          source={{ uri: item.images && item.images[0]?.url }}
+          style={styles.thumbnail}
+          resizeMode="cover"
+        />
+        {item.discountPercentage > 0 && (
+          <View style={styles.discountBadge}>
+            <Text style={styles.discountText}>
+              {item.discountLabel || `${Math.round(item.discountPercentage)}% OFF`}
+            </Text>
+          </View>
+        )}
+      </View>
       <View style={styles.cardContent}>
         <Text style={styles.cardTitle} numberOfLines={1}>{item.title}</Text>
         <Text style={styles.cardSubtitle}>
@@ -143,6 +156,31 @@ const createStyles = (theme: Theme) =>
       marginTop: 12,
       color: theme.tertiaryText,
       fontSize: 16,
+    },
+    imageContainer: {
+      width: 70,
+      height: 70,
+      position: "relative",
+    },
+    discountBadge: {
+      position: "absolute",
+      top: -6,
+      left: -6,
+      backgroundColor: theme.primary,
+      paddingHorizontal: 6,
+      paddingVertical: 2,
+      borderRadius: 6,
+      elevation: 2,
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.2,
+      shadowRadius: 1,
+      zIndex: 10,
+    },
+    discountText: {
+      color: "#fff",
+      fontSize: 9,
+      fontWeight: "800",
     },
   });
 

@@ -52,6 +52,7 @@ const ProductForm = ({ visible, onClose, onSubmit, initialData, loading }: Produ
   const [category, setCategory] = useState("");
   const [price, setPrice] = useState("");
   const [originalPrice, setOriginalPrice] = useState("");
+  const [discountPercentage, setDiscountPercentage] = useState("");
   const [images, setImages] = useState<any[]>([]);
   const [variants, setVariants] = useState<IVariant[]>([{ size: "", color: "", stock: 0, sku: "" }]);
   const [sizeChartId, setSizeChartId] = useState("");
@@ -76,6 +77,7 @@ const ProductForm = ({ visible, onClose, onSubmit, initialData, loading }: Produ
         setCategory(initialData.category);
         setPrice(String(initialData.price));
         setOriginalPrice(String(initialData.originalPrice || ""));
+        setDiscountPercentage(String(initialData.discountPercentage || ""));
         setImages(initialData.images.map(img => ({ url: img.url, fileId: img.fileId })));
         setVariants(initialData.variants);
         setSizeChartId(initialData.sizeChartId || "");
@@ -94,7 +96,7 @@ const ProductForm = ({ visible, onClose, onSubmit, initialData, loading }: Produ
   }, [visible, initialData]);
 
   const resetForm = () => {
-    setTitle(""); setDescription(""); setBrand(""); setCategory(""); setPrice(""); setOriginalPrice("");
+    setTitle(""); setDescription(""); setBrand(""); setCategory(""); setPrice(""); setOriginalPrice(""); setDiscountPercentage("");
     setImages([]); setVariants([{ size: "", color: "", stock: 0, sku: "" }]);
     setSizeChartId(""); setTags(""); setFit(""); setPattern(""); setSleeve(""); setWashCare("");
     setIsExpressAvailable(false); setEstimatedDays("3");
@@ -211,7 +213,7 @@ const ProductForm = ({ visible, onClose, onSubmit, initialData, loading }: Produ
 
           <ScrollView style={styles.form} contentContainerStyle={styles.formContent}>
             <ProductBasicInfo {...{ theme, styles, title, setTitle, description, setDescription, brand, setBrand, tags, setTags, errors }} />
-            <ProductPricing {...{ theme, styles, price, setPrice, originalPrice, setOriginalPrice, errors }} />
+            <ProductPricing {...{ theme, styles, price, setPrice, originalPrice, setOriginalPrice, discountPercentage, setDiscountPercentage, errors }} />
             <ProductMedia {...{ theme, styles, images, pickImage, removeImage, errors }} />
             <ProductCategorySelector {...{ theme, styles, categories, category, setCategory, errors }} />
             <ProductSizeChartSelector {...{ theme, styles, sizeCharts, sizeChartId, setSizeChartId }} />

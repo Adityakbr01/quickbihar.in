@@ -10,20 +10,25 @@
   "devDependencies": {
     "@types/bcryptjs": "^3.0.0",
     "@types/bun": "latest",
+    "@types/bwip-js": "^3.2.3",
     "@types/cookie-parser": "^1.4.10",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/multer": "^2.1.0",
-    "@types/node": "^25.6.0"
+    "@types/node": "^25.6.0",
+    "@types/pdfkit": "^0.17.5"
   },
   "peerDependencies": {
     "typescript": "^5"
   },
   "dependencies": {
+    "bwip-js": "^4.9.2",
     "cookie-parser": "^1.4.7",
     "imagekit": "^6.0.0",
     "multer": "^2.1.1",
+    "pdfkit": "^0.18.0",
+    "razorpay": "^2.9.6",
     "zod": "^4.3.6"
   }
 }

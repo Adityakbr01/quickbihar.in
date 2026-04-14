@@ -2,7 +2,8 @@ import {
   Package01Icon,
   User03Icon, AddInvoiceIcon,
   Shield01Icon,
-  DashboardCircleSettingsIcon
+  DashboardCircleSettingsIcon,
+  Coupon02Icon
 } from "@hugeicons/core-free-icons";
 
 export interface AdminCardItem {
@@ -15,19 +16,20 @@ export interface AdminCardItem {
 
 export const ADMIN_CARDS: AdminCardItem[] = [
   {
+    title: "Coupons CRUD",
+    description: "Manage promo codes and special offers",
+    icon: Coupon02Icon,
+    color: "#F97316",
+    route: "/admin/coupons",
+  },
+  {
     title: "Products CRUD",
     description: "Manage inventory, variants and images",
     icon: Package01Icon,
     color: "#6366F1",
     route: "/admin/products",
   },
-  {
-    title: "User Management",
-    description: "Control user roles and permissions",
-    icon: User03Icon,
-    color: "#10B981",
-    route: "/admin/users",
-  },
+
   {
     title: "Categories CRUD",
     description: "Manage and organize product categories",
@@ -48,6 +50,13 @@ export const ADMIN_CARDS: AdminCardItem[] = [
     icon: AddInvoiceIcon,
     color: "#EC4899",
     route: "/admin/size-charts",
+  },
+  {
+    title: "User Management",
+    description: "Control user roles and permissions",
+    icon: User03Icon,
+    color: "#10B981",
+    route: "/admin/users",
   },
   {
     title: "Security & Logs",

@@ -23,8 +23,8 @@ export class ProductDAO {
         return await Product.findOne({ slug, isDeleted: false });
     }
 
-    static async updateById(id: string, data: any) {
-        return await Product.findByIdAndUpdate(id, data, { returnDocument: "after" });
+    static async updateById(id: string, data: any, options: any = { returnDocument: "after" }) {
+        return await Product.findByIdAndUpdate(id, data, options);
     }
 
     static async softDeleteById(id: string) {

@@ -10,13 +10,17 @@ const envSchema = z.object({
   ACCESS_TOKEN_EXPIRY: z.string().default("1d"),
   REFRESH_TOKEN_SECRET: z.string().min(8),
   REFRESH_TOKEN_EXPIRY: z.string().default("10d"),
-  CORS_ORIGIN: z.string().transform((val) => val.split(",").map((s) => s.trim())).default("*"),
+  CORS_ORIGIN: z.string().transform((val) => val.split(",").map((s) => s.trim())).default(["*"]),
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
   ADMIN_EMAIL: z.string().email().default("admin@gmail.com"),
   ADMIN_PASSWORD: z.string().min(8).default("admin123"),
   IMAGEKIT_PUBLIC_KEY: z.string(),
   IMAGEKIT_PRIVATE_KEY: z.string(),
   IMAGEKIT_URL_ENDPOINT: z.string(),
+  //RAZORPAY
+  RAZORPAY_KEY_ID: z.string(),
+  RAZORPAY_KEY_SECRET: z.string(),
+  RAZORPAY_WEBHOOK_SECRET: z.string(), // right now not implmeneted
 });
 
 const _env = envSchema.safeParse(process.env);
