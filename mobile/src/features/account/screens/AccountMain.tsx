@@ -11,17 +11,23 @@ import { useAuthStore } from "../../auth/store/authStore";
 import { ActivityIndicator } from "react-native";
 import EditProfileModal from "../components/EditProfileModal";
 
+import { useRouter } from "expo-router";
+
 const AccountMain = () => {
   const theme = useTheme();
   const styles = createAccountStyles(theme);
   const user = useAuthStore((state) => state.user);
   const { mutate: logout, isPending: isLoggingOut } = useLogout();
+  const router = useRouter();
 
   const handleOptionPress = (label: string) => {
     console.log(`Pressed: ${label}`);
     if (label === "Logout") {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
       logout();
+    } else if (label === "Addresses") {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      router.push("/account/addresses");
     } else {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }

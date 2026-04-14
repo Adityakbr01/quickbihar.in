@@ -11,6 +11,8 @@ export const addressSchema = z.object({
     landmark: z.string().optional(),
     addressType: z.nativeEnum(AddressType).default(AddressType.HOME),
     isDefault: z.boolean().default(false),
+    latitude: z.number().optional(),
+    longitude: z.number().optional(),
 });
 
 export const updateAddressSchema = addressSchema.partial();
