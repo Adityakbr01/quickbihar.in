@@ -24,6 +24,12 @@ export default function AccountLayout() {
         }}
       />
       <Stack.Screen
+        name="wishlist"
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
         name="address-form"
         options={{
           headerTitle: "Delivery Address",
