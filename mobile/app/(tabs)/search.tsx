@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect } from "react";
 import { StyleSheet, View, ScrollView, Platform } from "react-native";
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
 
 import SafeViewWrapper from "@/src/provider/SafeViewWrapper";
@@ -10,79 +10,66 @@ import SearchHeader from "@/src/features/search/components/SearchHeader";
 import RecentSearches from "@/src/features/search/components/RecentSearches";
 import TrendingSection from "@/src/features/search/components/TrendingSection";
 import SearchResults from "@/src/features/search/components/SearchResults";
-import FilterBar, { SortOption } from "@/src/features/search/components/FilterBar";
+import FilterBar, { SortOption, SearchFilters } from "@/src/features/search/components/FilterBar";
 
-// Import real mock data
-import { MOCK_PRODUCTS, Product } from "@/src/features/home/lib/mockData";
 import { categoriesData } from "@/src/features/home/lib/data";
+import { useSearchProducts } from "@/src/features/search/hooks/useSearchProducts";
 
 const TRENDING_ITEMS = categoriesData.map(c => c.title);
 
 const SearchScreen = () => {
     const theme = useTheme();
+    const router = useRouter();
     const { query: initialQuery } = useLocalSearchParams<{ query: string }>();
 
     const [query, setQuery] = useState(initialQuery || "");
-    const [results, setResults] = useState<Product[]>([]);
-    const [loading, setLoading] = useState(false);
+    const [debouncedQuery, setDebouncedQuery] = useState(query);
     const [history, setHistory] = useState(["Summer Dress", "Jeans", "Sarees"]);
     const [selectedSort, setSelectedSort] = useState<SortOption>("relevance");
+    const [filters, setFilters] = useState<SearchFilters>({});
 
-    const parsePrice = (priceStr: string) => {
-        return parseInt(priceStr.replace(/[^0-9]/g, ""));
-    };
+    // Debounce query to optimize API calls
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            setDebouncedQuery(query);
+        }, 500);
 
-    const handleSearch = useCallback((searchTerm: string, sort?: SortOption) => {
-        if (!searchTerm.trim()) {
-            setResults([]);
-            return;
+        return () => clearTimeout(handler);
+    }, [query]);
+
+    const {
+        data,
+        isLoading,
+        isFetchingNextPage,
+        fetchNextPage,
+        hasNextPage,
+        refetch
+    } = useSearchProducts(debouncedQuery, { ...filters, sortBy: selectedSort });
+
+    // Flatten pages for SearchResults
+    const flatResults = data?.pages.flatMap(page => page.data) || [];
+
+    const onSearchTrigger = useCallback((searchTerm: string) => {
+        if (!searchTerm.trim()) return;
+
+        if (!history.includes(searchTerm)) {
+            setHistory(prev => [searchTerm, ...prev.slice(0, 4)]);
         }
-
-        setLoading(true);
-        const currentSort = sort || selectedSort;
-
-        // Simulate API delay
-        setTimeout(() => {
-            const words = searchTerm.split(/\s+/).filter(Boolean);
-            const escapedWords = words.map(w => w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
-            const regex = new RegExp(escapedWords.join("|"), "i");
-
-            let filtered = MOCK_PRODUCTS.filter(item =>
-                regex.test(item.name) ||
-                (item as any).category && regex.test((item as any).category) ||
-                (item as any).tags && (item as any).tags.some((tag: string) => regex.test(tag))
-            );
-
-            // Sorting logic
-            if (currentSort === "price_low") {
-                filtered.sort((a, b) => parsePrice(a.price) - parsePrice(b.price));
-            } else if (currentSort === "price_high") {
-                filtered.sort((a, b) => parsePrice(b.price) - parsePrice(a.price));
-            } else if (currentSort === "rating") {
-                filtered.sort((a, b) => b.rating - a.rating);
-            }
-
-            setResults(filtered);
-            setLoading(false);
-
-            if (!history.includes(searchTerm)) {
-                setHistory(prev => [searchTerm, ...prev.slice(0, 4)]);
-            }
-        }, 600);
-    }, [history, selectedSort]);
+    }, [history]);
 
     useEffect(() => {
         if (initialQuery) {
             setQuery(initialQuery);
-            handleSearch(initialQuery);
+            onSearchTrigger(initialQuery);
         }
-    }, [initialQuery, handleSearch]);
+    }, [initialQuery, onSearchTrigger]);
 
     const handleSortChange = (sort: SortOption) => {
         setSelectedSort(sort);
-        if (query.trim()) {
-            handleSearch(query, sort);
-        }
+    };
+
+    const handleFilterChange = (newFilters: SearchFilters) => {
+        setFilters(newFilters);
     };
 
     const onClearHistory = () => {
@@ -96,7 +83,13 @@ const SearchScreen = () => {
 
     const onSelectItem = (item: string) => {
         setQuery(item);
-        handleSearch(item);
+        setDebouncedQuery(item); // Immediate update for explicit selections
+        onSearchTrigger(item);
+    };
+
+    const handleItemPress = (id: string) => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        router.push({ pathname: "/product/[id]", params: { id } });
     };
 
     return (
@@ -107,15 +100,19 @@ const SearchScreen = () => {
                     setQuery={setQuery}
                     onClear={() => {
                         setQuery("");
-                        setResults([]);
                     }}
-                    onSubmit={() => handleSearch(query)}
+                    onSubmit={() => {
+                        setDebouncedQuery(query);
+                        onSearchTrigger(query);
+                    }}
                 />
 
                 {query.length > 0 && (
                     <FilterBar
                         selectedSort={selectedSort}
                         onSortChange={handleSortChange}
+                        filters={filters}
+                        onFilterChange={handleFilterChange}
                     />
                 )}
 
@@ -138,11 +135,15 @@ const SearchScreen = () => {
                         </ScrollView>
                     ) : (
                         <SearchResults
-                            results={results}
-                            loading={loading}
-                            onItemPress={(id) => {
-                                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                            results={flatResults}
+                            loading={isLoading}
+                            onItemPress={handleItemPress}
+                            onEndReached={() => {
+                                if (hasNextPage && !isFetchingNextPage) {
+                                    fetchNextPage();
+                                }
                             }}
+                            isFetchingNextPage={isFetchingNextPage}
                         />
                     )}
                 </View>

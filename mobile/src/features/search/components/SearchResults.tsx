@@ -6,28 +6,37 @@ import {
   View,
   Pressable,
   Dimensions,
+  ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Image as ExpoImage } from "expo-image";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
-import { Product } from "../../home/lib/mockData";
+import { IProduct } from "../../product/types/product.types";
 
 const { width } = Dimensions.get("window");
 const COLUMN_WIDTH = (width - 48) / 2;
 
 interface SearchResultsProps {
-  results: Product[];
+  results: IProduct[];
   loading: boolean;
   onItemPress: (id: string) => void;
+  onEndReached?: () => void;
+  isFetchingNextPage?: boolean;
 }
 
-const SearchResults = ({ results, loading, onItemPress }: SearchResultsProps) => {
+const SearchResults = ({ 
+  results, 
+  loading, 
+  onItemPress,
+  onEndReached,
+  isFetchingNextPage
+}: SearchResultsProps) => {
   const theme = useTheme();
 
-  if (loading) {
+  if (loading && results.length === 0) {
     return (
       <View style={styles.skeletonContainer}>
-        {[1, 2, 3, 4].map((i) => (
+        {[1, 2, 3, 4, 5, 6].map((i) => (
           <View key={i} style={styles.skeletonItem}>
             <View style={[styles.skeletonImage, { backgroundColor: theme.tertiaryBackground }]} />
             <View style={[styles.skeletonText, { backgroundColor: theme.tertiaryBackground, width: "80%" }]} />
@@ -38,56 +47,70 @@ const SearchResults = ({ results, loading, onItemPress }: SearchResultsProps) =>
     );
   }
 
-  if (results.length === 0) {
+  if (results.length === 0 && !loading) {
     return (
       <View style={styles.emptyContainer}>
         <Ionicons name="shirt-outline" size={60} color={theme.tertiaryText} />
         <Text style={[styles.emptyText, { color: theme.secondaryText }]}>
-          No clothing items found for your search.
+          No items found for your search.
         </Text>
       </View>
     );
   }
 
+  const renderFooter = () => {
+    if (!isFetchingNextPage) return null;
+    return (
+      <View style={styles.footerLoader}>
+        <ActivityIndicator size="small" color={theme.primary} />
+      </View>
+    );
+  };
+
   return (
     <FlatList
       data={results}
-      keyExtractor={(item) => item.id}
+      keyExtractor={(item) => item._id}
       numColumns={2}
       contentContainerStyle={styles.listContent}
       columnWrapperStyle={styles.columnWrapper}
+      onEndReached={onEndReached}
+      onEndReachedThreshold={0.5}
+      ListFooterComponent={renderFooter}
       renderItem={({ item }) => (
         <Pressable
           style={[styles.productCard, { backgroundColor: theme.background }]}
-          onPress={() => onItemPress(item.id)}
+          onPress={() => onItemPress(item._id)}
         >
           <View style={styles.imageContainer}>
             <ExpoImage
-              source={{ uri: item.image }}
+              source={{ uri: item.images?.[0]?.url }}
               contentFit="cover"
               style={styles.productImage}
               transition={200}
             />
-            {item.discount && (
+            {item.discountPercentage > 0 && (
               <View style={[styles.discountBadge, { backgroundColor: theme.primary }]}>
-                <Text style={styles.discountText}>{item.discount}</Text>
+                <Text style={styles.discountText}>{Math.round(item.discountPercentage)}% OFF</Text>
               </View>
             )}
-            <View style={styles.ratingBadge}>
-              <Ionicons name="star" size={10} color="#FFD700" />
-              <Text style={styles.ratingText}>{item.rating}</Text>
-            </View>
+            {item.ratings && (
+              <View style={styles.ratingBadge}>
+                <Ionicons name="star" size={10} color="#FFD700" />
+                <Text style={styles.ratingText}>{item.ratings.average.toFixed(1)}</Text>
+              </View>
+            )}
           </View>
 
           <View style={styles.infoContainer}>
             <Text style={[styles.productName, { color: theme.text }]} numberOfLines={1}>
-              {item.name}
+              {item.title}
             </Text>
             <View style={styles.priceContainer}>
-              <Text style={[styles.price, { color: theme.text }]}>{item.price}</Text>
-              {item.originalPrice && (
+              <Text style={[styles.price, { color: theme.text }]}>₹{item.price.toLocaleString()}</Text>
+              {item.originalPrice > item.price && (
                 <Text style={[styles.originalPrice, { color: theme.tertiaryText }]}>
-                  {item.originalPrice}
+                  ₹{item.originalPrice.toLocaleString()}
                 </Text>
               )}
             </View>
@@ -205,6 +228,10 @@ const styles = StyleSheet.create({
     marginTop: 16,
     fontSize: 16,
     textAlign: "center",
+  },
+  footerLoader: {
+    paddingVertical: 20,
+    alignItems: "center",
   },
 });
 

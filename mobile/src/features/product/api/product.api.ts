@@ -18,6 +18,13 @@ export const getPublicProductsRequest = async (params: {
   limit?: number; 
   search?: string; 
   category?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  brand?: string;
+  sortBy?: string;
+  isTrending?: boolean;
+  isFeatured?: boolean;
+  isNewArrival?: boolean;
 }): Promise<{ data: IProduct[]; total: number }> => {
   const response = await axiosInstance.get("/products/public", { params });
   return response.data.data;

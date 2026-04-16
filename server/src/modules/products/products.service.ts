@@ -51,12 +51,8 @@ export class ProductService {
         const limit = parseInt(query.limit as string) || 10;
         const skip = (page - 1) * limit;
 
-        const filter: any = {};
-        if (query.isActive !== undefined) filter.isActive = query.isActive === "true" || query.isActive === true;
-        if (query.category) filter.category = query.category;
-        if (query.search) filter.search = query.search;
-
-        return await ProductDAO.findAll(filter, { skip, limit });
+        // DAO handles parsing individual filters from query object
+        return await ProductDAO.findAll(query, { skip, limit });
     }
 
     static async getTrendingProducts() {

@@ -9,18 +9,53 @@ export class ProductDAO {
     static async findAll(query: any = {}, options: { skip?: number; limit?: number } = {}) {
         const { skip = 0, limit = 10 } = options;
         
-        // Handle text search if provided
-        let finalQuery = { ...query, isDeleted: false };
+        const finalQuery: any = { isDeleted: false };
+        
+        // 1. Hande Text Search
         if (query.search) {
-            finalQuery = {
-                ...finalQuery,
-                $text: { $search: query.search }
-            };
-            delete (finalQuery as any).search;
+            finalQuery.$text = { $search: query.search };
+        }
+
+        // 2. Handle Filters
+        if (query.isActive !== undefined) {
+            finalQuery.isActive = query.isActive === "true" || query.isActive === true;
+        }
+
+        if (query.category) {
+            finalQuery.category = query.category;
+        }
+
+        if (query.brand) {
+            finalQuery.brand = { $regex: new RegExp(query.brand, "i") };
+        }
+
+        if (query.minPrice || query.maxPrice) {
+            finalQuery.price = {};
+            if (query.minPrice) finalQuery.price.$gte = Number(query.minPrice);
+            if (query.maxPrice) finalQuery.price.$lte = Number(query.maxPrice);
+        }
+
+        // Feature flags
+        if (query.isTrending) finalQuery.isTrending = true;
+        if (query.isFeatured) finalQuery.isFeatured = true;
+        if (query.isNewArrival) finalQuery.isNewArrival = true;
+
+        // 3. Handle Sorting
+        let sortOption: any = { createdAt: -1 };
+        if (query.search) {
+            sortOption = { score: { $meta: "textScore" } };
+        } else if (query.sortBy) {
+            switch (query.sortBy) {
+                case "price_low": sortOption = { price: 1 }; break;
+                case "price_high": sortOption = { price: -1 }; break;
+                case "rating": sortOption = { "ratings.average": -1 }; break;
+                case "newest": sortOption = { createdAt: -1 }; break;
+                case "oldest": sortOption = { createdAt: 1 }; break;
+            }
         }
 
         const data = await Product.find(finalQuery)
-            .sort(query.search ? { score: { $meta: "textScore" } } : { createdAt: -1 })
+            .sort(sortOption)
             .skip(skip)
             .limit(limit);
 
