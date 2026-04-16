@@ -6,8 +6,27 @@ export class ProductDAO {
         return await Product.create(data);
     }
 
-    static async findAll(query: any = {}) {
-        return await Product.find({ ...query, isDeleted: false }).sort({ createdAt: -1 });
+    static async findAll(query: any = {}, options: { skip?: number; limit?: number } = {}) {
+        const { skip = 0, limit = 10 } = options;
+        
+        // Handle text search if provided
+        let finalQuery = { ...query, isDeleted: false };
+        if (query.search) {
+            finalQuery = {
+                ...finalQuery,
+                $text: { $search: query.search }
+            };
+            delete (finalQuery as any).search;
+        }
+
+        const data = await Product.find(finalQuery)
+            .sort(query.search ? { score: { $meta: "textScore" } } : { createdAt: -1 })
+            .skip(skip)
+            .limit(limit);
+
+        const total = await Product.countDocuments(finalQuery);
+
+        return { data, total };
     }
 
     /* Used for sellers to fetch only their products */

@@ -19,7 +19,7 @@ export class CategoryController {
             throw new ApiError(400, "Category image is required");
         }
 
-        const uploadResult = await uploadToImageKit(req.file.buffer, req.file.originalname, "/categories");
+        const uploadResult = await uploadToImageKit(req.file.buffer, req.file.originalname, "categories");
 
         const categoryData = {
             ...req.body,
@@ -53,7 +53,7 @@ export class CategoryController {
         let categoryData = { ...req.body };
 
         if (req.file) {
-            const uploadResult = await uploadToImageKit(req.file.buffer, req.file.originalname, "/categories");
+            const uploadResult = await uploadToImageKit(req.file.buffer, req.file.originalname, "categories");
             categoryData.image = uploadResult.url;
             categoryData.imagePublicId = uploadResult.fileId;
         }

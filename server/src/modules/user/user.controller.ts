@@ -43,7 +43,7 @@ export class UserController {
         const uploadResult = await uploadToImageKit(
             file.buffer, 
             `avatar_${userId}_${Date.now()}`, 
-            "/profiles"
+            "profiles"
         );
 
         // 2. Delete old avatar if exists

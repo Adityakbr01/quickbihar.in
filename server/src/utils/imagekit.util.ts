@@ -1,12 +1,33 @@
 import { imagekit } from "../config/imagekit.config";
 import { ApiError } from "./ApiError";
 
-export const uploadToImageKit = async (fileBuffer: Buffer, fileName: string, folder: string = "/banners") => {
+/**
+ * Sanitizes a filename for web-safe ImageKit upload
+ * Example: "My Red Shirt (L).png" -> "my_red_shirt_l_1623456789.png"
+ */
+const sanitizeFileName = (fileName: string) => {
+  const ext = fileName.split('.').pop() || "";
+  const nameWithoutExt = fileName.substring(0, fileName.lastIndexOf('.')) || fileName;
+  
+  const cleanName = nameWithoutExt
+    .toLowerCase()
+    .replace(/[^a-z0-9]/gi, "_") // Replace non-alphanumeric with underscore
+    .replace(/_+/g, "_")         // Collapse multiple underscores
+    .replace(/^_|_$/g, "");      // Trim underscores from start/end
+
+  // Append timestamp to ensure uniqueness and prevent CDN caching issues on replacement
+  return `${cleanName}_${Date.now()}.${ext}`;
+};
+
+export const uploadToImageKit = async (fileBuffer: Buffer, fileName: string, folder: string = "banners") => {
   try {
+    // Normalize folder: remove leading/trailing slashes and handle empty
+    const normalizedFolder = folder.replace(/^\/|\/$/g, '') || "general";
+
     const response = await imagekit.upload({
       file: fileBuffer,
-      fileName: fileName,
-      folder: folder,
+      fileName: sanitizeFileName(fileName),
+      folder: normalizedFolder,
     });
     return {
       url: response.url,

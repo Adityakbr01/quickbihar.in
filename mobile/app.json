@@ -40,7 +40,8 @@
           }
         }
       ],
-      "expo-video"
+      "expo-video",
+      "expo-speech-recognition"
     ],
     "experiments": {
       "typedRoutes": true,

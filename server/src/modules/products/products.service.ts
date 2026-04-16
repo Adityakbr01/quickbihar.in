@@ -21,7 +21,7 @@ export class ProductService {
 
             // Upload images to ImageKit
             const imageUploadPromises = files.map(file =>
-                uploadToImageKit(file.buffer, file.originalname, "/products")
+                uploadToImageKit(file.buffer, file.originalname, "products")
             );
             const uploadResults = await Promise.all(imageUploadPromises);
 
@@ -47,7 +47,20 @@ export class ProductService {
     }
 
     static async getProducts(query: any = {}) {
-        return await ProductDAO.findAll(query);
+        const page = parseInt(query.page as string) || 1;
+        const limit = parseInt(query.limit as string) || 10;
+        const skip = (page - 1) * limit;
+
+        const filter: any = {};
+        if (query.isActive !== undefined) filter.isActive = query.isActive === "true" || query.isActive === true;
+        if (query.category) filter.category = query.category;
+        if (query.search) filter.search = query.search;
+
+        return await ProductDAO.findAll(filter, { skip, limit });
+    }
+
+    static async getTrendingProducts() {
+        return await ProductDAO.findAll({ isTrending: true, isActive: true });
     }
 
     static async getSellerProducts(sellerId: string) {
@@ -66,7 +79,7 @@ export class ProductService {
         return product;
     }
 
-    static async updateProduct(id: string, data: any, sellerId: string, role: string) {
+    static async updateProduct(id: string, data: any, sellerId: string, role: string, files: any[] = []) {
         try {
             const product = await ProductDAO.findById(id);
             if (!product) throw new ApiError(404, "Product not found");
@@ -81,6 +94,28 @@ export class ProductService {
 
             if (validatedData.title) {
                 updatePayload.slug = this.generateSlug(validatedData.title);
+            }
+
+            // Handle Image Updates
+            if (files && files.length > 0) {
+                // 1. Delete old images from ImageKit
+                if (product.images && product.images.length > 0) {
+                    const deletePromises = product.images.map(img => 
+                        deleteFromImageKit(img.fileId)
+                    );
+                    await Promise.all(deletePromises);
+                }
+
+                // 2. Upload new images
+                const imageUploadPromises = files.map(file =>
+                    uploadToImageKit(file.buffer, file.originalname, "products")
+                );
+                const uploadResults = await Promise.all(imageUploadPromises);
+
+                updatePayload.images = uploadResults.map(res => ({
+                    url: res.url,
+                    fileId: res.fileId
+                }));
             }
 
             const updatedProduct = await ProductDAO.updateById(id, updatePayload);

@@ -9,9 +9,6 @@ export default function Index() {
     return null; // Or a <SplashScreen /> component
   }
 
-  if (!isAuthenticated) {
-    return <Redirect href="/auth" />;
-  }
-
-  return <Redirect href="/home" />;
+  // Landing on home allows "Guest Mode"
+  return <Redirect href="/(tabs)/home" />;
 }

@@ -3,15 +3,27 @@ import { View, Text, Image, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { createProductCardStyles } from "../style/ProductCard.style";
-import { Product } from "../lib/mockData";
+import { IProduct } from "@/src/features/product/types/product.types";
+import { Product as MockProduct } from "../lib/mockData";
 
 interface ProductCardProps {
-  item: Product;
+  item: IProduct | MockProduct;
 }
 
 export const ProductCard = ({ item }: ProductCardProps) => {
   const theme = useTheme() as any;
   const styles = React.useMemo(() => createProductCardStyles(theme), [theme]);
+
+  // Helper to handle both Mock and Real Data mapping
+  const productData = {
+    name: (item as IProduct).title || (item as MockProduct).name,
+    image: (item as IProduct).images?.[0]?.url || (item as MockProduct).image,
+    price: typeof item.price === 'number' ? `₹${item.price.toLocaleString()}` : item.price,
+    originalPrice: typeof item.originalPrice === 'number' ? `₹${item.originalPrice.toLocaleString()}` : item.originalPrice,
+    discount: (item as IProduct).discountLabel || (item as MockProduct).discount,
+    rating: (item as IProduct).ratings?.average || (item as MockProduct).rating,
+    reviews: (item as IProduct).ratings?.count || (item as MockProduct).reviews,
+  };
 
   return (
     <TouchableOpacity
@@ -26,11 +38,11 @@ export const ProductCard = ({ item }: ProductCardProps) => {
     >
       {/* Image & Overlays */}
       <View style={styles.imageContainer}>
-        <Image source={{ uri: item.image }} style={styles.image} />
+        <Image source={{ uri: productData.image }} style={styles.image} />
 
-        {item.discount ? (
+        {productData.discount ? (
           <View style={styles.discountBadge}>
-            <Text style={styles.discountTextAbsolute}>{item.discount}</Text>
+            <Text style={styles.discountTextAbsolute}>{productData.discount}</Text>
           </View>
         ) : null}
 
@@ -51,9 +63,9 @@ export const ProductCard = ({ item }: ProductCardProps) => {
         <View style={styles.ratingContainer}>
           <Ionicons name="star" size={12} color="#f59e0b" />
           <Text style={[styles.rating, { color: theme.text }]}>
-            {item.rating}{" "}
+            {productData.rating}{" "}
             <Text style={{ color: theme.secondaryText }}>
-              | {item.reviews}
+              | {productData.reviews}
             </Text>
           </Text>
         </View>
@@ -62,18 +74,18 @@ export const ProductCard = ({ item }: ProductCardProps) => {
           style={[styles.name, { color: theme.text }]}
           numberOfLines={2}
         >
-          {item.name}
+          {productData.name}
         </Text>
 
         <View style={styles.priceContainer}>
           <Text style={[styles.price, { color: theme.text }]}>
-            {item.price}
+            {productData.price}
           </Text>
           <Text style={[styles.originalPrice, { color: theme.secondaryText }]}>
-            {item.originalPrice}
+            {productData.originalPrice}
           </Text>
-          {item.discount ? (
-            <Text style={styles.discountTextInline}>{item.discount}</Text>
+          {productData.discount ? (
+            <Text style={styles.discountTextInline}>{productData.discount}</Text>
           ) : null}
         </View>
       </View>

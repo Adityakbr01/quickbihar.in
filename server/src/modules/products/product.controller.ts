@@ -40,10 +40,17 @@ export class ProductController {
      * @desc Public endpoint to get active products
      */
     static getPublicProducts = asyncHandler(async (req: Request, res: Response) => {
-        const products = await ProductService.getProducts({ isActive: true });
+        const products = await ProductService.getProducts({ ...req.query, isActive: true });
         return res
             .status(200)
             .json(new ApiResponse(200, products, "Public products fetched successfully"));
+    });
+
+    static getTrendingProducts = asyncHandler(async (req: Request, res: Response) => {
+        const products = await ProductService.getTrendingProducts();
+        return res
+            .status(200)
+            .json(new ApiResponse(200, products, "Trending products fetched successfully"));
     });
 
     static getProductBySlug = asyncHandler(async (req: Request, res: Response) => {
@@ -62,7 +69,8 @@ export class ProductController {
 
     static updateProduct = asyncHandler(async (req: Request, res: Response) => {
         const user = (req as any).user;
-        const product = await ProductService.updateProduct(req.params.id as unknown as string, req.body, user._id.toString(), user.role);
+        const files = req.files as any[] || [];
+        const product = await ProductService.updateProduct(req.params.id as unknown as string, req.body, user._id.toString(), user.role, files);
 
         return res
             .status(200)

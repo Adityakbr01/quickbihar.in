@@ -46,11 +46,11 @@ app.use("/api/v1/categories", categoryRouter);
 app.use("/api/v1/products", productRouter);
 app.use("/api/v1/size-charts", sizeChartRouter);
 app.use("/api/v1/coupons", couponRouter);
+app.use("/api/v1/addresses", addressRouter);
 // not tested
 app.use("/api/v1/orders", orderRouter);
 app.use("/api/v1/labels", labelRouter);
 app.use("/api/v1/users", userRouter); //tested
-app.use("/api/v1/addresses", addressRouter);
 app.use("/api/v1/payment-methods", paymentMethodRouter);
 app.use("/api/v1/cart", cartRouter);
 app.use("/api/v1/wishlist", wishlistRouter);

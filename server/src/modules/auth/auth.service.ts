@@ -2,6 +2,8 @@ import { ApiError } from "../../utils/ApiError";
 import { UserDAO } from "../user/user.dao";
 import { authenticateSchema, type AuthenticateBody } from "./auth.validation";
 import { ZodError } from "zod";
+import jwt from "jsonwebtoken";
+import { ENV } from "../../config/env.config";
 
 export class AuthService {
   static async authenticate(authData: any) {
@@ -78,5 +80,48 @@ export class AuthService {
 
   static async loginUser(loginData: any) {
     return this.authenticate(loginData);
+  }
+
+  static async refreshAccessToken(incomingRefreshToken: string) {
+    try {
+      if (!incomingRefreshToken) {
+        throw new ApiError(401, "Unauthorized request: No refresh token provided");
+      }
+
+      const decodedToken: any = jwt.verify(
+        incomingRefreshToken,
+        ENV.REFRESH_TOKEN_SECRET
+      );
+
+      const user = await UserDAO.findById(decodedToken?._id);
+
+      if (!user) {
+        throw new ApiError(401, "Invalid refresh token: User not found");
+      }
+
+      if (incomingRefreshToken !== user.refreshToken) {
+        throw new ApiError(401, "Refresh token is expired or used");
+      }
+
+      const accessToken = user.generateAccessToken();
+      const refreshToken = user.generateRefreshToken();
+
+      user.refreshToken = refreshToken;
+      await user.save({ validateBeforeSave: false });
+
+      return {
+        user: {
+          _id: user._id,
+          username: user.username,
+          email: user.email,
+          fullName: user.fullName,
+          role: user.role,
+        },
+        accessToken,
+        refreshToken,
+      };
+    } catch (error: any) {
+      throw new ApiError(401, error?.message || "Invalid refresh token");
+    }
   }
 }

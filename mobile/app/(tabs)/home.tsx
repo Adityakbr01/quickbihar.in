@@ -1,8 +1,8 @@
 import HomeScreen from "@/src/features/home/screens/HomeScreen";
 import React from "react";
 
-const index = () => {
+const Home = () => {
   return <HomeScreen />
 };
 
-export default index;
+export default Home;

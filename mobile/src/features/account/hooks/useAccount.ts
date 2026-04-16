@@ -7,6 +7,7 @@ export const useAccount = () => {
     const setAuth = useAuthStore((state) => state.setAuth);
     const user = useAuthStore((state) => state.user);
     const token = useAuthStore((state) => state.token);
+    const refreshToken = useAuthStore((state) => state.refreshToken);
 
     // Mutation for updating profile text (name, phone)
     const updateProfile = useMutation({
@@ -16,9 +17,9 @@ export const useAccount = () => {
         },
         onSuccess: async (response) => {
             console.log("[DEBUG_PROFILE] Profile Update Success Response:", response);
-            if (user && token) {
+            if (user && token && refreshToken) {
                 // Manually update the store for instant UI feedback
-                await setAuth(response.data, token);
+                await setAuth(response.data, token, refreshToken);
             }
             queryClient.invalidateQueries({ queryKey: ["userProfile"] });
         },
@@ -35,9 +36,9 @@ export const useAccount = () => {
         },
         onSuccess: async (response) => {
             console.log("[DEBUG_PROFILE] Avatar Upload Success Response:", response);
-            if (user && token) {
+            if (user && token && refreshToken) {
                 // Update store with new avatar data
-                await setAuth(response.data, token);
+                await setAuth(response.data, token, refreshToken);
             }
             queryClient.invalidateQueries({ queryKey: ["userProfile"] });
         },

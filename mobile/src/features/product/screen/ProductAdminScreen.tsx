@@ -75,7 +75,7 @@ const ProductAdminScreen = () => {
       </View>
 
       <ProductList
-        products={products || []}
+        products={products?.data || []}
         loading={isLoading}
         onEdit={handleEdit}
         onDelete={handleDelete}

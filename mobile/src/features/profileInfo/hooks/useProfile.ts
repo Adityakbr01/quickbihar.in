@@ -8,6 +8,7 @@ export const useProfile = () => {
   const setAuth = useAuthStore((state) => state.setAuth);
   const user = useAuthStore((state) => state.user);
   const token = useAuthStore((state) => state.token);
+  const refreshToken = useAuthStore((state) => state.refreshToken);
 
   const { data: profile, isLoading, error } = useQuery({
     queryKey: ["userProfile"],
@@ -18,9 +19,9 @@ export const useProfile = () => {
   const updateProfile = useMutation({
     mutationFn: (data: ProfileFormValues) => updateProfileRequest(data),
     onSuccess: async (response) => {
-      if (user && token) {
+      if (user && token && refreshToken) {
         // Sync with Auth Store
-        await setAuth(response.data, token);
+        await setAuth(response.data, token, refreshToken);
       }
       queryClient.invalidateQueries({ queryKey: ["userProfile"] });
     },
@@ -29,9 +30,9 @@ export const useProfile = () => {
   const updateAvatar = useMutation({
     mutationFn: (formData: FormData) => updateAvatarRequest(formData),
     onSuccess: async (response) => {
-      if (user && token) {
+      if (user && token && refreshToken) {
         // Sync with Auth Store
-        await setAuth(response.data, token);
+        await setAuth(response.data, token, refreshToken);
       }
       queryClient.invalidateQueries({ queryKey: ["userProfile"] });
     },

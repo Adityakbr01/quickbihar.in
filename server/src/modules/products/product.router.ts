@@ -7,6 +7,7 @@ const router = Router();
 
 // Public routes
 router.get("/public", ProductController.getPublicProducts);
+router.get("/trending", ProductController.getTrendingProducts);
 router.get("/slug/:slug", ProductController.getProductBySlug);
 router.get("/:id", ProductController.getProductById);
 
@@ -19,7 +20,7 @@ router.get("/", isSellerOrAdmin, ProductController.getAllProducts);
 // CRUD operations (Admin or Seller)
 // Support up to 5 images per product
 router.post("/", isSellerOrAdmin, upload.array("images", 5), ProductController.createProduct);
-router.patch("/:id", isSellerOrAdmin, ProductController.updateProduct);
+router.patch("/:id", isSellerOrAdmin, upload.array("images", 5), ProductController.updateProduct);
 router.delete("/:id", isSellerOrAdmin, ProductController.deleteProduct);
 
 export default router;

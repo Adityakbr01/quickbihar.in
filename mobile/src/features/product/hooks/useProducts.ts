@@ -11,7 +11,7 @@ import { IProduct } from "../types/product.types";
  * Hook for admin products list
  */
 export const useAdminProducts = () => {
-  return useQuery<IProduct[], Error>({
+  return useQuery<{ data: IProduct[]; total: number }, Error>({
     queryKey: ["products", "admin"],
     queryFn: getAllProductsAdminRequest,
   });

@@ -1,35 +1,70 @@
 import SafeViewWrapper from "@/src/provider/SafeViewWrapper";
-import React, { useCallback } from "react";
-import { StyleSheet, View, ScrollView } from "react-native";
-import { useSharedValue } from "react-native-reanimated";
-import HomeHeader from "../components/HomeHeader";
-import TopHomeCarousel from "../components/TopHomeCarousel";
-import HomeCategories from "../../category/components/HomeCategories";
-import TopSellingSection from "../sections/TopSellingSection";
-import TopMallSection from "../sections/TopMallSection";
+import { useQueryClient } from "@tanstack/react-query";
+import React, { useCallback, useState } from "react";
 import {
-  useMoreDealsLogic,
+  Dimensions,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  View,
+} from "react-native";
+import { useSharedValue } from "react-native-reanimated";
+
+import HomeCategories from "../../category/components/HomeCategories";
+import HomeHeader from "../components/HomeHeader";
+import { MoreDealsHeader } from "../components/MoreDealsHeader";
+import TopHomeCarousel from "../components/TopHomeCarousel";
+import {
   MoreDealsFilters,
   MoreDealsGrid,
+  useMoreDealsLogic,
 } from "../sections/MoreDealsSection";
-import { MoreDealsHeader } from "../components/MoreDealsHeader";
+import TopMallSection from "../sections/TopMallSection";
+import TopSellingSection from "../sections/TopSellingSection";
 
 const HomeScreen = () => {
   const menuOpen = useSharedValue(0);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const toggleMenu = useCallback(() => {
     menuOpen.value = menuOpen.value === 0 ? 1 : 0;
   }, [menuOpen]);
 
   const moreDealsState = useMoreDealsLogic();
+  const queryClient = useQueryClient();
+
+  const handleRefresh = useCallback(async () => {
+    if (isRefreshing) {
+      return;
+    }
+
+    setIsRefreshing(true);
+
+    try {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["banners"] }),
+        queryClient.invalidateQueries({ queryKey: ["publicCategories"] }),
+        queryClient.invalidateQueries({ queryKey: ["trendingProducts"] }),
+        queryClient.invalidateQueries({ queryKey: ["paginatedProducts"] }),
+        queryClient.invalidateQueries({ queryKey: ["categories"] }),
+      ]);
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    } catch (error) {
+      console.error("Refresh failed:", error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [isRefreshing, queryClient]);
 
   return (
     <SafeViewWrapper>
-      {/* Set stickyHeaderIndices to 1, meaning the second direct child becomes sticky */}
       <ScrollView
-        style={{ flex: 1 }}
+        style={localStyles.scrollView}
         showsVerticalScrollIndicator={false}
         stickyHeaderIndices={[1]}
+        refreshControl={
+          <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
+        }
       >
         {/* Child 0: Everything before the Sticky Filter */}
         <View style={localStyles.heroWrapper}>
@@ -39,19 +74,16 @@ const HomeScreen = () => {
             <TopHomeCarousel />
           </View>
           <HomeCategories />
-
-          <TopSellingSection />
-
           <TopMallSection />
-
+          <TopSellingSection />
           <MoreDealsHeader {...moreDealsState} />
         </View>
 
-        {/* Child 1: The Sticky Filter Tabs! */}
+        {/* Child 1: The Sticky Filter Tabs */}
         <MoreDealsFilters {...moreDealsState} />
 
         {/* Child 2: The Product Grid */}
-        <View>
+        <View style={{ minHeight: Dimensions.get("window").height * 0.7 }}>
           <MoreDealsGrid {...moreDealsState} />
         </View>
       </ScrollView>
@@ -60,6 +92,9 @@ const HomeScreen = () => {
 };
 
 const localStyles = StyleSheet.create({
+  scrollView: {
+    flex: 1,
+  },
   heroWrapper: {
     overflow: "hidden",
   },

@@ -19,8 +19,8 @@ export const useAuthenticate = () => {
         throw new Error("Invalid response format from server");
       }
 
-      const { user, accessToken } = data;
-      await setAuth(user, accessToken);
+      const { user, accessToken, refreshToken } = data;
+      await setAuth(user, accessToken, refreshToken);
       console.log("Authentication successful, state updated.");
       router.replace("/home");
     },

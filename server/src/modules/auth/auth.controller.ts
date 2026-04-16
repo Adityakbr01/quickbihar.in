@@ -45,4 +45,27 @@ export class AuthController {
       .clearCookie("refreshToken", options)
       .json(new ApiResponse(200, {}, "User logged out successfully"));
   });
+
+  static refreshAccessToken = asyncHandler(async (req: Request, res: Response) => {
+    const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken;
+
+    const { user, accessToken, refreshToken } = await AuthService.refreshAccessToken(incomingRefreshToken);
+
+    const options = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+    };
+
+    return res
+      .status(200)
+      .cookie("accessToken", accessToken, options)
+      .cookie("refreshToken", refreshToken, options)
+      .json(
+        new ApiResponse(
+          200,
+          { user, accessToken, refreshToken },
+          "Access token refreshed successfully"
+        )
+      );
+  });
 }

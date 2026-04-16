@@ -9,7 +9,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import * as Haptics from "expo-haptics";
-import { Tabs } from "expo-router";
+import { Tabs, useRouter } from "expo-router";
 import React from "react";
 import { Platform } from "react-native";
 
@@ -38,9 +38,9 @@ const TABS_CONFIG = [
 
 export default function TabsLayout() {
   const theme = useTheme();
-  const { user } = useAuthStore();
+  const { user, isAuthenticated } = useAuthStore();
+  const router = useRouter();
   const isAdmin = user?.role === "admin";
-  console.log("[TabsLayout] Current User:", user?.username, "Role:", user?.role, "isAdmin:", isAdmin);
 
   const isWeb = Platform.OS === 'web';
 
@@ -105,7 +105,14 @@ export default function TabsLayout() {
             ),
           }}
           listeners={{
-            tabPress: () => {
+            tabPress: (e) => {
+              if (tab.name === "account" && !isAuthenticated) {
+                // Prevent default navigation
+                e.preventDefault();
+                // Redirect to Auth
+                router.push("/auth");
+                return;
+              }
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
             },
           }}

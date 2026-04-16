@@ -6,6 +6,7 @@ const router = Router();
 
 // Single entry point for both registration and login
 router.route("/authenticate").post(AuthController.authenticate);
+router.route("/refresh-token").post(AuthController.refreshAccessToken);
 
 // Protected routes
 router.route("/logout").post(verifyJWT, AuthController.logout);
