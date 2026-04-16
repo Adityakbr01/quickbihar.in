@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, Image, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { createProductCardStyles } from "../style/ProductCard.style";
 import { IProduct } from "@/src/features/product/types/product.types";
@@ -13,6 +14,7 @@ interface ProductCardProps {
 export const ProductCard = ({ item }: ProductCardProps) => {
   const theme = useTheme() as any;
   const styles = React.useMemo(() => createProductCardStyles(theme), [theme]);
+  const router = useRouter();
 
   // Helper to handle both Mock and Real Data mapping
   const productData = {
@@ -27,6 +29,10 @@ export const ProductCard = ({ item }: ProductCardProps) => {
 
   return (
     <TouchableOpacity
+      onPress={() => {
+        const id = (item as IProduct)._id || 'mock';
+        router.push({ pathname: "/product/[id]", params: { id } });
+      }}
       style={[
         styles.card,
         {

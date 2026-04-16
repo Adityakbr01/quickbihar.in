@@ -9,6 +9,7 @@ const router = Router();
 router.get("/public", ProductController.getPublicProducts);
 router.get("/trending", ProductController.getTrendingProducts);
 router.get("/slug/:slug", ProductController.getProductBySlug);
+router.get("/:id/similar", ProductController.getSimilarProducts);
 router.get("/:id", ProductController.getProductById);
 
 // Protected routes (Seller/Admin)

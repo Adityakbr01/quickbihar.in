@@ -144,4 +144,25 @@ export class ProductService {
 
         return { success: true };
     }
+
+    /**
+     * Find similar products based on the source product's category, tags, and brand.
+     */
+    static async getSimilarProducts(productId: string, limit = 10) {
+        const product = await ProductDAO.findById(productId);
+        if (!product) throw new ApiError(404, "Product not found");
+
+        const similar = await ProductDAO.findSimilar(
+            productId,
+            {
+                category: product.category,
+                tags: product.tags,
+                brand: product.brand,
+            },
+            limit
+        );
+
+        return similar;
+    }
 }
+

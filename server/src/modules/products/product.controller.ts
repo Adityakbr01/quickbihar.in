@@ -85,4 +85,17 @@ export class ProductController {
             .status(200)
             .json(new ApiResponse(200, {}, "Product deleted successfully"));
     });
+
+    /**
+     * @desc Public endpoint to get similar products by product ID
+     */
+    static getSimilarProducts = asyncHandler(async (req: Request, res: Response) => {
+        const limit = parseInt(req.query.limit as string) || 10;
+        const similar = await ProductService.getSimilarProducts(req.params.id as string, limit);
+
+        return res
+            .status(200)
+            .json(new ApiResponse(200, similar, "Similar products fetched successfully"));
+    });
 }
+

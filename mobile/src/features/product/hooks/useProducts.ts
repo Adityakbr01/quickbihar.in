@@ -4,6 +4,8 @@ import {
   createProductRequest,
   updateProductRequest,
   deleteProductRequest,
+  getProductByIdRequest,
+  getSimilarProductsRequest,
 } from "../api/product.api";
 import { IProduct } from "../types/product.types";
 
@@ -55,3 +57,27 @@ export const useDeleteProduct = () => {
     },
   });
 };
+
+/**
+ * Hook for fetching a single product by ID
+ */
+export const useProductById = (id: string) => {
+  return useQuery<IProduct, Error>({
+    queryKey: ["product", id],
+    queryFn: () => getProductByIdRequest(id),
+    enabled: !!id && id !== 'mock', // Don't fetch if id is missing or mock
+  });
+};
+
+/**
+ * Hook for fetching similar products by product ID
+ */
+export const useSimilarProducts = (id: string) => {
+  return useQuery<IProduct[], Error>({
+    queryKey: ["similarProducts", id],
+    queryFn: () => getSimilarProductsRequest(id),
+    enabled: !!id && id !== 'mock',
+  });
+};
+
+

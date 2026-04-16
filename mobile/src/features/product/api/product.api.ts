@@ -60,3 +60,21 @@ export const updateProductRequest = async ({ id, data }: { id: string; data: any
 export const deleteProductRequest = async (id: string): Promise<void> => {
   await axiosInstance.delete(`/products/${id}`);
 };
+
+/**
+ * Fetch a single product by ID
+ */
+export const getProductByIdRequest = async (id: string): Promise<IProduct> => {
+  const response = await axiosInstance.get(`/products/${id}`);
+  return response.data.data;
+};
+
+/**
+ * Fetch similar products by product ID (uses tags, category, brand matching)
+ */
+export const getSimilarProductsRequest = async (id: string, limit = 10): Promise<IProduct[]> => {
+  const response = await axiosInstance.get(`/products/${id}/similar`, { params: { limit } });
+  return response.data.data;
+};
+
+

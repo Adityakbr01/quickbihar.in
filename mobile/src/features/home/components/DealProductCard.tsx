@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, Image, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { createDealProductCardStyles } from "../style/DealProductCard.style";
 import { IProduct } from "@/src/features/product/types/product.types";
@@ -17,6 +18,7 @@ export const DealProductCard = ({ product, width }: DealProductCardProps) => {
     () => createDealProductCardStyles(theme),
     [theme],
   );
+  const router = useRouter();
 
   // Helper to handle both Mock and Real Data mapping
   const productData = {
@@ -34,7 +36,12 @@ export const DealProductCard = ({ product, width }: DealProductCardProps) => {
   };
 
   return (
-    <View
+    <TouchableOpacity
+      activeOpacity={0.9}
+      onPress={() => {
+        const id = (product as IProduct)._id || 'mock';
+        router.push({ pathname: "/product/[id]", params: { id } });
+      }}
       style={[
         styles.productCard,
         {
@@ -115,6 +122,6 @@ export const DealProductCard = ({ product, width }: DealProductCardProps) => {
           </View>
         ) : null}
       </View>
-    </View>
+    </TouchableOpacity>
   );
 };

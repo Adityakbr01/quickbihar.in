@@ -49,4 +49,43 @@ export class ProductDAO {
     static async softDeleteById(id: string) {
         return await Product.findByIdAndUpdate(id, { isDeleted: true }, { returnDocument: "after" });
     }
+
+    /**
+     * Find similar products based on category, tags, and brand.
+     * Uses $or with regex for flexible matching.
+     */
+    static async findSimilar(
+        productId: string,
+        { category, tags, brand }: { category?: string; tags?: string[]; brand?: string },
+        limit = 10
+    ) {
+        const orConditions: any[] = [];
+
+        // Match by category (case-insensitive regex)
+        if (category) {
+            orConditions.push({ category: { $regex: new RegExp(category, "i") } });
+        }
+
+        // Match by any overlapping tag (case-insensitive regex)
+        if (tags && tags.length > 0) {
+            const tagPatterns = tags.map(tag => ({ tags: { $regex: new RegExp(tag.trim(), "i") } }));
+            orConditions.push(...tagPatterns);
+        }
+
+        // Match by brand (case-insensitive regex)
+        if (brand) {
+            orConditions.push({ brand: { $regex: new RegExp(brand.trim(), "i") } });
+        }
+
+        if (orConditions.length === 0) return [];
+
+        return await Product.find({
+            _id: { $ne: productId },
+            isDeleted: false,
+            isActive: true,
+            $or: orConditions,
+        })
+            .sort({ isTrending: -1, createdAt: -1 })
+            .limit(limit);
+    }
 }
