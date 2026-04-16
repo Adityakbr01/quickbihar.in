@@ -29,4 +29,16 @@ export class WishlistController {
         await wishlistService.removeFromWishlist(userId, id);
         return res.status(200).json(new ApiResponse(200, {}, "Removed from wishlist"));
     });
+
+    static syncWishlist = asyncHandler(async (req, res) => {
+        const userId = (req as any).user._id;
+        const { productIds } = req.body;
+
+        if (!productIds || !Array.isArray(productIds)) {
+            throw new ApiError(400, "productIds array is required");
+        }
+
+        const result = await wishlistService.syncWishlist(userId, productIds);
+        return res.status(200).json(new ApiResponse(200, result, "Wishlist synced successfully"));
+    });
 }

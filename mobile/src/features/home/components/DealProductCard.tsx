@@ -6,6 +6,7 @@ import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { createDealProductCardStyles } from "../style/DealProductCard.style";
 import { IProduct } from "@/src/features/product/types/product.types";
 import { DealProduct as MockProduct } from "../lib/dealsMockData";
+import { useWishlistStore } from "../../wishlist/store/wishlistStore";
 
 interface DealProductCardProps {
   product: IProduct | MockProduct;
@@ -19,6 +20,10 @@ export const DealProductCard = ({ product, width }: DealProductCardProps) => {
     [theme],
   );
   const router = useRouter();
+
+  const id = (product as IProduct)._id || 'mock';
+  const isWishlisted = useWishlistStore(state => state.items.includes(id));
+  const toggleWishlist = useWishlistStore(state => state.toggleItem);
 
   // Helper to handle both Mock and Real Data mapping
   const productData = {
@@ -60,6 +65,18 @@ export const DealProductCard = ({ product, width }: DealProductCardProps) => {
             <Text style={styles.tagText}>{productData.tag}</Text>
           </View>
         ) : null}
+
+        {/* Favorite absolute button */}
+        <TouchableOpacity 
+          style={{ position: 'absolute', top: 8, right: 8, backgroundColor: 'rgba(255,255,255,0.8)', padding: 6, borderRadius: 20 }}
+          onPress={() => toggleWishlist(id)}
+        >
+          <Ionicons 
+            name={isWishlisted ? "heart" : "heart-outline"} 
+            size={16} 
+            color={isWishlisted ? "#ef4444" : "#020617"} 
+          />
+        </TouchableOpacity>
 
         {/* Add to Cart absolute button */}
         <TouchableOpacity style={styles.addButton} activeOpacity={0.8}>

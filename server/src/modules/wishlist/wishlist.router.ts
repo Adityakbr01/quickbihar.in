@@ -8,6 +8,7 @@ router.use(verifyJWT);
 
 router.get("/", WishlistController.getMyWishlist);
 router.post("/toggle", WishlistController.toggleWishlist);
+router.post("/sync", WishlistController.syncWishlist);
 router.delete("/remove/:id", WishlistController.removeItem);
 
 export default router;

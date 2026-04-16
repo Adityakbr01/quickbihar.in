@@ -33,6 +33,24 @@ export class WishlistService {
     async removeFromWishlist(userId: string, productId: string) {
         return await wishlistDAO.remove(userId, productId);
     }
+
+    async syncWishlist(userId: string, productIds: string[]) {
+        if (!Array.isArray(productIds) || productIds.length === 0) return { syncCount: 0 };
+        
+        let syncCount = 0;
+        for (const productId of productIds) {
+            // Verify product exists in DB to prevent broken refs
+            const product = await ProductDAO.findById(productId);
+            if (product) {
+                const exists = await wishlistDAO.checkExists(userId, productId);
+                if (!exists) {
+                    await wishlistDAO.add(userId, productId);
+                    syncCount++;
+                }
+            }
+        }
+        return { syncCount };
+    }
 }
 
 export const wishlistService = new WishlistService();

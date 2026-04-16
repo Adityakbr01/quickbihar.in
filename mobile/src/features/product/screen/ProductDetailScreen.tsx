@@ -31,6 +31,7 @@ import { ExpandableSection } from "./ProductDetail/components/ExpandableSection"
 import { RatingBar } from "./ProductDetail/components/RatingBar";
 import { SimilarProducts } from "./ProductDetail/components/SimilarProducts";
 import SafeViewWrapper from "@/src/provider/SafeViewWrapper";
+import { useWishlistStore } from "../../wishlist/store/wishlistStore";
 
 
 if (
@@ -53,7 +54,10 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [carouselIndex, setCarouselIndex] = useState(0);
-  const [isWishlisted, setIsWishlisted] = useState(false);
+
+  const wishlistItems = useWishlistStore(state => state.items);
+  const toggleWishlist = useWishlistStore(state => state.toggleItem);
+  const isWishlisted = wishlistItems.includes(id);
 
   const isMock = id === "mock" || !product;
   const dp: Partial<IProduct> = isMock ? MOCK_PRODUCT : product;
@@ -148,7 +152,7 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
             </TouchableOpacity>
             <View style={s.navRight}>
               <TouchableOpacity
-                onPress={() => setIsWishlisted(!isWishlisted)}
+                onPress={() => toggleWishlist(id)}
                 style={[
                   s.navBtn,
                   { backgroundColor: theme.background + "E6" },
@@ -766,7 +770,7 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
         ]}
       >
         <TouchableOpacity
-          onPress={() => setIsWishlisted(!isWishlisted)}
+          onPress={() => toggleWishlist(id)}
           style={[s.wishlistBtn, { borderColor: theme.border }]}
           activeOpacity={0.7}
         >

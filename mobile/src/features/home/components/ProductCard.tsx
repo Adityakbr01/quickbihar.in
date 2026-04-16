@@ -6,6 +6,7 @@ import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { createProductCardStyles } from "../style/ProductCard.style";
 import { IProduct } from "@/src/features/product/types/product.types";
 import { Product as MockProduct } from "../lib/mockData";
+import { useWishlistStore } from "../../wishlist/store/wishlistStore";
 
 interface ProductCardProps {
   item: IProduct | MockProduct;
@@ -15,6 +16,10 @@ export const ProductCard = ({ item }: ProductCardProps) => {
   const theme = useTheme() as any;
   const styles = React.useMemo(() => createProductCardStyles(theme), [theme]);
   const router = useRouter();
+
+  const id = (item as IProduct)._id || 'mock';
+  const isWishlisted = useWishlistStore(state => state.items.includes(id));
+  const toggleWishlist = useWishlistStore(state => state.toggleItem);
 
   // Helper to handle both Mock and Real Data mapping
   const productData = {
@@ -30,7 +35,6 @@ export const ProductCard = ({ item }: ProductCardProps) => {
   return (
     <TouchableOpacity
       onPress={() => {
-        const id = (item as IProduct)._id || 'mock';
         router.push({ pathname: "/product/[id]", params: { id } });
       }}
       style={[
@@ -53,8 +57,15 @@ export const ProductCard = ({ item }: ProductCardProps) => {
         ) : null}
 
         {/* Favorite absolute button */}
-        <TouchableOpacity style={styles.favoriteBtn}>
-          <Ionicons name="heart-outline" size={16} color="#020617" />
+        <TouchableOpacity 
+          style={styles.favoriteBtn} 
+          onPress={() => toggleWishlist(id)}
+        >
+          <Ionicons 
+            name={isWishlisted ? "heart" : "heart-outline"} 
+            size={16} 
+            color={isWishlisted ? "#ef4444" : "#020617"} 
+          />
         </TouchableOpacity>
 
         {/* Add to Cart absolute button (like DealProductCard) */}
