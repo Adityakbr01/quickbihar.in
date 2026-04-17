@@ -75,7 +75,7 @@ export class CouponService {
         let discountAmount = 0;
         if (coupon.discountType === "PERCENTAGE") {
             discountAmount = (orderAmount * coupon.discountValue) / 100;
-            if (coupon.maxDiscountAmount && discountAmount > coupon.maxDiscountAmount) {
+            if (coupon.maxDiscountAmount && coupon.maxDiscountAmount > 0 && discountAmount > coupon.maxDiscountAmount) {
                 discountAmount = coupon.maxDiscountAmount;
             }
         } else {

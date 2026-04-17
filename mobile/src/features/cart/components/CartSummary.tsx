@@ -7,12 +7,17 @@ interface CartSummaryProps {
   subtotal: number;
   shipping: number;
   discount: number;
+  appliedCoupon?: any;
+  discountAmount?: number;
 }
 
-const CartSummary = ({ subtotal, shipping, discount }: CartSummaryProps) => {
+const CartSummary = ({ subtotal, shipping, discount, appliedCoupon, discountAmount = 0 }: CartSummaryProps) => {
   const theme = useTheme();
   const styles = createCartStyles(theme);
-  const total = subtotal + shipping - discount;
+  
+  // Total discount includes hardcoded discount + coupon discount
+  const totalDiscount = discount + discountAmount;
+  const total = subtotal + shipping - totalDiscount;
 
   const formatPrice = (amount: number) => `₹${amount.toLocaleString()}`;
 
@@ -32,10 +37,16 @@ const CartSummary = ({ subtotal, shipping, discount }: CartSummaryProps) => {
         </Text>
       </View>
       
-      <View style={styles.summaryRow}>
-        <Text style={styles.summaryLabel}>Discount</Text>
-        <Text style={[styles.summaryValue, { color: theme.primary }]}>-{formatPrice(discount)}</Text>
-      </View>
+      {(discount > 0 || discountAmount > 0) && (
+        <View style={styles.summaryRow}>
+          <Text style={styles.summaryLabel}>
+            Discount {appliedCoupon ? `(${appliedCoupon.code})` : ""}
+          </Text>
+          <Text style={[styles.summaryValue, { color: theme.primary }]}>
+            -{formatPrice(totalDiscount)}
+          </Text>
+        </View>
+      )}
       
       <View style={styles.divider} />
       

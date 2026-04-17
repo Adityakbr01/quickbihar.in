@@ -187,6 +187,7 @@ export const createCartStyles = (theme: Theme) => StyleSheet.create({
   checkoutButton: {
     height: 56,
     borderRadius: 16,
+    paddingHorizontal: 20,
     justifyContent: "center",
     alignItems: "center",
     flexDirection: "row",
@@ -231,6 +232,91 @@ export const createCartStyles = (theme: Theme) => StyleSheet.create({
   shopNowText: {
     color: "#fff",
     fontSize: 16,
+    fontWeight: "700",
+  },
+  // Coupon Styles
+  couponContainer: {
+    marginHorizontal: 20,
+    marginTop: 24,
+    marginBottom: 8,
+  },
+  couponTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: theme.text,
+    marginBottom: 12,
+  },
+  couponInputWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: theme.tertiaryBackground,
+    borderRadius: 14,
+    paddingHorizontal: 12,
+    height: 54,
+    borderWidth: 1,
+    borderColor: theme.border,
+  },
+  couponInput: {
+    flex: 1,
+    fontSize: 15,
+    color: theme.text,
+    fontWeight: "600",
+    paddingRight: 8,
+  },
+  applyButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 10,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  applyButtonText: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "700",
+  },
+  couponStatusText: {
+    fontSize: 12,
+    marginTop: 6,
+    marginLeft: 4,
+    fontWeight: "600",
+  },
+  appliedCouponContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: theme.primary + "10", // 10% opacity
+    padding: 14,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: theme.primary + "30",
+    borderStyle: "dashed",
+  },
+  appliedCouponInfo: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  couponBadge: {
+    backgroundColor: theme.primary,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  couponBadgeText: {
+    color: "#fff",
+    fontSize: 12,
+    fontWeight: "800",
+    textTransform: "uppercase",
+  },
+  appliedCouponText: {
+    fontSize: 14,
+    color: theme.text,
+    fontWeight: "700",
+  },
+  removeCouponText: {
+    fontSize: 13,
+    color: theme.error || "#ff4444",
     fontWeight: "700",
   },
 });

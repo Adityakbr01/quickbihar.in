@@ -9,11 +9,22 @@ import CartHeader from "../components/CartHeader";
 import CartItem from "../components/CartItem";
 import CartSummary from "../components/CartSummary";
 import EmptyCart from "../components/EmptyCart";
+import CouponInput from "../components/CouponInput";
 
 const CartContent = () => {
   const theme = useTheme();
   const styles = createCartStyles(theme);
-  const { items, subtotal, itemCount, updateQuantity, removeItem, fetchCart, isLoading } = useCartStore();
+  const {
+    items,
+    subtotal,
+    itemCount,
+    updateQuantity,
+    removeItem,
+    fetchCart,
+    isLoading,
+    appliedCoupon,
+    discountAmount
+  } = useCartStore();
 
   useEffect(() => {
     fetchCart();
@@ -59,7 +70,8 @@ const CartContent = () => {
 
   // Calculated values for summary
   const shipping = subtotal > 2000 ? 0 : 99;
-  const discount = subtotal > 3000 ? 500 : 0;
+  const autoDiscount = 0; // Removed hardcoded discount
+  const totalAmount = subtotal + shipping - (autoDiscount + discountAmount);
 
   return (
     <View style={styles.container}>
@@ -75,21 +87,27 @@ const CartContent = () => {
               key={item.sku}
               item={{
                 id: item.sku,
-                title: item.productTitle || "Product",
+                name: item.productTitle || "Product",
                 price: `₹${item.price}`,
                 image: item.image,
                 quantity: item.quantity,
-                sku: item.sku
+                sku: item.sku,
+                selectedSize: item.selectedSize,
+                selectedColor: item.selectedColor
               } as any}
               onUpdateQuantity={(id, delta) => handleUpdateQuantity(item.sku, delta)}
               onRemove={() => handleRemoveItem(item.sku)}
             />
           ))}
 
+          <CouponInput />
+
           <CartSummary
             subtotal={subtotal}
             shipping={shipping}
-            discount={discount}
+            discount={autoDiscount}
+            appliedCoupon={appliedCoupon}
+            discountAmount={discountAmount}
           />
         </ScrollView>
 
@@ -103,7 +121,7 @@ const CartContent = () => {
             <View style={{ flex: 1 }}>
               <Text style={styles.checkoutText}>Place Order</Text>
               <Text style={{ color: 'rgba(255,255,255,0.8)', fontSize: 12 }}>
-                Total: ₹{subtotal + shipping - discount}
+                Total: ₹{totalAmount.toLocaleString()}
               </Text>
             </View>
             <Ionicons name="arrow-forward" size={20} color="#fff" />

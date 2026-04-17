@@ -23,6 +23,8 @@ export class CartService {
                 productTitle: product.title,
                 price: price,
                 image: product.images[0]?.url,
+                selectedSize: variant?.size,
+                selectedColor: variant?.color,
                 stockStatus: variant ? (variant.stock >= item.quantity ? "IN_STOCK" : "LOW_STOCK") : "OUT_OF_STOCK",
                 availableStock: variant?.stock || 0
             };
