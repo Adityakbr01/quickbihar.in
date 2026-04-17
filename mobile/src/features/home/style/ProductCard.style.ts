@@ -78,10 +78,16 @@ export const createProductCardStyles = (theme: any) =>
       padding: 12,
     },
     ratingContainer: {
+      position: "absolute",
+      bottom: 11,
+      left: 4,
       flexDirection: "row",
       alignItems: "center",
+      backgroundColor: "rgba(255,255,255,0.96)",
+      paddingHorizontal: 8,
+      paddingVertical: 8,
+      borderRadius: 10,
       gap: 4,
-      marginBottom: 6,
     },
     rating: {
       fontSize: 11,

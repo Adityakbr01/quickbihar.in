@@ -829,21 +829,39 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
             WISHLIST
           </Text>
         </TouchableOpacity>
-        <TouchableOpacity
-          onPress={handleAddToBag}
-          disabled={isAddingToCart}
-          style={[s.addToBagBtn, { backgroundColor: theme.primary, opacity: isAddingToCart ? 0.7 : 1 }]}
-          activeOpacity={0.8}
-        >
-          {isAddingToCart ? (
-            <ActivityIndicator color="#fff" size="small" />
-          ) : (
-            <>
-              <Ionicons name="bag-handle-outline" size={20} color="#fff" />
-              <Text style={s.addToBagText}>ADD TO BAG</Text>
-            </>
-          )}
-        </TouchableOpacity>
+        {/* Add to Bag Button */}
+        {(() => {
+          const selectedVariant = dp.variants?.find(
+            (v) => v.color.trim() === selectedColor && v.size === selectedSize
+          );
+          const isOutOfStock = !!((dp.totalStock ?? 0) <= 0 || (selectedSize && (selectedVariant?.stock ?? 0) <= 0));
+
+          return (
+            <TouchableOpacity
+              onPress={handleAddToBag}
+              disabled={isAddingToCart || isOutOfStock}
+              style={[
+                s.addToBagBtn,
+                {
+                  backgroundColor: isOutOfStock ? theme.secondaryText : theme.primary,
+                  opacity: (isAddingToCart || isOutOfStock) ? 0.7 : 1
+                }
+              ]}
+              activeOpacity={0.8}
+            >
+              {isAddingToCart ? (
+                <ActivityIndicator color="#fff" size="small" />
+              ) : (
+                <>
+                  <Ionicons name={isOutOfStock ? "close-circle-outline" : "bag-handle-outline"} size={20} color="#fff" />
+                  <Text style={s.addToBagText}>
+                    {isOutOfStock ? "OUT OF STOCK" : "ADD TO BAG"}
+                  </Text>
+                </>
+              )}
+            </TouchableOpacity>
+          );
+        })()}
       </Animated.View>
     </SafeViewWrapper>
   );

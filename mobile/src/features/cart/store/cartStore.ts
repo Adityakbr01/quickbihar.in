@@ -12,6 +12,7 @@ export interface CartItem {
   quantity: number;
   productTitle?: string;
   price?: number;
+  originalPrice?: number;
   image?: string;
   stockStatus?: "IN_STOCK" | "LOW_STOCK" | "OUT_OF_STOCK";
   availableStock?: number;
@@ -77,11 +78,12 @@ export const useCartStore = create<CartState>()(
         } else {
           const variant = product.variants?.find((v: any) => v.sku === sku);
           const newItem: CartItem = {
-            productId: product._id || product.id,
+            productId: typeof product._id === 'object' ? product._id.toString() : (product._id || product.id),
             sku,
             quantity,
             productTitle: product.title,
             price: product.price,
+            originalPrice: product.originalPrice || product.price,
             image: product.images?.[0]?.url || product.image,
             selectedSize: variant?.size,
             selectedColor: variant?.color,
@@ -93,7 +95,7 @@ export const useCartStore = create<CartState>()(
           try {
             set({ isLoading: true });
             await axiosInstance.post("/cart/add", {
-              productId: product._id || product.id,
+              productId: typeof product._id === 'object' ? product._id.toString() : (product._id || product.id),
               sku,
               quantity,
             });
@@ -195,7 +197,7 @@ export const useCartStore = create<CartState>()(
           set({ isLoading: true });
           await axiosInstance.post("/cart/sync", {
             items: items.map((item) => ({
-              productId: item.productId,
+              productId: typeof item.productId === 'object' ? (item.productId as any)._id : item.productId,
               sku: item.sku,
               quantity: item.quantity,
             })),

@@ -14,6 +14,10 @@ export class OrderDAO {
         return await Order.findOne({ "paymentInfo.razorpayOrderId": razorpayOrderId });
     }
 
+    async findByOrderId(orderId: string) {
+        return await Order.findOne({ orderId }).populate("userId", "fullName email");
+    }
+
     async updateStatus(id: string, status: OrderStatus, paymentId?: string, signature?: string) {
         const updateData: any = { status };
         if (paymentId) updateData["paymentInfo.razorpayPaymentId"] = paymentId;

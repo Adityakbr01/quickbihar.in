@@ -10,6 +10,9 @@ import CartItem from "../components/CartItem";
 import CartSummary from "../components/CartSummary";
 import EmptyCart from "../components/EmptyCart";
 import CouponInput from "../components/CouponInput";
+import { useRouter } from "expo-router";
+import { useAuthStore } from "../../auth/store/authStore";
+import Toast from "react-native-toast-message";
 
 const CartContent = () => {
   const theme = useTheme();
@@ -47,9 +50,20 @@ const CartContent = () => {
     removeItem(sku);
   };
 
+  const router = useRouter();
+  const { isAuthenticated } = useAuthStore();
+
   const handleCheckout = () => {
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    // Future Checkout Logic
+    if (!isAuthenticated) {
+      Toast.show({
+        type: "info",
+        text1: "Login Required",
+        text2: "Please login to place an order",
+      });
+      router.push("/auth");
+      return;
+    }
+    router.push("/checkout");
   };
 
   if (isLoading && items.length === 0) {

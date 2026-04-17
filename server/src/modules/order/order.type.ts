@@ -38,6 +38,7 @@ export interface IOrder extends Document {
     mrpTotal: number;    // Gross total before any discount 
     productDiscount: number; // Total savings from product price drops
     discountAmount: number;  // Savings from Coupon
+    shippingFee: number;
     payableAmount: number;   // Final amount paid
     shippingAddress: IShippingAddress;
     status: OrderStatus;

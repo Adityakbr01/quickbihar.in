@@ -29,4 +29,13 @@ export class OrderController {
             new ApiResponse(200, result, "Orders fetched successfully")
         );
     });
+
+    static getOrderById = asyncHandler(async (req, res) => {
+        const { id } = req.params;
+        const result = await orderService.getOrderById((req as any).user._id, id as string);
+        
+        return res.status(200).json(
+            new ApiResponse(200, result, "Order details fetched successfully")
+        );
+    });
 }

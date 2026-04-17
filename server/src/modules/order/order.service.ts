@@ -14,25 +14,30 @@ export class OrderService {
         let mrpTotal = 0;      // Pre-discount total
         const processedItems = [];
 
-        // 1. Validate Products and Calculate Totals
+        // 1. Validate Products and Calculate Totals from Database
+        console.log(`[OrderService] Initiating order for user: ${userId}`);
         for (const item of items) {
             const product = await ProductDAO.findById(item.productId);
             if (!product) {
+                console.error(`[OrderService] Product not found: ${item.productId}`);
                 throw new ApiError(404, `Product not found: ${item.productId}`);
             }
 
             // Find specific variant for SKU and price
             const variant = product.variants.find(v => v.sku === item.sku);
             if (!variant) {
-                throw new ApiError(404, `Variant with SKU ${item.sku} not found for product ${product.title}`);
+                console.error(`[OrderService] SKU ${item.sku} not found for product ${product.title}`);
+                throw new ApiError(404, `Variant with SKU ${item.sku} not found`);
             }
 
             if (variant.stock < item.quantity) {
-                throw new ApiError(400, `Insufficient stock for ${product.title} (${variant.size}/${variant.color})`);
+                console.error(`[OrderService] Insufficient stock for ${product.title}: ${variant.stock} < ${item.quantity}`);
+                throw new ApiError(400, `Insufficient stock for ${product.title}`);
             }
 
-            const itemPrice = product.price; // Discounted Price
-            const itemOriginalPrice = product.originalPrice || product.price; // Fallback to selling price if no original
+            // SOURCE OF TRUTH: Always use DB prices, ignore client values
+            const itemPrice = product.price; // Discounted/Selling Price
+            const itemOriginalPrice = product.originalPrice || product.price;
 
             totalAmount += itemPrice * item.quantity;
             mrpTotal += itemOriginalPrice * item.quantity;
@@ -49,15 +54,22 @@ export class OrderService {
         }
 
         const productDiscount = mrpTotal - totalAmount;
+        console.log(`[OrderService] Calculations: MRP=${mrpTotal}, Subtotal=${totalAmount}, ProductDiscount=${productDiscount}`);
 
-        // 2. Handle Coupon Discount
+        // 2. Handle Coupon Discount with Refined Logic
         let couponDiscountAmount = 0;
         if (couponCode) {
+            console.log(`[OrderService] Validating coupon: ${couponCode}`);
             const validation = await couponService.validateCoupon(couponCode, totalAmount, userId);
             couponDiscountAmount = validation.discountAmount;
+            console.log(`[OrderService] Coupon Applied: ${couponCode}, Savings=${couponDiscountAmount}`);
         }
 
-        const payableAmount = totalAmount - couponDiscountAmount;
+        const payableBeforeShipping = totalAmount - couponDiscountAmount;
+        const shippingFee = payableBeforeShipping > 2000 ? 0 : 99;
+        const payableAmount = payableBeforeShipping + shippingFee;
+
+        console.log(`[OrderService] Final Payable Amount: ${payableAmount} (Subtotal: ${totalAmount}, Coupon: -${couponDiscountAmount}, Shipping: ${shippingFee})`);
 
         // 3. Create Razorpay Order
         const razorpayOrder = await razorpay.orders.create({
@@ -74,6 +86,7 @@ export class OrderService {
             mrpTotal,
             productDiscount,
             discountAmount: couponDiscountAmount,
+            shippingFee,
             payableAmount,
             shippingAddress,
             couponCode,
@@ -122,15 +135,17 @@ export class OrderService {
 
         // 4. Atomic Stock Deduction
         for (const item of order.items) {
-            await ProductDAO.updateById(item.productId.toString(), {
-                $inc: {
-                    "variants.$[elem].stock": -item.quantity,
-                    totalStock: -item.quantity
-                }
-            }, {
-                arrayFilters: [{ "elem.sku": item.sku }],
-                new: true
-            });
+            const updatedProduct = await ProductDAO.deductStock(
+                item.productId.toString(), 
+                item.sku, 
+                item.quantity
+            );
+
+            if (!updatedProduct) {
+                console.error(`[OrderService] Race condition: Stock ran out during payment for product ${item.productId}`);
+                // In a production environment, you would trigger a refund here.
+                throw new ApiError(409, `One or more items in your order (SKU: ${item.sku}) ran out of stock just now. Please contact support for a refund.`);
+            }
         }
 
         // 5. Update Coupon Usage if applicable
@@ -143,6 +158,31 @@ export class OrderService {
 
     async getMyOrders(userId: string) {
         return await orderDAO.findByUserId(userId);
+    }
+
+    async getOrderById(userId: string, id: string) {
+        let order;
+        
+        // 1. Try finding by database _id if it's a valid ObjectId
+        if (Types.ObjectId.isValid(id)) {
+            order = await orderDAO.findById(id);
+        }
+
+        // 2. Fallback to searching by custom orderId (QB-XXXXX) if not found
+        if (!order) {
+            order = await orderDAO.findByOrderId(id);
+        }
+
+        if (!order) {
+            throw new ApiError(404, "Order not found");
+        }
+
+        // 3. Security Check: Ensure the order belongs to the user
+        if (order.userId._id.toString() !== userId.toString()) {
+            throw new ApiError(403, "You do not have permission to view this order");
+        }
+
+        return order;
     }
 }
 

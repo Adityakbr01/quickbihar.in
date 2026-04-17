@@ -134,17 +134,21 @@ export const DealProductCard = ({ product, width }: DealProductCardProps) => {
         </View>
 
         {/* Add to Cart absolute button */}
-        <TouchableOpacity
-          style={styles.addButton}
-          activeOpacity={0.8}
-          onPress={(e) => {
-            e.stopPropagation();
-            handleAddToCart();
-          }}
-        >
-          <Ionicons name="bag-add-outline" size={14} color="#fff" />
-          <Text style={styles.addText}>Add</Text>
-        </TouchableOpacity>
+        {(product as IProduct).totalStock > 0 &&
+
+          (
+            <TouchableOpacity
+              style={styles.addButton}
+              activeOpacity={0.8}
+              onPress={(e) => {
+                e.stopPropagation();
+                handleAddToCart();
+              }}
+            >
+              <Ionicons name="bag-add-outline" size={14} color="#fff" />
+              <Text style={styles.addText}>Add</Text>
+            </TouchableOpacity>
+          )}
       </View>
 
       {/* Product Info */}

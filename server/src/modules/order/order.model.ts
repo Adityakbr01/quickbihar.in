@@ -49,6 +49,7 @@ const orderSchema = new Schema<IOrder>(
         mrpTotal: { type: Number, required: true },
         productDiscount: { type: Number, default: 0 },
         discountAmount: { type: Number, default: 0 },
+        shippingFee: { type: Number, default: 0, required: false },
         payableAmount: { type: Number, required: true },
         shippingAddress: {
             type: shippingAddressSchema,

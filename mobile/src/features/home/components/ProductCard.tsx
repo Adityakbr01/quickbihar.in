@@ -90,31 +90,34 @@ export const ProductCard = ({ item }: ProductCardProps) => {
           style={styles.favoriteBtn}
         />
 
-        {/* Add to Cart absolute button (like DealProductCard) */}
-        <TouchableOpacity
-          style={styles.addButton}
-          activeOpacity={0.8}
-          onPress={(e) => {
-            e.stopPropagation();
-            handleAddToCart();
-          }}
-        >
-          <Ionicons name="bag-add-outline" size={14} color="#fff" />
-          <Text style={styles.addText}>Add</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Product Info */}
-      <View style={styles.infoContainer}>
         <View style={styles.ratingContainer}>
           <Ionicons name="star" size={12} color="#f59e0b" />
           <Text style={[styles.rating, { color: theme.text }]}>
             {productData.rating}{" "}
             <Text style={{ color: theme.secondaryText }}>
-              | {productData.reviews}
+              | {productData.reviews ? productData.reviews : "No reviews"}
             </Text>
           </Text>
         </View>
+
+        {/* Add to Cart absolute button (like DealProductCard) */}
+        <TouchableOpacity
+          style={[styles.addButton, (item as IProduct).totalStock <= 0 && { opacity: 0.5, backgroundColor: theme.secondaryText }]}
+          activeOpacity={0.8}
+          disabled={(item as IProduct).totalStock <= 0}
+          onPress={(e) => {
+            e.stopPropagation();
+            handleAddToCart();
+          }}
+        >
+          <Ionicons name={(item as IProduct).totalStock <= 0 ? "close-circle-outline" : "bag-add-outline"} size={14} color="#fff" />
+          <Text style={styles.addText}>{(item as IProduct).totalStock <= 0 ? "Out of Stock" : "Add"}</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Product Info */}
+      <View style={styles.infoContainer}>
+
 
         <Text
           style={[styles.name, { color: theme.text }]}

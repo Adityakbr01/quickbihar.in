@@ -123,4 +123,26 @@ export class ProductDAO {
             .sort({ isTrending: -1, createdAt: -1 })
             .limit(limit);
     }
+
+    static async deductStock(productId: string, sku: string, quantity: number) {
+        return await Product.findOneAndUpdate(
+            { 
+                _id: productId,
+                "variants.sku": sku,
+                "variants.stock": { $gte: quantity }, // ATOMIC SAFETY CHECK
+                totalStock: { $gte: quantity }        // ATOMIC SAFETY CHECK
+            },
+            {
+                $inc: {
+                    "variants.$[elem].stock": -quantity,
+                    totalStock: -quantity
+                }
+            },
+            {
+                arrayFilters: [{ "elem.sku": sku }],
+                new: true,
+                runValidators: true
+            }
+        );
+    }
 }

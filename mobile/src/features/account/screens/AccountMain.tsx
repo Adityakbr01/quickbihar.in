@@ -34,6 +34,9 @@ const AccountMain = () => {
     } else if (label === "Wishlist") {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       router.push("/account/wishlist");
+    } else if (label === "My Orders") {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      router.push("/account/orders");
     } else {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
