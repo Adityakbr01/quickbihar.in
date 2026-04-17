@@ -32,7 +32,10 @@ import { RatingBar } from "./ProductDetail/components/RatingBar";
 import { SimilarProducts } from "./ProductDetail/components/SimilarProducts";
 import SafeViewWrapper from "@/src/provider/SafeViewWrapper";
 import { useWishlistStore } from "../../wishlist/store/wishlistStore";
-
+import { useCartStore } from "../../cart/store/cartStore";
+import * as Haptics from "expo-haptics";
+import Toast from "react-native-toast-message";
+import WishlistHeart from "@/src/components/common/WishlistHeart";
 
 if (
   Platform.OS === "android" &&
@@ -93,6 +96,45 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
     } catch { }
   }, [dp.title, dp.price]);
 
+  const { addItem, isLoading: isAddingToCart } = useCartStore();
+
+  const handleAddToBag = async () => {
+    if (!selectedSize && sizesForColor.length > 0) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      Toast.show({
+        type: "error",
+        text1: "Select Size",
+        text2: "Please select a size before adding to bag",
+        props: { id: Date.now() }
+      });
+      return;
+    }
+
+    const variant = dp.variants?.find(
+      (v) => v.color.trim() === selectedColor && v.size === selectedSize
+    ) || dp.variants?.[0];
+
+    const sku = variant?.sku || "default-sku";
+
+    try {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      await addItem(dp, sku, 1);
+      Toast.show({
+        type: "success",
+        text1: "Added to Bag",
+        text2: `${dp.title} has been added to your bag`,
+        props: { id: Date.now() }
+      });
+    } catch (error) {
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: "Failed to add item to bag",
+        props: { id: Date.now() }
+      });
+    }
+  };
+
   // ── Loading State ──
   if (isLoading && !isMock) {
     return (
@@ -151,19 +193,16 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
               <Ionicons name="arrow-back" size={22} color={theme.text} />
             </TouchableOpacity>
             <View style={s.navRight}>
-              <TouchableOpacity
-                onPress={() => toggleWishlist(id)}
+              <WishlistHeart
+                isWishlisted={isWishlisted}
+                onToggle={() => toggleWishlist(id)}
+                size={22}
+                activeColor="#FF3B30"
                 style={[
                   s.navBtn,
                   { backgroundColor: theme.background + "E6" },
                 ]}
-              >
-                <Ionicons
-                  name={isWishlisted ? "heart" : "heart-outline"}
-                  size={22}
-                  color={isWishlisted ? "#FF3B30" : theme.text}
-                />
-              </TouchableOpacity>
+              />
               <TouchableOpacity
                 onPress={handleShare}
                 style={[
@@ -791,11 +830,19 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[s.addToBagBtn, { backgroundColor: theme.primary }]}
+          onPress={handleAddToBag}
+          disabled={isAddingToCart}
+          style={[s.addToBagBtn, { backgroundColor: theme.primary, opacity: isAddingToCart ? 0.7 : 1 }]}
           activeOpacity={0.8}
         >
-          <Ionicons name="bag-handle-outline" size={20} color="#fff" />
-          <Text style={s.addToBagText}>ADD TO BAG</Text>
+          {isAddingToCart ? (
+            <ActivityIndicator color="#fff" size="small" />
+          ) : (
+            <>
+              <Ionicons name="bag-handle-outline" size={20} color="#fff" />
+              <Text style={s.addToBagText}>ADD TO BAG</Text>
+            </>
+          )}
         </TouchableOpacity>
       </Animated.View>
     </SafeViewWrapper>

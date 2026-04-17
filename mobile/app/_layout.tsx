@@ -1,6 +1,8 @@
 import { ThemeProvider } from "@/src/theme/Provider/ThemeProvider";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import Toast from "react-native-toast-message";
+import { toastConfig } from "@/src/components/common/CustomToast";
 import { useEffect } from "react";
 import { useColorScheme } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -25,6 +27,7 @@ export default function RootLayout() {
               headerShown: false,
             }}
           />
+          <Toast config={toastConfig} />
         </ThemeProvider>
       </QueryProvider>
     </SafeAreaProvider>

@@ -35,7 +35,7 @@ export const createDealProductCardStyles = (theme: any) =>
     addButton: {
       position: "absolute",
       bottom: 10,
-      right: 10,
+      right: 4,
       backgroundColor: "#020617",
       flexDirection: "row",
       alignItems: "center",
@@ -57,22 +57,28 @@ export const createDealProductCardStyles = (theme: any) =>
     productInfo: {
       padding: 12,
     },
-    ratingRow: {
+    ratingPill: {
+      position: "absolute",
+      bottom: 10,
+      left: 2.5,
       flexDirection: "row",
       alignItems: "center",
+      backgroundColor: "rgba(255,255,255,0.96)",
+      paddingHorizontal: 8,
+      paddingVertical: 5,
+      borderRadius: 10,
       gap: 4,
-      marginBottom: 6,
     },
     ratingText: {
       fontSize: 11,
       fontWeight: "600",
+      color: theme.text,
     },
     productTitle: {
       fontSize: 13,
       fontWeight: "600",
       marginBottom: 4,
       lineHeight: 18,
-      height: 36, // Fixed height for two lines to keep grid aligned
     },
     benefitsText: {
       fontSize: 11,

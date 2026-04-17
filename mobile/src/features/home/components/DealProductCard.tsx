@@ -1,12 +1,19 @@
-import React from "react";
-import { View, Text, Image, TouchableOpacity } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
-import { useTheme } from "@/src/theme/Provider/ThemeProvider";
-import { createDealProductCardStyles } from "../style/DealProductCard.style";
+import WishlistHeart from "@/src/components/common/WishlistHeart";
 import { IProduct } from "@/src/features/product/types/product.types";
-import { DealProduct as MockProduct } from "../lib/dealsMockData";
+import { useTheme } from "@/src/theme/Provider/ThemeProvider";
+import { Ionicons } from "@expo/vector-icons";
+import * as Haptics from "expo-haptics";
+import { useRouter } from "expo-router";
+import LottieView from "lottie-react-native";
+import React from "react";
+import { Image, Text, TouchableOpacity, View } from "react-native";
+import Toast from "react-native-toast-message";
+import { useCartStore } from "../../cart/store/cartStore";
 import { useWishlistStore } from "../../wishlist/store/wishlistStore";
+import { DealProduct as MockProduct } from "../lib/dealsMockData";
+import { createDealProductCardStyles } from "../style/DealProductCard.style";
+
+const cyclerLottie = require("@/assets/lottie/Cycler.json");
 
 interface DealProductCardProps {
   product: IProduct | MockProduct;
@@ -20,10 +27,43 @@ export const DealProductCard = ({ product, width }: DealProductCardProps) => {
     [theme],
   );
   const router = useRouter();
+  const addItem = useCartStore(state => state.addItem);
 
   const id = (product as IProduct)._id || 'mock';
   const isWishlisted = useWishlistStore(state => state.items.includes(id));
   const toggleWishlist = useWishlistStore(state => state.toggleItem);
+
+  const handleAddToCart = async () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
+    const sku =
+      (product as IProduct).variants?.[0]?.sku ||
+      (product as MockProduct).id ||
+      'default-sku';
+
+    try {
+      await addItem(product, sku, 1);
+
+      Toast.show({
+        type: 'success',
+        text1: 'Added to Cart',
+        text2: `${productData.title} added successfully!`,
+        props: {
+          id: Date.now(), // ✅ MOST IMPORTANT LINE
+        },
+      });
+
+    } catch (error) {
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Failed to add item to cart',
+        props: {
+          id: Date.now(), // ✅ consistency
+        },
+      });
+    }
+  };
 
   // Helper to handle both Mock and Real Data mapping
   const productData = {
@@ -66,20 +106,42 @@ export const DealProductCard = ({ product, width }: DealProductCardProps) => {
           </View>
         ) : null}
 
+
+
         {/* Favorite absolute button */}
-        <TouchableOpacity 
-          style={{ position: 'absolute', top: 8, right: 8, backgroundColor: 'rgba(255,255,255,0.8)', padding: 6, borderRadius: 20 }}
-          onPress={() => toggleWishlist(id)}
-        >
-          <Ionicons 
-            name={isWishlisted ? "heart" : "heart-outline"} 
-            size={16} 
-            color={isWishlisted ? "#ef4444" : "#020617"} 
-          />
-        </TouchableOpacity>
+        <WishlistHeart
+          isWishlisted={isWishlisted}
+          onToggle={() => toggleWishlist(id)}
+          size={16}
+          style={{
+            position: 'absolute',
+            top: 8,
+            right: 8,
+            backgroundColor: 'rgba(255,255,255,0.8)',
+            padding: 6,
+            borderRadius: 20
+          }}
+        />
+
+        <View style={styles.ratingPill}>
+          <Ionicons name="star" size={12} color="#f59e0b" />
+          <Text style={[styles.ratingText, { color: theme.secondaryText }]}>
+            {productData.rating ? productData.rating : 3.5}{" "}
+            <Text style={{ color: theme.secondaryText }}>
+              | {productData.reviews ? productData.reviews : 123}
+            </Text>
+          </Text>
+        </View>
 
         {/* Add to Cart absolute button */}
-        <TouchableOpacity style={styles.addButton} activeOpacity={0.8}>
+        <TouchableOpacity
+          style={styles.addButton}
+          activeOpacity={0.8}
+          onPress={(e) => {
+            e.stopPropagation();
+            handleAddToCart();
+          }}
+        >
           <Ionicons name="bag-add-outline" size={14} color="#fff" />
           <Text style={styles.addText}>Add</Text>
         </TouchableOpacity>
@@ -87,19 +149,10 @@ export const DealProductCard = ({ product, width }: DealProductCardProps) => {
 
       {/* Product Info */}
       <View style={styles.productInfo}>
-        <View style={styles.ratingRow}>
-          <Ionicons name="star" size={12} color="#f59e0b" />
-          <Text style={[styles.ratingText, { color: theme.text }]}>
-            {productData.rating ? productData.rating : "0"}{" "}
-            <Text style={{ color: theme.secondaryText }}>
-              | {productData.reviews ? productData.reviews : "0"}
-            </Text>
-          </Text>
-        </View>
-
         <Text
           style={[styles.productTitle, { color: theme.text }]}
-          numberOfLines={2}
+          numberOfLines={1}
+
         >
           {productData.title}
         </Text>
@@ -123,11 +176,27 @@ export const DealProductCard = ({ product, width }: DealProductCardProps) => {
 
         {productData.delivery ? (
           <View style={styles.deliveryRow}>
-            <Ionicons
-              name="bicycle-outline"
-              size={14}
-              color={theme.success || "#10b981"}
-            />
+            {productData.delivery.toLowerCase().includes("express") ? (
+              <LottieView
+                source={cyclerLottie}
+                autoPlay
+                loop
+                style={{
+                  width: 22,
+                  height: 22,
+                  marginLeft: -4,
+                  marginRight: -2,
+                }}
+                resizeMode="contain"
+                renderMode="SOFTWARE"
+              />
+            ) : (
+              <Ionicons
+                name="bicycle-outline"
+                size={14}
+                color={theme.success || "#10b981"}
+              />
+            )}
             <Text
               style={[
                 styles.deliveryText,

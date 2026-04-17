@@ -101,6 +101,26 @@ export class CartService {
     async clearCart(userId: string) {
         return await cartDAO.clearCart(userId);
     }
+
+    async syncCart(userId: string, items: { productId: string; sku: string; quantity: number }[]) {
+        let cart = await cartDAO.findRawByUserId(userId);
+        if (!cart) {
+            cart = await cartDAO.create(userId);
+        }
+
+        if (!cart) throw new ApiError(500, "Failed to create/fetch cart");
+
+        for (const item of items) {
+            const existingItem = cart.items.find(i => i.sku === item.sku);
+            if (existingItem) {
+                existingItem.quantity += item.quantity;
+            } else {
+                cart.items.push({ productId: item.productId as any, sku: item.sku, quantity: item.quantity });
+            }
+        }
+
+        return await cartDAO.updateItems(userId, cart.items);
+    }
 }
 
 export const cartService = new CartService();

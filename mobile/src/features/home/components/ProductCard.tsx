@@ -7,6 +7,10 @@ import { createProductCardStyles } from "../style/ProductCard.style";
 import { IProduct } from "@/src/features/product/types/product.types";
 import { Product as MockProduct } from "../lib/mockData";
 import { useWishlistStore } from "../../wishlist/store/wishlistStore";
+import { useCartStore } from "../../cart/store/cartStore";
+import * as Haptics from "expo-haptics";
+import Toast from "react-native-toast-message";
+import WishlistHeart from "@/src/components/common/WishlistHeart";
 
 interface ProductCardProps {
   item: IProduct | MockProduct;
@@ -16,10 +20,32 @@ export const ProductCard = ({ item }: ProductCardProps) => {
   const theme = useTheme() as any;
   const styles = React.useMemo(() => createProductCardStyles(theme), [theme]);
   const router = useRouter();
+  const addItem = useCartStore(state => state.addItem);
 
   const id = (item as IProduct)._id || 'mock';
   const isWishlisted = useWishlistStore(state => state.items.includes(id));
   const toggleWishlist = useWishlistStore(state => state.toggleItem);
+
+  const handleAddToCart = async () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    const sku = (item as IProduct).variants?.[0]?.sku || (item as MockProduct).id || 'default-sku';
+    try {
+      await addItem(item, sku, 1);
+      Toast.show({
+        type: 'success',
+        text1: 'Added to Cart',
+        text2: `${productData.name} added successfully!`,
+        props: { id: Date.now() }
+      });
+    } catch (error) {
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Failed to add item to cart',
+        props: { id: Date.now() }
+      });
+    }
+  };
 
   // Helper to handle both Mock and Real Data mapping
   const productData = {
@@ -57,19 +83,22 @@ export const ProductCard = ({ item }: ProductCardProps) => {
         ) : null}
 
         {/* Favorite absolute button */}
-        <TouchableOpacity 
-          style={styles.favoriteBtn} 
-          onPress={() => toggleWishlist(id)}
-        >
-          <Ionicons 
-            name={isWishlisted ? "heart" : "heart-outline"} 
-            size={16} 
-            color={isWishlisted ? "#ef4444" : "#020617"} 
-          />
-        </TouchableOpacity>
+        <WishlistHeart
+          isWishlisted={isWishlisted}
+          onToggle={() => toggleWishlist(id)}
+          size={16}
+          style={styles.favoriteBtn}
+        />
 
         {/* Add to Cart absolute button (like DealProductCard) */}
-        <TouchableOpacity style={styles.addButton} activeOpacity={0.8}>
+        <TouchableOpacity
+          style={styles.addButton}
+          activeOpacity={0.8}
+          onPress={(e) => {
+            e.stopPropagation();
+            handleAddToCart();
+          }}
+        >
           <Ionicons name="bag-add-outline" size={14} color="#fff" />
           <Text style={styles.addText}>Add</Text>
         </TouchableOpacity>

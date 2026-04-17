@@ -1,6 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { authenticateRequest, logoutRequest } from "../api/auth.api";
 import { useAuthStore } from "../store/authStore";
+import { useCartStore } from "../../cart/store/cartStore";
 import { useRouter } from "expo-router";
 
 export const useAuthenticate = () => {
@@ -21,6 +22,14 @@ export const useAuthenticate = () => {
 
       const { user, accessToken, refreshToken } = data;
       await setAuth(user, accessToken, refreshToken);
+      
+      // Sync local cart items to server after login
+      try {
+        await useCartStore.getState().syncLocalCart();
+      } catch (error) {
+        console.error("Failed to sync cart after login:", error);
+      }
+
       console.log("Authentication successful, state updated.");
       router.replace("/home");
     },
@@ -39,6 +48,9 @@ export const useLogout = () => {
     onSettled: async () => {
       // We clear local auth regardless of whether the server call succeeded
       await clearAuth();
+      // Clear cart on logout
+      useCartStore.getState().clearCart();
+      
       console.log("Logged out successfully.");
       router.replace("/auth");
     },

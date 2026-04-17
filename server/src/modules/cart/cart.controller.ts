@@ -1,7 +1,7 @@
 import { ApiResponse } from "../../utils/ApiResponse";
 import { asyncHandler } from "../../utils/asyncHandler";
 import { cartService } from "./cart.service";
-import { addToCartSchema, updateQuantitySchema } from "./cart.validator";
+import { addToCartSchema, updateQuantitySchema, syncCartSchema } from "./cart.validator";
 
 export class CartController {
     static getCart = asyncHandler(async (req, res) => {
@@ -30,6 +30,14 @@ export class CartController {
 
         const result = await cartService.updateQuantity(userId, validatedData.sku, validatedData.quantity);
         return res.status(200).json(new ApiResponse(200, result, "Quantity updated"));
+    });
+
+    static syncCart = asyncHandler(async (req, res) => {
+        const validatedData = syncCartSchema.parse(req.body);
+        const userId = (req as any).user._id;
+
+        const result = await cartService.syncCart(userId, validatedData.items);
+        return res.status(200).json(new ApiResponse(200, result, "Cart synced successfully"));
     });
 
     static removeItem = asyncHandler(async (req, res) => {
