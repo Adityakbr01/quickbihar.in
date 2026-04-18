@@ -1,7 +1,8 @@
 import { RefundPolicy } from "./refundPolicy.model";
+import type { IRefundPolicy } from "./refundPolicy.type";
 
 export class RefundPolicyDAO {
-    static async create(data: { title: string; content: string }) {
+    static async create(data: Partial<IRefundPolicy>) {
         return await RefundPolicy.create(data);
     }
 
