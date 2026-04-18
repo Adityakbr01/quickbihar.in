@@ -144,7 +144,7 @@ export class ProductDAO {
             },
             {
                 arrayFilters: [{ "elem.sku": sku }],
-                new: true,
+                returnDocument: 'after',
                 runValidators: true
             }
         );
@@ -163,7 +163,7 @@ export class ProductDAO {
             },
             {
                 arrayFilters: [{ "elem.sku": sku }],
-                new: true,
+                returnDocument: 'after',
                 runValidators: true
             }
         );

@@ -14,7 +14,7 @@ export class SavedAddressDAO {
     }
 
     async update(id: string, userId: string, data: Partial<ISavedAddress>) {
-        return await SavedAddress.findOneAndUpdate({ _id: id, userId }, data, { new: true });
+        return await SavedAddress.findOneAndUpdate({ _id: id, userId }, data, { returnDocument: 'after' });
     }
 
     async delete(id: string, userId: string) {
@@ -25,7 +25,7 @@ export class SavedAddressDAO {
         // Reset all defaults for this user
         await SavedAddress.updateMany({ userId }, { isDefault: false });
         // Set this one as default
-        return await SavedAddress.findOneAndUpdate({ _id: id, userId }, { isDefault: true }, { new: true });
+        return await SavedAddress.findOneAndUpdate({ _id: id, userId }, { isDefault: true }, { returnDocument: 'after' });
     }
 }
 

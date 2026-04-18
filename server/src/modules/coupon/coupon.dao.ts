@@ -19,7 +19,7 @@ export class CouponDAO {
     }
 
     async update(id: string, data: Partial<ICoupon>) {
-        return await Coupon.findByIdAndUpdate(id, data, { new: true });
+        return await Coupon.findByIdAndUpdate(id, data, { returnDocument: 'after' });
     }
 
     async delete(id: string) {
@@ -27,7 +27,7 @@ export class CouponDAO {
     }
 
     async updateByCode(code: string, data: any) {
-        return await Coupon.findOneAndUpdate({ code: code.toUpperCase() }, data, { new: true });
+        return await Coupon.findOneAndUpdate({ code: code.toUpperCase() }, data, { returnDocument: 'after' });
     }
 }
 

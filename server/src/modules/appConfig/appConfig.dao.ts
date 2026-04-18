@@ -14,7 +14,7 @@ export class AppConfigDAO {
         // we'll findOne and if exists update it, else create it.
         const config = await AppConfig.findOne();
         if (config) {
-            return await AppConfig.findByIdAndUpdate(config._id, data, { new: true });
+            return await AppConfig.findByIdAndUpdate(config._id, data, { returnDocument: 'after' });
         } else {
             return await AppConfig.create(data);
         }

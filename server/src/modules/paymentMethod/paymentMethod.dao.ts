@@ -15,7 +15,7 @@ export class PaymentMethodDAO {
 
     async setAsDefault(id: string, userId: string) {
         await PaymentMethod.updateMany({ userId }, { isDefault: false });
-        return await PaymentMethod.findOneAndUpdate({ _id: id, userId }, { isDefault: true }, { new: true });
+        return await PaymentMethod.findOneAndUpdate({ _id: id, userId }, { isDefault: true }, { returnDocument: 'after' });
     }
 }
 

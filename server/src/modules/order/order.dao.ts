@@ -23,7 +23,7 @@ export class OrderDAO {
         if (paymentId) updateData["paymentInfo.razorpayPaymentId"] = paymentId;
         if (signature) updateData["paymentInfo.razorpaySignature"] = signature;
 
-        return await Order.findByIdAndUpdate(id, updateData, { new: true });
+        return await Order.findByIdAndUpdate(id, updateData, { returnDocument: 'after' });
     }
 
     async findByUserId(userId: string) {
@@ -35,7 +35,7 @@ export class OrderDAO {
 
     }
     async update(id: string, data: Partial<IOrder>) {
-        return await Order.findByIdAndUpdate(id, { $set: data }, { new: true });
+        return await Order.findByIdAndUpdate(id, { $set: data }, { returnDocument: 'after' });
     }
 }
 

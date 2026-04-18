@@ -18,7 +18,7 @@ export class RefundPolicyDAO {
     }
 
     static async updateById(id: string, data: any) {
-        return await RefundPolicy.findByIdAndUpdate(id, data, { new: true });
+        return await RefundPolicy.findByIdAndUpdate(id, data, { returnDocument: 'after' });
     }
 
     static async deleteById(id: string) {

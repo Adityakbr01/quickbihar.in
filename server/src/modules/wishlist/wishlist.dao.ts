@@ -5,7 +5,7 @@ export class WishlistDAO {
         return await Wishlist.findOneAndUpdate(
             { userId, productId },
             { userId, productId },
-            { upsert: true, new: true }
+            { upsert: true, returnDocument: 'after' }
         );
     }
 

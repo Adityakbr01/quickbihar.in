@@ -17,7 +17,7 @@ export class CartDAO {
         return await Cart.findOneAndUpdate(
             { userId },
             { $set: { items } },
-            { new: true, upsert: true }
+            { returnDocument: 'after', upsert: true }
         );
     }
 
@@ -25,7 +25,7 @@ export class CartDAO {
         return await Cart.findOneAndUpdate(
             { userId },
             { $set: { items: [] } },
-            { new: true }
+            { returnDocument: 'after' }
         );
     }
 }
