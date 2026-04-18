@@ -50,11 +50,6 @@ export const ACCOUNT_SECTIONS: AccountSection[] = [
             onPressLabel: "My Orders",
           },
           {
-            label: "Track Orders",
-            icon: DeliveryTruck01Icon,
-            onPressLabel: "Track Orders",
-          },
-          {
             label: "Returns",
             icon: PackageReceive01Icon,
             onPressLabel: "Returns",

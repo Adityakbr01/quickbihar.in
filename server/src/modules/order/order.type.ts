@@ -33,6 +33,8 @@ export interface IShippingAddress {
     state: string;
     pincode: string;
     landmark?: string;
+    latitude?: number;
+    longitude?: number;
 }
 
 export interface IOrder extends Document {

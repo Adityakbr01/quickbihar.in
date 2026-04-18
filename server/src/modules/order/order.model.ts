@@ -27,6 +27,8 @@ const shippingAddressSchema = new Schema(
         state: { type: String, required: true },
         pincode: { type: String, required: true },
         landmark: { type: String },
+        latitude: { type: Number },
+        longitude: { type: Number },
     },
     { _id: false }
 );

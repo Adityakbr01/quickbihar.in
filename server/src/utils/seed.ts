@@ -105,6 +105,13 @@ export const seedUsers = async () => {
                 password: "password123",
                 fullName: "Test Seller",
                 role: "seller",
+            },
+            {
+                username: "delivery1",
+                email: "delivery@example.com",
+                password: "password123",
+                fullName: "Test Delivery Partner",
+                role: "delivery_partner",
             }
         ];
 

@@ -125,9 +125,20 @@ const OrderListScreen = () => {
           <Text style={styles.totalLabel}>Total Amount</Text>
           <Text style={styles.totalValue}>₹{item.payableAmount.toLocaleString()}</Text>
         </View>
-        <View style={styles.detailButton}>
-          <Text style={styles.detailButtonText}>Details</Text>
-          <Ionicons name="chevron-forward" size={14} color={theme.primary} />
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          {/* {["CONFIRMED", "PROCESSING", "SHIPPED"].includes(item.status.toUpperCase()) && (
+            <TouchableOpacity 
+              style={[styles.detailButton, { backgroundColor: theme.primary + '15', marginRight: 10, paddingHorizontal: 12 }]}
+              onPress={() => router.push(`/track-order/${item.orderId}`)}
+            >
+              <MaterialCommunityIcons name="map-marker-distance" size={16} color={theme.primary} />
+              <Text style={[styles.detailButtonText, { color: theme.primary, marginLeft: 4 }]}>Track</Text>
+            </TouchableOpacity>
+          )} */}
+          <View style={styles.detailButton}>
+            <Text style={styles.detailButtonText}>Details</Text>
+            <Ionicons name="chevron-forward" size={14} color={theme.primary} />
+          </View>
         </View>
       </View>
     </TouchableOpacity>

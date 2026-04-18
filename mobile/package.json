@@ -71,6 +71,7 @@
     "react-native-svg": "15.12.1",
     "react-native-toast-message": "^2.3.3",
     "react-native-web": "~0.21.0",
+    "react-native-webview": "^13.16.1",
     "react-native-worklets": "0.5.1",
     "socket.io-client": "4.7.5",
     "socket.io-parser": "4.2.4",

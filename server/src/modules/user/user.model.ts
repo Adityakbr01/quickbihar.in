@@ -14,7 +14,7 @@ export interface IUser extends Document {
   };
   fcmToken?: string;
   password: string;
-  role: "admin" | "user" | "seller";
+  role: "admin" | "user" | "seller" | "delivery_partner";
   refreshToken?: string;
   isPasswordCorrect(password: string): Promise<boolean>;
   generateAccessToken(): string;
@@ -58,7 +58,7 @@ const userSchema = new Schema<IUser>(
     },
     role: {
       type: String,
-      enum: ["admin", "user", "seller"],
+      enum: ["admin", "user", "seller", "delivery_partner"],
       default: "user",
     },
     refreshToken: {
