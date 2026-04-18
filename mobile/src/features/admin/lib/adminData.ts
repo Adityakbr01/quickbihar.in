@@ -65,5 +65,11 @@ export const ADMIN_CARDS: AdminCardItem[] = [
     color: "#EF4444",
     route: "/admin/security",
   },
-
+  {
+    title: "Refund Policies CRUD",
+    description: "Manage returns and refund rules",
+    icon: DashboardCircleSettingsIcon,
+    color: "#3B82F6",
+    route: "/admin/refund-policies",
+  },
 ];

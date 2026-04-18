@@ -26,14 +26,14 @@ const CheckoutScreen = () => {
   const styles = createOrderStyles(theme);
   const router = useRouter();
 
-  const { items, subtotal, discountAmount, appliedCoupon, clearCart } = useCartStore();
+  const { items, subtotal, totalTax, discountAmount, appliedCoupon, clearCart } = useCartStore();
   const { user } = useAuthStore();
-
+ 
   const [addresses, setAddresses] = useState<any[]>([]);
   const [selectedAddress, setSelectedAddress] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
-
+ 
   // Alert Configuration
   const [alertConfig, setAlertConfig] = useState<{
     visible: boolean;
@@ -46,15 +46,15 @@ const CheckoutScreen = () => {
     message: "",
     buttons: [],
   });
-
+ 
   const showAlert = (title: string, message: string, buttons: AlertButton[]) => {
     setAlertConfig({ visible: true, title, message, buttons });
   };
-
+ 
   const hideAlert = () => {
     setAlertConfig(prev => ({ ...prev, visible: false }));
   };
-
+ 
   // Constants
   const shipping = subtotal > 2000 ? 0 : 99;
   const totalPayable = subtotal + shipping - discountAmount;
@@ -278,16 +278,27 @@ const CheckoutScreen = () => {
           })()}
 
           <View style={styles.divider} />
-
-          <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Subtotal</Text>
-            <Text style={styles.summaryValue}>₹{subtotal.toLocaleString()}</Text>
-          </View>
-
-          <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Shipping Fee</Text>
-            <Text style={styles.summaryValue}>{shipping === 0 ? "FREE" : `₹${shipping}`}</Text>
-          </View>
+ 
+           <View style={styles.summaryRow}>
+             <Text style={styles.summaryLabel}>Subtotal (Excl. Tax)</Text>
+             <Text style={styles.summaryValue}>₹{(subtotal - totalTax).toLocaleString()}</Text>
+           </View>
+ 
+          {totalTax > 0 && (
+            <View style={styles.summaryRow}>
+              <Text style={[styles.summaryLabel, { color: theme.secondaryText }]}>
+                GST / Fixed Taxes (Incl.)
+              </Text>
+              <Text style={[styles.summaryValue, { color: theme.secondaryText }]}>
+                ₹{totalTax.toLocaleString()}
+              </Text>
+            </View>
+          )}
+ 
+           <View style={styles.summaryRow}>
+             <Text style={styles.summaryLabel}>Shipping Fee</Text>
+             <Text style={styles.summaryValue}>{shipping === 0 ? "FREE" : `₹${shipping}`}</Text>
+           </View>
 
           {discountAmount > 0 ? (
             <View style={styles.summaryRow}>

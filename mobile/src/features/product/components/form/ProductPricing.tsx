@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, TextInput } from "react-native";
+import { View, Text, TextInput, Switch, StyleSheet } from "react-native";
 import { Theme } from "@/src/theme/Provider/ThemeProvider";
 
 interface ProductPricingProps {
@@ -9,8 +9,10 @@ interface ProductPricingProps {
   setPrice: (v: string) => void;
   originalPrice: string;
   setOriginalPrice: (v: string) => void;
-  discountPercentage: string;
-  setDiscountPercentage: (v: string) => void;
+  isGstApplicable: boolean;
+  setIsGstApplicable: (v: boolean) => void;
+  gstPercentage: string;
+  setGstPercentage: (v: string) => void;
   errors?: any;
 }
 
@@ -21,91 +23,94 @@ const ProductPricing = ({
   setPrice,
   originalPrice,
   setOriginalPrice,
-  discountPercentage,
-  setDiscountPercentage,
+  isGstApplicable,
+  setIsGstApplicable,
+  gstPercentage,
+  setGstPercentage,
   errors,
 }: ProductPricingProps) => {
+  const basePrice = Number(price) || 0;
+  const gstRate = Number(gstPercentage) || 0;
+  const finalPrice = isGstApplicable ? basePrice * (1 + gstRate / 100) : basePrice;
 
-  const handlePriceChange = (val: string) => {
-    setPrice(val);
-    if (val && originalPrice && Number(originalPrice) > 0) {
-      const disc = ((Number(originalPrice) - Number(val)) / Number(originalPrice)) * 100;
-      setDiscountPercentage(disc.toFixed(0));
-    }
-  };
-
-  const handleOriginalPriceChange = (val: string) => {
-    setOriginalPrice(val);
-    if (val && price && Number(val) > 0) {
-      const disc = ((Number(val) - Number(price)) / Number(val)) * 100;
-      setDiscountPercentage(disc.toFixed(0));
-    } else if (val && discountPercentage && Number(val) > 0) {
-        const p = Number(val) - (Number(val) * Number(discountPercentage)) / 100;
-        setPrice(p.toFixed(0));
-    }
-  };
-
-  const handleDiscountChange = (val: string) => {
-    setDiscountPercentage(val);
-    if (val && originalPrice && Number(originalPrice) > 0) {
-      const p = Number(originalPrice) - (Number(originalPrice) * Number(val)) / 100;
-      setPrice(p.toFixed(0));
-    }
-  };
-
-  const savings = Number(originalPrice) - Number(price);
   return (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>Pricing</Text>
+      <Text style={styles.sectionTitle}>Price & Tax Information</Text>
+      
       <View style={styles.row}>
         <View style={{ flex: 1 }}>
-          <Text style={styles.label}>Price (INR)</Text>
+          <Text style={styles.label}>Base Price (₹)</Text>
           <TextInput
             style={[styles.input, errors?.price && styles.inputError]}
             value={price}
-            onChangeText={handlePriceChange}
+            onChangeText={setPrice}
             keyboardType="numeric"
-            placeholder="999"
+            placeholder="e.g. 999"
             placeholderTextColor={theme.tertiaryText}
           />
           {errors?.price && <Text style={styles.errorText}>{errors.price}</Text>}
         </View>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.label}>Original Price</Text>
+        <View style={{ flex: 1, marginLeft: 10 }}>
+          <Text style={styles.label}>MRP (₹) [Optional]</Text>
           <TextInput
-            style={[styles.input, errors?.originalPrice && styles.inputError]}
+            style={styles.input}
             value={originalPrice}
-            onChangeText={handleOriginalPriceChange}
+            onChangeText={setOriginalPrice}
             keyboardType="numeric"
-            placeholder="1499"
+            placeholder="e.g. 1499"
             placeholderTextColor={theme.tertiaryText}
           />
-          {errors?.originalPrice && <Text style={styles.errorText}>{errors.originalPrice}</Text>}
         </View>
       </View>
 
-      <View style={[styles.row, { marginTop: 12 }]}>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.label}>Discount (%)</Text>
+      <View style={[styles.row, { alignItems: "center", justifyContent: "space-between", marginVertical: 8 }]}>
+        <Text style={[styles.label, { marginBottom: 0 }]}>GST Applicable</Text>
+        <Switch
+          value={isGstApplicable}
+          onValueChange={setIsGstApplicable}
+          trackColor={{ false: theme.border, true: theme.primary }}
+          thumbColor={isGstApplicable ? "#fff" : "#f4f3f4"}
+        />
+      </View>
+
+      {isGstApplicable && (
+        <View style={{ marginBottom: 12 }}>
+          <Text style={styles.label}>GST Percentage (%)</Text>
           <TextInput
-            style={[styles.input]}
-            value={discountPercentage}
-            onChangeText={handleDiscountChange}
+            style={styles.input}
+            value={gstPercentage}
+            onChangeText={setGstPercentage}
             keyboardType="numeric"
-            placeholder="20"
+            placeholder="e.g. 18"
             placeholderTextColor={theme.tertiaryText}
           />
         </View>
-        <View style={{ flex: 1, justifyContent: "center", paddingLeft: 10 }}>
-           {savings > 0 && (
-             <View style={{ backgroundColor: theme.primary + "10", padding: 8, borderRadius: 8 }}>
-                <Text style={{ color: theme.primary, fontWeight: "600", fontSize: 13 }}>
-                   Saves ₹{savings.toFixed(0)}
-                </Text>
-             </View>
-           )}
+      )}
+
+      {isGstApplicable && basePrice > 0 && (
+        <View style={{ 
+            backgroundColor: theme.primary + '10', 
+            padding: 12, 
+            borderRadius: 12, 
+            borderWidth: 1, 
+            borderColor: theme.primary,
+            borderStyle: "dashed"
+        }}>
+          <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 4 }}>
+            <Text style={{ fontSize: 13, color: theme.secondaryText }}>Base Price:</Text>
+            <Text style={{ fontSize: 13, color: theme.text, fontWeight: "600" }}>₹{basePrice.toLocaleString()}</Text>
+          </View>
+          <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 8 }}>
+            <Text style={{ fontSize: 13, color: theme.secondaryText }}>GST ({gstRate}%):</Text>
+            <Text style={{ fontSize: 13, color: theme.text, fontWeight: "600" }}>+₹{(finalPrice - basePrice).toLocaleString()}</Text>
+          </View>
+          <View style={{ height: 1, backgroundColor: theme.border, marginBottom: 8 }} />
+          <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+            <Text style={{ fontSize: 15, color: theme.text, fontWeight: "700" }}>Final Customer Price:</Text>
+            <Text style={{ fontSize: 15, color: theme.primary, fontWeight: "800" }}>₹{finalPrice.toLocaleString()}</Text>
+          </View>
         </View>
-      </View>
+      )}
     </View>
   );
 };

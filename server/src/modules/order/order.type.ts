@@ -18,6 +18,10 @@ export interface IOrderItem {
     color: string;
     quantity: number;
     price: number; // Snapshot of price at purchase
+    pickupLocation?: string; 
+    warehouseName?: string;
+    latitude?: number;
+    longitude?: number;
 }
 
 export interface IShippingAddress {
@@ -39,6 +43,7 @@ export interface IOrder extends Document {
     productDiscount: number; // Total savings from product price drops
     discountAmount: number;  // Savings from Coupon
     shippingFee: number;
+    totalTax: number;        // Total GST amount
     payableAmount: number;   // Final amount paid
     shippingAddress: IShippingAddress;
     status: OrderStatus;

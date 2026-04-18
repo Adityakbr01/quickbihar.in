@@ -10,8 +10,11 @@ export const createProductSchema = z.object({
     originalPrice: z.coerce.number().optional(),
     discountPercentage: z.coerce.number().optional(),
     currency: z.string().default("INR"),
-    
-    // Support for both JSON string (multipart) and object
+ 
+     isGstApplicable: z.preprocess((val) => val === "true" || val === true, z.boolean()).default(false),
+     gstPercentage: z.coerce.number().default(0),
+     
+     // Support for both JSON string (multipart) and object
     variants: z.preprocess(
         (val) => typeof val === "string" ? JSON.parse(val) : val,
         z.array(z.object({
@@ -27,34 +30,58 @@ export const createProductSchema = z.object({
     details: z.preprocess(
         (val) => typeof val === "string" ? JSON.parse(val) : val,
         z.object({
-            fit: z.string().optional(),
-            pattern: z.string().optional(),
-            collar: z.string().optional(),
-            sleeve: z.string().optional(),
-            washCare: z.string().optional(),
-            sku: z.string().optional(),
-        })
-    ).optional(),
-
-    tags: z.preprocess(
-        (val) => typeof val === "string" ? JSON.parse(val) : val,
-        z.array(z.string())
-    ).optional(),
-
-    isFeatured: z.preprocess((val) => val === "true" || val === true, z.boolean()).default(false),
-    isTrending: z.preprocess((val) => val === "true" || val === true, z.boolean()).default(false),
-    isNewArrival: z.preprocess((val) => val === "true" || val === true, z.boolean()).default(false),
-
-    deliveryInfo: z.preprocess(
-        (val) => typeof val === "string" ? JSON.parse(val) : val,
-        z.object({
-            isExpressAvailable: z.preprocess((val) => val === "true" || val === true, z.boolean()).default(false),
-            estimatedDays: z.coerce.number().default(3),
-        })
-    ).optional(),
-
-    isActive: z.preprocess((val) => val === "true" || val === true, z.boolean()).default(true),
-});
+             fit: z.string().optional(),
+             pattern: z.string().optional(),
+             material: z.string().optional(),
+             collar: z.string().optional(),
+             sleeve: z.string().optional(),
+             washCare: z.string().optional(),
+             sku: z.string().optional(),
+         })
+     ).optional(),
+ 
+     tags: z.preprocess(
+         (val) => typeof val === "string" ? JSON.parse(val) : val,
+         z.array(z.string())
+     ).optional(),
+ 
+     isFeatured: z.preprocess((val) => val === "true" || val === true, z.boolean()).default(false),
+     isTrending: z.preprocess((val) => val === "true" || val === true, z.boolean()).default(false),
+     isNewArrival: z.preprocess((val) => val === "true" || val === true, z.boolean()).default(false),
+ 
+     deliveryInfo: z.preprocess(
+         (val) => typeof val === "string" ? JSON.parse(val) : val,
+         z.object({
+             isExpressAvailable: z.preprocess((val) => val === "true" || val === true, z.boolean()).default(false),
+             isCodAvailable: z.preprocess((val) => val === "true" || val === true, z.boolean()).default(true),
+             estimatedDays: z.coerce.number().default(3),
+             returnPolicy: z.string().optional().default("7 days easy return"),
+         })
+     ).optional(),
+ 
+     compliance: z.preprocess(
+         (val) => typeof val === "string" ? JSON.parse(val) : val,
+         z.object({
+             manufacturerDetail: z.string().optional(),
+             packerDetail: z.string().optional(),
+             countryOfOrigin: z.string().default("India"),
+         })
+     ).optional(),
+ 
+     logistics: z.preprocess(
+         (val) => typeof val === "string" ? JSON.parse(val) : val,
+         z.object({
+             pickupLocation: z.string().optional(),
+             warehouseName: z.string().optional(),
+             latitude: z.coerce.number().optional(),
+             longitude: z.coerce.number().optional(),
+         })
+     ).optional(),
+ 
+     isActive: z.preprocess((val) => val === "true" || val === true, z.boolean()).default(true),
+ 
+     refundPolicy: z.string().optional(),
+ });
 
 export const updateProductSchema = createProductSchema.partial();
 

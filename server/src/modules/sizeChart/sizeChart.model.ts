@@ -28,4 +28,7 @@ const sizeChartSchema = new Schema(
     { timestamps: true }
 );
 
+
+sizeChartSchema.index({ name: 1, category: 1 }, { unique: true });
+
 export const SizeChart = mongoose.model("SizeChart", sizeChartSchema);

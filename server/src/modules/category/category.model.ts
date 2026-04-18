@@ -1,6 +1,9 @@
 import mongoose, { Schema } from "mongoose";
 import type { ICategory } from "./category.type";
 
+
+// Todo add Sub Category
+
 const categorySchema = new Schema<ICategory>(
     {
         title: {

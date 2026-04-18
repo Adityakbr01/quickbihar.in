@@ -5,13 +5,21 @@ import { createCartStyles } from "../styles/cartStyles";
 
 interface CartSummaryProps {
   subtotal: number;
+  totalTax: number;
   shipping: number;
   discount: number;
   appliedCoupon?: any;
   discountAmount?: number;
 }
 
-const CartSummary = ({ subtotal, shipping, discount, appliedCoupon, discountAmount = 0 }: CartSummaryProps) => {
+const CartSummary = ({ 
+  subtotal, 
+  totalTax, 
+  shipping, 
+  discount, 
+  appliedCoupon, 
+  discountAmount = 0 
+}: CartSummaryProps) => {
   const theme = useTheme();
   const styles = createCartStyles(theme);
   
@@ -27,8 +35,19 @@ const CartSummary = ({ subtotal, shipping, discount, appliedCoupon, discountAmou
       
       <View style={styles.summaryRow}>
         <Text style={styles.summaryLabel}>Subtotal</Text>
-        <Text style={styles.summaryValue}>{formatPrice(subtotal)}</Text>
+        <Text style={styles.summaryValue}>{formatPrice(subtotal - totalTax)}</Text>
       </View>
+
+      {totalTax > 0 && (
+        <View style={styles.summaryRow}>
+          <Text style={[styles.summaryLabel, { color: theme.secondaryText }]}>
+            GST / Fixed Taxes (Incl.)
+          </Text>
+          <Text style={[styles.summaryValue, { color: theme.secondaryText }]}>
+            {formatPrice(totalTax)}
+          </Text>
+        </View>
+      )}
       
       <View style={styles.summaryRow}>
         <Text style={styles.summaryLabel}>Shipping Fee</Text>

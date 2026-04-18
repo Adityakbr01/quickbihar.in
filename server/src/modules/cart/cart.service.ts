@@ -10,18 +10,29 @@ export class CartService {
 
         // Calculate dynamic subtotal and filter out invalid items if necessary
         let subtotal = 0;
+        let totalTax = 0;
+
         const validatedItems = cart.items.map((item: any) => {
             const product = item.productId;
             if (!product) return null;
 
             const variant = product.variants.find((v: any) => v.sku === item.sku);
-            const price = product.price;
-            subtotal += price * item.quantity;
+            
+            // Calculate GST-inclusive price
+            const basePrice = product.price;
+            const itemPrice = Math.round(product.isGstApplicable 
+                ? basePrice * (1 + (product.gstPercentage || 0) / 100) 
+                : basePrice);
+                
+            const itemTax = Math.round(itemPrice - basePrice);
+            
+            subtotal += itemPrice * item.quantity;
+            totalTax += itemTax * item.quantity;
 
             return {
                 ...item.toObject(),
                 productTitle: product.title,
-                price: price,
+                price: itemPrice,
                 image: product.images[0]?.url,
                 selectedSize: variant?.size,
                 selectedColor: variant?.color,
@@ -35,6 +46,7 @@ export class CartService {
             userId: cart.userId,
             items: validatedItems,
             subtotal,
+            totalTax: Math.round(totalTax),
             itemCount: validatedItems.length
         };
     }

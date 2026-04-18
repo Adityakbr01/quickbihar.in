@@ -70,11 +70,15 @@ export class ProductDAO {
     }
 
     static async findById(id: string) {
-        return await Product.findOne({ _id: id, isDeleted: false });
+        return await Product.findOne({ _id: id, isDeleted: false })
+            .populate("refundPolicy")
+            .populate("sizeChartId");
     }
-
+ 
     static async findBySlug(slug: string) {
-        return await Product.findOne({ slug, isDeleted: false });
+        return await Product.findOne({ slug, isDeleted: false })
+            .populate("refundPolicy")
+            .populate("sizeChartId");
     }
 
     static async updateById(id: string, data: any, options: any = { returnDocument: "after" }) {

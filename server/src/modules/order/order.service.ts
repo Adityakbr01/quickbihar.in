@@ -11,6 +11,7 @@ export class OrderService {
         const { items, shippingAddress, couponCode } = data;
 
         let totalAmount = 0;   // Post-product discount subtotal
+        let totalTax = 0;      // Total GST amount
         let mrpTotal = 0;      // Pre-discount total
         const processedItems = [];
 
@@ -36,10 +37,16 @@ export class OrderService {
             }
 
             // SOURCE OF TRUTH: Always use DB prices, ignore client values
-            const itemPrice = product.price; // Discounted/Selling Price
+            const basePrice = product.price; // Discounted/Selling Price (Exclusive)
+            const itemPrice = Math.round(product.isGstApplicable 
+                ? basePrice * (1 + (product.gstPercentage || 0) / 100) 
+                : basePrice);
+                
             const itemOriginalPrice = product.originalPrice || product.price;
+            const taxAmount = Math.round(itemPrice - basePrice);
 
             totalAmount += itemPrice * item.quantity;
+            totalTax += taxAmount * item.quantity;
             mrpTotal += itemOriginalPrice * item.quantity;
 
             processedItems.push({
@@ -49,7 +56,15 @@ export class OrderService {
                 size: variant.size,
                 color: variant.color,
                 quantity: item.quantity,
-                price: itemPrice,
+                price: itemPrice, // Final inclusive price
+                basePrice: basePrice, // Exclusive price for tax records
+                taxAmount,
+                isGstApplicable: product.isGstApplicable,
+                gstPercentage: product.gstPercentage,
+                pickupLocation: product.logistics?.pickupLocation,
+                warehouseName: product.logistics?.warehouseName,
+                latitude: product.logistics?.latitude,
+                longitude: product.logistics?.longitude,
             });
         }
 
@@ -83,6 +98,7 @@ export class OrderService {
             userId: new Types.ObjectId(userId) as any,
             items: processedItems as any,
             totalAmount,
+            totalTax,
             mrpTotal,
             productDiscount,
             discountAmount: couponDiscountAmount,

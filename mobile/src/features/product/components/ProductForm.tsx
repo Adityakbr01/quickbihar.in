@@ -26,10 +26,14 @@ import ProductBasicInfo from "./form/ProductBasicInfo";
 import ProductCategorySelector from "./form/ProductCategorySelector";
 import ProductDeliveryInfo from "./form/ProductDeliveryInfo";
 import ProductMedia from "./form/ProductMedia";
-import ProductPricing from "./form/ProductPricing";
+// import ProductPricing from "./form/ProductPricing";
 import ProductSizeChartSelector from "./form/ProductSizeChartSelector";
 import ProductSpecifications from "./form/ProductSpecifications";
 import ProductVariants from "./form/ProductVariants";
+import ProductCompliance from "./form/ProductCompliance";
+import ProductLogistics from "./form/ProductLogistics";
+import ProductRefundPolicySelector from "./form/ProductRefundPolicySelector";
+import ProductPricing from "./form/ProductPricing";
 
 interface ProductFormProps {
   visible: boolean;
@@ -51,6 +55,8 @@ const ProductForm = ({ visible, onClose, onSubmit, initialData, loading }: Produ
   const [brand, setBrand] = useState("");
   const [category, setCategory] = useState("");
   const [price, setPrice] = useState("");
+  const [isGstApplicable, setIsGstApplicable] = useState(false);
+  const [gstPercentage, setGstPercentage] = useState("0");
   const [originalPrice, setOriginalPrice] = useState("");
   const [discountPercentage, setDiscountPercentage] = useState("");
   const [images, setImages] = useState<any[]>([]);
@@ -59,10 +65,21 @@ const ProductForm = ({ visible, onClose, onSubmit, initialData, loading }: Produ
   const [tags, setTags] = useState("");
   const [fit, setFit] = useState("");
   const [pattern, setPattern] = useState("");
+  const [material, setMaterial] = useState("");
   const [sleeve, setSleeve] = useState("");
   const [washCare, setWashCare] = useState("");
   const [isExpressAvailable, setIsExpressAvailable] = useState(false);
+  const [isCodAvailable, setIsCodAvailable] = useState(true);
   const [estimatedDays, setEstimatedDays] = useState("3");
+  const [returnPolicy, setReturnPolicy] = useState("");
+  const [manufacturerDetail, setManufacturerDetail] = useState("");
+  const [packerDetail, setPackerDetail] = useState("");
+  const [countryOfOrigin, setCountryOfOrigin] = useState("India");
+  const [pickupLocation, setPickupLocation] = useState("");
+  const [warehouseName, setWarehouseName] = useState("");
+  const [latitude, setLatitude] = useState<number | undefined>(undefined);
+  const [longitude, setLongitude] = useState<number | undefined>(undefined);
+  const [refundPolicyId, setRefundPolicyId] = useState("");
 
   const [errors, setErrors] = useState<any>({});
   const [alertVisible, setAlertVisible] = useState(false);
@@ -73,9 +90,11 @@ const ProductForm = ({ visible, onClose, onSubmit, initialData, loading }: Produ
       if (initialData) {
         setTitle(initialData.title);
         setDescription(initialData.description);
-        setBrand(initialData.brand);
+        setBrand(initialData.brand || "");
         setCategory(initialData.category);
         setPrice(String(initialData.price));
+        setIsGstApplicable(initialData.isGstApplicable ?? false);
+        setGstPercentage(String(initialData.gstPercentage ?? "0"));
         setOriginalPrice(String(initialData.originalPrice || ""));
         setDiscountPercentage(String(initialData.discountPercentage || ""));
         setImages(initialData.images.map(img => ({ url: img.url, fileId: img.fileId })));
@@ -84,10 +103,21 @@ const ProductForm = ({ visible, onClose, onSubmit, initialData, loading }: Produ
         setTags(initialData.tags.join(", "));
         setFit(initialData.details?.fit || "");
         setPattern(initialData.details?.pattern || "");
+        setMaterial(initialData.details?.material || "");
         setSleeve(initialData.details?.sleeve || "");
         setWashCare(initialData.details?.washCare || "");
         setIsExpressAvailable(initialData.deliveryInfo?.isExpressAvailable || false);
+        setIsCodAvailable(initialData.deliveryInfo?.isCodAvailable ?? true);
         setEstimatedDays(String(initialData.deliveryInfo?.estimatedDays || "3"));
+        setReturnPolicy(initialData.deliveryInfo?.returnPolicy || "");
+        setManufacturerDetail(initialData.compliance?.manufacturerDetail || "");
+        setPackerDetail(initialData.compliance?.packerDetail || "");
+        setCountryOfOrigin(initialData.compliance?.countryOfOrigin || "India");
+        setPickupLocation(initialData.logistics?.pickupLocation || "");
+        setWarehouseName(initialData.logistics?.warehouseName || "");
+        setLatitude(initialData.logistics?.latitude);
+        setLongitude(initialData.logistics?.longitude);
+        setRefundPolicyId(typeof initialData.refundPolicy === 'string' ? initialData.refundPolicy : initialData.refundPolicy?._id || "");
       } else {
         resetForm();
       }
@@ -96,10 +126,15 @@ const ProductForm = ({ visible, onClose, onSubmit, initialData, loading }: Produ
   }, [visible, initialData]);
 
   const resetForm = () => {
-    setTitle(""); setDescription(""); setBrand(""); setCategory(""); setPrice(""); setOriginalPrice(""); setDiscountPercentage("");
+    setTitle(""); setDescription(""); setBrand(""); setCategory(""); setPrice("");
+    setIsGstApplicable(false); setGstPercentage("0");
+    setOriginalPrice(""); setDiscountPercentage("");
     setImages([]); setVariants([{ size: "", color: "", stock: 0, sku: "" }]);
-    setSizeChartId(""); setTags(""); setFit(""); setPattern(""); setSleeve(""); setWashCare("");
-    setIsExpressAvailable(false); setEstimatedDays("3");
+    setSizeChartId(""); setTags(""); setFit(""); setPattern(""); setMaterial(""); setSleeve(""); setWashCare("");
+    setIsExpressAvailable(false); setIsCodAvailable(true); setEstimatedDays("3"); setReturnPolicy("");
+    setManufacturerDetail(""); setPackerDetail(""); setCountryOfOrigin("India");
+    setPickupLocation(""); setWarehouseName(""); setLatitude(undefined); setLongitude(undefined);
+    setRefundPolicyId("");
   };
 
   const pickImage = async () => {
@@ -133,13 +168,32 @@ const ProductForm = ({ visible, onClose, onSubmit, initialData, loading }: Produ
     const dataToValidate = {
       title, description, brand, category,
       price: Number(price),
+      isGstApplicable,
+      gstPercentage: Number(gstPercentage),
       originalPrice: originalPrice ? Number(originalPrice) : undefined,
       tags: tags.split(",").map(t => t.trim()).filter(t => t !== ""),
       variants,
       images,
       sizeChartId,
-      details: { fit, pattern, sleeve, washCare },
-      deliveryInfo: { isExpressAvailable, estimatedDays: Number(estimatedDays) },
+      details: { fit, pattern, material, sleeve, washCare },
+      deliveryInfo: {
+        isExpressAvailable,
+        isCodAvailable,
+        estimatedDays: Number(estimatedDays),
+        returnPolicy: returnPolicy || undefined
+      },
+      compliance: {
+        manufacturerDetail: manufacturerDetail || undefined,
+        packerDetail: packerDetail || undefined,
+        countryOfOrigin
+      },
+      logistics: {
+        pickupLocation: pickupLocation || undefined,
+        warehouseName: warehouseName || undefined,
+        latitude: latitude ? Number(latitude) : undefined,
+        longitude: longitude ? Number(longitude) : undefined,
+      },
+      refundPolicy: refundPolicyId || undefined,
     };
 
     const result = productSchema.safeParse(dataToValidate);
@@ -172,12 +226,31 @@ const ProductForm = ({ visible, onClose, onSubmit, initialData, loading }: Produ
     formData.append("brand", brand);
     formData.append("category", category);
     formData.append("price", price);
+    formData.append("isGstApplicable", String(isGstApplicable));
+    formData.append("gstPercentage", gstPercentage);
     formData.append("originalPrice", originalPrice);
     formData.append("sizeChartId", sizeChartId);
     formData.append("tags", JSON.stringify(tags.split(",").map(t => t.trim()).filter(t => t !== "")));
     formData.append("variants", JSON.stringify(variants));
-    formData.append("details", JSON.stringify({ fit, pattern, sleeve, washCare }));
-    formData.append("deliveryInfo", JSON.stringify({ isExpressAvailable, estimatedDays: Number(estimatedDays) }));
+    formData.append("details", JSON.stringify({ fit, pattern, material, sleeve, washCare }));
+    formData.append("deliveryInfo", JSON.stringify({
+      isExpressAvailable,
+      isCodAvailable,
+      estimatedDays: Number(estimatedDays),
+      returnPolicy
+    }));
+    formData.append("compliance", JSON.stringify({
+      manufacturerDetail,
+      packerDetail,
+      countryOfOrigin
+    }));
+    formData.append("logistics", JSON.stringify({
+      pickupLocation,
+      warehouseName,
+      latitude,
+      longitude
+    }));
+    if (refundPolicyId) formData.append("refundPolicy", refundPolicyId);
 
     images.forEach((img, index) => {
       if (img.uri) formData.append("images", img as any);
@@ -189,10 +262,29 @@ const ProductForm = ({ visible, onClose, onSubmit, initialData, loading }: Produ
       if (!hasNewImages) {
         onSubmit({
           title, description, brand, category, price: Number(price),
+          isGstApplicable,
+          gstPercentage: Number(gstPercentage),
           originalPrice: originalPrice ? Number(originalPrice) : undefined,
           sizeChartId, tags: tags.split(",").map(t => t.trim()).filter(t => t !== ""), variants,
-          details: { fit, pattern, sleeve, washCare },
-          deliveryInfo: { isExpressAvailable, estimatedDays: Number(estimatedDays) }
+          details: { fit, pattern, material, sleeve, washCare },
+          deliveryInfo: {
+            isExpressAvailable,
+            isCodAvailable,
+            estimatedDays: Number(estimatedDays),
+            returnPolicy
+          },
+          compliance: {
+            manufacturerDetail,
+            packerDetail,
+            countryOfOrigin
+          },
+          logistics: {
+            pickupLocation,
+            warehouseName,
+            latitude,
+            longitude
+          },
+          refundPolicy: refundPolicyId
         });
       } else {
         onSubmit(formData);
@@ -211,14 +303,17 @@ const ProductForm = ({ visible, onClose, onSubmit, initialData, loading }: Produ
             <TouchableOpacity onPress={onClose}><HugeiconsIcon icon={Cancel01Icon} size={24} color={theme.text} /></TouchableOpacity>
           </View>
 
-          <ScrollView style={styles.form} contentContainerStyle={styles.formContent}>
+          <ScrollView style={styles.form} contentContainerStyle={styles.formContent} showsVerticalScrollIndicator={false}>
             <ProductBasicInfo {...{ theme, styles, title, setTitle, description, setDescription, brand, setBrand, tags, setTags, errors }} />
-            <ProductPricing {...{ theme, styles, price, setPrice, originalPrice, setOriginalPrice, discountPercentage, setDiscountPercentage, errors }} />
+            <ProductPricing {...{ theme, styles, price, setPrice, originalPrice, setOriginalPrice, isGstApplicable, setIsGstApplicable, gstPercentage, setGstPercentage, errors }} />
             <ProductMedia {...{ theme, styles, images, pickImage, removeImage, errors }} />
             <ProductCategorySelector {...{ theme, styles, categories, category, setCategory, errors }} />
             <ProductSizeChartSelector {...{ theme, styles, sizeCharts, sizeChartId, setSizeChartId }} />
-            <ProductSpecifications {...{ theme, styles, fit, setFit, pattern, setPattern, sleeve, setSleeve, washCare, setWashCare }} />
-            <ProductDeliveryInfo {...{ theme, styles, isExpressAvailable, setIsExpressAvailable, estimatedDays, setEstimatedDays, errors }} />
+            <ProductRefundPolicySelector {...{ theme, styles, refundPolicyId, setRefundPolicyId }} />
+            <ProductSpecifications {...{ theme, styles, fit, setFit, pattern, setPattern, material, setMaterial, sleeve, setSleeve, washCare, setWashCare }} />
+            <ProductDeliveryInfo {...{ theme, styles, isExpressAvailable, setIsExpressAvailable, isCodAvailable, setIsCodAvailable, estimatedDays, setEstimatedDays, returnPolicy, setReturnPolicy, errors }} />
+            <ProductCompliance {...{ theme, styles, manufacturerDetail, setManufacturerDetail, packerDetail, setPackerDetail, countryOfOrigin, setCountryOfOrigin }} />
+            <ProductLogistics {...{ theme, styles, pickupLocation, setPickupLocation, warehouseName, setWarehouseName, latitude, setLatitude, longitude, setLongitude }} />
             <ProductVariants {...{ theme, styles, variants, addVariant, updateVariant, removeVariant, errors }} />
           </ScrollView>
 

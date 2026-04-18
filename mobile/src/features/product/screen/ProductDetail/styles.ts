@@ -27,7 +27,7 @@ export const styles = StyleSheet.create({
     justifyContent: "space-between",
     zIndex: 10,
   },
-  navRight: { flexDirection: "row" },
+  navRight: { flexDirection: "row", gap: 10 },
   navBtn: {
     width: 38,
     height: 38,

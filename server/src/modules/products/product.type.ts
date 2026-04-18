@@ -20,8 +20,11 @@ export interface IProduct {
     discountPercentage?: number;
 
     currency: string;
-
-    images: { url: string; fileId: string }[];
+ 
+     isGstApplicable: boolean;
+     gstPercentage: number;
+ 
+     images: { url: string; fileId: string }[];
 
     sellerId: string; // reference to user
 
@@ -38,6 +41,7 @@ export interface IProduct {
     details?: {
         fit?: string;
         pattern?: string;
+        material?: string;
         collar?: string;
         sleeve?: string;
         washCare?: string;
@@ -52,12 +56,29 @@ export interface IProduct {
 
     deliveryInfo?: {
         isExpressAvailable: boolean;
+        isCodAvailable: boolean;
         estimatedDays: number;
+        returnPolicy?: string;
+    };
+
+    compliance?: {
+        manufacturerDetail?: string;
+        packerDetail?: string;
+        countryOfOrigin: string;
+    };
+
+    logistics?: {
+        pickupLocation?: string;
+        warehouseName?: string;
+        latitude?: number;
+        longitude?: number;
     };
 
     isActive: boolean;
     isDeleted: boolean;
-
-    createdAt: Date;
+ 
+     refundPolicy?: string;
+ 
+     createdAt: Date;
     updatedAt: Date;
 }

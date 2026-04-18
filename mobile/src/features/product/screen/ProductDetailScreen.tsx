@@ -30,6 +30,7 @@ import { SectionDivider } from "./ProductDetail/components/SectionDivider";
 import { ExpandableSection } from "./ProductDetail/components/ExpandableSection";
 import { RatingBar } from "./ProductDetail/components/RatingBar";
 import { SimilarProducts } from "./ProductDetail/components/SimilarProducts";
+import SizeChartModal from "../components/modals/SizeChartModal";
 import SafeViewWrapper from "@/src/provider/SafeViewWrapper";
 import { useWishlistStore } from "../../wishlist/store/wishlistStore";
 import { useCartStore } from "../../cart/store/cartStore";
@@ -56,6 +57,7 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
 
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
+  const [showSizeChart, setShowSizeChart] = useState(false);
   const [carouselIndex, setCarouselIndex] = useState(0);
 
   const wishlistItems = useWishlistStore(state => state.items);
@@ -198,9 +200,10 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
                 onToggle={() => toggleWishlist(id)}
                 size={22}
                 activeColor="#FF3B30"
+                inactiveColor={theme.text}
                 style={[
                   s.navBtn,
-                  { backgroundColor: theme.background + "E6" },
+                  { backgroundColor: theme.background + "B3" },
                 ]}
               />
               <TouchableOpacity
@@ -208,7 +211,7 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
                 style={[
                   s.navBtn,
                   {
-                    backgroundColor: theme.background + "E6",
+                    backgroundColor: theme.background + "B3",
                     marginLeft: 10,
                   },
                 ]}
@@ -298,7 +301,7 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
           {/* Pricing Block */}
           <Animated.View entering={FadeIn.delay(250)} style={s.priceBlock}>
             <Text style={[s.currentPrice, { color: theme.text }]}>
-              ₹{dp.price?.toLocaleString()}
+              ₹{(dp.isGstApplicable ? dp.price! * (1 + dp.gstPercentage! / 100) : dp.price!)?.toLocaleString()}
             </Text>
             {dp.originalPrice && dp.originalPrice > dp.price! && (
               <>
@@ -315,7 +318,7 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
             )}
           </Animated.View>
           <Text style={[s.taxInfo, { color: theme.success || "#34C759" }]}>
-            inclusive of all taxes
+            {dp.isGstApplicable ? `Price inclusive of ${dp.gstPercentage}% GST` : "inclusive of all taxes"}
           </Text>
         </View>
 
@@ -383,7 +386,10 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
               <Text style={[s.selectionLabel, { color: theme.text }]}>
                 SELECT SIZE
               </Text>
-              <TouchableOpacity style={s.sizeGuideBtn}>
+              <TouchableOpacity 
+                style={s.sizeGuideBtn}
+                onPress={() => setShowSizeChart(true)}
+              >
                 <Ionicons
                   name="resize-outline"
                   size={14}
@@ -528,7 +534,22 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
           </View>
           {/* Policies Icons Row */}
           <View style={s.policiesRow}>
-            {TRUST_POLICIES.map((p, i) => (
+            {[
+              { 
+                icon: "refresh-outline", 
+                label: (typeof dp.refundPolicy !== 'string' && dp.refundPolicy?.returnWindowDays) 
+                  ? `${dp.refundPolicy.returnWindowDays} Day\nReturns` 
+                  : (dp.deliveryInfo?.returnPolicy?.includes('7') ? "7 Day\nReturns" : "Easy\nReturns")
+              },
+              { 
+                icon: dp.deliveryInfo?.isCodAvailable ? "cash-outline" : "card-outline", 
+                label: dp.deliveryInfo?.isCodAvailable ? "Pay On\nDelivery" : "Secure\nPayment" 
+              },
+              { 
+                icon: "shield-checkmark-outline", 
+                label: "Genuine\nProduct" 
+              },
+            ].map((p, i) => (
               <View key={i} style={s.policyItem}>
                 <View
                   style={[
@@ -536,7 +557,7 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
                     { backgroundColor: theme.tertiaryBackground },
                   ]}
                 >
-                  <Ionicons name={p.icon} size={20} color={theme.primary} />
+                  <Ionicons name={p.icon as any} size={20} color={theme.primary} />
                 </View>
                 <Text style={[s.policyLabel, { color: theme.secondaryText }]}>
                   {p.label}
@@ -590,38 +611,78 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
                       </Text>
                     </View>
                   ))}
+                {dp.details?.material && (
+                  <View style={[s.specTableRow, { borderBottomColor: theme.border }]}>
+                    <Text style={[s.specKey, { color: theme.secondaryText }]}>Material</Text>
+                    <Text style={[s.specVal, { color: theme.text }]}>{dp.details.material}</Text>
+                  </View>
+                )}
               </View>
             )}
           </ExpandableSection>
 
           <ExpandableSection title="Return & Exchange Policy" theme={theme}>
             <View style={s.returnPolicyContent}>
-              <View style={s.returnRow}>
-                <Ionicons
-                  name="checkmark-circle"
-                  size={18}
-                  color={theme.success}
-                />
-                <Text style={[s.returnText, { color: theme.secondaryText }]}>
-                  Easy 7 day return & exchange
-                </Text>
+              {dp.refundPolicy && typeof dp.refundPolicy !== 'string' ? (
+                <>
+                  <View style={s.returnRow}>
+                    <Ionicons name="calendar-outline" size={18} color={theme.primary} />
+                    <Text style={[s.returnText, { color: theme.secondaryText, fontWeight: "700" }]}>
+                      {dp.refundPolicy.returnWindowDays} Day {dp.refundPolicy.isReturnable ? "Return" : "Policy"} Window
+                    </Text>
+                  </View>
+                  {dp.refundPolicy.description && (
+                    <Text style={{ fontSize: 13, color: theme.tertiaryText, marginBottom: 8 }}>
+                      {dp.refundPolicy.description}
+                    </Text>
+                  )}
+                  {dp.refundPolicy.conditions && dp.refundPolicy.conditions.length > 0 && (
+                    <View style={{ marginTop: 4 }}>
+                      <Text style={{ fontSize: 12, fontWeight: "700", color: theme.text, marginBottom: 6 }}>POLICY CONDITIONS:</Text>
+                      {dp.refundPolicy.conditions.map((c, i) => (
+                        <View key={i} style={{ flexDirection: "row", marginBottom: 4, gap: 8 }}>
+                          <Ionicons name="checkmark-done" size={14} color={theme.success} />
+                          <Text style={{ fontSize: 12, color: theme.secondaryText }}>{c}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  )}
+                </>
+              ) : (
+                <View style={s.returnRow}>
+                  <Ionicons name="checkmark-circle" size={18} color={theme.success} />
+                  <Text style={[s.returnText, { color: theme.secondaryText }]}>
+                    {dp.deliveryInfo?.returnPolicy || "Standard return policy applies"}
+                  </Text>
+                </View>
+              )}
+            </View>
+          </ExpandableSection>
+
+          <ExpandableSection title="Compliance & Manufacturing" theme={theme}>
+            <View style={s.specsTable}>
+              <View style={[s.specTableRow, { borderBottomColor: theme.border }]}>
+                <Text style={[s.specKey, { color: theme.secondaryText }]}>Country of Origin</Text>
+                <Text style={[s.specVal, { color: theme.text }]}>{dp.compliance?.countryOfOrigin || "India"}</Text>
               </View>
-              <View style={s.returnRow}>
-                <Ionicons
-                  name="checkmark-circle"
-                  size={18}
-                  color={theme.success}
-                />
-                <Text style={[s.returnText, { color: theme.secondaryText }]}>
-                  Return pickup available at your doorstep
-                </Text>
-              </View>
-              <View style={s.returnRow}>
-                <Ionicons name="close-circle" size={18} color={theme.error} />
-                <Text style={[s.returnText, { color: theme.secondaryText }]}>
-                  Alteration not covered under Return Policy
-                </Text>
-              </View>
+              {dp.compliance?.manufacturerDetail && (
+                <View style={[s.specTableRow, { borderBottomColor: theme.border }]}>
+                  <Text style={[s.specKey, { color: theme.secondaryText }]}>Manufacturer</Text>
+                  <Text style={[s.specVal, { color: theme.text }]}>{dp.compliance.manufacturerDetail}</Text>
+                </View>
+              )}
+              {dp.compliance?.packerDetail && (
+                <View style={[s.specTableRow, { borderBottomColor: theme.border }]}>
+                  <Text style={[s.specKey, { color: theme.secondaryText }]}>Packer</Text>
+                  <Text style={[s.specVal, { color: theme.text }]}>{dp.compliance.packerDetail}</Text>
+                </View>
+              )}
+              {dp.logistics?.warehouseName && (
+                <View style={[s.specTableRow, { borderBottomColor: theme.border }]}>
+                  <Text style={[s.specKey, { color: theme.secondaryText }]}>Dispatched From</Text>
+                  <Text style={[s.specVal, { color: theme.text }]}>{dp.logistics.warehouseName}</Text>
+                </View>
+              )}
             </View>
           </ExpandableSection>
         </View>
@@ -863,7 +924,14 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
           );
         })()}
       </Animated.View>
-    </SafeViewWrapper>
+ 
+       <SizeChartModal
+         visible={showSizeChart}
+         onClose={() => setShowSizeChart(false)}
+         sizeChart={dp.sizeChartId && typeof dp.sizeChartId !== 'string' ? (dp.sizeChartId as any) : null}
+         theme={theme}
+       />
+     </SafeViewWrapper>
   );
 };
 

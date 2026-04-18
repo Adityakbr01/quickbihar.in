@@ -32,7 +32,7 @@ export const MOCK_PRODUCT: Partial<IProduct> = {
     sleeve: "Full Sleeve",
     washCare: "Machine Wash",
   },
-  deliveryInfo: { estimatedDays: 3, isExpressAvailable: true },
+  deliveryInfo: { estimatedDays: 3, isExpressAvailable: true, isCodAvailable: true },
   tags: ["Winter", "Jacket"],
 };
 

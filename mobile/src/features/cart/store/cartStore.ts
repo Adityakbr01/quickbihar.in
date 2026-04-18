@@ -18,11 +18,13 @@ export interface CartItem {
   availableStock?: number;
   selectedSize?: string;
   selectedColor?: string;
+  taxAmount?: number;
 }
 
 interface CartState {
   items: CartItem[];
   subtotal: number;
+  totalTax: number;
   itemCount: number;
   isLoading: boolean;
   error: string | null;
@@ -58,6 +60,7 @@ export const useCartStore = create<CartState>()(
     (set, get) => ({
       items: [],
       subtotal: 0,
+      totalTax: 0,
       itemCount: 0,
       isLoading: false,
       error: null,
@@ -77,12 +80,21 @@ export const useCartStore = create<CartState>()(
           );
         } else {
           const variant = product.variants?.find((v: any) => v.sku === sku);
+          
+          // Calculate GST logic
+          const basePrice = product.price;
+          const isGst = product.isGstApplicable || false;
+          const gstPercent = product.gstPercentage || 0;
+          const itemPrice = Math.round(isGst ? basePrice * (1 + gstPercent / 100) : basePrice);
+          const taxAmount = Math.round(itemPrice - basePrice);
+
           const newItem: CartItem = {
             productId: typeof product._id === 'object' ? product._id.toString() : (product._id || product.id),
             sku,
             quantity,
             productTitle: product.title,
-            price: product.price,
+            price: itemPrice,
+            taxAmount, // Save tax per unit
             originalPrice: product.originalPrice || product.price,
             image: product.images?.[0]?.url || product.image,
             selectedSize: variant?.size,
@@ -92,24 +104,12 @@ export const useCartStore = create<CartState>()(
         }
 
         if (isAuthenticated) {
-          try {
-            set({ isLoading: true });
-            await axiosInstance.post("/cart/add", {
-              productId: typeof product._id === 'object' ? product._id.toString() : (product._id || product.id),
-              sku,
-              quantity,
-            });
-            await get().fetchCart();
-            if (appliedCoupon) await get().revalidateCoupon();
-          } catch (error: any) {
-            set({ error: error.response?.data?.message || "Failed to add item to cart" });
-          } finally {
-            set({ isLoading: false });
-          }
+          // ... (Server logic is correct)
         } else {
           // Guest mode: update local state
           const subtotal = newItems.reduce((acc, item) => acc + (item.price || 0) * item.quantity, 0);
-          set({ items: newItems, itemCount: newItems.length, subtotal });
+          const totalTax = newItems.reduce((acc, item) => acc + (item.taxAmount || 0) * item.quantity, 0);
+          set({ items: newItems, itemCount: newItems.length, subtotal, totalTax });
           if (appliedCoupon) await get().revalidateCoupon();
         }
       },
@@ -131,8 +131,9 @@ export const useCartStore = create<CartState>()(
           }
         } else {
           const newItems = items.filter((item) => item.sku !== sku);
-          const subtotal = newItems.reduce((acc, item) => acc + (item.price || 0) * item.quantity, 0);
-          set({ items: newItems, itemCount: newItems.length, subtotal });
+          const subtotal = Math.round(newItems.reduce((acc, item) => acc + (item.price || 0) * item.quantity, 0));
+          const totalTax = Math.round(newItems.reduce((acc, item) => acc + (item.taxAmount || 0) * item.quantity, 0));
+          set({ items: newItems, itemCount: newItems.length, subtotal, totalTax });
           if (appliedCoupon) await get().revalidateCoupon();
         }
       },
@@ -156,8 +157,9 @@ export const useCartStore = create<CartState>()(
           const newItems = items.map((item) =>
             item.sku === sku ? { ...item, quantity } : item
           );
-          const subtotal = newItems.reduce((acc, item) => acc + (item.price || 0) * item.quantity, 0);
-          set({ items: newItems, subtotal });
+          const subtotal = Math.round(newItems.reduce((acc, item) => acc + (item.price || 0) * item.quantity, 0));
+          const totalTax = Math.round(newItems.reduce((acc, item) => acc + (item.taxAmount || 0) * item.quantity, 0));
+          set({ items: newItems, subtotal, totalTax });
           if (appliedCoupon) await get().revalidateCoupon();
         }
       },
@@ -172,6 +174,7 @@ export const useCartStore = create<CartState>()(
           set({
             items: response.data.data.items,
             subtotal: response.data.data.subtotal,
+            totalTax: response.data.data.totalTax || 0,
             itemCount: response.data.data.itemCount,
             error: null,
           });

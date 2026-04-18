@@ -9,6 +9,8 @@ interface ProductSpecificationsProps {
   setFit: (v: string) => void;
   pattern: string;
   setPattern: (v: string) => void;
+  material: string;
+  setMaterial: (v: string) => void;
   sleeve: string;
   setSleeve: (v: string) => void;
   washCare: string;
@@ -22,6 +24,8 @@ const ProductSpecifications = ({
   setFit,
   pattern,
   setPattern,
+  material,
+  setMaterial,
   sleeve,
   setSleeve,
   washCare,
@@ -32,22 +36,22 @@ const ProductSpecifications = ({
       <Text style={styles.sectionTitle}>Product Specifications</Text>
       <View style={styles.row}>
         <View style={{ flex: 1 }}>
+          <Text style={styles.label}>Material</Text>
+          <TextInput
+            style={styles.input}
+            value={material}
+            onChangeText={setMaterial}
+            placeholder="e.g., Cotton"
+            placeholderTextColor={theme.tertiaryText}
+          />
+        </View>
+        <View style={{ flex: 1 }}>
           <Text style={styles.label}>Fit</Text>
           <TextInput
             style={styles.input}
             value={fit}
             onChangeText={setFit}
             placeholder="e.g., Regular Fit"
-            placeholderTextColor={theme.tertiaryText}
-          />
-        </View>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.label}>Pattern</Text>
-          <TextInput
-            style={styles.input}
-            value={pattern}
-            onChangeText={setPattern}
-            placeholder="e.g., Solid"
             placeholderTextColor={theme.tertiaryText}
           />
         </View>

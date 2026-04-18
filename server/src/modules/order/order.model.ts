@@ -10,6 +10,10 @@ const orderItemSchema = new Schema(
         color: { type: String, required: true },
         quantity: { type: Number, required: true, min: 1 },
         price: { type: Number, required: true },
+        pickupLocation: { type: String },
+        warehouseName: { type: String },
+        latitude: { type: Number },
+        longitude: { type: Number },
     },
     { _id: false }
 );
@@ -50,6 +54,7 @@ const orderSchema = new Schema<IOrder>(
         productDiscount: { type: Number, default: 0 },
         discountAmount: { type: Number, default: 0 },
         shippingFee: { type: Number, default: 0, required: false },
+        totalTax: { type: Number, default: 0 },
         payableAmount: { type: Number, required: true },
         shippingAddress: {
             type: shippingAddressSchema,

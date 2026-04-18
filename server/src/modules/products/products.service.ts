@@ -92,26 +92,21 @@ export class ProductService {
                 updatePayload.slug = this.generateSlug(validatedData.title);
             }
 
-            // Handle Image Updates
+            // Handle Image Updates (APPEND new images)
             if (files && files.length > 0) {
-                // 1. Delete old images from ImageKit
-                if (product.images && product.images.length > 0) {
-                    const deletePromises = product.images.map(img => 
-                        deleteFromImageKit(img.fileId)
-                    );
-                    await Promise.all(deletePromises);
-                }
-
-                // 2. Upload new images
+                // 1. Upload new images
                 const imageUploadPromises = files.map(file =>
                     uploadToImageKit(file.buffer, file.originalname, "products")
                 );
                 const uploadResults = await Promise.all(imageUploadPromises);
 
-                updatePayload.images = uploadResults.map(res => ({
+                const newImages = uploadResults.map(res => ({
                     url: res.url,
                     fileId: res.fileId
                 }));
+
+                // 2. Combine with existing images
+                updatePayload.images = [...(product.images || []), ...newImages];
             }
 
             const updatedProduct = await ProductDAO.updateById(id, updatePayload);
@@ -151,9 +146,9 @@ export class ProductService {
         const similar = await ProductDAO.findSimilar(
             productId,
             {
-                category: product.category,
+                category: product.category || undefined,
                 tags: product.tags,
-                brand: product.brand,
+                brand: product.brand || undefined,
             },
             limit
         );

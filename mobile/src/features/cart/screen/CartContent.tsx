@@ -20,6 +20,7 @@ const CartContent = () => {
   const {
     items,
     subtotal,
+    totalTax,
     itemCount,
     updateQuantity,
     removeItem,
@@ -118,6 +119,7 @@ const CartContent = () => {
 
           <CartSummary
             subtotal={subtotal}
+            totalTax={totalTax}
             shipping={shipping}
             discount={autoDiscount}
             appliedCoupon={appliedCoupon}

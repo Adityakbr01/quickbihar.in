@@ -10,7 +10,32 @@ export interface IProductImage {
   fileId: string;
 }
 
-export interface IProduct {
+export interface IRefundPolicy {
+  _id: string;
+  name: string;
+  category: string;
+  description: string;
+  returnWindowDays: number;
+  refundProcessingDays: number;
+  conditions: string[];
+  refundType: string;
+  returnShipping: string;
+  isReturnable: boolean;
+  isExchangeAvailable: boolean;
+  isActive: boolean;
+}
+ 
+ export interface ISizeChart {
+   _id: string;
+   name: string;
+   category: string;
+   unit: "inches" | "cm";
+   fields: string[];
+   data: Record<string, any>[];
+   howToMeasure: string[];
+ }
+ 
+ export interface IProduct {
   _id: string;
   title: string;
   slug: string;
@@ -23,18 +48,23 @@ export interface IProduct {
   discountPercentage: number;
   discountLabel?: string;
   currency: string;
-  images: IProductImage[];
+ 
+   isGstApplicable: boolean;
+   gstPercentage: number;
+ 
+   images: IProductImage[];
   sellerId: string;
   variants: IVariant[];
   totalStock: number;
   ratings?: {
     average: number;
-    count: number;
-  };
-  sizeChartId?: string;
-  details?: {
+     count: number;
+   };
+   sizeChartId?: string | ISizeChart;
+   details?: {
     fit?: string;
     pattern?: string;
+    material?: string;
     collar?: string;
     sleeve?: string;
     washCare?: string;
@@ -46,8 +76,22 @@ export interface IProduct {
   isNewArrival: boolean;
   deliveryInfo?: {
     isExpressAvailable: boolean;
+    isCodAvailable: boolean;
     estimatedDays: number;
+    returnPolicy?: string;
   };
+  compliance?: {
+    manufacturerDetail?: string;
+    packerDetail?: string;
+    countryOfOrigin: string;
+  };
+  logistics?: {
+    pickupLocation?: string;
+    warehouseName?: string;
+    latitude?: number;
+    longitude?: number;
+  };
+  refundPolicy?: string | IRefundPolicy;
   isActive: boolean;
   isDeleted: boolean;
   createdAt: string;

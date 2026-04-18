@@ -32,6 +32,10 @@ const productSchema = new Schema(
 
         currency: { type: String, default: "INR" },
 
+        isGstApplicable: { type: Boolean, default: false },
+
+        gstPercentage: { type: Number, default: 0 },
+
         images: [{
             url: { type: String, required: true },
             fileId: { type: String, required: true }
@@ -60,6 +64,7 @@ const productSchema = new Schema(
         details: {
             fit: String,
             pattern: String,
+            material: String,
             collar: String,
             sleeve: String,
             washCare: String,
@@ -74,13 +79,33 @@ const productSchema = new Schema(
 
         deliveryInfo: {
             isExpressAvailable: { type: Boolean, default: false },
+            isCodAvailable: { type: Boolean, default: true },
             estimatedDays: { type: Number, default: 3 },
+            returnPolicy: { type: String, default: "7 days easy return" },
+        },
+
+        compliance: {
+            manufacturerDetail: String,
+            packerDetail: String,
+            countryOfOrigin: { type: String, default: "India" },
+        },
+
+        logistics: {
+            pickupLocation: String,
+            warehouseName: String,
+            latitude: Number,
+            longitude: Number,
         },
 
         isActive: { type: Boolean, default: true },
         isDeleted: { type: Boolean, default: false },
+
+        refundPolicy: {
+            type: Schema.Types.ObjectId,
+            ref: "RefundPolicy",
+        },
     },
-    { 
+    {
         timestamps: true,
         toJSON: { virtuals: true },
         toObject: { virtuals: true }
