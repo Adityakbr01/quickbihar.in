@@ -1,0 +1,52 @@
+[{
+  "_id": {
+    "$oid": "69e2fb88558dbb995278bcce"
+  },
+  "policies": {
+    "privacyPolicy": "",
+    "termsAndConditions": "",
+    "returnPolicy": "",
+    "shippingPolicy": ""
+  },
+  "contact": {
+    "email": "aditykbr01@gmail.com",
+    "phone": "9304922632",
+    "whatsapp": "9304922632",
+    "address": "Naya Bhojpuri 802133"
+  },
+  "socialLinks": {
+    "facebook": "",
+    "instagram": "",
+    "twitter": "",
+    "youtube": ""
+  },
+  "seo": {
+    "metaTitle": "Quick Bihar",
+    "metaDescription": "This is A Quick Delivered Clothing App",
+    "keywords": [
+      "Quick",
+      "Bihar",
+      "Clothing",
+      "jewellery",
+      "biharan"
+    ]
+  },
+  "appearance": {
+    "logoUrl": "",
+    "faviconUrl": ""
+  },
+  "createdAt": {
+    "$date": "2026-04-18T03:33:28.139Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-18T05:03:04.984Z"
+  },
+  "__v": 0,
+  "shipping": {
+    "freeShippingThreshold": 900,
+    "shippingFee": 99
+  },
+  "updatedBy": {
+    "$oid": "69db66a37243282a140b07e8"
+  }
+}]

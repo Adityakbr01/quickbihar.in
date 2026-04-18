@@ -7,7 +7,8 @@
   "scripts": {
     "dev": "bun run --watch src/server.ts",
     "build": "bun build src/server.ts --target bun --outdir ./dist --packages external",
-    "start": "bun run dist/server.js"
+    "start": "bun run dist/server.js",
+    "db:import": "bun run src/db/importData.ts"
   },
   "devDependencies": {
     "@types/bcryptjs": "^3.0.0",

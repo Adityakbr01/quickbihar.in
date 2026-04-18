@@ -1,0 +1,595 @@
+[{
+  "_id": {
+    "$oid": "69dd4027263f474f6ca81eb5"
+  },
+  "name": "Men's Round Neck T-Shirt",
+  "category": "Men updated",
+  "unit": "inches",
+  "fields": [
+    "Size",
+    "To Fit Chest (in)",
+    "Front Length (in)",
+    "Shoulder (in)"
+  ],
+  "data": [
+    {
+      "size": "S",
+      "Size": "S",
+      "To Fit Chest (in)": "38",
+      "Front Length (in)": 27,
+      "Shoulder (in)": 17
+    },
+    {
+      "size": "M",
+      "Size": "M",
+      "To Fit Chest (in)": 40,
+      "Front Length (in)": 28,
+      "Shoulder (in)": 18
+    },
+    {
+      "size": "L",
+      "Size": "L",
+      "To Fit Chest (in)": 42,
+      "Front Length (in)": 29,
+      "Shoulder (in)": 19
+    },
+    {
+      "size": "XL",
+      "Size": "XL",
+      "To Fit Chest (in)": 44,
+      "Front Length (in)": 30,
+      "Shoulder (in)": 20
+    },
+    {
+      "size": "XXL",
+      "Size": "XXL",
+      "To Fit Chest (in)": 46,
+      "Front Length (in)": 31,
+      "Shoulder (in)": 21
+    }
+  ],
+  "howToMeasure": [
+    "Chest: Measure around the fullest part of your chest.",
+    "Length: Measure from the highest point of the shoulder down.",
+    "Shoulder: Measure from one shoulder point to the other."
+  ],
+  "__v": 0,
+  "createdAt": {
+    "$date": "2026-04-13T19:12:39.452Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-13T20:07:00.266Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69dd4027263f474f6ca81eb6"
+  },
+  "name": "Men's Slim Fit Shirt",
+  "category": "Men updated",
+  "unit": "inches",
+  "fields": [
+    "Size",
+    "Chest (in)",
+    "Shoulder (in)",
+    "Sleeve Length (in)",
+    "Length (in)"
+  ],
+  "data": [
+    {
+      "size": "38",
+      "Size": "38",
+      "Chest (in)": 40,
+      "Shoulder (in)": 18,
+      "Sleeve Length (in)": 25,
+      "Length (in)": 29
+    },
+    {
+      "size": "40",
+      "Size": "40",
+      "Chest (in)": 42,
+      "Shoulder (in)": 19,
+      "Sleeve Length (in)": 26,
+      "Length (in)": 30
+    },
+    {
+      "size": "42",
+      "Size": "42",
+      "Chest (in)": 44,
+      "Shoulder (in)": 20,
+      "Sleeve Length (in)": 27,
+      "Length (in)": 31
+    },
+    {
+      "size": "44",
+      "Size": "44",
+      "Chest (in)": 46,
+      "Shoulder (in)": 21,
+      "Sleeve Length (in)": 28,
+      "Length (in)": 32
+    }
+  ],
+  "howToMeasure": [
+    "Chest: Measure around the fullest part of your chest.",
+    "Shoulder: Measure from one shoulder point to the other.",
+    "Sleeve: Measure from the shoulder point to the wrist."
+  ],
+  "__v": 0,
+  "createdAt": {
+    "$date": "2026-04-13T19:12:39.453Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-13T20:05:47.084Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69dd4027263f474f6ca81eb7"
+  },
+  "name": "Men's Regular Fit Jeans",
+  "category": "Jeans",
+  "unit": "inches",
+  "fields": [
+    "Size",
+    "Waist (in)",
+    "Hip (in)",
+    "Thigh (in)",
+    "Length (in)"
+  ],
+  "data": [
+    {
+      "size": "S",
+      "Size": "S",
+      "Waist (in)": 30,
+      "Hip (in)": 38,
+      "Thigh (in)": 22,
+      "Length (in)": 40
+    },
+    {
+      "size": "32",
+      "Size": "32",
+      "Waist (in)": 32,
+      "Hip (in)": 40,
+      "Thigh (in)": 23,
+      "Length (in)": 41
+    },
+    {
+      "size": "34",
+      "Size": "34",
+      "Waist (in)": 34,
+      "Hip (in)": 42,
+      "Thigh (in)": 24,
+      "Length (in)": 42
+    },
+    {
+      "size": "36",
+      "Size": "36",
+      "Waist (in)": 36,
+      "Hip (in)": 44,
+      "Thigh (in)": 25,
+      "Length (in)": 43
+    }
+  ],
+  "howToMeasure": [
+    "Waist: Measure around your natural waistline.",
+    "Hip: Measure around the fullest part of your hips.",
+    "Length: Measure from the crotch to the ankle."
+  ],
+  "__v": 0,
+  "createdAt": {
+    "$date": "2026-04-13T19:12:39.453Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-13T20:06:02.635Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e2f9ef59eb670db9eb4d8b"
+  },
+  "name": "Men's T-Shirt",
+  "category": "Men",
+  "__v": 0,
+  "createdAt": {
+    "$date": "2026-04-18T03:26:39.103Z"
+  },
+  "data": [
+    {
+      "size": "S",
+      "Chest": 38,
+      "Length": 27,
+      "Shoulder": 17
+    },
+    {
+      "size": "M",
+      "Chest": 40,
+      "Length": 28,
+      "Shoulder": 18
+    },
+    {
+      "size": "L",
+      "Chest": 42,
+      "Length": 29,
+      "Shoulder": 19
+    },
+    {
+      "size": "XL",
+      "Chest": 44,
+      "Length": 30,
+      "Shoulder": 20
+    },
+    {
+      "size": "XXL",
+      "Chest": 46,
+      "Length": 31,
+      "Shoulder": 21
+    }
+  ],
+  "fields": [
+    "Size",
+    "Chest",
+    "Length",
+    "Shoulder"
+  ],
+  "howToMeasure": [
+    "Chest: Measure around fullest chest.",
+    "Shoulder: One shoulder end to other.",
+    "Length: Shoulder to bottom."
+  ],
+  "unit": "inches",
+  "updatedAt": {
+    "$date": "2026-04-18T17:03:27.454Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e2f9ef59eb670db9eb4d8c"
+  },
+  "category": "Men",
+  "name": "Men's Shirt",
+  "__v": 0,
+  "createdAt": {
+    "$date": "2026-04-18T03:26:39.125Z"
+  },
+  "data": [
+    {
+      "size": "38",
+      "Chest": 40,
+      "Shoulder": 18,
+      "Sleeve": 25,
+      "Length": 29
+    },
+    {
+      "size": "40",
+      "Chest": 42,
+      "Shoulder": 19,
+      "Sleeve": 26,
+      "Length": 30
+    },
+    {
+      "size": "42",
+      "Chest": 44,
+      "Shoulder": 20,
+      "Sleeve": 27,
+      "Length": 31
+    },
+    {
+      "size": "44",
+      "Chest": 46,
+      "Shoulder": 21,
+      "Sleeve": 28,
+      "Length": 32
+    }
+  ],
+  "fields": [
+    "Size",
+    "Chest",
+    "Shoulder",
+    "Sleeve",
+    "Length"
+  ],
+  "howToMeasure": [
+    "Chest: Around fullest chest.",
+    "Sleeve: Shoulder to wrist.",
+    "Shoulder: End to end."
+  ],
+  "unit": "inches",
+  "updatedAt": {
+    "$date": "2026-04-18T17:03:27.465Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e2f9ef59eb670db9eb4d8d"
+  },
+  "category": "Men",
+  "name": "Men's Jeans",
+  "__v": 0,
+  "createdAt": {
+    "$date": "2026-04-18T03:26:39.130Z"
+  },
+  "data": [
+    {
+      "size": "30",
+      "Waist": 30,
+      "Hip": 38,
+      "Length": 40
+    },
+    {
+      "size": "32",
+      "Waist": 32,
+      "Hip": 40,
+      "Length": 41
+    },
+    {
+      "size": "34",
+      "Waist": 34,
+      "Hip": 42,
+      "Length": 42
+    },
+    {
+      "size": "36",
+      "Waist": 36,
+      "Hip": 44,
+      "Length": 43
+    }
+  ],
+  "fields": [
+    "Size",
+    "Waist",
+    "Hip",
+    "Length"
+  ],
+  "howToMeasure": [
+    "Waist: Natural waistline.",
+    "Hip: Fullest hip part."
+  ],
+  "unit": "inches",
+  "updatedAt": {
+    "$date": "2026-04-18T17:03:27.469Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e2f9ef59eb670db9eb4d8e"
+  },
+  "category": "Women",
+  "name": "Women's Top / Kurti",
+  "__v": 0,
+  "createdAt": {
+    "$date": "2026-04-18T03:26:39.133Z"
+  },
+  "data": [
+    {
+      "size": "S",
+      "Bust": 34,
+      "Waist": 28,
+      "Hip": 36
+    },
+    {
+      "size": "M",
+      "Bust": 36,
+      "Waist": 30,
+      "Hip": 38
+    },
+    {
+      "size": "L",
+      "Bust": 38,
+      "Waist": 32,
+      "Hip": 40
+    },
+    {
+      "size": "XL",
+      "Bust": 40,
+      "Waist": 34,
+      "Hip": 42
+    },
+    {
+      "size": "XXL",
+      "Bust": 42,
+      "Waist": 36,
+      "Hip": 44
+    }
+  ],
+  "fields": [
+    "Size",
+    "Bust",
+    "Waist",
+    "Hip"
+  ],
+  "howToMeasure": [
+    "Bust: Fullest bust.",
+    "Waist: Natural waist.",
+    "Hip: Full hip."
+  ],
+  "unit": "inches",
+  "updatedAt": {
+    "$date": "2026-04-18T17:03:27.472Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e2f9ef59eb670db9eb4d8f"
+  },
+  "category": "Women",
+  "name": "Women's Jeans",
+  "__v": 0,
+  "createdAt": {
+    "$date": "2026-04-18T03:26:39.135Z"
+  },
+  "data": [
+    {
+      "size": "28",
+      "Waist": 28,
+      "Hip": 36,
+      "Length": 38
+    },
+    {
+      "size": "30",
+      "Waist": 30,
+      "Hip": 38,
+      "Length": 39
+    },
+    {
+      "size": "32",
+      "Waist": 32,
+      "Hip": 40,
+      "Length": 40
+    },
+    {
+      "size": "34",
+      "Waist": 34,
+      "Hip": 42,
+      "Length": 41
+    }
+  ],
+  "fields": [
+    "Size",
+    "Waist",
+    "Hip",
+    "Length"
+  ],
+  "howToMeasure": [
+    "Waist: Natural waistline.",
+    "Hip: Full hip."
+  ],
+  "unit": "inches",
+  "updatedAt": {
+    "$date": "2026-04-18T17:03:27.475Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e2f9ef59eb670db9eb4d90"
+  },
+  "category": "Kids",
+  "name": "Kids Clothing",
+  "__v": 0,
+  "createdAt": {
+    "$date": "2026-04-18T03:26:39.138Z"
+  },
+  "data": [
+    {
+      "size": "2-3Y",
+      "Height": 36,
+      "Chest": 20
+    },
+    {
+      "size": "3-4Y",
+      "Height": 40,
+      "Chest": 22
+    },
+    {
+      "size": "5-6Y",
+      "Height": 44,
+      "Chest": 24
+    },
+    {
+      "size": "7-8Y",
+      "Height": 48,
+      "Chest": 26
+    },
+    {
+      "size": "9-10Y",
+      "Height": 52,
+      "Chest": 28
+    }
+  ],
+  "fields": [
+    "Age",
+    "Height",
+    "Chest"
+  ],
+  "howToMeasure": [
+    "Height: Head to toe.",
+    "Chest: Around chest."
+  ],
+  "unit": "inches",
+  "updatedAt": {
+    "$date": "2026-04-18T17:03:27.479Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e2f9ef59eb670db9eb4d91"
+  },
+  "category": "Jewellery",
+  "name": "Ring Size",
+  "__v": 0,
+  "createdAt": {
+    "$date": "2026-04-18T03:26:39.142Z"
+  },
+  "data": [
+    {
+      "size": "6",
+      "Diameter": 16.5
+    },
+    {
+      "size": "7",
+      "Diameter": 17.3
+    },
+    {
+      "size": "8",
+      "Diameter": 18.1
+    },
+    {
+      "size": "9",
+      "Diameter": 18.9
+    },
+    {
+      "size": "10",
+      "Diameter": 19.8
+    }
+  ],
+  "fields": [
+    "Size",
+    "Diameter"
+  ],
+  "howToMeasure": [
+    "Measure finger diameter using ring or thread."
+  ],
+  "unit": "mm",
+  "updatedAt": {
+    "$date": "2026-04-18T17:03:27.482Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e2f9ef59eb670db9eb4d92"
+  },
+  "category": "Jewellery",
+  "name": "Necklace Length",
+  "__v": 0,
+  "createdAt": {
+    "$date": "2026-04-18T03:26:39.145Z"
+  },
+  "data": [
+    {
+      "size": "Choker",
+      "Length": 14
+    },
+    {
+      "size": "Princess",
+      "Length": 18
+    },
+    {
+      "size": "Matinee",
+      "Length": 22
+    },
+    {
+      "size": "Opera",
+      "Length": 28
+    }
+  ],
+  "fields": [
+    "Type",
+    "Length"
+  ],
+  "howToMeasure": [
+    "Measure around neck for comfort fit."
+  ],
+  "unit": "inches",
+  "updatedAt": {
+    "$date": "2026-04-18T17:03:27.485Z"
+  }
+}]

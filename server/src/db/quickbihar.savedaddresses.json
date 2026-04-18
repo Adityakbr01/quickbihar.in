@@ -1,0 +1,52 @@
+[{
+  "_id": {
+    "$oid": "69de4c2a2882c953a5a4c19b"
+  },
+  "userId": {
+    "$oid": "69db66a37243282a140b07e8"
+  },
+  "fullName": "Aditya",
+  "phone": "9304922632",
+  "street": "Hellaok",
+  "city": "Naya Bhojpur",
+  "state": "Bihar",
+  "pincode": "802133",
+  "landmark": "",
+  "addressType": "HOME",
+  "isDefault": true,
+  "createdAt": {
+    "$date": "2026-04-14T14:16:10.236Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-14T14:23:18.437Z"
+  },
+  "__v": 0,
+  "latitude": 25.583992,
+  "longitude": 84.1516724
+},
+{
+  "_id": {
+    "$oid": "69e23249a42f5afefb0117ed"
+  },
+  "userId": {
+    "$oid": "69e231c3a42f5afefb01178f"
+  },
+  "fullName": "aman",
+  "phone": "9304922632",
+  "street": "1600, Amphitheatre Parkway",
+  "city": "Mountain View",
+  "state": "California",
+  "pincode": "940433",
+  "landmark": "",
+  "addressType": "HOME",
+  "isDefault": false,
+  "latitude": 37.4219983,
+  "longitude": -122.084,
+  "createdAt": {
+    "$date": "2026-04-17T13:14:49.076Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-17T13:14:49.076Z"
+  },
+  "__v": 0
+}]

@@ -1,0 +1,126 @@
+[{
+  "_id": {
+    "$oid": "69dbc2db88da3548c0c46fe0"
+  },
+  "title": "Trends",
+  "slug": "trends",
+  "image": "https://ik.imagekit.io/k2n57ywshu/categories/treands_CXiGnl7t5.jpg",
+  "imagePublicId": "69dbc2db5c7cd75eb89828f1",
+  "priority": 0,
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-12T16:05:47.705Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-13T14:36:14.533Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "69dbc30e88da3548c0c46fe1"
+  },
+  "title": "Kurtis",
+  "slug": "kurtis",
+  "image": "https://ik.imagekit.io/k2n57ywshu/categories/kurtis_yUPcT-_ix.jpg",
+  "imagePublicId": "69dbc30e5c7cd75eb89904b8",
+  "priority": 2,
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-12T16:06:38.323Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-12T16:06:38.323Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "69dbc32288da3548c0c46fe2"
+  },
+  "title": "Sarees",
+  "slug": "sarees",
+  "image": "https://ik.imagekit.io/k2n57ywshu/categories/sarees_YILxUHqkp.jpg",
+  "imagePublicId": "69dbc3235c7cd75eb899586e",
+  "priority": 1,
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-12T16:06:58.883Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-13T14:36:08.528Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "69dbc33f88da3548c0c46fe3"
+  },
+  "title": "Kurta Set",
+  "slug": "kurta-set",
+  "image": "https://ik.imagekit.io/k2n57ywshu/categories/kurtaSetGirl_6E5cAGaUN.jpg",
+  "imagePublicId": "69dbc3405c7cd75eb899d4d3",
+  "priority": 3,
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-12T16:07:27.852Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-12T16:07:27.852Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "69dbc35688da3548c0c46fe4"
+  },
+  "title": "Weddings",
+  "slug": "weddings",
+  "image": "https://ik.imagekit.io/k2n57ywshu/categories/weddings_FVl5h_JOF.jpg",
+  "imagePublicId": "69dbc3565c7cd75eb89a34ab",
+  "priority": 4,
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-12T16:07:50.662Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-12T16:07:50.662Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "69dbc36488da3548c0c46fe5"
+  },
+  "title": "Jeans",
+  "slug": "jeans",
+  "image": "https://ik.imagekit.io/k2n57ywshu/categories/jeans_T_sgH4F8o.jpg",
+  "imagePublicId": "69dbc3655c7cd75eb89a6c58",
+  "priority": 6,
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-12T16:08:04.807Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-13T14:35:48.571Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "69dbc37e88da3548c0c46fe6"
+  },
+  "title": "Men updated",
+  "slug": "men-updated",
+  "image": "https://ik.imagekit.io/k2n57ywshu/categories/shirt_Tshirt_33HD3cLPi.jpg",
+  "imagePublicId": "69dbc37e5c7cd75eb89b7279",
+  "priority": 5,
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-12T16:08:30.566Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-13T14:35:55.029Z"
+  },
+  "__v": 0
+}]

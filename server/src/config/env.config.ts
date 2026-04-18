@@ -5,7 +5,7 @@ dotenv.config();
 
 const envSchema = z.object({
   PORT: z.string().transform((val) => parseInt(val, 10)).default(8000),
-  MONGODB_URI: z.string().url(),
+  MONGODB_URI: z.string().min(1),
   ACCESS_TOKEN_SECRET: z.string().min(8),
   ACCESS_TOKEN_EXPIRY: z.string().default("1d"),
   REFRESH_TOKEN_SECRET: z.string().min(8),

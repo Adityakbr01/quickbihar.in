@@ -1,0 +1,209 @@
+[{
+  "_id": {
+    "$oid": "69e3004359eb670db9eb4d93"
+  },
+  "name": "7-Day Easy Return",
+  "category": "General",
+  "__v": 0,
+  "conditions": [
+    "Product must be unused and unwashed",
+    "Original packaging & tags required",
+    "Invoice must be available"
+  ],
+  "createdAt": {
+    "$date": "2026-04-18T03:53:39.083Z"
+  },
+  "description": "Return within 7 days for most products",
+  "isActive": true,
+  "isExchangeAvailable": true,
+  "isReturnable": true,
+  "refundProcessingDays": 5,
+  "refundType": "Original Payment Method",
+  "returnShipping": "Customer",
+  "returnWindowDays": 7,
+  "updatedAt": {
+    "$date": "2026-04-18T17:03:27.489Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e3004359eb670db9eb4d94"
+  },
+  "category": "General",
+  "name": "10-Day Replacement Only",
+  "__v": 0,
+  "conditions": [
+    "Only defective or damaged products eligible",
+    "Unboxing video required for damage claims"
+  ],
+  "createdAt": {
+    "$date": "2026-04-18T03:53:39.088Z"
+  },
+  "description": "Replacement available, no refund",
+  "isActive": true,
+  "isExchangeAvailable": true,
+  "isReturnable": false,
+  "refundProcessingDays": 0,
+  "refundType": "No Refund",
+  "returnShipping": "Seller",
+  "returnWindowDays": 10,
+  "updatedAt": {
+    "$date": "2026-04-18T17:03:27.491Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e3004359eb670db9eb4d95"
+  },
+  "category": "Clothing",
+  "name": "Fashion 7-Day Return",
+  "__v": 0,
+  "conditions": [
+    "Item must not be worn",
+    "Tags must be intact",
+    "No perfume or stains"
+  ],
+  "createdAt": {
+    "$date": "2026-04-18T03:53:39.093Z"
+  },
+  "description": "Return allowed for clothing items",
+  "isActive": true,
+  "isExchangeAvailable": true,
+  "isReturnable": true,
+  "refundProcessingDays": 5,
+  "refundType": "Original Payment Method",
+  "returnShipping": "Customer",
+  "returnWindowDays": 7,
+  "updatedAt": {
+    "$date": "2026-04-18T17:03:27.494Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e3004359eb670db9eb4d96"
+  },
+  "category": "Clothing",
+  "name": "Innerwear No Return",
+  "__v": 0,
+  "conditions": [
+    "Non-returnable due to hygiene reasons"
+  ],
+  "createdAt": {
+    "$date": "2026-04-18T03:53:39.096Z"
+  },
+  "description": "Hygiene sensitive products",
+  "isActive": true,
+  "isExchangeAvailable": false,
+  "isReturnable": false,
+  "refundProcessingDays": 0,
+  "refundType": "No Refund",
+  "returnShipping": "Not Applicable",
+  "returnWindowDays": 0,
+  "updatedAt": {
+    "$date": "2026-04-18T17:03:27.496Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e3004359eb670db9eb4d97"
+  },
+  "category": "Jewellery",
+  "name": "Jewellery 3-Day Return",
+  "__v": 0,
+  "conditions": [
+    "Item must be unused",
+    "Original box required",
+    "No scratches or damage"
+  ],
+  "createdAt": {
+    "$date": "2026-04-18T03:53:39.099Z"
+  },
+  "description": "Short return window for jewellery",
+  "isActive": true,
+  "isExchangeAvailable": true,
+  "isReturnable": true,
+  "refundProcessingDays": 5,
+  "refundType": "Wallet / Bank",
+  "returnShipping": "Customer",
+  "returnWindowDays": 3,
+  "updatedAt": {
+    "$date": "2026-04-18T17:03:27.499Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e3004359eb670db9eb4d98"
+  },
+  "category": "Jewellery",
+  "name": "Custom Jewellery No Return",
+  "__v": 0,
+  "conditions": [
+    "Customized products cannot be returned"
+  ],
+  "createdAt": {
+    "$date": "2026-04-18T03:53:39.105Z"
+  },
+  "description": "Customized jewellery items",
+  "isActive": true,
+  "isExchangeAvailable": false,
+  "isReturnable": false,
+  "refundProcessingDays": 0,
+  "refundType": "No Refund",
+  "returnShipping": "Not Applicable",
+  "returnWindowDays": 0,
+  "updatedAt": {
+    "$date": "2026-04-18T17:03:27.501Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e3004359eb670db9eb4d99"
+  },
+  "category": "Electronics",
+  "name": "Electronics 7-Day Replacement",
+  "__v": 0,
+  "conditions": [
+    "Only defective products eligible",
+    "All accessories must be returned",
+    "Original packaging required"
+  ],
+  "createdAt": {
+    "$date": "2026-04-18T03:53:39.108Z"
+  },
+  "description": "Replacement only for electronics",
+  "isActive": true,
+  "isExchangeAvailable": true,
+  "isReturnable": false,
+  "refundProcessingDays": 0,
+  "refundType": "Replacement Only",
+  "returnShipping": "Seller",
+  "returnWindowDays": 7,
+  "updatedAt": {
+    "$date": "2026-04-18T17:03:27.503Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e3004359eb670db9eb4d9a"
+  },
+  "category": "Sale",
+  "name": "Final Sale - No Return",
+  "__v": 0,
+  "conditions": [
+    "Products under sale are non-returnable"
+  ],
+  "createdAt": {
+    "$date": "2026-04-18T03:53:39.111Z"
+  },
+  "description": "Discounted products are non-returnable",
+  "isActive": true,
+  "isExchangeAvailable": false,
+  "isReturnable": false,
+  "refundProcessingDays": 0,
+  "refundType": "No Refund",
+  "returnShipping": "Not Applicable",
+  "returnWindowDays": 0,
+  "updatedAt": {
+    "$date": "2026-04-18T17:03:27.506Z"
+  }
+}]

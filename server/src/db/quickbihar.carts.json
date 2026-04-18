@@ -1,0 +1,47 @@
+[{
+  "_id": {
+    "$oid": "69e1ce561ffbbdcd7b0b1e10"
+  },
+  "userId": {
+    "$oid": "69db66a37243282a140b07e8"
+  },
+  "items": [],
+  "createdAt": {
+    "$date": "2026-04-17T06:08:22.284Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-18T05:03:29.921Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "69e231c4a42f5afefb011791"
+  },
+  "userId": {
+    "$oid": "69e231c3a42f5afefb01178f"
+  },
+  "items": [
+    {
+      "productId": {
+        "$oid": "69e0677fc761bc35cbfa4449"
+      },
+      "sku": "NIK-KUR-Q1EWA-M-WHITE",
+      "quantity": 1
+    },
+    {
+      "productId": {
+        "$oid": "69e067edc761bc35cbfa4450"
+      },
+      "sku": "MYN-KUR-ATVF4-M-VIOLETWHITE",
+      "quantity": 2
+    }
+  ],
+  "createdAt": {
+    "$date": "2026-04-17T13:12:36.713Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-18T15:34:30.964Z"
+  },
+  "__v": 0
+}]

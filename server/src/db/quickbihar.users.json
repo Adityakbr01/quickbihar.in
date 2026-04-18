@@ -1,0 +1,145 @@
+[{
+  "_id": {
+    "$oid": "69db6413457a3bd519b4fd40"
+  },
+  "username": "test_107",
+  "email": "test@test.app",
+  "fullName": "test",
+  "password": "$2b$10$1WyWTi8km8omyhrr90qske/.lifSQ7YUlC6Z5HRqWKHj82hVKPdbO",
+  "createdAt": {
+    "$date": "2026-04-12T09:21:23.252Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-12T14:32:46.142Z"
+  },
+  "__v": 0,
+  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2OWRiNjQxMzQ1N2EzYmQ1MTliNGZkNDAiLCJpYXQiOjE3NzU5ODYwMjcsImV4cCI6MTc3Njg1MDAyN30.08uNWh4zKGXJF6hRAYMOExmmUn2N01LxhsYbYdvsvUY"
+},
+{
+  "_id": {
+    "$oid": "69db66a37243282a140b07e8"
+  },
+  "username": "admin",
+  "email": "admin@gmail.com",
+  "fullName": "System Admi",
+  "password": "$2b$10$MoLcNU1LFGzsLE9UyVfy9OowJxcpi.bvxGQqsQrXYfMp1CFjHaoUK",
+  "role": "admin",
+  "createdAt": {
+    "$date": "2026-04-12T09:32:19.843Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-18T14:52:41.138Z"
+  },
+  "__v": 0,
+  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2OWRiNjZhMzcyNDMyODJhMTQwYjA3ZTgiLCJpYXQiOjE3NzY1MjM5NjEsImV4cCI6MTc3NzM4Nzk2MX0.Va97USsYpS59o0gf0ZXmwq6OGbf5TXJDfWiOvQoKx60",
+  "avatar": {
+    "url": "https://ik.imagekit.io/k2n57ywshu/profiles/avatar_69db66a37243282a140b07e8_1776177533108_FdIXlmA48",
+    "fileId": "69de517f5c7cd75eb8fecaba"
+  },
+  "phone": "9304922632"
+},
+{
+  "_id": {
+    "$oid": "69dbac0f22ca5df03f3120d2"
+  },
+  "username": "yevagic730_402",
+  "email": "yevagic730@availors.com",
+  "fullName": "yevagic730",
+  "password": "$2b$10$A87YTgwhB1RsbpMtsNk2wu1msWHQaYX32D1YnZMUZbl1vVnDVmGwW",
+  "role": "user",
+  "createdAt": {
+    "$date": "2026-04-12T14:28:31.086Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-12T14:28:31.285Z"
+  },
+  "__v": 0,
+  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2OWRiYWMwZjIyY2E1ZGYwM2YzMTIwZDIiLCJpYXQiOjE3NzYwMDQxMTEsImV4cCI6MTc3Njg2ODExMX0.IhtprhGZ2EGI1lc5Aa4Jy_ttVle0ZziHGfTjmgZrYmc"
+},
+{
+  "_id": {
+    "$oid": "69dbad3dd7c69ad7865ed509"
+  },
+  "username": "hnng_338",
+  "email": "hnng@g.com",
+  "fullName": "hnng",
+  "password": "$2b$10$kE8HhpTkpW.QEPV0YvLawuQc4ESY2aYbshTedVc96Hs9L7R4jevGG",
+  "role": "user",
+  "createdAt": {
+    "$date": "2026-04-12T14:33:33.843Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-12T14:42:46.978Z"
+  },
+  "__v": 0,
+  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2OWRiYWQzZGQ3YzY5YWQ3ODY1ZWQ1MDkiLCJpYXQiOjE3NzYwMDQ0MTMsImV4cCI6MTc3Njg2ODQxM30.cAvV1Snqeq1z7OpDU4cs7lJEjTPuF3Gcy2hnjlZ3VOU"
+},
+{
+  "_id": {
+    "$oid": "69e231c3a42f5afefb01178f"
+  },
+  "username": "admin123_645",
+  "email": "admin123@gmail.com",
+  "fullName": "admin123",
+  "password": "$2b$10$rcxren/MuqgaPg6Vv.GIsuzeF6SOxPkrC/QqO2p3worzqRN5ZRjw2",
+  "role": "user",
+  "createdAt": {
+    "$date": "2026-04-17T13:12:36.010Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-18T15:34:30.718Z"
+  },
+  "__v": 0,
+  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2OWUyMzFjM2E0MmY1YWZlZmIwMTE3OGYiLCJpYXQiOjE3NzY1MjY0NzAsImV4cCI6MTc3NzM5MDQ3MH0.y4pKbyqrIz_MXNBAL0m-sGYxypFnWBR4D-uWQKemHuQ"
+},
+{
+  "_id": {
+    "$oid": "69e38e891c180526d358e7ff"
+  },
+  "username": "customer1",
+  "email": "user@example.com",
+  "fullName": "Test Customer",
+  "password": "$2b$10$qNKC6fTGaS35gMCTrxigtuOR0KrvxcjDAfSbJmjTAzs3TX8SS5w0G",
+  "role": "user",
+  "createdAt": {
+    "$date": "2026-04-18T14:00:41.304Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-18T14:00:41.304Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "69e38e891c180526d358e800"
+  },
+  "username": "seller1",
+  "email": "seller@example.com",
+  "fullName": "Test Seller",
+  "password": "$2b$10$XDGeMu2QL79dVMXj.k/Vq.pH2u1HGKlLZlrWae4IjlvfvMhFcCguG",
+  "role": "seller",
+  "createdAt": {
+    "$date": "2026-04-18T14:00:41.396Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-18T14:00:41.396Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "69e3a2e7e72139812ad5998f"
+  },
+  "username": "delivery1",
+  "email": "delivery@example.com",
+  "fullName": "Test Delivery Partner",
+  "password": "$2b$10$zJoV9opi3kWzZ0qP56edDOLNMduHf2n.iIsN9PGMDPbKFOAhBPNEC",
+  "role": "delivery_partner",
+  "createdAt": {
+    "$date": "2026-04-18T15:27:35.970Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-18T15:27:35.970Z"
+  },
+  "__v": 0
+}]

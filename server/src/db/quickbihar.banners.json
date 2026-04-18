@@ -1,0 +1,190 @@
+[{
+  "_id": {
+    "$oid": "69dcf227ffe9dc6f8bddc195"
+  },
+  "title": "Fort Sonic X80",
+  "subtitle": "Get upto 80% Off",
+  "image": "https://ik.imagekit.io/k2n57ywshu/banners/bb3b82f7-e3ac-4892-a33a-5bc0abd8996a_ZNMQxgXYw.jpeg",
+  "imagePublicId": "69dcf2265c7cd75eb89b0310",
+  "redirectType": "category",
+  "redirectId": {
+    "$oid": "69dbc36488da3548c0c46fe5"
+  },
+  "placement": "home_top",
+  "priority": 4,
+  "startDate": {
+    "$date": "2026-04-13T00:00:00.000Z"
+  },
+  "endDate": {
+    "$date": "2026-04-19T00:00:00.000Z"
+  },
+  "isActive": true,
+  "clicks": 2,
+  "impressions": 0,
+  "isAds": true,
+  "createdAt": {
+    "$date": "2026-04-13T13:39:51.486Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-13T14:10:46.028Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "69dcf27bffe9dc6f8bddc196"
+  },
+  "title": "Happy National Pet Day",
+  "subtitle": "Get upto 15% Off",
+  "image": "https://ik.imagekit.io/k2n57ywshu/banners/e4c78617-dc84-49a2-8b7b-3e442025935b_4xN5NHnA9.jpeg",
+  "imagePublicId": "69dcf27b5c7cd75eb89c96ce",
+  "redirectType": "category",
+  "redirectId": {
+    "$oid": "69dbc30e88da3548c0c46fe1"
+  },
+  "placement": "home_top",
+  "priority": 1,
+  "startDate": {
+    "$date": "2026-04-13T00:00:00.000Z"
+  },
+  "endDate": {
+    "$date": "2026-04-19T00:00:00.000Z"
+  },
+  "isActive": true,
+  "clicks": 3,
+  "impressions": 0,
+  "isAds": true,
+  "createdAt": {
+    "$date": "2026-04-13T13:41:15.810Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-13T14:36:24.980Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "69dcf3a0271cd72b80575f6e"
+  },
+  "title": "Rockerz Prime 415",
+  "subtitle": "Get upto 80% off",
+  "image": "https://ik.imagekit.io/k2n57ywshu/banners/21172b63-c029-4a9b-aaf2-6433e25ce024_Bd5ntU-wT.jpeg",
+  "imagePublicId": "69dcf39f5c7cd75eb8a2d710",
+  "redirectType": "category",
+  "redirectId": {
+    "$oid": "69dbc33f88da3548c0c46fe3"
+  },
+  "placement": "home_top",
+  "priority": 3,
+  "startDate": {
+    "$date": "2026-04-13T00:00:00.000Z"
+  },
+  "endDate": {
+    "$date": "2026-04-30T00:00:00.000Z"
+  },
+  "isActive": true,
+  "clicks": 2,
+  "impressions": 0,
+  "isAds": true,
+  "createdAt": {
+    "$date": "2026-04-13T13:46:08.039Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-13T14:10:50.067Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "69dcf421271cd72b80575f6f"
+  },
+  "title": "Nova 2",
+  "subtitle": "Starting in just 8999",
+  "image": "https://ik.imagekit.io/k2n57ywshu/banners/5d9af260-a923-4556-b308-2df4af4a1595_MVT-Q_d_f.jpeg",
+  "imagePublicId": "69dcf4205c7cd75eb8a57a71",
+  "redirectType": "category",
+  "redirectId": {
+    "$oid": "69dbc30e88da3548c0c46fe1"
+  },
+  "placement": "home_top",
+  "priority": 2,
+  "startDate": {
+    "$date": "2026-04-13T00:00:00.000Z"
+  },
+  "endDate": {
+    "$date": "2026-04-26T00:00:00.000Z"
+  },
+  "isActive": true,
+  "clicks": 2,
+  "impressions": 0,
+  "isAds": true,
+  "createdAt": {
+    "$date": "2026-04-13T13:48:17.370Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-13T14:10:52.207Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "69dcf47f271cd72b80575f70"
+  },
+  "title": "Premium AC",
+  "subtitle": "Starting From 23999",
+  "image": "https://ik.imagekit.io/k2n57ywshu/banners/2e3ee67a-cfa8-4fce-95b7-c68243d918cd_uo8kGiRO1.jpeg",
+  "imagePublicId": "69dcf47e5c7cd75eb8a7868e",
+  "redirectType": "category",
+  "redirectId": {
+    "$oid": "69dbc35688da3548c0c46fe4"
+  },
+  "placement": "home_top",
+  "priority": 5,
+  "startDate": {
+    "$date": "2026-04-13T00:00:00.000Z"
+  },
+  "endDate": {
+    "$date": "2026-04-25T00:00:00.000Z"
+  },
+  "isActive": true,
+  "clicks": 6,
+  "impressions": 0,
+  "isAds": false,
+  "createdAt": {
+    "$date": "2026-04-13T13:49:51.858Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-16T11:39:54.007Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "69dcf4ba271cd72b80575f71"
+  },
+  "title": "Poco X8 Pro Max 5G",
+  "subtitle": "From 4444/M",
+  "image": "https://ik.imagekit.io/k2n57ywshu/banners/b269e5a3-fd25-4a7e-8224-4b96aba85eff_5M7Q4IS1c.jpeg",
+  "imagePublicId": "69dcf4b95c7cd75eb8a8c0ca",
+  "redirectType": "external",
+  "placement": "home_top",
+  "priority": 6,
+  "startDate": {
+    "$date": "2026-04-13T00:00:00.000Z"
+  },
+  "endDate": {
+    "$date": "2026-04-26T00:00:00.000Z"
+  },
+  "isActive": true,
+  "clicks": 27,
+  "impressions": 0,
+  "isAds": true,
+  "createdAt": {
+    "$date": "2026-04-13T13:50:50.414Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-16T11:39:51.585Z"
+  },
+  "__v": 0,
+  "externalUrl": "https://ideogram.ai/library"
+}]

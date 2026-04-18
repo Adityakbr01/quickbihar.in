@@ -1,0 +1,1162 @@
+[{
+  "_id": {
+    "$oid": "69dd52aa40c9b07a7692bcea"
+  },
+  "title": "Men's Jacket",
+  "slug": "mens-jacket-9sggg",
+  "description": "Winter Jacket 🧥",
+  "brand": "Custom ",
+  "category": "Men updated",
+  "price": 999,
+  "originalPrice": 1699,
+  "currency": "INR",
+  "images": [
+    {
+      "url": "https://ik.imagekit.io/k2n57ywshu/products/28872_C-T2mdO4RK.jpg",
+      "fileId": "69dd52aa5c7cd75eb8ccdea1",
+      "_id": {
+        "$oid": "69dd52aa40c9b07a7692bceb"
+      }
+    },
+    {
+      "url": "https://ik.imagekit.io/k2n57ywshu/products/28870_YFXeNmDvm.jpg",
+      "fileId": "69dd52aa5c7cd75eb8ccdeb0",
+      "_id": {
+        "$oid": "69dd52aa40c9b07a7692bcec"
+      }
+    },
+    {
+      "url": "https://ik.imagekit.io/k2n57ywshu/products/28871_jrkDQUsO8.jpg",
+      "fileId": "69dd52a95c7cd75eb8ccddfd",
+      "_id": {
+        "$oid": "69dd52aa40c9b07a7692bced"
+      }
+    },
+    {
+      "url": "https://ik.imagekit.io/k2n57ywshu/products/28864_5BN_AasIm.jpg",
+      "fileId": "69dd52aa5c7cd75eb8ccde49",
+      "_id": {
+        "$oid": "69dd52aa40c9b07a7692bcee"
+      }
+    },
+    {
+      "url": "https://ik.imagekit.io/k2n57ywshu/products/28852_VTg0uSgzv.jpg",
+      "fileId": "69dd52a95c7cd75eb8ccdd99",
+      "_id": {
+        "$oid": "69dd52aa40c9b07a7692bcef"
+      }
+    }
+  ],
+  "sellerId": {
+    "$oid": "69db66a37243282a140b07e8"
+  },
+  "variants": [
+    {
+      "size": "M",
+      "color": "Blue",
+      "stock": 3,
+      "sku": "CUS-MEN-6V5II-M-BLUE"
+    },
+    {
+      "size": "S",
+      "color": "Black ",
+      "stock": 9,
+      "sku": "CUS-MEN-6V5II-S-BLACK"
+    }
+  ],
+  "totalStock": 12,
+  "ratings": {
+    "average": 0,
+    "count": 0
+  },
+  "sizeChartId": {
+    "$oid": "69dd4027263f474f6ca81eb6"
+  },
+  "details": {
+    "fit": "Regular Fit ",
+    "pattern": "Solid ",
+    "sleeve": "Short sleeve ",
+    "washCare": "Machine was"
+  },
+  "tags": [
+    "Shirt",
+    "Cotton"
+  ],
+  "isFeatured": false,
+  "isTrending": true,
+  "isNewArrival": false,
+  "deliveryInfo": {
+    "isExpressAvailable": true,
+    "estimatedDays": 1
+  },
+  "isActive": true,
+  "isDeleted": true,
+  "createdAt": {
+    "$date": "2026-04-13T20:31:38.232Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-16T04:24:53.022Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "69e0659cc761bc35cbfa4435"
+  },
+  "title": "Kurti set Products 1 Title",
+  "slug": "kurti-set-products-1-title-l50nc",
+  "description": "Kurti set Products 1 description ",
+  "brand": "H&M",
+  "category": "Kurta Set",
+  "price": 929,
+  "originalPrice": 1499,
+  "currency": "INR",
+  "images": [
+    {
+      "url": "https://ik.imagekit.io/k2n57ywshu/products/29265_eH5fgci7y.jpg",
+      "fileId": "69e0659d5c7cd75eb8a0e81a",
+      "_id": {
+        "$oid": "69e0659cc761bc35cbfa4436"
+      }
+    }
+  ],
+  "sellerId": {
+    "$oid": "69db66a37243282a140b07e8"
+  },
+  "variants": [
+    {
+      "size": "M",
+      "color": "Green ",
+      "stock": 2,
+      "sku": "H&M-KUR-KPONL-M-GREEN"
+    },
+    {
+      "size": "L",
+      "color": "Green Teal",
+      "stock": 9,
+      "sku": "H&M-KUR-KPONL-L-GREENTEAL"
+    },
+    {
+      "size": "Xl",
+      "color": "Green violet ",
+      "stock": 4,
+      "sku": "H&M-KUR-KPONL-XL-GREENVIOLET"
+    }
+  ],
+  "totalStock": 15,
+  "ratings": {
+    "average": 0,
+    "count": 0
+  },
+  "sizeChartId": {
+    "$oid": "69dd4027263f474f6ca81eb5"
+  },
+  "details": {
+    "fit": "Regular Fit ",
+    "pattern": "Pattern ",
+    "sleeve": "Sort Slave ",
+    "washCare": "Washing machine ",
+    "sku": "H&M-KUR-KPONL"
+  },
+  "tags": [
+    "Cotton",
+    "fabric"
+  ],
+  "isFeatured": false,
+  "isTrending": true,
+  "isNewArrival": true,
+  "deliveryInfo": {
+    "isExpressAvailable": true,
+    "estimatedDays": 1
+  },
+  "isActive": true,
+  "isDeleted": false,
+  "discountPercentage": 38.02535023348899,
+  "createdAt": {
+    "$date": "2026-04-16T04:29:16.262Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-16T04:29:16.262Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "69e0663dc761bc35cbfa4438"
+  },
+  "title": "Kurti Set Products 2 title",
+  "slug": "kurti-set-products-2-title-qxvt2",
+  "description": "Kurti Set Products 2 Description ",
+  "brand": "Nike ",
+  "category": "Kurtis",
+  "price": 500,
+  "originalPrice": 1999,
+  "currency": "INR",
+  "images": [
+    {
+      "url": "https://ik.imagekit.io/k2n57ywshu/products/29266_qjlziAqsz.jpg",
+      "fileId": "69e0663e5c7cd75eb8a47aab",
+      "_id": {
+        "$oid": "69e0663dc761bc35cbfa4439"
+      }
+    }
+  ],
+  "sellerId": {
+    "$oid": "69db66a37243282a140b07e8"
+  },
+  "variants": [
+    {
+      "size": "M",
+      "color": "Red",
+      "stock": 9,
+      "sku": "NIK-KUR-3QB8Z-M-RED"
+    }
+  ],
+  "totalStock": 9,
+  "ratings": {
+    "average": 0,
+    "count": 0
+  },
+  "sizeChartId": {
+    "$oid": "69dd4027263f474f6ca81eb6"
+  },
+  "details": {
+    "fit": "Regular Fit ",
+    "pattern": "Pattern ",
+    "sleeve": "",
+    "washCare": "",
+    "sku": "NIK-KUR-3QB8Z"
+  },
+  "tags": [
+    "Cotton",
+    "fabric"
+  ],
+  "isFeatured": false,
+  "isTrending": false,
+  "isNewArrival": false,
+  "deliveryInfo": {
+    "isExpressAvailable": true,
+    "estimatedDays": 1
+  },
+  "isActive": true,
+  "isDeleted": false,
+  "discountPercentage": 74.98749374687344,
+  "createdAt": {
+    "$date": "2026-04-16T04:31:57.301Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-16T04:31:57.301Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "69e066a0c761bc35cbfa443c"
+  },
+  "title": "Kurti Set Products 3 title",
+  "slug": "kurti-set-products-3-title-m3gr3",
+  "description": "Kurti Set Products 2 Description ",
+  "brand": "Local",
+  "category": "Kurtis",
+  "price": 999,
+  "originalPrice": 1499,
+  "currency": "INR",
+  "images": [
+    {
+      "url": "https://ik.imagekit.io/k2n57ywshu/products/29268_O9_WK6c1c.jpg",
+      "fileId": "69e066a05c7cd75eb8a6ae06",
+      "_id": {
+        "$oid": "69e066a0c761bc35cbfa443d"
+      }
+    }
+  ],
+  "sellerId": {
+    "$oid": "69db66a37243282a140b07e8"
+  },
+  "variants": [
+    {
+      "size": "M",
+      "color": "Orange ",
+      "stock": 3,
+      "sku": "LOC-KUR-FX145-M-ORANGE"
+    }
+  ],
+  "totalStock": 3,
+  "ratings": {
+    "average": 0,
+    "count": 0
+  },
+  "sizeChartId": {
+    "$oid": "69dd4027263f474f6ca81eb7"
+  },
+  "details": {
+    "fit": "",
+    "pattern": "Pattern ",
+    "sleeve": "",
+    "washCare": "",
+    "sku": "LOC-KUR-FX145"
+  },
+  "tags": [
+    "Cotton"
+  ],
+  "isFeatured": false,
+  "isTrending": true,
+  "isNewArrival": false,
+  "deliveryInfo": {
+    "isExpressAvailable": true,
+    "estimatedDays": 3
+  },
+  "isActive": true,
+  "isDeleted": false,
+  "discountPercentage": 33.3555703802535,
+  "createdAt": {
+    "$date": "2026-04-16T04:33:36.111Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-16T04:33:36.111Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "69e06708c761bc35cbfa4441"
+  },
+  "title": "Kurti Set Products 4 title",
+  "slug": "kurti-set-products-4-title-ik84r",
+  "description": "Kurti Set Products 4 description ",
+  "brand": "Local ",
+  "category": "Kurtis",
+  "price": 999,
+  "originalPrice": 1899,
+  "currency": "INR",
+  "images": [
+    {
+      "url": "https://ik.imagekit.io/k2n57ywshu/products/29269_5kyjt_T2H.jpg",
+      "fileId": "69e067095c7cd75eb8a9099a",
+      "_id": {
+        "$oid": "69e06708c761bc35cbfa4442"
+      }
+    }
+  ],
+  "sellerId": {
+    "$oid": "69db66a37243282a140b07e8"
+  },
+  "variants": [
+    {
+      "size": "M",
+      "color": "Blue ",
+      "stock": 9,
+      "sku": "LOC-KUR-CSNAK-M-BLUE"
+    },
+    {
+      "size": "L",
+      "color": "Orange ",
+      "stock": 1,
+      "sku": "LOC-KUR-CSNAK-L-ORANGE"
+    }
+  ],
+  "totalStock": 10,
+  "ratings": {
+    "average": 0,
+    "count": 0
+  },
+  "sizeChartId": {
+    "$oid": "69dd4027263f474f6ca81eb5"
+  },
+  "details": {
+    "fit": "Regular fit",
+    "pattern": "Solid ",
+    "sleeve": "",
+    "washCare": "",
+    "sku": "LOC-KUR-CSNAK"
+  },
+  "tags": [
+    "Caste"
+  ],
+  "isFeatured": false,
+  "isTrending": false,
+  "isNewArrival": false,
+  "deliveryInfo": {
+    "isExpressAvailable": false,
+    "estimatedDays": 3
+  },
+  "isActive": true,
+  "isDeleted": false,
+  "discountPercentage": 47.39336492890995,
+  "createdAt": {
+    "$date": "2026-04-16T04:35:20.350Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-16T04:35:20.350Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "69e0677fc761bc35cbfa4449"
+  },
+  "title": "Kurti Set Products 5 title",
+  "slug": "kurti-set-products-5-title-ohvh0",
+  "description": "Kurti Set Products 5 description ",
+  "brand": "Nike",
+  "category": "Kurtis",
+  "price": 999,
+  "originalPrice": 1799,
+  "currency": "INR",
+  "images": [
+    {
+      "url": "https://ik.imagekit.io/k2n57ywshu/products/29272_c7__rsjh0.jpg",
+      "fileId": "69e067805c7cd75eb8abeabd",
+      "_id": {
+        "$oid": "69e0677fc761bc35cbfa444a"
+      }
+    }
+  ],
+  "sellerId": {
+    "$oid": "69db66a37243282a140b07e8"
+  },
+  "variants": [
+    {
+      "size": "M",
+      "color": "White ",
+      "stock": 7,
+      "sku": "NIK-KUR-Q1EWA-M-WHITE"
+    },
+    {
+      "size": "L",
+      "color": "White ",
+      "stock": 1,
+      "sku": "NIK-KUR-Q1EWA-L-WHITE"
+    }
+  ],
+  "totalStock": 8,
+  "ratings": {
+    "average": 0,
+    "count": 0
+  },
+  "sizeChartId": {
+    "$oid": "69dd4027263f474f6ca81eb6"
+  },
+  "details": {
+    "fit": "Regular ",
+    "pattern": "Solid ",
+    "sleeve": "",
+    "washCare": "",
+    "sku": "NIK-KUR-Q1EWA"
+  },
+  "tags": [
+    "Fabric"
+  ],
+  "isFeatured": false,
+  "isTrending": false,
+  "isNewArrival": false,
+  "deliveryInfo": {
+    "isExpressAvailable": true,
+    "estimatedDays": 2
+  },
+  "isActive": true,
+  "isDeleted": false,
+  "discountPercentage": 44.469149527515285,
+  "createdAt": {
+    "$date": "2026-04-16T04:37:19.270Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-17T14:00:37.618Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "69e067edc761bc35cbfa4450"
+  },
+  "title": "Kurti Set Products 6 title",
+  "slug": "kurti-set-products-6-title-wuy3j",
+  "description": "Kurti Set Products 5 description ",
+  "brand": "Myntra ",
+  "category": "Kurta Set",
+  "price": 999,
+  "originalPrice": 2199,
+  "currency": "INR",
+  "images": [
+    {
+      "url": "https://ik.imagekit.io/k2n57ywshu/products/29296_jtZPuJxCJ.jpg",
+      "fileId": "69e067ee5c7cd75eb8aea1a4",
+      "_id": {
+        "$oid": "69e067edc761bc35cbfa4451"
+      }
+    }
+  ],
+  "sellerId": {
+    "$oid": "69db66a37243282a140b07e8"
+  },
+  "variants": [
+    {
+      "size": "M",
+      "color": "Violet White ",
+      "stock": 0,
+      "sku": "MYN-KUR-ATVF4-M-VIOLETWHITE"
+    },
+    {
+      "size": "L",
+      "color": "Violet White ",
+      "stock": 9,
+      "sku": "MYN-KUR-ATVF4-L-VIOLETWHITE"
+    }
+  ],
+  "totalStock": 9,
+  "ratings": {
+    "average": 0,
+    "count": 0
+  },
+  "sizeChartId": {
+    "$oid": "69dd4027263f474f6ca81eb7"
+  },
+  "details": {
+    "fit": "",
+    "pattern": "",
+    "sleeve": "",
+    "washCare": "",
+    "sku": "MYN-KUR-ATVF4"
+  },
+  "tags": [
+    "Cotton"
+  ],
+  "isFeatured": false,
+  "isTrending": true,
+  "isNewArrival": false,
+  "deliveryInfo": {
+    "isExpressAvailable": false,
+    "estimatedDays": 3
+  },
+  "isActive": true,
+  "isDeleted": false,
+  "discountPercentage": 54.570259208731244,
+  "createdAt": {
+    "$date": "2026-04-16T04:39:09.428Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-17T13:43:22.155Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "69e06841c761bc35cbfa4458"
+  },
+  "title": "Kurti Set Products 6 title",
+  "slug": "kurti-set-products-6-title-w7pmj",
+  "description": "Kurti Set Products 6 description ",
+  "brand": "Flipkart ",
+  "category": "Kurta Set",
+  "price": 1299,
+  "originalPrice": 1999,
+  "currency": "INR",
+  "images": [
+    {
+      "url": "https://ik.imagekit.io/k2n57ywshu/products/29291_DYpp3lHCk.jpg",
+      "fileId": "69e071755c7cd75eb8ed0fa9",
+      "_id": {
+        "$oid": "69e0717428f395b2c8060357"
+      }
+    }
+  ],
+  "sellerId": {
+    "$oid": "69db66a37243282a140b07e8"
+  },
+  "variants": [
+    {
+      "size": "M",
+      "color": "Pink ",
+      "stock": 3,
+      "sku": "FLI-KUR-478AX-M-PINK"
+    }
+  ],
+  "totalStock": 3,
+  "ratings": {
+    "average": 0,
+    "count": 0
+  },
+  "sizeChartId": {
+    "$oid": "69dd4027263f474f6ca81eb7"
+  },
+  "details": {
+    "fit": "",
+    "pattern": "",
+    "sleeve": "",
+    "washCare": ""
+  },
+  "tags": [
+    "Cotton"
+  ],
+  "isFeatured": false,
+  "isTrending": false,
+  "isNewArrival": false,
+  "deliveryInfo": {
+    "isExpressAvailable": false,
+    "estimatedDays": 3
+  },
+  "isActive": true,
+  "isDeleted": false,
+  "discountPercentage": 35.01750875437719,
+  "createdAt": {
+    "$date": "2026-04-16T04:40:33.807Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-16T05:19:48.775Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "69e0689dc761bc35cbfa4461"
+  },
+  "title": "Wedding Set Products 1 title",
+  "slug": "wedding-set-products-1-title-n1xk4",
+  "description": "Wedding Set Products 1 description ",
+  "brand": "Local ",
+  "category": "Weddings",
+  "price": 4999,
+  "originalPrice": 6999,
+  "currency": "INR",
+  "images": [
+    {
+      "url": "https://ik.imagekit.io/k2n57ywshu/products/29308_wNKeanU-W.jpg",
+      "fileId": "69e0689e5c7cd75eb8b28d80",
+      "_id": {
+        "$oid": "69e0689dc761bc35cbfa4462"
+      }
+    }
+  ],
+  "sellerId": {
+    "$oid": "69db66a37243282a140b07e8"
+  },
+  "variants": [
+    {
+      "size": "M",
+      "color": "Green ",
+      "stock": 2,
+      "sku": "LOC-WED-B6M29-M-GREEN"
+    }
+  ],
+  "totalStock": 2,
+  "ratings": {
+    "average": 0,
+    "count": 0
+  },
+  "sizeChartId": {
+    "$oid": "69dd4027263f474f6ca81eb7"
+  },
+  "details": {
+    "fit": "",
+    "pattern": "",
+    "sleeve": "",
+    "washCare": "",
+    "sku": "LOC-WED-B6M29"
+  },
+  "tags": [
+    "Special"
+  ],
+  "isFeatured": false,
+  "isTrending": true,
+  "isNewArrival": false,
+  "deliveryInfo": {
+    "isExpressAvailable": true,
+    "estimatedDays": 2
+  },
+  "isActive": true,
+  "isDeleted": false,
+  "discountPercentage": 28.575510787255322,
+  "createdAt": {
+    "$date": "2026-04-16T04:42:05.175Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-17T14:05:21.900Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "69e068e4c761bc35cbfa446b"
+  },
+  "title": "Wedding Set Products 2 title",
+  "slug": "wedding-set-products-2-title-hmwck",
+  "description": "Wedding Set Products 2 Description ",
+  "brand": "Mumbai ",
+  "category": "Weddings",
+  "price": 999,
+  "originalPrice": 2999,
+  "currency": "INR",
+  "images": [
+    {
+      "url": "https://ik.imagekit.io/k2n57ywshu/products/29313_0C4iqBnK3.jpg",
+      "fileId": "69e068e55c7cd75eb8b436bb",
+      "_id": {
+        "$oid": "69e068e4c761bc35cbfa446c"
+      }
+    }
+  ],
+  "sellerId": {
+    "$oid": "69db66a37243282a140b07e8"
+  },
+  "variants": [
+    {
+      "size": "M",
+      "color": "Pink",
+      "stock": 0,
+      "sku": "MUM-WED-V71XU-M-PINK"
+    }
+  ],
+  "totalStock": -2,
+  "ratings": {
+    "average": 0,
+    "count": 0
+  },
+  "sizeChartId": {
+    "$oid": "69dd4027263f474f6ca81eb7"
+  },
+  "details": {
+    "fit": "",
+    "pattern": "",
+    "sleeve": "",
+    "washCare": ""
+  },
+  "tags": [
+    "Cotton silk"
+  ],
+  "isFeatured": false,
+  "isTrending": true,
+  "isNewArrival": false,
+  "deliveryInfo": {
+    "isExpressAvailable": true,
+    "estimatedDays": 3
+  },
+  "isActive": true,
+  "isDeleted": false,
+  "discountPercentage": 66.68889629876625,
+  "createdAt": {
+    "$date": "2026-04-16T04:43:16.849Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-17T14:05:21.897Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "69e0695ac761bc35cbfa4495"
+  },
+  "title": "Wedding Set Products 3 title",
+  "slug": "wedding-set-products-3-title-zl8n1",
+  "description": "Wedding Set Products 3 description ",
+  "brand": "Delhi ",
+  "category": "Weddings",
+  "price": 899,
+  "originalPrice": 1699,
+  "currency": "INR",
+  "images": [
+    {
+      "url": "https://ik.imagekit.io/k2n57ywshu/products/29315_ic0CvV3ypm.jpg",
+      "fileId": "69e071515c7cd75eb8ec6b4e",
+      "_id": {
+        "$oid": "69e0715028f395b2c8060343"
+      }
+    },
+    {
+      "url": "https://ik.imagekit.io/k2n57ywshu/products/29316_UJ7cXxUS-.jpg",
+      "fileId": "69e071505c7cd75eb8ec6a5b",
+      "_id": {
+        "$oid": "69e0715028f395b2c8060344"
+      }
+    }
+  ],
+  "sellerId": {
+    "$oid": "69db66a37243282a140b07e8"
+  },
+  "variants": [
+    {
+      "size": "L",
+      "color": "Red ",
+      "stock": 0,
+      "sku": "DEL-WED-C2LHF-L-RED"
+    },
+    {
+      "size": "M",
+      "color": "Red",
+      "stock": 4,
+      "sku": "DEL-WED-C2LHF-M-RED"
+    }
+  ],
+  "totalStock": 4,
+  "ratings": {
+    "average": 0,
+    "count": 0
+  },
+  "sizeChartId": {
+    "$oid": "69dd4027263f474f6ca81eb6"
+  },
+  "details": {
+    "fit": "",
+    "pattern": "",
+    "sleeve": "",
+    "washCare": ""
+  },
+  "tags": [
+    "Cotton Fabric"
+  ],
+  "isFeatured": false,
+  "isTrending": false,
+  "isNewArrival": false,
+  "deliveryInfo": {
+    "isExpressAvailable": true,
+    "estimatedDays": 1
+  },
+  "isActive": true,
+  "isDeleted": false,
+  "discountPercentage": 47.086521483225425,
+  "createdAt": {
+    "$date": "2026-04-16T04:45:14.692Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-17T14:27:16.294Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "69e06a23231d912c00cc7a67"
+  },
+  "title": "Jean's Set Products 1 title",
+  "slug": "jeans-set-products-1-title-53oij",
+  "description": "Jean's Set Products 1 description ",
+  "brand": "Nike",
+  "category": "Jeans",
+  "price": 999,
+  "originalPrice": 1699,
+  "currency": "INR",
+  "images": [
+    {
+      "url": "https://ik.imagekit.io/k2n57ywshu/products/29319_1776316879871_d8HzgjnUs.jpg",
+      "fileId": "69e071d35c7cd75eb8eeeccb",
+      "_id": {
+        "$oid": "69e071d244f1af22e220004c"
+      }
+    }
+  ],
+  "sellerId": {
+    "$oid": "69db66a37243282a140b07e8"
+  },
+  "variants": [
+    {
+      "size": "M",
+      "color": "Blue ",
+      "stock": 3,
+      "sku": "NIK-JEA-P0OPT-M-BLUE"
+    },
+    {
+      "size": "L",
+      "color": "Blue ",
+      "stock": 5,
+      "sku": "NIK-JEA-P0OPT-L-BLUE"
+    }
+  ],
+  "totalStock": 8,
+  "ratings": {
+    "average": 0,
+    "count": 0
+  },
+  "sizeChartId": {
+    "$oid": "69dd4027263f474f6ca81eb7"
+  },
+  "details": {
+    "fit": "Regular Fit ",
+    "pattern": "Solid ",
+    "sleeve": "",
+    "washCare": ""
+  },
+  "tags": [
+    "Cotton"
+  ],
+  "isFeatured": false,
+  "isTrending": false,
+  "isNewArrival": false,
+  "deliveryInfo": {
+    "isExpressAvailable": true,
+    "estimatedDays": 1
+  },
+  "isActive": true,
+  "isDeleted": false,
+  "discountPercentage": 41.20070629782225,
+  "createdAt": {
+    "$date": "2026-04-16T04:48:35.326Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-16T05:21:22.556Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "69e06a85231d912c00cc7a74"
+  },
+  "title": "Jean's Set Products 2 title",
+  "slug": "jeans-set-products-2-title-ml91r",
+  "description": "Jean's Set Products 2 description ",
+  "brand": "Nike",
+  "category": "Jeans",
+  "price": 1299,
+  "originalPrice": 2299,
+  "currency": "INR",
+  "images": [
+    {
+      "url": "https://ik.imagekit.io/k2n57ywshu/products/29323_pgtSgGkAA.jpg",
+      "fileId": "69e06a865c7cd75eb8bd5cd6",
+      "_id": {
+        "$oid": "69e06a85231d912c00cc7a75"
+      }
+    }
+  ],
+  "sellerId": {
+    "$oid": "69db66a37243282a140b07e8"
+  },
+  "variants": [
+    {
+      "size": "M",
+      "color": "Blue and white ",
+      "stock": 3,
+      "sku": "NIK-JEA-OQTLB-M-BLUEANDWHITE"
+    }
+  ],
+  "totalStock": 3,
+  "ratings": {
+    "average": 0,
+    "count": 0
+  },
+  "sizeChartId": {
+    "$oid": "69dd4027263f474f6ca81eb6"
+  },
+  "details": {
+    "fit": "Regular Fit ",
+    "pattern": "Solid and pattern ",
+    "sleeve": "",
+    "washCare": "",
+    "sku": "NIK-JEA-OQTLB"
+  },
+  "tags": [
+    "Cotton"
+  ],
+  "isFeatured": false,
+  "isTrending": false,
+  "isNewArrival": false,
+  "deliveryInfo": {
+    "isExpressAvailable": false,
+    "estimatedDays": 3
+  },
+  "isActive": true,
+  "isDeleted": false,
+  "discountPercentage": 43.49717268377555,
+  "createdAt": {
+    "$date": "2026-04-16T04:50:13.441Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-16T04:50:13.441Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "69e06aff231d912c00cc7a82"
+  },
+  "title": "Shirt Set Products 1 title",
+  "slug": "shirt-set-products-1-title-ns2f7",
+  "description": "Shirt Set Products 1 description ",
+  "brand": "Nike",
+  "category": "Men updated",
+  "price": 999,
+  "originalPrice": 1499,
+  "currency": "INR",
+  "images": [
+    {
+      "url": "https://ik.imagekit.io/k2n57ywshu/products/29554_1776323766390_Ank1DIr3n.jpg",
+      "fileId": "69e08cba5c7cd75eb89e283d",
+      "_id": {
+        "$oid": "69e08cb95e01b3a08b2fadd1"
+      }
+    }
+  ],
+  "sellerId": {
+    "$oid": "69db66a37243282a140b07e8"
+  },
+  "variants": [
+    {
+      "size": "M",
+      "color": "Blue",
+      "stock": 4,
+      "sku": "NIK-MEN-XG8KD-M-BLUE"
+    },
+    {
+      "size": "L",
+      "color": "Red",
+      "stock": 3,
+      "sku": "NIK-MEN-XG8KD-L-RED"
+    },
+    {
+      "size": "M",
+      "color": "Red ",
+      "stock": 6,
+      "sku": "NIK-MEN-XG8KD-M-RED"
+    }
+  ],
+  "totalStock": 13,
+  "ratings": {
+    "average": 0,
+    "count": 0
+  },
+  "sizeChartId": {
+    "$oid": "69dd4027263f474f6ca81eb6"
+  },
+  "details": {
+    "fit": "Regular Fit ",
+    "pattern": "Solid ",
+    "sleeve": "",
+    "washCare": ""
+  },
+  "tags": [
+    "Shirt"
+  ],
+  "isFeatured": false,
+  "isTrending": false,
+  "isNewArrival": false,
+  "deliveryInfo": {
+    "isExpressAvailable": true,
+    "estimatedDays": 1
+  },
+  "isActive": true,
+  "isDeleted": false,
+  "discountPercentage": 33.3555703802535,
+  "createdAt": {
+    "$date": "2026-04-16T04:52:15.144Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-16T07:16:09.165Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "69e06b87231d912c00cc7a91"
+  },
+  "title": "T-Shirt Set Products 1 title",
+  "slug": "t-shirt-set-products-1-title-sx2p6",
+  "description": "T-Shirt Set Products 1 description ",
+  "brand": "Local ",
+  "category": "Men updated",
+  "price": 999,
+  "originalPrice": 1399,
+  "currency": "INR",
+  "images": [
+    {
+      "url": "https://ik.imagekit.io/k2n57ywshu/products/29553_1776485537350_Arqst2T9l.jpg",
+      "fileId": "69e304a55c7cd75eb846ce91",
+      "_id": {
+        "$oid": "69e304a54a16485700576e7f"
+      }
+    },
+    {
+      "url": "https://ik.imagekit.io/k2n57ywshu/products/29553_1776485658752_5473SHzSY.jpg",
+      "fileId": "69e305205c7cd75eb849371f",
+      "_id": {
+        "$oid": "69e3051ff20915155e36b118"
+      }
+    },
+    {
+      "url": "https://ik.imagekit.io/k2n57ywshu/products/29511_1776485658755_7czwpxy64.jpg",
+      "fileId": "69e3051e5c7cd75eb8492851",
+      "_id": {
+        "$oid": "69e3051ff20915155e36b119"
+      }
+    }
+  ],
+  "sellerId": {
+    "$oid": "69db66a37243282a140b07e8"
+  },
+  "variants": [
+    {
+      "size": "M",
+      "color": "Blue",
+      "stock": 3,
+      "sku": "LOC-MEN-YMQ3A-M-BLUE"
+    },
+    {
+      "size": "M",
+      "color": "Green",
+      "stock": 6,
+      "sku": "LOC-MEN-YMQ3A-M-GREEN"
+    },
+    {
+      "size": "L",
+      "color": "Light orange ",
+      "stock": 1,
+      "sku": "LOC-MEN-YMQ3A-L-LIGHTORANGE"
+    },
+    {
+      "size": "L",
+      "color": "Light Orange ",
+      "stock": 6,
+      "sku": "LOC-MEN-YMQ3A-L-LIGHTORANGE"
+    }
+  ],
+  "totalStock": 16,
+  "ratings": {
+    "average": 0,
+    "count": 0
+  },
+  "sizeChartId": {
+    "$oid": "69dd4027263f474f6ca81eb7"
+  },
+  "details": {
+    "fit": "Regular Fit ",
+    "pattern": "Solid ",
+    "material": "",
+    "sleeve": "Sort Slave ",
+    "washCare": "Machine was"
+  },
+  "tags": [
+    "Tshirt",
+    "shirt"
+  ],
+  "isFeatured": false,
+  "isTrending": false,
+  "isNewArrival": false,
+  "deliveryInfo": {
+    "isExpressAvailable": true,
+    "isCodAvailable": true,
+    "estimatedDays": 1,
+    "returnPolicy": "7 days easy return"
+  },
+  "isActive": true,
+  "isDeleted": false,
+  "discountPercentage": 28.591851322373124,
+  "createdAt": {
+    "$date": "2026-04-16T04:54:31.960Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-18T04:16:15.612Z"
+  },
+  "__v": 0,
+  "compliance": {
+    "manufacturerDetail": "",
+    "packerDetail": "",
+    "countryOfOrigin": "India"
+  },
+  "logistics": {
+    "pickupLocation": "Patna main road",
+    "warehouseName": "Patna Godam",
+    "latitude": 25.5804874,
+    "longitude": 84.1535712
+  },
+  "refundPolicy": {
+    "$oid": "69e3004359eb670db9eb4d94"
+  },
+  "gstPercentage": 18,
+  "isGstApplicable": true
+}]

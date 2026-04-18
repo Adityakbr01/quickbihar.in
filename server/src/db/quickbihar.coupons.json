@@ -1,0 +1,28 @@
+[{
+  "_id": {
+    "$oid": "69ddce336134c095ca062d7e"
+  },
+  "code": "SAVE10",
+  "description": "Get 10% off on any Clothes ",
+  "discountType": "PERCENTAGE",
+  "discountValue": 10,
+  "minOrderValue": 300,
+  "maxDiscountAmount": 0,
+  "endDate": {
+    "$date": "2026-04-26T00:00:00.000Z"
+  },
+  "usageLimit": 10,
+  "usedCount": 4,
+  "usageLimitPerUser": 10,
+  "isActive": true,
+  "startDate": {
+    "$date": "2026-04-14T05:18:43.418Z"
+  },
+  "createdAt": {
+    "$date": "2026-04-14T05:18:43.421Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-17T14:27:16.306Z"
+  },
+  "__v": 0
+}]
