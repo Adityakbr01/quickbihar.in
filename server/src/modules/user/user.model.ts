@@ -12,6 +12,7 @@ export interface IUser extends Document {
     url: string;
     fileId: string;
   };
+  fcmToken?: string;
   password: string;
   role: "admin" | "user" | "seller";
   refreshToken?: string;
@@ -61,6 +62,9 @@ const userSchema = new Schema<IUser>(
       default: "user",
     },
     refreshToken: {
+      type: String,
+    },
+    fcmToken: {
       type: String,
     },
   },

@@ -13,6 +13,9 @@ import { useRouter } from "expo-router";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Theme, useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { getMyOrdersRequest } from "../api/order.api";
+import { socketClient } from "@/src/lib/socket";
+import { SocketEvents } from "@/src/constants/socketEvents";
+import Toast from "react-native-toast-message";
 
 const OrderListScreen = () => {
   const theme = useTheme();
@@ -25,6 +28,26 @@ const OrderListScreen = () => {
 
   useEffect(() => {
     fetchOrders();
+
+    // Listen for status updates in real-time
+    console.log("[OrderListScreen] Socket connected:", socketClient.isConnected);
+    
+    socketClient.on(SocketEvents.ORDER_STATUS_UPDATE, (data) => {
+      console.log("[OrderListScreen] Received update event:", data);
+      
+      // Update local state and show a toast
+      fetchOrders(); 
+      
+      Toast.show({
+        type: "info",
+        text1: "Order Update! 📦",
+        text2: data.message || `Your order status is now ${data.status}`,
+      });
+    });
+
+    return () => {
+      socketClient.off(SocketEvents.ORDER_STATUS_UPDATE);
+    };
   }, []);
 
   const fetchOrders = async () => {

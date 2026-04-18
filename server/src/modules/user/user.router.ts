@@ -9,6 +9,7 @@ router.use(verifyJWT);
 
 router.get("/profile", UserController.getProfile);
 router.patch("/profile", UserController.updateProfile);
+router.patch("/fcm-token", UserController.updateFcmToken);
 router.patch("/avatar", upload.single("avatar"), UserController.updateAvatar);
 
 export default router;

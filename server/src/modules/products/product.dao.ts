@@ -8,9 +8,9 @@ export class ProductDAO {
 
     static async findAll(query: any = {}, options: { skip?: number; limit?: number } = {}) {
         const { skip = 0, limit = 10 } = options;
-        
+
         const finalQuery: any = { isDeleted: false };
-        
+
         // 1. Hande Text Search
         if (query.search) {
             finalQuery.$text = { $search: query.search };
@@ -74,7 +74,7 @@ export class ProductDAO {
             .populate("refundPolicy")
             .populate("sizeChartId");
     }
- 
+
     static async findBySlug(slug: string) {
         return await Product.findOne({ slug, isDeleted: false })
             .populate("refundPolicy")
@@ -130,7 +130,7 @@ export class ProductDAO {
 
     static async deductStock(productId: string, sku: string, quantity: number) {
         return await Product.findOneAndUpdate(
-            { 
+            {
                 _id: productId,
                 "variants.sku": sku,
                 "variants.stock": { $gte: quantity }, // ATOMIC SAFETY CHECK
@@ -140,6 +140,25 @@ export class ProductDAO {
                 $inc: {
                     "variants.$[elem].stock": -quantity,
                     totalStock: -quantity
+                }
+            },
+            {
+                arrayFilters: [{ "elem.sku": sku }],
+                new: true,
+                runValidators: true
+            }
+        );
+    }
+    static async restoreStock(productId: string, sku: string, quantity: number) {
+        return await Product.findOneAndUpdate(
+            {
+                _id: productId,
+                "variants.sku": sku,
+            },
+            {
+                $inc: {
+                    "variants.$[elem].stock": quantity,
+                    totalStock: quantity
                 }
             },
             {

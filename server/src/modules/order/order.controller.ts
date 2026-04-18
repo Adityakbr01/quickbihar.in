@@ -38,4 +38,24 @@ export class OrderController {
             new ApiResponse(200, result, "Order details fetched successfully")
         );
     });
+
+    static getAdminOrders = asyncHandler(async (req, res) => {
+        const result = await orderService.getAdminOrders();
+
+        return res.status(200).json(
+            new ApiResponse(200, result, "Admin orders fetched successfully")
+        );
+    });
+
+    static adminUpdateOrderStatus = asyncHandler(async (req, res) => {
+        const { id } = req.params;
+        const { status, cancellationReason } = req.body;
+        console.log(`[OrderController] Admin updating order ${id} to ${status}`);
+        
+        const result = await orderService.adminUpdateOrderStatus(id as string, status, cancellationReason);
+
+        return res.status(200).json(
+            new ApiResponse(200, result, "Order status updated successfully")
+        );
+    });
 }

@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useState, useMemo, useCallback, useEffect } from "react";
 import {
   View,
   Text,
@@ -14,6 +14,9 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { useProductById, useSimilarProducts } from "../hooks/useProducts";
+import { useQueryClient } from "@tanstack/react-query";
+import { socketClient } from "@/src/lib/socket";
+import { SocketEvents } from "@/src/constants/socketEvents";
 import { useRouter } from "expo-router";
 import { IProduct } from "../types/product.types";
 import Animated, {
@@ -38,12 +41,7 @@ import * as Haptics from "expo-haptics";
 import Toast from "react-native-toast-message";
 import WishlistHeart from "@/src/components/common/WishlistHeart";
 
-if (
-  Platform.OS === "android" &&
-  UIManager.setLayoutAnimationEnabledExperimental
-) {
-  UIManager.setLayoutAnimationEnabledExperimental(true);
-}
+
 
 interface ProductDetailProps {
   id: string;
@@ -63,6 +61,38 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
   const wishlistItems = useWishlistStore(state => state.items);
   const toggleWishlist = useWishlistStore(state => state.toggleItem);
   const isWishlisted = wishlistItems.includes(id);
+
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    // Listen for stock updates for this specific product
+    socketClient.on(SocketEvents.STOCK_UPDATE, (data) => {
+      if (data.productId === id) {
+        console.log(`[ProductDetail] Real-time stock update for SKU ${data.sku}: ${data.newStock}`);
+
+        // Optimistically update the React Query cache
+        queryClient.setQueryData(["product", id], (oldData: any) => {
+          if (!oldData || !oldData.data) return oldData;
+
+          const updatedVariants = oldData.data.variants.map((v: any) =>
+            v.sku === data.sku ? { ...v, stock: data.newStock } : v
+          );
+
+          return {
+            ...oldData,
+            data: {
+              ...oldData.data,
+              variants: updatedVariants
+            }
+          };
+        });
+      }
+    });
+
+    return () => {
+      socketClient.off(SocketEvents.STOCK_UPDATE);
+    };
+  }, [id, queryClient]);
 
   const isMock = id === "mock" || !product;
   const dp: Partial<IProduct> = isMock ? MOCK_PRODUCT : product;
@@ -386,7 +416,7 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
               <Text style={[s.selectionLabel, { color: theme.text }]}>
                 SELECT SIZE
               </Text>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={s.sizeGuideBtn}
                 onPress={() => setShowSizeChart(true)}
               >
@@ -535,19 +565,19 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
           {/* Policies Icons Row */}
           <View style={s.policiesRow}>
             {[
-              { 
-                icon: "refresh-outline", 
-                label: (typeof dp.refundPolicy !== 'string' && dp.refundPolicy?.returnWindowDays) 
-                  ? `${dp.refundPolicy.returnWindowDays} Day\nReturns` 
+              {
+                icon: "refresh-outline",
+                label: (typeof dp.refundPolicy !== 'string' && dp.refundPolicy?.returnWindowDays)
+                  ? `${dp.refundPolicy.returnWindowDays} Day\nReturns`
                   : (dp.deliveryInfo?.returnPolicy?.includes('7') ? "7 Day\nReturns" : "Easy\nReturns")
               },
-              { 
-                icon: dp.deliveryInfo?.isCodAvailable ? "cash-outline" : "card-outline", 
-                label: dp.deliveryInfo?.isCodAvailable ? "Pay On\nDelivery" : "Secure\nPayment" 
+              {
+                icon: dp.deliveryInfo?.isCodAvailable ? "cash-outline" : "card-outline",
+                label: dp.deliveryInfo?.isCodAvailable ? "Pay On\nDelivery" : "Secure\nPayment"
               },
-              { 
-                icon: "shield-checkmark-outline", 
-                label: "Genuine\nProduct" 
+              {
+                icon: "shield-checkmark-outline",
+                label: "Genuine\nProduct"
               },
             ].map((p, i) => (
               <View key={i} style={s.policyItem}>
@@ -924,14 +954,14 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
           );
         })()}
       </Animated.View>
- 
-       <SizeChartModal
-         visible={showSizeChart}
-         onClose={() => setShowSizeChart(false)}
-         sizeChart={dp.sizeChartId && typeof dp.sizeChartId !== 'string' ? (dp.sizeChartId as any) : null}
-         theme={theme}
-       />
-     </SafeViewWrapper>
+
+      <SizeChartModal
+        visible={showSizeChart}
+        onClose={() => setShowSizeChart(false)}
+        sizeChart={dp.sizeChartId && typeof dp.sizeChartId !== 'string' ? (dp.sizeChartId as any) : null}
+        theme={theme}
+      />
+    </SafeViewWrapper>
   );
 };
 

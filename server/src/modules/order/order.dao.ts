@@ -32,6 +32,10 @@ export class OrderDAO {
 
     async findAll(query: any = {}) {
         return await Order.find(query).sort({ createdAt: -1 });
+
+    }
+    async update(id: string, data: Partial<IOrder>) {
+        return await Order.findByIdAndUpdate(id, { $set: data }, { new: true });
     }
 }
 

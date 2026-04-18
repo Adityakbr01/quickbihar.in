@@ -1,12 +1,25 @@
 import { cartDAO } from "./cart.dao";
 import { ProductDAO } from "../products/product.dao";
+import { appConfigService } from "../appConfig/appConfig.service";
 import { ApiError } from "../../utils/ApiError";
 import type { ICartItem } from "./cart.model";
 
 export class CartService {
     async getCart(userId: string) {
         const cart = await cartDAO.findByUserId(userId);
-        if (!cart) return { userId, items: [], subtotal: 0 };
+        
+        // Fetch Shipping Configuration
+        const config = await appConfigService.getConfig();
+        const shippingRules = config?.shipping || { freeShippingThreshold: 2000, shippingFee: 99 };
+
+        if (!cart) return { 
+            userId, 
+            items: [], 
+            subtotal: 0, 
+            totalTax: 0, 
+            shippingFee: 0, 
+            freeShippingThreshold: shippingRules.freeShippingThreshold 
+        };
 
         // Calculate dynamic subtotal and filter out invalid items if necessary
         let subtotal = 0;
@@ -41,12 +54,16 @@ export class CartService {
             };
         }).filter(Boolean);
 
+        const shippingFee = subtotal >= shippingRules.freeShippingThreshold ? 0 : shippingRules.shippingFee;
+
         return {
             _id: cart._id,
             userId: cart.userId,
             items: validatedItems,
             subtotal,
             totalTax: Math.round(totalTax),
+            shippingFee,
+            freeShippingThreshold: shippingRules.freeShippingThreshold,
             itemCount: validatedItems.length
         };
     }

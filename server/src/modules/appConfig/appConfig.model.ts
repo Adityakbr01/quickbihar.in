@@ -30,6 +30,10 @@ const appConfigSchema = new Schema<IAppConfig>(
             logoUrl: { type: String, default: "" },
             faviconUrl: { type: String, default: "" },
         },
+        shipping: {
+            freeShippingThreshold: { type: Number, default: 2000 },
+            shippingFee: { type: Number, default: 99 },
+        },
         updatedBy: {
             type: Schema.Types.ObjectId,
             ref: "User",

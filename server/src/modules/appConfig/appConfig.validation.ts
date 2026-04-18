@@ -28,6 +28,10 @@ export const updateAppConfigSchema = z.object({
         logoUrl: z.string().url().optional().or(z.literal("")),
         faviconUrl: z.string().url().optional().or(z.literal("")),
     }).optional(),
+    shipping: z.object({
+        freeShippingThreshold: z.number().optional(),
+        shippingFee: z.number().optional(),
+    }).optional(),
 });
 
 export type UpdateAppConfigBody = z.infer<typeof updateAppConfigSchema>;

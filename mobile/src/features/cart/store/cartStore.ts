@@ -28,10 +28,15 @@ interface CartState {
   itemCount: number;
   isLoading: boolean;
   error: string | null;
+  shippingRules: {
+    threshold: number;
+    fee: number;
+  };
   appliedCoupon: ICoupon | null;
   discountAmount: number;
 
   // Actions
+  fetchShippingConfig: () => Promise<void>;
   addItem: (product: any, sku: string, quantity?: number) => Promise<void>;
   removeItem: (sku: string) => Promise<void>;
   updateQuantity: (sku: string, quantity: number) => Promise<void>;
@@ -41,6 +46,7 @@ interface CartState {
   applyCoupon: (code: string) => Promise<void>;
   removeCoupon: () => void;
   revalidateCoupon: () => Promise<void>;
+  handleStockUpdate: (data: { productId: string; sku: string; newStock: number }) => void;
 }
 
 const secureStorage: StateStorage = {
@@ -64,6 +70,10 @@ export const useCartStore = create<CartState>()(
       itemCount: 0,
       isLoading: false,
       error: null,
+      shippingRules: {
+        threshold: 2000,
+        fee: 99,
+      },
       appliedCoupon: null,
       discountAmount: 0,
 
@@ -80,7 +90,7 @@ export const useCartStore = create<CartState>()(
           );
         } else {
           const variant = product.variants?.find((v: any) => v.sku === sku);
-          
+
           // Calculate GST logic
           const basePrice = product.price;
           const isGst = product.isGstApplicable || false;
@@ -104,7 +114,20 @@ export const useCartStore = create<CartState>()(
         }
 
         if (isAuthenticated) {
-          // ... (Server logic is correct)
+          try {
+            set({ isLoading: true });
+            await axiosInstance.post("/cart/add", {
+              productId: typeof product._id === 'object' ? product._id.toString() : (product._id || product.id),
+              sku,
+              quantity,
+            });
+            await get().fetchCart();
+            if (appliedCoupon) await get().revalidateCoupon();
+          } catch (error: any) {
+            set({ error: error.response?.data?.message || "Failed to add item to cart" });
+          } finally {
+            set({ isLoading: false });
+          }
         } else {
           // Guest mode: update local state
           const subtotal = newItems.reduce((acc, item) => acc + (item.price || 0) * item.quantity, 0);
@@ -161,6 +184,23 @@ export const useCartStore = create<CartState>()(
           const totalTax = Math.round(newItems.reduce((acc, item) => acc + (item.taxAmount || 0) * item.quantity, 0));
           set({ items: newItems, subtotal, totalTax });
           if (appliedCoupon) await get().revalidateCoupon();
+        }
+      },
+
+      fetchShippingConfig: async () => {
+        try {
+          const response = await axiosInstance.get("/app-config");
+          const config = response.data.data;
+          if (config && config.shipping) {
+            set({ 
+              shippingRules: { 
+                threshold: config.shipping.freeShippingThreshold, 
+                fee: config.shipping.shippingFee 
+              } 
+            });
+          }
+        } catch (error) {
+          console.error("Failed to fetch shipping config:", error);
         }
       },
 
@@ -286,6 +326,34 @@ export const useCartStore = create<CartState>()(
         } catch (error) {
           // If server says it's invalid (e.g. expired while browsing), remove it
           set({ appliedCoupon: null, discountAmount: 0 });
+        }
+      },
+
+      handleStockUpdate: (data) => {
+        const { items } = get();
+        let wasAffected = false;
+
+        const newItems = items.map((item) => {
+          if (item.productId === data.productId && item.sku === data.sku) {
+            wasAffected = true;
+            const newStock = data.newStock;
+            let stockStatus: "IN_STOCK" | "LOW_STOCK" | "OUT_OF_STOCK" = "IN_STOCK";
+            
+            if (newStock <= 0) stockStatus = "OUT_OF_STOCK";
+            else if (newStock < 5) stockStatus = "LOW_STOCK";
+
+            return { 
+              ...item, 
+              availableStock: newStock,
+              stockStatus 
+            };
+          }
+          return item;
+        });
+
+        if (wasAffected) {
+          console.log(`[CartStore] Updated stock for SKU ${data.sku}: ${data.newStock}`);
+          set({ items: newItems });
         }
       },
     }),

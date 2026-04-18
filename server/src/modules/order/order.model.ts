@@ -65,6 +65,9 @@ const orderSchema = new Schema<IOrder>(
             enum: Object.values(OrderStatus),
             default: OrderStatus.PENDING_PAYMENT,
         },
+        cancellationReason: { type: String },
+        rejectedAt: { type: Date },
+        cancelledAt: { type: Date },
         paymentInfo: {
             razorpayOrderId: { type: String, required: true },
             razorpayPaymentId: { type: String },

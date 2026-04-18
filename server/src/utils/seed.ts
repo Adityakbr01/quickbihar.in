@@ -2,6 +2,63 @@ import { User } from "../modules/user/user.model";
 import { SizeChart } from "../modules/sizeChart/sizeChart.model";
 import { ENV } from "../config/env.config";
 import { RefundPolicy } from "../modules/refundPolicy/refundPolicy.model";
+import { AppConfig } from "../modules/appConfig/appConfig.model";
+
+export const seedAppConfig = async () => {
+    try {
+        console.log("🌱 Seeding App Configuration...");
+
+        const defaultConfig = {
+            policies: {
+                privacyPolicy: "Default Privacy Policy - Please Update",
+                termsAndConditions: "Default Terms and Conditions - Please Update",
+                returnPolicy: "7 Days Easy Return Policy",
+                shippingPolicy: "Standard Shipping Policy",
+            },
+            contact: {
+                email: "support@quickbihar.in",
+                phone: "+91 0000000000",
+                whatsapp: "+91 0000000000",
+                address: "Bihar, India",
+            },
+            socialLinks: {
+                facebook: "https://facebook.com/quickbihar",
+                instagram: "https://instagram.com/quickbihar",
+                twitter: "https://twitter.com/quickbihar",
+                youtube: "https://youtube.com/quickbihar",
+            },
+            seo: {
+                metaTitle: "Quick Bihar - Premium E-commerce",
+                metaDescription: "The best shopping experience in Bihar.",
+                keywords: ["shopping", "ecommerce", "bihar", "quickbihar"],
+            },
+            shipping: {
+                freeShippingThreshold: 2000,
+                shippingFee: 99,
+            },
+            appearance: {
+                logoUrl: "",
+                faviconUrl: "",
+            }
+        };
+
+        const existing = await AppConfig.findOne();
+        if (!existing) {
+            await AppConfig.create(defaultConfig);
+            console.log("✅ App Config seeded successfully!");
+        } else {
+            console.log("ℹ️ App Config already exists, checking for missing fields...");
+            // Ensure shipping rules exist even if config exists
+            if (!existing.shipping) {
+                existing.shipping = defaultConfig.shipping;
+                await existing.save();
+                console.log("✅ Updated App Config with shipping rules!");
+            }
+        }
+    } catch (error) {
+        console.error("❌ Failed to seed App Config:", error);
+    }
+};
 
 export const seedAdmin = async () => {
     try {
@@ -27,6 +84,39 @@ export const seedAdmin = async () => {
         }
     } catch (error) {
         console.error("❌ Failed to seed Admin User:", error);
+    }
+};
+
+export const seedUsers = async () => {
+    try {
+        console.log("🌱 Seeding Development Users...");
+        
+        const devUsers = [
+            {
+                username: "customer1",
+                email: "user@example.com",
+                password: "password123",
+                fullName: "Test Customer",
+                role: "user",
+            },
+            {
+                username: "seller1",
+                email: "seller@example.com",
+                password: "password123",
+                fullName: "Test Seller",
+                role: "seller",
+            }
+        ];
+
+        for (const u of devUsers) {
+            const existing = await User.findOne({ email: u.email });
+            if (!existing) {
+                await User.create(u);
+                console.log(`✔️ Created user: ${u.username}`);
+            }
+        }
+    } catch (error) {
+        console.error("❌ Failed to seed development users:", error);
     }
 };
 
@@ -366,3 +456,5 @@ export const seedRefundPolicies = async () => {
         console.error("❌ Seed Error:", error);
     }
 };
+
+

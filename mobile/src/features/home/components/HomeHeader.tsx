@@ -4,7 +4,7 @@ import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
 import LottieView from "lottie-react-native";
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Keyboard, Platform, Pressable, StyleSheet, TextInput, View } from "react-native";
+import { Keyboard, Platform, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import Animated, {
   SharedValue,
   useAnimatedStyle,
@@ -92,12 +92,16 @@ const HomeHeader = ({ menuOpen, toggleMenu }: HomeHeaderProps) => {
   return (
     <View style={styles.header}>
       <View style={styles.headerLeft}>
-        <AnimatedBurger
+        {/* <AnimatedBurger
           isOpen={menuOpen}
           onPress={handleBurgerPress}
           color={theme.text}
           size={20}
-        />
+        /> */}
+
+        <Text style={[localStyles.brandText, { color: theme.text }]}>
+          Quick Bihar
+        </Text>
       </View>
 
       <View style={styles.headerRight}>
@@ -176,6 +180,12 @@ const localStyles = StyleSheet.create({
   bellLottie: {
     width: 48,
     height: 48,
+  },
+  brandText: {
+    fontSize: 22,
+    fontWeight: "900",
+    letterSpacing: -0.5,
+    fontFamily: Platform.OS === 'ios' ? 'System' : 'sans-serif-condensed',
   },
 });
 

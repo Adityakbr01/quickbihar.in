@@ -7,6 +7,7 @@ export enum OrderStatus {
     SHIPPED = "SHIPPED",
     DELIVERED = "DELIVERED",
     CANCELLED = "CANCELLED",
+    REJECTED = "REJECTED",
     FAILED = "FAILED",
 }
 
@@ -47,6 +48,9 @@ export interface IOrder extends Document {
     payableAmount: number;   // Final amount paid
     shippingAddress: IShippingAddress;
     status: OrderStatus;
+    cancellationReason?: string;
+    rejectedAt?: Date;
+    cancelledAt?: Date;
     paymentInfo: {
         razorpayOrderId: string;
         razorpayPaymentId?: string;

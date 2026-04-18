@@ -1,26 +1,25 @@
 {
   "expo": {
-    "name": "mobile",
-    "slug": "mobile",
+    "name": "QuickBihar",
+    "slug": "QuickBihar",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
-    "scheme": "mobile",
+    "icon": "./assets/images/QuickBihar_Icon_1024.png",
+    "scheme": "QuickBihar",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.adityakbr.mobile"
     },
     "android": {
+      "package": "com.adityakbr.mobile",
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false,
-      "package": "com.adityakbr.mobile"
+      "predictiveBackGestureEnabled": false
     },
     "web": {
       "output": "static",
@@ -31,17 +30,15 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
-          "imageWidth": 200,
+          "backgroundColor": "#0f0f0f",
+          "image": "./assets/images/QuickBihar_Wordmark.png",
+          "imageWidth": 190,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff",
           "dark": {
-            "backgroundColor": "#000000"
+            "backgroundColor": "#0f0f0f"
           }
         }
-      ],
-      "expo-video",
-      "expo-speech-recognition"
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

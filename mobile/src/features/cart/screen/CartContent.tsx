@@ -27,11 +27,14 @@ const CartContent = () => {
     fetchCart,
     isLoading,
     appliedCoupon,
-    discountAmount
+    discountAmount,
+    shippingRules,
+    fetchShippingConfig
   } = useCartStore();
 
   useEffect(() => {
     fetchCart();
+    fetchShippingConfig();
   }, []);
 
   const handleUpdateQuantity = (sku: string, delta: number) => {
@@ -84,7 +87,7 @@ const CartContent = () => {
   }
 
   // Calculated values for summary
-  const shipping = subtotal > 2000 ? 0 : 99;
+  const shipping = subtotal >= shippingRules.threshold ? 0 : shippingRules.fee;
   const autoDiscount = 0; // Removed hardcoded discount
   const totalAmount = subtotal + shipping - (autoDiscount + discountAmount);
 

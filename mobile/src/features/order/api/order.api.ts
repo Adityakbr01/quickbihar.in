@@ -43,3 +43,13 @@ export const getOrderByIdRequest = async (orderId: string) => {
   const response = await axiosInstance.get(`/orders/${orderId}`);
   return response.data;
 };
+
+export const getAdminOrdersRequest = async () => {
+  const response = await axiosInstance.get("/orders/admin/all");
+  return response.data;
+};
+
+export const updateOrderStatusRequest = async (orderId: string, status: string, reason?: string) => {
+  const response = await axiosInstance.patch(`/orders/admin/status/${orderId}`, { status, cancellationReason: reason });
+  return response.data;
+};

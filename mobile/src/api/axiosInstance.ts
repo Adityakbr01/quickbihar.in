@@ -5,12 +5,12 @@ import { Platform } from "react-native";
 import { useAuthStore } from "../features/auth/store/authStore";
 
 // For Real Devices: Use your machine's local IP address.
-// I found your IP is: 10.193.97.27
+// I found your IP is: 10.108.61.27
 // For Android emulator: 10.0.2.2
 // For iOS Simulator/Web: localhost
 const BASE_URL = Platform.OS === "android"
-  ? "http://10.193.97.27:8000/api/v1"
-  : "http://10.193.97.27:8000/api/v1";
+  ? "http://10.108.61.27:8000/api/v1"
+  : "http://10.108.61.27:8000/api/v1";
 
 const axiosInstance = axios.create({
   baseURL: BASE_URL,

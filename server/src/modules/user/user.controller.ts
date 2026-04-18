@@ -58,6 +58,23 @@ export class UserController {
     });
 
     /**
+     * Update FCM Token for Push Notifications
+     */
+    static updateFcmToken = asyncHandler(async (req, res) => {
+        const userId = (req as any).user._id;
+        const { fcmToken } = req.body;
+
+        if (!fcmToken) {
+            throw new ApiError(400, "FCM Token is required");
+        }
+
+        console.log(`[SERVER] Syncing FCM Token for User ${userId}`);
+        await UserDAO.updateById(userId, { fcmToken });
+
+        return res.status(200).json(new ApiResponse(200, {}, "FCM Token updated successfully"));
+    });
+
+    /**
      * Get Current User Profile
      */
     static getProfile = asyncHandler(async (req, res) => {

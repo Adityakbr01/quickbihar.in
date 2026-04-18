@@ -28,5 +28,9 @@ export interface IAppConfig extends Document {
         logoUrl: string;
         faviconUrl: string;
     };
+    shipping: {
+        freeShippingThreshold: number;
+        shippingFee: number;
+    };
     updatedBy?: string;
 }

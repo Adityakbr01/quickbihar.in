@@ -19,3 +19,8 @@ export const updateAvatarRequest = async (formData: FormData) => {
   });
   return response.data;
 };
+
+export const updateFcmTokenRequest = async (fcmToken: string) => {
+  const response = await axiosInstance.patch("/users/fcm-token", { fcmToken });
+  return response.data;
+};

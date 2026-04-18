@@ -80,6 +80,8 @@ export const useMoreDealsLogic = () => {
   const normalizedSearchQuery = searchQuery.trim();
   const debouncedSearchQuery = useDebouncedValue(normalizedSearchQuery, 500);
 
+
+
   // Real-world search strategy:
   // - debounce user input
   // - wait for at least 2 characters before sending search param
@@ -134,6 +136,7 @@ export const useMoreDealsLogic = () => {
       return getPublicProductsRequest(params);
     },
     getNextPageParam: (lastPage, allPages) => {
+      if (!lastPage || typeof lastPage.total === "undefined") return undefined;
       const currentLoaded = allPages.length * 10;
       return currentLoaded < lastPage.total ? allPages.length + 1 : undefined;
     },
@@ -141,7 +144,7 @@ export const useMoreDealsLogic = () => {
   });
 
   const allProducts = React.useMemo(() => {
-    return productData?.pages.flatMap((page) => page.data) || [];
+    return productData?.pages.flatMap((page) => page?.data || []) || [];
   }, [productData]);
 
   const handleApply = (selected: string[]) => {

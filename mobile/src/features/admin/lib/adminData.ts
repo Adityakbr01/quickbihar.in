@@ -3,7 +3,8 @@ import {
   User03Icon, AddInvoiceIcon,
   Shield01Icon,
   DashboardCircleSettingsIcon,
-  Coupon02Icon
+  Coupon02Icon,
+  ShoppingBag01Icon
 } from "@hugeicons/core-free-icons";
 
 export interface AdminCardItem {
@@ -15,6 +16,13 @@ export interface AdminCardItem {
 }
 
 export const ADMIN_CARDS: AdminCardItem[] = [
+  {
+    title: "Order Management",
+    description: "Manage orders, shipping & status updates",
+    icon: ShoppingBag01Icon,
+    color: "#2563EB",
+    route: "/admin/orders",
+  },
   {
     title: "Coupons CRUD",
     description: "Manage promo codes and special offers",
@@ -71,5 +79,12 @@ export const ADMIN_CARDS: AdminCardItem[] = [
     icon: DashboardCircleSettingsIcon,
     color: "#3B82F6",
     route: "/admin/refund-policies",
+  },
+  {
+    title: "Store Configuration",
+    description: "Manage SEO, Policies, Contact & Shipping",
+    icon: DashboardCircleSettingsIcon,
+    color: "#4F46E5",
+    route: "/admin/settings",
   },
 ];

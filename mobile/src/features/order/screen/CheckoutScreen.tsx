@@ -26,9 +26,22 @@ const CheckoutScreen = () => {
   const styles = createOrderStyles(theme);
   const router = useRouter();
 
-  const { items, subtotal, totalTax, discountAmount, appliedCoupon, clearCart } = useCartStore();
+  const { 
+    items, 
+    subtotal, 
+    totalTax, 
+    discountAmount, 
+    appliedCoupon, 
+    clearCart,
+    shippingRules,
+    fetchShippingConfig
+  } = useCartStore();
   const { user } = useAuthStore();
  
+  useEffect(() => {
+    fetchShippingConfig();
+  }, []);
+
   const [addresses, setAddresses] = useState<any[]>([]);
   const [selectedAddress, setSelectedAddress] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -55,8 +68,8 @@ const CheckoutScreen = () => {
     setAlertConfig(prev => ({ ...prev, visible: false }));
   };
  
-  // Constants
-  const shipping = subtotal > 2000 ? 0 : 99;
+  // Constants using dynamic rules
+  const shipping = subtotal >= shippingRules.threshold ? 0 : shippingRules.fee;
   const totalPayable = subtotal + shipping - discountAmount;
 
   useEffect(() => {
