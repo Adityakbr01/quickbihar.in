@@ -243,17 +243,10 @@ graph TD
     Ad -->|Promote Banners| Mongo
 
     %% Connections - External
-    Search -->|Vector Search/ Algolia| External Algolia
-
-    %% Styling
-    class U,S,D,Ad actores;
-    class RBAC,Auth,Inv,Order,Pay,Track,Search platform;
-    class Mongo,Redis data;
-    class RZ payment;
-    class Cl,Jw,Fd verticals;
+    Search -->|Vector Search| Algolia[External Algolia]
 
     %% Notes
-    Note1[<b>Core Logic</b><br/>Clothing: Size/Color/Fabric<br/>Jewelry: Weight/Purity/Cert<br/>Food: Prep Time/Availability]
+    Note1["<b>Core Logic</b><br/>Clothing: Size/Color/Fabric<br/>Jewelry: Weight/Purity/Cert<br/>Food: Prep Time/Availability"]
     Note1 --> Inv
 ```
 
@@ -270,3 +263,107 @@ graph TD
 5.  **Vertical Specifics:** The diagram implies that the "Order" service receives specific data structures based on whether it's Clothing, Jewelry, or Food (handled by the Vertical Logic layer).
 
 This architecture ensures **scalability** (Redis/Mongo), **trust** (RBAC/Validation), **speed** (Socket.io/Redis), and **real-world accuracy** (Inventory sync).
+
+---
+
+## Detailed Role Responsibilities
+
+To maintain a secure and functional ecosystem, QuickBihar enforces strict Role-Based Access Control (RBAC).
+
+### 1. User (Consumer)
+The user's primary journey focuses on discovery and purchase:
+*   Sign up/Login securely.
+*   Browse, search, and apply domain-specific filters (e.g., sort jewelry by purity, food by open status).
+*   Add variations of products to the cart.
+*   Place orders and complete secure payments.
+*   Track deliveries in real-time via Socket.io.
+*   Provide reviews and ratings upon completion.
+
+### 2. Seller (Merchant)
+Sellers manage the business operations from their dedicated store dashboards:
+*   Create and manage store profiles (including offline/online sync and open/close status).
+*   Upload domain-specific products (e.g., attaching size-charts for clothing, or purity certificates for jewelry).
+*   Manage stock levels across variants to prevent overselling.
+*   Accept or reject incoming orders (critical for Food vertical).
+*   Deploy coupons and localized offers.
+*   Track revenue and analytics.
+
+### 3. Delivery Boy (Logistics)
+Dedicated to fulfillment logistics:
+*   Receive and accept geographically assigned orders.
+*   Pick up from local sellers.
+*   Broadcast live location to the server (relayed via Redis & Socket.io).
+*   Verify delivery and mark orders as complete.
+
+### 4. Admin / Super Admin (Platform Control)
+Admins ensure platform integrity and quality control:
+*   Verify seller authenticity (especially crucial for high-value Jewelry sellers).
+*   Maintain global taxonomies (categories, attributes).
+*   Manage global promotions (banners, global offers).
+*   Handle user disputes, fraud prevention, and monitor overall analytics.
+*   Configure platform-wide policies (delivery fees, application configurations).
+
+---
+
+## The 3-Layer Product Architecture
+
+To dynamically handle Clothing, Jewelry, and Food within the same database cleanly, products are modeled in three layers:
+
+1.  **Product (General Information):** Title, description, category, brand, images, tags, and cached rating calculations.
+2.  **Attributes (Domain-Specific Fields):**
+    *   *Clothing:* Fabric type, fit style, pattern, size chart mapping.
+    *   *Jewelry:* Material type, purity level, certification documents.
+    *   *Food:* Preparation time, Veg/Non-Veg indicators, cuisine tags.
+3.  **Variant (The Sellable Unit):** The actual, specific item a user puts in their cart (e.g., "Size M, Blue"). It holds the exact SKU, size/color/weight, exact price, and current stock level.
+
+---
+
+## Solving the Offline-to-Online Stock Challenge
+
+A major challenge for local commerce is offline walk-in sales reducing physical stock without the app knowing, leading to "overselling" online. 
+
+**QuickBihar's Solution:**
+1.  **Strict Inventory Logging:** Sellers are required to update offline sales through a unified inventory sync tool in their app.
+2.  **Real-time Stock Validation:** At the exact moment a User clicks "Checkout", the backend compares cart quantity against real-time database stock.
+3.  **Redis Inventory Locking:** During payment processing, Redis temporarily "locks" the inventory count to prevent race conditions where two online users buy the final item simultaneously.
+
+---
+
+## Complete Order Lifecycle Flow
+
+The system orchestrates a standard 15-step lifeline for every transaction:
+1.  User selects a specific product **Variant**.
+2.  User adds it to the **Cart** (Redis cached).
+3.  User proceeds to **Checkout** and selects an Address.
+4.  User attempts **Payment** (Razorpay).
+5.  System performs immediate **Stock Validation**.
+6.  System executes a **Redis Stock Lock**.
+7.  Payment succeeds; **Order is Formally Created**.
+8.  Seller is sent an automatic **Notification**.
+9.  Seller reviews and **Accepts the Order**.
+10. System geographically assigns a **Delivery Boy**.
+11. Delivery Boy arrives and **Picks up** the package.
+12. Delivery begins; Socket.io broadcasts **Live Tracking**.
+13. Order is marked as **Delivered**.
+14. Redis Lock resolves into permanent **Inventory Deduction**.
+15. User submits a **Rating/Review** (cached separately from the main product document for fast queries).
+
+---
+
+## Platform Features & Engineering Operations
+
+### Search & Filtering (Optimized Discovery)
+QuickBihar doesn't just display products; it requires complex, vertical-specific filtering:
+*   *Clothing:* Filter by size, fit, fabric, occasion.
+*   *Jewelry:* Filter by metal type, purity score, certification presence.
+*   *Food:* Filter by "Open Now", preparation time, pure veg.
+
+### Ratings & Reviews System
+Ratings are not hardcoded to prevent database bottlenecks. The `Review` collection safely stores actual user reviews, while the `Product` collection only holds **cached aggregate fields** (e.g., `averageRating`, `ratingCount`). This ensures sub-millisecond product loading times.
+
+### Backend Modularity
+The platform is built as a **Modular Monolith** using **TypeScript** and **Zod** (for runtime payload validation). 
+Rather than a tangled codebase, each feature (Auth, Roles, Users, Sellers, Orders, Cart, Analytics) strictly follows its own isolated pattern:
+*   `Routes` → `Controllers` → `Services` → `DAOs (Data Access Objects)` → `Models/Schemas`.
+
+This strict separation guarantees that QuickBihar goes beyond a basic application—it functions responsibly as a true **Hyperlocal Multi-Category Commerce Super App**.
