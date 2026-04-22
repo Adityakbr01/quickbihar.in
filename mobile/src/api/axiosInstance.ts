@@ -8,9 +8,9 @@ import { useAuthStore } from "../features/auth/store/authStore";
 // I found your IP is: 10.108.61.27
 // For Android emulator: 10.0.2.2
 // For iOS Simulator/Web: localhost
-const BASE_URL = Platform.OS === "android"
-  ? "http://10.108.61.27:8000/api/v1"
-  : "http://10.108.61.27:8000/api/v1";
+const LOCAL_URL = "http://10.108.61.27:8000/api/v1";
+const PROD_URL = "https://quickbihar-in.onrender.com/api/v1";
+const BASE_URL = __DEV__ ? LOCAL_URL : PROD_URL;
 
 const axiosInstance = axios.create({
   baseURL: BASE_URL,
@@ -51,7 +51,7 @@ axiosInstance.interceptors.request.use(
   },
   (error) => {
     return Promise.reject(error);
-  }
+  },
 );
 
 // Response Interceptor: Handle global errors and token refresh
@@ -61,15 +61,19 @@ axiosInstance.interceptors.response.use(
     const originalRequest = error.config;
 
     // Distinguish between Network Error and Server Error
-    if (error.code === 'ERR_NETWORK') {
-      return Promise.reject(new Error(`Network Error: Could not reach server at ${BASE_URL}. Ensure your phone is on the same Wi-Fi as your PC.`));
+    if (error.code === "ERR_NETWORK") {
+      return Promise.reject(
+        new Error(
+          `Network Error: Could not reach server at ${BASE_URL}. Ensure your phone is on the same Wi-Fi as your PC.`,
+        ),
+      );
     }
 
     // Handle 401 Unauthorized
     if (error.response?.status === 401 && !originalRequest._retry) {
       // If we are already refreshing, queue the request
       if (isRefreshing) {
-        return new Promise(function(resolve, reject) {
+        return new Promise(function (resolve, reject) {
           failedQueue.push({ resolve, reject });
         })
           .then((token) => {
@@ -92,7 +96,7 @@ axiosInstance.interceptors.response.use(
 
       try {
         const refreshToken = await SecureStore.getItemAsync("refreshToken");
-        
+
         if (!refreshToken) {
           throw new Error("No refresh token available");
         }
@@ -101,15 +105,22 @@ axiosInstance.interceptors.response.use(
           refreshToken: refreshToken,
         });
 
-        const { accessToken, refreshToken: newRefreshToken, user } = response.data.data;
+        const {
+          accessToken,
+          refreshToken: newRefreshToken,
+          user,
+        } = response.data.data;
 
         // Update Store and SecureStore
-        await useAuthStore.getState().setAuth(user, accessToken, newRefreshToken);
+        await useAuthStore
+          .getState()
+          .setAuth(user, accessToken, newRefreshToken);
 
         // Update header and retry original request
-        axiosInstance.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
+        axiosInstance.defaults.headers.common["Authorization"] =
+          `Bearer ${accessToken}`;
         originalRequest.headers["Authorization"] = `Bearer ${accessToken}`;
-        
+
         processQueue(null, accessToken);
         return axiosInstance(originalRequest);
       } catch (refreshError) {
@@ -123,7 +134,7 @@ axiosInstance.interceptors.response.use(
 
     const message = error.response?.data?.message || "Something went wrong";
     return Promise.reject(new Error(message));
-  }
+  },
 );
 
 export default axiosInstance;
