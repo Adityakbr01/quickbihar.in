@@ -67,6 +67,12 @@ export const getRoles = async (filter?: Record<string, unknown>): Promise<any[]>
   return await roleDao.findAll(filter);
 };
 
+export const getRoleByName = async (name: string): Promise<any | null> => {
+  const role = await Role.findOne({ name }).lean();
+  if (!role) throw new ApiError(404, `Role '${name}' not found`);
+  return role;
+};
+
 export const updateRole = async (id: string, data: any): Promise<any> => {
   const validated = updateRoleSchema.safeParse(data);
   if (!validated.success) {

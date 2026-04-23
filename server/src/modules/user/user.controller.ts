@@ -41,8 +41,8 @@ export class UserController {
 
         // 1. Upload new image to ImageKit
         const uploadResult = await uploadToImageKit(
-            file.buffer, 
-            `avatar_${userId}_${Date.now()}`, 
+            file.buffer,
+            `avatar_${userId}_${Date.now()}`,
             "profiles"
         );
 
@@ -81,5 +81,24 @@ export class UserController {
         const userId = (req as any).user._id;
         const user = await UserDAO.findById(userId);
         return res.status(200).json(new ApiResponse(200, user, "Profile fetched successfully"));
+    });
+
+    // ⭐ Management (Admin Only) ⭐
+
+    /**
+     * Get All Users (Admin only)
+     */
+    static getAllUsers = asyncHandler(async (req, res) => {
+        const users = await UserDAO.findAll();
+        return res.status(200).json(new ApiResponse(200, users, "All users fetched successfully"));
+    });
+
+    /**
+     * Delete User (Admin only)
+     */
+    static deleteUser = asyncHandler(async (req, res) => {
+        const { id } = req.params as { id: string };
+        await UserDAO.updateById(id, { $set: { isActive: false } }); // Soft delete
+        return res.status(200).json(new ApiResponse(200, {}, "User deactivated successfully"));
     });
 }

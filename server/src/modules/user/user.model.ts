@@ -2,6 +2,7 @@ import mongoose, { Schema, Document, Model } from "mongoose";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { ENV } from "../../config/env.config";
+import { RoleEnum } from "../rbac/rbac.types";
 
 export interface IUser extends Document {
   username: string;
@@ -14,7 +15,7 @@ export interface IUser extends Document {
   };
   fcmToken?: string;
   password: string;
-  role: "admin" | "user" | "seller" | "delivery_partner";
+  role: RoleEnum;
   refreshToken?: string;
   isPasswordCorrect(password: string): Promise<boolean>;
   generateAccessToken(): string;
@@ -58,8 +59,8 @@ const userSchema = new Schema<IUser>(
     },
     role: {
       type: String,
-      enum: ["admin", "user", "seller", "delivery_partner"],
-      default: "user",
+      enum: Object.values(RoleEnum),
+      default: RoleEnum.USER,
     },
     refreshToken: {
       type: String,

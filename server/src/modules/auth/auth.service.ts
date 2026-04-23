@@ -4,6 +4,8 @@ import { authenticateSchema, type AuthenticateBody } from "./auth.validation";
 import { ZodError } from "zod";
 import jwt from "jsonwebtoken";
 import { ENV } from "../../config/env.config";
+import * as rbacService from "../rbac/rbac.service";
+import { RoleEnum } from "../rbac/rbac.types";
 
 export class AuthService {
   static async authenticate(authData: any) {
@@ -30,6 +32,17 @@ export class AuthService {
 
         if (!user) {
           throw new ApiError(500, "Failed to create user account");
+        }
+
+        // ⭐ RBAC: Assign default USER role to new account
+        try {
+          const userRole = await rbacService.getRoleByName(RoleEnum.USER);
+          if (userRole) {
+            await rbacService.assignUserToRole(user._id.toString(), userRole._id.toString());
+          }
+        } catch (rbacError) {
+          console.error("Failed to assign default role:", rbacError);
+          // Optional: we can decide if this should fail the whole auth
         }
       }
 

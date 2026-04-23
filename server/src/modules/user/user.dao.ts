@@ -27,4 +27,9 @@ export class UserDAO {
   static async findOne(query: any) {
     return await User.findOne(query);
   }
+
+  static async findAll() {
+    return await User.find({}).select("-password");
+  }
+
 }

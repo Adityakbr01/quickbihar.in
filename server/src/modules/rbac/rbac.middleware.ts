@@ -27,7 +27,7 @@ export const validatePermission = (permissionId: string) => {
 export const validateRole = (roleId: string) => {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const userId = (req as any).user?.userId;
+      const userId = (req as any).user?._id?.toString() || (req as any).user?.userId;
       if (!userId) throw new ApiError(401, "Authentication required");
 
       const userRoles = await rbacService.getRolesByUser(userId);
@@ -51,7 +51,7 @@ export const validateRole = (roleId: string) => {
 export const checkPermissions = (requiredPermissions: string[]) => {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const userId = (req as any).user?.userId;
+      const userId = (req as any).user?._id?.toString() || (req as any).user?.userId;
       if (!userId) throw new ApiError(401, "Authentication required");
 
       const userRoles = await rbacService.getRolesByUser(userId);

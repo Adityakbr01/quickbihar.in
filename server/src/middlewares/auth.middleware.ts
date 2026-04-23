@@ -4,7 +4,12 @@ import { ApiError } from "../utils/ApiError";
 import { asyncHandler } from "../utils/asyncHandler";
 import { UserDAO } from "../modules/user/user.dao";
 import { ENV } from "../config/env.config";
+import { RoleEnum } from "../modules/rbac/rbac.types";
+import { validateRole, validatePermission, checkPermissions } from "../modules/rbac/rbac.middleware";
 
+/**
+ * 🛡️ Verify JWT and attach user to request
+ */
 export const verifyJWT = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
   try {
     const token = req.cookies?.accessToken || req.header("Authorization")?.replace("Bearer ", "");
@@ -26,32 +31,31 @@ export const verifyJWT = asyncHandler(async (req: Request, res: Response, next: 
     throw new ApiError(401, error instanceof Error ? error.message : "Invalid access token");
   }
 });
-export const isAdmin = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-  const user = (req as any).user;
 
-  if (!user || user.role !== "admin") {
-    throw new ApiError(403, "Access denied. Admin role required.");
-  }
+/**
+ * 🛡️ Legacy/Shortcut Middlewares (Migrated to RBAC)
+ */
+export const isAdmin = validateRole(RoleEnum.ADMIN);
+export const isSuperAdmin = validateRole(RoleEnum.SUPER_ADMIN);
+export const isSeller = validateRole(RoleEnum.SELLER);
+export const isDelivery = validateRole(RoleEnum.DELIVERY);
 
-  next();
-});
-
-export const isSeller = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-  const user = (req as any).user;
-
-  if (!user || user.role !== "seller") {
-    throw new ApiError(403, "Access denied. Seller role required.");
-  }
-
-  next();
-});
-
+/**
+ * 🛡️ Composite Middlewares
+ */
 export const isSellerOrAdmin = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
   const user = (req as any).user;
+  if (!user) throw new ApiError(401, "Authentication required");
 
-  if (!user || (user.role !== "seller" && user.role !== "admin")) {
-    throw new ApiError(403, "Access denied. Seller or Admin role required.");
+  const roles = [RoleEnum.SELLER, RoleEnum.ADMIN, RoleEnum.SUPER_ADMIN];
+  const hasAccess = roles.includes(user.role);
+
+  if (!hasAccess) {
+    throw new ApiError(403, "Access denied. Seller or Admin level access required.");
   }
 
   next();
 });
+
+// Re-export RBAC tools for convenience
+export { validateRole, validatePermission, checkPermissions };
