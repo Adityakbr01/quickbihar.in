@@ -12,11 +12,18 @@ const envSchema = z.object({
   REFRESH_TOKEN_EXPIRY: z.string().default("10d"),
   CORS_ORIGIN: z.string().transform((val) => val.split(",").map((s) => s.trim())).default(["*"]),
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
+  REDIS_URL: z.string().min(1).default("redis://localhost:6379"),
+
+  // ADMIN
   ADMIN_EMAIL: z.string().email().default("admin@gmail.com"),
   ADMIN_PASSWORD: z.string().min(8).default("admin123"),
+
+
+  // IMAGEKIT 
   IMAGEKIT_PUBLIC_KEY: z.string(),
   IMAGEKIT_PRIVATE_KEY: z.string(),
   IMAGEKIT_URL_ENDPOINT: z.string(),
+
   //RAZORPAY
   RAZORPAY_KEY_ID: z.string(),
   RAZORPAY_KEY_SECRET: z.string(),
@@ -32,7 +39,9 @@ const _env = envSchema.safeParse(process.env);
 
 if (!_env.success) {
   console.error("❌ Invalid environment variables:", _env.error.format());
-  process.exit(1);
+  if (process.env.NODE_ENV !== "test") {
+    process.exit(1);
+  }
 }
 
-export const ENV = _env.data;
+export const ENV = _env.success ? _env.data : ({} as any);

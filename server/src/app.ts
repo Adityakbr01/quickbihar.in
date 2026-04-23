@@ -40,6 +40,7 @@ import cartRouter from "./modules/cart/cart.router";
 import wishlistRouter from "./modules/wishlist/wishlist.router";
 import appConfigRouter from "./modules/appConfig/appConfig.router";
 import refundPolicyRouter from "./modules/refundPolicy/refundPolicy.router";
+import { rbacRoutes as rbacRouter } from "./modules/rbac/rbac.routes";
 
 // Routes Declaration
 app.use("/api/v1/auth", authRouter);
@@ -58,6 +59,7 @@ app.use("/api/v1/cart", cartRouter);
 app.use("/api/v1/wishlist", wishlistRouter);
 app.use("/api/v1/app-config", appConfigRouter);
 app.use("/api/v1/refund-policies", refundPolicyRouter);
+app.use("/api/v1/rbac", rbacRouter);
 
 // Global Error Handler
 app.use(errorHandler);

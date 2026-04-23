@@ -8,7 +8,8 @@
     "dev": "bun run --watch src/server.ts",
     "build": "bun build src/server.ts --target bun --outdir ./dist --packages external",
     "start": "bun run dist/server.js",
-    "db:import": "bun run src/db/importData.ts"
+    "db:import": "bun run src/db/importData.ts",
+    "rbac:seed": "bun run src/db/rbacSeed.ts"
   },
   "devDependencies": {
     "@types/bcryptjs": "^3.0.0",
@@ -26,6 +27,7 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "@types/supertest": "^7.2.0",
     "axios": "^1.15.0",
     "bcryptjs": "^3.0.3",
     "bwip-js": "^4.9.2",
@@ -35,6 +37,7 @@
     "express": "^5.2.1",
     "firebase-admin": "^13.8.0",
     "imagekit": "^6.0.0",
+    "ioredis": "^5.10.1",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.4.1",
     "multer": "^2.1.1",
@@ -42,6 +45,7 @@
     "razorpay": "^2.9.6",
     "resend": "^6.12.0",
     "socket.io": "^4.8.3",
+    "supertest": "^7.2.2",
     "zod": "^4.3.6"
   }
 }
