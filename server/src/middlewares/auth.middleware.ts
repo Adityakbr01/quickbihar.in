@@ -20,6 +20,7 @@ export const verifyJWT = asyncHandler(async (req: Request, res: Response, next: 
     const decodedToken: any = jwt.verify(token, ENV.ACCESS_TOKEN_SECRET);
 
     const user = await UserDAO.findById(decodedToken?._id);
+    console.log("User : ", user);
 
     if (!user) {
       throw new ApiError(401, "Invalid Access Token");
@@ -47,8 +48,12 @@ export const isSellerOrAdmin = asyncHandler(async (req: Request, res: Response, 
   const user = (req as any).user;
   if (!user) throw new ApiError(401, "Authentication required");
 
+  console.log("Checking access for user:", user.email);
   const roles = [RoleEnum.SELLER, RoleEnum.ADMIN, RoleEnum.SUPER_ADMIN];
-  const hasAccess = roles.includes(user.role);
+  
+  // Check primary roleId name
+  const primaryRoleName = user.roleId?.name;
+  const hasAccess = roles.includes(primaryRoleName as RoleEnum);
 
   if (!hasAccess) {
     throw new ApiError(403, "Access denied. Seller or Admin level access required.");

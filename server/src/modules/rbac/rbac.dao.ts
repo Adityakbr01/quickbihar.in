@@ -1,5 +1,5 @@
 import { Types } from "mongoose";
-import { Role, Permission, RolePermission, UserRole } from "./rbac.model";
+import { Role, Permission, RolePermission } from "./rbac.model";
 import { redis } from "../../config/redis.config";
 
 // ⭐ REDIS CACHING KEYS (Optional)
@@ -143,33 +143,5 @@ export const roleDao = {
   async delete(id: string): Promise<void> {
     await Role.deleteOne({ _id: id });
     await rolePermissionDao.invalidateCache(id);
-  }
-};
-
-export const userRoleDao = {
-  async assign(userId: string, roleId: string): Promise<any> {
-    // Check if already assigned
-    const existing = await UserRole.findOne({ userId, roleId }).lean();
-    if (existing) {
-      throw new Error(`User already has this role`);
-    }
-
-    const userRole = await UserRole.create({
-      userId: new Types.ObjectId(userId),
-      roleId: new Types.ObjectId(roleId),
-      isActive: true,
-    });
-
-    await rolePermissionDao.invalidateCache(roleId);
-    return userRole;
-  },
-
-  async revoke(userId: string, roleId: string): Promise<void> {
-    await UserRole.deleteOne({ userId, roleId });
-    await rolePermissionDao.invalidateCache(roleId);
-  },
-
-  async findByUser(userId: string): Promise<any[]> {
-    return UserRole.find({ userId, isActive: true }).populate("roleId").lean();
   }
 };

@@ -4,15 +4,15 @@ process.env.PORT = "8000";
 process.env.MONGODB_URI = "mongodb://localhost:27017/test";
 process.env.ACCESS_TOKEN_SECRET = "test_secret_key_long_enough";
 process.env.REFRESH_TOKEN_SECRET = "test_refresh_secret";
-process.env.IMAGEKIT_PUBLIC_KEY = "dummy";
-process.env.IMAGEKIT_PRIVATE_KEY = "dummy";
-process.env.IMAGEKIT_URL_ENDPOINT = "dummy";
-process.env.RAZORPAY_KEY_ID = "dummy";
-process.env.RAZORPAY_KEY_SECRET = "dummy";
-process.env.RAZORPAY_WEBHOOK_SECRET = "dummy";
-process.env.FIREBASE_PROJECT_ID = "dummy";
-process.env.FIREBASE_CLIENT_EMAIL = "dummy";
-process.env.FIREBASE_PRIVATE_KEY = "dummy";
+process.env.IMAGEKIT_PUBLIC_KEY = "dummy_key";
+process.env.IMAGEKIT_PRIVATE_KEY = "dummy_private_key";
+process.env.IMAGEKIT_URL_ENDPOINT = "https://ik.imagekit.io/dummy";
+process.env.RAZORPAY_KEY_ID = "dummy_razorpay_id";
+process.env.RAZORPAY_KEY_SECRET = "dummy_razorpay_secret";
+process.env.RAZORPAY_WEBHOOK_SECRET = "dummy_webhook_secret";
+process.env.FIREBASE_PROJECT_ID = "dummy_project";
+process.env.FIREBASE_CLIENT_EMAIL = "dummy@test.com";
+process.env.FIREBASE_PRIVATE_KEY = "dummy_key";
 
 import { describe, expect, mock, test } from "bun:test";
 
@@ -28,11 +28,23 @@ mock.module("../config/redis.config", () => ({
   }
 }));
 
-mock.module("../modules/rbac/rbac.middleware", () => ({
-  validateRole: () => (req: any, res: any, next: any) => {
-    req.user = { userId: "645a2c2b8f8f2b1a2c3d4e5f" };
+mock.module("../middlewares/auth.middleware", () => ({
+  verifyJWT: (req: any, res: any, next: any) => {
+    req.user = { _id: "645a2c2b8f8f2b1a2c3d4e5f" };
     next();
   },
+  isAdmin: (req: any, res: any, next: any) => next(),
+  isSuperAdmin: (req: any, res: any, next: any) => next(),
+  isSeller: (req: any, res: any, next: any) => next(),
+  isDelivery: (req: any, res: any, next: any) => next(),
+  isSellerOrAdmin: (req: any, res: any, next: any) => next(),
+  validateRole: () => (req: any, res: any, next: any) => next(),
+  validatePermission: () => (req: any, res: any, next: any) => next(),
+  checkPermissions: () => (req: any, res: any, next: any) => next(),
+}));
+
+mock.module("../modules/rbac/rbac.middleware", () => ({
+  validateRole: () => (req: any, res: any, next: any) => next(),
   validatePermission: () => (req: any, res: any, next: any) => next(),
   checkPermissions: () => (req: any, res: any, next: any) => next(),
 }));

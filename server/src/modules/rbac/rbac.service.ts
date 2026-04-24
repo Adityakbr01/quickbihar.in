@@ -1,6 +1,7 @@
 import { Types } from "mongoose";
-import { Role, Permission, RolePermission, UserRole } from "./rbac.model";
-import { permissionDao, roleDao, rolePermissionDao, userRoleDao } from "./rbac.dao";
+import { Role, Permission, RolePermission } from "./rbac.model";
+import { User } from "../user/user.model";
+import { permissionDao, roleDao, rolePermissionDao } from "./rbac.dao";
 import {
   createRoleSchema,
   createPermissionSchema,
@@ -104,9 +105,9 @@ export const assignPermissionToRole = async (roleId: string, permissionId: strin
   const exists = await RolePermission.findOne({ roleId, permissionId }).lean();
   if (exists) throw new ApiError(400, "Permission already assigned to role");
 
-  await RolePermission.create({ 
-    roleId: new Types.ObjectId(roleId), 
-    permissionId: new Types.ObjectId(permissionId) 
+  await RolePermission.create({
+    roleId: new Types.ObjectId(roleId),
+    permissionId: new Types.ObjectId(permissionId)
   });
   await rolePermissionDao.invalidateCache(roleId);
 };
@@ -123,13 +124,18 @@ export const getPermissionsByRole = async (roleId: string): Promise<Record<strin
 // ⭐ USER-ROLE OPERATIONS ⭐
 
 export const assignUserToRole = async (userId: string, roleId: string): Promise<void> => {
-  await userRoleDao.assign(userId, roleId);
+  const updatedUser = await User.findByIdAndUpdate(userId, { roleId }, { new: true });
+  if (!updatedUser) throw new ApiError(404, "User not found");
 };
 
 export const removeUserFromRole = async (userId: string, roleId: string): Promise<void> => {
-  await userRoleDao.revoke(userId, roleId);
+  // In a single-role system, removing a role usually means resetting to a default role (e.g., USER)
+  // For now, we'll just check if they have that role and ignore if you want to keep it strict
+  console.log(`Revoke role ${roleId} from user ${userId} - No action taken in single-role mode`);
 };
 
 export const getRolesByUser = async (userId: string): Promise<any[]> => {
-  return await userRoleDao.findByUser(userId);
+  const user = await User.findById(userId).populate("roleId").lean();
+  if (!user || !user.roleId) return [];
+  return [{ userId, roleId: user.roleId, isActive: true }];
 };

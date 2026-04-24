@@ -27,14 +27,11 @@ export const validatePermission = (permissionId: string) => {
 export const validateRole = (roleId: string) => {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const userId = (req as any).user?._id?.toString() || (req as any).user?.userId;
-      if (!userId) throw new ApiError(401, "Authentication required");
+      const user = (req as any).user;
+      if (!user?.roleId) throw new ApiError(403, "Access denied: User has no role assigned");
 
-      const userRoles = await rbacService.getRolesByUser(userId);
-      const hasRole = userRoles.some(r => {
-        const role = r.roleId;
-        return role && (role._id.toString() === roleId || role.name === roleId);
-      });
+      const role = user.roleId;
+      const hasRole = role._id.toString() === roleId || role.name === roleId;
 
       if (!hasRole) {
         throw new ApiError(403, "Access denied: Insufficient Role");
@@ -51,21 +48,12 @@ export const validateRole = (roleId: string) => {
 export const checkPermissions = (requiredPermissions: string[]) => {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const userId = (req as any).user?._id?.toString() || (req as any).user?.userId;
-      if (!userId) throw new ApiError(401, "Authentication required");
+      const user = (req as any).user;
+      if (!user?.roleId?._id) throw new ApiError(403, "Access denied: User has no role assigned");
 
-      const userRoles = await rbacService.getRolesByUser(userId);
-      
-      // Collect all permissions for all user roles
-      const allUserPermissions = new Set<string>();
-      for (const r of userRoles) {
-        if (r.roleId?._id) {
-          const perms = await rbacService.getPermissionsByRole(r.roleId._id.toString());
-          Object.keys(perms).forEach(p => allUserPermissions.add(p));
-        }
-      }
-
-      const hasAllPermissions = requiredPermissions.every(p => allUserPermissions.has(p));
+      // Fetch all permissions for the user's primary role
+      const primaryPerms = await rbacService.getPermissionsByRole(user.roleId._id.toString());
+      const hasAllPermissions = requiredPermissions.every(p => !!primaryPerms[p]);
 
       if (!hasAllPermissions) {
         throw new ApiError(403, "Access denied: Missing one or more required permissions");

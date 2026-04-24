@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document, Model } from "mongoose";
+import mongoose, { Schema, Document, Model, Types } from "mongoose";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { ENV } from "../../config/env.config";
@@ -15,7 +15,9 @@ export interface IUser extends Document {
   };
   fcmToken?: string;
   password: string;
-  role: RoleEnum;
+  roleId: Types.ObjectId;
+  isVerified?: boolean;
+  isBlocked?: boolean;
   refreshToken?: string;
   isPasswordCorrect(password: string): Promise<boolean>;
   generateAccessToken(): string;
@@ -38,6 +40,7 @@ const userSchema = new Schema<IUser>(
       unique: true,
       lowercase: true,
       trim: true,
+      index: true,
     },
     fullName: {
       type: String,
@@ -57,11 +60,14 @@ const userSchema = new Schema<IUser>(
       type: String,
       required: [true, "Password is required"],
     },
-    role: {
-      type: String,
-      enum: Object.values(RoleEnum),
-      default: RoleEnum.USER,
+    roleId: {
+      type: Types.ObjectId,
+      ref: "Role",
+      required: true,
+      index: true,
     },
+    isVerified: { type: Boolean, default: false, index: true },
+    isBlocked: { type: Boolean, default: false, index: true },
     refreshToken: {
       type: String,
     },

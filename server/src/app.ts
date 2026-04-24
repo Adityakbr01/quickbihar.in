@@ -41,9 +41,16 @@ import wishlistRouter from "./modules/wishlist/wishlist.router";
 import appConfigRouter from "./modules/appConfig/appConfig.router";
 import refundPolicyRouter from "./modules/refundPolicy/refundPolicy.router";
 import { rbacRoutes as rbacRouter } from "./modules/rbac/rbac.routes";
+import onboardingRouter from "./modules/onboarding/onboarding.router";
 
 // Routes Declaration
-app.use("/api/v1/auth", authRouter);
+app.use("/api/v1/auth", authRouter); // working
+app.use("/api/v1/onboarding", onboardingRouter); // working
+app.use("/api/v1/users", userRouter);
+app.use("/api/v1/rbac", rbacRouter);
+
+
+
 app.use("/api/v1/banners", bannerRouter);
 app.use("/api/v1/categories", categoryRouter);
 app.use("/api/v1/products", productRouter);
@@ -53,13 +60,12 @@ app.use("/api/v1/addresses", addressRouter);
 // not tested
 app.use("/api/v1/orders", orderRouter);
 app.use("/api/v1/labels", labelRouter);
-app.use("/api/v1/users", userRouter); //tested
+app.use("/api/v1/users", userRouter);
 app.use("/api/v1/payment-methods", paymentMethodRouter);
 app.use("/api/v1/cart", cartRouter);
 app.use("/api/v1/wishlist", wishlistRouter);
 app.use("/api/v1/app-config", appConfigRouter);
 app.use("/api/v1/refund-policies", refundPolicyRouter);
-app.use("/api/v1/rbac", rbacRouter);
 
 // Global Error Handler
 app.use(errorHandler);

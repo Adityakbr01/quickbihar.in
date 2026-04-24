@@ -94,13 +94,3 @@ export interface IRolePermission {
   createdAt: Date;
   updatedAt: Date;
 }
-
-export interface IUserRole {
-  _id: Types.ObjectId;
-  userId: Types.ObjectId;
-  roleId: Types.ObjectId | IRole;
-  assignedBy?: Types.ObjectId;
-  isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-}

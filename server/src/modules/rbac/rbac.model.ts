@@ -3,7 +3,6 @@ import {
   type IRole,
   type IPermission,
   type IRolePermission,
-  type IUserRole,
   RoleEnum,
   ModuleEnum,
   DomainEnum
@@ -82,35 +81,7 @@ const RolePermissionSchema = new Schema<IRolePermission>(
 
 RolePermissionSchema.index({ roleId: 1, permissionId: 1 }, { unique: true });
 
-// 👤 USER ROLE MAPPING
-const UserRoleSchema = new Schema<IUserRole>(
-  {
-    userId: {
-      type: Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-      index: true,
-    },
-    roleId: {
-      type: Schema.Types.ObjectId,
-      ref: "Role",
-      required: true,
-      index: true,
-    },
-    assignedBy: {
-      type: Schema.Types.ObjectId,
-      ref: "User",
-    },
-    isActive: {
-      type: Boolean,
-      default: true,
-    },
-  },
-  baseOptions,
-);
-
 // 🚀 EXPORTS
 export const Role = mongoose.model<IRole>("Role", RoleSchema);
 export const Permission = mongoose.model<IPermission>("Permission", PermissionSchema);
 export const RolePermission = mongoose.model<IRolePermission>("RolePermission", RolePermissionSchema);
-export const UserRole = mongoose.model<IUserRole>("UserRole", UserRoleSchema);

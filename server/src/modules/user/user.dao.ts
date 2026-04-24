@@ -9,27 +9,29 @@ export class UserDAO {
     if (!username && !email) return null;
     return await User.findOne({
       $or: [{ username }, { email }],
-    });
+    }).populate("roleId");
   }
 
   static async findById(id: string) {
-    return await User.findById(id).select("-password");
+    return await User.findById(id).select("-password").populate("roleId");
   }
 
   static async updateById(id: string, updateData: any) {
-    return await User.findByIdAndUpdate(id, updateData, { returnDocument: "after" });
+    return await User.findByIdAndUpdate(id, updateData, { returnDocument: "after" })
+      .select("-password")
+      .populate("roleId");
   }
 
   static async findByRefreshToken(refreshToken: string) {
-    return await User.findOne({ refreshToken });
+    return await User.findOne({ refreshToken }).populate("roleId");
   }
 
   static async findOne(query: any) {
-    return await User.findOne(query);
+    return await User.findOne(query).populate("roleId");
   }
 
   static async findAll() {
-    return await User.find({}).select("-password");
+    return await User.find({}).select("-password").populate("roleId");
   }
 
 }

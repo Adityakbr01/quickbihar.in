@@ -16,7 +16,7 @@ router.patch("/profile", UserController.updateProfile);
 router.patch("/fcm-token", UserController.updateFcmToken);
 router.patch("/avatar", upload.single("avatar"), UserController.updateAvatar);
 
-// ⭐ MANAGEMENT ROUTES (Requires Admin Role)
+// ⭐ MANAGEMENT ROUTES (Requires Admin Role) : todo send to Admin module
 router.get("/all", isAdmin, UserController.getAllUsers);
 
 // Example of using a specific Permission check instead of a Role check

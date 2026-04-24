@@ -4,15 +4,15 @@ import { verifyJWT } from "../../middlewares/auth.middleware";
 
 const router = Router();
 
-// Single entry point for both registration and login
-router.route("/authenticate").post(AuthController.authenticate);
+// ⭐ Recommended Routes
+router.route("/register").post(AuthController.register);
+router.route("/login").post(AuthController.login);
+router.route("/request-otp").post(AuthController.requestOTP);
+router.route("/verify-otp").post(AuthController.verifyOTP);
 router.route("/refresh-token").post(AuthController.refreshAccessToken);
 
-// Protected routes
+// 🛡️ Protected routes
 router.route("/logout").post(verifyJWT, AuthController.logout);
 
-// Backward compatibility (optional)
-router.route("/register").post(AuthController.authenticate);
-router.route("/login").post(AuthController.authenticate);
 
 export default router;

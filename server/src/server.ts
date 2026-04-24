@@ -14,11 +14,11 @@ socketService.init(httpServer);
 connectDB()
   .then(async () => {
     // Seed data on start
-    await seedAdmin();
-    await seedUsers();
-    await seedSizeCharts();
-    await seedRefundPolicies();
-    await seedAppConfig();
+    // await seedAdmin();
+    // await seedUsers();
+    // await seedSizeCharts();
+    // await seedRefundPolicies();
+    // await seedAppConfig();
 
     httpServer.listen(port, () => {
       console.log(`🚀 Server and Sockets are running at port : ${port}`);
