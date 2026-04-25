@@ -20,7 +20,6 @@ export const verifyJWT = asyncHandler(async (req: Request, res: Response, next: 
     const decodedToken: any = jwt.verify(token, ENV.ACCESS_TOKEN_SECRET);
 
     const user = await UserDAO.findById(decodedToken?._id);
-    console.log("User : ", user);
 
     if (!user) {
       throw new ApiError(401, "Invalid Access Token");

@@ -27,7 +27,7 @@ app.use(express.static("public"));
 // Routes Import
 import authRouter from "./modules/auth/auth.router";
 import bannerRouter from "./modules/banner/banner.router";
-import categoryRouter from "./modules/category/category.route";
+import categoryRouter from "./modules/category/category.router";
 import productRouter from "./modules/products/product.router";
 import sizeChartRouter from "./modules/sizeChart/sizeChart.router";
 import couponRouter from "./modules/coupon/coupon.router";

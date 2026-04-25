@@ -6,6 +6,8 @@ export const createCategorySchema = z.object({
     imagePublicId: z.string().min(1, "Public ID is required"),
     priority: z.coerce.number().int().default(0),
     isActive: z.preprocess((val) => val === "true" || val === true, z.boolean()).default(true),
+    parentId: z.string().optional().nullable(),
+    parentModel: z.enum(["Category", "SubCategory"]).optional(),
 });
 
 export const updateCategorySchema = createCategorySchema.partial();

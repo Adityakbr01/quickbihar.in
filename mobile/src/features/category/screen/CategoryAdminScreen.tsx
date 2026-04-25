@@ -12,12 +12,12 @@ import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import {
     ArrowLeft01Icon,
     Add01Icon,
+    FilterIcon
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import SafeViewWrapper from "@/src/provider/SafeViewWrapper";
 import {
     useAdminCategories,
-    useCategories,
     useDeleteCategory
 } from "../hooks/useCategories";
 import CategoryAdminCard from "../components/CategoryAdminCard";
@@ -32,20 +32,18 @@ const CategoryAdminScreen = () => {
     const router = useRouter();
     const styles = createCategoryStyles(theme);
 
+    // Data Fetching
+    const { data: categories, isLoading, refetch } = useAdminCategories();
+
+    // Mutations
+    const { mutate: deleteCategory } = useDeleteCategory();
+
     // State
-    const [parentId, setParentId] = useState<string | null>(null);
-    const [parentName, setParentName] = useState<string | null>(null);
     const [modalVisible, setModalVisible] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
     const [deletingId, setDeletingId] = useState<string | null>(null);
     const [isDeleteAlertVisible, setIsDeleteAlertVisible] = useState(false);
     const [idToDelete, setIdToDelete] = useState<string | null>(null);
-
-    // Data Fetching
-    const { data: categories, isLoading, refetch } = useCategories(parentId || undefined);
-
-    // Mutations
-    const { mutate: deleteCategory } = useDeleteCategory();
 
     const handleDelete = (id: string) => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -82,42 +80,14 @@ const CategoryAdminScreen = () => {
         setModalVisible(true);
     };
 
-    const handleManageAttributes = (category: Category) => {
-        Haptics.selectionAsync();
-        router.push({
-            pathname: "/admin/attributes",
-            params: {
-                categoryId: category._id,
-                categoryName: category.name,
-            },
-        });
-    };
-
-    const handleCategoryPress = (category: Category) => {
-        setParentId(category._id);
-        setParentName(category.name);
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    };
-
-    const handleBack = () => {
-        if (parentId) {
-            setParentId(null);
-            setParentName(null);
-        } else {
-            router.back();
-        }
-    };
-
     return (
         <SafeViewWrapper>
             {/* Header */}
             <View style={[styles.header, { borderBottomColor: theme.border }]}>
-                <TouchableOpacity onPress={handleBack} style={styles.backButton}>
+                <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
                     <HugeiconsIcon icon={ArrowLeft01Icon} size={24} color={theme.text} />
                 </TouchableOpacity>
-                <Text style={[styles.headerTitle, { color: theme.text }]}>
-                    {parentName || "Categories"}
-                </Text>
+                <Text style={[styles.headerTitle, { color: theme.text }]}>Categories</Text>
                 <TouchableOpacity
                     style={[styles.addButton, { backgroundColor: theme.primary }]}
                     onPress={handleAddNew}
@@ -142,26 +112,20 @@ const CategoryAdminScreen = () => {
                     </View>
                 ) : categories?.length === 0 ? (
                     <View style={styles.emptyState}>
-                        <Text style={[styles.emptyText, { color: theme.secondaryText }]}>No items found here.</Text>
+                        <Text style={[styles.emptyText, { color: theme.secondaryText }]}>No categories found.</Text>
                         <TouchableOpacity style={styles.emptyButton} onPress={handleAddNew}>
-                            <Text style={{ color: theme.primary, fontWeight: "600" }}>Create the first one</Text>
+                            <Text style={{ color: theme.primary, fontWeight: "600" }}>Create your first category</Text>
                         </TouchableOpacity>
                     </View>
                 ) : (
                     categories?.map((category: Category) => (
-                        <TouchableOpacity
+                        <CategoryAdminCard
                             key={category._id}
-                            activeOpacity={0.8}
-                            onPress={() => handleCategoryPress(category)}
-                        >
-                            <CategoryAdminCard
-                                category={category}
-                                onDelete={handleDelete}
-                                onEdit={handleEdit}
-                                onManageAttributes={handleManageAttributes}
-                                isDeleting={deletingId === category._id}
-                            />
-                        </TouchableOpacity>
+                            category={category}
+                            onDelete={handleDelete}
+                            onEdit={handleEdit}
+                            isDeleting={deletingId === category._id}
+                        />
                     ))
                 )}
             </ScrollView>

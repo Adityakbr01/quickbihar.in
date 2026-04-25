@@ -7,7 +7,7 @@ import { LOCAL_URL } from "../api/axiosInstance";
 const BASE_URL =
   Platform.OS === "android"
     ? LOCAL_URL
-    : "h";
+    : LOCAL_URL;
 
 interface SocketState {
   socket: Socket | null;

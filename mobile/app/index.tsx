@@ -5,6 +5,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import * as Haptics from "expo-haptics";
 import { Dress05Icon, Agreement02Icon, CookieIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
+import SafeViewWrapper from "@/src/provider/SafeViewWrapper";
 
 const { width } = Dimensions.get("window");
 
@@ -49,40 +50,42 @@ export default function ChoiceScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <LinearGradient colors={["#f8f9fa", "#e9ecef"]} style={styles.background} />
+    <SafeViewWrapper>
+      <View style={styles.container}>
+        <LinearGradient colors={["#f8f9fa", "#e9ecef"]} style={styles.background} />
 
-      <View style={styles.header}>
-        <Text style={styles.title}>Quick Bihar</Text>
-        <Text style={styles.subtitle}>Where would you like to go today?</Text>
-      </View>
+        <View style={styles.header}>
+          <Text style={styles.title}>Quick Bihar</Text>
+          <Text style={styles.subtitle}>Where would you like to go today?</Text>
+        </View>
 
-      <View style={styles.grid}>
-        {CHOICE_ITEMS.map((item) => (
-          <TouchableOpacity
-            key={item.id}
-            activeOpacity={0.9}
-            onPress={() => handleSelect(item.route)}
-            style={styles.cardWrapper}
-          >
-            <LinearGradient
-              colors={item.colors as any}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.card}
+        <View style={styles.grid}>
+          {CHOICE_ITEMS.map((item) => (
+            <TouchableOpacity
+              key={item.id}
+              activeOpacity={0.9}
+              onPress={() => handleSelect(item.route)}
+              style={styles.cardWrapper}
             >
-              <View style={styles.iconContainer}>
-                <HugeiconsIcon icon={item.icon} size={40} color="#fff" />
-              </View>
-              <View style={styles.cardContent}>
-                <Text style={styles.cardTitle}>{item.label}</Text>
-                <Text style={styles.cardDesc}>{item.description}</Text>
-              </View>
-            </LinearGradient>
-          </TouchableOpacity>
-        ))}
+              <LinearGradient
+                colors={item.colors as any}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.card}
+              >
+                <View style={styles.iconContainer}>
+                  <HugeiconsIcon icon={item.icon} size={40} color="#fff" />
+                </View>
+                <View style={styles.cardContent}>
+                  <Text style={styles.cardTitle}>{item.label}</Text>
+                  <Text style={styles.cardDesc}>{item.description}</Text>
+                </View>
+              </LinearGradient>
+            </TouchableOpacity>
+          ))}
+        </View>
       </View>
-    </View>
+    </SafeViewWrapper>
   );
 }
 
@@ -115,17 +118,7 @@ const styles = StyleSheet.create({
   },
   cardWrapper: {
     borderRadius: 24,
-    ...Platform.select({
-      ios: {
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.15,
-        shadowRadius: 15,
-      },
-      android: {
-        elevation: 8,
-      },
-    }),
+
   },
   card: {
     height: 140,
