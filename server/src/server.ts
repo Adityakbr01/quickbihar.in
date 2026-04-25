@@ -3,7 +3,7 @@ import { app } from "./app";
 import connectDB from "./config/db";
 import { ENV } from "./config/env.config";
 import { socketService } from "./modules/socket/socket.service";
-import { seedRbac } from "./utils/seed";
+import { seedRbac } from "./seed/seed";
 
 const port = ENV.PORT;
 const httpServer = createServer(app);
