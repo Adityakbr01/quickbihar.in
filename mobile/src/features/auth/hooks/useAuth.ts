@@ -1,44 +1,97 @@
 import { useMutation } from "@tanstack/react-query";
-import { authenticateRequest, logoutRequest } from "../api/auth.api";
+import { loginRequest, registerRequest, requestOTPRequest, verifyOTPRequest, logoutRequest } from "../api/auth.api";
 import { useAuthStore } from "../store/authStore";
 import { useCartStore } from "../../cart/store/cartStore";
 import { useRouter } from "expo-router";
 
-export const useAuthenticate = () => {
+/**
+ * Hook for logging in with email + password
+ * Backend: POST /auth/login
+ */
+export const useLogin = () => {
   const setAuth = useAuthStore((state) => state.setAuth);
   const router = useRouter();
 
   return useMutation({
-    mutationFn: authenticateRequest,
+    mutationFn: loginRequest,
     onSuccess: async (response) => {
-      // The server returns an ApiResponse which has a .data property
-      // We check if response and response.data exist to avoid "Cannot read property 'user' of undefined"
       const data = response?.data;
 
-      if (!data || !data.user) {
-        console.error("Malformed response from server:", response);
+      if (!data || !data.user || !data.accessToken) {
+        console.error("Malformed login response:", response);
         throw new Error("Invalid response format from server");
       }
 
       const { user, accessToken, refreshToken } = data;
       await setAuth(user, accessToken, refreshToken);
-      
-      // Sync local cart items to server after login
+
       try {
         await useCartStore.getState().syncLocalCart();
       } catch (error) {
         console.error("Failed to sync cart after login:", error);
       }
 
-      console.log("Authentication successful, state updated.");
       router.replace("/home");
-    },
-    onError: (error: any) => {
-      console.error("Authentication failed:", error.message);
     },
   });
 };
 
+/**
+ * Hook for registering a new account
+ * Backend: POST /auth/register → returns user + sends OTP
+ */
+export const useRegister = () => {
+  return useMutation({
+    mutationFn: registerRequest,
+  });
+};
+
+/**
+ * Hook for requesting OTP
+ * Backend: POST /auth/request-otp
+ */
+export const useRequestOTP = () => {
+  return useMutation({
+    mutationFn: requestOTPRequest,
+  });
+};
+
+/**
+ * Hook for verifying OTP (auto-login after verification)
+ * Backend: POST /auth/verify-otp → returns user + tokens
+ */
+export const useVerifyOTP = () => {
+  const setAuth = useAuthStore((state) => state.setAuth);
+  const router = useRouter();
+
+  return useMutation({
+    mutationFn: verifyOTPRequest,
+    onSuccess: async (response) => {
+      const data = response?.data;
+
+      if (!data || !data.user || !data.accessToken) {
+        console.error("Malformed OTP verify response:", response);
+        throw new Error("Invalid response format from server");
+      }
+
+      const { user, accessToken, refreshToken } = data;
+      await setAuth(user, accessToken, refreshToken);
+
+      try {
+        await useCartStore.getState().syncLocalCart();
+      } catch (error) {
+        console.error("Failed to sync cart after OTP login:", error);
+      }
+
+      router.replace("/home");
+    },
+  });
+};
+
+/**
+ * Hook for logging out
+ * Backend: POST /auth/logout
+ */
 export const useLogout = () => {
   const clearAuth = useAuthStore((state) => state.clearAuth);
   const router = useRouter();
@@ -46,13 +99,12 @@ export const useLogout = () => {
   return useMutation({
     mutationFn: logoutRequest,
     onSettled: async () => {
-      // We clear local auth regardless of whether the server call succeeded
       await clearAuth();
-      // Clear cart on logout
       useCartStore.getState().clearCart();
-      
-      console.log("Logged out successfully.");
       router.replace("/auth");
     },
   });
 };
+
+// Legacy alias
+export const useAuthenticate = useLogin;

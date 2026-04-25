@@ -9,7 +9,6 @@ import {
   View,
 } from "react-native";
 import { useSharedValue } from "react-native-reanimated";
-
 import HomeCategories from "../../category/components/HomeCategories";
 import HomeHeader from "../components/HomeHeader";
 import { MoreDealsHeader } from "../components/MoreDealsHeader";
@@ -22,7 +21,7 @@ import {
 import TopMallSection from "../sections/TopMallSection";
 import TopSellingSection from "../sections/TopSellingSection";
 
-const HomeScreen = () => {
+const HomeScreen = ({ rootSlug }: { rootSlug?: string }) => {
   const menuOpen = useSharedValue(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -43,7 +42,6 @@ const HomeScreen = () => {
     try {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["banners"] }),
-        queryClient.invalidateQueries({ queryKey: ["publicCategories"] }),
         queryClient.invalidateQueries({ queryKey: ["trendingProducts"] }),
         queryClient.invalidateQueries({ queryKey: ["paginatedProducts"] }),
         queryClient.invalidateQueries({ queryKey: ["categories"] }),
@@ -58,35 +56,37 @@ const HomeScreen = () => {
 
   return (
     <SafeViewWrapper>
-      <ScrollView
-        style={localStyles.scrollView}
-        showsVerticalScrollIndicator={false}
-        stickyHeaderIndices={[1]}
-        refreshControl={
-          <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
-        }
-      >
-        {/* Child 0: Everything before the Sticky Filter */}
-        <View style={localStyles.heroWrapper}>
-          <HomeHeader menuOpen={menuOpen} toggleMenu={toggleMenu} />
+      <View style={localStyles.scrollView}>
+        <ScrollView
+          style={localStyles.scrollView}
+          showsVerticalScrollIndicator={false}
+          stickyHeaderIndices={[1]}
+          refreshControl={
+            <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
+          }
+        >
+          {/* Child 0: Everything before the Sticky Filter */}
+          <View style={localStyles.heroWrapper}>
+            <HomeHeader menuOpen={menuOpen} toggleMenu={toggleMenu} />
 
-          <View style={{ marginTop: 12 }}>
-            <TopHomeCarousel />
+            <View style={{ marginTop: 12 }}>
+              <TopHomeCarousel />
+            </View>
+            <HomeCategories rootSlug={rootSlug} />
+            <TopMallSection />
+            <TopSellingSection />
+            <MoreDealsHeader {...moreDealsState} />
           </View>
-          <HomeCategories />
-          <TopMallSection />
-          <TopSellingSection />
-          <MoreDealsHeader {...moreDealsState} />
-        </View>
 
-        {/* Child 1: The Sticky Filter Tabs */}
-        <MoreDealsFilters {...moreDealsState} />
+          {/* Child 1: The Sticky Filter Tabs */}
+          <MoreDealsFilters {...moreDealsState} />
 
-        {/* Child 2: The Product Grid */}
-        <View style={{ minHeight: Dimensions.get("window").height * 0.7 }}>
-          <MoreDealsGrid {...moreDealsState} />
-        </View>
-      </ScrollView>
+          {/* Child 2: The Product Grid */}
+          <View style={{ minHeight: Dimensions.get("window").height * 0.7 }}>
+            <MoreDealsGrid {...moreDealsState} />
+          </View>
+        </ScrollView>
+      </View>
     </SafeViewWrapper>
   );
 };

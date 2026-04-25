@@ -1,16 +1,15 @@
 import axios from "axios";
 import * as SecureStore from "expo-secure-store";
-import { Platform } from "react-native";
 
 import { useAuthStore } from "../features/auth/store/authStore";
 
 // For Real Devices: Use your machine's local IP address.
-// I found your IP is: 10.108.61.27
+// Current IP: 10.170.36.27
 // For Android emulator: 10.0.2.2
 // For iOS Simulator/Web: localhost
-const LOCAL_URL = "http://10.108.61.27:8000/api/v1";
+export const LOCAL_URL = "http://10.170.36.27:8000";
 const PROD_URL = "https://quickbihar-in.onrender.com/api/v1";
-const BASE_URL = __DEV__ ? LOCAL_URL : PROD_URL;
+const BASE_URL = __DEV__ ? LOCAL_URL + "/api/v1" : PROD_URL;
 
 const axiosInstance = axios.create({
   baseURL: BASE_URL,

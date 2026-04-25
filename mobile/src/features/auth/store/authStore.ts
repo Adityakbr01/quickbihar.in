@@ -1,14 +1,32 @@
 import { create } from "zustand";
 import * as SecureStore from "expo-secure-store";
 
+export enum RoleEnum {
+  USER = "USER",
+  SELLER = "SELLER",
+  DELIVERY = "DELIVERY",
+  ADMIN = "ADMIN",
+  SUPER_ADMIN = "SUPER_ADMIN",
+}
+
+interface Role {
+  _id: string;
+  name: string;
+  description: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 interface User {
   _id: string;
   username: string;
   email: string;
   fullName: string;
-  role: "admin" | "user" | "seller";
+  role: Role;
   avatar?: { url: string; fileId: string };
   phone?: string;
+  isVerified?: boolean;
 }
 
 interface AuthState {

@@ -13,10 +13,10 @@ export const getAllProductsAdminRequest = async (): Promise<{ data: IProduct[]; 
 /**
  * Fetch public products with pagination and filters
  */
-export const getPublicProductsRequest = async (params: { 
-  page?: number; 
-  limit?: number; 
-  search?: string; 
+export const getPublicProductsRequest = async (params: {
+  page?: number;
+  limit?: number;
+  search?: string;
   category?: string;
   minPrice?: number;
   maxPrice?: number;

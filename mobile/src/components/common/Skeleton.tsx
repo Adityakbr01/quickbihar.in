@@ -1,11 +1,11 @@
 import React, { useEffect } from 'react';
-import { View, StyleSheet, ViewStyle } from 'react-native';
-import Animated, { 
-    useAnimatedStyle, 
-    useSharedValue, 
-    withRepeat, 
-    withTiming, 
-    withSequence 
+import { StyleSheet, ViewStyle } from 'react-native';
+import Animated, {
+    useAnimatedStyle,
+    useSharedValue,
+    withRepeat,
+    withSequence,
+    withTiming
 } from 'react-native-reanimated';
 import { useTheme } from '../../theme/Provider/ThemeProvider';
 

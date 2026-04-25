@@ -20,13 +20,19 @@ const TRENDING_ITEMS = categoriesData.map(c => c.title);
 const SearchScreen = () => {
     const theme = useTheme();
     const router = useRouter();
-    const { query: initialQuery } = useLocalSearchParams<{ query: string }>();
+    const { 
+        query: initialQuery, 
+        categoryId, 
+        categoryName 
+    } = useLocalSearchParams<{ query: string; categoryId: string; categoryName: string }>();
 
-    const [query, setQuery] = useState(initialQuery || "");
+    const [query, setQuery] = useState(categoryName || initialQuery || "");
     const [debouncedQuery, setDebouncedQuery] = useState(query);
     const [history, setHistory] = useState(["Summer Dress", "Jeans", "Sarees"]);
     const [selectedSort, setSelectedSort] = useState<SortOption>("relevance");
-    const [filters, setFilters] = useState<SearchFilters>({});
+    const [filters, setFilters] = useState<SearchFilters>(
+        categoryId ? { category: categoryId } : {}
+    );
 
     // Debounce query to optimize API calls
     useEffect(() => {
@@ -58,11 +64,11 @@ const SearchScreen = () => {
     }, [history]);
 
     useEffect(() => {
-        if (initialQuery) {
-            setQuery(initialQuery);
-            onSearchTrigger(initialQuery);
+        if (initialQuery || categoryId) {
+            setQuery(categoryName || initialQuery || "");
+            onSearchTrigger(categoryName || initialQuery || "");
         }
-    }, [initialQuery, onSearchTrigger]);
+    }, [initialQuery, categoryId, categoryName, onSearchTrigger]);
 
     const handleSortChange = (sort: SortOption) => {
         setSelectedSort(sort);

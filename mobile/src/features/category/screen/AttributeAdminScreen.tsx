@@ -7,7 +7,7 @@ import {
     ActivityIndicator,
     RefreshControl,
 } from "react-native";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import {
     ArrowLeft01Icon,
@@ -16,36 +16,37 @@ import {
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import SafeViewWrapper from "@/src/provider/SafeViewWrapper";
 import {
-    useAdminCategories,
-    useCategories,
-    useDeleteCategory
+    useAttributes,
+    useDeleteAttribute,
 } from "../hooks/useCategories";
-import CategoryAdminCard from "../components/CategoryAdminCard";
-import CategoryFormModal from "../components/CategoryFormModal";
+import AttributeAdminCard from "../components/AttributeAdminCard";
+import AttributeFormModal from "../components/AttributeFormModal";
 import IOSAlertDialog from "@/src/components/ui/IOSAlertDialog";
-import { Category } from "../types/category.types";
+import { CategoryAttribute } from "../types/category.types";
 import { createCategoryStyles } from "../styles/category.styles";
 import * as Haptics from "expo-haptics";
 
-const CategoryAdminScreen = () => {
+const AttributeAdminScreen = () => {
     const theme = useTheme();
     const router = useRouter();
     const styles = createCategoryStyles(theme);
+    const { categoryId, categoryName } = useLocalSearchParams<{
+        categoryId: string;
+        categoryName: string;
+    }>();
+
+    // Data Fetching
+    const { data: attributes, isLoading, refetch } = useAttributes(categoryId || "");
+
+    // Mutations
+    const { mutate: deleteAttribute } = useDeleteAttribute();
 
     // State
-    const [parentId, setParentId] = useState<string | null>(null);
-    const [parentName, setParentName] = useState<string | null>(null);
     const [modalVisible, setModalVisible] = useState(false);
-    const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
+    const [selectedAttribute, setSelectedAttribute] = useState<CategoryAttribute | null>(null);
     const [deletingId, setDeletingId] = useState<string | null>(null);
     const [isDeleteAlertVisible, setIsDeleteAlertVisible] = useState(false);
     const [idToDelete, setIdToDelete] = useState<string | null>(null);
-
-    // Data Fetching
-    const { data: categories, isLoading, refetch } = useCategories(parentId || undefined);
-
-    // Mutations
-    const { mutate: deleteCategory } = useDeleteCategory();
 
     const handleDelete = (id: string) => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -57,7 +58,7 @@ const CategoryAdminScreen = () => {
         if (!idToDelete) return;
 
         setDeletingId(idToDelete);
-        deleteCategory(idToDelete, {
+        deleteAttribute(idToDelete, {
             onSuccess: () => {
                 Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
                 setDeletingId(null);
@@ -70,54 +71,33 @@ const CategoryAdminScreen = () => {
         });
     };
 
-    const handleEdit = (category: Category) => {
+    const handleEdit = (attribute: CategoryAttribute) => {
         Haptics.selectionAsync();
-        setSelectedCategory(category);
+        setSelectedAttribute(attribute);
         setModalVisible(true);
     };
 
     const handleAddNew = () => {
         Haptics.selectionAsync();
-        setSelectedCategory(null);
+        setSelectedAttribute(null);
         setModalVisible(true);
-    };
-
-    const handleManageAttributes = (category: Category) => {
-        Haptics.selectionAsync();
-        router.push({
-            pathname: "/admin/attributes",
-            params: {
-                categoryId: category._id,
-                categoryName: category.name,
-            },
-        });
-    };
-
-    const handleCategoryPress = (category: Category) => {
-        setParentId(category._id);
-        setParentName(category.name);
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    };
-
-    const handleBack = () => {
-        if (parentId) {
-            setParentId(null);
-            setParentName(null);
-        } else {
-            router.back();
-        }
     };
 
     return (
         <SafeViewWrapper>
             {/* Header */}
             <View style={[styles.header, { borderBottomColor: theme.border }]}>
-                <TouchableOpacity onPress={handleBack} style={styles.backButton}>
+                <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
                     <HugeiconsIcon icon={ArrowLeft01Icon} size={24} color={theme.text} />
                 </TouchableOpacity>
-                <Text style={[styles.headerTitle, { color: theme.text }]}>
-                    {parentName || "Categories"}
-                </Text>
+                <View style={{ flex: 1, alignItems: "center" }}>
+                    <Text style={[styles.headerTitle, { color: theme.text }]} numberOfLines={1}>
+                        {categoryName || "Attributes"}
+                    </Text>
+                    <Text style={{ fontSize: 11, color: theme.tertiaryText, marginTop: 1 }}>
+                        Manage Attributes
+                    </Text>
+                </View>
                 <TouchableOpacity
                     style={[styles.addButton, { backgroundColor: theme.primary }]}
                     onPress={handleAddNew}
@@ -140,43 +120,44 @@ const CategoryAdminScreen = () => {
                     <View style={styles.center}>
                         <ActivityIndicator size="large" color={theme.primary} />
                     </View>
-                ) : categories?.length === 0 ? (
+                ) : attributes?.length === 0 ? (
                     <View style={styles.emptyState}>
-                        <Text style={[styles.emptyText, { color: theme.secondaryText }]}>No items found here.</Text>
+                        <Text style={[styles.emptyText, { color: theme.secondaryText }]}>
+                            No attributes found.
+                        </Text>
                         <TouchableOpacity style={styles.emptyButton} onPress={handleAddNew}>
-                            <Text style={{ color: theme.primary, fontWeight: "600" }}>Create the first one</Text>
+                            <Text style={{ color: theme.primary, fontWeight: "600" }}>
+                                Add your first attribute
+                            </Text>
                         </TouchableOpacity>
                     </View>
                 ) : (
-                    categories?.map((category: Category) => (
-                        <TouchableOpacity
-                            key={category._id}
-                            activeOpacity={0.8}
-                            onPress={() => handleCategoryPress(category)}
-                        >
-                            <CategoryAdminCard
-                                category={category}
-                                onDelete={handleDelete}
-                                onEdit={handleEdit}
-                                onManageAttributes={handleManageAttributes}
-                                isDeleting={deletingId === category._id}
-                            />
-                        </TouchableOpacity>
+                    attributes?.map((attr: CategoryAttribute) => (
+                        <AttributeAdminCard
+                            key={attr._id}
+                            attribute={attr}
+                            onEdit={handleEdit}
+                            onDelete={handleDelete}
+                            isDeleting={deletingId === attr._id}
+                        />
                     ))
                 )}
             </ScrollView>
 
-            <CategoryFormModal
-                visible={modalVisible}
-                onClose={() => setModalVisible(false)}
-                initialData={selectedCategory}
-            />
+            {categoryId && (
+                <AttributeFormModal
+                    visible={modalVisible}
+                    onClose={() => setModalVisible(false)}
+                    categoryId={categoryId}
+                    initialData={selectedAttribute}
+                />
+            )}
 
             <IOSAlertDialog
                 visible={isDeleteAlertVisible}
                 onClose={() => setIsDeleteAlertVisible(false)}
-                title="Delete Category"
-                message="Are you sure you want to delete this category? All products linked to this category might be affected."
+                title="Delete Attribute"
+                message="Are you sure you want to delete this attribute? Products using this attribute may be affected."
                 buttons={[
                     { text: "Cancel", style: "cancel" },
                     {
@@ -190,4 +171,4 @@ const CategoryAdminScreen = () => {
     );
 };
 
-export default CategoryAdminScreen;
+export default AttributeAdminScreen;

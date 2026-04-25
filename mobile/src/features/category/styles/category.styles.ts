@@ -190,4 +190,16 @@ export const createCategoryStyles = (theme: Theme) => StyleSheet.create({
         fontSize: 16,
         fontWeight: "700",
     },
+    parentPickerList: {
+        marginTop: 8,
+        borderRadius: 12,
+        borderWidth: 1,
+        overflow: 'hidden',
+        maxHeight: 250,
+    },
+    parentPickerItem: {
+        padding: 15,
+        borderBottomWidth: 1,
+        borderBottomColor: 'rgba(0,0,0,0.05)',
+    },
 });

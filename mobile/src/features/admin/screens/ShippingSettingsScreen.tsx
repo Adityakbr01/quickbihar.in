@@ -21,11 +21,11 @@ import SafeViewWrapper from "@/src/provider/SafeViewWrapper";
 const ShippingSettingsScreen = () => {
   const theme = useTheme() as any;
   const router = useRouter();
-  
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [config, setConfig] = useState<any>(null);
-  
+
   const [threshold, setThreshold] = useState("");
   const [fee, setFee] = useState("");
 
@@ -39,7 +39,7 @@ const ShippingSettingsScreen = () => {
       const response = await getAppConfigRequest();
       const currentConfig = response.data.data;
       setConfig(currentConfig);
-      
+
       const shipping = currentConfig.shipping || { freeShippingThreshold: 2000, shippingFee: 99 };
       setThreshold(shipping.freeShippingThreshold.toString());
       setFee(shipping.shippingFee.toString());
@@ -67,7 +67,7 @@ const ShippingSettingsScreen = () => {
     try {
       setSaving(true);
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-      
+
       await updateAppConfigRequest({
         shipping: {
           freeShippingThreshold: Number(threshold),
@@ -80,7 +80,7 @@ const ShippingSettingsScreen = () => {
         text1: "Success",
         text2: "Shipping rules updated successfully",
       });
-      
+
       router.back();
     } catch (error: any) {
       Toast.show({
@@ -103,7 +103,7 @@ const ShippingSettingsScreen = () => {
 
   return (
     <SafeViewWrapper>
-      <KeyboardAvoidingView 
+      <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={[styles.container, { backgroundColor: theme.background }]}
       >

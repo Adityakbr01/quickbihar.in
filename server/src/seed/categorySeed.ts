@@ -59,7 +59,7 @@ const seedCategories = async () => {
         }
 
         console.log("🌱 Seeding Category Tree...");
-        await insertCategoryTree(CATEGORY_TREE);
+        // await insertCategoryTree(CATEGORY_TREE);
 
         console.log("✨ Seeding Completed Successfully!");
         process.exit(0);

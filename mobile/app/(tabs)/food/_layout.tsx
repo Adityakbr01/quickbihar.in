@@ -1,12 +1,9 @@
 import { Stack } from "expo-router";
 
-export default function TabsLayout() {
+export default function FoodLayout() {
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="index" />
-      <Stack.Screen name="clothing" />
-      <Stack.Screen name="jewelry" />
-      <Stack.Screen name="food" />
     </Stack>
   );
 }

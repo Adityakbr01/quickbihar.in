@@ -1,6 +1,8 @@
 import { toastConfig } from "@/src/components/common/CustomToast";
 import { useAuthStore } from "@/src/features/auth/store/authStore";
+import { usePushNotifications } from "@/src/hooks/usePushNotifications";
 import { QueryProvider } from "@/src/provider/QueryProvider";
+import { SocketListenerProvider } from "@/src/provider/SocketListenerProvider";
 import { ThemeProvider } from "@/src/theme/Provider/ThemeProvider";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
@@ -8,9 +10,6 @@ import { useEffect } from "react";
 import { useColorScheme, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
-import { usePushNotifications } from "@/src/hooks/usePushNotifications";
-import Constants from "expo-constants";
-import { SocketListenerProvider } from "@/src/provider/SocketListenerProvider";
 
 
 

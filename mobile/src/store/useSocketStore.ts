@@ -2,8 +2,12 @@ import { create } from "zustand";
 import { io, Socket } from "socket.io-client";
 import * as SecureStore from "expo-secure-store";
 import { Platform } from "react-native";
+import { LOCAL_URL } from "../api/axiosInstance";
 
-const BASE_URL = Platform.OS === "android" ? "http://10.108.61.27:8000" : "http://10.108.61.27:8000";
+const BASE_URL =
+  Platform.OS === "android"
+    ? LOCAL_URL
+    : "h";
 
 interface SocketState {
   socket: Socket | null;

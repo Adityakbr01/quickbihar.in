@@ -15,7 +15,7 @@ import {
   useWindowDimensions,
   View,
 } from "react-native";
-import { getPublicCategoriesRequest } from "../../category/api/category.api";
+import { getCategoriesRequest } from "../../category/api/category.api";
 import { getPublicProductsRequest } from "../../product/api/product.api";
 import { DealProductCard } from "../components/DealProductCard";
 import { DealProductSkeleton } from "../components/DealProductSkeleton";
@@ -90,8 +90,8 @@ export const useMoreDealsLogic = () => {
 
   // 1. Fetch Real Categories
   const { data: categories } = useQuery({
-    queryKey: ["publicCategories"],
-    queryFn: getPublicCategoriesRequest,
+    queryKey: ["categories", "root"],
+    queryFn: () => getCategoriesRequest(),
   });
 
   // Map categories for the BottomSheet options fallback to CATEGORY_OPTIONS
@@ -99,7 +99,7 @@ export const useMoreDealsLogic = () => {
     if (!categories || categories.length === 0) return CATEGORY_OPTIONS;
     return categories.map((cat) => ({
       id: cat._id,
-      title: cat.title,
+      title: cat.name,
     }));
   }, [categories]);
 

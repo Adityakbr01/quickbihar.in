@@ -1,12 +1,13 @@
 import { io, Socket } from "socket.io-client";
 import { Platform } from "react-native";
+import { LOCAL_URL } from "../api/axiosInstance";
 
 // In a real app, this would come from an environment variable
 // For development, use your machine's local IP or localhost for simulator
 const LOCAL_SOCKET_URL =
   Platform.OS === "android"
-    ? "http://10.108.61.27:8000"
-    : "http://10.108.61.27:8000";
+    ? LOCAL_URL
+    : LOCAL_URL;
 const PROD_SOCKET_URL = "https://quickbihar-in.onrender.com";
 const SOCKET_URL = __DEV__ ? LOCAL_SOCKET_URL : PROD_SOCKET_URL;
 

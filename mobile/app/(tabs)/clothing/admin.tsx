@@ -1,5 +1,5 @@
 import SafeViewWrapper from "@/src/provider/SafeViewWrapper";
-import { useAuthStore } from "@/src/features/auth/store/authStore";
+import { RoleEnum, useAuthStore } from "@/src/features/auth/store/authStore";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { Redirect } from "expo-router";
 import { Settings01Icon, Analytics01Icon } from "@hugeicons/core-free-icons";
@@ -19,7 +19,7 @@ import { ADMIN_CARDS } from "@/src/features/admin/lib/adminData";
 export default function AdminScreen() {
   const theme = useTheme();
   const { user } = useAuthStore();
-  const isAdmin = user?.role === "admin";
+  const isAdmin = user?.role?.name === RoleEnum.ADMIN;
 
   console.log("[AdminScreen] Rendered. Role:", user?.role, "isAdmin:", isAdmin);
 

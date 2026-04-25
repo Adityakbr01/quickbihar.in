@@ -1,11 +1,8 @@
-import { TextInput } from "@/src/theme/components/TextInput";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { useRouter } from "expo-router";
 import LottieView from "lottie-react-native";
-import React, { useRef, useState } from "react";
+import React, { useState } from "react";
 import {
-  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -14,53 +11,52 @@ import {
   Text,
   TouchableOpacity,
   View,
-  TextInput as RNTextInput,
 } from "react-native";
 import Animated, {
   FadeInDown,
+  FadeInUp,
   LinearTransition,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { styles } from "../styles/auth.style";
 import { lightTheme } from "@/src/theme/colors";
-import { useAuthenticate } from "../hooks/useAuth";
-import { useForm, Controller } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { authSchema, AuthFormData } from "../validation/auth.schema";
+import { useLogin, useRegister, useVerifyOTP } from "../hooks/useAuth";
+import { LoginForm } from "../components/LoginForm";
+import { RegisterForm } from "../components/RegisterForm";
+import { OTPForm } from "../components/OTPForm";
+import { AuthMode } from "../components/auth.types";
 
-export default function RegisterScreen() {
-  const router = useRouter();
+export default function AuthScreen() {
   const insets = useSafeAreaInsets();
-  const [showPassword, setShowPassword] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
+  const [apiSuccess, setApiSuccess] = useState<string | null>(null);
+  const [mode, setMode] = useState<AuthMode>("login");
+  const [otpEmail, setOtpEmail] = useState("");
 
-  const {
-    control,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<AuthFormData>({
-    resolver: zodResolver(authSchema),
-    defaultValues: {
-      email: "",
-      password: "",
-    },
-  });
+  const { isPending: loginPending } = useLogin();
+  const { isPending: registerPending } = useRegister();
+  const { isPending: otpPending } = useVerifyOTP();
 
-  const { mutate: authenticate, isPending: loading } = useAuthenticate();
+  const loading = loginPending || registerPending || otpPending;
 
-  const passwordRef = useRef<RNTextInput>(null);
-
-  const onSubmit = (data: AuthFormData) => {
+  const switchMode = (newMode: AuthMode) => {
     setApiError(null);
-    authenticate(data, {
-      onError: (error: any) => {
-        setApiError(error.message || "Authentication failed. Please try again.");
-      },
-    });
+    setApiSuccess(null);
+    setMode(newMode);
   };
 
   const ANIMATION_START = 100;
   const getDelay = (index: number) => ANIMATION_START + index * 100;
+
+  const sharedProps = {
+    loading,
+    apiError,
+    setApiError,
+    apiSuccess,
+    setApiSuccess,
+    switchMode,
+    setOtpEmail,
+  };
 
   return (
     <View style={styles.screen}>
@@ -89,7 +85,7 @@ export default function RegisterScreen() {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Top Interactive SVG Section */}
+          {/* Lottie Animation */}
           <Animated.View
             style={styles.iconContainer}
             entering={FadeInDown.delay(getDelay(0)).duration(600)}
@@ -102,17 +98,38 @@ export default function RegisterScreen() {
             />
           </Animated.View>
 
-          {/* Header Text */}
+          {/* Header */}
           <Animated.View
             style={styles.header}
             entering={FadeInDown.delay(getDelay(1)).duration(600)}
           >
-            <Text style={styles.title}>Welcome Back</Text>
+            <Text style={styles.title}>
+              {mode === "login"
+                ? "Welcome Back"
+                : mode === "register"
+                  ? "Create Account"
+                  : "Verify Email"}
+            </Text>
             <Text style={styles.subtitle}>
-              Sign in to your account or enter your email and we'll create one
-              for you.
+              {mode === "login"
+                ? "Sign in with your email and password."
+                : mode === "register"
+                  ? "Create a new account to get started."
+                  : `Enter the 6-digit code sent to ${otpEmail}`}
             </Text>
           </Animated.View>
+
+          {/* Success Banner */}
+          {apiSuccess && (
+            <Animated.View
+              entering={FadeInDown}
+              layout={LinearTransition}
+              style={localStyles.successBanner}
+            >
+              <Ionicons name="checkmark-circle-outline" size={20} color="#86efac" />
+              <Text style={localStyles.successBannerText}>{apiSuccess}</Text>
+            </Animated.View>
+          )}
 
           {/* Error Banner */}
           {apiError && (
@@ -126,128 +143,77 @@ export default function RegisterScreen() {
             </Animated.View>
           )}
 
-          {/* Unified Form */}
-          <Animated.View
-            style={[styles.form, loading && { opacity: 0.7 }]}
-            entering={FadeInDown.delay(getDelay(2)).duration(600)}
-          >
-            {/* Email Input */}
-            <Controller
-              control={control}
-              name="email"
-              render={({ field: { onChange, onBlur, value } }) => (
-                <TextInput
-                  label="Email Address"
-                  variant="glass"
-                  placeholder="name@example.com"
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  autoComplete="email"
-                  returnKeyType="next"
-                  onSubmitEditing={() => passwordRef.current?.focus()}
-                  onBlur={onBlur}
-                  onChangeText={onChange}
-                  value={value}
-                  editable={!loading}
-                  error={errors.email?.message}
-                  icon={
-                    <Ionicons
-                      name="mail-outline"
-                      size={20}
-                      color="rgba(255,255,255,0.7)"
-                    />
-                  }
-                />
-              )}
-            />
+          {/* Conditional Forms */}
+          <Animated.View entering={FadeInDown.delay(getDelay(2)).duration(600)}>
+            {mode === "login" && <LoginForm {...sharedProps} />}
+            {mode === "register" && <RegisterForm {...sharedProps} />}
+            {mode === "otp" && <OTPForm {...sharedProps} otpEmail={otpEmail} />}
+          </Animated.View>
 
-            {/* Password Input */}
-            <View>
-              <Controller
-                control={control}
-                name="password"
-                render={({ field: { onChange, onBlur, value } }) => (
-                  <TextInput
-                    ref={passwordRef}
-                    label="Password"
-                    variant="glass"
-                    placeholder="••••••••"
-                    secureTextEntry={!showPassword}
-                    autoComplete="current-password"
-                    returnKeyType="done"
-                    onSubmitEditing={handleSubmit(onSubmit)}
-                    onBlur={onBlur}
-                    onChangeText={onChange}
-                    value={value}
-                    editable={!loading}
-                    error={errors.password?.message}
-                    icon={
-                      <Ionicons
-                        name="lock-closed-outline"
-                        size={20}
-                        color="rgba(255,255,255,0.7)"
-                      />
-                    }
-                    rightIcon={
-                      <TouchableOpacity
-                        onPress={() => setShowPassword(!showPassword)}
-                        style={{ padding: 4 }}
-                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                      >
-                        <Ionicons
-                          name={showPassword ? "eye-off-outline" : "eye-outline"}
-                          size={20}
-                          color="rgba(255,255,255,0.6)"
-                        />
-                      </TouchableOpacity>
-                    }
-                  />
-                )}
-              />
+          {/* Mode Toggle */}
+          {mode !== "otp" && (
+            <Animated.View
+              entering={FadeInDown.delay(getDelay(4)).duration(600)}
+              style={{ marginTop: 24, alignItems: "center" }}
+            >
               <TouchableOpacity
-                style={{ alignSelf: "flex-end", marginTop: 8 }}
                 activeOpacity={0.7}
+                onPress={() =>
+                  switchMode(mode === "login" ? "register" : "login")
+                }
                 disabled={loading}
               >
                 <Text
                   style={{
                     color: "rgba(255,255,255,0.7)",
-                    fontSize: 13,
+                    fontSize: 14,
                     fontWeight: "500",
                   }}
                 >
-                  Forgot Password?
+                  {mode === "login"
+                    ? "Don't have an account? "
+                    : "Already have an account? "}
+                  <Text
+                    style={{
+                      color: "#ffffff",
+                      fontWeight: "700",
+                      textDecorationLine: "underline",
+                    }}
+                  >
+                    {mode === "login" ? "Sign Up" : "Sign In"}
+                  </Text>
                 </Text>
               </TouchableOpacity>
-            </View>
-          </Animated.View>
+            </Animated.View>
+          )}
 
-          {/* Continue Button */}
-          <Animated.View entering={FadeInDown.delay(getDelay(3)).duration(600)}>
-            <TouchableOpacity
-              style={[styles.continueBtn, loading && { opacity: 0.7 }]}
-              activeOpacity={0.85}
-              onPress={handleSubmit(onSubmit)}
-              disabled={loading}
+          {/* Back to login from OTP */}
+          {mode === "otp" && (
+            <Animated.View
+              entering={FadeInUp.delay(200).duration(400)}
+              style={{ marginTop: 24, alignItems: "center" }}
             >
-              {loading ? (
-                <ActivityIndicator color="#0f172a" />
-              ) : (
-                <Text style={styles.continueBtnText}>
-                  Continue{" "}
-                  <Ionicons
-                    name="arrow-forward-outline"
-                    size={20}
-                    color="#0f172a"
-                  />
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={() => switchMode("login")}
+                disabled={loading}
+              >
+                <Text
+                  style={{
+                    color: "rgba(255,255,255,0.7)",
+                    fontSize: 14,
+                    fontWeight: "500",
+                  }}
+                >
+                  ← Back to Sign In
                 </Text>
-              )}
-            </TouchableOpacity>
-          </Animated.View>
+              </TouchableOpacity>
+            </Animated.View>
+          )}
 
           {/* Terms Footer */}
           <Animated.View
-            entering={FadeInDown.delay(getDelay(4)).duration(600)}
+            entering={FadeInDown.delay(getDelay(5)).duration(600)}
             style={{ marginTop: 30, alignItems: "center" }}
           >
             <Text
@@ -286,3 +252,23 @@ export default function RegisterScreen() {
     </View>
   );
 }
+
+const localStyles = StyleSheet.create({
+  successBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(34, 197, 94, 0.15)",
+    padding: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "rgba(34, 197, 94, 0.5)",
+    marginBottom: 20,
+    gap: 10,
+  },
+  successBannerText: {
+    color: "#86efac",
+    fontSize: 14,
+    fontWeight: "500",
+    flex: 1,
+  },
+});
