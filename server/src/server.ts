@@ -19,7 +19,7 @@ connectDB()
     // await seedSizeCharts();
     // await seedRefundPolicies();
     // await seedAppConfig();
-    await seedRbac();
+    // await seedRbac();
 
 
     httpServer.listen(port, () => {

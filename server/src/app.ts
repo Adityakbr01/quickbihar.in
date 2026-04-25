@@ -27,7 +27,7 @@ app.use(express.static("public"));
 // Routes Import
 import authRouter from "./modules/auth/auth.router";
 import bannerRouter from "./modules/banner/banner.router";
-import categoryRouter from "./modules/category/category.router";
+import categoryRouter from "./modules/category/category.route";
 import productRouter from "./modules/products/product.router";
 import sizeChartRouter from "./modules/sizeChart/sizeChart.router";
 import couponRouter from "./modules/coupon/coupon.router";
@@ -48,13 +48,14 @@ import storeRouter from "./modules/store/store.route";
 app.use("/api/v1/auth", authRouter); // working
 app.use("/api/v1/onboarding", onboardingRouter); // working
 app.use("/api/v1/stores", storeRouter);  // working
+app.use("/api/v1/categories", categoryRouter);
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/rbac", rbacRouter);
 
 
 
 app.use("/api/v1/banners", bannerRouter);
-app.use("/api/v1/categories", categoryRouter);
+
 app.use("/api/v1/products", productRouter);
 app.use("/api/v1/size-charts", sizeChartRouter);
 app.use("/api/v1/coupons", couponRouter);

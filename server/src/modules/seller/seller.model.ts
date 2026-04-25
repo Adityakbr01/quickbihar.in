@@ -1,5 +1,4 @@
 import mongoose, { Schema, Types } from "mongoose";
-import { DomainEnum } from "../rbac/rbac.types";
 import { StoreType } from "../store/store.schema";
 
 const SellerProfileSchema = new Schema({

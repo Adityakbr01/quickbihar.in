@@ -1,32 +1,18 @@
-import { Category } from "./category.model";
-import type { CreateCategoryBody, UpdateCategoryBody } from "./category.validation";
+// category.dao.ts
+import { Category, CategoryAttribute } from "./category.model";
+import type { CreateCategoryInput, CreateAttributeInput, UpdateAttributeInput } from "./category.types";
 
-export class CategoryDAO {
-    static async create(data: CreateCategoryBody & { slug: string }) {
-        return await Category.create(data);
-    }
+export const createCategoryDAO = (data: CreateCategoryInput & { image: string, imagePublicId: string }) => Category.create(data);
 
-    static async findAll() {
-        return await Category.find().sort({ priority: -1, title: 1 });
-    }
+export const getCategoriesDAO = () => Category.find();
 
-    static async findActive() {
-        return await Category.find({ isActive: true }).sort({ priority: -1, title: 1 });
-    }
+export const createAttributeDAO = (data: CreateAttributeInput) => CategoryAttribute.create(data);
 
-    static async findById(id: string) {
-        return await Category.findById(id);
-    }
+export const getAttributesByCategoryDAO = (categoryId: string) =>
+    CategoryAttribute.find({ categoryId });
 
-    static async findBySlug(slug: string) {
-        return await Category.findOne({ slug });
-    }
+export const updateCategoryDAO = (categoryId: string, data: Partial<CreateCategoryInput & { image: string, imagePublicId: string }>) =>
+    Category.findByIdAndUpdate(categoryId, data, { new: true });
 
-    static async updateById(id: string, data: UpdateCategoryBody & { slug?: string }) {
-        return await Category.findByIdAndUpdate(id, data, { returnDocument: "after" });
-    }
-
-    static async deleteById(id: string) {
-        return await Category.findByIdAndDelete(id);
-    }
-}
+export const updateAttributeDAO = (attributeId: string, data: UpdateAttributeInput) =>
+    CategoryAttribute.findByIdAndUpdate(attributeId, data, { new: true });

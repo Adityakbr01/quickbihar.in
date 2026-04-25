@@ -1,86 +1,51 @@
-import { ApiError } from "../../utils/ApiError";
-import { CategoryDAO } from "./category.dao";
-import { createCategorySchema, updateCategorySchema, type CreateCategoryBody, type UpdateCategoryBody } from "./category.validation";
-import { ZodError } from "zod";
+import { Category, CategoryAttribute } from "./category.model";
+import { createCategoryDAO, getCategoriesDAO, createAttributeDAO, getAttributesByCategoryDAO, updateCategoryDAO, updateAttributeDAO } from "./category.dao";
+import type { CreateCategoryInput, CreateAttributeInput, UpdateCategoryInput, UpdateAttributeInput } from "./category.types";
 
-export class CategoryService {
-    private static generateSlug(title: string): string {
-        return title
-            .toLowerCase()
-            .trim()
-            .replace(/[^\w\s-]/g, "")
-            .replace(/[\s_-]+/g, "-")
-            .replace(/^-+|-+$/g, "");
+export const createCategoryService = async (
+    data: CreateCategoryInput,
+    image: string,
+    imagePublicId: string
+) => {
+    return await createCategoryDAO({ ...data, image, imagePublicId });
+};
+
+export const getCategoriesService = async (parentId?: string) => {
+    // If parentId is not provided or is "null", fetch root categories
+    const query = (!parentId || parentId === "null") ? { parentId: null } : { parentId };
+    return await Category.find(query).sort({ name: 1 });
+};
+
+export const getCategoryTreeService = async () => {
+    return await Category.find().lean();
+};
+
+export const createAttributeService = async (data: CreateAttributeInput) => {
+    return await createAttributeDAO(data);
+};
+
+export const getAttributesService = async (categoryId: string) => {
+    return await getAttributesByCategoryDAO(categoryId);
+};
+
+export const updateCategoryService = async (
+    categoryId: string,
+    data: UpdateCategoryInput,
+    image?: string,
+    imagePublicId?: string
+) => {
+    const updateData: any = { ...data };
+    if (image && imagePublicId) {
+        updateData.image = image;
+        updateData.imagePublicId = imagePublicId;
     }
+    return await updateCategoryDAO(categoryId, updateData);
+};
 
-    static async createCategory(data: any) {
-        try {
-            const validatedData: CreateCategoryBody = createCategorySchema.parse(data);
-            const slug = this.generateSlug(validatedData.title);
+export const updateAttributeService = async (attributeId: string, data: UpdateAttributeInput) => {
+    return await updateAttributeDAO(attributeId, data);
+};
 
-            // Check if slug already exists
-            const existing = await CategoryDAO.findBySlug(slug);
-            if (existing) {
-                throw new ApiError(400, "Category with a similar title already exists");
-            }
-
-            const category = await CategoryDAO.create({ ...validatedData, slug });
-            if (!category) {
-                throw new ApiError(500, "Failed to create category");
-            }
-            return category;
-        } catch (error) {
-            if (error instanceof ZodError) {
-                throw new ApiError(400, "Validation Error", error.issues as any);
-            }
-            throw error;
-        }
-    }
-
-    static async getAllCategories(isAdmin: boolean = false) {
-        if (isAdmin) {
-            return await CategoryDAO.findAll();
-        }
-        return await CategoryDAO.findActive();
-    }
-
-    static async getCategoryById(id: string) {
-        const category = await CategoryDAO.findById(id);
-        if (!category) {
-            throw new ApiError(404, "Category not found");
-        }
-        return category;
-    }
-
-    static async updateCategory(id: string, data: any) {
-        try {
-            const validatedData: UpdateCategoryBody = updateCategorySchema.parse(data);
-            let updatePayload: any = { ...validatedData };
-
-            if (validatedData.title) {
-                updatePayload.slug = this.generateSlug(validatedData.title);
-            }
-
-            const category = await CategoryDAO.updateById(id, updatePayload);
-            if (!category) {
-                throw new ApiError(404, "Category not found or update failed");
-            }
-            return category;
-        } catch (error) {
-            if (error instanceof ZodError) {
-                throw new ApiError(400, "Validation Error", error.issues as any);
-            }
-            throw error;
-        }
-    }
-
-    static async deleteCategory(id: string) {
-        const category = await CategoryDAO.findById(id);
-        if (!category) {
-            throw new ApiError(404, "Category not found");
-        }
-
-        const result = await CategoryDAO.deleteById(id);
-        return { success: true, imagePublicId: category.imagePublicId };
-    }
-}
+export const getCategoryByIdService = async (categoryId: string) => {
+    return await Category.findById(categoryId);
+};
