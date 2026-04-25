@@ -45,13 +45,13 @@ export const PERMISSIONS = {
   VIEW_BANNER: { code: "VIEW_BANNER", description: "Allows viewing promotional banners", module: ModuleEnum.BANNER },
 
   // 🔥 DOMAIN BASED PRODUCT CONTROL
-  CREATE_CLOTHING_PRODUCT: { code: "CREATE_CLOTHING_PRODUCT", description: "Allows creating clothing products", module: ModuleEnum.PRODUCT },
-  CREATE_JEWELRY_PRODUCT: { code: "CREATE_JEWELRY_PRODUCT", description: "Allows creating jewelry products", module: ModuleEnum.PRODUCT },
-  CREATE_FOOD_PRODUCT: { code: "CREATE_FOOD_PRODUCT", description: "Allows creating food products", module: ModuleEnum.PRODUCT },
+  CREATE_CLOTHING_PRODUCT: { code: "CREATE_CLOTHING_PRODUCT", description: "Allows creating clothing products", module: ModuleEnum.PRODUCT, domain: DOMAINS.CLOTHING },
+  CREATE_JEWELRY_PRODUCT: { code: "CREATE_JEWELRY_PRODUCT", description: "Allows creating jewelry products", module: ModuleEnum.PRODUCT, domain: DOMAINS.JEWELRY },
+  CREATE_FOOD_PRODUCT: { code: "CREATE_FOOD_PRODUCT", description: "Allows creating food products", module: ModuleEnum.PRODUCT, domain: DOMAINS.FOOD },
 
-  UPDATE_CLOTHING_PRODUCT: { code: "UPDATE_CLOTHING_PRODUCT", description: "Allows updating clothing products", module: ModuleEnum.PRODUCT },
-  UPDATE_JEWELRY_PRODUCT: { code: "UPDATE_JEWELRY_PRODUCT", description: "Allows updating jewelry products", module: ModuleEnum.PRODUCT },
-  UPDATE_FOOD_PRODUCT: { code: "UPDATE_FOOD_PRODUCT", description: "Allows updating food products", module: ModuleEnum.PRODUCT },
+  UPDATE_CLOTHING_PRODUCT: { code: "UPDATE_CLOTHING_PRODUCT", description: "Allows updating clothing products", module: ModuleEnum.PRODUCT, domain: DOMAINS.CLOTHING },
+  UPDATE_JEWELRY_PRODUCT: { code: "UPDATE_JEWELRY_PRODUCT", description: "Allows updating jewelry products", module: ModuleEnum.PRODUCT, domain: DOMAINS.JEWELRY },
+  UPDATE_FOOD_PRODUCT: { code: "UPDATE_FOOD_PRODUCT", description: "Allows updating food products", module: ModuleEnum.PRODUCT, domain: DOMAINS.FOOD },
 
   // 🔹 ORDER
   CREATE_ORDER: { code: "CREATE_ORDER", description: "Allows creating new orders", module: ModuleEnum.ORDER },

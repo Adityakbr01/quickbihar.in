@@ -42,10 +42,12 @@ import appConfigRouter from "./modules/appConfig/appConfig.router";
 import refundPolicyRouter from "./modules/refundPolicy/refundPolicy.router";
 import { rbacRoutes as rbacRouter } from "./modules/rbac/rbac.routes";
 import onboardingRouter from "./modules/onboarding/onboarding.router";
+import storeRouter from "./modules/store/store.route";
 
 // Routes Declaration
 app.use("/api/v1/auth", authRouter); // working
 app.use("/api/v1/onboarding", onboardingRouter); // working
+app.use("/api/v1/stores", storeRouter);  // working
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/rbac", rbacRouter);
 
@@ -66,6 +68,7 @@ app.use("/api/v1/cart", cartRouter);
 app.use("/api/v1/wishlist", wishlistRouter);
 app.use("/api/v1/app-config", appConfigRouter);
 app.use("/api/v1/refund-policies", refundPolicyRouter);
+
 
 // Global Error Handler
 app.use(errorHandler);

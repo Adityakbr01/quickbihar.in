@@ -8,10 +8,16 @@ export const ROLE_PERMISSION_MAP = {
   ],
 
   SELLER: [
-    // Generic permissions
+    // 🔐 Store
+    PERMISSIONS.CREATE_STORE.code,
+    PERMISSIONS.VIEW_STORE.code,
+    PERMISSIONS.UPDATE_STORE.code,
+    PERMISSIONS.UPDATE_STORE_STATUS.code,
+
+    // 🔐 Generic Product
     PERMISSIONS.CREATE_PRODUCT.code,
 
-    // Domain-based product control
+    // 🔐 Domain-based product control
     PERMISSIONS.CREATE_CLOTHING_PRODUCT.code,
     PERMISSIONS.CREATE_JEWELRY_PRODUCT.code,
     PERMISSIONS.CREATE_FOOD_PRODUCT.code,
@@ -105,6 +111,14 @@ export const ROLE_PERMISSION_MAP = {
   ],
 
   ADMIN: [
+
+    // 🔐 Store
+    PERMISSIONS.CREATE_STORE.code,
+    PERMISSIONS.VIEW_STORE.code,
+    PERMISSIONS.UPDATE_STORE.code,
+    PERMISSIONS.UPDATE_STORE_STATUS.code,
+    PERMISSIONS.VERIFY_STORE.code,
+
     // Generic permissions
     PERMISSIONS.CREATE_PRODUCT.code,
 

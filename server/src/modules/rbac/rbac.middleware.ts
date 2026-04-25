@@ -49,11 +49,16 @@ export const checkPermissions = (requiredPermissions: string[]) => {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
       const user = (req as any).user;
+
       if (!user?.roleId?._id) throw new ApiError(403, "Access denied: User has no role assigned");
 
       // Fetch all permissions for the user's primary role
       const primaryPerms = await rbacService.getPermissionsByRole(user.roleId._id.toString());
+      console.log("User : ", user);
+      console.log("primaryPerms : ", primaryPerms);
       const hasAllPermissions = requiredPermissions.every(p => !!primaryPerms[p]);
+      console.log("requiredPermissions : ", requiredPermissions);
+      console.log("hasAllPermissions : ", hasAllPermissions);
 
       if (!hasAllPermissions) {
         throw new ApiError(403, "Access denied: Missing one or more required permissions");

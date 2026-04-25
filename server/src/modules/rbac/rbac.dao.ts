@@ -17,11 +17,13 @@ export const rolePermissionDao = {
 
       // If empty or doesn't have the "meta" field, fetch from DB
       if (!cache || Object.keys(cache).length === 0 || !cache["_populated"]) {
-        const rolePermissions = await RolePermission.find({ roleId }).lean();
+        const rolePermissions = await RolePermission.find({ roleId }).populate("permissionId").lean();
         
         const mapping: Record<string, string> = { "_populated": "1" };
-        rolePermissions.forEach(rp => {
-          mapping[rp.permissionId.toString()] = "1";
+        rolePermissions.forEach((rp: any) => {
+          if (rp.permissionId && rp.permissionId.code) {
+            mapping[rp.permissionId.code] = "1";
+          }
         });
 
         await redis.hset(key, mapping);
@@ -64,19 +66,19 @@ export const rolePermissionDao = {
     if (exists) return false;
 
     // 3. Fallback: Fetch ALL permissions for this role and populate cache
-    const rolePermissions = await RolePermission.find({ roleId }).lean();
+    const rolePermissions = await RolePermission.find({ roleId }).populate("permissionId").lean();
     
     if (rolePermissions.length === 0) {
-      // Mark as empty in cache with a special key or just short-lived empty hash if ioredis supports
-      // Better: set a "meta" field to indicate the hash is populated
       await redis.hset(key, { "_populated": "1" });
       await redis.expire(key, CACHE_TTL);
       return false;
     }
 
     const mapping: Record<string, string> = { "_populated": "1" };
-    rolePermissions.forEach(rp => {
-      mapping[rp.permissionId.toString()] = "1";
+    rolePermissions.forEach((rp: any) => {
+      if (rp.permissionId && rp.permissionId.code) {
+        mapping[rp.permissionId.code] = "1";
+      }
     });
 
     await redis.hset(key, mapping);

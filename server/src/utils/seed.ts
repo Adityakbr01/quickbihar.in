@@ -75,7 +75,7 @@ export const seedAdmin = async () => {
                 email: adminEmail,
                 password: adminPassword,
                 fullName: "System Administrator",
-                role: "admin",
+                role: "ADMIN",
             });
 
             console.log("✅ Admin User seeded successfully!");
@@ -90,7 +90,7 @@ export const seedAdmin = async () => {
 export const seedUsers = async () => {
     try {
         console.log("🌱 Seeding Development Users...");
-        
+
         const devUsers = [
             {
                 username: "customer1",
@@ -461,6 +461,60 @@ export const seedRefundPolicies = async () => {
         console.log("🎉 All Refund Policies Seeded Successfully!");
     } catch (error) {
         console.error("❌ Seed Error:", error);
+    }
+};
+
+
+import { Role, Permission, RolePermission } from "../modules/rbac/rbac.model";
+import { PERMISSIONS, ROLES } from "../modules/rbac/rbac.constants";
+import { ROLE_PERMISSION_MAP } from "../modules/rbac/ROLE_PERMISSION_MAP";
+
+export const seedRbac = async () => {
+    try {
+        console.log("🌱 Seeding RBAC Configuration (Non-destructive)...");
+
+        // 1. Sync Roles
+        for (const roleName of Object.values(ROLES)) {
+            await Role.updateOne(
+                { name: roleName },
+                { $setOnInsert: { name: roleName, isActive: true, description: `System role for ${roleName}` } },
+                { upsert: true }
+            );
+        }
+        console.log("✔️ Roles synchronized.");
+
+        // 2. Sync Permissions
+        const permCodes = Object.values(PERMISSIONS);
+        for (const p of permCodes) {
+            await Permission.updateOne(
+                { code: p.code },
+                { $set: { module: p.module, description: p.description, domain: (p as any).domain || "GLOBAL" } }, // Update metadata if changed
+                { upsert: true }
+            );
+        }
+        console.log("✔️ Permissions synchronized.");
+
+        // 3. Sync Role-Permission Mapping
+        for (const [roleName, permissionsList] of Object.entries(ROLE_PERMISSION_MAP)) {
+            const roleDoc = await Role.findOne({ name: roleName });
+            if (!roleDoc) continue;
+
+            for (const permCode of permissionsList) {
+                const permDoc = await Permission.findOne({ code: permCode });
+                if (!permDoc) continue;
+
+                await RolePermission.updateOne(
+                    { roleId: roleDoc._id, permissionId: permDoc._id },
+                    { $setOnInsert: { roleId: roleDoc._id, permissionId: permDoc._id } },
+                    { upsert: true }
+                );
+            }
+        }
+        console.log("✔️ Role-Permission mappings synchronized.");
+
+        console.log("🎉 RBAC Seeded Successfully!");
+    } catch (error) {
+        console.error("❌ Failed to seed RBAC:", error);
     }
 };
 

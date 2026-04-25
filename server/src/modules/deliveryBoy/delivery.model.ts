@@ -51,5 +51,7 @@ const DeliveryProfileSchema = new Schema({
     }
 }, { timestamps: true });
 
+DeliveryProfileSchema.index({ currentLocation: "2dsphere" });
+
 
 export const DeliveryBoy = mongoose.model("DeliveryBoy", DeliveryProfileSchema);

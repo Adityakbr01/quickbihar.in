@@ -1,5 +1,6 @@
 import mongoose, { Schema, Types } from "mongoose";
 import { DomainEnum } from "../rbac/rbac.types";
+import { StoreType } from "../store/store.schema";
 
 const SellerProfileSchema = new Schema({
     userId: {
@@ -36,14 +37,14 @@ const SellerProfileSchema = new Schema({
         },
         coordinates: {
             type: [Number],
-            required: true,
+            required: false,
             index: "2dsphere",
         },
     },
 
     sellerType: {
         type: String,
-        enum: [DomainEnum.CLOTHING, DomainEnum.JEWELRY, DomainEnum.FOOD],
+        enum: [StoreType.CLOTHING, StoreType.JEWELRY, StoreType.FOOD],
     },
 
     isVerified: { type: Boolean, default: false },
@@ -54,6 +55,8 @@ const SellerProfileSchema = new Schema({
     },
 
 }, { timestamps: true });
+
+SellerProfileSchema.index({ currentLocation: "2dsphere" });
 
 
 export const Seller = mongoose.model("Seller", SellerProfileSchema);
