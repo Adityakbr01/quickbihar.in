@@ -1,4 +1,4 @@
-import ProductDetailScreen from "@/src/features/product/screen/ProductDetailScreen";
+import ProductDetailScreen from "@/src/features/Clothings/product/screen/ProductDetailScreen";
 import { Stack, useLocalSearchParams } from "expo-router";
 import React from "react";
 

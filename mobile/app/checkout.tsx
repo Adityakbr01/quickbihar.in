@@ -1,7 +1,7 @@
 import React from "react";
 import SafeViewWrapper from "@/src/provider/SafeViewWrapper";
-import CheckoutScreen from "@/src/features/order/screen/CheckoutScreen";
 import { Stack } from "expo-router";
+import CheckoutScreen from "@/src/features/Clothings/order/screen/CheckoutScreen";
 
 const CheckoutRoute = () => {
   return (

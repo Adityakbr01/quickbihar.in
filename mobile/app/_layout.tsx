@@ -1,5 +1,5 @@
 import { toastConfig } from "@/src/components/common/CustomToast";
-import { useAuthStore } from "@/src/features/auth/store/authStore";
+import { useAuthStore } from "@/src/features/common/auth/store/authStore";
 import { usePushNotifications } from "@/src/hooks/usePushNotifications";
 import { QueryProvider } from "@/src/provider/QueryProvider";
 import { SocketListenerProvider } from "@/src/provider/SocketListenerProvider";
@@ -11,11 +11,9 @@ import { useColorScheme, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 
-
-
 export default function RootLayout() {
   const scheme = useColorScheme();
-  const initializeAuth = useAuthStore((state) => state.initializeAuth)
+  const initializeAuth = useAuthStore((state) => state.initializeAuth);
 
   // Initialize push notifications logic (UX optimized / Expo Go guarded internally)
   usePushNotifications();
@@ -30,7 +28,6 @@ export default function RootLayout() {
     }
     prepare();
   }, [initializeAuth]);
-
 
   return (
     <View style={{ flex: 1 }}>

@@ -1,5 +1,4 @@
 import SafeViewWrapper from "@/src/provider/SafeViewWrapper";
-import { RoleEnum, useAuthStore } from "@/src/features/auth/store/authStore";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { Redirect } from "expo-router";
 import { Settings01Icon, Analytics01Icon } from "@hugeicons/core-free-icons";
@@ -10,11 +9,15 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
-import AdminHeader from "@/src/features/admin/components/AdminHeader";
-import AdminStatCard from "@/src/features/admin/components/AdminStatCard";
-import { ADMIN_CARDS } from "@/src/features/admin/lib/adminData";
+import {
+  RoleEnum,
+  useAuthStore,
+} from "@/src/features/common/auth/store/authStore";
+import AdminHeader from "@/src/features/Clothings/admin/components/AdminHeader";
+import { ADMIN_CARDS } from "@/src/features/Clothings/admin/lib/adminData";
+import AdminStatCard from "@/src/features/Clothings/admin/components/AdminStatCard";
 
 export default function AdminScreen() {
   const theme = useTheme();
@@ -24,7 +27,7 @@ export default function AdminScreen() {
   console.log("[AdminScreen] Rendered. Role:", user?.role, "isAdmin:", isAdmin);
 
   if (!isAdmin) {
-    return <Redirect href="/home" />;
+    return <Redirect href="/(tabs)/clothing/home" />;
   }
 
   return (
@@ -42,14 +45,27 @@ export default function AdminScreen() {
         </View>
 
         <TouchableOpacity
-          style={[styles.settingItem, { borderTopWidth: 1, borderTopColor: theme.border }]}
+          style={[
+            styles.settingItem,
+            { borderTopWidth: 1, borderTopColor: theme.border },
+          ]}
           activeOpacity={0.6}
         >
           <View style={styles.settingTextContainer}>
-            <HugeiconsIcon icon={Settings01Icon} size={20} color={theme.iconColor} />
-            <Text style={[styles.settingLabel, { color: theme.text }]}>System Settings</Text>
+            <HugeiconsIcon
+              icon={Settings01Icon}
+              size={20}
+              color={theme.iconColor}
+            />
+            <Text style={[styles.settingLabel, { color: theme.text }]}>
+              System Settings
+            </Text>
           </View>
-          <HugeiconsIcon icon={Analytics01Icon} size={20} color={theme.tertiaryText} />
+          <HugeiconsIcon
+            icon={Analytics01Icon}
+            size={20}
+            color={theme.tertiaryText}
+          />
         </TouchableOpacity>
       </ScrollView>
     </SafeViewWrapper>

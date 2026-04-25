@@ -1,11 +1,11 @@
-import { useAuthStore } from "@/src/features/auth/store/authStore";
+import { useAuthStore } from "@/src/features/common/auth/store/authStore";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import {
   DashboardCircleSettingsIcon,
   Home01Icon,
   Search01Icon,
   ShoppingCartCheck01Icon,
-  User02FreeIcons
+  User02FreeIcons,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import * as Haptics from "expo-haptics";
@@ -42,7 +42,7 @@ export default function TabsLayout() {
   const router = useRouter();
   const isAdmin = user?.role?.name === "ADMIN";
 
-  const isWeb = Platform.OS === 'web';
+  const isWeb = Platform.OS === "web";
 
   const ALL_TABS = [
     ...TABS_CONFIG,
@@ -67,18 +67,18 @@ export default function TabsLayout() {
           shadowOffset: { width: 0, height: isWeb ? 4 : -4 },
           shadowOpacity: 0.1,
           shadowRadius: 8,
-          height: isWeb ? 70 : (Platform.OS === 'ios' ? 88 : 90),
-          paddingBottom: isWeb ? 10 : (Platform.OS === 'ios' ? 28 : 35),
+          height: isWeb ? 70 : Platform.OS === "ios" ? 88 : 90,
+          paddingBottom: isWeb ? 10 : Platform.OS === "ios" ? 28 : 35,
           paddingTop: 10,
           // Responsive Web Styles
           ...(isWeb && {
-            position: 'absolute',
+            position: "absolute",
             bottom: 0,
-            left: '0%',
-            right: '0%',
+            left: "0%",
+            right: "0%",
             borderWidth: 1,
             borderColor: theme.border,
-            alignSelf: 'center',
+            alignSelf: "center",
           }),
         },
         tabBarLabelStyle: {

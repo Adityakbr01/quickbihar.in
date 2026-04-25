@@ -1,6 +1,6 @@
-import HomeScreen from "@/src/features/home/screens/HomeScreen";
+import HomeScreen from "@/src/features/Clothings/home/screens/HomeScreen";
 import React from "react";
 
 export default function JewelryHome() {
-  return <HomeScreen rootSlug="jewelry" />;
+  return <HomeScreen />;
 }

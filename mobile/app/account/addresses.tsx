@@ -1,5 +1,5 @@
 import React from "react";
-import SavedAddressesScreen from "@/src/features/address/screen/SavedAddressesScreen";
+import SavedAddressesScreen from "@/src/features/Clothings/address/screen/SavedAddressesScreen";
 import SafeViewWrapper from "@/src/provider/SafeViewWrapper";
 
 const AddressesRoute = () => {

@@ -1,6 +1,6 @@
 import React from "react";
 import SafeViewWrapper from "@/src/provider/SafeViewWrapper";
-import CartContent from "@/src/features/cart/screen/CartContent";
+import CartContent from "@/src/features/Clothings/cart/screen/CartContent";
 
 const CartScreen = () => {
   return (

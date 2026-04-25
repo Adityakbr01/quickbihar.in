@@ -1,11 +1,22 @@
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Platform } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Dimensions,
+  Platform,
+} from "react-native";
 import { useRouter } from "expo-router";
-import { useAuthStore } from "@/src/features/auth/store/authStore";
 import { LinearGradient } from "expo-linear-gradient";
 import * as Haptics from "expo-haptics";
-import { Dress05Icon, Agreement02Icon, CookieIcon } from "@hugeicons/core-free-icons";
+import {
+  Dress05Icon,
+  Agreement02Icon,
+  CookieIcon,
+} from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import SafeViewWrapper from "@/src/provider/SafeViewWrapper";
+import { useAuthStore } from "@/src/features/common/auth/store/authStore";
 
 const { width } = Dimensions.get("window");
 
@@ -16,7 +27,7 @@ const CHOICE_ITEMS = [
     description: "Explore the latest trends",
     route: "/(tabs)/clothing",
     colors: ["#2874f0", "#56adff"],
-    icon: Dress05Icon
+    icon: Dress05Icon,
   },
   {
     id: "jewelry",
@@ -24,7 +35,7 @@ const CHOICE_ITEMS = [
     description: "Luxury and Elegance",
     route: "/(tabs)/jewelry",
     colors: ["#B8860B", "#DAA520"],
-    icon: Agreement02Icon
+    icon: Agreement02Icon,
   },
   {
     id: "food",
@@ -32,8 +43,8 @@ const CHOICE_ITEMS = [
     description: "Fresh and Organic",
     route: "/(tabs)/food",
     colors: ["#1b5e20", "#4caf50"],
-    icon: CookieIcon
-  }
+    icon: CookieIcon,
+  },
 ];
 
 export default function ChoiceScreen() {
@@ -52,7 +63,10 @@ export default function ChoiceScreen() {
   return (
     <SafeViewWrapper>
       <View style={styles.container}>
-        <LinearGradient colors={["#f8f9fa", "#e9ecef"]} style={styles.background} />
+        <LinearGradient
+          colors={["#f8f9fa", "#e9ecef"]}
+          style={styles.background}
+        />
 
         <View style={styles.header}>
           <Text style={styles.title}>Quick Bihar</Text>
@@ -118,7 +132,6 @@ const styles = StyleSheet.create({
   },
   cardWrapper: {
     borderRadius: 24,
-
   },
   card: {
     height: 140,

@@ -1,4 +1,4 @@
-import OrderAdminScreen from "@/src/features/admin/screens/OrderAdminScreen";
+import OrderAdminScreen from "@/src/features/Clothings/admin/screens/OrderAdminScreen";
 
 export default function OrdersRoute() {
   return <OrderAdminScreen />;

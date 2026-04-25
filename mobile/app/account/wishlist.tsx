@@ -1,4 +1,4 @@
-import WishlistScreen from "@/src/features/wishlist/screen/WishlistScreen";
+import WishlistScreen from "@/src/features/Clothings/wishlist/screen/WishlistScreen";
 
 export default function Wishlist() {
   return <WishlistScreen />;

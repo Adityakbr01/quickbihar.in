@@ -1,4 +1,4 @@
-import OrderListScreen from "../../src/features/order/screen/OrderListScreen";
+import OrderListScreen from "../../src/features/Clothings/order/screen/OrderListScreen";
 
 export default function OrdersRoute() {
   return <OrderListScreen />;

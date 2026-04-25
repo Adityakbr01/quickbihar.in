@@ -9,13 +9,13 @@ import {
   Platform,
 } from "react-native";
 import { useLocalSearchParams, useRouter, Stack } from "expo-router";
-import { LeafletMapComponent } from "@/src/features/trackOrder/components/LeafletMapComponent";
-import { DeliverySimulation } from "@/src/features/trackOrder/components/DeliverySimulation";
-import { TrackingInfoCard } from "@/src/features/trackOrder/components/TrackingInfoCard";
-import { getOrderByIdRequest } from "@/src/features/order/api/order.api";
+import { LeafletMapComponent } from "@/src/features/Clothings/trackOrder/components/LeafletMapComponent";
+import { DeliverySimulation } from "@/src/features/Clothings/trackOrder/components/DeliverySimulation";
+import { TrackingInfoCard } from "@/src/features/Clothings/trackOrder/components/TrackingInfoCard";
+import { getOrderByIdRequest } from "@/src/features/Clothings/order/api/order.api";
 import { Ionicons } from "@expo/vector-icons";
-import { useLocationTracking } from "@/src/features/trackOrder/hooks/useLocationTracking";
-import { useOrderTracking } from "@/src/features/trackOrder/hooks/useOrderTracking";
+import { useLocationTracking } from "@/src/features/Clothings/trackOrder/hooks/useLocationTracking";
+import { useOrderTracking } from "@/src/features/Clothings/trackOrder/hooks/useOrderTracking";
 import * as SecureStore from "expo-secure-store";
 import { useSocketStore } from "@/src/store/useSocketStore";
 
@@ -81,7 +81,10 @@ export default function TrackOrderScreen() {
       <View style={styles.center}>
         <Ionicons name="alert-circle" size={48} color="#999" />
         <Text style={styles.errorText}>Order not found</Text>
-        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => router.back()}
+        >
           <Text style={styles.backButtonText}>Go Back</Text>
         </TouchableOpacity>
       </View>
@@ -96,7 +99,10 @@ export default function TrackOrderScreen() {
           headerTransparent: true,
           headerTitle: "",
           headerLeft: () => (
-            <TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
+            <TouchableOpacity
+              onPress={() => router.back()}
+              style={styles.iconButton}
+            >
               <Ionicons name="chevron-back" size={24} color="black" />
             </TouchableOpacity>
           ),
@@ -128,7 +134,10 @@ export default function TrackOrderScreen() {
         <View style={styles.debugContainer}>
           <DeliverySimulation
             orderId={orderId}
-            startLocation={{ latitude: destination.latitude + 0.005, longitude: destination.longitude + 0.005 }}
+            startLocation={{
+              latitude: destination.latitude + 0.005,
+              longitude: destination.longitude + 0.005,
+            }}
             endLocation={destination}
           />
         </View>

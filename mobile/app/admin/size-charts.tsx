@@ -1,4 +1,4 @@
-import SizeChartAdminScreen from "@/src/features/sizeChart/screen/SizeChartAdminScreen";
+import SizeChartAdminScreen from "@/src/features/Clothings/sizeChart/screen/SizeChartAdminScreen";
 
 export default function SizeChartsPage() {
   return <SizeChartAdminScreen />;

@@ -3,8 +3,8 @@ import * as SecureStore from "expo-secure-store";
 import * as Device from "expo-device";
 import Constants from "expo-constants";
 import { registerForPushNotificationsAsync, initializeNotificationHandler } from "../lib/notification";
-import { updateFcmTokenRequest } from "../features/profileInfo/api/profile.api";
-import { useAuthStore } from "../features/auth/store/authStore";
+import { useAuthStore } from "../features/common/auth/store/authStore";
+import { updateFcmTokenRequest } from "../features/Clothings/profileInfo/api/profile.api";
 
 const HAS_ASKED_KEY = "has_asked_push_notifications";
 

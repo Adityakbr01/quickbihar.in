@@ -1,5 +1,5 @@
 import React from "react";
-import ProfileInfoScreen from "@/src/features/profileInfo/screen/ProfileInfoScreen";
+import ProfileInfoScreen from "@/src/features/Clothings/profileInfo/screen/ProfileInfoScreen";
 import { Stack } from "expo-router";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 

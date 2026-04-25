@@ -1,7 +1,6 @@
 import axios from "axios";
 import * as SecureStore from "expo-secure-store";
-
-import { useAuthStore } from "../features/auth/store/authStore";
+import { useAuthStore } from "../features/common/auth/store/authStore";
 
 // For Real Devices: Use your machine's local IP address.
 // Current IP: 10.170.36.27

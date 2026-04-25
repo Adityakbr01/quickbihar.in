@@ -11,8 +11,8 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { lightTheme } from "@/src/theme/colors";
-import RegisterScreen from "../../auth/screen/auth.screen";
 import { OnboardingSlide, steps } from "../components";
+import { AuthScreen } from "../../common/auth";
 
 // ─── Main Screen ─────────────────────────────────────────────
 
@@ -115,7 +115,7 @@ export default function OnboardingScreen({ onDone }: { onDone?: () => void }) {
           handlePrevRef.current();
         }
       },
-    })
+    }),
   ).current;
 
   const topStyle = useAnimatedStyle(() => ({
@@ -138,7 +138,7 @@ export default function OnboardingScreen({ onDone }: { onDone?: () => void }) {
   const step = steps[displayStep];
 
   if (complete) {
-    return <RegisterScreen />;
+    return <AuthScreen />;
   }
 
   return (

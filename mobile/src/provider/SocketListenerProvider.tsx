@@ -1,11 +1,12 @@
-import React, { useEffect } from 'react';
-import { socketClient } from '@/src/lib/socket';
-import { SocketEvents } from '@/src/constants/socketEvents';
-import { useCartStore } from '@/src/features/cart/store/cartStore';
-import { useAuthStore } from '@/src/features/auth/store/authStore';
-import Toast from 'react-native-toast-message';
+import { SocketEvents } from "@/src/constants/socketEvents";
+import { socketClient } from "@/src/lib/socket";
+import React, { useEffect } from "react";
+import { useCartStore } from "../features/Clothings/cart/store/cartStore";
+import { useAuthStore } from "../features/common/auth/store/authStore";
 
-export const SocketListenerProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const SocketListenerProvider: React.FC<{
+  children: React.ReactNode;
+}> = ({ children }) => {
   const handleStockUpdate = useCartStore((state) => state.handleStockUpdate);
   const { token, isAuthenticated } = useAuthStore();
 
@@ -14,7 +15,9 @@ export const SocketListenerProvider: React.FC<{ children: React.ReactNode }> = (
       console.log("[SocketListener] Authenticated - Connecting Socket...");
       socketClient.connect(token);
     } else {
-      console.log("[SocketListener] Not Authenticated - Disconnecting Socket...");
+      console.log(
+        "[SocketListener] Not Authenticated - Disconnecting Socket...",
+      );
       socketClient.disconnect();
     }
   }, [isAuthenticated, token]);
@@ -22,8 +25,10 @@ export const SocketListenerProvider: React.FC<{ children: React.ReactNode }> = (
   useEffect(() => {
     // 1. Global Stock Listener
     socketClient.on(SocketEvents.STOCK_UPDATE, (data) => {
-      console.log(`[SocketListener] Stock Update: ${data.sku} -> ${data.newStock}`);
-      
+      console.log(
+        `[SocketListener] Stock Update: ${data.sku} -> ${data.newStock}`,
+      );
+
       // Update Cart Store
       handleStockUpdate(data);
 
