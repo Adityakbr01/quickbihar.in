@@ -42,6 +42,13 @@ import {
   ProductManagementPanel,
 } from "@/features/dashboard/components/AdminCatalogModules";
 import {
+  ContentManagementPanel,
+  InventoryLogisticsPanel,
+  MarketingPromotionsPanel,
+  ReportsAnalyticsPanel,
+  SystemSettingsPanel,
+} from "@/features/dashboard/components/AdminFullModules";
+import {
   Table,
   TableBody,
   TableCell,
@@ -299,8 +306,8 @@ export default function AdminDashboardPage() {
   }
 
   return (
-    <main className="dark min-h-screen bg-background text-foreground">
-      <div className="flex min-h-screen flex-col lg:flex-row">
+    <main className="dark h-screen overflow-hidden bg-background text-foreground">
+      <div className="flex h-screen overflow-hidden flex-col lg:flex-row">
         <AdminSidebar
           activeSection={activeSection}
           onSectionChange={setActiveSection}
@@ -313,8 +320,8 @@ export default function AdminDashboardPage() {
           }}
         />
 
-        <section className="flex min-w-0 flex-1 flex-col">
-          <header className="flex flex-col gap-3 border-b border-white/10 bg-[#121212] px-4 py-4 md:flex-row md:items-center md:justify-between lg:px-6">
+        <section className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+          <header className="shrink-0 flex flex-col gap-3 border-b border-white/10 bg-[#121212] px-4 py-4 md:flex-row md:items-center md:justify-between lg:px-6">
             <div>
               <h1 className="text-2xl font-semibold tracking-tight text-white">Admin Dashboard</h1>
               <p className="text-sm text-gray-400">{sectionLabels[activeSection]}</p>
@@ -342,7 +349,7 @@ export default function AdminDashboardPage() {
             </div>
           </header>
 
-          <ScrollArea className="h-[calc(100vh-81px)] bg-[#121212]">
+          <ScrollArea className="min-h-0 flex-1 bg-[#121212]">
             <div className="mx-auto w-full max-w-7xl px-4 py-5 lg:px-6">
               {activeSection === "overview" && (
                 <OverviewSection
@@ -388,50 +395,15 @@ export default function AdminDashboardPage() {
 
               {activeSection === "coupons" && <CouponManagementPanel />}
 
-              {activeSection === "content-management" && (
-                <ManagementGroupSection
-                  group={getCatalogGroup(managementCatalog, "content-management")}
-                  title="Content Management"
-                  isLoading={catalogQuery.isLoading}
-                />
-              )}
+              {activeSection === "content-management" && <ContentManagementPanel />}
 
-              {activeSection === "marketing-promotions" && (
-                <ManagementGroupSection
-                  group={getCatalogGroup(managementCatalog, "marketing-promotions")}
-                  title="Marketing & Promotions"
-                  isLoading={catalogQuery.isLoading}
-                />
-              )}
+              {activeSection === "marketing-promotions" && <MarketingPromotionsPanel />}
 
-              {activeSection === "inventory-logistics" && (
-                <ManagementGroupSection
-                  group={getCatalogGroup(managementCatalog, "inventory-logistics")}
-                  title="Inventory & Logistics"
-                  isLoading={catalogQuery.isLoading}
-                />
-              )}
+              {activeSection === "inventory-logistics" && <InventoryLogisticsPanel />}
 
-              {activeSection === "reports-analytics" && (
-                <ManagementGroupSection
-                  group={getCatalogGroup(managementCatalog, "reports-analytics")}
-                  title="Reports & Analytics"
-                  isLoading={catalogQuery.isLoading}
-                />
-              )}
+              {activeSection === "reports-analytics" && <ReportsAnalyticsPanel />}
 
-              {activeSection === "system-settings" && (
-                <ManagementGroupSection
-                  group={getCatalogGroup(managementCatalog, "system-settings")}
-                  title="System Settings"
-                  isLoading={catalogQuery.isLoading}
-                  onOpenSection={setActiveSection}
-                  quickLinks={[
-                    { label: "Invite Admin/User", section: "invites" },
-                    { label: "Manage Users", section: "people" },
-                  ]}
-                />
-              )}
+              {activeSection === "system-settings" && <SystemSettingsPanel />}
 
               {activeSection === "people" && (
                 <PeopleSection
@@ -501,7 +473,7 @@ function AdminSidebar({
   };
 
   return (
-    <aside className="border-b border-white/10 bg-[#181818] lg:sticky lg:top-0 lg:h-screen lg:w-72 lg:border-b-0 lg:border-r">
+    <aside className="shrink-0 border-b border-white/10 bg-[#181818] lg:flex lg:h-screen lg:w-72 lg:flex-col lg:overflow-hidden lg:border-b-0 lg:border-r">
       <div className="flex items-center gap-3 border-b border-white/10 px-4 py-4">
         <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white text-sm font-bold text-black">QB</div>
         <div>
@@ -509,7 +481,7 @@ function AdminSidebar({
           <div className="text-xs text-gray-500">Fashion Admin</div>
         </div>
       </div>
-      <nav className="flex gap-2 overflow-x-auto px-3 py-3 lg:flex-col lg:overflow-visible">
+      <nav className="scrollbar-none flex gap-2 overflow-x-auto px-3 py-3 lg:min-h-0 lg:flex-1 lg:flex-col lg:overflow-x-hidden lg:overflow-y-auto">
         {navigationGroups.map((group) => (
           <div key={group.title} className="flex shrink-0 gap-2 lg:flex-col">
             <div className="hidden px-2 pt-2 text-[11px] font-semibold uppercase tracking-normal text-gray-500 lg:block">
@@ -531,11 +503,11 @@ function AdminSidebar({
                   <Badge
                     variant="outline"
                     className={cn(
-                      "ml-auto border-white/10 text-gray-400",
-                      activeSection === section.id && "border-black/10 text-black",
+                      "ml-auto min-w-7 rounded-full px-2 py-0.5 text-center text-[11px] font-semibold shadow-sm",
+                      countBadgeClass(countBySection[section.id] || 0),
                     )}
                   >
-                    {countBySection[section.id]}
+                    {formatSidebarCount(countBySection[section.id] || 0)}
                   </Badge>
                 )}
               </Button>
@@ -545,6 +517,22 @@ function AdminSidebar({
       </nav>
     </aside>
   );
+}
+
+function countBadgeClass(count: number) {
+  if (count >= 15) {
+    return "border-emerald-400/30 bg-emerald-400/10 text-emerald-200 shadow-emerald-500/10";
+  }
+
+  if (count <= 5) {
+    return "border-red-400/30 bg-red-400/10 text-red-200 shadow-red-500/10";
+  }
+
+  return "border-amber-400/30 bg-amber-400/10 text-amber-200 shadow-amber-500/10";
+}
+
+function formatSidebarCount(count: number) {
+  return count > 99 ? "99+" : count;
 }
 
 function OverviewSection({
@@ -571,6 +559,10 @@ function OverviewSection({
         <Metric title="Mall Requests" value={stats?.pendingMallRequests || 0} icon={<Building2 className="h-4 w-4" />} />
         <Metric title="Pending Payouts" value={stats?.pendingPayouts || 0} icon={<CircleDollarSign className="h-4 w-4" />} />
         <Metric title="Paid" value={`Rs. ${formatAmount(stats?.totalPaid || 0)}`} icon={<WalletCards className="h-4 w-4" />} />
+        <Metric title="Orders" value={stats?.totalOrders || 0} icon={<ClipboardList className="h-4 w-4" />} />
+        <Metric title="Revenue" value={`Rs. ${formatAmount(stats?.revenue || 0)}`} icon={<BarChart3 className="h-4 w-4" />} />
+        <Metric title="Pending Reviews" value={stats?.pendingReviews || 0} icon={<ShieldCheck className="h-4 w-4" />} />
+        <Metric title="Low Stock" value={stats?.lowStockProducts || 0} icon={<Package className="h-4 w-4" />} />
       </section>
 
       <section className="grid gap-4 xl:grid-cols-[1fr_420px]">

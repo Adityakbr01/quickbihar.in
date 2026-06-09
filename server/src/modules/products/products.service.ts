@@ -138,6 +138,7 @@ export class ProductService {
                 images,
                 sellerId: ownerId,
                 storeId: store._id,
+                scope: this.isSellerRole(role) ? "SELLER" : "GLOBAL",
             });
 
             return product;

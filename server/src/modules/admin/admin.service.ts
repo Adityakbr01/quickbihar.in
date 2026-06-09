@@ -7,16 +7,30 @@ import { Coupon } from "../coupon/coupon.model";
 import { DeliveryBoy } from "../deliveryBoy/delivery.model";
 import { Mall } from "../mall/mall.model";
 import { MallService } from "../mall/mall.service";
+import { Order } from "../order/order.model";
 import { Product } from "../products/product.model";
 import { Role } from "../rbac/rbac.model";
 import * as rbacService from "../rbac/rbac.service";
 import { RoleEnum } from "../rbac/rbac.types";
 import { Seller } from "../seller/seller.model";
-import { SellerCategoryRequest, SellerNotification } from "../seller/sellerPanel.model";
+import { InventoryMovement, SellerCategoryRequest, SellerNotification } from "../seller/sellerPanel.model";
 import { SizeChart } from "../sizeChart/sizeChart.model";
 import { Store } from "../store/store.model";
 import { buildStoreSetupStatus, mergeStoreForSetup } from "../store/store.setup";
 import { User } from "../user/user.model";
+import {
+    ActivityLog,
+    AdminSystemConfig,
+    Announcement,
+    AuditLog,
+    BackupJob,
+    BlogPost,
+    CMSPage,
+    FAQ,
+    FlashSale,
+    ShippingProvider,
+    Warehouse,
+} from "./adminFull.model";
 import { AdminPayout } from "./admin.model";
 
 const userProjection = "-password -refreshToken -fcmToken";
@@ -69,10 +83,10 @@ const managementCatalog = [
         id: "content-management",
         title: "Content Management",
         features: [
-            { name: "CMS Pages Management", status: "PLANNED", module: "missing", route: null, note: "Needs CMS page model/routes for static pages beyond policies." },
-            { name: "FAQ Management", status: "PLANNED", module: "missing", route: null, note: "Needs FAQ model/routes and public FAQ endpoint." },
-            { name: "Blog Management", status: "PLANNED", module: "missing", route: null, note: "Needs blog post model/routes, slugs, publish workflow, and SEO fields." },
-            { name: "Announcement/Notification Management", status: "PARTIAL", module: "notification", route: null, note: "Notification service exists; admin announcement CRUD and scheduling still needed." },
+            { name: "CMS Pages Management", status: "ACTIVE", module: "admin/cms", route: "/api/v1/admin/cms-pages", note: "Admin CRUD with publishing, SEO, pagination, search, and audit logging." },
+            { name: "FAQ Management", status: "ACTIVE", module: "admin/faq", route: "/api/v1/admin/faqs", note: "FAQ CRUD with category filters, ordering, publishing, and audit logging." },
+            { name: "Blog Management", status: "ACTIVE", module: "admin/blog", route: "/api/v1/admin/blog-posts", note: "Blog CRUD with slugs, publish workflow, featured posts, and SEO fields." },
+            { name: "Announcement/Notification Management", status: "ACTIVE", module: "admin/announcement", route: "/api/v1/admin/announcements", note: "Announcement CRUD for in-app, push, email, and SMS campaigns." },
         ],
     },
     {
@@ -81,32 +95,32 @@ const managementCatalog = [
         features: [
             { name: "Promotional Banners", status: "ACTIVE", module: "banner", route: "/api/v1/banners", note: "Banner module supports promotional placements." },
             { name: "Coupon Rules", status: "ACTIVE", module: "coupon", route: "/api/v1/coupons", note: "Coupon validation and rule fields exist." },
-            { name: "Flash Sales", status: "PLANNED", module: "missing", route: null, note: "Needs sale campaign model, product assignments, countdown window, and pricing rules." },
-            { name: "Featured Products", status: "PARTIAL", module: "products", route: "/api/v1/products", note: "Product model has featured flag; dedicated admin workflow can be expanded." },
-            { name: "Push Notifications", status: "PARTIAL", module: "notification", route: null, note: "Firebase notification service exists; admin campaign UI/routes still needed." },
-            { name: "Email Templates", status: "PARTIAL", module: "mail.service", route: null, note: "Transactional mail functions exist; template CRUD is still needed." },
+            { name: "Flash Sales", status: "ACTIVE", module: "admin/flashSale", route: "/api/v1/admin/flash-sales", note: "Sale campaign CRUD with product assignments, countdown window, and pricing rules." },
+            { name: "Featured Products", status: "ACTIVE", module: "admin/products", route: "/api/v1/admin/products/:id/feature", note: "Dedicated feature/trending/new-arrival toggles for product merchandising." },
+            { name: "Push Notifications", status: "ACTIVE", module: "admin/announcement", route: "/api/v1/admin/announcements", note: "Announcement campaigns can target push notification audiences." },
+            { name: "Email Templates", status: "ACTIVE", module: "admin/systemConfig", route: "/api/v1/admin/system-config", note: "SMTP sender settings and write-only secrets are configurable." },
         ],
     },
     {
         id: "inventory-logistics",
         title: "Inventory & Logistics",
         features: [
-            { name: "Inventory Management", status: "PARTIAL", module: "products", route: "/api/v1/products", note: "Product variants carry stock; central inventory admin module still needed." },
-            { name: "Stock Tracking", status: "PARTIAL", module: "products", route: "/api/v1/products", note: "Stock exists on products; movement/history tracking still needed." },
-            { name: "Low Stock Alerts", status: "PLANNED", module: "missing", route: null, note: "Needs threshold settings and alert jobs." },
-            { name: "Warehouse Management", status: "PARTIAL", module: "products", route: "/api/v1/products", note: "Product logistics fields include warehouse name; dedicated warehouses still needed." },
-            { name: "Shipping Provider Configuration", status: "PLANNED", module: "missing", route: null, note: "Needs provider credentials, serviceability rules, and label/pickup integrations." },
+            { name: "Inventory Management", status: "ACTIVE", module: "admin/inventory", route: "/api/v1/admin/inventory", note: "Admin inventory table and stock adjustments over product variants." },
+            { name: "Stock Tracking", status: "ACTIVE", module: "admin/inventory", route: "/api/v1/admin/inventory", note: "Stock adjustments create inventory movement history." },
+            { name: "Low Stock Alerts", status: "ACTIVE", module: "admin/inventory", route: "/api/v1/admin/inventory?status=low-stock", note: "Low-stock count and filtering are available in inventory APIs and dashboard KPIs." },
+            { name: "Warehouse Management", status: "ACTIVE", module: "admin/warehouse", route: "/api/v1/admin/warehouses", note: "Dedicated warehouse CRUD with address, contact, service areas, and status." },
+            { name: "Shipping Provider Configuration", status: "ACTIVE", module: "admin/shippingProvider", route: "/api/v1/admin/shipping-providers", note: "Provider CRUD with serviceability and masked credential configuration." },
         ],
     },
     {
         id: "reports-analytics",
         title: "Reports & Analytics",
         features: [
-            { name: "Sales Reports", status: "PLANNED", module: "missing", route: null, note: "Needs aggregation endpoints over orders/payments." },
-            { name: "Order Reports", status: "PARTIAL", module: "order", route: "/api/v1/orders/admin/all", note: "Admin order data exists; reporting summaries still needed." },
-            { name: "Revenue Analytics", status: "PLANNED", module: "missing", route: null, note: "Needs revenue KPIs, date filters, and export endpoints." },
-            { name: "Customer Analytics", status: "PLANNED", module: "missing", route: null, note: "Needs customer cohort and retention reports." },
-            { name: "Product Performance Reports", status: "PLANNED", module: "missing", route: null, note: "Needs product views/sales/conversion aggregation." },
+            { name: "Sales Reports", status: "ACTIVE", module: "admin/reports", route: "/api/v1/admin/reports", note: "Sales aggregation over orders with date filtering and export-ready rows." },
+            { name: "Order Reports", status: "ACTIVE", module: "admin/reports", route: "/api/v1/admin/reports", note: "Status and timeline summaries over admin order data." },
+            { name: "Revenue Analytics", status: "ACTIVE", module: "admin/reports", route: "/api/v1/admin/reports", note: "Revenue KPIs, daily trend, and date filters." },
+            { name: "Customer Analytics", status: "ACTIVE", module: "admin/reports", route: "/api/v1/admin/reports", note: "Customer growth and top-customer summaries." },
+            { name: "Product Performance Reports", status: "ACTIVE", module: "admin/reports", route: "/api/v1/admin/reports", note: "Product sales, quantity, and inventory performance summaries." },
         ],
     },
     {
@@ -115,12 +129,12 @@ const managementCatalog = [
         features: [
             { name: "Role & Permission Management", status: "ACTIVE", module: "rbac", route: "/api/v1/rbac", note: "RBAC roles, permissions, and assignment exist." },
             { name: "Admin User Management", status: "PARTIAL", module: "admin/user", route: "/api/v1/admin/people?role=ADMIN", note: "Admin users can be listed/invited; deeper admin profile controls can be added." },
-            { name: "Activity Logs", status: "PLANNED", module: "missing", route: null, note: "Needs activity log model and middleware." },
-            { name: "Audit Logs", status: "PLANNED", module: "missing", route: null, note: "Needs immutable audit trail for sensitive admin actions." },
-            { name: "API Configuration", status: "PLANNED", module: "missing", route: null, note: "Needs secure config store for external API keys and toggles." },
-            { name: "Payment Gateway Settings", status: "PARTIAL", module: "paymentMethod/order", route: "/api/v1/payment-methods", note: "Payment methods exist; gateway credential management should remain secure/env-backed." },
-            { name: "SMTP/Email Settings", status: "PARTIAL", module: "mail.service", route: null, note: "Mail service exists; admin-editable SMTP settings are not yet exposed." },
-            { name: "Backup & Restore Settings", status: "PLANNED", module: "missing", route: null, note: "Needs backup export/import jobs and restricted admin controls." },
+            { name: "Activity Logs", status: "ACTIVE", module: "admin/activityLog", route: "/api/v1/admin/activity-logs", note: "Admin activity feed records operational actions." },
+            { name: "Audit Logs", status: "ACTIVE", module: "admin/auditLog", route: "/api/v1/admin/audit-logs", note: "Sensitive admin mutations write audit log entries." },
+            { name: "API Configuration", status: "ACTIVE", module: "admin/systemConfig", route: "/api/v1/admin/system-config", note: "Secure config store with masked write-only keys and webhook secrets." },
+            { name: "Payment Gateway Settings", status: "ACTIVE", module: "admin/systemConfig", route: "/api/v1/admin/system-config", note: "Gateway provider, mode, keys, and webhook secret are configurable and masked." },
+            { name: "SMTP/Email Settings", status: "ACTIVE", module: "admin/systemConfig", route: "/api/v1/admin/system-config", note: "SMTP host, sender, username, and write-only password settings." },
+            { name: "Backup & Restore Settings", status: "ACTIVE", module: "admin/backup", route: "/api/v1/admin/backups", note: "JSON snapshot jobs with dry-run validation and explicit restore confirmation." },
         ],
     },
 ];
@@ -142,6 +156,138 @@ const listOptions = (query: any = {}) => {
         skip: (page - 1) * limit,
     };
 };
+
+const listSort = (query: any = {}, fallback = "createdAt") => ({
+    [query.sortBy || fallback]: query.sortOrder === "asc" ? 1 : -1,
+});
+
+const dateFilter = (query: any = {}) => {
+    const range: any = {};
+    if (query.dateFrom) range.$gte = query.dateFrom;
+    if (query.dateTo) range.$lte = query.dateTo;
+    return Object.keys(range).length ? { createdAt: range } : {};
+};
+
+const paginatedFind = async (model: any, filter: any, query: any = {}, populate?: any) => {
+    const { page, limit, skip } = listOptions(query);
+    let findQuery = model.find(filter).sort(listSort(query)).skip(skip).limit(limit);
+
+    if (populate) {
+        const populateItems = Array.isArray(populate) ? populate : [populate];
+        for (const item of populateItems) {
+            findQuery = findQuery.populate(item);
+        }
+    }
+
+    const [data, total] = await Promise.all([
+        findQuery.lean(),
+        model.countDocuments(filter),
+    ]);
+
+    return {
+        data,
+        total,
+        page,
+        limit,
+        totalPages: Math.max(1, Math.ceil(total / limit)),
+    };
+};
+
+const buildTextFilter = (query: any, fields: string[]) => {
+    if (!query.search) return {};
+    const regex = new RegExp(query.search, "i");
+    return { $or: fields.map((field) => ({ [field]: regex })) };
+};
+
+const uniqueSlugFor = async (model: any, source: string, providedSlug?: string, excludeId?: string) => {
+    const base = slugify(providedSlug || source) || `item-${Date.now()}`;
+    let slug = base;
+    let suffix = 1;
+    const filterFor = (value: string) => ({
+        slug: value,
+        ...(excludeId ? { _id: { $ne: excludeId } } : {}),
+    });
+
+    while (await model.exists(filterFor(slug))) {
+        suffix += 1;
+        slug = `${base}-${suffix}`;
+    }
+
+    return slug;
+};
+
+const asObjectId = (value: any) => value instanceof Types.ObjectId ? value : new Types.ObjectId(String(value));
+
+const plainDoc = (doc: any) => doc?.toObject ? doc.toObject() : doc;
+
+const mask = (value: any) => (value ? "********" : value);
+
+const isMasked = (value: unknown) => typeof value === "string" && /^(\*{4,}|masked)$/i.test(value.trim());
+
+const mergeWriteOnlySecrets = (incoming: any = {}, existing: any = {}) => {
+    const next = { ...incoming };
+
+    if ("secretKey" in next && (!next.secretKey || isMasked(next.secretKey))) next.secretKey = existing.secretKey;
+    if ("webhookSecret" in next && (!next.webhookSecret || isMasked(next.webhookSecret))) next.webhookSecret = existing.webhookSecret;
+    if ("password" in next && (!next.password || isMasked(next.password))) next.password = existing.password;
+
+    if (Array.isArray(next.keys)) {
+        const existingKeys = Array.isArray(existing.keys) ? existing.keys : [];
+        next.keys = next.keys.map((item: any, index: number) => ({
+            ...item,
+            key: item.key && !isMasked(item.key) ? item.key : existingKeys[index]?.key,
+            secret: item.secret && !isMasked(item.secret) ? item.secret : existingKeys[index]?.secret,
+        }));
+    }
+
+    if (Array.isArray(next.webhooks)) {
+        const existingWebhooks = Array.isArray(existing.webhooks) ? existing.webhooks : [];
+        next.webhooks = next.webhooks.map((item: any, index: number) => ({
+            ...item,
+            secret: item.secret && !isMasked(item.secret) ? item.secret : existingWebhooks[index]?.secret,
+        }));
+    }
+
+    return next;
+};
+
+const maskSystemConfig = (config: any = {}) => ({
+    ...config,
+    api: {
+        ...(config.api || {}),
+        keys: (config.api?.keys || []).map((item: any) => ({
+            ...item,
+            key: mask(item.key),
+            secret: mask(item.secret),
+        })),
+        webhooks: (config.api?.webhooks || []).map((item: any) => ({
+            ...item,
+            secret: mask(item.secret),
+        })),
+    },
+    payment: {
+        ...(config.payment || {}),
+        secretKey: mask(config.payment?.secretKey),
+        webhookSecret: mask(config.payment?.webhookSecret),
+    },
+    smtp: {
+        ...(config.smtp || {}),
+        password: mask(config.smtp?.password),
+    },
+});
+
+const allowedBackupCollections: Record<string, any> = {
+    cmsPages: CMSPage,
+    faqs: FAQ,
+    blogPosts: BlogPost,
+    announcements: Announcement,
+    flashSales: FlashSale,
+    warehouses: Warehouse,
+    shippingProviders: ShippingProvider,
+    systemConfigs: AdminSystemConfig,
+};
+
+const defaultBackupCollections = Object.keys(allowedBackupCollections);
 
 const notificationForSubmission = async (sellerId: any, type: string, status: string, itemId: string, reason?: string) => {
     if (!sellerId) return;
@@ -231,6 +377,684 @@ export class AdminService {
         });
     }
 
+    static async recordAdminMutation(
+        adminId: string,
+        action: string,
+        resourceType: string,
+        resourceId?: string,
+        data: { before?: any; after?: any; metadata?: any; message?: string; severity?: "INFO" | "WARNING" | "ERROR" } = {},
+    ) {
+        await Promise.all([
+            AuditLog.create({
+                actorId: adminId ? asObjectId(adminId) : undefined,
+                action,
+                resourceType,
+                resourceId,
+                before: data.before,
+                after: data.after,
+                metadata: data.metadata || {},
+            }),
+            ActivityLog.create({
+                actorId: adminId ? asObjectId(adminId) : undefined,
+                action,
+                resourceType,
+                resourceId,
+                message: data.message || `${action} ${resourceType}`,
+                severity: data.severity || "INFO",
+                metadata: data.metadata || {},
+            }),
+        ]);
+    }
+
+    static async listCMSPages(query: any = {}) {
+        const filter = {
+            ...buildTextFilter(query, ["title", "content", "excerpt"]),
+            ...dateFilter(query),
+            ...(query.status && query.status !== "ALL" ? { status: query.status } : {}),
+        };
+        return await paginatedFind(CMSPage, filter, query);
+    }
+
+    static async createCMSPage(adminId: string, data: any) {
+        const page = await CMSPage.create({
+            ...data,
+            slug: await uniqueSlugFor(CMSPage, data.title, data.slug),
+            publishedAt: data.status === "PUBLISHED" ? new Date() : undefined,
+            createdBy: asObjectId(adminId),
+            updatedBy: asObjectId(adminId),
+        });
+        await this.recordAdminMutation(adminId, "CREATE", "CMSPage", page._id.toString(), { after: plainDoc(page) });
+        return page;
+    }
+
+    static async updateCMSPage(adminId: string, pageId: string, data: any) {
+        const page = await CMSPage.findById(pageId);
+        if (!page) throw new ApiError(404, "CMS page not found");
+        const before = plainDoc(page);
+
+        Object.assign(page, data);
+        if (data.title || data.slug) page.slug = await uniqueSlugFor(CMSPage, data.title || page.title, data.slug, pageId);
+        if (data.status === "PUBLISHED" && !page.publishedAt) page.publishedAt = new Date();
+        page.updatedBy = asObjectId(adminId);
+        await page.save();
+
+        await this.recordAdminMutation(adminId, "UPDATE", "CMSPage", page._id.toString(), { before, after: plainDoc(page) });
+        return page;
+    }
+
+    static async deleteCMSPage(adminId: string, pageId: string) {
+        const page = await CMSPage.findByIdAndDelete(pageId);
+        if (!page) throw new ApiError(404, "CMS page not found");
+        await this.recordAdminMutation(adminId, "DELETE", "CMSPage", page._id.toString(), { before: plainDoc(page), severity: "WARNING" });
+        return page;
+    }
+
+    static async listFAQs(query: any = {}) {
+        const filter = {
+            ...buildTextFilter(query, ["question", "answer", "category"]),
+            ...dateFilter(query),
+            ...(query.status && query.status !== "ALL" ? { status: query.status } : {}),
+        };
+        return await paginatedFind(FAQ, filter, query);
+    }
+
+    static async createFAQ(adminId: string, data: any) {
+        const faq = await FAQ.create({
+            ...data,
+            createdBy: asObjectId(adminId),
+            updatedBy: asObjectId(adminId),
+        });
+        await this.recordAdminMutation(adminId, "CREATE", "FAQ", faq._id.toString(), { after: plainDoc(faq) });
+        return faq;
+    }
+
+    static async updateFAQ(adminId: string, faqId: string, data: any) {
+        const faq = await FAQ.findById(faqId);
+        if (!faq) throw new ApiError(404, "FAQ not found");
+        const before = plainDoc(faq);
+        Object.assign(faq, data, { updatedBy: asObjectId(adminId) });
+        await faq.save();
+        await this.recordAdminMutation(adminId, "UPDATE", "FAQ", faq._id.toString(), { before, after: plainDoc(faq) });
+        return faq;
+    }
+
+    static async deleteFAQ(adminId: string, faqId: string) {
+        const faq = await FAQ.findByIdAndDelete(faqId);
+        if (!faq) throw new ApiError(404, "FAQ not found");
+        await this.recordAdminMutation(adminId, "DELETE", "FAQ", faq._id.toString(), { before: plainDoc(faq), severity: "WARNING" });
+        return faq;
+    }
+
+    static async listBlogPosts(query: any = {}) {
+        const filter = {
+            ...buildTextFilter(query, ["title", "content", "excerpt", "tags"]),
+            ...dateFilter(query),
+            ...(query.status && query.status !== "ALL" ? { status: query.status } : {}),
+        };
+        return await paginatedFind(BlogPost, filter, query, { path: "authorId", select: "fullName email" });
+    }
+
+    static async createBlogPost(adminId: string, data: any) {
+        const post = await BlogPost.create({
+            ...data,
+            slug: await uniqueSlugFor(BlogPost, data.title, data.slug),
+            publishedAt: data.status === "PUBLISHED" ? new Date() : undefined,
+            authorId: asObjectId(adminId),
+            updatedBy: asObjectId(adminId),
+        });
+        await this.recordAdminMutation(adminId, "CREATE", "BlogPost", post._id.toString(), { after: plainDoc(post) });
+        return post;
+    }
+
+    static async updateBlogPost(adminId: string, postId: string, data: any) {
+        const post = await BlogPost.findById(postId);
+        if (!post) throw new ApiError(404, "Blog post not found");
+        const before = plainDoc(post);
+        Object.assign(post, data);
+        if (data.title || data.slug) post.slug = await uniqueSlugFor(BlogPost, data.title || post.title, data.slug, postId);
+        if (data.status === "PUBLISHED" && !post.publishedAt) post.publishedAt = new Date();
+        post.updatedBy = asObjectId(adminId);
+        await post.save();
+        await this.recordAdminMutation(adminId, "UPDATE", "BlogPost", post._id.toString(), { before, after: plainDoc(post) });
+        return post;
+    }
+
+    static async deleteBlogPost(adminId: string, postId: string) {
+        const post = await BlogPost.findByIdAndDelete(postId);
+        if (!post) throw new ApiError(404, "Blog post not found");
+        await this.recordAdminMutation(adminId, "DELETE", "BlogPost", post._id.toString(), { before: plainDoc(post), severity: "WARNING" });
+        return post;
+    }
+
+    static async listAnnouncements(query: any = {}) {
+        const filter = {
+            ...buildTextFilter(query, ["title", "message"]),
+            ...dateFilter(query),
+            ...(query.status && query.status !== "ALL" ? { status: query.status } : {}),
+        };
+        return await paginatedFind(Announcement, filter, query);
+    }
+
+    static async createAnnouncement(adminId: string, data: any) {
+        const announcement = await Announcement.create({
+            ...data,
+            sentAt: data.status === "SENT" ? new Date() : undefined,
+            createdBy: asObjectId(adminId),
+            updatedBy: asObjectId(adminId),
+        });
+        await this.recordAdminMutation(adminId, "CREATE", "Announcement", announcement._id.toString(), { after: plainDoc(announcement) });
+        return announcement;
+    }
+
+    static async updateAnnouncement(adminId: string, announcementId: string, data: any) {
+        const announcement = await Announcement.findById(announcementId);
+        if (!announcement) throw new ApiError(404, "Announcement not found");
+        const before = plainDoc(announcement);
+        Object.assign(announcement, data);
+        if (data.status === "SENT" && !announcement.sentAt) announcement.sentAt = new Date();
+        announcement.updatedBy = asObjectId(adminId);
+        await announcement.save();
+        await this.recordAdminMutation(adminId, "UPDATE", "Announcement", announcement._id.toString(), { before, after: plainDoc(announcement) });
+        return announcement;
+    }
+
+    static async deleteAnnouncement(adminId: string, announcementId: string) {
+        const announcement = await Announcement.findByIdAndDelete(announcementId);
+        if (!announcement) throw new ApiError(404, "Announcement not found");
+        await this.recordAdminMutation(adminId, "DELETE", "Announcement", announcement._id.toString(), { before: plainDoc(announcement), severity: "WARNING" });
+        return announcement;
+    }
+
+    static async listFlashSales(query: any = {}) {
+        const filter = {
+            ...buildTextFilter(query, ["name", "description"]),
+            ...dateFilter(query),
+            ...(query.status && query.status !== "ALL" ? { status: query.status } : {}),
+        };
+        return await paginatedFind(FlashSale, filter, query, { path: "productIds", select: "title price totalStock isActive" });
+    }
+
+    static async createFlashSale(adminId: string, data: any) {
+        const sale = await FlashSale.create({
+            ...data,
+            slug: await uniqueSlugFor(FlashSale, data.name, data.slug),
+            productIds: (data.productIds || []).map(asObjectId),
+            createdBy: asObjectId(adminId),
+            updatedBy: asObjectId(adminId),
+        });
+        await this.recordAdminMutation(adminId, "CREATE", "FlashSale", sale._id.toString(), { after: plainDoc(sale) });
+        return sale;
+    }
+
+    static async updateFlashSale(adminId: string, saleId: string, data: any) {
+        const sale = await FlashSale.findById(saleId);
+        if (!sale) throw new ApiError(404, "Flash sale not found");
+        const before = plainDoc(sale);
+        Object.assign(sale, {
+            ...data,
+            productIds: data.productIds ? data.productIds.map(asObjectId) : sale.productIds,
+        });
+        if (data.name || data.slug) sale.slug = await uniqueSlugFor(FlashSale, data.name || sale.name, data.slug, saleId);
+        sale.updatedBy = asObjectId(adminId);
+        await sale.save();
+        await this.recordAdminMutation(adminId, "UPDATE", "FlashSale", sale._id.toString(), { before, after: plainDoc(sale) });
+        return sale;
+    }
+
+    static async deleteFlashSale(adminId: string, saleId: string) {
+        const sale = await FlashSale.findByIdAndDelete(saleId);
+        if (!sale) throw new ApiError(404, "Flash sale not found");
+        await this.recordAdminMutation(adminId, "DELETE", "FlashSale", sale._id.toString(), { before: plainDoc(sale), severity: "WARNING" });
+        return sale;
+    }
+
+    static async setProductFeature(adminId: string, productId: string, data: any) {
+        const before = await Product.findById(productId).lean();
+        if (!before) throw new ApiError(404, "Product not found");
+
+        const product = await Product.findByIdAndUpdate(
+            productId,
+            { $set: data },
+            { returnDocument: "after" },
+        ).lean();
+
+        await this.recordAdminMutation(adminId, "UPDATE_FEATURED_PRODUCT", "Product", productId, { before, after: product });
+        return product;
+    }
+
+    static async listWarehouses(query: any = {}) {
+        const filter = {
+            ...buildTextFilter(query, ["name", "code", "serviceAreas"]),
+            ...dateFilter(query),
+            ...(query.status === "active" ? { isActive: true } : {}),
+            ...(query.status === "inactive" ? { isActive: false } : {}),
+        };
+        return await paginatedFind(Warehouse, filter, query);
+    }
+
+    static async createWarehouse(adminId: string, data: any) {
+        const warehouse = await Warehouse.create({
+            ...data,
+            code: data.code.toUpperCase(),
+            createdBy: asObjectId(adminId),
+            updatedBy: asObjectId(adminId),
+        });
+        await this.recordAdminMutation(adminId, "CREATE", "Warehouse", warehouse._id.toString(), { after: plainDoc(warehouse) });
+        return warehouse;
+    }
+
+    static async updateWarehouse(adminId: string, warehouseId: string, data: any) {
+        const warehouse = await Warehouse.findById(warehouseId);
+        if (!warehouse) throw new ApiError(404, "Warehouse not found");
+        const before = plainDoc(warehouse);
+        Object.assign(warehouse, { ...data, code: data.code ? data.code.toUpperCase() : warehouse.code, updatedBy: asObjectId(adminId) });
+        await warehouse.save();
+        await this.recordAdminMutation(adminId, "UPDATE", "Warehouse", warehouse._id.toString(), { before, after: plainDoc(warehouse) });
+        return warehouse;
+    }
+
+    static async deleteWarehouse(adminId: string, warehouseId: string) {
+        const warehouse = await Warehouse.findByIdAndUpdate(
+            warehouseId,
+            { $set: { isActive: false, updatedBy: asObjectId(adminId) } },
+            { returnDocument: "after" },
+        );
+        if (!warehouse) throw new ApiError(404, "Warehouse not found");
+        await this.recordAdminMutation(adminId, "DEACTIVATE", "Warehouse", warehouse._id.toString(), { after: plainDoc(warehouse), severity: "WARNING" });
+        return warehouse;
+    }
+
+    static async listShippingProviders(query: any = {}) {
+        const filter = {
+            ...buildTextFilter(query, ["name", "code", "serviceAreas"]),
+            ...dateFilter(query),
+            ...(query.status === "active" ? { isActive: true } : {}),
+            ...(query.status === "inactive" ? { isActive: false } : {}),
+        };
+        return await paginatedFind(ShippingProvider, filter, query);
+    }
+
+    static async createShippingProvider(adminId: string, data: any) {
+        const provider = await ShippingProvider.create({
+            ...data,
+            code: data.code.toUpperCase(),
+            createdBy: asObjectId(adminId),
+            updatedBy: asObjectId(adminId),
+        });
+        await this.recordAdminMutation(adminId, "CREATE", "ShippingProvider", provider._id.toString(), { after: plainDoc(provider) });
+        return provider;
+    }
+
+    static async updateShippingProvider(adminId: string, providerId: string, data: any) {
+        const provider = await ShippingProvider.findById(providerId);
+        if (!provider) throw new ApiError(404, "Shipping provider not found");
+        const before = plainDoc(provider);
+        Object.assign(provider, { ...data, code: data.code ? data.code.toUpperCase() : provider.code, updatedBy: asObjectId(adminId) });
+        await provider.save();
+        await this.recordAdminMutation(adminId, "UPDATE", "ShippingProvider", provider._id.toString(), { before, after: plainDoc(provider) });
+        return provider;
+    }
+
+    static async deleteShippingProvider(adminId: string, providerId: string) {
+        const provider = await ShippingProvider.findByIdAndUpdate(
+            providerId,
+            { $set: { isActive: false, updatedBy: asObjectId(adminId) } },
+            { returnDocument: "after" },
+        );
+        if (!provider) throw new ApiError(404, "Shipping provider not found");
+        await this.recordAdminMutation(adminId, "DEACTIVATE", "ShippingProvider", provider._id.toString(), { after: plainDoc(provider), severity: "WARNING" });
+        return provider;
+    }
+
+    static async listInventory(query: any = {}) {
+        const filter: any = {
+            isDeleted: { $ne: true },
+            ...dateFilter(query),
+        };
+
+        if (query.search) {
+            const searchRegex = new RegExp(String(query.search), "i");
+            filter.$or = [
+                { title: searchRegex },
+                { brand: searchRegex },
+                { category: searchRegex },
+                { "details.sku": searchRegex },
+                { "variants.sku": searchRegex },
+            ];
+        }
+
+        if (query.status === "low-stock") filter.totalStock = { $lte: 10 };
+        if (query.status === "out-of-stock") filter.totalStock = 0;
+        if (query.status === "active") filter.isActive = true;
+        if (query.status === "inactive") filter.isActive = false;
+
+        const result = await paginatedFind(
+            Product,
+            filter,
+            query,
+            [
+                { path: "sellerId", select: "fullName email" },
+                { path: "storeId", select: "name" },
+            ],
+        );
+
+        const movements = await InventoryMovement.find()
+            .sort({ createdAt: -1 })
+            .limit(20)
+            .populate("productId", "title")
+            .populate("sellerId", "fullName email")
+            .lean();
+
+        return {
+            ...result,
+            lowStockCount: await Product.countDocuments({ totalStock: { $lte: 10 }, isDeleted: { $ne: true } }),
+            outOfStockCount: await Product.countDocuments({ totalStock: 0, isDeleted: { $ne: true } }),
+            movements,
+        };
+    }
+
+    static async updateInventoryStock(adminId: string, data: any) {
+        const product: any = await Product.findById(data.productId);
+        if (!product) throw new ApiError(404, "Product not found");
+        const variant = product.variants.find((item: any) => item.sku === data.sku);
+        if (!variant) throw new ApiError(404, "Variant not found");
+
+        const previousStock = variant.stock || 0;
+        const newStock = data.stock;
+        variant.stock = newStock;
+        product.totalStock = product.variants.reduce((sum: number, item: any) => sum + (item.stock || 0), 0);
+        product.markModified("variants");
+        await product.save();
+
+        const movement = await InventoryMovement.create({
+            sellerId: product.sellerId,
+            storeId: product.storeId,
+            productId: product._id,
+            sku: data.sku,
+            variantLabel: [variant.size, variant.color].filter(Boolean).join(" / "),
+            movementType: newStock > previousStock ? "IN" : newStock < previousStock ? "OUT" : "ADJUSTMENT",
+            quantity: newStock - previousStock,
+            previousStock,
+            newStock,
+            reason: data.reason || "Admin stock adjustment",
+            referenceType: "ADMIN",
+            referenceId: adminId,
+            createdBy: asObjectId(adminId),
+        });
+
+        await this.recordAdminMutation(adminId, "UPDATE_STOCK", "Product", product._id.toString(), {
+            metadata: { sku: data.sku, previousStock, newStock },
+            after: plainDoc(product),
+        });
+
+        return { product, movement };
+    }
+
+    static async getReports(query: any = {}) {
+        const orderMatch: any = {};
+        if (query.dateFrom || query.dateTo) Object.assign(orderMatch, dateFilter(query));
+
+        const revenueStatuses = ["PAID", "CONFIRMED", "PROCESSING", "SHIPPED", "DELIVERED"];
+        const [
+            revenueSummary,
+            ordersByStatus,
+            dailyRevenue,
+            productPerformance,
+            customerSummary,
+            inventorySummary,
+        ] = await Promise.all([
+            Order.aggregate([
+                { $match: { ...orderMatch, status: { $in: revenueStatuses } } },
+                {
+                    $group: {
+                        _id: null,
+                        orderCount: { $sum: 1 },
+                        revenue: { $sum: "$payableAmount" },
+                        sales: { $sum: "$totalAmount" },
+                        tax: { $sum: "$totalTax" },
+                        shipping: { $sum: "$shippingFee" },
+                        discounts: { $sum: "$discountAmount" },
+                    },
+                },
+            ]),
+            Order.aggregate([
+                { $match: orderMatch },
+                { $group: { _id: "$status", count: { $sum: 1 }, revenue: { $sum: "$payableAmount" } } },
+                { $sort: { count: -1 } },
+            ]),
+            Order.aggregate([
+                { $match: { ...orderMatch, status: { $in: revenueStatuses } } },
+                {
+                    $group: {
+                        _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+                        revenue: { $sum: "$payableAmount" },
+                        orders: { $sum: 1 },
+                    },
+                },
+                { $sort: { _id: 1 } },
+                { $limit: 60 },
+            ]),
+            Order.aggregate([
+                { $match: { ...orderMatch, status: { $in: revenueStatuses } } },
+                { $unwind: "$items" },
+                {
+                    $group: {
+                        _id: "$items.productId",
+                        title: { $first: "$items.title" },
+                        sku: { $first: "$items.sku" },
+                        quantity: { $sum: "$items.quantity" },
+                        revenue: { $sum: { $multiply: ["$items.quantity", "$items.price"] } },
+                    },
+                },
+                { $sort: { revenue: -1 } },
+                { $limit: 10 },
+            ]),
+            Order.aggregate([
+                { $match: orderMatch },
+                {
+                    $group: {
+                        _id: "$userId",
+                        orders: { $sum: 1 },
+                        revenue: { $sum: "$payableAmount" },
+                        lastOrderAt: { $max: "$createdAt" },
+                    },
+                },
+                { $sort: { revenue: -1 } },
+                { $limit: 10 },
+                {
+                    $lookup: {
+                        from: "users",
+                        localField: "_id",
+                        foreignField: "_id",
+                        as: "customer",
+                    },
+                },
+                { $unwind: { path: "$customer", preserveNullAndEmptyArrays: true } },
+                {
+                    $project: {
+                        orders: 1,
+                        revenue: 1,
+                        lastOrderAt: 1,
+                        fullName: "$customer.fullName",
+                        email: "$customer.email",
+                        phone: "$customer.phone",
+                    },
+                },
+            ]),
+            Product.aggregate([
+                { $match: { isDeleted: { $ne: true } } },
+                {
+                    $group: {
+                        _id: null,
+                        totalProducts: { $sum: 1 },
+                        activeProducts: { $sum: { $cond: ["$isActive", 1, 0] } },
+                        totalStock: { $sum: "$totalStock" },
+                        lowStockProducts: { $sum: { $cond: [{ $lte: ["$totalStock", 10] }, 1, 0] } },
+                        outOfStockProducts: { $sum: { $cond: [{ $eq: ["$totalStock", 0] }, 1, 0] } },
+                    },
+                },
+            ]),
+        ]);
+
+        const totalCustomers = await User.countDocuments();
+        const newCustomers = await User.countDocuments(dateFilter(query));
+
+        return {
+            summary: {
+                revenue: revenueSummary[0]?.revenue || 0,
+                sales: revenueSummary[0]?.sales || 0,
+                orderCount: revenueSummary[0]?.orderCount || 0,
+                tax: revenueSummary[0]?.tax || 0,
+                shipping: revenueSummary[0]?.shipping || 0,
+                discounts: revenueSummary[0]?.discounts || 0,
+                totalCustomers,
+                newCustomers,
+                ...(inventorySummary[0] || {
+                    totalProducts: 0,
+                    activeProducts: 0,
+                    totalStock: 0,
+                    lowStockProducts: 0,
+                    outOfStockProducts: 0,
+                }),
+            },
+            ordersByStatus,
+            dailyRevenue,
+            productPerformance,
+            customerSummary,
+        };
+    }
+
+    static async listActivityLogs(query: any = {}) {
+        const filter = {
+            ...buildTextFilter(query, ["action", "resourceType", "message"]),
+            ...dateFilter(query),
+            ...(query.status && query.status !== "ALL" ? { severity: query.status } : {}),
+        };
+        return await paginatedFind(ActivityLog, filter, query, { path: "actorId", select: "fullName email" });
+    }
+
+    static async listAuditLogs(query: any = {}) {
+        const filter = {
+            ...buildTextFilter(query, ["action", "resourceType", "resourceId"]),
+            ...dateFilter(query),
+            ...(query.status && query.status !== "ALL" ? { resourceType: query.status } : {}),
+        };
+        return await paginatedFind(AuditLog, filter, query, { path: "actorId", select: "fullName email" });
+    }
+
+    static async getSystemConfig() {
+        const config = await AdminSystemConfig.findOne().sort({ createdAt: -1 }).lean();
+        return maskSystemConfig(config || {});
+    }
+
+    static async updateSystemConfig(adminId: string, data: any) {
+        const existing = await AdminSystemConfig.findOne().sort({ createdAt: -1 });
+        const existingConfig = plainDoc(existing) || {};
+        const next = {
+            api: data.api ? mergeWriteOnlySecrets(data.api, existingConfig.api) : existingConfig.api,
+            payment: data.payment ? mergeWriteOnlySecrets(data.payment, existingConfig.payment) : existingConfig.payment,
+            smtp: data.smtp ? mergeWriteOnlySecrets(data.smtp, existingConfig.smtp) : existingConfig.smtp,
+            backup: data.backup ?? existingConfig.backup,
+            updatedBy: asObjectId(adminId),
+        };
+
+        const config = existing
+            ? await AdminSystemConfig.findByIdAndUpdate(existing._id, { $set: next }, { returnDocument: "after" })
+            : await AdminSystemConfig.create(next);
+
+        await this.recordAdminMutation(adminId, "UPDATE", "AdminSystemConfig", config?._id?.toString(), {
+            metadata: { updatedKeys: Object.keys(data) },
+        });
+
+        return maskSystemConfig(plainDoc(config));
+    }
+
+    static async listBackups(query: any = {}) {
+        return await paginatedFind(BackupJob, { ...dateFilter(query), ...(query.status ? { status: query.status } : {}) }, query, { path: "createdBy restoredBy", select: "fullName email" });
+    }
+
+    static async createBackup(adminId: string, data: any = {}) {
+        const collections = (data.collections?.length ? data.collections : defaultBackupCollections)
+            .filter((item: string) => Boolean(allowedBackupCollections[item]));
+
+        if (!collections.length) throw new ApiError(400, "No valid backup collections selected");
+
+        const job = await BackupJob.create({
+            name: data.name || `Admin backup ${new Date().toISOString()}`,
+            status: "PENDING",
+            collections,
+            createdBy: asObjectId(adminId),
+        });
+
+        try {
+            const snapshot: Record<string, any[]> = {};
+            for (const collection of collections) {
+                snapshot[collection] = await allowedBackupCollections[collection].find().lean();
+            }
+
+            job.snapshot = snapshot;
+            job.status = "COMPLETED";
+            await job.save();
+            await this.recordAdminMutation(adminId, "CREATE_BACKUP", "BackupJob", job._id.toString(), {
+                metadata: { collections },
+            });
+            return job;
+        } catch (error: any) {
+            job.status = "FAILED";
+            job.error = error?.message || "Backup failed";
+            await job.save();
+            throw error;
+        }
+    }
+
+    static async dryRunRestore(backupId: string) {
+        const job = await BackupJob.findById(backupId).lean();
+        if (!job) throw new ApiError(404, "Backup job not found");
+        if (job.status !== "COMPLETED" && job.status !== "RESTORED") throw new ApiError(400, "Backup is not restorable");
+
+        const result = Object.fromEntries(
+            (job.collections || []).map((collection: string) => [
+                collection,
+                {
+                    incoming: Array.isArray(job.snapshot?.[collection]) ? job.snapshot[collection].length : 0,
+                    restorable: Boolean(allowedBackupCollections[collection]),
+                },
+            ]),
+        );
+
+        await BackupJob.findByIdAndUpdate(backupId, { $set: { dryRunResult: result } });
+        return { backupId, result };
+    }
+
+    static async restoreBackup(adminId: string, backupId: string) {
+        const job: any = await BackupJob.findById(backupId);
+        if (!job) throw new ApiError(404, "Backup job not found");
+        if (job.status !== "COMPLETED" && job.status !== "RESTORED") throw new ApiError(400, "Backup is not restorable");
+
+        const restoreResult: Record<string, number> = {};
+        for (const collection of job.collections || []) {
+            const model = allowedBackupCollections[collection];
+            const snapshot = job.snapshot?.[collection];
+            if (!model || !Array.isArray(snapshot)) continue;
+            await model.deleteMany({});
+            if (snapshot.length) await model.insertMany(snapshot, { ordered: false });
+            restoreResult[collection] = snapshot.length;
+        }
+
+        job.status = "RESTORED";
+        job.restoredBy = asObjectId(adminId);
+        job.restoredAt = new Date();
+        job.dryRunResult = restoreResult;
+        await job.save();
+
+        await this.recordAdminMutation(adminId, "RESTORE_BACKUP", "BackupJob", job._id.toString(), {
+            metadata: { restoreResult },
+            severity: "WARNING",
+        });
+
+        return { backup: job, restoreResult };
+    }
+
     static async getDashboard() {
         const [
             totalUsers,
@@ -248,6 +1072,19 @@ export class AdminService {
             pendingMallRequests,
             pendingMallCreations,
             pendingPayoutMethods,
+            totalOrders,
+            pendingOrders,
+            deliveredOrders,
+            revenueAgg,
+            totalProducts,
+            lowStockProducts,
+            pendingSellerProducts,
+            pendingSellerCoupons,
+            pendingSellerBanners,
+            pendingSellerSizeCharts,
+            pendingSellerCategoryRequests,
+            activeFlashSales,
+            sentAnnouncements,
         ] = await Promise.all([
             User.countDocuments(),
             User.countDocuments({ isBlocked: true }),
@@ -267,6 +1104,26 @@ export class AdminService {
             Seller.countDocuments({ "mallRequest.status": "PENDING" }),
             Mall.countDocuments({ status: "PENDING" }),
             Seller.countDocuments({ "payoutMethods.status": "PENDING_VERIFICATION" }),
+            Order.countDocuments(),
+            Order.countDocuments({ status: { $in: ["PENDING_PAYMENT", "PAID", "CONFIRMED", "PROCESSING"] } }),
+            Order.countDocuments({ status: "DELIVERED" }),
+            Order.aggregate([
+                { $match: { status: { $in: ["PAID", "CONFIRMED", "PROCESSING", "SHIPPED", "DELIVERED"] } } },
+                { $group: { _id: null, revenue: { $sum: "$payableAmount" }, sales: { $sum: "$totalAmount" } } },
+            ]),
+            Product.countDocuments({ isDeleted: { $ne: true } }),
+            Product.countDocuments({ totalStock: { $lte: 10 }, isDeleted: { $ne: true } }),
+            Product.countDocuments({ scope: "SELLER", approvalStatus: "PENDING_REVIEW" }),
+            Coupon.countDocuments({ scope: "SELLER", approvalStatus: "PENDING_REVIEW" }),
+            Banner.countDocuments({ scope: "SELLER", approvalStatus: "PENDING_REVIEW" }),
+            SizeChart.countDocuments({ scope: "SELLER", approvalStatus: "PENDING_REVIEW" }),
+            SellerCategoryRequest.countDocuments({ status: "PENDING" }),
+            FlashSale.countDocuments({
+                isActive: true,
+                status: { $in: ["ACTIVE", "SCHEDULED"] },
+                endsAt: { $gte: new Date() },
+            }),
+            Announcement.countDocuments({ status: "SENT" }),
         ]);
 
         const recentPayouts = await AdminPayout.find()
@@ -292,6 +1149,21 @@ export class AdminService {
                 pendingMallRequests,
                 pendingMallCreations,
                 pendingPayoutMethods,
+                totalOrders,
+                pendingOrders,
+                deliveredOrders,
+                revenue: revenueAgg[0]?.revenue || 0,
+                totalSales: revenueAgg[0]?.sales || 0,
+                totalProducts,
+                lowStockProducts,
+                pendingReviews:
+                    pendingSellerProducts +
+                    pendingSellerCoupons +
+                    pendingSellerBanners +
+                    pendingSellerSizeCharts +
+                    pendingSellerCategoryRequests,
+                activeFlashSales,
+                sentAnnouncements,
             },
             recentPayouts,
             topMalls,
@@ -346,7 +1218,8 @@ export class AdminService {
         );
     }
 
-    static async setUserBlocked(userId: string, isBlocked: boolean) {
+    static async setUserBlocked(userId: string, isBlocked: boolean, adminId?: string) {
+        const before = await User.findById(userId).select(userProjection).lean();
         const user = await User.findByIdAndUpdate(
             userId,
             { $set: { isBlocked } },
@@ -354,11 +1227,19 @@ export class AdminService {
         ).select(userProjection).populate("roleId");
 
         if (!user) throw new ApiError(404, "User not found");
+        if (adminId) {
+            await this.recordAdminMutation(adminId, isBlocked ? "BLOCK_USER" : "UNBLOCK_USER", "User", userId, {
+                before,
+                after: plainDoc(user),
+                severity: isBlocked ? "WARNING" : "INFO",
+            });
+        }
         return serializeUser(user);
     }
 
-    static async updatePartnerStatus(userId: string, data: any) {
+    static async updatePartnerStatus(userId: string, data: any, adminId?: string) {
         const model: any = data.type === "SELLER" ? Seller : DeliveryBoy;
+        const before = await model.findOne({ userId }).lean();
         const profile = await model.findOneAndUpdate(
             { userId },
             {
@@ -378,6 +1259,14 @@ export class AdminService {
             await rbacService.assignUserToRole(userId, role._id.toString());
         }
 
+        if (adminId) {
+            await this.recordAdminMutation(adminId, "UPDATE_PARTNER_STATUS", data.type, profile._id.toString(), {
+                before,
+                after: plainDoc(profile),
+                metadata: { userId, status: data.status },
+            });
+        }
+
         return profile;
     }
 
@@ -386,6 +1275,10 @@ export class AdminService {
         const sent = await MailService.sendAdminInvite(data.email, data.role, inviteUrl, data.fullName, data.message);
 
         if (!sent) throw new ApiError(500, "Failed to send invite email");
+
+        await this.recordAdminMutation(adminId, "SEND_INVITE", "Invite", data.email, {
+            metadata: { email: data.email, role: data.role },
+        });
 
         return {
             invitedBy: adminId,
@@ -413,6 +1306,10 @@ export class AdminService {
         });
 
         await MailService.sendPayoutNotice(partner.email, data.amount, payout.status, data.referenceId);
+        await this.recordAdminMutation(adminId, "CREATE_PAYOUT", "AdminPayout", payout._id.toString(), {
+            after: plainDoc(payout),
+            metadata: { partnerType: data.partnerType, amount: data.amount, status: payout.status },
+        });
 
         return await payout.populate("partnerId", "fullName email");
     }
@@ -469,7 +1366,7 @@ export class AdminService {
         }));
     }
 
-    static async createMall(data: any) {
+    static async createMall(data: any, adminId?: string) {
         const baseSlug = slugify(data.name);
         let slug = baseSlug;
         let suffix = 1;
@@ -479,16 +1376,23 @@ export class AdminService {
             slug = `${baseSlug}-${suffix}`;
         }
 
-        return await Mall.create({
+        const mall = await Mall.create({
             ...data,
             slug,
             totalStores: data.totalStores || 0,
             status: data.status || "APPROVED",
             isActive: data.isActive ?? true,
         });
+
+        if (adminId) {
+            await this.recordAdminMutation(adminId, "CREATE", "Mall", mall._id.toString(), { after: plainDoc(mall) });
+        }
+
+        return mall;
     }
 
-    static async updateMall(mallId: string, data: any) {
+    static async updateMall(mallId: string, data: any, adminId?: string) {
+        const before = await Mall.findById(mallId).lean();
         const update: any = { $set: data };
         if (data.isFeatured === false) {
             delete update.$set.featuredRank;
@@ -497,16 +1401,22 @@ export class AdminService {
 
         const mall = await Mall.findByIdAndUpdate(mallId, update, { returnDocument: "after" });
         if (!mall) throw new ApiError(404, "Mall not found");
+        if (adminId) {
+            await this.recordAdminMutation(adminId, "UPDATE", "Mall", mallId, { before, after: plainDoc(mall) });
+        }
         return mall;
     }
 
-    static async deleteMall(mallId: string) {
+    static async deleteMall(mallId: string, adminId?: string) {
         const mall = await Mall.findByIdAndUpdate(mallId, { $set: { isActive: false } }, { returnDocument: "after" });
         if (!mall) throw new ApiError(404, "Mall not found");
+        if (adminId) {
+            await this.recordAdminMutation(adminId, "DEACTIVATE", "Mall", mallId, { after: plainDoc(mall), severity: "WARNING" });
+        }
         return mall;
     }
 
-    static async assignSellerToMall(userId: string, data: any) {
+    static async assignSellerToMall(userId: string, data: any, adminId?: string) {
         if (data.mallId) {
             const mall = await Mall.findOne({
                 _id: data.mallId,
@@ -538,6 +1448,7 @@ export class AdminService {
         if (Object.keys(set).length) update.$set = set;
         if (Object.keys(unset).length) update.$unset = unset;
 
+        const before = await Seller.findOne({ userId }).lean();
         const seller = await Seller.findOneAndUpdate(
             { userId },
             update,
@@ -545,6 +1456,13 @@ export class AdminService {
         ).populate("mallId", "name slug address.city isActive");
 
         if (!seller) throw new ApiError(404, "Seller profile not found");
+        if (adminId) {
+            await this.recordAdminMutation(adminId, "ASSIGN_SELLER_MALL", "Seller", seller._id.toString(), {
+                before,
+                after: plainDoc(seller),
+                metadata: { userId, mallId: data.mallId },
+            });
+        }
         return seller;
     }
 
@@ -554,6 +1472,7 @@ export class AdminService {
         if (seller.mallRequest?.status !== "PENDING") {
             throw new ApiError(400, "No pending mall request found for this seller");
         }
+        const before = plainDoc(seller);
 
         if (data.status === "APPROVED") {
             const requestedMallId = seller.mallRequest.mallId?._id || seller.mallRequest.mallId;
@@ -571,7 +1490,13 @@ export class AdminService {
         seller.mallRequest.rejectionReason = data.status === "REJECTED" ? data.reason : undefined;
 
         await seller.save();
-        return await seller.populate("mallId", "name slug address.city isActive");
+        await seller.populate("mallId", "name slug address.city isActive");
+        await this.recordAdminMutation(adminId, "REVIEW_SELLER_MALL_REQUEST", "Seller", seller._id.toString(), {
+            before,
+            after: plainDoc(seller),
+            metadata: { userId, status: data.status, reason: data.reason },
+        });
+        return seller;
     }
 
     static async listMallCreationRequests() {
@@ -587,6 +1512,7 @@ export class AdminService {
         if (mall.status !== "PENDING") {
             throw new ApiError(400, "Mall request has already been reviewed");
         }
+        const before = plainDoc(mall);
 
         mall.status = data.status;
         mall.reviewedBy = new Types.ObjectId(adminId);
@@ -605,7 +1531,13 @@ export class AdminService {
         }
 
         await mall.save();
-        return await mall.populate("requestedBy", "fullName email phone");
+        await mall.populate("requestedBy", "fullName email phone");
+        await this.recordAdminMutation(adminId, "REVIEW_MALL_CREATION", "Mall", mall._id.toString(), {
+            before,
+            after: plainDoc(mall),
+            metadata: { status: data.status, reason: data.reason },
+        });
+        return mall;
     }
 
     static async listPayoutMethods(query: any = {}) {
@@ -647,6 +1579,7 @@ export class AdminService {
     static async reviewPayoutMethod(userId: string, methodId: string, adminId: string, data: any) {
         const seller = await Seller.findOne({ userId });
         if (!seller) throw new ApiError(404, "Seller profile not found");
+        const before = plainDoc(seller);
 
         const method = seller.payoutMethods.id(methodId);
         if (!method) throw new ApiError(404, "Payout method not found");
@@ -661,6 +1594,11 @@ export class AdminService {
         }
 
         await seller.save();
+        await this.recordAdminMutation(adminId, "REVIEW_PAYOUT_METHOD", "SellerPayoutMethod", methodId, {
+            before,
+            after: plainDoc(method),
+            metadata: { userId, status: data.status, reason: data.reason },
+        });
         return method;
     }
 
@@ -737,11 +1675,16 @@ export class AdminService {
 
             await request.save();
             await notificationForSubmission(request.sellerId, "category request", data.status, request._id.toString(), data.reason);
+            await this.recordAdminMutation(adminId, "REVIEW_SELLER_SUBMISSION", "SellerCategoryRequest", request._id.toString(), {
+                after: plainDoc(request),
+                metadata: { status: data.status, reason: data.reason },
+            });
             return request;
         }
 
         const submission = await model.findOne({ _id: id, scope: "SELLER" });
         if (!submission) throw new ApiError(404, "Seller submission not found");
+        const before = plainDoc(submission);
 
         submission.approvalStatus = data.status;
         submission.reviewedBy = new Types.ObjectId(adminId);
@@ -751,6 +1694,11 @@ export class AdminService {
 
         await submission.save();
         await notificationForSubmission(submission.sellerId, type, data.status, submission._id.toString(), data.reason);
+        await this.recordAdminMutation(adminId, "REVIEW_SELLER_SUBMISSION", type, submission._id.toString(), {
+            before,
+            after: plainDoc(submission),
+            metadata: { status: data.status, reason: data.reason },
+        });
         return submission;
     }
 
@@ -759,6 +1707,7 @@ export class AdminService {
         if (!payout) throw new ApiError(404, "Payout not found");
 
         const previousStatus = payout.status;
+        const before = plainDoc(payout);
         payout.status = data.status;
         payout.referenceId = data.referenceId ?? payout.referenceId;
         payout.note = data.note ?? payout.note;
@@ -787,6 +1736,11 @@ export class AdminService {
         }
 
         await payout.save();
+        await this.recordAdminMutation(adminId, "UPDATE_PAYOUT_STATUS", "AdminPayout", payout._id.toString(), {
+            before,
+            after: plainDoc(payout),
+            metadata: { previousStatus, status: data.status },
+        });
         return await payout.populate("partnerId", "fullName email");
     }
 }

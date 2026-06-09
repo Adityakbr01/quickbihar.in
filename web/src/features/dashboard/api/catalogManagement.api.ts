@@ -147,6 +147,8 @@ export interface AdminProduct {
     keywords?: string[];
   };
   isFeatured?: boolean;
+  isTrending?: boolean;
+  isNewArrival?: boolean;
   isActive?: boolean;
   isDeleted?: boolean;
   createdAt?: string;

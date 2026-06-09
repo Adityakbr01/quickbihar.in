@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { adminManagementApi } from "../api/adminManagement.api";
+import { adminManagementApi, AdminListParams } from "../api/adminManagement.api";
 
 export const useAdminDashboard = () =>
   useQuery({
@@ -248,5 +248,418 @@ export const useReviewSellerSubmission = () => {
       toast.success(variables.status === "APPROVED" ? "Seller submission approved" : "Seller submission rejected");
     },
     onError: (error: Error) => toast.error(error.message || "Failed to review seller submission"),
+  });
+};
+
+const invalidateAdmin = (queryClient: ReturnType<typeof useQueryClient>, key: string) => {
+  queryClient.invalidateQueries({ queryKey: [key] });
+  queryClient.invalidateQueries({ queryKey: ["admin-dashboard"] });
+  queryClient.invalidateQueries({ queryKey: ["admin-management-catalog"] });
+};
+
+export const useCMSPages = (params: AdminListParams) =>
+  useQuery({
+    queryKey: ["admin-cms-pages", params],
+    queryFn: () => adminManagementApi.getCMSPages(params),
+  });
+
+export const useCreateCMSPage = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: adminManagementApi.createCMSPage,
+    onSuccess: () => {
+      invalidateAdmin(queryClient, "admin-cms-pages");
+      toast.success("CMS page created");
+    },
+    onError: (error: Error) => toast.error(error.message || "Failed to create CMS page"),
+  });
+};
+
+export const useUpdateCMSPage = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: adminManagementApi.updateCMSPage,
+    onSuccess: () => {
+      invalidateAdmin(queryClient, "admin-cms-pages");
+      toast.success("CMS page updated");
+    },
+    onError: (error: Error) => toast.error(error.message || "Failed to update CMS page"),
+  });
+};
+
+export const useDeleteCMSPage = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: adminManagementApi.deleteCMSPage,
+    onSuccess: () => {
+      invalidateAdmin(queryClient, "admin-cms-pages");
+      toast.success("CMS page deleted");
+    },
+    onError: (error: Error) => toast.error(error.message || "Failed to delete CMS page"),
+  });
+};
+
+export const useFAQs = (params: AdminListParams) =>
+  useQuery({
+    queryKey: ["admin-faqs", params],
+    queryFn: () => adminManagementApi.getFAQs(params),
+  });
+
+export const useCreateFAQ = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: adminManagementApi.createFAQ,
+    onSuccess: () => {
+      invalidateAdmin(queryClient, "admin-faqs");
+      toast.success("FAQ created");
+    },
+    onError: (error: Error) => toast.error(error.message || "Failed to create FAQ"),
+  });
+};
+
+export const useUpdateFAQ = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: adminManagementApi.updateFAQ,
+    onSuccess: () => {
+      invalidateAdmin(queryClient, "admin-faqs");
+      toast.success("FAQ updated");
+    },
+    onError: (error: Error) => toast.error(error.message || "Failed to update FAQ"),
+  });
+};
+
+export const useDeleteFAQ = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: adminManagementApi.deleteFAQ,
+    onSuccess: () => {
+      invalidateAdmin(queryClient, "admin-faqs");
+      toast.success("FAQ deleted");
+    },
+    onError: (error: Error) => toast.error(error.message || "Failed to delete FAQ"),
+  });
+};
+
+export const useBlogPosts = (params: AdminListParams) =>
+  useQuery({
+    queryKey: ["admin-blog-posts", params],
+    queryFn: () => adminManagementApi.getBlogPosts(params),
+  });
+
+export const useCreateBlogPost = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: adminManagementApi.createBlogPost,
+    onSuccess: () => {
+      invalidateAdmin(queryClient, "admin-blog-posts");
+      toast.success("Blog post created");
+    },
+    onError: (error: Error) => toast.error(error.message || "Failed to create blog post"),
+  });
+};
+
+export const useUpdateBlogPost = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: adminManagementApi.updateBlogPost,
+    onSuccess: () => {
+      invalidateAdmin(queryClient, "admin-blog-posts");
+      toast.success("Blog post updated");
+    },
+    onError: (error: Error) => toast.error(error.message || "Failed to update blog post"),
+  });
+};
+
+export const useDeleteBlogPost = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: adminManagementApi.deleteBlogPost,
+    onSuccess: () => {
+      invalidateAdmin(queryClient, "admin-blog-posts");
+      toast.success("Blog post deleted");
+    },
+    onError: (error: Error) => toast.error(error.message || "Failed to delete blog post"),
+  });
+};
+
+export const useAnnouncements = (params: AdminListParams) =>
+  useQuery({
+    queryKey: ["admin-announcements", params],
+    queryFn: () => adminManagementApi.getAnnouncements(params),
+  });
+
+export const useCreateAnnouncement = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: adminManagementApi.createAnnouncement,
+    onSuccess: () => {
+      invalidateAdmin(queryClient, "admin-announcements");
+      toast.success("Announcement created");
+    },
+    onError: (error: Error) => toast.error(error.message || "Failed to create announcement"),
+  });
+};
+
+export const useUpdateAnnouncement = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: adminManagementApi.updateAnnouncement,
+    onSuccess: () => {
+      invalidateAdmin(queryClient, "admin-announcements");
+      toast.success("Announcement updated");
+    },
+    onError: (error: Error) => toast.error(error.message || "Failed to update announcement"),
+  });
+};
+
+export const useDeleteAnnouncement = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: adminManagementApi.deleteAnnouncement,
+    onSuccess: () => {
+      invalidateAdmin(queryClient, "admin-announcements");
+      toast.success("Announcement deleted");
+    },
+    onError: (error: Error) => toast.error(error.message || "Failed to delete announcement"),
+  });
+};
+
+export const useFlashSales = (params: AdminListParams) =>
+  useQuery({
+    queryKey: ["admin-flash-sales", params],
+    queryFn: () => adminManagementApi.getFlashSales(params),
+  });
+
+export const useCreateFlashSale = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: adminManagementApi.createFlashSale,
+    onSuccess: () => {
+      invalidateAdmin(queryClient, "admin-flash-sales");
+      toast.success("Flash sale created");
+    },
+    onError: (error: Error) => toast.error(error.message || "Failed to create flash sale"),
+  });
+};
+
+export const useUpdateFlashSale = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: adminManagementApi.updateFlashSale,
+    onSuccess: () => {
+      invalidateAdmin(queryClient, "admin-flash-sales");
+      toast.success("Flash sale updated");
+    },
+    onError: (error: Error) => toast.error(error.message || "Failed to update flash sale"),
+  });
+};
+
+export const useDeleteFlashSale = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: adminManagementApi.deleteFlashSale,
+    onSuccess: () => {
+      invalidateAdmin(queryClient, "admin-flash-sales");
+      toast.success("Flash sale deleted");
+    },
+    onError: (error: Error) => toast.error(error.message || "Failed to delete flash sale"),
+  });
+};
+
+export const useUpdateProductFeature = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: adminManagementApi.updateProductFeature,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-products"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-dashboard"] });
+      toast.success("Product merchandising updated");
+    },
+    onError: (error: Error) => toast.error(error.message || "Failed to update product"),
+  });
+};
+
+export const useWarehouses = (params: AdminListParams) =>
+  useQuery({
+    queryKey: ["admin-warehouses", params],
+    queryFn: () => adminManagementApi.getWarehouses(params),
+  });
+
+export const useCreateWarehouse = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: adminManagementApi.createWarehouse,
+    onSuccess: () => {
+      invalidateAdmin(queryClient, "admin-warehouses");
+      toast.success("Warehouse created");
+    },
+    onError: (error: Error) => toast.error(error.message || "Failed to create warehouse"),
+  });
+};
+
+export const useUpdateWarehouse = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: adminManagementApi.updateWarehouse,
+    onSuccess: () => {
+      invalidateAdmin(queryClient, "admin-warehouses");
+      toast.success("Warehouse updated");
+    },
+    onError: (error: Error) => toast.error(error.message || "Failed to update warehouse"),
+  });
+};
+
+export const useDeleteWarehouse = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: adminManagementApi.deleteWarehouse,
+    onSuccess: () => {
+      invalidateAdmin(queryClient, "admin-warehouses");
+      toast.success("Warehouse deactivated");
+    },
+    onError: (error: Error) => toast.error(error.message || "Failed to deactivate warehouse"),
+  });
+};
+
+export const useShippingProviders = (params: AdminListParams) =>
+  useQuery({
+    queryKey: ["admin-shipping-providers", params],
+    queryFn: () => adminManagementApi.getShippingProviders(params),
+  });
+
+export const useCreateShippingProvider = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: adminManagementApi.createShippingProvider,
+    onSuccess: () => {
+      invalidateAdmin(queryClient, "admin-shipping-providers");
+      toast.success("Shipping provider created");
+    },
+    onError: (error: Error) => toast.error(error.message || "Failed to create shipping provider"),
+  });
+};
+
+export const useUpdateShippingProvider = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: adminManagementApi.updateShippingProvider,
+    onSuccess: () => {
+      invalidateAdmin(queryClient, "admin-shipping-providers");
+      toast.success("Shipping provider updated");
+    },
+    onError: (error: Error) => toast.error(error.message || "Failed to update shipping provider"),
+  });
+};
+
+export const useDeleteShippingProvider = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: adminManagementApi.deleteShippingProvider,
+    onSuccess: () => {
+      invalidateAdmin(queryClient, "admin-shipping-providers");
+      toast.success("Shipping provider deactivated");
+    },
+    onError: (error: Error) => toast.error(error.message || "Failed to deactivate shipping provider"),
+  });
+};
+
+export const useInventory = (params: AdminListParams) =>
+  useQuery({
+    queryKey: ["admin-inventory", params],
+    queryFn: () => adminManagementApi.getInventory(params),
+  });
+
+export const useUpdateInventoryStock = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: adminManagementApi.updateInventoryStock,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-inventory"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-dashboard"] });
+      toast.success("Stock updated");
+    },
+    onError: (error: Error) => toast.error(error.message || "Failed to update stock"),
+  });
+};
+
+export const useAdminReports = (params: AdminListParams) =>
+  useQuery({
+    queryKey: ["admin-reports", params],
+    queryFn: () => adminManagementApi.getReports(params),
+  });
+
+export const useActivityLogs = (params: AdminListParams) =>
+  useQuery({
+    queryKey: ["admin-activity-logs", params],
+    queryFn: () => adminManagementApi.getActivityLogs(params),
+  });
+
+export const useAuditLogs = (params: AdminListParams) =>
+  useQuery({
+    queryKey: ["admin-audit-logs", params],
+    queryFn: () => adminManagementApi.getAuditLogs(params),
+  });
+
+export const useSystemConfig = () =>
+  useQuery({
+    queryKey: ["admin-system-config"],
+    queryFn: adminManagementApi.getSystemConfig,
+  });
+
+export const useUpdateSystemConfig = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: adminManagementApi.updateSystemConfig,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-system-config"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-audit-logs"] });
+      toast.success("System configuration saved");
+    },
+    onError: (error: Error) => toast.error(error.message || "Failed to save system configuration"),
+  });
+};
+
+export const useBackups = (params: AdminListParams) =>
+  useQuery({
+    queryKey: ["admin-backups", params],
+    queryFn: () => adminManagementApi.getBackups(params),
+  });
+
+export const useCreateBackup = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: adminManagementApi.createBackup,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-backups"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-audit-logs"] });
+      toast.success("Backup created");
+    },
+    onError: (error: Error) => toast.error(error.message || "Failed to create backup"),
+  });
+};
+
+export const useDryRunRestore = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: adminManagementApi.dryRunRestore,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-backups"] });
+      toast.success("Dry run completed");
+    },
+    onError: (error: Error) => toast.error(error.message || "Failed to run restore dry run"),
+  });
+};
+
+export const useRestoreBackup = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: adminManagementApi.restoreBackup,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-backups"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-audit-logs"] });
+      toast.success("Backup restored");
+    },
+    onError: (error: Error) => toast.error(error.message || "Failed to restore backup"),
   });
 };

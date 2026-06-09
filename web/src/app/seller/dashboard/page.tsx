@@ -52,12 +52,12 @@ export default function SellerDashboardPage() {
   }
 
   return (
-    <main className="dark min-h-screen bg-background text-foreground">
-      <div className="flex min-h-screen flex-col lg:flex-row">
+    <main className="dark h-screen overflow-hidden bg-background text-foreground">
+      <div className="flex h-screen overflow-hidden flex-col lg:flex-row">
         <SellerSidebar activeSection={activeSection} onSectionChange={setActiveSection} />
 
-        <section className="flex min-w-0 flex-1 flex-col">
-          <header className="flex flex-col gap-3 border-b border-white/10 bg-[#121212] px-4 py-4 md:flex-row md:items-center md:justify-between lg:px-6">
+        <section className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+          <header className="shrink-0 flex flex-col gap-3 border-b border-white/10 bg-[#121212] px-4 py-4 md:flex-row md:items-center md:justify-between lg:px-6">
             <div>
               <h1 className="text-2xl font-semibold tracking-tight text-white">Seller Panel</h1>
               <p className="text-sm text-gray-400">{sectionLabels[activeSection]}</p>
@@ -85,7 +85,7 @@ export default function SellerDashboardPage() {
             </div>
           </header>
 
-          <ScrollArea className="h-[calc(100vh-81px)] bg-[#121212]">
+          <ScrollArea className="min-h-0 flex-1 bg-[#121212]">
             <div className="mx-auto w-full max-w-7xl px-4 py-5 lg:px-6">
               <SellerSectionRenderer activeSection={activeSection} setup={setupQuery.data} />
             </div>

@@ -57,6 +57,13 @@ const productSchema = new Schema(
             index: true,
         },
 
+        scope: {
+            type: String,
+            enum: ["GLOBAL", "SELLER"],
+            default: "GLOBAL",
+            index: true,
+        },
+
         variants: { type: [variantSchema], required: true },
 
         totalStock: { type: Number, default: 0 },

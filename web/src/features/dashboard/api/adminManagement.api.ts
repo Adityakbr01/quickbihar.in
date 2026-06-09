@@ -65,6 +65,16 @@ export interface DashboardStats {
   pendingMallRequests: number;
   pendingMallCreations?: number;
   pendingPayoutMethods?: number;
+  totalOrders?: number;
+  pendingOrders?: number;
+  deliveredOrders?: number;
+  revenue?: number;
+  totalSales?: number;
+  totalProducts?: number;
+  lowStockProducts?: number;
+  pendingReviews?: number;
+  activeFlashSales?: number;
+  sentAnnouncements?: number;
 }
 
 export interface Payout {
@@ -280,6 +290,237 @@ export interface SellerSubmissionResponse {
   totalPages: number;
 }
 
+export interface AdminListParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  status?: string;
+  sortBy?: string;
+  sortOrder?: "asc" | "desc";
+  dateFrom?: string;
+  dateTo?: string;
+}
+
+export interface PaginatedAdminResult<T> {
+  data: T[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+export type PublishStatus = "DRAFT" | "PUBLISHED" | "ARCHIVED";
+
+export interface SeoFields {
+  metaTitle?: string;
+  metaDescription?: string;
+  keywords?: string[];
+}
+
+export interface CMSPage {
+  _id: string;
+  title: string;
+  slug: string;
+  excerpt?: string;
+  content: string;
+  status: PublishStatus;
+  isActive: boolean;
+  sortOrder?: number;
+  seo?: SeoFields;
+  createdAt?: string;
+}
+
+export interface FAQ {
+  _id: string;
+  question: string;
+  answer: string;
+  category?: string;
+  sortOrder?: number;
+  status: PublishStatus;
+  isActive: boolean;
+  createdAt?: string;
+}
+
+export interface BlogPost {
+  _id: string;
+  title: string;
+  slug: string;
+  excerpt?: string;
+  content: string;
+  coverImageUrl?: string;
+  tags?: string[];
+  status: PublishStatus;
+  isActive: boolean;
+  isFeatured?: boolean;
+  seo?: SeoFields;
+  createdAt?: string;
+}
+
+export interface Announcement {
+  _id: string;
+  title: string;
+  message: string;
+  channel: "IN_APP" | "PUSH" | "EMAIL" | "SMS";
+  audience: "ALL" | "USERS" | "SELLERS" | "DELIVERY";
+  status: "DRAFT" | "SCHEDULED" | "SENT" | "ARCHIVED";
+  startsAt?: string;
+  endsAt?: string;
+  isActive: boolean;
+  createdAt?: string;
+}
+
+export interface FlashSale {
+  _id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  productIds?: Array<string | { _id: string; title?: string; price?: number }>;
+  discountType: "PERCENTAGE" | "FIXED";
+  discountValue: number;
+  startsAt: string;
+  endsAt: string;
+  status: "DRAFT" | "SCHEDULED" | "ACTIVE" | "ENDED" | "ARCHIVED";
+  isActive: boolean;
+  createdAt?: string;
+}
+
+export interface Warehouse {
+  _id: string;
+  name: string;
+  code: string;
+  address?: {
+    line1?: string;
+    city?: string;
+    state?: string;
+    pincode?: string;
+    country?: string;
+  };
+  contact?: {
+    name?: string;
+    phone?: string;
+    email?: string;
+  };
+  serviceAreas?: string[];
+  capacity?: number;
+  isActive: boolean;
+}
+
+export interface ShippingProvider {
+  _id: string;
+  name: string;
+  code: string;
+  type: "MANUAL" | "COURIER" | "HYPERLOCAL" | "AGGREGATOR";
+  serviceAreas?: string[];
+  config?: Record<string, unknown>;
+  isActive: boolean;
+}
+
+export interface InventoryMovement {
+  _id: string;
+  sku: string;
+  variantLabel?: string;
+  movementType: "IN" | "OUT" | "ADJUSTMENT" | "ORDER" | "RETURN";
+  quantity: number;
+  previousStock: number;
+  newStock: number;
+  reason?: string;
+  createdAt?: string;
+}
+
+export interface AdminInventoryProduct {
+  _id: string;
+  title: string;
+  brand?: string;
+  category?: string;
+  totalStock?: number;
+  isActive?: boolean;
+  sellerId?: { _id: string; fullName?: string; email?: string } | string;
+  storeId?: { _id: string; name?: string } | string;
+  variants?: Array<{ size: string; color: string; sku?: string; stock: number; price?: number }>;
+  createdAt?: string;
+}
+
+export interface InventoryResponse extends PaginatedAdminResult<AdminInventoryProduct> {
+  lowStockCount: number;
+  outOfStockCount: number;
+  movements: InventoryMovement[];
+}
+
+export interface AdminReports {
+  summary: {
+    revenue: number;
+    sales: number;
+    orderCount: number;
+    tax: number;
+    shipping: number;
+    discounts: number;
+    totalCustomers: number;
+    newCustomers: number;
+    totalProducts: number;
+    activeProducts: number;
+    totalStock: number;
+    lowStockProducts: number;
+    outOfStockProducts: number;
+  };
+  ordersByStatus: Array<{ _id: string; count: number; revenue: number }>;
+  dailyRevenue: Array<{ _id: string; revenue: number; orders: number }>;
+  productPerformance: Array<{ _id: string; title: string; sku: string; quantity: number; revenue: number }>;
+  customerSummary: Array<{ _id: string; fullName?: string; email?: string; orders: number; revenue: number; lastOrderAt?: string }>;
+}
+
+export interface AdminLog {
+  _id: string;
+  actorId?: { fullName?: string; email?: string } | string;
+  action: string;
+  resourceType: string;
+  resourceId?: string;
+  message?: string;
+  severity?: "INFO" | "WARNING" | "ERROR";
+  createdAt?: string;
+}
+
+export interface AdminSystemConfig {
+  api?: {
+    enabled?: boolean;
+    baseUrl?: string;
+    keys?: Array<{ label: string; key?: string; secret?: string; enabled?: boolean }>;
+    webhooks?: Array<{ label: string; url: string; secret?: string; enabled?: boolean }>;
+  };
+  payment?: {
+    provider?: string;
+    mode?: "TEST" | "LIVE";
+    enabled?: boolean;
+    publicKey?: string;
+    secretKey?: string;
+    webhookSecret?: string;
+  };
+  smtp?: {
+    host?: string;
+    port?: number;
+    secure?: boolean;
+    username?: string;
+    password?: string;
+    fromEmail?: string;
+    fromName?: string;
+  };
+  backup?: {
+    autoBackupEnabled?: boolean;
+    frequency?: "DAILY" | "WEEKLY" | "MONTHLY";
+    retentionDays?: number;
+  };
+}
+
+export interface BackupJob {
+  _id: string;
+  name: string;
+  status: "PENDING" | "COMPLETED" | "FAILED" | "RESTORED";
+  collections: string[];
+  dryRunResult?: Record<string, unknown>;
+  error?: string;
+  createdAt?: string;
+  restoredAt?: string;
+}
+
 export const adminManagementApi = {
   getManagementCatalog: async (): Promise<ManagementGroup[]> => {
     const response = await axiosInstance.get("/admin/management-catalog");
@@ -471,6 +712,206 @@ export const adminManagementApi = {
     reason?: string;
   }) => {
     const response = await axiosInstance.patch(`/admin/seller-submissions/${type}/${id}/review`, { status, reason });
+    return response.data.data;
+  },
+
+  getCMSPages: async (params: AdminListParams): Promise<PaginatedAdminResult<CMSPage>> => {
+    const response = await axiosInstance.get("/admin/cms-pages", { params });
+    return response.data.data;
+  },
+
+  createCMSPage: async (payload: Partial<CMSPage>): Promise<CMSPage> => {
+    const response = await axiosInstance.post("/admin/cms-pages", payload);
+    return response.data.data;
+  },
+
+  updateCMSPage: async ({ id, payload }: { id: string; payload: Partial<CMSPage> }): Promise<CMSPage> => {
+    const response = await axiosInstance.patch(`/admin/cms-pages/${id}`, payload);
+    return response.data.data;
+  },
+
+  deleteCMSPage: async (id: string): Promise<CMSPage> => {
+    const response = await axiosInstance.delete(`/admin/cms-pages/${id}`);
+    return response.data.data;
+  },
+
+  getFAQs: async (params: AdminListParams): Promise<PaginatedAdminResult<FAQ>> => {
+    const response = await axiosInstance.get("/admin/faqs", { params });
+    return response.data.data;
+  },
+
+  createFAQ: async (payload: Partial<FAQ>): Promise<FAQ> => {
+    const response = await axiosInstance.post("/admin/faqs", payload);
+    return response.data.data;
+  },
+
+  updateFAQ: async ({ id, payload }: { id: string; payload: Partial<FAQ> }): Promise<FAQ> => {
+    const response = await axiosInstance.patch(`/admin/faqs/${id}`, payload);
+    return response.data.data;
+  },
+
+  deleteFAQ: async (id: string): Promise<FAQ> => {
+    const response = await axiosInstance.delete(`/admin/faqs/${id}`);
+    return response.data.data;
+  },
+
+  getBlogPosts: async (params: AdminListParams): Promise<PaginatedAdminResult<BlogPost>> => {
+    const response = await axiosInstance.get("/admin/blog-posts", { params });
+    return response.data.data;
+  },
+
+  createBlogPost: async (payload: Partial<BlogPost>): Promise<BlogPost> => {
+    const response = await axiosInstance.post("/admin/blog-posts", payload);
+    return response.data.data;
+  },
+
+  updateBlogPost: async ({ id, payload }: { id: string; payload: Partial<BlogPost> }): Promise<BlogPost> => {
+    const response = await axiosInstance.patch(`/admin/blog-posts/${id}`, payload);
+    return response.data.data;
+  },
+
+  deleteBlogPost: async (id: string): Promise<BlogPost> => {
+    const response = await axiosInstance.delete(`/admin/blog-posts/${id}`);
+    return response.data.data;
+  },
+
+  getAnnouncements: async (params: AdminListParams): Promise<PaginatedAdminResult<Announcement>> => {
+    const response = await axiosInstance.get("/admin/announcements", { params });
+    return response.data.data;
+  },
+
+  createAnnouncement: async (payload: Partial<Announcement>): Promise<Announcement> => {
+    const response = await axiosInstance.post("/admin/announcements", payload);
+    return response.data.data;
+  },
+
+  updateAnnouncement: async ({ id, payload }: { id: string; payload: Partial<Announcement> }): Promise<Announcement> => {
+    const response = await axiosInstance.patch(`/admin/announcements/${id}`, payload);
+    return response.data.data;
+  },
+
+  deleteAnnouncement: async (id: string): Promise<Announcement> => {
+    const response = await axiosInstance.delete(`/admin/announcements/${id}`);
+    return response.data.data;
+  },
+
+  getFlashSales: async (params: AdminListParams): Promise<PaginatedAdminResult<FlashSale>> => {
+    const response = await axiosInstance.get("/admin/flash-sales", { params });
+    return response.data.data;
+  },
+
+  createFlashSale: async (payload: Partial<FlashSale>): Promise<FlashSale> => {
+    const response = await axiosInstance.post("/admin/flash-sales", payload);
+    return response.data.data;
+  },
+
+  updateFlashSale: async ({ id, payload }: { id: string; payload: Partial<FlashSale> }): Promise<FlashSale> => {
+    const response = await axiosInstance.patch(`/admin/flash-sales/${id}`, payload);
+    return response.data.data;
+  },
+
+  deleteFlashSale: async (id: string): Promise<FlashSale> => {
+    const response = await axiosInstance.delete(`/admin/flash-sales/${id}`);
+    return response.data.data;
+  },
+
+  updateProductFeature: async ({ productId, payload }: { productId: string; payload: { isFeatured?: boolean; isTrending?: boolean; isNewArrival?: boolean } }) => {
+    const response = await axiosInstance.patch(`/admin/products/${productId}/feature`, payload);
+    return response.data.data;
+  },
+
+  getWarehouses: async (params: AdminListParams): Promise<PaginatedAdminResult<Warehouse>> => {
+    const response = await axiosInstance.get("/admin/warehouses", { params });
+    return response.data.data;
+  },
+
+  createWarehouse: async (payload: Partial<Warehouse>): Promise<Warehouse> => {
+    const response = await axiosInstance.post("/admin/warehouses", payload);
+    return response.data.data;
+  },
+
+  updateWarehouse: async ({ id, payload }: { id: string; payload: Partial<Warehouse> }): Promise<Warehouse> => {
+    const response = await axiosInstance.patch(`/admin/warehouses/${id}`, payload);
+    return response.data.data;
+  },
+
+  deleteWarehouse: async (id: string): Promise<Warehouse> => {
+    const response = await axiosInstance.delete(`/admin/warehouses/${id}`);
+    return response.data.data;
+  },
+
+  getShippingProviders: async (params: AdminListParams): Promise<PaginatedAdminResult<ShippingProvider>> => {
+    const response = await axiosInstance.get("/admin/shipping-providers", { params });
+    return response.data.data;
+  },
+
+  createShippingProvider: async (payload: Partial<ShippingProvider>): Promise<ShippingProvider> => {
+    const response = await axiosInstance.post("/admin/shipping-providers", payload);
+    return response.data.data;
+  },
+
+  updateShippingProvider: async ({ id, payload }: { id: string; payload: Partial<ShippingProvider> }): Promise<ShippingProvider> => {
+    const response = await axiosInstance.patch(`/admin/shipping-providers/${id}`, payload);
+    return response.data.data;
+  },
+
+  deleteShippingProvider: async (id: string): Promise<ShippingProvider> => {
+    const response = await axiosInstance.delete(`/admin/shipping-providers/${id}`);
+    return response.data.data;
+  },
+
+  getInventory: async (params: AdminListParams): Promise<InventoryResponse> => {
+    const response = await axiosInstance.get("/admin/inventory", { params });
+    return response.data.data;
+  },
+
+  updateInventoryStock: async (payload: { productId: string; sku: string; stock: number; reason?: string }) => {
+    const response = await axiosInstance.patch("/admin/inventory/stock", payload);
+    return response.data.data;
+  },
+
+  getReports: async (params: AdminListParams): Promise<AdminReports> => {
+    const response = await axiosInstance.get("/admin/reports", { params });
+    return response.data.data;
+  },
+
+  getActivityLogs: async (params: AdminListParams): Promise<PaginatedAdminResult<AdminLog>> => {
+    const response = await axiosInstance.get("/admin/activity-logs", { params });
+    return response.data.data;
+  },
+
+  getAuditLogs: async (params: AdminListParams): Promise<PaginatedAdminResult<AdminLog>> => {
+    const response = await axiosInstance.get("/admin/audit-logs", { params });
+    return response.data.data;
+  },
+
+  getSystemConfig: async (): Promise<AdminSystemConfig> => {
+    const response = await axiosInstance.get("/admin/system-config");
+    return response.data.data;
+  },
+
+  updateSystemConfig: async (payload: AdminSystemConfig): Promise<AdminSystemConfig> => {
+    const response = await axiosInstance.patch("/admin/system-config", payload);
+    return response.data.data;
+  },
+
+  getBackups: async (params: AdminListParams): Promise<PaginatedAdminResult<BackupJob>> => {
+    const response = await axiosInstance.get("/admin/backups", { params });
+    return response.data.data;
+  },
+
+  createBackup: async (payload: { name?: string; collections?: string[] }): Promise<BackupJob> => {
+    const response = await axiosInstance.post("/admin/backups", payload);
+    return response.data.data;
+  },
+
+  dryRunRestore: async (id: string) => {
+    const response = await axiosInstance.post(`/admin/backups/${id}/restore-dry-run`);
+    return response.data.data;
+  },
+
+  restoreBackup: async (id: string) => {
+    const response = await axiosInstance.post(`/admin/backups/${id}/restore`, { confirm: "RESTORE" });
     return response.data.data;
   },
 };

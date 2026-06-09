@@ -150,7 +150,7 @@ export function SellerSidebar({
   onSectionChange: (section: SellerSection) => void;
 }) {
   return (
-    <aside className="border-b border-white/10 bg-[#101010] lg:h-screen lg:w-72 lg:border-b-0 lg:border-r">
+    <aside className="shrink-0 border-b border-white/10 bg-[#101010] lg:h-screen lg:w-72 lg:overflow-hidden lg:border-b-0 lg:border-r">
       <div className="flex h-full flex-col">
         <div className="border-b border-white/10 px-5 py-5">
           <div className="flex items-center gap-2 text-white">
@@ -160,7 +160,7 @@ export function SellerSidebar({
           <p className="mt-1 text-xs text-gray-500">QuickBihar Clothing</p>
         </div>
 
-        <nav className="grid gap-5 p-4">
+        <nav className="grid gap-5 p-4 lg:min-h-0 lg:flex-1 lg:overflow-y-auto">
           {sellerNavigation.map((group) => (
             <div key={group.title}>
               <div className="mb-2 px-2 text-xs font-medium uppercase text-gray-500">{group.title}</div>
