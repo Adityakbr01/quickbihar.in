@@ -225,3 +225,28 @@ export const useReviewMallRequest = () => {
     onError: (error: Error) => toast.error(error.message || "Failed to review mall request"),
   });
 };
+
+export const useSellerSubmissions = (params: {
+  type?: "products" | "coupons" | "banners" | "sizeCharts" | "categoryRequests";
+  status?: "DRAFT" | "PENDING_REVIEW" | "APPROVED" | "REJECTED" | "PENDING" | "ALL";
+  page?: number;
+  limit?: number;
+}) =>
+  useQuery({
+    queryKey: ["admin-seller-submissions", params],
+    queryFn: () => adminManagementApi.getSellerSubmissions(params),
+  });
+
+export const useReviewSellerSubmission = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: adminManagementApi.reviewSellerSubmission,
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["admin-seller-submissions"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-dashboard"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-people"] });
+      toast.success(variables.status === "APPROVED" ? "Seller submission approved" : "Seller submission rejected");
+    },
+    onError: (error: Error) => toast.error(error.message || "Failed to review seller submission"),
+  });
+};

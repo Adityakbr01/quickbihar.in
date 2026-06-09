@@ -42,6 +42,10 @@ export class ProductService {
         return name === RoleEnum.SELLER || name === "seller";
     }
 
+    private static isApprovedForPublic(product: any) {
+        return product?.isActive && (!product.approvalStatus || product.approvalStatus === "APPROVED");
+    }
+
     private static async assertCategoryAssigned(category: string, subCategory?: string) {
         const categorySlug = slugify(category);
         const categoryDoc = await Category.findOne({
@@ -92,8 +96,8 @@ export class ProductService {
             categoryConfig.primaryCategory,
             ...(categoryConfig.subcategories || []),
         ]
-            .filter(Boolean)
-            .flatMap((value: string) => [normalize(value), slugify(value)]);
+            .filter((value): value is string => typeof value === "string" && value.trim().length > 0)
+            .flatMap((value) => [normalize(value), slugify(value)]);
         const requestedNormalized = requestedValues.flatMap((value) => [normalize(value), slugify(value)]);
         const isAllowed = requestedNormalized.some((value) => allowedValues.includes(value));
 
@@ -155,7 +159,7 @@ export class ProductService {
     }
 
     static async getTrendingProducts() {
-        return await ProductDAO.findAll({ isTrending: true, isActive: true });
+        return await ProductDAO.findAll({ isTrending: true, isActive: true, publicOnly: true });
     }
 
     static async getSellerProducts(sellerId: string) {
@@ -165,12 +169,14 @@ export class ProductService {
     static async getProductBySlug(slug: string) {
         const product = await ProductDAO.findBySlug(slug);
         if (!product) throw new ApiError(404, "Product not found");
+        if (!this.isApprovedForPublic(product)) throw new ApiError(404, "Product not found");
         return product;
     }
 
     static async getProductById(id: string) {
         const product = await ProductDAO.findById(id);
         if (!product) throw new ApiError(404, "Product not found");
+        if (!this.isApprovedForPublic(product)) throw new ApiError(404, "Product not found");
         return product;
     }
 
@@ -188,8 +194,8 @@ export class ProductService {
             if (this.isSellerRole(role) || validatedData.category || validatedData.subCategory) {
                 await this.assertSellerProductGate(
                     product.sellerId.toString(),
-                    validatedData.category || product.category,
-                    validatedData.subCategory || product.subCategory,
+                    validatedData.category || product.category || "",
+                    validatedData.subCategory || product.subCategory || undefined,
                 );
             }
             let updatePayload: any = { ...validatedData };

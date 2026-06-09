@@ -17,4 +17,11 @@ export interface IBanner extends Document {
     clicks: number;
     impressions: number;
     isAds: boolean;
+    scope?: "GLOBAL" | "SELLER";
+    sellerId?: mongoose.Types.ObjectId;
+    storeId?: mongoose.Types.ObjectId;
+    approvalStatus?: "DRAFT" | "PENDING_REVIEW" | "APPROVED" | "REJECTED";
+    reviewedBy?: mongoose.Types.ObjectId;
+    reviewedAt?: Date;
+    rejectionReason?: string;
 }

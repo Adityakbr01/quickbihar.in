@@ -10,8 +10,73 @@ import { socketService } from "../socket/socket.service";
 import { notificationService } from "../notification/notification.service";
 import { User } from "../user/user.model";
 import { SocketEvents } from "../../constants/socketEvents";
+import { Seller } from "../seller/seller.model";
+import { SellerEarning, SellerNotification } from "../seller/sellerPanel.model";
 
 export class OrderService {
+    private async notifyOrderSellers(order: any, status: OrderStatus, message: string) {
+        const sellerIds = Array.from(new Set((order.items || [])
+            .map((item: any) => item.sellerId?.toString())
+            .filter(Boolean)));
+
+        if (!sellerIds.length) return;
+
+        await SellerNotification.insertMany(
+            sellerIds.map((sellerId) => ({
+                sellerId: new Types.ObjectId(sellerId as string),
+                type: "ORDER",
+                title: `Order ${order.orderId} ${status}`,
+                message,
+                severity: ["CANCELLED", "REJECTED", "REFUNDED"].includes(status) ? "WARNING" : "INFO",
+                resourceType: "ORDER",
+                resourceId: order._id.toString(),
+            })),
+            { ordered: false },
+        ).catch(() => undefined);
+    }
+
+    private async creditSellerEarnings(order: any) {
+        for (const item of order.items || []) {
+            const sellerId = item.sellerId?.toString();
+            if (!sellerId) continue;
+
+            const grossAmount = item.sellerSubtotal || item.price * item.quantity;
+            const commissionAmount = 0;
+            const netAmount = Math.max(0, grossAmount - commissionAmount);
+            const key = {
+                orderObjectId: order._id,
+                productId: item.productId,
+                sku: item.sku,
+            };
+
+            const existing = await SellerEarning.findOne(key).lean();
+            if (existing) continue;
+
+            await SellerEarning.create({
+                sellerId: new Types.ObjectId(sellerId),
+                storeId: item.storeId,
+                orderId: order.orderId,
+                ...key,
+                quantity: item.quantity,
+                grossAmount,
+                commissionAmount,
+                netAmount,
+                status: "AVAILABLE",
+                creditedAt: new Date(),
+            });
+
+            await Seller.updateOne(
+                { userId: sellerId },
+                {
+                    $inc: {
+                        "wallet.availableBalance": netAmount,
+                        "wallet.lifetimeEarnings": netAmount,
+                    },
+                },
+            );
+        }
+    }
+
     async createOrder(userId: string, data: any) {
         const { items, shippingAddress, couponCode } = data;
 
@@ -27,6 +92,10 @@ export class OrderService {
             if (!product) {
                 console.error(`[OrderService] Product not found: ${item.productId}`);
                 throw new ApiError(404, `Product not found: ${item.productId}`);
+            }
+
+            if (!product.isActive || (product.approvalStatus && product.approvalStatus !== "APPROVED")) {
+                throw new ApiError(400, `${product.title} is not available for purchase`);
             }
 
             // Find specific variant for SKU and price
@@ -62,6 +131,10 @@ export class OrderService {
                 color: variant.color,
                 quantity: item.quantity,
                 price: itemPrice, // Final inclusive price
+                sellerId: product.sellerId,
+                storeId: product.storeId,
+                sellerSubtotal: itemPrice * item.quantity,
+                settlementStatus: "PENDING",
                 basePrice: basePrice, // Exclusive price for tax records
                 taxAmount,
                 isGstApplicable: product.isGstApplicable,
@@ -80,7 +153,12 @@ export class OrderService {
         let couponDiscountAmount = 0;
         if (couponCode) {
             console.log(`[OrderService] Validating coupon: ${couponCode}`);
-            const validation = await couponService.validateCoupon(couponCode, totalAmount, userId);
+            const sellerSubtotals = processedItems.reduce<Record<string, number>>((acc, item: any) => {
+                const sellerKey = item.sellerId?.toString();
+                if (sellerKey) acc[sellerKey] = (acc[sellerKey] || 0) + (item.sellerSubtotal || 0);
+                return acc;
+            }, {});
+            const validation = await couponService.validateCoupon(couponCode, totalAmount, userId, { sellerSubtotals });
             couponDiscountAmount = validation.discountAmount;
             console.log(`[OrderService] Coupon Applied: ${couponCode}, Savings=${couponDiscountAmount}`);
         }
@@ -202,6 +280,8 @@ export class OrderService {
             message: "Your payment has been verified and order is confirmed!"
         });
 
+        await this.notifyOrderSellers(order, OrderStatus.CONFIRMED, `A new paid order ${order.orderId} is ready for fulfillment.`);
+
         return updatedOrder;
     }
 
@@ -263,13 +343,17 @@ export class OrderService {
 
         // 2. Handle Inventory Restoration if order is cancelled/rejected after payment
         const isCancellation = status === OrderStatus.CANCELLED || status === OrderStatus.REJECTED || status === OrderStatus.REFUNDED;
-        const wasPaid = [OrderStatus.PAID, OrderStatus.CONFIRMED, OrderStatus.SHIPPED].includes(oldStatus);
+        const wasPaid = [OrderStatus.PAID, OrderStatus.CONFIRMED, OrderStatus.PROCESSING, OrderStatus.SHIPPED].includes(oldStatus);
 
         if (isCancellation && wasPaid) {
             console.log(`[OrderService] Restoring stock for cancelled/rejected order: ${order.orderId}`);
             for (const item of order.items) {
                 await ProductDAO.restoreStock(item.productId.toString(), item.sku, item.quantity);
             }
+        }
+
+        if (status === OrderStatus.DELIVERED) {
+            await this.creditSellerEarnings(order);
         }
 
         // 3. Notify User via Socket
@@ -291,6 +375,8 @@ export class OrderService {
             
             await notificationService.sendPush(user.fcmToken, title, body, { orderId: order._id.toString() });
         }
+
+        await this.notifyOrderSellers(order, status, `Order ${order.orderId} has moved to ${status}.`);
 
         return updatedOrder;
     }

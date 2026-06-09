@@ -6,8 +6,8 @@ export class SizeChartDAO {
         return await SizeChart.create(data);
     }
 
-    static async findAll() {
-        return await SizeChart.find().sort({ createdAt: -1 });
+    static async findAll(query: any = {}) {
+        return await SizeChart.find(query).sort({ createdAt: -1 });
     }
 
     static async findById(id: string) {

@@ -11,7 +11,11 @@ export class CouponDAO {
     }
 
     async findByCode(code: string) {
-        return await Coupon.findOne({ code: code.toUpperCase(), isActive: true });
+        return await Coupon.findOne({
+            code: code.toUpperCase(),
+            isActive: true,
+            $or: [{ approvalStatus: "APPROVED" }, { approvalStatus: { $exists: false } }],
+        });
     }
 
     async findAll(query: any = {}) {
@@ -40,6 +44,10 @@ export class CouponDAO {
 
         if (query.status === "inactive") filter.isActive = false;
         if (query.status === "expired") filter.endDate = { $lt: new Date() };
+        if (query.scope && query.scope !== "ALL") filter.scope = query.scope;
+        if (query.sellerId) filter.sellerId = query.sellerId;
+        if (query.storeId) filter.storeId = query.storeId;
+        if (query.approvalStatus && query.approvalStatus !== "ALL") filter.approvalStatus = query.approvalStatus;
 
         const sortField = ["createdAt", "code", "discountValue", "endDate", "usageLimit"].includes(query.sortBy)
             ? query.sortBy

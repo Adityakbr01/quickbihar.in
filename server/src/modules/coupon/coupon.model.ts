@@ -51,6 +51,34 @@ const couponSchema = new Schema<ICoupon>(
             type: Number,
             default: 1,
         },
+        scope: {
+            type: String,
+            enum: ["GLOBAL", "SELLER"],
+            default: "GLOBAL",
+            index: true,
+        },
+        sellerId: {
+            type: Schema.Types.ObjectId,
+            ref: "User",
+            index: true,
+        },
+        storeId: {
+            type: Schema.Types.ObjectId,
+            ref: "Store",
+            index: true,
+        },
+        approvalStatus: {
+            type: String,
+            enum: ["DRAFT", "PENDING_REVIEW", "APPROVED", "REJECTED"],
+            default: "APPROVED",
+            index: true,
+        },
+        reviewedBy: {
+            type: Schema.Types.ObjectId,
+            ref: "User",
+        },
+        reviewedAt: Date,
+        rejectionReason: String,
         isActive: {
             type: Boolean,
             default: true,

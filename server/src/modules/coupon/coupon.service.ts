@@ -34,7 +34,12 @@ export class CouponService {
         return coupon;
     }
 
-    async validateCoupon(code: string, orderAmount: number, userId: string) {
+    async validateCoupon(
+        code: string,
+        orderAmount: number,
+        userId: string,
+        context: { sellerSubtotals?: Record<string, number> } = {},
+    ) {
         const coupon = await couponDAO.findByCode(code);
 
         if (!coupon) {
@@ -57,7 +62,17 @@ export class CouponService {
             throw new ApiError(400, "Coupon usage limit reached");
         }
 
-        if (orderAmount < coupon.minOrderValue) {
+        const couponScope = (coupon as any).scope || "GLOBAL";
+        const couponSellerId = (coupon as any).sellerId?.toString();
+        const discountBaseAmount = couponScope === "SELLER"
+            ? context.sellerSubtotals?.[couponSellerId || ""] || 0
+            : orderAmount;
+
+        if (couponScope === "SELLER" && !discountBaseAmount) {
+            throw new ApiError(400, "This seller coupon is not applicable to your cart");
+        }
+
+        if (discountBaseAmount < coupon.minOrderValue) {
             throw new ApiError(400, `Minimum order value of ₹${coupon.minOrderValue} required`);
         }
 
@@ -74,12 +89,12 @@ export class CouponService {
 
         let discountAmount = 0;
         if (coupon.discountType === "PERCENTAGE") {
-            discountAmount = (orderAmount * coupon.discountValue) / 100;
+            discountAmount = (discountBaseAmount * coupon.discountValue) / 100;
             if (coupon.maxDiscountAmount && coupon.maxDiscountAmount > 0 && discountAmount > coupon.maxDiscountAmount) {
                 discountAmount = coupon.maxDiscountAmount;
             }
         } else {
-            discountAmount = coupon.discountValue;
+            discountAmount = Math.min(coupon.discountValue, discountBaseAmount);
         }
 
         return {

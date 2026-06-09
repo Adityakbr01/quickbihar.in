@@ -17,6 +17,8 @@ router.post("/payouts", AdminController.createPayout);
 router.patch("/payouts/:id/status", AdminController.updatePayoutStatus);
 router.get("/payout-methods", AdminController.payoutMethods);
 router.patch("/sellers/:sellerId/payout-methods/:methodId/status", AdminController.reviewPayoutMethod);
+router.get("/seller-submissions", AdminController.sellerSubmissions);
+router.patch("/seller-submissions/:type/:id/review", AdminController.reviewSellerSubmission);
 router.get("/malls", AdminController.malls);
 router.get("/mall-requests", AdminController.mallRequests);
 router.get("/mall-creation-requests", AdminController.mallCreationRequests);

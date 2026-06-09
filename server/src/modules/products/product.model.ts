@@ -47,6 +47,7 @@ const productSchema = new Schema(
             type: Schema.Types.ObjectId,
             ref: "User",
             required: true,
+            index: true,
         },
 
         storeId: {
@@ -114,6 +115,19 @@ const productSchema = new Schema(
 
         isActive: { type: Boolean, default: true },
         isDeleted: { type: Boolean, default: false },
+
+        approvalStatus: {
+            type: String,
+            enum: ["DRAFT", "PENDING_REVIEW", "APPROVED", "REJECTED"],
+            default: "APPROVED",
+            index: true,
+        },
+        reviewedBy: {
+            type: Schema.Types.ObjectId,
+            ref: "User",
+        },
+        reviewedAt: Date,
+        rejectionReason: String,
 
         refundPolicy: {
             type: Schema.Types.ObjectId,

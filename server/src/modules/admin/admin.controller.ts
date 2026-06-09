@@ -8,10 +8,12 @@ import {
     createPayoutSchema,
     inviteUserSchema,
     listPayoutMethodsSchema,
+    listSellerSubmissionsSchema,
     listPeopleSchema,
     reviewMallCreationSchema,
     reviewMallRequestSchema,
     reviewPayoutMethodSchema,
+    reviewSellerSubmissionSchema,
     updatePayoutStatusSchema,
     updateMallSchema,
     updatePartnerStatusSchema,
@@ -90,6 +92,23 @@ export class AdminController {
             body,
         );
         return res.status(200).json(new ApiResponse(200, method, "Payout method reviewed successfully"));
+    });
+
+    static sellerSubmissions = asyncHandler(async (req, res) => {
+        const query = listSellerSubmissionsSchema.parse(req.query);
+        const submissions = await AdminService.listSellerSubmissions(query);
+        return res.status(200).json(new ApiResponse(200, submissions, "Seller submissions fetched successfully"));
+    });
+
+    static reviewSellerSubmission = asyncHandler(async (req, res) => {
+        const body = reviewSellerSubmissionSchema.parse(req.body);
+        const submission = await AdminService.reviewSellerSubmission(
+            req.params.type as string,
+            req.params.id as string,
+            (req as any).user._id,
+            body,
+        );
+        return res.status(200).json(new ApiResponse(200, submission, "Seller submission reviewed successfully"));
     });
 
     static malls = asyncHandler(async (_req, res) => {

@@ -19,6 +19,7 @@ export class BannerDAO {
         const baseQuery: any = {
             isActive: true,
             $and: [
+                { $or: [{ approvalStatus: "APPROVED" }, { approvalStatus: { $exists: false } }] },
                 { $or: [{ startDate: { $lte: now } }, { startDate: { $exists: false } }, { startDate: null }] },
                 { $or: [{ endDate: { $gte: now } }, { endDate: { $exists: false } }, { endDate: null }] }
             ]

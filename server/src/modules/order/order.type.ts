@@ -21,6 +21,10 @@ export interface IOrderItem {
     color: string;
     quantity: number;
     price: number; // Snapshot of price at purchase
+    sellerId?: Types.ObjectId;
+    storeId?: Types.ObjectId;
+    sellerSubtotal?: number;
+    settlementStatus?: "PENDING" | "AVAILABLE" | "PAID" | "REVERSED";
     pickupLocation?: string; 
     warehouseName?: string;
     latitude?: number;

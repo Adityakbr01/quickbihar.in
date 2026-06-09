@@ -2,13 +2,20 @@ import { Types } from "mongoose";
 import { ENV } from "../../config/env.config";
 import { ApiError } from "../../utils/ApiError";
 import { MailService } from "../../utils/mail.service";
+import { Banner } from "../banner/banner.model";
+import { Coupon } from "../coupon/coupon.model";
 import { DeliveryBoy } from "../deliveryBoy/delivery.model";
 import { Mall } from "../mall/mall.model";
 import { MallService } from "../mall/mall.service";
+import { Product } from "../products/product.model";
 import { Role } from "../rbac/rbac.model";
 import * as rbacService from "../rbac/rbac.service";
 import { RoleEnum } from "../rbac/rbac.types";
 import { Seller } from "../seller/seller.model";
+import { SellerCategoryRequest, SellerNotification } from "../seller/sellerPanel.model";
+import { SizeChart } from "../sizeChart/sizeChart.model";
+import { Store } from "../store/store.model";
+import { buildStoreSetupStatus, mergeStoreForSetup } from "../store/store.setup";
 import { User } from "../user/user.model";
 import { AdminPayout } from "./admin.model";
 
@@ -117,6 +124,39 @@ const managementCatalog = [
         ],
     },
 ];
+
+const submissionModels: Record<string, any> = {
+    products: Product,
+    coupons: Coupon,
+    banners: Banner,
+    sizeCharts: SizeChart,
+    categoryRequests: SellerCategoryRequest,
+};
+
+const listOptions = (query: any = {}) => {
+    const page = Math.max(Number(query.page) || 1, 1);
+    const limit = Math.min(Math.max(Number(query.limit) || 20, 1), 100);
+    return {
+        page,
+        limit,
+        skip: (page - 1) * limit,
+    };
+};
+
+const notificationForSubmission = async (sellerId: any, type: string, status: string, itemId: string, reason?: string) => {
+    if (!sellerId) return;
+    await SellerNotification.create({
+        sellerId,
+        type: "APPROVAL",
+        title: `${type} ${status.toLowerCase()}`,
+        message: status === "APPROVED"
+            ? `Your ${type} submission has been approved.`
+            : `Your ${type} submission was rejected.${reason ? ` Reason: ${reason}` : ""}`,
+        severity: status === "APPROVED" ? "SUCCESS" : "ERROR",
+        resourceType: type,
+        resourceId: itemId,
+    });
+};
 
 const serializeUser = (user: any, sellerProfile?: any, deliveryProfile?: any) => ({
     _id: user._id?.toString(),
@@ -318,7 +358,7 @@ export class AdminService {
     }
 
     static async updatePartnerStatus(userId: string, data: any) {
-        const model = data.type === "SELLER" ? Seller : DeliveryBoy;
+        const model: any = data.type === "SELLER" ? Seller : DeliveryBoy;
         const profile = await model.findOneAndUpdate(
             { userId },
             {
@@ -622,6 +662,96 @@ export class AdminService {
 
         await seller.save();
         return method;
+    }
+
+    static async listSellerSubmissions(query: any = {}) {
+        const types = query.type ? [query.type] : Object.keys(submissionModels);
+        const { page, limit, skip } = listOptions(query);
+        const status = query.status || "PENDING_REVIEW";
+        const result: Record<string, any> = {};
+
+        for (const type of types) {
+            const model = submissionModels[type];
+            if (!model) throw new ApiError(400, "Invalid seller submission type");
+
+            const statusField = type === "categoryRequests" ? "status" : "approvalStatus";
+            const filter: any = {};
+            if (type !== "categoryRequests") filter.scope = "SELLER";
+            if (status !== "ALL") filter[statusField] = status;
+
+            const [data, total] = await Promise.all([
+                model.find(filter)
+                    .populate("sellerId", "fullName email phone")
+                    .populate("storeId", "name")
+                    .sort({ createdAt: -1 })
+                    .skip(query.type ? skip : 0)
+                    .limit(query.type ? limit : 10)
+                    .lean(),
+                model.countDocuments(filter),
+            ]);
+
+            result[type] = {
+                data,
+                total,
+                page: query.type ? page : 1,
+                limit: query.type ? limit : 10,
+                totalPages: Math.ceil(total / (query.type ? limit : 10)),
+            };
+        }
+
+        return query.type ? result[query.type] : result;
+    }
+
+    static async reviewSellerSubmission(type: string, id: string, adminId: string, data: any) {
+        const model = submissionModels[type];
+        if (!model) throw new ApiError(400, "Invalid seller submission type");
+
+        if (type === "categoryRequests") {
+            const request = await SellerCategoryRequest.findById(id);
+            if (!request) throw new ApiError(404, "Category request not found");
+            if (request.status !== "PENDING") {
+                throw new ApiError(400, "Category request has already been reviewed");
+            }
+
+            request.status = data.status;
+            request.reviewedBy = new Types.ObjectId(adminId);
+            request.reviewedAt = new Date();
+            request.rejectionReason = data.status === "REJECTED" ? data.reason : undefined;
+
+            if (data.status === "APPROVED" && request.storeId) {
+                const store = await Store.findById(request.storeId);
+                if (store) {
+                    const categoryConfig = {
+                        primaryCategory: request.requestedPrimaryCategory,
+                        subcategories: request.requestedSubcategories || [],
+                        assignedByAdmin: true,
+                    };
+                    const setup = buildStoreSetupStatus(mergeStoreForSetup(store, { categoryConfig }));
+                    store.categoryConfig = categoryConfig;
+                    store.isSetupComplete = setup.isComplete;
+                    store.setupMissingFields = setup.missingFields;
+                    store.setupCompletedAt = setup.isComplete ? (store.setupCompletedAt || new Date()) : undefined;
+                    await store.save();
+                }
+            }
+
+            await request.save();
+            await notificationForSubmission(request.sellerId, "category request", data.status, request._id.toString(), data.reason);
+            return request;
+        }
+
+        const submission = await model.findOne({ _id: id, scope: "SELLER" });
+        if (!submission) throw new ApiError(404, "Seller submission not found");
+
+        submission.approvalStatus = data.status;
+        submission.reviewedBy = new Types.ObjectId(adminId);
+        submission.reviewedAt = new Date();
+        submission.rejectionReason = data.status === "REJECTED" ? data.reason : undefined;
+        submission.isActive = data.status === "APPROVED";
+
+        await submission.save();
+        await notificationForSubmission(submission.sellerId, type, data.status, submission._id.toString(), data.reason);
+        return submission;
     }
 
     static async updatePayoutStatus(payoutId: string, adminId: string, data: any) {

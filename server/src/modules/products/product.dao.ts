@@ -21,6 +21,25 @@ export class ProductDAO {
             finalQuery.isActive = query.isActive === "true" || query.isActive === true;
         }
 
+        if (query.approvalStatus) {
+            finalQuery.approvalStatus = query.approvalStatus;
+        }
+
+        if (query.publicOnly === true || query.publicOnly === "true") {
+            finalQuery.$and = [
+                ...(finalQuery.$and || []),
+                { $or: [{ approvalStatus: "APPROVED" }, { approvalStatus: { $exists: false } }] },
+            ];
+        }
+
+        if (query.sellerId) {
+            finalQuery.sellerId = query.sellerId;
+        }
+
+        if (query.storeId) {
+            finalQuery.storeId = query.storeId;
+        }
+
         if (query.category) {
             finalQuery.category = query.category;
         }
@@ -122,6 +141,9 @@ export class ProductDAO {
             _id: { $ne: productId },
             isDeleted: false,
             isActive: true,
+            $and: [
+                { $or: [{ approvalStatus: "APPROVED" }, { approvalStatus: { $exists: false } }] },
+            ],
             $or: orConditions,
         })
             .sort({ isTrending: -1, createdAt: -1 })

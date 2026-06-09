@@ -64,6 +64,8 @@ import {
   PayoutMethod,
   PayoutStatus,
   SellerMallRequest,
+  SellerSubmission,
+  SellerSubmissionType,
 } from "@/features/dashboard/api/adminManagement.api";
 import {
   useAdminDashboard,
@@ -82,7 +84,9 @@ import {
   useReviewMallRequest,
   useReviewMallCreation,
   useReviewPayoutMethod,
+  useReviewSellerSubmission,
   useSendInvite,
+  useSellerSubmissions,
   useSetBlocked,
   useUpdateAppConfig,
   useUpdateMall,
@@ -106,6 +110,7 @@ type AdminSection =
   | "system-settings"
   | "people"
   | "seller-mall"
+  | "seller-submissions"
   | "payouts"
   | "invites";
 type RoleFilter = (typeof roleOptions)[number];
@@ -131,6 +136,7 @@ const sectionLabels: Record<AdminSection, string> = {
   "system-settings": "System Settings",
   people: "User Management",
   "seller-mall": "Seller & Mall Management",
+  "seller-submissions": "Seller Review Queue",
   payouts: "Payouts",
   invites: "Invites",
 };
@@ -153,6 +159,7 @@ const navigationGroups: Array<{
       { id: "coupons", label: "Coupons", icon: <CircleDollarSign className="h-4 w-4" /> },
       { id: "people", label: "Users", icon: <Users className="h-4 w-4" /> },
       { id: "seller-mall", label: "Sellers & Malls", icon: <Building2 className="h-4 w-4" /> },
+      { id: "seller-submissions", label: "Seller Reviews", icon: <ShieldCheck className="h-4 w-4" /> },
       { id: "payouts", label: "Payouts", icon: <WalletCards className="h-4 w-4" /> },
     ],
   },
@@ -456,6 +463,8 @@ export default function AdminDashboardPage() {
                   topMalls={dashboardQuery.data?.topMalls || []}
                 />
               )}
+
+              {activeSection === "seller-submissions" && <SellerSubmissionsSection />}
 
               {activeSection === "payouts" && (
                 <PayoutsSection
@@ -897,6 +906,133 @@ function PeopleSection({
         />
       </CardContent>
     </Card>
+  );
+}
+
+const sellerSubmissionTypeOptions: Array<{ value: SellerSubmissionType; label: string }> = [
+  { value: "products", label: "Products" },
+  { value: "coupons", label: "Coupons" },
+  { value: "banners", label: "Banners" },
+  { value: "sizeCharts", label: "Size Charts" },
+  { value: "categoryRequests", label: "Category Requests" },
+];
+
+function SellerSubmissionsSection() {
+  const [type, setType] = useState<SellerSubmissionType>("products");
+  const [status, setStatus] = useState<"PENDING_REVIEW" | "PENDING" | "APPROVED" | "REJECTED" | "ALL">("PENDING_REVIEW");
+  const [page, setPage] = useState(1);
+  const [reasonById, setReasonById] = useState<Record<string, string>>({});
+  const submissionsQuery = useSellerSubmissions({ type, status, page, limit: 10 });
+  const reviewSubmission = useReviewSellerSubmission();
+  const submissions = submissionsQuery.data?.data || [];
+
+  const approve = (submission: SellerSubmission) => {
+    reviewSubmission.mutate({ type, id: submission._id, status: "APPROVED" });
+  };
+
+  const reject = (submission: SellerSubmission) => {
+    reviewSubmission.mutate({
+      type,
+      id: submission._id,
+      status: "REJECTED",
+      reason: optionalValue(reasonById[submission._id] || ""),
+    });
+  };
+
+  return (
+    <div className="grid gap-4">
+      <Card className="border-white/10 bg-[#1c1c1c]">
+        <CardHeader className="gap-4 border-b border-white/10 md:flex-row md:items-center md:justify-between">
+          <CardTitle className="flex items-center gap-2 text-base text-white">
+            <ShieldCheck className="h-4 w-4 text-emerald-300" />
+            Seller Review Queue
+          </CardTitle>
+          <div className="flex flex-wrap gap-2">
+            <select value={type} onChange={(event) => { setType(event.target.value as SellerSubmissionType); setPage(1); }} className={selectClass}>
+              {sellerSubmissionTypeOptions.map((option) => (
+                <option key={option.value} value={option.value}>{option.label}</option>
+              ))}
+            </select>
+            <select value={status} onChange={(event) => { setStatus(event.target.value as typeof status); setPage(1); }} className={selectClass}>
+              <option value="PENDING_REVIEW">Pending Review</option>
+              <option value="PENDING">Pending</option>
+              <option value="APPROVED">Approved</option>
+              <option value="REJECTED">Rejected</option>
+              <option value="ALL">All</option>
+            </select>
+            <Button variant="outline" className="border-white/10 bg-white/5 text-white hover:bg-white/10" onClick={() => submissionsQuery.refetch()}>
+              <RefreshCcw className="h-4 w-4" />
+              Refresh
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent className="px-0">
+          {submissionsQuery.isLoading && <div className="px-4 py-10 text-sm text-gray-400">Loading seller submissions...</div>}
+          {!submissionsQuery.isLoading && !submissions.length && <div className="px-4 py-10 text-sm text-gray-400">No submissions found.</div>}
+          {!submissionsQuery.isLoading && Boolean(submissions.length) && (
+            <Table>
+              <TableHeader>
+                <TableRow className="border-white/10 hover:bg-transparent">
+                  <TableHead className="px-4 text-gray-400">Submission</TableHead>
+                  <TableHead className="text-gray-400">Seller</TableHead>
+                  <TableHead className="text-gray-400">Store</TableHead>
+                  <TableHead className="text-gray-400">Status</TableHead>
+                  <TableHead className="text-gray-400">Reason</TableHead>
+                  <TableHead className="text-right text-gray-400">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {submissions.map((submission) => (
+                  <TableRow key={submission._id} className="border-white/10 hover:bg-white/[0.03]">
+                    <TableCell className="px-4">
+                      <div className="font-medium text-white">{submissionTitle(submission)}</div>
+                      <div className="text-xs text-gray-500">{formatDate(submission.createdAt)}</div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm text-white">{submissionSeller(submission).name}</div>
+                      <div className="text-xs text-gray-500">{submissionSeller(submission).email}</div>
+                    </TableCell>
+                    <TableCell className="text-gray-300">{submissionStore(submission)}</TableCell>
+                    <TableCell><SubmissionStatusBadge status={submissionStatus(submission)} /></TableCell>
+                    <TableCell>
+                      <Input
+                        value={reasonById[submission._id] || ""}
+                        onChange={(event) => setReasonById((current) => ({ ...current, [submission._id]: event.target.value }))}
+                        placeholder="Reason"
+                        className={cn(inputClass, "h-8 min-w-40")}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="border-emerald-400/30 bg-emerald-400/10 text-emerald-200 hover:bg-emerald-400/20"
+                          onClick={() => approve(submission)}
+                          disabled={reviewSubmission.isPending}
+                        >
+                          <CheckCircle2 className="h-3.5 w-3.5" />
+                          Approve
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => reject(submission)}
+                          disabled={reviewSubmission.isPending}
+                        >
+                          Reject
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+      <PaginationFooter page={page} totalPages={submissionsQuery.data?.totalPages || 1} onPage={setPage} />
+    </div>
   );
 }
 
@@ -1883,6 +2019,62 @@ function StatusBadge({ active, label }: { active: boolean; label: string }) {
       {label}
     </Badge>
   );
+}
+
+function SubmissionStatusBadge({ status }: { status: string }) {
+  const isApproved = status === "APPROVED";
+  const isPending = status === "PENDING_REVIEW" || status === "PENDING" || status === "DRAFT";
+  return (
+    <Badge
+      variant="outline"
+      className={cn(
+        isApproved && "border-emerald-400/30 text-emerald-300",
+        isPending && "border-amber-400/30 text-amber-300",
+        !isApproved && !isPending && "border-red-400/30 text-red-300",
+      )}
+    >
+      {status}
+    </Badge>
+  );
+}
+
+function PaginationFooter({ page, totalPages, onPage }: { page: number; totalPages: number; onPage: (page: number) => void }) {
+  return (
+    <div className="flex items-center justify-between rounded-lg border border-white/10 bg-[#1c1c1c] px-4 py-3">
+      <div className="text-sm text-gray-400">Page {page} of {Math.max(totalPages, 1)}</div>
+      <div className="flex gap-2">
+        <Button variant="outline" className="border-white/10 bg-white/5 text-white hover:bg-white/10" disabled={page <= 1} onClick={() => onPage(page - 1)}>
+          Previous
+        </Button>
+        <Button variant="outline" className="border-white/10 bg-white/5 text-white hover:bg-white/10" disabled={page >= totalPages} onClick={() => onPage(page + 1)}>
+          Next
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function submissionTitle(submission: SellerSubmission) {
+  return submission.title || submission.name || submission.code || submission.requestedPrimaryCategory || submission.category || submission._id;
+}
+
+function submissionStatus(submission: SellerSubmission) {
+  return submission.approvalStatus || submission.status || "PENDING_REVIEW";
+}
+
+function submissionSeller(submission: SellerSubmission) {
+  if (typeof submission.sellerId === "object" && submission.sellerId) {
+    return {
+      name: submission.sellerId.fullName || "Seller",
+      email: submission.sellerId.email || "",
+    };
+  }
+  return { name: "Seller", email: typeof submission.sellerId === "string" ? submission.sellerId : "" };
+}
+
+function submissionStore(submission: SellerSubmission) {
+  if (typeof submission.storeId === "object" && submission.storeId) return submission.storeId.name || submission.storeId._id;
+  return submission.storeId || "-";
 }
 
 function getPartner(person: ManagedPerson): { type: PartnerType; profile: PartnerProfile } | null {

@@ -97,3 +97,23 @@ export const reviewMallCreationSchema = z.object({
     status: z.enum(["APPROVED", "REJECTED"]),
     reason: z.string().trim().max(300).optional(),
 });
+
+export const sellerSubmissionTypeSchema = z.enum([
+    "products",
+    "coupons",
+    "banners",
+    "sizeCharts",
+    "categoryRequests",
+]);
+
+export const listSellerSubmissionsSchema = z.object({
+    type: sellerSubmissionTypeSchema.optional(),
+    status: z.enum(["DRAFT", "PENDING_REVIEW", "APPROVED", "REJECTED", "PENDING", "ALL"]).optional(),
+    page: z.coerce.number().int().min(1).optional(),
+    limit: z.coerce.number().int().min(1).max(100).optional(),
+});
+
+export const reviewSellerSubmissionSchema = z.object({
+    status: z.enum(["APPROVED", "REJECTED"]),
+    reason: z.string().trim().max(300).optional(),
+});

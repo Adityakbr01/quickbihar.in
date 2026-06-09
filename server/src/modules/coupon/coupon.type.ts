@@ -22,6 +22,13 @@ export interface ICoupon {
     usageLimit: number;
     usedCount: number;
     usageLimitPerUser: number;
+    scope?: "GLOBAL" | "SELLER";
+    sellerId?: string;
+    storeId?: string;
+    approvalStatus?: "DRAFT" | "PENDING_REVIEW" | "APPROVED" | "REJECTED";
+    reviewedBy?: string;
+    reviewedAt?: Date;
+    rejectionReason?: string;
     isActive: boolean;
     createdAt: Date;
     updatedAt: Date;

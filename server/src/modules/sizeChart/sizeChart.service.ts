@@ -7,7 +7,10 @@ export class SizeChartService {
     }
 
     static async getAllCharts() {
-        return await SizeChartDAO.findAll();
+        return await SizeChartDAO.findAll({
+            isActive: true,
+            $or: [{ approvalStatus: "APPROVED" }, { approvalStatus: { $exists: false } }],
+        });
     }
 
     static async getChartById(id: string) {

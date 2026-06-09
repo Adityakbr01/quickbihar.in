@@ -5,6 +5,8 @@ export type PartnerType = "SELLER" | "DELIVERY";
 export type PartnerStatus = "PENDING" | "APPROVED" | "REJECTED";
 export type PayoutStatus = "PENDING" | "PROCESSING" | "PAID" | "FAILED";
 export type ManagementStatus = "ACTIVE" | "PARTIAL" | "PLANNED";
+export type SellerSubmissionType = "products" | "coupons" | "banners" | "sizeCharts" | "categoryRequests";
+export type SellerSubmissionStatus = "DRAFT" | "PENDING_REVIEW" | "APPROVED" | "REJECTED" | "PENDING" | "ALL";
 
 export interface PartnerProfile {
   status: PartnerStatus;
@@ -246,6 +248,38 @@ export interface AppConfig {
   };
 }
 
+export interface SellerSubmission {
+  _id: string;
+  sellerId?: {
+    _id: string;
+    fullName?: string;
+    email?: string;
+    phone?: string;
+  } | string;
+  storeId?: {
+    _id: string;
+    name?: string;
+  } | string;
+  title?: string;
+  name?: string;
+  code?: string;
+  requestedPrimaryCategory?: string;
+  requestedSubcategories?: string[];
+  category?: string;
+  approvalStatus?: "DRAFT" | "PENDING_REVIEW" | "APPROVED" | "REJECTED";
+  status?: "PENDING" | "APPROVED" | "REJECTED";
+  rejectionReason?: string;
+  createdAt?: string;
+}
+
+export interface SellerSubmissionResponse {
+  data: SellerSubmission[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
 export const adminManagementApi = {
   getManagementCatalog: async (): Promise<ManagementGroup[]> => {
     const response = await axiosInstance.get("/admin/management-catalog");
@@ -412,6 +446,31 @@ export const adminManagementApi = {
     reason?: string;
   }) => {
     const response = await axiosInstance.patch(`/admin/sellers/${sellerId}/mall-request`, { status, reason });
+    return response.data.data;
+  },
+
+  getSellerSubmissions: async (params: {
+    type?: SellerSubmissionType;
+    status?: SellerSubmissionStatus;
+    page?: number;
+    limit?: number;
+  }): Promise<SellerSubmissionResponse> => {
+    const response = await axiosInstance.get("/admin/seller-submissions", { params });
+    return response.data.data;
+  },
+
+  reviewSellerSubmission: async ({
+    type,
+    id,
+    status,
+    reason,
+  }: {
+    type: SellerSubmissionType;
+    id: string;
+    status: "APPROVED" | "REJECTED";
+    reason?: string;
+  }) => {
+    const response = await axiosInstance.patch(`/admin/seller-submissions/${type}/${id}/review`, { status, reason });
     return response.data.data;
   },
 };

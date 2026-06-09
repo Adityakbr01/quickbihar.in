@@ -43,7 +43,7 @@ export class ProductController {
      * @desc Public endpoint to get active products
      */
     static getPublicProducts = asyncHandler(async (req: Request, res: Response) => {
-        const products = await ProductService.getProducts({ ...req.query, isActive: true });
+        const products = await ProductService.getProducts({ ...req.query, isActive: true, publicOnly: true });
         return res
             .status(200)
             .json(new ApiResponse(200, products, "Public products fetched successfully"));
