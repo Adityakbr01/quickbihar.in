@@ -1,6 +1,7 @@
 export interface IVariant {
     size: string;
     color: string;
+    price?: number;
     stock: number;
     sku: string;
 }
@@ -9,6 +10,7 @@ export interface IProduct {
     title: string;
     slug: string;
     description?: string;
+    shortDescription?: string;
 
     brand?: string;
 
@@ -49,6 +51,12 @@ export interface IProduct {
     };
 
     tags?: string[];
+
+    seo?: {
+        metaTitle?: string;
+        metaDescription?: string;
+        keywords?: string[];
+    };
 
     isFeatured?: boolean;
     isTrending?: boolean;

@@ -5,8 +5,18 @@ export interface ICategory extends Document {
     slug: string;
     image: string;
     imagePublicId: string;
+    banner?: string;
+    bannerPublicId?: string;
+    description?: string;
+    parentId?: string;
     priority: number;
+    sortOrder?: number;
     isActive: boolean;
+    seo?: {
+        metaTitle?: string;
+        metaDescription?: string;
+        keywords?: string[];
+    };
     createdAt: Date;
     updatedAt: Date;
 }

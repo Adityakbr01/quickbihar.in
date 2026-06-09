@@ -118,14 +118,15 @@ export function AdminProductTable({
               </TableCell>
               <TableCell className="text-right">
                 <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="h-8 w-8 p-0 text-gray-400 hover:text-white hover:bg-white/10">
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
+                  <DropdownMenuTrigger
+                    render={
+                      <Button variant="ghost" className="h-8 w-8 p-0 text-gray-400 hover:text-white hover:bg-white/10" />
+                    }
+                  >
+                    <MoreHorizontal className="h-4 w-4" />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent
                     align="end"
-                    onCloseAutoFocus={(e) => e.preventDefault()}
                     className="bg-[#1c1c1c] border-white/10 text-white shadow-2xl"
                   >
                     <DropdownMenuGroup>

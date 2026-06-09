@@ -3,12 +3,12 @@ import { View, Text, Image, TouchableOpacity } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { createTopMallSectionStyles } from "../style/TopMallSection.style";
-import { Mall } from "../lib/mockData";
+import type { TopMall } from "../api/mall.api";
 import { StarIcon, Location01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 
 interface MallCardProps {
-  mall: Mall;
+  mall: TopMall;
 }
 
 export const MallCard = ({ mall }: MallCardProps) => {

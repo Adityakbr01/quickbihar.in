@@ -5,8 +5,6 @@ export default function TabsLayout() {
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="index" />
       <Stack.Screen name="clothing" />
-      <Stack.Screen name="jewelry" />
-      <Stack.Screen name="food" />
     </Stack>
   );
 }

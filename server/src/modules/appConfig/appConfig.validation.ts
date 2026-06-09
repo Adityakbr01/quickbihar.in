@@ -1,6 +1,10 @@
 import { z } from "zod";
 
 export const updateAppConfigSchema = z.object({
+    store: z.object({
+        storeName: z.string().optional(),
+        appTitle: z.string().optional(),
+    }).optional(),
     policies: z.object({
         privacyPolicy: z.string().optional(),
         termsAndConditions: z.string().optional(),
@@ -29,8 +33,22 @@ export const updateAppConfigSchema = z.object({
         faviconUrl: z.string().url().optional().or(z.literal("")),
     }).optional(),
     shipping: z.object({
-        freeShippingThreshold: z.number().optional(),
-        shippingFee: z.number().optional(),
+        freeShippingThreshold: z.coerce.number().min(0).optional(),
+        shippingFee: z.coerce.number().min(0).optional(),
+    }).optional(),
+    tax: z.object({
+        enabled: z.boolean().optional(),
+        rate: z.coerce.number().min(0).max(100).optional(),
+        inclusive: z.boolean().optional(),
+    }).optional(),
+    currency: z.object({
+        code: z.string().trim().min(3).max(3).optional(),
+        symbol: z.string().trim().max(8).optional(),
+    }).optional(),
+    delivery: z.object({
+        defaultRadiusKm: z.coerce.number().min(0).optional(),
+        minOrderAmount: z.coerce.number().min(0).optional(),
+        estimatedMinutes: z.coerce.number().min(1).optional(),
     }).optional(),
 });
 

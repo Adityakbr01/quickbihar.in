@@ -246,41 +246,6 @@ export const seedSizeCharts = async () => {
                     "Height: Head to toe.",
                     "Chest: Around chest."
                 ]
-            },
-
-            // ================= JEWELLERY =================
-            {
-                name: "Ring Size",
-                category: "Jewellery",
-                subCategory: "Ring",
-                unit: "mm",
-                fields: ["Size", "Diameter"],
-                data: [
-                    { size: "6", Diameter: 16.5 },
-                    { size: "7", Diameter: 17.3 },
-                    { size: "8", Diameter: 18.1 },
-                    { size: "9", Diameter: 18.9 },
-                    { size: "10", Diameter: 19.8 },
-                ],
-                howToMeasure: [
-                    "Measure finger diameter using ring or thread."
-                ]
-            },
-            {
-                name: "Necklace Length",
-                category: "Jewellery",
-                subCategory: "Necklace",
-                unit: "inches",
-                fields: ["Type", "Length"],
-                data: [
-                    { size: "Choker", Length: 14 },
-                    { size: "Princess", Length: 18 },
-                    { size: "Matinee", Length: 22 },
-                    { size: "Opera", Length: 28 },
-                ],
-                howToMeasure: [
-                    "Measure around neck for comfort fit."
-                ]
             }
         ];
 
@@ -377,60 +342,6 @@ export const seedRefundPolicies = async () => {
                 isActive: true,
             },
 
-            // ================= JEWELLERY =================
-            {
-                name: "Jewellery 3-Day Return",
-                category: "Jewellery",
-                description: "Short return window for jewellery",
-                returnWindowDays: 3,
-                refundProcessingDays: 5,
-                conditions: [
-                    "Item must be unused",
-                    "Original box required",
-                    "No scratches or damage"
-                ],
-                refundType: "Wallet / Bank",
-                returnShipping: "Customer",
-                isReturnable: true,
-                isExchangeAvailable: true,
-                isActive: true,
-            },
-
-            {
-                name: "Custom Jewellery No Return",
-                category: "Jewellery",
-                description: "Customized jewellery items",
-                returnWindowDays: 0,
-                refundProcessingDays: 0,
-                conditions: [
-                    "Customized products cannot be returned"
-                ],
-                refundType: "No Refund",
-                returnShipping: "Not Applicable",
-                isReturnable: false,
-                isExchangeAvailable: false,
-                isActive: true,
-            },
-
-            // ================= ELECTRONICS =================
-            {
-                name: "Electronics 7-Day Replacement",
-                category: "Electronics",
-                description: "Replacement only for electronics",
-                returnWindowDays: 7,
-                refundProcessingDays: 0,
-                conditions: [
-                    "Only defective products eligible",
-                    "All accessories must be returned",
-                    "Original packaging required"
-                ],
-                refundType: "Replacement Only",
-                returnShipping: "Seller",
-                isReturnable: false,
-                isExchangeAvailable: true,
-                isActive: true,
-            },
-
             // ================= NO RETURN =================
             {
                 name: "Final Sale - No Return",
@@ -517,5 +428,4 @@ export const seedRbac = async () => {
         console.error("❌ Failed to seed RBAC:", error);
     }
 };
-
 

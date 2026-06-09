@@ -1,6 +1,10 @@
 import type { Document } from "mongoose";
 
 export interface IAppConfig extends Document {
+    store: {
+        storeName: string;
+        appTitle: string;
+    };
     policies: {
         privacyPolicy: string;
         termsAndConditions: string;
@@ -31,6 +35,20 @@ export interface IAppConfig extends Document {
     shipping: {
         freeShippingThreshold: number;
         shippingFee: number;
+    };
+    tax: {
+        enabled: boolean;
+        rate: number;
+        inclusive: boolean;
+    };
+    currency: {
+        code: string;
+        symbol: string;
+    };
+    delivery: {
+        defaultRadiusKm: number;
+        minOrderAmount: number;
+        estimatedMinutes: number;
     };
     updatedBy?: string;
 }

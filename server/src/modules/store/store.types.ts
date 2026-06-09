@@ -17,6 +17,8 @@ export interface IStore extends Document {
     sellerId: Types.ObjectId;
     name: string;
     description?: string;
+    logoUrl?: string;
+    bannerUrl?: string;
     storeImages: string[];
     storeVideo?: string;
     type: StoreType;
@@ -25,6 +27,33 @@ export interface IStore extends Document {
         city: string;
         state: string;
         pincode: string;
+        country?: string;
+        postalCode?: string;
+    };
+    contact?: {
+        email?: string;
+        phone?: string;
+    };
+    categoryConfig?: {
+        primaryCategory?: string;
+        subcategories?: string[];
+        assignedByAdmin?: boolean;
+    };
+    deliveryConfig?: {
+        deliveryAreas?: string[];
+        shippingFee?: number;
+        freeShippingThreshold?: number;
+    };
+    seo?: {
+        storeTitle?: string;
+        metaTitle?: string;
+        metaDescription?: string;
+    };
+    policies?: {
+        returnPolicy?: string;
+        refundPolicy?: string;
+        shippingPolicy?: string;
+        termsAndConditions?: string;
     };
     currentLocation: {
         type: "Point";
@@ -42,14 +71,9 @@ export interface IStore extends Document {
     deliveryRadiusKm?: number;
     minOrderAmount?: number;
     deliveryFee?: number;
-}
-
-export interface IFoodStoreConfig extends Document {
-    storeId: Types.ObjectId;
-    avgPreparationTime?: number;
-    isBusy?: boolean;
-    cuisines: string[];
-    isPureVeg?: boolean;
+    isSetupComplete?: boolean;
+    setupCompletedAt?: Date;
+    setupMissingFields?: string[];
 }
 
 export interface IClothingStoreConfig extends Document {
@@ -57,12 +81,4 @@ export interface IClothingStoreConfig extends Document {
     availableBrands: string[];
     returnDays?: number;
     hasTrial?: boolean;
-}
-
-export interface IJewelryStoreConfig extends Document {
-    storeId: Types.ObjectId;
-    certifications: string[];
-    hasGold?: boolean;
-    hasDiamond?: boolean;
-    makingChargeType?: string;
 }

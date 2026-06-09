@@ -13,12 +13,12 @@ export interface CategoryItem {
 }
 
 export const carouselData: CarouselItem[] = [
-    { id: '1', image: require('@/assets/images/bn1.webp'), link: '/?offer=pizza' },
-    { id: '2', image: require('@/assets/images/bn2.webp'), link: '/?offer=burger' },
-    { id: '3', image: require('@/assets/images/bn3.webp'), link: '/?offer=healthy' },
-    { id: '4', image: require('@/assets/images/bn4.webp'), link: '/?offer=midnight' },
-    { id: '5', image: require('@/assets/images/bn5.webp'), link: '/?offer=desserts' },
-    { id: '6', image: require('@/assets/images/bn6.webp'), link: '/?offer=streetfood' },
+    { id: '1', image: require('@/assets/images/bn1.webp'), link: '/?offer=trends' },
+    { id: '2', image: require('@/assets/images/bn2.webp'), link: '/?offer=kurtis' },
+    { id: '3', image: require('@/assets/images/bn3.webp'), link: '/?offer=sarees' },
+    { id: '4', image: require('@/assets/images/bn4.webp'), link: '/?offer=weddings' },
+    { id: '5', image: require('@/assets/images/bn5.webp'), link: '/?offer=jeans' },
+    { id: '6', image: require('@/assets/images/bn6.webp'), link: '/?offer=menswear' },
 ];
 
 export const categoriesData: CategoryItem[] = [

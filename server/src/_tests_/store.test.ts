@@ -52,7 +52,9 @@ mock.module("../modules/seller/seller.model", () => ({
             if (query.userId === VALID_USER_ID) {
                 return Promise.resolve({
                     userId: VALID_USER_ID,
-                    sellerType: "CLOTHING"
+                    sellerType: "CLOTHING",
+                    status: "APPROVED",
+                    isVerified: true,
                 });
             }
             return Promise.resolve(null);
@@ -79,9 +81,7 @@ mock.module("../modules/store/store.dao", () => ({
     getStoreByIdDAO: mock((id) => Promise.resolve(
         id === VALID_STORE_ID ? { _id: id, type: "CLOTHING", name: "Test Store", toObject: () => ({ _id: id, type: "CLOTHING", name: "Test Store" }) } : null
     )),
-    getStoresBySellerDAO: mock(() => Promise.resolve([
-        { _id: VALID_STORE_ID, name: "My Store" }
-    ])),
+    getStoresBySellerDAO: mock(() => Promise.resolve([])),
     getStoreConfigDAO: mock(() => Promise.resolve({ hasTrial: true }))
 }));
 
@@ -155,15 +155,13 @@ describe("Store Routes", () => {
         expect(res.body.data.name).toBe("New Clothing Store");
     });
 
-    test("POST /api/v1/stores (Validation Error - Type Mismatch)", async () => {
-        // Seller type is "CLOTHING" in mock, trying to create "FOOD" should fail validation
-        // Wait, the Zod schema checks the shape, then the service checks type match.
+    test("POST /api/v1/stores (Validation Error - Unsupported Store Type)", async () => {
         const res = await request(app)
             .post("/api/v1/stores")
             .set("Authorization", "Bearer mocked_token")
             .send({
-                name: "New Food Store",
-                type: "FOOD",
+                name: "Unsupported Store",
+                type: "UNSUPPORTED",
                 address: {
                     line1: "123 Street",
                     city: "Patna",
@@ -180,7 +178,6 @@ describe("Store Routes", () => {
                 deliveryFee: 10
             });
 
-        // The error comes from ApiError(400, "You are registered as a CLOTHING seller. You cannot create a FOOD store.")
         expect(res.status).toBe(400);
     });
 

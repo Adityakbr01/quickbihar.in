@@ -10,6 +10,25 @@ const axiosInstance = axios.create({
   withCredentials: true, // Important for cookies
 });
 
+axiosInstance.interceptors.request.use((config) => {
+  if (typeof window === "undefined") return config;
+
+  const persisted = window.localStorage.getItem("admin-auth-storage");
+  if (!persisted) return config;
+
+  try {
+    const parsed = JSON.parse(persisted);
+    const token = parsed?.state?.token;
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+  } catch {
+    window.localStorage.removeItem("admin-auth-storage");
+  }
+
+  return config;
+});
+
 // Response Interceptor for global errors
 axiosInstance.interceptors.response.use(
   (response) => response,

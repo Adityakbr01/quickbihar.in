@@ -13,7 +13,8 @@ export class ProductController {
             throw new ApiError(400, "Product images are required");
         }
 
-        const product = await ProductService.createProduct(req.body, files, user._id);
+        const roleName = user.roleId?.name || user.role;
+        const product = await ProductService.createProduct(req.body, files, user._id.toString(), roleName);
 
         return res
             .status(201)
@@ -21,10 +22,12 @@ export class ProductController {
     });
 
     static getAllProducts = asyncHandler(async (req: Request, res: Response) => {
-        const { role, _id } = (req as any).user || {};
+        const user = (req as any).user || {};
+        const role = user.roleId?.name || user.role;
+        const _id = user._id;
 
         let products;
-        if (role === "seller") {
+        if (role === "SELLER" || role === "seller") {
             products = await ProductService.getSellerProducts(_id.toString());
         } else {
             // Admin can see everything
@@ -70,7 +73,8 @@ export class ProductController {
     static updateProduct = asyncHandler(async (req: Request, res: Response) => {
         const user = (req as any).user;
         const files = req.files as any[] || [];
-        const product = await ProductService.updateProduct(req.params.id as unknown as string, req.body, user._id.toString(), user.role, files);
+        const roleName = user.roleId?.name || user.role;
+        const product = await ProductService.updateProduct(req.params.id as unknown as string, req.body, user._id.toString(), roleName, files);
 
         return res
             .status(200)
@@ -79,7 +83,8 @@ export class ProductController {
 
     static deleteProduct = asyncHandler(async (req: Request, res: Response) => {
         const user = (req as any).user;
-        await ProductService.deleteProduct(req.params.id as unknown as string, user._id.toString(), user.role);
+        const roleName = user.roleId?.name || user.role;
+        await ProductService.deleteProduct(req.params.id as unknown as string, user._id.toString(), roleName);
 
         return res
             .status(200)
@@ -98,4 +103,3 @@ export class ProductController {
             .json(new ApiResponse(200, similar, "Similar products fetched successfully"));
     });
 }
-

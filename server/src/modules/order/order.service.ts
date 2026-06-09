@@ -234,8 +234,8 @@ export class OrderService {
         return order;
     }
 
-    async getAdminOrders() {
-        return await orderDAO.findAll();
+    async getAdminOrders(query: any = {}) {
+        return await orderDAO.findAll(query);
     }
 
     async adminUpdateOrderStatus(orderId: string, status: OrderStatus, reason?: string) {
@@ -252,15 +252,17 @@ export class OrderService {
         } else if (status === OrderStatus.CANCELLED) {
             updateData.cancelledAt = new Date();
             updateData.cancellationReason = reason || "Cancelled by Administrator";
+        } else if (status === OrderStatus.REFUNDED) {
+            updateData.refundedAt = new Date();
         }
 
         const updatedOrder = await orderDAO.updateStatus(orderId, status);
-        if (updateData.cancellationReason) {
+        if (Object.keys(updateData).length > 1) {
             await orderDAO.update(orderId, updateData);
         }
 
         // 2. Handle Inventory Restoration if order is cancelled/rejected after payment
-        const isCancellation = status === OrderStatus.CANCELLED || status === OrderStatus.REJECTED;
+        const isCancellation = status === OrderStatus.CANCELLED || status === OrderStatus.REJECTED || status === OrderStatus.REFUNDED;
         const wasPaid = [OrderStatus.PAID, OrderStatus.CONFIRMED, OrderStatus.SHIPPED].includes(oldStatus);
 
         if (isCancellation && wasPaid) {

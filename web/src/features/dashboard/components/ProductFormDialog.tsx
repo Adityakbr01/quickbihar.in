@@ -8,7 +8,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from "@/components/ui/dialog";
 import {
   Form,
@@ -22,8 +21,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Product } from "../api/dashboard.api";
 import { useEffect } from "react";
-import { Loader2, Scroll } from "lucide-react";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { Loader2 } from "lucide-react";
 
 const productSchema = z.object({
   name: z.string().min(2, "Name is required"),
@@ -39,11 +37,14 @@ const productSchema = z.object({
   reviews: z.number().min(0).default(0),
 });
 
+type ProductFormInput = z.input<typeof productSchema>;
+type ProductFormValues = z.output<typeof productSchema>;
+
 interface ProductFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   product?: Product | null;
-  onSubmit: (data: z.infer<typeof productSchema>) => void;
+  onSubmit: (data: ProductFormValues) => void;
   isPending: boolean;
 }
 
@@ -54,7 +55,7 @@ export function ProductFormDialog({
   onSubmit,
   isPending,
 }: ProductFormDialogProps) {
-  const form = useForm<z.infer<typeof productSchema>>({
+  const form = useForm<ProductFormInput, unknown, ProductFormValues>({
     resolver: zodResolver(productSchema),
     defaultValues: {
       name: "",

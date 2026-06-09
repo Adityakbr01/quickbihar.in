@@ -77,7 +77,7 @@ export class OnboardingService {
 
       // 2. Create Profile
       const details = application.details instanceof Map ? Object.fromEntries(application.details) : application.details;
-      const { location, ...otherDetails } = details;
+      const { location, mallRequest, ...otherDetails } = details;
 
       const profileData: any = {
         userId: user._id,
@@ -90,6 +90,14 @@ export class OnboardingService {
         profileData.currentLocation = {
           type: "Point",
           coordinates: [location.lng, location.lat]
+        };
+      }
+
+      if (mallRequest?.mallId) {
+        profileData.mallRequest = {
+          ...mallRequest,
+          status: "PENDING",
+          requestedAt: new Date(),
         };
       }
 

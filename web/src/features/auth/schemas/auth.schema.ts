@@ -12,7 +12,11 @@ export interface AuthUser {
   username: string;
   email: string;
   fullName: string;
-  role: "admin" | "user";
+  role: "ADMIN" | "SUPER_ADMIN" | "SELLER" | "DELIVERY" | "USER" | {
+    _id: string;
+    name: "ADMIN" | "SUPER_ADMIN" | "SELLER" | "DELIVERY" | "USER";
+    description?: string;
+  };
 }
 
 export interface AuthResponse {

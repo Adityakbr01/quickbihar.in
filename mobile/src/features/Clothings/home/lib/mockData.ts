@@ -122,7 +122,7 @@ export const MOCK_MALLS = [
     location: "Viman Nagar, Pune",
     rating: 4.9,
     image: "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=600&q=80",
-    tagline: "Fashion, Food, Fun",
+    tagline: "Fashion, Deals, Style",
   },
   {
     id: "3",

@@ -28,8 +28,6 @@ export enum ModuleEnum {
 
 export enum DomainEnum {
   CLOTHING = "CLOTHING",
-  JEWELRY = "JEWELRY",
-  FOOD = "FOOD",
   GLOBAL = "GLOBAL",
 }
 
@@ -61,8 +59,6 @@ export const ModuleDescriptions: Record<ModuleEnum, string> = {
 
 export const DomainDescriptions: Record<DomainEnum, string> = {
   [DomainEnum.CLOTHING]: "Apparel and lifestyle domain",
-  [DomainEnum.JEWELRY]: "Luxury jewelry and accessories domain",
-  [DomainEnum.FOOD]: "Groceries and consumables domain",
   [DomainEnum.GLOBAL]: "Universal access across all business domains",
 };
 

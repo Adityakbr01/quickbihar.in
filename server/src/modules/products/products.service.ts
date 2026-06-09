@@ -3,6 +3,20 @@ import { createProductSchema, updateProductSchema, type CreateProductBody, type 
 import { ApiError } from "../../utils/ApiError";
 import { ZodError } from "zod";
 import { uploadToImageKit, deleteFromImageKit } from "../../utils/imagekit.util";
+import { Category } from "../category/category.model";
+import { RoleEnum } from "../rbac/rbac.types";
+import { Seller } from "../seller/seller.model";
+import { Store } from "../store/store.model";
+import { buildStoreSetupStatus } from "../store/store.setup";
+
+const escapeRegex = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const normalize = (value?: string) => (value || "").toLowerCase().trim();
+const slugify = (value: string) =>
+    value
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "");
 
 export class ProductService {
     private static generateSlug(title: string): string {
@@ -14,10 +28,94 @@ export class ProductService {
             .replace(/^-+|-+$/g, "") + "-" + Math.random().toString(36).substring(2, 7);
     }
 
-    static async createProduct(data: any, files: any[], sellerId: string) {
+    private static roleName(role: any) {
+        return role?.name || role || "";
+    }
+
+    private static isAdminRole(role: any) {
+        const name = this.roleName(role);
+        return name === RoleEnum.ADMIN || name === RoleEnum.SUPER_ADMIN;
+    }
+
+    private static isSellerRole(role: any) {
+        const name = this.roleName(role);
+        return name === RoleEnum.SELLER || name === "seller";
+    }
+
+    private static async assertCategoryAssigned(category: string, subCategory?: string) {
+        const categorySlug = slugify(category);
+        const categoryDoc = await Category.findOne({
+            isActive: true,
+            $or: [
+                { title: { $regex: new RegExp(`^${escapeRegex(category)}$`, "i") } },
+                { slug: categorySlug },
+            ],
+        }).lean();
+
+        if (!categoryDoc) {
+            throw new ApiError(400, "Product category must be active and assigned by admin before product creation.");
+        }
+
+        return {
+            categoryDoc,
+            requestedValues: [category, subCategory, categoryDoc.title, categoryDoc.slug].filter(Boolean) as string[],
+        };
+    }
+
+    private static async assertSellerProductGate(userId: string, category: string, subCategory?: string) {
+        const [seller, store] = await Promise.all([
+            Seller.findOne({ userId }).lean(),
+            Store.findOne({ sellerId: userId }).sort({ createdAt: -1 }).lean(),
+        ]);
+
+        if (!seller) throw new ApiError(404, "Seller profile not found");
+        if (seller.status !== "APPROVED" || !seller.isVerified) {
+            throw new ApiError(403, "Seller approval is required before creating products.");
+        }
+
+        if (!store) {
+            throw new ApiError(400, "Store configuration is required before creating products.");
+        }
+
+        const setup = buildStoreSetupStatus(store);
+        if (!setup.isComplete) {
+            throw new ApiError(400, "Store configuration must be completed before creating products.", setup.missingFields as any);
+        }
+
+        if (!store.isActive) {
+            throw new ApiError(400, "Store must be active before creating products.");
+        }
+
+        const { requestedValues } = await this.assertCategoryAssigned(category, subCategory);
+        const categoryConfig = store.categoryConfig || {};
+        const allowedValues = [
+            categoryConfig.primaryCategory,
+            ...(categoryConfig.subcategories || []),
+        ]
+            .filter(Boolean)
+            .flatMap((value: string) => [normalize(value), slugify(value)]);
+        const requestedNormalized = requestedValues.flatMap((value) => [normalize(value), slugify(value)]);
+        const isAllowed = requestedNormalized.some((value) => allowedValues.includes(value));
+
+        if (!isAllowed) {
+            throw new ApiError(400, "Product category is not assigned to this seller store.");
+        }
+
+        return { seller, store };
+    }
+
+    static async createProduct(data: any, files: any[], requesterId: string, role: string) {
         try {
             const validatedData = createProductSchema.parse(data);
+            const ownerId = this.isAdminRole(role) ? validatedData.sellerId : requesterId;
+
+            if (!ownerId) {
+                throw new ApiError(400, "Seller id is required when an admin creates a product.");
+            }
+
+            const { store } = await this.assertSellerProductGate(ownerId, validatedData.category, validatedData.subCategory);
             const slug = this.generateSlug(validatedData.title);
+            const { sellerId: _ignoredSellerId, ...productPayload } = validatedData;
 
             // Upload images to ImageKit
             const imageUploadPromises = files.map(file =>
@@ -31,10 +129,11 @@ export class ProductService {
             }));
 
             const product = await ProductDAO.create({
-                ...validatedData,
+                ...productPayload,
                 slug,
                 images,
-                sellerId
+                sellerId: ownerId,
+                storeId: store._id,
             });
 
             return product;
@@ -81,12 +180,20 @@ export class ProductService {
             if (!product) throw new ApiError(404, "Product not found");
 
             // Permission check: Sellers can only edit their own products
-            if (role === "seller" && product.sellerId.toString() !== sellerId) {
+            if (this.isSellerRole(role) && product.sellerId.toString() !== sellerId) {
                 throw new ApiError(403, "You do not have permission to edit this product");
             }
 
             const validatedData = updateProductSchema.parse(data);
+            if (this.isSellerRole(role) || validatedData.category || validatedData.subCategory) {
+                await this.assertSellerProductGate(
+                    product.sellerId.toString(),
+                    validatedData.category || product.category,
+                    validatedData.subCategory || product.subCategory,
+                );
+            }
             let updatePayload: any = { ...validatedData };
+            delete updatePayload.sellerId;
 
             if (validatedData.title) {
                 updatePayload.slug = this.generateSlug(validatedData.title);
@@ -125,7 +232,7 @@ export class ProductService {
         const product = await ProductDAO.findById(id);
         if (!product) throw new ApiError(404, "Product not found");
 
-        if (role === "seller" && product.sellerId.toString() !== sellerId) {
+        if (this.isSellerRole(role) && product.sellerId.toString() !== sellerId) {
             throw new ApiError(403, "You do not have permission to delete this product");
         }
 
@@ -156,4 +263,3 @@ export class ProductService {
         return similar;
     }
 }
-

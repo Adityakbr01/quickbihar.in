@@ -40,7 +40,7 @@ export class OrderController {
     });
 
     static getAdminOrders = asyncHandler(async (req, res) => {
-        const result = await orderService.getAdminOrders();
+        const result = await orderService.getAdminOrders(req.query);
 
         return res.status(200).json(
             new ApiResponse(200, result, "Admin orders fetched successfully")

@@ -59,4 +59,52 @@ export class MailService {
       console.error("Mail Service Status Error:", error);
     }
   }
+
+  static async sendAdminInvite(email: string, role: string, inviteUrl: string, fullName?: string, message?: string) {
+    try {
+      const { error } = await resend.emails.send({
+        from: "Quick Bihar <onboarding@resend.dev>",
+        to: [email],
+        subject: `You're invited to Quick Bihar as ${role}`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <h2>Quick Bihar Invitation</h2>
+            <p>Hello${fullName ? ` ${fullName}` : ""},</p>
+            <p>You have been invited to join Quick Bihar with the role <strong>${role}</strong>.</p>
+            ${message ? `<p>${message}</p>` : ""}
+            <p><a href="${inviteUrl}" style="display:inline-block;padding:12px 18px;background:#2563eb;color:#fff;text-decoration:none;border-radius:6px;">Open Quick Bihar</a></p>
+          </div>
+        `,
+      });
+
+      if (error) {
+        console.error("Invite Mail Error:", error);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error("Invite Mail Service Error:", error);
+      return false;
+    }
+  }
+
+  static async sendPayoutNotice(email: string, amount: number, status: string, referenceId?: string) {
+    try {
+      await resend.emails.send({
+        from: "Quick Bihar <payments@resend.dev>",
+        to: [email],
+        subject: `Payout ${status} - Quick Bihar`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <h2>Payout Update</h2>
+            <p>Your payout of <strong>₹${amount}</strong> is marked as <strong>${status}</strong>.</p>
+            ${referenceId ? `<p>Reference: ${referenceId}</p>` : ""}
+          </div>
+        `,
+      });
+    } catch (error) {
+      console.error("Payout Mail Service Error:", error);
+    }
+  }
 }

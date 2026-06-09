@@ -27,13 +27,36 @@ const categorySchema = new Schema<ICategory>(
             type: String,
             required: [true, "Image public ID is required"],
         },
+        banner: {
+            type: String,
+        },
+        bannerPublicId: {
+            type: String,
+        },
+        description: {
+            type: String,
+        },
+        parentId: {
+            type: Schema.Types.ObjectId,
+            ref: "Category",
+            index: true,
+        },
         priority: {
+            type: Number,
+            default: 0,
+        },
+        sortOrder: {
             type: Number,
             default: 0,
         },
         isActive: {
             type: Boolean,
             default: true,
+        },
+        seo: {
+            metaTitle: String,
+            metaDescription: String,
+            keywords: [String],
         },
     },
     { timestamps: true }

@@ -37,9 +37,9 @@ export class CategoryService {
         }
     }
 
-    static async getAllCategories(isAdmin: boolean = false) {
+    static async getAllCategories(isAdmin: boolean = false, query: any = {}) {
         if (isAdmin) {
-            return await CategoryDAO.findAll();
+            return await CategoryDAO.findAll(query);
         }
         return await CategoryDAO.findActive();
     }

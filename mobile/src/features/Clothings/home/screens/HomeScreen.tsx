@@ -43,6 +43,7 @@ const HomeScreen = ({ rootSlug }: { rootSlug?: string }) => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["banners"] }),
         queryClient.invalidateQueries({ queryKey: ["trendingProducts"] }),
+        queryClient.invalidateQueries({ queryKey: ["topMalls"] }),
         queryClient.invalidateQueries({ queryKey: ["paginatedProducts"] }),
         queryClient.invalidateQueries({ queryKey: ["categories"] }),
       ]);

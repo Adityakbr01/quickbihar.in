@@ -12,6 +12,7 @@ import type { CreateStoreInput, UpdateStoreInput } from "./store.types";
 import { StoreType } from "./store.schema";
 import { Seller } from "../seller/seller.model";
 import { ApiError } from "../../utils/ApiError";
+import { buildStoreSetupStatus, mergeStoreForSetup } from "./store.setup";
 
 
 export const createStoreService = async (data: CreateStoreInput, sellerId: string) => {
@@ -19,6 +20,10 @@ export const createStoreService = async (data: CreateStoreInput, sellerId: strin
     const seller = await Seller.findOne({ userId: sellerId });
     if (!seller) {
         throw new ApiError(404, "Seller profile not found");
+    }
+
+    if (seller.status !== "APPROVED" || !seller.isVerified) {
+        throw new ApiError(403, "Seller approval is required before creating a store.");
     }
 
     if (seller.sellerType !== data.type) {
@@ -32,6 +37,7 @@ export const createStoreService = async (data: CreateStoreInput, sellerId: strin
     }
 
     const { config, ...storeData } = data;
+    const setup = buildStoreSetupStatus(storeData);
 
     const store = await createStoreDAO({
         ...storeData,
@@ -40,6 +46,9 @@ export const createStoreService = async (data: CreateStoreInput, sellerId: strin
             type: "Point",
             coordinates: [data.currentLocation.lng, data.currentLocation.lat],
         },
+        isSetupComplete: setup.isComplete,
+        setupCompletedAt: setup.isComplete ? new Date() : undefined,
+        setupMissingFields: setup.missingFields,
     });
 
 
@@ -55,6 +64,11 @@ export const createStoreService = async (data: CreateStoreInput, sellerId: strin
 
 
 export const updateStoreService = async (id: string, data: UpdateStoreInput) => {
+    const existingStore = await getStoreByIdDAO(id);
+    if (!existingStore) {
+        throw new ApiError(404, "Store not found");
+    }
+
     const updateData: any = { ...data };
 
     if (data.currentLocation) {
@@ -65,6 +79,10 @@ export const updateStoreService = async (id: string, data: UpdateStoreInput) => 
     }
 
     delete updateData.config;
+    const setup = buildStoreSetupStatus(mergeStoreForSetup(existingStore, updateData));
+    updateData.isSetupComplete = setup.isComplete;
+    updateData.setupMissingFields = setup.missingFields;
+    updateData.setupCompletedAt = setup.isComplete ? (existingStore.setupCompletedAt || new Date()) : null;
 
     const store = await updateStoreDAO(id, updateData);
 

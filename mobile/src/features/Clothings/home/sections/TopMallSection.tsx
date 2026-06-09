@@ -1,10 +1,12 @@
 import React from "react";
 import { View, Text, FlatList, TouchableOpacity, useWindowDimensions, StyleSheet, Platform } from "react-native";
 import LottieView from "lottie-react-native";
+import { useQuery } from "@tanstack/react-query";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { createTopMallSectionStyles } from "../style/TopMallSection.style";
 import { MOCK_MALLS } from "../lib/mockData";
 import { MallCard } from "../components/MallCard";
+import { getTopMallsRequest } from "../api/mall.api";
 
 const fireLottie = require("@/assets/lottie/Fire.json");
 
@@ -17,6 +19,15 @@ const TopMallSection = () => {
   const isWeb = windowWidth > 600;
   const cardWidth = isWeb ? 300 : 260;
   const gap = 16;
+  const { data: topMalls, isLoading } = useQuery({
+    queryKey: ["topMalls"],
+    queryFn: getTopMallsRequest,
+  });
+  const malls = topMalls?.length ? topMalls : isLoading ? MOCK_MALLS.slice(0, 3) : [];
+
+  if (!malls.length) {
+    return null;
+  }
 
   return (
     <View style={styles.container}>
@@ -49,7 +60,7 @@ const TopMallSection = () => {
       </View>
 
       <FlatList
-        data={MOCK_MALLS}
+        data={malls}
         renderItem={({ item }) => <MallCard mall={item} />}
         keyExtractor={(item) => item.id}
         horizontal

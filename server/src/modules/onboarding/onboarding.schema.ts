@@ -29,6 +29,13 @@ const addressSchema = z.object({
     pincode: z.string().min(6, "Invalid pincode").max(6),
 });
 
+const mallRequestSchema = z.object({
+    mallId: z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid mall id"),
+    mallUnit: z.string().trim().max(40).optional(),
+    mallFloor: z.string().trim().max(40).optional(),
+    message: z.string().trim().max(500).optional(),
+});
+
 export const applyOnboardingSchema = z.object({
     body: z.discriminatedUnion("type", [
         z.object({
@@ -36,13 +43,14 @@ export const applyOnboardingSchema = z.object({
             documents: z.array(documentSchema).min(1, "At least one document is required"),
             details: z.object({
                 businessName: z.string().min(1, "Business name is required"),
-                sellerType: z.nativeEnum(DomainEnum, {
-                    message: "Invalid seller type (must be CLOTHING, JEWELRY, or FOOD)",
+                sellerType: z.literal(DomainEnum.CLOTHING, {
+                    message: "Invalid seller type (must be CLOTHING)",
                 }),
                 gstNumber: z.string().optional(),
                 bankDetails: bankDetailsSchema.optional(),
                 address: addressSchema.optional(),
                 location: locationSchema.optional(),
+                mallRequest: mallRequestSchema.optional(),
             }),
         }),
         z.object({

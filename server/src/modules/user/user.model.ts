@@ -1,8 +1,7 @@
-import mongoose, { Schema, Document, Model, Types } from "mongoose";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import mongoose, { Document, Schema, Types } from "mongoose";
 import { ENV } from "../../config/env.config";
-import { RoleEnum } from "../rbac/rbac.types";
 
 export interface IUser extends Document {
   username: string;

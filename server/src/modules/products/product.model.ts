@@ -4,6 +4,7 @@ const variantSchema = new Schema(
     {
         size: { type: String, required: true },
         color: { type: String, required: true },
+        price: { type: Number },
         stock: { type: Number, required: true },
         sku: { type: String },
     },
@@ -17,6 +18,7 @@ const productSchema = new Schema(
         slug: { type: String, required: true, unique: true },
 
         description: { type: String },
+        shortDescription: { type: String },
 
         brand: { type: String },
 
@@ -47,6 +49,13 @@ const productSchema = new Schema(
             required: true,
         },
 
+        storeId: {
+            type: Schema.Types.ObjectId,
+            ref: "Store",
+            required: true,
+            index: true,
+        },
+
         variants: { type: [variantSchema], required: true },
 
         totalStock: { type: Number, default: 0 },
@@ -72,6 +81,12 @@ const productSchema = new Schema(
         },
 
         tags: [String],
+
+        seo: {
+            metaTitle: String,
+            metaDescription: String,
+            keywords: [String],
+        },
 
         isFeatured: { type: Boolean, default: false },
         isTrending: { type: Boolean, default: false },

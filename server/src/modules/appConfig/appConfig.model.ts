@@ -3,6 +3,10 @@ import type { IAppConfig } from "./appConfig.type";
 
 const appConfigSchema = new Schema<IAppConfig>(
     {
+        store: {
+            storeName: { type: String, default: "QuickBihar Fashion" },
+            appTitle: { type: String, default: "QuickBihar" },
+        },
         policies: {
             privacyPolicy: { type: String, default: "" },
             termsAndConditions: { type: String, default: "" },
@@ -33,6 +37,20 @@ const appConfigSchema = new Schema<IAppConfig>(
         shipping: {
             freeShippingThreshold: { type: Number, default: 2000 },
             shippingFee: { type: Number, default: 99 },
+        },
+        tax: {
+            enabled: { type: Boolean, default: false },
+            rate: { type: Number, default: 0 },
+            inclusive: { type: Boolean, default: true },
+        },
+        currency: {
+            code: { type: String, default: "INR" },
+            symbol: { type: String, default: "Rs." },
+        },
+        delivery: {
+            defaultRadiusKm: { type: Number, default: 5 },
+            minOrderAmount: { type: Number, default: 0 },
+            estimatedMinutes: { type: Number, default: 45 },
         },
         updatedBy: {
             type: Schema.Types.ObjectId,

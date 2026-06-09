@@ -1,11 +1,13 @@
 import { z } from "zod";
 
 export const createProductSchema = z.object({
+    sellerId: z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid seller id").optional(),
     title: z.string().trim().min(1, "Title is required"),
     description: z.string().optional(),
+    shortDescription: z.string().optional(),
     brand: z.string().optional(),
     category: z.string().trim().min(1, "Category is required"),
-    subCategory: z.string().optional(),
+    subCategory: z.string().trim().optional(),
     price: z.coerce.number().min(0, "Price must be positive"),
     originalPrice: z.coerce.number().optional(),
     discountPercentage: z.coerce.number().optional(),
@@ -20,6 +22,7 @@ export const createProductSchema = z.object({
         z.array(z.object({
             size: z.string().min(1, "Size is required"),
             color: z.string().min(1, "Color is required"),
+            price: z.coerce.number().min(0, "Variant price must be positive").optional(),
             stock: z.coerce.number().int().min(0, "Stock cannot be negative"),
             sku: z.string().optional()
         })).min(1, "At least one variant is required")
@@ -43,6 +46,15 @@ export const createProductSchema = z.object({
      tags: z.preprocess(
          (val) => typeof val === "string" ? JSON.parse(val) : val,
          z.array(z.string())
+     ).optional(),
+
+     seo: z.preprocess(
+         (val) => typeof val === "string" ? JSON.parse(val) : val,
+         z.object({
+             metaTitle: z.string().optional(),
+             metaDescription: z.string().optional(),
+             keywords: z.array(z.string()).optional(),
+         })
      ).optional(),
  
      isFeatured: z.preprocess((val) => val === "true" || val === true, z.boolean()).default(false),

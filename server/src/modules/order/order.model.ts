@@ -70,6 +70,7 @@ const orderSchema = new Schema<IOrder>(
         cancellationReason: { type: String },
         rejectedAt: { type: Date },
         cancelledAt: { type: Date },
+        refundedAt: { type: Date },
         paymentInfo: {
             razorpayOrderId: { type: String, required: true },
             razorpayPaymentId: { type: String },

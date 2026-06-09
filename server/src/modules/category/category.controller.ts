@@ -35,7 +35,7 @@ export class CategoryController {
     });
 
     static getAllCategoriesAdmin = asyncHandler(async (req: Request, res: Response) => {
-        const categories = await CategoryService.getAllCategories(true);
+        const categories = await CategoryService.getAllCategories(true, req.query);
         return res
             .status(200)
             .json(new ApiResponse(200, categories, "Categories fetched successfully"));

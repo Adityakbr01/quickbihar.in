@@ -4,10 +4,12 @@ export enum OrderStatus {
     PENDING_PAYMENT = "PENDING_PAYMENT",
     PAID = "PAID",
     CONFIRMED = "CONFIRMED",
+    PROCESSING = "PROCESSING",
     SHIPPED = "SHIPPED",
     DELIVERED = "DELIVERED",
     CANCELLED = "CANCELLED",
     REJECTED = "REJECTED",
+    REFUNDED = "REFUNDED",
     FAILED = "FAILED",
 }
 
@@ -53,6 +55,7 @@ export interface IOrder extends Document {
     cancellationReason?: string;
     rejectedAt?: Date;
     cancelledAt?: Date;
+    refundedAt?: Date;
     paymentInfo: {
         razorpayOrderId: string;
         razorpayPaymentId?: string;
