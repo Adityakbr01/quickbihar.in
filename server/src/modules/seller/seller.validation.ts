@@ -84,6 +84,12 @@ export const sellerStoreSchema = z.object({
         shippingPolicy: optionalText,
         termsAndConditions: optionalText,
     }).optional(),
+    policyRefs: z.object({
+        returnPolicy: mongoIdSchema.optional().nullable(),
+        refundPolicy: mongoIdSchema.optional().nullable(),
+        shippingPolicy: mongoIdSchema.optional().nullable(),
+        termsPolicy: mongoIdSchema.optional().nullable(),
+    }).optional(),
     timings: z.preprocess(parseJson, z.array(z.object({
         day: z.coerce.number().min(0).max(6),
         openTime: z.string(),

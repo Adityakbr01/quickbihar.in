@@ -12,6 +12,8 @@ const sellerKeys = {
   store: () => [...sellerKeys.all, "store"] as const,
   products: (params: SellerQueryParams) => [...sellerKeys.all, "products", params] as const,
   categories: () => [...sellerKeys.all, "categories"] as const,
+  refundPolicies: () => [...sellerKeys.all, "refund-policies"] as const,
+  warehouses: () => [...sellerKeys.all, "warehouses"] as const,
   inventory: (params: SellerQueryParams) => [...sellerKeys.all, "inventory", params] as const,
   orders: (params: SellerQueryParams) => [...sellerKeys.all, "orders", params] as const,
   coupons: (params: SellerQueryParams) => [...sellerKeys.all, "coupons", params] as const,
@@ -63,6 +65,18 @@ export const useSellerProducts = (params: SellerQueryParams) =>
 
 export const useSellerCategories = () =>
   useQuery({ queryKey: sellerKeys.categories(), queryFn: sellerManagementApi.getCategories });
+
+export const useSellerRefundPolicies = () =>
+  useQuery({ queryKey: sellerKeys.refundPolicies(), queryFn: sellerManagementApi.getRefundPolicies });
+
+export const useSellerPolicies = (type?: string) =>
+  useQuery({
+    queryKey: ["seller-policies", type],
+    queryFn: () => sellerManagementApi.getPolicies(type),
+  });
+
+export const useSellerWarehouses = () =>
+  useQuery({ queryKey: sellerKeys.warehouses(), queryFn: sellerManagementApi.getWarehouses });
 
 export const useSellerInventory = (params: SellerQueryParams) =>
   useQuery({ queryKey: sellerKeys.inventory(params), queryFn: () => sellerManagementApi.getInventory(params) });
@@ -249,36 +263,20 @@ export const useSellerSizeChartMutations = () => {
   const queryClient = useQueryClient();
   return {
     create: useMutation({
-      mutationFn: sellerManagementApi.createSizeChart,
-      onSuccess: () => {
-        invalidateSeller(queryClient);
-        toast.success("Size chart draft saved");
-      },
-      onError: mutationError("Failed to save size chart"),
+      mutationFn: async () => { throw new Error("Sellers cannot create size charts. Size charts are admin-owned."); },
+      onError: (err: Error) => toast.error(err.message),
     }),
     update: useMutation({
-      mutationFn: sellerManagementApi.updateSizeChart,
-      onSuccess: () => {
-        invalidateSeller(queryClient);
-        toast.success("Size chart updated");
-      },
-      onError: mutationError("Failed to update size chart"),
+      mutationFn: async () => { throw new Error("Sellers cannot edit size charts. Size charts are admin-owned."); },
+      onError: (err: Error) => toast.error(err.message),
     }),
     remove: useMutation({
-      mutationFn: sellerManagementApi.deleteSizeChart,
-      onSuccess: () => {
-        invalidateSeller(queryClient);
-        toast.success("Size chart deleted");
-      },
-      onError: mutationError("Failed to delete size chart"),
+      mutationFn: async () => { throw new Error("Sellers cannot delete size charts. Size charts are admin-owned."); },
+      onError: (err: Error) => toast.error(err.message),
     }),
     submit: useMutation({
-      mutationFn: sellerManagementApi.submitSizeChart,
-      onSuccess: () => {
-        invalidateSeller(queryClient);
-        toast.success("Size chart submitted for review");
-      },
-      onError: mutationError("Failed to submit size chart"),
+      mutationFn: async () => { throw new Error("Sellers cannot submit size charts. Size charts are admin-owned."); },
+      onError: (err: Error) => toast.error(err.message),
     }),
     assign: useMutation({
       mutationFn: sellerManagementApi.assignSizeChartProducts,

@@ -663,3 +663,96 @@ export const useRestoreBackup = () => {
     onError: (error: Error) => toast.error(error.message || "Failed to restore backup"),
   });
 };
+
+export const useAdminPolicies = (params: AdminListParams) =>
+  useQuery({
+    queryKey: ["admin-policies", params],
+    queryFn: () => adminManagementApi.getPolicies(params),
+  });
+
+export const useCreatePolicy = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: adminManagementApi.createPolicy,
+    onSuccess: () => {
+      invalidateAdmin(queryClient, "admin-policies");
+      toast.success("Policy created successfully");
+    },
+    onError: (error: Error) => toast.error(error.message || "Failed to create policy"),
+  });
+};
+
+export const useUpdatePolicy = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: adminManagementApi.updatePolicy,
+    onSuccess: () => {
+      invalidateAdmin(queryClient, "admin-policies");
+      toast.success("Policy updated successfully");
+    },
+    onError: (error: Error) => toast.error(error.message || "Failed to update policy"),
+  });
+};
+
+export const useDeletePolicy = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: adminManagementApi.deletePolicy,
+    onSuccess: () => {
+      invalidateAdmin(queryClient, "admin-policies");
+      toast.success("Policy deleted successfully");
+    },
+    onError: (error: Error) => toast.error(error.message || "Failed to delete policy"),
+  });
+};
+
+export const useAdminSellers = (params: AdminListParams) =>
+  useQuery({
+    queryKey: ["admin-sellers", params],
+    queryFn: () => adminManagementApi.getSellers(params),
+  });
+
+export const useAdminSeller = (id: string) =>
+  useQuery({
+    queryKey: ["admin-seller", id],
+    queryFn: () => adminManagementApi.getSeller(id),
+    enabled: !!id,
+  });
+
+export const useCreateSeller = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: adminManagementApi.createSeller,
+    onSuccess: () => {
+      invalidateAdmin(queryClient, "admin-sellers");
+      toast.success("Seller account created successfully");
+    },
+    onError: (error: Error) => toast.error(error.message || "Failed to create seller account"),
+  });
+};
+
+export const useUpdateSeller = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: adminManagementApi.updateSeller,
+    onSuccess: () => {
+      invalidateAdmin(queryClient, "admin-sellers");
+      queryClient.invalidateQueries({ queryKey: ["admin-people"] });
+      toast.success("Seller account updated successfully");
+    },
+    onError: (error: Error) => toast.error(error.message || "Failed to update seller account"),
+  });
+};
+
+export const useDeleteSeller = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: adminManagementApi.deleteSeller,
+    onSuccess: () => {
+      invalidateAdmin(queryClient, "admin-sellers");
+      queryClient.invalidateQueries({ queryKey: ["admin-people"] });
+      toast.success("Seller account deactivated successfully");
+    },
+    onError: (error: Error) => toast.error(error.message || "Failed to deactivate seller account"),
+  });
+};

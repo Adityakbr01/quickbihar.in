@@ -33,15 +33,9 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import {
-  CategoryManagementPanel,
-  CouponManagementPanel,
-  OrderManagementPanel,
-  ProductManagementPanel,
-} from "@/features/dashboard/components/AdminCatalogModules";
 import {
   ContentManagementPanel,
   InventoryLogisticsPanel,
@@ -49,6 +43,16 @@ import {
   ReportsAnalyticsPanel,
   SystemSettingsPanel,
 } from "@/features/dashboard/components/AdminFullModules";
+import {
+  OrderManagementPanel,
+  ProductManagementPanel,
+  CategoryManagementPanel,
+  CouponManagementPanel,
+} from "@/features/dashboard/components/AdminCatalogModules";
+import { PolicyManagementPanel } from "@/features/dashboard/components/policies/PolicyManagementPanel";
+import { SizeChartManagementPanel } from "@/features/dashboard/components/sizeCharts/SizeChartManagementPanel";
+import { BannerManagementPanel } from "@/features/dashboard/components/banners/BannerManagementPanel";
+import { SellerManagementPanel } from "@/features/dashboard/components/sellers/SellerManagementPanel";
 import {
   Table,
   TableBody,
@@ -119,7 +123,10 @@ type AdminSection =
   | "seller-mall"
   | "seller-submissions"
   | "payouts"
-  | "invites";
+  | "invites"
+  | "policies"
+  | "size-charts"
+  | "banners";
 type RoleFilter = (typeof roleOptions)[number];
 type StatusFilter = (typeof statusOptions)[number];
 
@@ -146,6 +153,9 @@ const sectionLabels: Record<AdminSection, string> = {
   "seller-submissions": "Seller Review Queue",
   payouts: "Payouts",
   invites: "Invites",
+  policies: "Global Policies",
+  "size-charts": "Size Charts",
+  banners: "Banners",
 };
 
 const navigationGroups: Array<{
@@ -171,7 +181,12 @@ const navigationGroups: Array<{
   },
   {
     title: "Store Configuration",
-    items: [{ id: "store-configuration", label: "Store Settings", icon: <Settings className="h-4 w-4" /> }],
+    items: [
+      { id: "store-configuration", label: "Store Settings", icon: <Settings className="h-4 w-4" /> },
+      { id: "policies", label: "Global Policies", icon: <FileText className="h-4 w-4" /> },
+      { id: "size-charts", label: "Size Charts", icon: <Ruler className="h-4 w-4" /> },
+      { id: "banners", label: "Banners", icon: <ImageIcon className="h-4 w-4" /> },
+    ],
   },
   {
     title: "Content Management",
@@ -429,6 +444,12 @@ export default function AdminDashboardPage() {
               )}
 
               {activeSection === "invites" && <InvitePanel />}
+
+              {activeSection === "policies" && <PolicyManagementPanel />}
+
+              {activeSection === "size-charts" && <SizeChartManagementPanel />}
+
+              {activeSection === "banners" && <BannerManagementPanel />}
             </div>
           </ScrollArea>
         </section>
@@ -461,7 +482,7 @@ function AdminSidebar({
           <div className="text-xs text-gray-500">Fashion Admin</div>
         </div>
       </div>
-      <nav className="scrollbar-none flex gap-2 overflow-x-auto px-3 py-3 lg:min-h-0 lg:flex-1 lg:flex-col lg:overflow-x-hidden lg:overflow-y-auto">
+      <nav className="scrollbar-none flex overflow-x-auto px-3 py-3 lg:min-h-0 lg:flex-1 lg:flex-col lg:overflow-x-hidden lg:overflow-y-auto">
         {navigationGroups.map((group) => (
           <div key={group.title} className="flex shrink-0 gap-2 lg:flex-col">
             <div className="hidden px-2 pt-2 text-[11px] font-semibold uppercase tracking-normal text-gray-500 lg:block">
@@ -869,8 +890,39 @@ function SellerSubmissionsSection() {
   const reviewSubmission = useReviewSellerSubmission();
   const submissions = submissionsQuery.data?.data || [];
 
+  const [bannerReviewItem, setBannerReviewItem] = useState<SellerSubmission | null>(null);
+  const [placement, setPlacement] = useState<string>("home_top");
+  const [priority, setPriority] = useState<number>(1);
+  const [startDate, setStartDate] = useState<string>("");
+  const [endDate, setEndDate] = useState<string>("");
+
   const approve = (submission: SellerSubmission) => {
-    reviewSubmission.mutate({ type, id: submission._id, status: "APPROVED" });
+    if (type === "banners") {
+      setBannerReviewItem(submission);
+      setPlacement("home_top");
+      setPriority(1);
+      setStartDate(new Date().toISOString().split("T")[0]);
+      setEndDate("");
+    } else {
+      reviewSubmission.mutate({ type, id: submission._id, status: "APPROVED" });
+    }
+  };
+
+  const handleBannerApproveSubmit = () => {
+    if (!bannerReviewItem) return;
+    reviewSubmission.mutate({
+      type,
+      id: bannerReviewItem._id,
+      status: "APPROVED",
+      placement: placement as any,
+      priority,
+      startDate: startDate ? new Date(startDate).toISOString() : undefined,
+      endDate: endDate ? new Date(endDate).toISOString() : undefined,
+    }, {
+      onSuccess: () => {
+        setBannerReviewItem(null);
+      }
+    });
   };
 
   const reject = (submission: SellerSubmission) => {
@@ -975,6 +1027,77 @@ function SellerSubmissionsSection() {
         </CardContent>
       </Card>
       <PaginationFooter page={page} totalPages={submissionsQuery.data?.totalPages || 1} onPage={setPage} />
+
+      {bannerReviewItem && (
+        <Dialog open={true} onOpenChange={(open) => !open && setBannerReviewItem(null)}>
+          <DialogContent className="border-white/10 bg-[#1c1c1c] text-white">
+            <DialogHeader>
+              <DialogTitle>Approve Banner Submission</DialogTitle>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <label className="text-sm font-medium text-gray-300">Placement</label>
+                <select
+                  value={placement}
+                  onChange={(e) => setPlacement(e.target.value)}
+                  className={selectClass}
+                >
+                  <option value="home_top">Home Top</option>
+                  <option value="home_middle">Home Middle</option>
+                  <option value="category">Category</option>
+                </select>
+              </div>
+
+              <div className="grid gap-2">
+                <label className="text-sm font-medium text-gray-300">Priority</label>
+                <Input
+                  type="number"
+                  min={1}
+                  value={priority}
+                  onChange={(e) => setPriority(Number(e.target.value))}
+                  className={inputClass}
+                />
+              </div>
+
+              <div className="grid gap-2">
+                <label className="text-sm font-medium text-gray-300">Start Date</label>
+                <Input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className={inputClass}
+                />
+              </div>
+
+              <div className="grid gap-2">
+                <label className="text-sm font-medium text-gray-300">End Date (Optional)</label>
+                <Input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className={inputClass}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setBannerReviewItem(null)}
+                className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleBannerApproveSubmit}
+                disabled={reviewSubmission.isPending}
+                className="bg-emerald-600 text-white hover:bg-emerald-700"
+              >
+                Approve & Schedule
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }
@@ -1000,14 +1123,47 @@ function SellerMallSection({
   mallCreationRequestsLoading: boolean;
   topMalls: Mall[];
 }) {
+  const [tab, setTab] = useState<"directory" | "sellers">("directory");
+
   return (
-    <div className="grid gap-4 xl:grid-cols-[380px_1fr]">
-      <MallCreatePanel />
-      <MallRequestsPanel requests={mallRequests} isLoading={mallRequestsLoading} />
-      <MallCreationRequestsPanel requests={mallCreationRequests} isLoading={mallCreationRequestsLoading} />
-      <TopMallsPanel malls={topMalls} />
-      <MallDirectory malls={malls} isLoading={mallsLoading} />
-      <SellerMallAssignments sellers={sellers} malls={malls} isLoading={sellersLoading} />
+    <div className="space-y-4 col-span-full">
+      <div className="flex border-b border-white/10 pb-px gap-2">
+        <button
+          onClick={() => setTab("directory")}
+          className={cn(
+            "px-4 py-2.5 text-sm font-medium border-b-2 transition-colors",
+            tab === "directory"
+              ? "border-emerald-500 text-emerald-400 font-semibold"
+              : "border-transparent text-gray-400 hover:text-white"
+          )}
+        >
+          Malls & Assignments
+        </button>
+        <button
+          onClick={() => setTab("sellers")}
+          className={cn(
+            "px-4 py-2.5 text-sm font-medium border-b-2 transition-colors",
+            tab === "sellers"
+              ? "border-emerald-500 text-emerald-400 font-semibold"
+              : "border-transparent text-gray-400 hover:text-white"
+          )}
+        >
+          Seller Accounts CRUD
+        </button>
+      </div>
+
+      {tab === "directory" ? (
+        <div className="grid gap-4 xl:grid-cols-[380px_1fr]">
+          <MallCreatePanel />
+          <MallRequestsPanel requests={mallRequests} isLoading={mallRequestsLoading} />
+          <MallCreationRequestsPanel requests={mallCreationRequests} isLoading={mallCreationRequestsLoading} />
+          <TopMallsPanel malls={topMalls} />
+          <MallDirectory malls={malls} isLoading={mallsLoading} />
+          <SellerMallAssignments sellers={sellers} malls={malls} isLoading={sellersLoading} />
+        </div>
+      ) : (
+        <SellerManagementPanel />
+      )}
     </div>
   );
 }

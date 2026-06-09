@@ -5,21 +5,21 @@ import { refundPolicyService } from "./refundPolicy.service";
 import { ApiError } from "../../utils/ApiError";
 
 export const createRefundPolicy = asyncHandler(async (req: Request, res: Response) => {
-    const { name, category } = req.body;
-    if (!name || !category) {
-        throw new ApiError(400, "Name and Category are required");
+    const { name } = req.body;
+    if (!name) {
+        throw new ApiError(400, "Name is required");
     }
     const policy = await refundPolicyService.createPolicy(req.body);
     return res.status(201).json(new ApiResponse(201, policy, "Refund policy created successfully"));
 });
 
 export const getActiveRefundPolicy = asyncHandler(async (req: Request, res: Response) => {
-    const policy = await refundPolicyService.getActivePolicy();
+    const policy = await refundPolicyService.getActivePolicy(req.query.type as string | undefined);
     return res.status(200).json(new ApiResponse(200, policy, "Active refund policy fetched successfully"));
 });
 
 export const getAllRefundPolicies = asyncHandler(async (req: Request, res: Response) => {
-    const policies = await refundPolicyService.getAllPolicies();
+    const policies = await refundPolicyService.getAllPolicies({ type: req.query.type as string | undefined });
     return res.status(200).json(new ApiResponse(200, policies, "All refund policies fetched successfully"));
 });
 

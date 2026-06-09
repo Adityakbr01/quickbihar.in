@@ -8,6 +8,12 @@ const refundPolicySchema = new Schema<IRefundPolicy>(
             required: [true, "Name is required"],
             trim: true,
         },
+        policyType: {
+            type: String,
+            enum: ["RETURN", "REFUND", "SHIPPING", "TERMS", "GENERAL"],
+            default: "REFUND",
+            index: true,
+        },
         category: String,
         description: String,
         returnWindowDays: { type: Number, default: 0 },

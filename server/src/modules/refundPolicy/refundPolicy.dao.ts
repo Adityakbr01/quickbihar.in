@@ -6,12 +6,12 @@ export class RefundPolicyDAO {
         return await RefundPolicy.create(data);
     }
 
-    static async findAll() {
-        return await RefundPolicy.find().sort({ createdAt: -1 });
+    static async findAll(filter: Record<string, unknown> = {}) {
+        return await RefundPolicy.find(filter).sort({ policyType: 1, createdAt: -1 });
     }
 
-    static async findActive() {
-        return await RefundPolicy.findOne({ isActive: true }).sort({ createdAt: -1 });
+    static async findActive(policyType?: string) {
+        return await RefundPolicy.findOne({ isActive: true, ...(policyType ? { policyType } : {}) }).sort({ createdAt: -1 });
     }
 
     static async findById(id: string) {
@@ -23,6 +23,6 @@ export class RefundPolicyDAO {
     }
 
     static async deleteById(id: string) {
-        return await RefundPolicy.findByIdAndDelete(id);
+        return await RefundPolicy.findByIdAndUpdate(id, { isActive: false }, { returnDocument: "after" });
     }
 }

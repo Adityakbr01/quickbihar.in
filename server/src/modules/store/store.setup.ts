@@ -20,9 +20,9 @@ export const STORE_SETUP_REQUIRED_FIELDS = [
     "seo.storeTitle",
     "seo.metaTitle",
     "seo.metaDescription",
-    "policies.returnPolicy",
-    "policies.refundPolicy",
-    "policies.shippingPolicy",
+    "policyRefs.returnPolicy",
+    "policyRefs.refundPolicy",
+    "policyRefs.shippingPolicy",
 ];
 
 export const buildStoreSetupStatus = (store: any) => {
@@ -33,6 +33,7 @@ export const buildStoreSetupStatus = (store: any) => {
     const deliveryConfig = raw.deliveryConfig || {};
     const seo = raw.seo || {};
     const policies = raw.policies || {};
+    const policyRefs = raw.policyRefs || {};
 
     const deliveryFee = deliveryConfig.shippingFee ?? raw.deliveryFee;
     const freeShippingThreshold = deliveryConfig.freeShippingThreshold ?? raw.minOrderAmount;
@@ -55,9 +56,9 @@ export const buildStoreSetupStatus = (store: any) => {
         "seo.storeTitle": hasText(seo.storeTitle),
         "seo.metaTitle": hasText(seo.metaTitle),
         "seo.metaDescription": hasText(seo.metaDescription),
-        "policies.returnPolicy": hasText(policies.returnPolicy),
-        "policies.refundPolicy": hasText(policies.refundPolicy),
-        "policies.shippingPolicy": hasText(policies.shippingPolicy),
+        "policyRefs.returnPolicy": hasText(policyRefs.returnPolicy?.toString?.() || policyRefs.returnPolicy) || hasText(policies.returnPolicy),
+        "policyRefs.refundPolicy": hasText(policyRefs.refundPolicy?.toString?.() || policyRefs.refundPolicy) || hasText(policies.refundPolicy),
+        "policyRefs.shippingPolicy": hasText(policyRefs.shippingPolicy?.toString?.() || policyRefs.shippingPolicy) || hasText(policies.shippingPolicy),
     };
 
     const missingFields = STORE_SETUP_REQUIRED_FIELDS.filter((field) => !checks[field]);
@@ -97,6 +98,10 @@ export const mergeStoreForSetup = (existingStore: any, updates: any) => {
         policies: {
             ...(existing.policies || {}),
             ...(updates.policies || {}),
+        },
+        policyRefs: {
+            ...(existing.policyRefs || {}),
+            ...(updates.policyRefs || {}),
         },
     };
 };

@@ -166,10 +166,17 @@ export interface AdminProduct {
   storeId?: string;
   variants: ProductVariantPayload[];
   totalStock?: number;
+  sizeChartId?: string | AdminSizeChart;
+  isGstApplicable?: boolean;
+  gstPercentage?: number;
   details?: {
     sku?: string;
     fit?: string;
+    pattern?: string;
     material?: string;
+    collar?: string;
+    sleeve?: string;
+    washCare?: string;
   };
   tags?: string[];
   seo?: {
@@ -180,6 +187,35 @@ export interface AdminProduct {
   isFeatured?: boolean;
   isTrending?: boolean;
   isNewArrival?: boolean;
+  deliveryInfo?: {
+    isExpressAvailable?: boolean;
+    isCodAvailable?: boolean;
+    estimatedDays?: number;
+    returnPolicy?: string;
+  };
+  compliance?: {
+    manufacturerDetail?: string;
+    packerDetail?: string;
+    countryOfOrigin?: string;
+  };
+  logistics?: {
+    pickupLocation?: string;
+    warehouseName?: string;
+    latitude?: number;
+    longitude?: number;
+  };
+  policies?: {
+    returnPolicy?: string;
+    refundPolicy?: string;
+    shippingPolicy?: string;
+  };
+  policyRefs?: {
+    returnPolicy?: string;
+    refundPolicy?: string;
+    shippingPolicy?: string;
+    termsPolicy?: string;
+  };
+  refundPolicy?: string | AdminRefundPolicy;
   isActive?: boolean;
   isDeleted?: boolean;
   createdAt?: string;
@@ -195,9 +231,18 @@ export interface ProductPayload {
   subCategory?: string;
   price: number;
   originalPrice?: number;
+  sizeChartId?: string;
+  isGstApplicable?: boolean;
+  gstPercentage?: number;
   variants: ProductVariantPayload[];
   details?: {
     sku?: string;
+    fit?: string;
+    pattern?: string;
+    material?: string;
+    collar?: string;
+    sleeve?: string;
+    washCare?: string;
   };
   tags?: string[];
   seo?: {
@@ -205,7 +250,118 @@ export interface ProductPayload {
     metaDescription?: string;
     keywords?: string[];
   };
+  deliveryInfo?: {
+    isExpressAvailable?: boolean;
+    isCodAvailable?: boolean;
+    estimatedDays?: number;
+    returnPolicy?: string;
+  };
+  compliance?: {
+    manufacturerDetail?: string;
+    packerDetail?: string;
+    countryOfOrigin?: string;
+  };
+  logistics?: {
+    pickupLocation?: string;
+    warehouseName?: string;
+    latitude?: number;
+    longitude?: number;
+  };
+  policies?: {
+    returnPolicy?: string;
+    refundPolicy?: string;
+    shippingPolicy?: string;
+  };
+  policyRefs?: {
+    returnPolicy?: string;
+    refundPolicy?: string;
+    shippingPolicy?: string;
+    termsPolicy?: string;
+  };
+  refundPolicy?: string;
+  existingImages?: Array<{ url: string; fileId: string }>;
   isFeatured?: boolean;
+  isActive?: boolean;
+}
+
+export interface AdminBanner {
+  _id: string;
+  title?: string;
+  subtitle?: string;
+  image: string;
+  imagePublicId?: string;
+  redirectType: "product" | "category" | "collection" | "external";
+  redirectId?: string;
+  externalUrl?: string;
+  placement: "home_top" | "home_middle" | "category";
+  priority: number;
+  startDate?: string;
+  endDate?: string;
+  isActive: boolean;
+  isAds?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface BannerPayload {
+  title?: string;
+  subtitle?: string;
+  image?: string;
+  imagePublicId?: string;
+  redirectType?: "product" | "category" | "collection" | "external";
+  redirectId?: string;
+  externalUrl?: string;
+  placement?: "home_top" | "home_middle" | "category";
+  priority?: number;
+  startDate?: string;
+  endDate?: string;
+  isActive?: boolean;
+  isAds?: boolean;
+}
+
+export interface AdminSizeChart {
+  _id: string;
+  name: string;
+  category: string;
+  unit: "inches" | "cm";
+  fields: string[];
+  data: Array<Record<string, string | number>>;
+  howToMeasure?: string[];
+}
+
+export interface AdminRefundPolicy {
+  _id: string;
+  name: string;
+  category?: string;
+  description?: string;
+  returnWindowDays?: number;
+  refundProcessingDays?: number;
+  conditions?: string[];
+  refundType?: string;
+  returnShipping?: string;
+  isReturnable?: boolean;
+  isExchangeAvailable?: boolean;
+  isActive?: boolean;
+}
+
+export interface ProductWarehouse {
+  _id: string;
+  name: string;
+  code: string;
+  address?: {
+    line1?: string;
+    city?: string;
+    state?: string;
+    pincode?: string;
+    country?: string;
+  };
+  contact?: {
+    name?: string;
+    phone?: string;
+    email?: string;
+  };
+  serviceAreas?: string[];
+  capacity?: number;
   isActive?: boolean;
 }
 
@@ -278,10 +434,19 @@ const productFormData = (payload: ProductPayload, images?: File[]) => {
   appendOptional(formData, "subCategory", payload.subCategory);
   appendOptional(formData, "price", payload.price);
   appendOptional(formData, "originalPrice", payload.originalPrice);
+  appendOptional(formData, "sizeChartId", payload.sizeChartId);
+  appendOptional(formData, "isGstApplicable", payload.isGstApplicable);
+  appendOptional(formData, "gstPercentage", payload.gstPercentage);
   appendOptional(formData, "variants", payload.variants);
   appendOptional(formData, "details", payload.details);
   appendOptional(formData, "tags", payload.tags);
   appendOptional(formData, "seo", payload.seo);
+  appendOptional(formData, "deliveryInfo", payload.deliveryInfo);
+  appendOptional(formData, "compliance", payload.compliance);
+  appendOptional(formData, "logistics", payload.logistics);
+  appendOptional(formData, "policies", payload.policies);
+  appendOptional(formData, "refundPolicy", payload.refundPolicy);
+  appendOptional(formData, "existingImages", payload.existingImages);
   appendOptional(formData, "isFeatured", payload.isFeatured);
   appendOptional(formData, "isActive", payload.isActive);
   images?.forEach((image) => formData.append("images", image));
@@ -298,6 +463,23 @@ const categoryFormData = (payload: CategoryPayload, image?: File) => {
   appendOptional(formData, "isActive", payload.isActive);
   appendOptional(formData, "banner", payload.banner);
   appendOptional(formData, "seo", payload.seo);
+  if (image) formData.append("image", image);
+  return formData;
+};
+
+const bannerFormData = (payload: BannerPayload, image?: File) => {
+  const formData = new FormData();
+  appendOptional(formData, "title", payload.title);
+  appendOptional(formData, "subtitle", payload.subtitle);
+  appendOptional(formData, "redirectType", payload.redirectType);
+  appendOptional(formData, "redirectId", payload.redirectId);
+  appendOptional(formData, "externalUrl", payload.externalUrl);
+  appendOptional(formData, "placement", payload.placement);
+  appendOptional(formData, "priority", payload.priority);
+  appendOptional(formData, "startDate", payload.startDate);
+  appendOptional(formData, "endDate", payload.endDate);
+  appendOptional(formData, "isActive", payload.isActive);
+  appendOptional(formData, "isAds", payload.isAds);
   if (image) formData.append("image", image);
   return formData;
 };
@@ -373,6 +555,22 @@ export const catalogManagementApi = {
     return response.data.data;
   },
 
+  getSellerSizeCharts: async (sellerId: string): Promise<AdminSizeChart[]> => {
+    if (!sellerId) return [];
+    const response = await axiosInstance.get(`/admin/sellers/${sellerId}/size-charts`);
+    return response.data.data;
+  },
+
+  getRefundPolicies: async (): Promise<AdminRefundPolicy[]> => {
+    const response = await axiosInstance.get("/refund-policies/all");
+    return response.data.data;
+  },
+
+  getWarehouses: async (): Promise<ProductWarehouse[]> => {
+    const response = await axiosInstance.get("/admin/warehouses", { params: { page: 1, limit: 100, status: "active" } });
+    return normalizePaginated<ProductWarehouse>(response.data.data, 1, 100).data;
+  },
+
   getCategories: async (params: QueryParams): Promise<PaginatedResult<AdminCategory>> => {
     const response = await axiosInstance.get("/categories", { params });
     return normalizePaginated<AdminCategory>(response.data.data, params.page, params.limit);
@@ -394,6 +592,50 @@ export const catalogManagementApi = {
 
   deleteCategory: async (categoryId: string) => {
     const response = await axiosInstance.delete(`/categories/${categoryId}`);
+    return response.data.data;
+  },
+
+  getSizeCharts: async (): Promise<AdminSizeChart[]> => {
+    const response = await axiosInstance.get("/size-charts/my");
+    return response.data.data;
+  },
+
+  createSizeChart: async (payload: Omit<AdminSizeChart, "_id">): Promise<AdminSizeChart> => {
+    const response = await axiosInstance.post("/size-charts", payload);
+    return response.data.data;
+  },
+
+  updateSizeChart: async ({ id, payload }: { id: string; payload: Partial<Omit<AdminSizeChart, "_id">> }): Promise<AdminSizeChart> => {
+    const response = await axiosInstance.patch(`/size-charts/${id}`, payload);
+    return response.data.data;
+  },
+
+  deleteSizeChart: async (id: string) => {
+    const response = await axiosInstance.delete(`/size-charts/${id}`);
+    return response.data.data;
+  },
+
+  getAdminBanners: async (): Promise<AdminBanner[]> => {
+    const response = await axiosInstance.get("/banners/all");
+    return response.data.data;
+  },
+
+  createAdminBanner: async ({ payload, image }: { payload: BannerPayload; image?: File }): Promise<AdminBanner> => {
+    const response = await axiosInstance.post("/banners", bannerFormData(payload, image), {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return response.data.data;
+  },
+
+  updateAdminBanner: async ({ id, payload, image }: { id: string; payload: Partial<BannerPayload>; image?: File }): Promise<AdminBanner> => {
+    const response = await axiosInstance.patch(`/banners/${id}`, bannerFormData(payload as BannerPayload, image), {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return response.data.data;
+  },
+
+  deleteAdminBanner: async (id: string) => {
+    const response = await axiosInstance.delete(`/banners/${id}`);
     return response.data.data;
   },
 };

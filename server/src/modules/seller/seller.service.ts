@@ -9,8 +9,10 @@ import { Order } from "../order/order.model";
 import { OrderStatus } from "../order/order.type";
 import { Product } from "../products/product.model";
 import { ProductService } from "../products/products.service";
+import { RefundPolicy } from "../refundPolicy/refundPolicy.model";
 import { SizeChart } from "../sizeChart/sizeChart.model";
 import { Mall } from "../mall/mall.model";
+import { Warehouse } from "../admin/adminFull.model";
 import { Store } from "../store/store.model";
 import { StoreType } from "../store/store.schema";
 import { buildStoreSetupStatus, mergeStoreForSetup } from "../store/store.setup";
@@ -33,6 +35,54 @@ const slugify = (value: string) =>
         .trim()
         .replace(/[^a-z0-9]+/g, "-")
         .replace(/^-+|-+$/g, "");
+
+const normalize = (value: string) => value.toLowerCase().trim();
+
+const uniqueTextList = (values: unknown[] = []) => {
+    const seen = new Set<string>();
+    return values
+        .filter((value): value is string => typeof value === "string")
+        .map((value) => value.trim())
+        .filter(Boolean)
+        .filter((value) => {
+            const key = slugify(value);
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+        });
+};
+
+const categoryConfigValues = (categoryConfig: any = {}) => uniqueTextList([
+    categoryConfig.primaryCategory,
+    ...(categoryConfig.subcategories || []),
+]);
+
+const sameCategoryConfig = (current: any = {}, next: any = {}) => {
+    const currentValues = categoryConfigValues(current).map(slugify).sort();
+    const nextValues = categoryConfigValues(next).map(slugify).sort();
+    return currentValues.length === nextValues.length && currentValues.every((value, index) => value === nextValues[index]);
+};
+
+const assertActiveCategoryChoices = async (values: string[]) => {
+    const requested = uniqueTextList(values);
+    if (!requested.length) return;
+
+    const categories = await Category.find({ isActive: true })
+        .select("title slug")
+        .lean();
+    const allowed = new Set(
+        categories.flatMap((category: any) => [
+            normalize(category.title || ""),
+            slugify(category.title || ""),
+            normalize(category.slug || ""),
+            slugify(category.slug || ""),
+        ]),
+    );
+    const invalid = requested.filter((value) => !allowed.has(normalize(value)) && !allowed.has(slugify(value)));
+    if (invalid.length) {
+        throw new ApiError(400, `Seller categories must be active admin-created categories: ${invalid.join(", ")}`);
+    }
+};
 
 const assertApprovedSeller = (seller: any | null) => {
     if (!seller) throw new ApiError(404, "Seller profile not found");
@@ -294,9 +344,19 @@ export class SellerService {
         const payload: any = { ...data };
 
         if (payload.categoryConfig) {
+            const nextCategoryConfig = {
+                ...payload.categoryConfig,
+                primaryCategory: payload.categoryConfig.primaryCategory?.trim(),
+                subcategories: uniqueTextList(payload.categoryConfig.subcategories || []),
+            };
+            const hasLockedCategories = Boolean(existingStore && categoryConfigValues(existingStore.categoryConfig).length);
+            if (hasLockedCategories && !sameCategoryConfig(existingStore.categoryConfig, nextCategoryConfig)) {
+                throw new ApiError(400, "Store categories are locked after setup. Request a category change or ask admin to update them.");
+            }
+            await assertActiveCategoryChoices(categoryConfigValues(nextCategoryConfig));
             payload.categoryConfig = {
                 ...(existingStore?.categoryConfig || {}),
-                ...payload.categoryConfig,
+                ...nextCategoryConfig,
                 assignedByAdmin: existingStore?.categoryConfig?.assignedByAdmin || false,
             };
         }
@@ -433,11 +493,32 @@ export class SellerService {
         };
     }
 
+    static async listPolicies(userId: string, query: any = {}) {
+        await this.getApprovedSeller(userId);
+        return await RefundPolicy.find({
+            isActive: true,
+            ...(query.type ? { policyType: query.type } : {}),
+        }).sort({ policyType: 1, name: 1 }).lean();
+    }
+
+    static async listRefundPolicies(userId: string) {
+        return await this.listPolicies(userId, { type: "REFUND" });
+    }
+
+    static async listWarehouses(userId: string) {
+        await this.getApprovedSeller(userId);
+        return await Warehouse.find({ isActive: true })
+            .select("name code address contact serviceAreas capacity isActive")
+            .sort({ name: 1 })
+            .lean();
+    }
+
     static async requestCategoryChange(userId: string, data: any) {
         await this.getApprovedSeller(userId);
         const store = await this.getLatestStore(userId);
         const pending = await SellerCategoryRequest.findOne({ sellerId: userId, status: "PENDING" }).lean();
         if (pending) throw new ApiError(400, "A category change request is already pending");
+        await assertActiveCategoryChoices([data.requestedPrimaryCategory, ...(data.requestedSubcategories || [])]);
 
         const request = await SellerCategoryRequest.create({
             sellerId: asObjectId(userId),
@@ -818,19 +899,10 @@ export class SellerService {
 
     static async listSizeCharts(userId: string, query: any = {}) {
         await this.getApprovedSeller(userId);
-        const filter: any = {
-            $or: [
-                { sellerId: userId, scope: "SELLER" },
-                { scope: "GLOBAL", isActive: true, ...approvalPublicFilter },
-            ],
-        };
+        const filter: any = { scope: "GLOBAL", isActive: true, ...approvalPublicFilter };
         if (query.search) {
             const searchRegex = new RegExp(String(query.search), "i");
-            filter.$and = [
-                { $or: filter.$or },
-                { $or: [{ name: searchRegex }, { category: searchRegex }] },
-            ];
-            delete filter.$or;
+            filter.$or = [{ name: searchRegex }, { category: searchRegex }];
         }
         if (query.approvalStatus && query.approvalStatus !== "ALL") {
             filter.approvalStatus = query.approvalStatus;
@@ -889,10 +961,9 @@ export class SellerService {
     static async assignSizeChartProducts(userId: string, chartId: string, productIds: string[]) {
         const chart = await SizeChart.findOne({
             _id: chartId,
-            $or: [
-                { sellerId: userId, scope: "SELLER" },
-                { scope: "GLOBAL", isActive: true, ...approvalPublicFilter },
-            ],
+            scope: "GLOBAL",
+            isActive: true,
+            ...approvalPublicFilter,
         });
         if (!chart) throw new ApiError(404, "Size chart not found");
 

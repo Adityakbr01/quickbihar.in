@@ -89,6 +89,25 @@ export const createProductSchema = z.object({
              longitude: z.coerce.number().optional(),
          })
      ).optional(),
+
+     policies: z.preprocess(
+         (val) => typeof val === "string" ? JSON.parse(val) : val,
+         z.object({
+             returnPolicy: z.string().optional(),
+             refundPolicy: z.string().optional(),
+             shippingPolicy: z.string().optional(),
+         })
+     ).optional(),
+
+     policyRefs: z.preprocess(
+         (val) => typeof val === "string" ? JSON.parse(val) : val,
+         z.object({
+             returnPolicy: z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid policy ID").optional().nullable(),
+             refundPolicy: z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid policy ID").optional().nullable(),
+             shippingPolicy: z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid policy ID").optional().nullable(),
+             termsPolicy: z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid policy ID").optional().nullable(),
+         })
+     ).optional(),
  
      isActive: z.preprocess((val) => val === "true" || val === true, z.boolean()).default(true),
  

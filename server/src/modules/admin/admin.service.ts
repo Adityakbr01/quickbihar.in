@@ -9,6 +9,7 @@ import { Mall } from "../mall/mall.model";
 import { MallService } from "../mall/mall.service";
 import { Order } from "../order/order.model";
 import { Product } from "../products/product.model";
+import { RefundPolicy } from "../refundPolicy/refundPolicy.model";
 import { Role } from "../rbac/rbac.model";
 import * as rbacService from "../rbac/rbac.service";
 import { RoleEnum } from "../rbac/rbac.types";
@@ -220,6 +221,14 @@ const asObjectId = (value: any) => value instanceof Types.ObjectId ? value : new
 
 const plainDoc = (doc: any) => doc?.toObject ? doc.toObject() : doc;
 
+const cleanPolicyRefs = (refs: any = {}) => {
+    const next: Record<string, Types.ObjectId> = {};
+    ["returnPolicy", "refundPolicy", "shippingPolicy", "termsPolicy"].forEach((key) => {
+        if (refs?.[key]) next[key] = asObjectId(refs[key]);
+    });
+    return next;
+};
+
 const mask = (value: any) => (value ? "********" : value);
 
 const isMasked = (value: unknown) => typeof value === "string" && /^(\*{4,}|masked)$/i.test(value.trim());
@@ -304,7 +313,25 @@ const notificationForSubmission = async (sellerId: any, type: string, status: st
     });
 };
 
-const serializeUser = (user: any, sellerProfile?: any, deliveryProfile?: any) => ({
+const serializeSellerStore = (store?: any) => store ? {
+    _id: store._id?.toString(),
+    name: store.name,
+    isActive: !!store.isActive,
+    isSetupComplete: !!store.isSetupComplete,
+    setupMissingFields: store.setupMissingFields || [],
+    address: store.address,
+    contact: store.contact || {},
+    deliveryConfig: store.deliveryConfig || {},
+    policies: store.policies || {},
+    policyRefs: store.policyRefs || {},
+    categoryConfig: {
+        primaryCategory: store.categoryConfig?.primaryCategory,
+        subcategories: store.categoryConfig?.subcategories || [],
+        assignedByAdmin: !!store.categoryConfig?.assignedByAdmin,
+    },
+} : null;
+
+const serializeUser = (user: any, sellerProfile?: any, deliveryProfile?: any, sellerStore?: any) => ({
     _id: user._id?.toString(),
     username: user.username,
     email: user.email,
@@ -347,6 +374,7 @@ const serializeUser = (user: any, sellerProfile?: any, deliveryProfile?: any) =>
             pendingPayoutBalance: 0,
             lifetimeEarnings: 0,
         },
+        store: serializeSellerStore(sellerStore),
     } : null,
     deliveryProfile: deliveryProfile ? {
         status: deliveryProfile.status,
@@ -641,6 +669,18 @@ export class AdminService {
             ...(query.status === "inactive" ? { isActive: false } : {}),
         };
         return await paginatedFind(Warehouse, filter, query);
+    }
+
+    static async listSellerSizeCharts(_sellerId: string) {
+        return await SizeChart.find({
+            isActive: true,
+            $or: [
+                { scope: "GLOBAL", approvalStatus: "APPROVED" },
+                { scope: "GLOBAL", approvalStatus: { $exists: false } },
+            ],
+        })
+            .sort({ name: 1, category: 1 })
+            .lean();
     }
 
     static async createWarehouse(adminId: string, data: any) {
@@ -1213,20 +1253,234 @@ export class AdminService {
             .lean();
 
         const userIds = users.map((user: any) => user._id);
-        const [sellerProfiles, deliveryProfiles] = await Promise.all([
+        const [sellerProfiles, deliveryProfiles, sellerStores] = await Promise.all([
             Seller.find({ userId: { $in: userIds } })
                 .populate("mallId", "name slug address.city isActive")
                 .populate("mallRequest.mallId", "name slug address.city isActive")
                 .lean(),
             DeliveryBoy.find({ userId: { $in: userIds } }).lean(),
+            Store.find({ sellerId: { $in: userIds } })
+                .select("sellerId name description logoUrl bannerUrl isActive isVerified isSetupComplete setupMissingFields address contact categoryConfig deliveryConfig policies policyRefs createdAt")
+                .sort({ createdAt: -1 })
+                .lean(),
         ]);
 
         const sellersByUser = new Map(sellerProfiles.map((profile: any) => [profile.userId.toString(), profile]));
         const deliveryByUser = new Map(deliveryProfiles.map((profile: any) => [profile.userId.toString(), profile]));
+        const storesBySeller = new Map();
+        sellerStores.forEach((store: any) => {
+            const sellerId = store.sellerId?.toString();
+            if (sellerId && !storesBySeller.has(sellerId)) storesBySeller.set(sellerId, store);
+        });
 
         return users.map((user: any) =>
-            serializeUser(user, sellersByUser.get(user._id.toString()), deliveryByUser.get(user._id.toString())),
+            serializeUser(
+                user,
+                sellersByUser.get(user._id.toString()),
+                deliveryByUser.get(user._id.toString()),
+                storesBySeller.get(user._id.toString()),
+            ),
         );
+    }
+
+    static async listPolicies(query: any = {}) {
+        const filter: any = {};
+        if (query.type) filter.policyType = query.type;
+        if (query.status === "active") filter.isActive = true;
+        if (query.status === "inactive") filter.isActive = false;
+        if (query.search) {
+            const searchRegex = new RegExp(String(query.search), "i");
+            filter.$or = [{ name: searchRegex }, { category: searchRegex }, { description: searchRegex }];
+        }
+        return await paginatedFind(RefundPolicy, filter, query);
+    }
+
+    static async createPolicy(adminId: string, data: any) {
+        const policy = await RefundPolicy.create({
+            ...data,
+            category: data.category || data.policyType,
+            isActive: data.isActive ?? true,
+        });
+        await this.recordAdminMutation(adminId, "CREATE", "Policy", policy._id.toString(), { after: plainDoc(policy) });
+        return policy;
+    }
+
+    static async updatePolicy(adminId: string, policyId: string, data: any) {
+        const before = await RefundPolicy.findById(policyId).lean();
+        const policy = await RefundPolicy.findByIdAndUpdate(policyId, data, { returnDocument: "after" });
+        if (!policy) throw new ApiError(404, "Policy not found");
+        await this.recordAdminMutation(adminId, "UPDATE", "Policy", policy._id.toString(), { before, after: plainDoc(policy) });
+        return policy;
+    }
+
+    static async deletePolicy(adminId: string, policyId: string) {
+        const before = await RefundPolicy.findById(policyId).lean();
+        const policy = await RefundPolicy.findByIdAndUpdate(policyId, { isActive: false }, { returnDocument: "after" });
+        if (!policy) throw new ApiError(404, "Policy not found");
+        await this.recordAdminMutation(adminId, "DEACTIVATE", "Policy", policy._id.toString(), { before, after: plainDoc(policy), severity: "WARNING" });
+        return policy;
+    }
+
+    static async listSellers(query: any = {}) {
+        return await this.listPeople({ ...query, role: RoleEnum.SELLER });
+    }
+
+    static async getSeller(userId: string) {
+        const user = await User.findById(userId).select(userProjection).populate("roleId").lean();
+        if (!user) throw new ApiError(404, "Seller user not found");
+        const [seller, store] = await Promise.all([
+            Seller.findOne({ userId }).populate("mallId", "name slug address.city isActive").populate("mallRequest.mallId", "name slug address.city isActive").lean(),
+            Store.findOne({ sellerId: userId }).lean(),
+        ]);
+        if (!seller) throw new ApiError(404, "Seller profile not found");
+        return serializeUser(user, seller, undefined, store);
+    }
+
+    static async createSeller(adminId: string, data: any) {
+        const sellerRole = await rbacService.getRoleByName(RoleEnum.SELLER);
+        const username = (data.username || data.email.split("@")[0]).toLowerCase().replace(/[^a-z0-9_]/g, "_");
+        let user = await User.findOne({ email: data.email.toLowerCase() });
+
+        if (user) {
+            user.fullName = data.fullName;
+            user.username = data.username || user.username;
+            user.phone = data.phone ?? user.phone;
+            user.isVerified = data.isVerified ?? true;
+            user.isBlocked = data.isBlocked ?? false;
+            user.roleId = sellerRole._id;
+            if (data.password) user.password = data.password;
+            await user.save();
+        } else {
+            user = await User.create({
+                fullName: data.fullName,
+                email: data.email.toLowerCase(),
+                username,
+                phone: data.phone,
+                password: data.password || Math.random().toString(36).slice(2, 12),
+                roleId: sellerRole._id,
+                isVerified: data.isVerified ?? true,
+                isBlocked: data.isBlocked ?? false,
+            });
+        }
+        await rbacService.assignUserToRole(user._id.toString(), sellerRole._id.toString());
+
+        const sellerPayload = data.seller || {};
+        const seller = await Seller.findOneAndUpdate(
+            { userId: user._id },
+            {
+                $set: {
+                    businessName: sellerPayload.businessName || data.store?.name || data.fullName,
+                    sellerType: sellerPayload.sellerType || "CLOTHING",
+                    gstNumber: sellerPayload.gstNumber,
+                    status: sellerPayload.status || "APPROVED",
+                    isVerified: sellerPayload.isVerified ?? true,
+                    mallId: sellerPayload.mallId ? asObjectId(sellerPayload.mallId) : undefined,
+                    mallUnit: sellerPayload.mallUnit,
+                    mallFloor: sellerPayload.mallFloor,
+                    address: sellerPayload.address,
+                },
+            },
+            { upsert: true, returnDocument: "after", setDefaultsOnInsert: true },
+        );
+
+        let store = null;
+        if (data.store?.name) {
+            const mergedStore = mergeStoreForSetup(null, {
+                ...data.store,
+                type: "CLOTHING",
+                sellerId: user._id,
+                isActive: data.store.isActive ?? true,
+                isVerified: data.store.isVerified ?? true,
+                categoryConfig: {
+                    ...(data.store.categoryConfig || {}),
+                    assignedByAdmin: true,
+                },
+                policyRefs: cleanPolicyRefs(data.store.policyRefs),
+            });
+            const setup = buildStoreSetupStatus(mergedStore);
+            store = await Store.findOneAndUpdate(
+                { sellerId: user._id },
+                {
+                    $set: {
+                        ...mergedStore,
+                        isSetupComplete: setup.isComplete,
+                        setupMissingFields: setup.missingFields,
+                        setupCompletedAt: setup.isComplete ? new Date() : undefined,
+                    },
+                },
+                { upsert: true, returnDocument: "after", setDefaultsOnInsert: true },
+            );
+        }
+
+        await this.recordAdminMutation(adminId, "CREATE_SELLER", "Seller", seller._id.toString(), {
+            after: { user: plainDoc(user), seller: plainDoc(seller), store: plainDoc(store) },
+        });
+        return await this.getSeller(user._id.toString());
+    }
+
+    static async updateSeller(adminId: string, userId: string, data: any) {
+        const user = await User.findById(userId);
+        if (!user) throw new ApiError(404, "Seller user not found");
+        const before = await this.getSeller(userId).catch(() => null);
+
+        if (data.fullName !== undefined) user.fullName = data.fullName;
+        if (data.email !== undefined) user.email = data.email.toLowerCase();
+        if (data.username !== undefined) user.username = data.username;
+        if (data.phone !== undefined) user.phone = data.phone;
+        if (data.isVerified !== undefined) user.isVerified = data.isVerified;
+        if (data.isBlocked !== undefined) user.isBlocked = data.isBlocked;
+        if (data.password) user.password = data.password;
+        await user.save();
+
+        if (data.seller) {
+            const sellerPayload = { ...data.seller };
+            if (sellerPayload.mallId) sellerPayload.mallId = asObjectId(sellerPayload.mallId);
+            if (sellerPayload.mallId === "") sellerPayload.mallId = undefined;
+            await Seller.findOneAndUpdate({ userId }, { $set: sellerPayload }, { upsert: true, returnDocument: "after" });
+        }
+
+        if (data.store) {
+            const existingStore = await Store.findOne({ sellerId: userId });
+            const mergedStore = mergeStoreForSetup(existingStore, {
+                ...data.store,
+                ...(data.store.policyRefs ? { policyRefs: cleanPolicyRefs(data.store.policyRefs) } : {}),
+                categoryConfig: data.store.categoryConfig
+                    ? { ...data.store.categoryConfig, assignedByAdmin: true }
+                    : undefined,
+            });
+            const setup = buildStoreSetupStatus(mergedStore);
+            await Store.findOneAndUpdate(
+                { sellerId: userId },
+                {
+                    $set: {
+                        ...mergedStore,
+                        sellerId: asObjectId(userId),
+                        type: mergedStore.type || "CLOTHING",
+                        isSetupComplete: setup.isComplete,
+                        setupMissingFields: setup.missingFields,
+                        setupCompletedAt: setup.isComplete ? new Date() : undefined,
+                    },
+                },
+                { upsert: true, returnDocument: "after", setDefaultsOnInsert: true },
+            );
+        }
+
+        const after = await this.getSeller(userId);
+        await this.recordAdminMutation(adminId, "UPDATE_SELLER", "Seller", userId, { before, after });
+        return after;
+    }
+
+    static async deleteSeller(adminId: string, userId: string) {
+        const before = await this.getSeller(userId);
+        await Promise.all([
+            User.findByIdAndUpdate(userId, { isBlocked: true }),
+            Seller.findOneAndUpdate({ userId }, { isVerified: false, status: "REJECTED" }),
+            Store.updateMany({ sellerId: userId }, { isActive: false, isOpen: false, isVerified: false }),
+            Product.updateMany({ sellerId: userId }, { isActive: false }),
+        ]);
+        const after = await this.getSeller(userId);
+        await this.recordAdminMutation(adminId, "SOFT_DELETE_SELLER", "Seller", userId, { before, after, severity: "WARNING" });
+        return after;
     }
 
     static async setUserBlocked(userId: string, isBlocked: boolean, adminId?: string) {
@@ -1783,6 +2037,13 @@ export class AdminService {
         submission.reviewedAt = new Date();
         submission.rejectionReason = data.status === "REJECTED" ? data.reason : undefined;
         submission.isActive = data.status === "APPROVED";
+
+        if (type === "banners" && data.status === "APPROVED") {
+            submission.placement = data.placement || submission.placement || "home_top";
+            submission.priority = data.priority !== undefined ? Number(data.priority) : (submission.priority || 0);
+            if (data.startDate) submission.startDate = new Date(data.startDate);
+            if (data.endDate) submission.endDate = new Date(data.endDate);
+        }
 
         await submission.save();
         await notificationForSubmission(submission.sellerId, type, data.status, submission._id.toString(), data.reason);

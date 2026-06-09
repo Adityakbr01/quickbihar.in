@@ -4,8 +4,10 @@ import { ApiError } from "../../utils/ApiError";
 import { ZodError } from "zod";
 import { uploadToImageKit, deleteFromImageKit } from "../../utils/imagekit.util";
 import { Category } from "../category/category.model";
+import { RefundPolicy } from "../refundPolicy/refundPolicy.model";
 import { RoleEnum } from "../rbac/rbac.types";
 import { Seller } from "../seller/seller.model";
+import { SizeChart } from "../sizeChart/sizeChart.model";
 import { Store } from "../store/store.model";
 import { buildStoreSetupStatus } from "../store/store.setup";
 
@@ -17,6 +19,34 @@ const slugify = (value: string) =>
         .trim()
         .replace(/[^a-z0-9]+/g, "-")
         .replace(/^-+|-+$/g, "");
+
+const parseJsonValue = (value: unknown) => {
+    if (typeof value !== "string") return value;
+    try {
+        return JSON.parse(value);
+    } catch {
+        return value;
+    }
+};
+
+const parseExistingImages = (value: unknown) => {
+    const parsed = parseJsonValue(value);
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+        .map((image: any) => ({
+            url: typeof image?.url === "string" ? image.url : "",
+            fileId: typeof image?.fileId === "string" ? image.fileId : "",
+        }))
+        .filter((image) => image.url && image.fileId);
+};
+
+const cleanPolicyRefs = (refs: any = {}) => {
+    const next: Record<string, string> = {};
+    ["returnPolicy", "refundPolicy", "shippingPolicy", "termsPolicy"].forEach((key) => {
+        if (typeof refs?.[key] === "string" && refs[key].trim()) next[key] = refs[key].trim();
+    });
+    return Object.keys(next).length ? next : undefined;
+};
 
 export class ProductService {
     private static generateSlug(title: string): string {
@@ -44,6 +74,49 @@ export class ProductService {
 
     private static isApprovedForPublic(product: any) {
         return product?.isActive && (!product.approvalStatus || product.approvalStatus === "APPROVED");
+    }
+
+    private static assertImageCount(total: number) {
+        if (total < 1) throw new ApiError(400, "At least one product image is required.");
+        if (total > 5) throw new ApiError(400, "A product can have a maximum of 5 images.");
+    }
+
+    private static async assertSizeChartAllowed(sizeChartId: string | undefined, _sellerId: string) {
+        if (!sizeChartId) return;
+        const chart = await SizeChart.findOne({
+            _id: sizeChartId,
+            isActive: true,
+            $or: [
+                { scope: "GLOBAL", approvalStatus: "APPROVED" },
+                { scope: "GLOBAL", approvalStatus: { $exists: false } },
+            ],
+        }).lean();
+        if (!chart) throw new ApiError(400, "Selected size chart is not available for this seller.");
+    }
+
+    private static async assertRefundPolicyActive(refundPolicyId: string | undefined) {
+        if (!refundPolicyId) return;
+        const policy = await RefundPolicy.findOne({ _id: refundPolicyId, isActive: true }).lean();
+        if (!policy) throw new ApiError(400, "Selected refund policy is not active.");
+    }
+
+    private static async assertPolicyRefsActive(policyRefs?: Record<string, string>) {
+        if (!policyRefs) return;
+        const expectedTypes: Record<string, string> = {
+            returnPolicy: "RETURN",
+            refundPolicy: "REFUND",
+            shippingPolicy: "SHIPPING",
+            termsPolicy: "TERMS",
+        };
+
+        await Promise.all(Object.entries(policyRefs).map(async ([key, id]) => {
+            const policy = await RefundPolicy.findOne({
+                _id: id,
+                isActive: true,
+                policyType: expectedTypes[key] || { $exists: true },
+            }).lean();
+            if (!policy) throw new ApiError(400, `Selected ${key} is not an active admin policy.`);
+        }));
     }
 
     private static async assertCategoryAssigned(category: string, subCategory?: string) {
@@ -118,8 +191,19 @@ export class ProductService {
             }
 
             const { store } = await this.assertSellerProductGate(ownerId, validatedData.category, validatedData.subCategory);
+            this.assertImageCount(files.length);
+            const policyRefs = cleanPolicyRefs(validatedData.policyRefs);
+            await Promise.all([
+                this.assertSizeChartAllowed(validatedData.sizeChartId, ownerId),
+                this.assertRefundPolicyActive(validatedData.refundPolicy),
+                this.assertPolicyRefsActive(policyRefs),
+            ]);
             const slug = this.generateSlug(validatedData.title);
             const { sellerId: _ignoredSellerId, ...productPayload } = validatedData;
+            productPayload.policyRefs = policyRefs;
+            if (policyRefs?.refundPolicy) {
+                productPayload.refundPolicy = policyRefs.refundPolicy;
+            }
 
             // Upload images to ImageKit
             const imageUploadPromises = files.map(file =>
@@ -199,14 +283,32 @@ export class ProductService {
                     validatedData.subCategory || product.subCategory || undefined,
                 );
             }
+            const policyRefs = cleanPolicyRefs(validatedData.policyRefs);
+            await Promise.all([
+                this.assertSizeChartAllowed(validatedData.sizeChartId, product.sellerId.toString()),
+                this.assertRefundPolicyActive(validatedData.refundPolicy),
+                this.assertPolicyRefsActive(policyRefs),
+            ]);
             let updatePayload: any = { ...validatedData };
             delete updatePayload.sellerId;
+            if (Object.prototype.hasOwnProperty.call(validatedData, "policyRefs")) {
+                updatePayload.policyRefs = policyRefs || {};
+                if (policyRefs?.refundPolicy) {
+                    updatePayload.refundPolicy = policyRefs.refundPolicy;
+                }
+            }
 
             if (validatedData.title) {
                 updatePayload.slug = this.generateSlug(validatedData.title);
             }
 
-            // Handle Image Updates (APPEND new images)
+            const hasExistingImagesPayload = Object.prototype.hasOwnProperty.call(data, "existingImages");
+            const retainedImages = hasExistingImagesPayload
+                ? parseExistingImages(data.existingImages)
+                : (product.images || []);
+            this.assertImageCount(retainedImages.length + (files?.length || 0));
+
+            // Handle Image Updates
             if (files && files.length > 0) {
                 // 1. Upload new images
                 const imageUploadPromises = files.map(file =>
@@ -219,8 +321,19 @@ export class ProductService {
                     fileId: res.fileId
                 }));
 
-                // 2. Combine with existing images
-                updatePayload.images = [...(product.images || []), ...newImages];
+                // 2. Combine retained existing images with new images
+                updatePayload.images = [...retainedImages, ...newImages];
+            } else if (hasExistingImagesPayload) {
+                updatePayload.images = retainedImages;
+            }
+
+            if (hasExistingImagesPayload) {
+                const retainedFileIds = new Set(retainedImages.map((image) => image.fileId));
+                await Promise.all(
+                    (product.images || [])
+                        .filter((image: any) => image.fileId && !retainedFileIds.has(image.fileId))
+                        .map((image: any) => deleteFromImageKit(image.fileId).catch(() => undefined)),
+                );
             }
 
             const updatedProduct = await ProductDAO.updateById(id, updatePayload);

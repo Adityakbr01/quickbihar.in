@@ -116,6 +116,10 @@ export const listSellerSubmissionsSchema = z.object({
 export const reviewSellerSubmissionSchema = z.object({
     status: z.enum(["APPROVED", "REJECTED"]),
     reason: z.string().trim().max(300).optional(),
+    placement: z.enum(["home_top", "home_middle", "category"]).optional(),
+    priority: z.coerce.number().int().optional(),
+    startDate: z.string().trim().optional(),
+    endDate: z.string().trim().optional(),
 });
 
 const objectIdSchema = z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid id");
@@ -131,6 +135,99 @@ export const adminListQuerySchema = z.object({
     dateFrom: z.coerce.date().optional(),
     dateTo: z.coerce.date().optional(),
 });
+
+export const policyTypeSchema = z.enum(["RETURN", "REFUND", "SHIPPING", "TERMS", "GENERAL"]);
+
+export const adminPolicySchema = z.object({
+    name: z.string().trim().min(2),
+    policyType: policyTypeSchema.default("GENERAL"),
+    category: z.string().trim().optional(),
+    description: z.string().trim().optional(),
+    returnWindowDays: z.coerce.number().int().min(0).optional(),
+    refundProcessingDays: z.coerce.number().int().min(0).optional(),
+    conditions: z.array(z.string().trim()).optional(),
+    refundType: z.string().trim().optional(),
+    returnShipping: z.string().trim().optional(),
+    isReturnable: z.boolean().optional(),
+    isExchangeAvailable: z.boolean().optional(),
+    isActive: z.boolean().optional(),
+});
+
+export const updateAdminPolicySchema = adminPolicySchema.partial();
+
+const policyRefsSchema = z.object({
+    returnPolicy: objectIdSchema.optional().or(z.literal("")),
+    refundPolicy: objectIdSchema.optional().or(z.literal("")),
+    shippingPolicy: objectIdSchema.optional().or(z.literal("")),
+    termsPolicy: objectIdSchema.optional().or(z.literal("")),
+}).optional();
+
+export const adminSellerSchema = z.object({
+    fullName: z.string().trim().min(2),
+    email: z.string().trim().email(),
+    username: z.string().trim().min(2).optional(),
+    phone: z.string().trim().optional(),
+    password: z.string().min(6).optional(),
+    isVerified: z.boolean().optional(),
+    isBlocked: z.boolean().optional(),
+    seller: z.object({
+        businessName: z.string().trim().optional(),
+        sellerType: z.string().trim().optional(),
+        gstNumber: z.string().trim().optional(),
+        status: z.enum(["PENDING", "APPROVED", "REJECTED"]).optional(),
+        isVerified: z.boolean().optional(),
+        mallId: objectIdSchema.optional().or(z.literal("")),
+        mallUnit: z.string().trim().optional(),
+        mallFloor: z.string().trim().optional(),
+        address: z.object({
+            address: z.string().trim().optional(),
+            city: z.string().trim().optional(),
+            state: z.string().trim().optional(),
+            pincode: z.string().trim().optional(),
+        }).optional(),
+    }).optional(),
+    store: z.object({
+        name: z.string().trim().optional(),
+        description: z.string().trim().optional(),
+        logoUrl: z.string().trim().optional(),
+        bannerUrl: z.string().trim().optional(),
+        isActive: z.boolean().optional(),
+        isVerified: z.boolean().optional(),
+        address: z.object({
+            line1: z.string().trim().optional(),
+            city: z.string().trim().optional(),
+            state: z.string().trim().optional(),
+            pincode: z.string().trim().optional(),
+            country: z.string().trim().optional(),
+            postalCode: z.string().trim().optional(),
+        }).optional(),
+        contact: z.object({
+            email: z.string().trim().email().optional().or(z.literal("")),
+            phone: z.string().trim().optional(),
+        }).optional(),
+        categoryConfig: z.object({
+            primaryCategory: z.string().trim().optional(),
+            subcategories: z.array(z.string().trim()).optional(),
+            assignedByAdmin: z.boolean().optional(),
+        }).optional(),
+        policyRefs: policyRefsSchema,
+    }).optional(),
+});
+
+export const updateAdminSellerSchema = adminSellerSchema.partial();
+
+export const adminSizeChartSchema = z.object({
+    name: z.string().trim().min(1),
+    category: z.string().trim().min(1),
+    unit: z.enum(["inches", "cm"]).default("inches"),
+    fields: z.array(z.string().trim().min(1)).min(1),
+    data: z.array(z.record(z.string(), z.union([z.string(), z.number()]))).min(1),
+    howToMeasure: z.array(z.string().trim()).optional(),
+    isActive: z.boolean().optional(),
+    approvalStatus: z.enum(["DRAFT", "PENDING_REVIEW", "APPROVED", "REJECTED"]).optional(),
+});
+
+export const updateAdminSizeChartSchema = adminSizeChartSchema.partial();
 
 const seoSchema = z.object({
     metaTitle: z.string().trim().max(120).optional(),

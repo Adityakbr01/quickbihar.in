@@ -22,6 +22,8 @@ router.delete("/products/:id", SellerController.deleteProduct);
 
 router.get("/categories", SellerController.categories);
 router.post("/category-requests", SellerController.requestCategoryChange);
+router.get("/policies", SellerController.policies);
+router.get("/refund-policies", SellerController.refundPolicies);
 
 router.get("/inventory", SellerController.inventory);
 router.patch("/inventory/stock", SellerController.updateStock);
@@ -46,11 +48,7 @@ router.patch("/banners/:id", upload.single("image"), SellerController.updateBann
 router.delete("/banners/:id", SellerController.deleteBanner);
 
 router.get("/size-charts", SellerController.sizeCharts);
-router.post("/size-charts", SellerController.createSizeChart);
-router.patch("/size-charts/:id/submit", SellerController.submitSizeChart);
 router.patch("/size-charts/:id/assign-products", SellerController.assignSizeChartProducts);
-router.patch("/size-charts/:id", SellerController.updateSizeChart);
-router.delete("/size-charts/:id", SellerController.deleteSizeChart);
 
 router.get("/payouts", SellerController.payouts);
 router.get("/reports", SellerController.reports);

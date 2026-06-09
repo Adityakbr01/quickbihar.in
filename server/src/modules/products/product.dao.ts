@@ -91,12 +91,20 @@ export class ProductDAO {
     static async findById(id: string) {
         return await Product.findOne({ _id: id, isDeleted: false })
             .populate("refundPolicy")
+            .populate("policyRefs.returnPolicy")
+            .populate("policyRefs.refundPolicy")
+            .populate("policyRefs.shippingPolicy")
+            .populate("policyRefs.termsPolicy")
             .populate("sizeChartId");
     }
 
     static async findBySlug(slug: string) {
         return await Product.findOne({ slug, isDeleted: false })
             .populate("refundPolicy")
+            .populate("policyRefs.returnPolicy")
+            .populate("policyRefs.refundPolicy")
+            .populate("policyRefs.shippingPolicy")
+            .populate("policyRefs.termsPolicy")
             .populate("sizeChartId");
     }
 

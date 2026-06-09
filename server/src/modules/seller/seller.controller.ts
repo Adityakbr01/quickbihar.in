@@ -88,6 +88,21 @@ export class SellerController {
         return res.status(200).json(new ApiResponse(200, categories, "Seller categories fetched successfully"));
     });
 
+    static refundPolicies = asyncHandler(async (req, res) => {
+        const policies = await SellerService.listRefundPolicies((req as any).user._id);
+        return res.status(200).json(new ApiResponse(200, policies, "Seller refund policies fetched successfully"));
+    });
+
+    static policies = asyncHandler(async (req, res) => {
+        const policies = await SellerService.listPolicies((req as any).user._id, req.query);
+        return res.status(200).json(new ApiResponse(200, policies, "Seller policies fetched successfully"));
+    });
+
+    static warehouses = asyncHandler(async (req, res) => {
+        const warehouses = await SellerService.listWarehouses((req as any).user._id);
+        return res.status(200).json(new ApiResponse(200, warehouses, "Seller warehouses fetched successfully"));
+    });
+
     static requestCategoryChange = asyncHandler(async (req, res) => {
         const body = sellerCategoryRequestSchema.parse(req.body);
         const request = await SellerService.requestCategoryChange((req as any).user._id, body);

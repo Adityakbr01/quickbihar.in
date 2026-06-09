@@ -8,6 +8,15 @@ router.use(verifyJWT, isAdmin);
 
 router.get("/management-catalog", AdminController.managementCatalog);
 router.get("/dashboard", AdminController.dashboard);
+router.get("/policies", AdminController.policies);
+router.post("/policies", AdminController.createPolicy);
+router.patch("/policies/:id", AdminController.updatePolicy);
+router.delete("/policies/:id", AdminController.deletePolicy);
+router.get("/sellers", AdminController.sellers);
+router.post("/sellers", AdminController.createSeller);
+router.get("/sellers/:id", AdminController.sellerDetails);
+router.patch("/sellers/:id", AdminController.updateSeller);
+router.delete("/sellers/:id", AdminController.deleteSeller);
 router.get("/cms-pages", AdminController.cmsPages);
 router.post("/cms-pages", AdminController.createCMSPage);
 router.patch("/cms-pages/:id", AdminController.updateCMSPage);
@@ -29,6 +38,7 @@ router.post("/flash-sales", AdminController.createFlashSale);
 router.patch("/flash-sales/:id", AdminController.updateFlashSale);
 router.delete("/flash-sales/:id", AdminController.deleteFlashSale);
 router.patch("/products/:id/feature", AdminController.featureProduct);
+router.get("/sellers/:sellerId/size-charts", AdminController.sellerSizeCharts);
 router.get("/warehouses", AdminController.warehouses);
 router.post("/warehouses", AdminController.createWarehouse);
 router.patch("/warehouses/:id", AdminController.updateWarehouse);
@@ -69,5 +79,18 @@ router.patch("/malls/:id/review", AdminController.reviewMallCreation);
 router.delete("/malls/:id", AdminController.deleteMall);
 router.patch("/sellers/:id/mall", AdminController.assignSellerMall);
 router.patch("/sellers/:id/mall-request", AdminController.reviewMallRequest);
+
+// Policy CRUD
+router.get("/policies", AdminController.listPolicies);
+router.post("/policies", AdminController.createPolicy);
+router.patch("/policies/:id", AdminController.updatePolicy);
+router.delete("/policies/:id", AdminController.deletePolicy);
+
+// Seller CRUD
+router.get("/sellers", AdminController.listSellers);
+router.get("/sellers/:id", AdminController.getSeller);
+router.post("/sellers", AdminController.createSeller);
+router.patch("/sellers/:id", AdminController.updateSeller);
+router.delete("/sellers/:id", AdminController.deleteSeller);
 
 export default router;

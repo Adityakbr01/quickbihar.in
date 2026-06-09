@@ -55,6 +55,12 @@ export interface IStore extends Document {
         shippingPolicy?: string;
         termsAndConditions?: string;
     };
+    policyRefs?: {
+        returnPolicy?: Types.ObjectId;
+        refundPolicy?: Types.ObjectId;
+        shippingPolicy?: Types.ObjectId;
+        termsPolicy?: Types.ObjectId;
+    };
     currentLocation: {
         type: "Point";
         coordinates: [number, number];

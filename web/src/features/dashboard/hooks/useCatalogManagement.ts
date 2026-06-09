@@ -26,6 +26,25 @@ export const useAdminCategories = (params: QueryParams) =>
     queryFn: () => catalogManagementApi.getCategories(params),
   });
 
+export const useAdminSellerSizeCharts = (sellerId: string) =>
+  useQuery({
+    queryKey: ["admin-seller-size-charts", sellerId],
+    queryFn: () => catalogManagementApi.getSellerSizeCharts(sellerId),
+    enabled: Boolean(sellerId),
+  });
+
+export const useAdminRefundPolicies = () =>
+  useQuery({
+    queryKey: ["admin-refund-policies"],
+    queryFn: catalogManagementApi.getRefundPolicies,
+  });
+
+export const useAdminProductWarehouses = () =>
+  useQuery({
+    queryKey: ["admin-product-warehouses"],
+    queryFn: catalogManagementApi.getWarehouses,
+  });
+
 export const useUpdateOrderStatus = () => {
   const queryClient = useQueryClient();
   return useMutation({
@@ -175,5 +194,89 @@ export const useDeleteCategory = () => {
       toast.success("Category deleted");
     },
     onError: (error: Error) => toast.error(error.message || "Failed to delete category"),
+  });
+};
+
+export const useAdminSizeCharts = () =>
+  useQuery({
+    queryKey: ["admin-size-charts"],
+    queryFn: catalogManagementApi.getSizeCharts,
+  });
+
+export const useCreateAdminSizeChart = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: catalogManagementApi.createSizeChart,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-size-charts"] });
+      toast.success("Size chart created successfully");
+    },
+    onError: (error: Error) => toast.error(error.message || "Failed to create size chart"),
+  });
+};
+
+export const useUpdateAdminSizeChart = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: catalogManagementApi.updateSizeChart,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-size-charts"] });
+      toast.success("Size chart updated successfully");
+    },
+    onError: (error: Error) => toast.error(error.message || "Failed to update size chart"),
+  });
+};
+
+export const useDeleteAdminSizeChart = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: catalogManagementApi.deleteSizeChart,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-size-charts"] });
+      toast.success("Size chart deleted successfully");
+    },
+    onError: (error: Error) => toast.error(error.message || "Failed to delete size chart"),
+  });
+};
+
+export const useAdminBanners = () =>
+  useQuery({
+    queryKey: ["admin-banners"],
+    queryFn: catalogManagementApi.getAdminBanners,
+  });
+
+export const useCreateAdminBanner = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: catalogManagementApi.createAdminBanner,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-banners"] });
+      toast.success("Banner created successfully");
+    },
+    onError: (error: Error) => toast.error(error.message || "Failed to create banner"),
+  });
+};
+
+export const useUpdateAdminBanner = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: catalogManagementApi.updateAdminBanner,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-banners"] });
+      toast.success("Banner updated successfully");
+    },
+    onError: (error: Error) => toast.error(error.message || "Failed to update banner"),
+  });
+};
+
+export const useDeleteAdminBanner = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: catalogManagementApi.deleteAdminBanner,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-banners"] });
+      toast.success("Banner deleted successfully");
+    },
+    onError: (error: Error) => toast.error(error.message || "Failed to delete banner"),
   });
 };

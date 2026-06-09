@@ -94,6 +94,12 @@ export interface SellerStorePayload {
     shippingPolicy?: string;
     termsAndConditions?: string;
   };
+  policyRefs?: {
+    returnPolicy?: string;
+    refundPolicy?: string;
+    shippingPolicy?: string;
+    termsPolicy?: string;
+  };
   deliveryRadiusKm?: number;
   minOrderAmount?: number;
   deliveryFee?: number;
@@ -135,12 +141,53 @@ export interface SellerProduct {
   images?: Array<{ url: string; fileId: string }>;
   variants: ProductVariantPayload[];
   totalStock?: number;
-  details?: { sku?: string };
+  sizeChartId?: string | SellerSizeChart;
+  isGstApplicable?: boolean;
+  gstPercentage?: number;
+  details?: {
+    sku?: string;
+    fit?: string;
+    pattern?: string;
+    material?: string;
+    collar?: string;
+    sleeve?: string;
+    washCare?: string;
+  };
+  tags?: string[];
   seo?: {
     metaTitle?: string;
     metaDescription?: string;
     keywords?: string[];
   };
+  deliveryInfo?: {
+    isExpressAvailable?: boolean;
+    isCodAvailable?: boolean;
+    estimatedDays?: number;
+    returnPolicy?: string;
+  };
+  compliance?: {
+    manufacturerDetail?: string;
+    packerDetail?: string;
+    countryOfOrigin?: string;
+  };
+  logistics?: {
+    pickupLocation?: string;
+    warehouseName?: string;
+    latitude?: number;
+    longitude?: number;
+  };
+  policies?: {
+    returnPolicy?: string;
+    refundPolicy?: string;
+    shippingPolicy?: string;
+  };
+  policyRefs?: {
+    returnPolicy?: string;
+    refundPolicy?: string;
+    shippingPolicy?: string;
+    termsPolicy?: string;
+  };
+  refundPolicy?: string | SellerRefundPolicy;
   isActive?: boolean;
   approvalStatus?: ApprovalStatus;
   rejectionReason?: string;
@@ -156,14 +203,55 @@ export interface SellerProductPayload {
   subCategory?: string;
   price: number;
   originalPrice?: number;
+  sizeChartId?: string;
+  isGstApplicable?: boolean;
+  gstPercentage?: number;
   variants: ProductVariantPayload[];
-  details?: { sku?: string };
+  details?: {
+    sku?: string;
+    fit?: string;
+    pattern?: string;
+    material?: string;
+    collar?: string;
+    sleeve?: string;
+    washCare?: string;
+  };
   tags?: string[];
   seo?: {
     metaTitle?: string;
     metaDescription?: string;
     keywords?: string[];
   };
+  deliveryInfo?: {
+    isExpressAvailable?: boolean;
+    isCodAvailable?: boolean;
+    estimatedDays?: number;
+    returnPolicy?: string;
+  };
+  compliance?: {
+    manufacturerDetail?: string;
+    packerDetail?: string;
+    countryOfOrigin?: string;
+  };
+  logistics?: {
+    pickupLocation?: string;
+    warehouseName?: string;
+    latitude?: number;
+    longitude?: number;
+  };
+  policies?: {
+    returnPolicy?: string;
+    refundPolicy?: string;
+    shippingPolicy?: string;
+  };
+  policyRefs?: {
+    returnPolicy?: string;
+    refundPolicy?: string;
+    shippingPolicy?: string;
+    termsPolicy?: string;
+  };
+  refundPolicy?: string;
+  existingImages?: Array<{ url: string; fileId: string }>;
   isActive?: boolean;
 }
 
@@ -287,6 +375,58 @@ export interface SellerSizeChartPayload {
   isActive?: boolean;
 }
 
+export interface SellerRefundPolicy {
+  _id: string;
+  name: string;
+  category?: string;
+  description?: string;
+  returnWindowDays?: number;
+  refundProcessingDays?: number;
+  conditions?: string[];
+  refundType?: string;
+  returnShipping?: string;
+  isReturnable?: boolean;
+  isExchangeAvailable?: boolean;
+  isActive?: boolean;
+}
+
+export interface SellerPolicy {
+  _id: string;
+  name: string;
+  policyType: "RETURN" | "REFUND" | "SHIPPING" | "TERMS" | "GENERAL";
+  category?: string;
+  description?: string;
+  returnWindowDays?: number;
+  refundProcessingDays?: number;
+  conditions?: string[];
+  refundType?: string;
+  returnShipping?: string;
+  isReturnable?: boolean;
+  isExchangeAvailable?: boolean;
+  isActive: boolean;
+}
+
+export interface SellerWarehouse {
+  _id: string;
+  name: string;
+  code: string;
+  address?: {
+    line1?: string;
+    city?: string;
+    state?: string;
+    pincode?: string;
+    country?: string;
+  };
+  contact?: {
+    name?: string;
+    phone?: string;
+    email?: string;
+  };
+  serviceAreas?: string[];
+  capacity?: number;
+  isActive?: boolean;
+}
+
 export interface SellerInventoryProduct {
   _id: string;
   title: string;
@@ -388,10 +528,20 @@ const productFormData = (payload: Partial<SellerProductPayload>, images?: File[]
   appendOptional(formData, "subCategory", payload.subCategory);
   appendOptional(formData, "price", payload.price);
   appendOptional(formData, "originalPrice", payload.originalPrice);
+  appendOptional(formData, "sizeChartId", payload.sizeChartId);
+  appendOptional(formData, "isGstApplicable", payload.isGstApplicable);
+  appendOptional(formData, "gstPercentage", payload.gstPercentage);
   appendOptional(formData, "variants", payload.variants);
   appendOptional(formData, "details", payload.details);
   appendOptional(formData, "tags", payload.tags);
   appendOptional(formData, "seo", payload.seo);
+  appendOptional(formData, "deliveryInfo", payload.deliveryInfo);
+  appendOptional(formData, "compliance", payload.compliance);
+  appendOptional(formData, "logistics", payload.logistics);
+  appendOptional(formData, "policies", payload.policies);
+  appendOptional(formData, "policyRefs", payload.policyRefs);
+  appendOptional(formData, "refundPolicy", payload.refundPolicy);
+  appendOptional(formData, "existingImages", payload.existingImages);
   appendOptional(formData, "isActive", payload.isActive);
   images?.forEach((image) => formData.append("images", image));
   return formData;
@@ -467,6 +617,21 @@ export const sellerManagementApi = {
 
   getCategories: async (): Promise<SellerCategoriesResponse> => {
     const response = await axiosInstance.get("/sellers/categories");
+    return response.data.data;
+  },
+
+  getRefundPolicies: async (): Promise<SellerRefundPolicy[]> => {
+    const response = await axiosInstance.get("/sellers/refund-policies");
+    return response.data.data;
+  },
+
+  getPolicies: async (type?: string): Promise<SellerPolicy[]> => {
+    const response = await axiosInstance.get("/sellers/policies", { params: { type } });
+    return response.data.data;
+  },
+
+  getWarehouses: async (): Promise<SellerWarehouse[]> => {
+    const response = await axiosInstance.get("/sellers/warehouses");
     return response.data.data;
   },
 

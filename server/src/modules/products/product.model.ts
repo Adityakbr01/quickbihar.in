@@ -120,6 +120,19 @@ const productSchema = new Schema(
             longitude: Number,
         },
 
+        policies: {
+            returnPolicy: String,
+            refundPolicy: String,
+            shippingPolicy: String,
+        },
+
+        policyRefs: {
+            returnPolicy: { type: Schema.Types.ObjectId, ref: "RefundPolicy" },
+            refundPolicy: { type: Schema.Types.ObjectId, ref: "RefundPolicy" },
+            shippingPolicy: { type: Schema.Types.ObjectId, ref: "RefundPolicy" },
+            termsPolicy: { type: Schema.Types.ObjectId, ref: "RefundPolicy" },
+        },
+
         isActive: { type: Boolean, default: true },
         isDeleted: { type: Boolean, default: false },
 

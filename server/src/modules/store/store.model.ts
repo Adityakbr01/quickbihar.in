@@ -66,6 +66,13 @@ const StoreSchema = new Schema<IStore>({
         termsAndConditions: String,
     },
 
+    policyRefs: {
+        returnPolicy: { type: Types.ObjectId, ref: "RefundPolicy" },
+        refundPolicy: { type: Types.ObjectId, ref: "RefundPolicy" },
+        shippingPolicy: { type: Types.ObjectId, ref: "RefundPolicy" },
+        termsPolicy: { type: Types.ObjectId, ref: "RefundPolicy" },
+    },
+
     currentLocation: {
         type: {
             type: String,

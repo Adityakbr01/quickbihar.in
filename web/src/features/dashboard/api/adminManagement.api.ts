@@ -30,6 +30,36 @@ export interface PartnerProfile {
     pendingPayoutBalance: number;
     lifetimeEarnings: number;
   };
+  store?: {
+    _id: string;
+    name?: string;
+    isActive?: boolean;
+    isSetupComplete?: boolean;
+    setupMissingFields?: string[];
+    address?: {
+      line1?: string;
+      city?: string;
+      state?: string;
+      pincode?: string;
+      country?: string;
+    };
+    deliveryConfig?: {
+      deliveryAreas?: string[];
+      shippingFee?: number;
+      freeShippingThreshold?: number;
+    };
+    policies?: {
+      returnPolicy?: string;
+      refundPolicy?: string;
+      shippingPolicy?: string;
+      termsAndConditions?: string;
+    };
+    categoryConfig?: {
+      primaryCategory?: string;
+      subcategories?: string[];
+      assignedByAdmin?: boolean;
+    };
+  } | null;
   isOnline?: boolean;
   vehicleType?: string;
   vehicleNumber?: string;
@@ -263,6 +293,83 @@ export interface AppConfig {
     minOrderAmount?: number;
     estimatedMinutes?: number;
     riderPayoutAmount?: number;
+  };
+}
+
+export interface Policy {
+  _id: string;
+  name: string;
+  policyType: "RETURN" | "REFUND" | "SHIPPING" | "TERMS" | "GENERAL";
+  category?: string;
+  description?: string;
+  returnWindowDays?: number;
+  refundProcessingDays?: number;
+  conditions?: string[];
+  refundType?: string;
+  returnShipping?: string;
+  isReturnable?: boolean;
+  isExchangeAvailable?: boolean;
+  isDefault?: boolean;
+  isActive: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export type PolicyPayload = Partial<Omit<Policy, "_id" | "createdAt" | "updatedAt">>;
+
+export interface SellerPayload {
+  fullName: string;
+  email: string;
+  username?: string;
+  phone?: string;
+  password?: string;
+  isVerified?: boolean;
+  isBlocked?: boolean;
+  seller?: {
+    businessName?: string;
+    sellerType?: string;
+    gstNumber?: string;
+    status?: PartnerStatus;
+    isVerified?: boolean;
+    mallId?: string;
+    mallUnit?: string;
+    mallFloor?: string;
+    address?: {
+      address?: string;
+      city?: string;
+      state?: string;
+      pincode?: string;
+    };
+  };
+  store?: {
+    name?: string;
+    description?: string;
+    logoUrl?: string;
+    bannerUrl?: string;
+    isActive?: boolean;
+    isVerified?: boolean;
+    address?: {
+      line1?: string;
+      city?: string;
+      state?: string;
+      pincode?: string;
+      country?: string;
+      postalCode?: string;
+    };
+    contact?: {
+      email?: string;
+      phone?: string;
+    };
+    categoryConfig?: {
+      primaryCategory?: string;
+      subcategories?: string[];
+    };
+    policyRefs?: {
+      returnPolicy?: string;
+      refundPolicy?: string;
+      shippingPolicy?: string;
+      termsPolicy?: string;
+    };
   };
 }
 
@@ -718,13 +825,28 @@ export const adminManagementApi = {
     id,
     status,
     reason,
+    placement,
+    priority,
+    startDate,
+    endDate,
   }: {
     type: SellerSubmissionType;
     id: string;
     status: "APPROVED" | "REJECTED";
     reason?: string;
+    placement?: "home_top" | "home_middle" | "category";
+    priority?: number;
+    startDate?: string;
+    endDate?: string;
   }) => {
-    const response = await axiosInstance.patch(`/admin/seller-submissions/${type}/${id}/review`, { status, reason });
+    const response = await axiosInstance.patch(`/admin/seller-submissions/${type}/${id}/review`, {
+      status,
+      reason,
+      placement,
+      priority,
+      startDate,
+      endDate,
+    });
     return response.data.data;
   },
 
@@ -925,6 +1047,51 @@ export const adminManagementApi = {
 
   restoreBackup: async (id: string) => {
     const response = await axiosInstance.post(`/admin/backups/${id}/restore`, { confirm: "RESTORE" });
+    return response.data.data;
+  },
+
+  getPolicies: async (params: AdminListParams): Promise<PaginatedAdminResult<Policy>> => {
+    const response = await axiosInstance.get("/admin/policies", { params });
+    return response.data.data;
+  },
+
+  createPolicy: async (payload: PolicyPayload): Promise<Policy> => {
+    const response = await axiosInstance.post("/admin/policies", payload);
+    return response.data.data;
+  },
+
+  updatePolicy: async ({ id, payload }: { id: string; payload: PolicyPayload }): Promise<Policy> => {
+    const response = await axiosInstance.patch(`/admin/policies/${id}`, payload);
+    return response.data.data;
+  },
+
+  deletePolicy: async (id: string): Promise<Policy> => {
+    const response = await axiosInstance.delete(`/admin/policies/${id}`);
+    return response.data.data;
+  },
+
+  getSellers: async (params: AdminListParams): Promise<ManagedPerson[]> => {
+    const response = await axiosInstance.get("/admin/sellers", { params });
+    return response.data.data;
+  },
+
+  getSeller: async (id: string): Promise<ManagedPerson> => {
+    const response = await axiosInstance.get(`/admin/sellers/${id}`);
+    return response.data.data;
+  },
+
+  createSeller: async (payload: SellerPayload): Promise<ManagedPerson> => {
+    const response = await axiosInstance.post("/admin/sellers", payload);
+    return response.data.data;
+  },
+
+  updateSeller: async ({ id, payload }: { id: string; payload: Partial<SellerPayload> }): Promise<ManagedPerson> => {
+    const response = await axiosInstance.patch(`/admin/sellers/${id}`, payload);
+    return response.data.data;
+  },
+
+  deleteSeller: async (id: string): Promise<ManagedPerson> => {
+    const response = await axiosInstance.delete(`/admin/sellers/${id}`);
     return response.data.data;
   },
 };

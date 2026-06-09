@@ -82,6 +82,19 @@ export interface IProduct {
         longitude?: number;
     };
 
+    policies?: {
+        returnPolicy?: string;
+        refundPolicy?: string;
+        shippingPolicy?: string;
+    };
+
+    policyRefs?: {
+        returnPolicy?: string;
+        refundPolicy?: string;
+        shippingPolicy?: string;
+        termsPolicy?: string;
+    };
+
     isActive: boolean;
     isDeleted: boolean;
  

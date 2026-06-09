@@ -38,6 +38,15 @@ const policiesSchema = z.object({
     termsAndConditions: optionalText,
 });
 
+const objectIdText = z.string().trim().regex(/^[0-9a-fA-F]{24}$/).optional().or(z.literal(""));
+
+const policyRefsSchema = z.object({
+    returnPolicy: objectIdText,
+    refundPolicy: objectIdText,
+    shippingPolicy: objectIdText,
+    termsPolicy: objectIdText,
+});
+
 export const createStoreSchema = z.object({
     name: z.string().trim().min(2, "Store name is required"),
     description: optionalText,
@@ -61,6 +70,7 @@ export const createStoreSchema = z.object({
     deliveryConfig: deliveryConfigSchema.optional(),
     seo: seoSchema.optional(),
     policies: policiesSchema.optional(),
+    policyRefs: policyRefsSchema.optional(),
 
     currentLocation: z.object({
         lng: z.number(),
