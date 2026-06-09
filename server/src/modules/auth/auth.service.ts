@@ -8,6 +8,7 @@ import * as rbacService from "../rbac/rbac.service";
 import { RoleEnum } from "../rbac/rbac.types";
 import { redis } from "../../config/redis.config";
 import { MailService } from "../../utils/mail.service";
+import { serializeAuthUser } from "./auth.serializer";
 
 export class AuthService {
   static async register(registerData: any) {
@@ -33,6 +34,7 @@ export class AuthService {
         // Update details for re-registration
         user.password = password;
         user.fullName = fullName;
+        user.roleId = user.roleId || userRole._id;
         await user.save();
       } else {
         const generatedUsername = email.split("@")[0] + "_" + Math.floor(Math.random() * 1000);
@@ -55,13 +57,7 @@ export class AuthService {
 
       return {
         message: "Registration successful! Please verify your email with the OTP sent to your inbox.",
-        user: {
-          _id: user._id,
-          username: user.username,
-          email: user.email,
-          fullName: user.fullName,
-          role: userRole,
-        }
+        user: await serializeAuthUser(user),
       };
     } catch (error) {
       if (error instanceof ZodError) {
@@ -111,13 +107,7 @@ export class AuthService {
       await user.save({ validateBeforeSave: false });
 
       return {
-        user: {
-          _id: user._id,
-          username: user.username,
-          email: user.email,
-          fullName: user.fullName,
-          role: user.roleId,
-        },
+        user: await serializeAuthUser(user),
         accessToken,
         refreshToken,
       };
@@ -185,6 +175,7 @@ export class AuthService {
       isNewUser = true;
       const generatedUsername = email.split("@")[0] + "_" + Math.floor(Math.random() * 1000);
       const generatedFullName = email.split("@")[0];
+      const userRole = await rbacService.getRoleByName(RoleEnum.USER);
 
       // Temporary password for OTP-only users (they can change it later)
       const tempPassword = Math.random().toString(36).slice(-10);
@@ -195,6 +186,7 @@ export class AuthService {
         username: generatedUsername.toLowerCase(),
         fullName: generatedFullName,
         isVerified: true, // Mark as verified since they used OTP
+        roleId: userRole._id,
       });
 
       if (!user) {
@@ -216,6 +208,10 @@ export class AuthService {
       }
       if (!user.isVerified) {
         user.isVerified = true;
+        if (!user.roleId) {
+          const userRole = await rbacService.getRoleByName(RoleEnum.USER);
+          user.roleId = userRole._id;
+        }
         await user.save();
       }
     }
@@ -227,13 +223,7 @@ export class AuthService {
     await user.save({ validateBeforeSave: false });
 
     return {
-      user: {
-        _id: user._id,
-        username: user.username,
-        email: user.email,
-        fullName: user.fullName,
-        role: user.roleId,
-      },
+      user: await serializeAuthUser(user),
       accessToken,
       refreshToken,
       isNewUser
@@ -272,13 +262,7 @@ export class AuthService {
       await user.save({ validateBeforeSave: false });
 
       return {
-        user: {
-          _id: user._id,
-          username: user.username,
-          email: user.email,
-          fullName: user.fullName,
-          role: user.roleId,
-        },
+        user: await serializeAuthUser(user),
         accessToken,
         refreshToken,
       };

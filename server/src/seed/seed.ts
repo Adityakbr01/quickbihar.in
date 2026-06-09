@@ -3,6 +3,7 @@ import { SizeChart } from "../modules/sizeChart/sizeChart.model";
 import { ENV } from "../config/env.config";
 import { RefundPolicy } from "../modules/refundPolicy/refundPolicy.model";
 import { AppConfig } from "../modules/appConfig/appConfig.model";
+import { DeliveryBoy } from "../modules/deliveryBoy/delivery.model";
 
 export const seedAppConfig = async () => {
     try {
@@ -39,7 +40,13 @@ export const seedAppConfig = async () => {
             appearance: {
                 logoUrl: "",
                 faviconUrl: "",
-            }
+            },
+            delivery: {
+                defaultRadiusKm: 5,
+                minOrderAmount: 0,
+                estimatedMinutes: 45,
+                riderPayoutAmount: 40,
+            },
         };
 
         const existing = await AppConfig.findOne();
@@ -70,12 +77,16 @@ export const seedAdmin = async () => {
         if (!existingAdmin) {
             console.log("🌱 Seeding Admin User...");
 
+            const adminRole = await Role.findOne({ name: "ADMIN" });
+            if (!adminRole) throw new Error("ADMIN role not found. Seed RBAC before users.");
+
             await User.create({
                 username: "admin",
                 email: adminEmail,
                 password: adminPassword,
                 fullName: "System Administrator",
-                role: "ADMIN",
+                roleId: adminRole._id,
+                isVerified: true,
             });
 
             console.log("✅ Admin User seeded successfully!");
@@ -97,28 +108,65 @@ export const seedUsers = async () => {
                 email: "user@example.com",
                 password: "password123",
                 fullName: "Test Customer",
-                role: "user",
+                role: "USER",
             },
             {
                 username: "seller1",
                 email: "seller@example.com",
                 password: "password123",
                 fullName: "Test Seller",
-                role: "seller",
+                role: "SELLER",
             },
             {
                 username: "delivery1",
                 email: "delivery@example.com",
                 password: "password123",
                 fullName: "Test Delivery Partner",
-                role: "delivery_partner",
+                role: "DELIVERY",
             }
         ];
 
         for (const u of devUsers) {
             const existing = await User.findOne({ email: u.email });
+            const role = await Role.findOne({ name: u.role });
+            if (!role) {
+                console.warn(`Skipping ${u.email}: role ${u.role} not found.`);
+                continue;
+            }
             if (!existing) {
-                await User.create(u);
+                await User.create({
+                    username: u.username,
+                    email: u.email,
+                    password: u.password,
+                    fullName: u.fullName,
+                    roleId: role._id,
+                    isVerified: true,
+                });
+                if (u.role === "DELIVERY") {
+                    const user = await User.findOne({ email: u.email });
+                    if (user) {
+                        await DeliveryBoy.updateOne(
+                            { userId: user._id },
+                            {
+                                $setOnInsert: {
+                                    userId: user._id,
+                                    vehicleType: "BIKE",
+                                    vehicleNumber: "BR01QB0001",
+                                    licenseNumber: "DL-DEMO-0001",
+                                    status: "APPROVED",
+                                    isVerified: true,
+                                    isOnline: true,
+                                    wallet: {
+                                        availableBalance: 0,
+                                        pendingPayoutBalance: 0,
+                                        lifetimeEarnings: 0,
+                                    },
+                                },
+                            },
+                            { upsert: true },
+                        );
+                    }
+                }
                 console.log(`✔️ Created user: ${u.username}`);
             }
         }
@@ -428,4 +476,3 @@ export const seedRbac = async () => {
         console.error("❌ Failed to seed RBAC:", error);
     }
 };
-

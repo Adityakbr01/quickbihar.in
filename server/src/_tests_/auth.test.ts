@@ -17,6 +17,14 @@ import { describe, expect, mock, test } from "bun:test";
 import request from "supertest";
 
 const VALID_ID = "645a2c2b8f8f2b1a2c3d4e5f";
+const RIDER_ID = "645a2c2b8f8f2b1a2c3d4e60";
+const getRoleByName = mock((name: string = "USER") => Promise.resolve({ _id: VALID_ID, name }));
+const assignUserToRole = mock(() => Promise.resolve());
+const profileQuery = (value: any) => ({
+    select: () => ({
+        lean: () => Promise.resolve(value),
+    }),
+});
 
 // 1. Mock External Configs/Side-effects
 mock.module("jsonwebtoken", () => ({
@@ -52,11 +60,26 @@ mock.module("../config/imagekit.config", () => ({ imagekit: {} }));
 mock.module("../modules/user/user.dao", () => ({
     UserDAO: {
         findByUsernameOrEmail: mock((username, email) => {
+            if (email === "approvedrider@test.com") {
+                return Promise.resolve({
+                    _id: RIDER_ID,
+                    email,
+                    username: "approvedrider",
+                    fullName: "Approved Rider",
+                    isVerified: true,
+                    roleId: null,
+                    isPasswordCorrect: mock(() => Promise.resolve(true)),
+                    generateAccessToken: () => "valid_access_token",
+                    generateRefreshToken: () => "valid_refresh_token",
+                    save: mock(() => Promise.resolve())
+                });
+            }
             if (email === "existing@test.com" || email === "otpuser@test.com") {
                 return Promise.resolve({
                     _id: VALID_ID,
                     email,
                     username: "existing",
+                    fullName: "Existing User",
                     isPasswordCorrect: mock(() => Promise.resolve(true)),
                     generateAccessToken: () => "valid_access_token",
                     generateRefreshToken: () => "valid_refresh_token",
@@ -88,10 +111,22 @@ mock.module("../modules/user/user.dao", () => ({
 
 // 3. Mock RBAC Service
 mock.module("../modules/rbac/rbac.service", () => ({
-    getRoleByName: mock(() => Promise.resolve({ _id: VALID_ID, name: "USER" })),
+    getRoleByName,
     getRole: mock(() => Promise.resolve({ _id: VALID_ID, name: "USER" })),
-    assignUserToRole: mock(() => Promise.resolve()),
+    assignUserToRole,
     getRolesByUser: mock(() => Promise.resolve([]))
+}));
+
+mock.module("../modules/seller/seller.model", () => ({
+    Seller: {
+        findOne: mock(() => profileQuery(null)),
+    }
+}));
+
+mock.module("../modules/deliveryBoy/delivery.model", () => ({
+    DeliveryBoy: {
+        findOne: mock((query) => profileQuery(query.userId?.toString?.() === RIDER_ID ? { _id: "delivery-profile" } : null)),
+    }
 }));
 
 // 4. Delayed Import of App
@@ -139,6 +174,17 @@ describe("Authentication Routes", () => {
 
         expect(res.status).toBe(401);
         expect(res.body.message).toContain("Email not verified");
+    });
+
+    test("POST /api/v1/auth/login self-heals approved delivery role", async () => {
+        assignUserToRole.mockClear();
+        const res = await request(app)
+            .post("/api/v1/auth/login")
+            .send({ email: "approvedrider@test.com", password: "password123" });
+
+        expect(res.status).toBe(200);
+        expect(res.body.data.user.role.name).toBe("DELIVERY");
+        expect(assignUserToRole).toHaveBeenCalledWith(RIDER_ID, VALID_ID);
     });
 
     test("POST /api/v1/auth/verify-otp (Success)", async () => {

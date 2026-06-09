@@ -4,7 +4,8 @@ import { ProductDAO } from "../products/product.dao";
 import { couponService } from "../coupon/coupon.service";
 import { appConfigService } from "../appConfig/appConfig.service";
 import { orderDAO } from "./order.dao";
-import { OrderStatus } from "./order.type";
+import { DeliveryStatus, OrderStatus } from "./order.type";
+import { Order } from "./order.model";
 import { razorpay, verifyRazorpaySignature } from "../../utils/razorpay.util";
 import { socketService } from "../socket/socket.service";
 import { notificationService } from "../notification/notification.service";
@@ -12,6 +13,22 @@ import { User } from "../user/user.model";
 import { SocketEvents } from "../../constants/socketEvents";
 import { Seller } from "../seller/seller.model";
 import { SellerEarning, SellerNotification } from "../seller/sellerPanel.model";
+import { DeliveryBoy } from "../deliveryBoy/delivery.model";
+
+const generateDeliveryOtp = () => Math.floor(100000 + Math.random() * 900000).toString();
+
+const deliveryEvent = (status: DeliveryStatus, action: string, actorId?: string, note?: string) => ({
+    status,
+    action,
+    note,
+    actorId: actorId ? new Types.ObjectId(actorId) : undefined,
+    at: new Date(),
+});
+
+const populateOrderQuery = (query: any) =>
+    query
+        .populate("userId", "fullName email phone")
+        .populate("delivery.partnerUserId", "fullName email phone");
 
 export class OrderService {
     private async notifyOrderSellers(order: any, status: OrderStatus, message: string) {
@@ -318,11 +335,136 @@ export class OrderService {
         return await orderDAO.findAll(query);
     }
 
-    async adminUpdateOrderStatus(orderId: string, status: OrderStatus, reason?: string) {
+    async assignDeliveryPartner(orderId: string, data: { deliveryUserId: string; payoutAmount?: number }, adminId?: string) {
+        const order = await orderDAO.findById(orderId);
+        if (!order) throw new ApiError(404, "Order not found");
+
+        if ([OrderStatus.PENDING_PAYMENT, OrderStatus.CANCELLED, OrderStatus.REJECTED, OrderStatus.REFUNDED, OrderStatus.FAILED, OrderStatus.DELIVERED].includes(order.status)) {
+            throw new ApiError(400, `Cannot assign delivery for ${order.status} order`);
+        }
+
+        const deliveryProfile = await DeliveryBoy.findOne({
+            $or: [{ userId: data.deliveryUserId }, { _id: data.deliveryUserId }],
+            status: "APPROVED",
+            isVerified: true,
+        }).lean();
+        if (!deliveryProfile) throw new ApiError(404, "Approved delivery profile not found");
+        const deliveryUserId = deliveryProfile.userId?.toString();
+        if (!deliveryUserId) throw new ApiError(400, "Delivery profile is missing a user account");
+
+        const [deliveryUser, config] = await Promise.all([
+            User.findById(deliveryUserId).select("fullName email phone isBlocked roleId").populate("roleId").lean(),
+            appConfigService.getConfig(),
+        ]);
+
+        if (!deliveryUser || deliveryUser.isBlocked) throw new ApiError(400, "Delivery user is not available");
+        const roleName = (deliveryUser.roleId as any)?.name;
+        if (roleName && roleName !== "DELIVERY") {
+            throw new ApiError(400, "Selected user is not a delivery partner");
+        }
+
+        const now = new Date();
+        const payoutAmount = Number(data.payoutAmount ?? config?.delivery?.riderPayoutAmount ?? order.shippingFee ?? 0);
+        const otp = generateDeliveryOtp();
+
+        const updated = await populateOrderQuery(Order.findByIdAndUpdate(
+            order._id,
+            {
+                $set: {
+                    status: [OrderStatus.CONFIRMED, OrderStatus.PAID].includes(order.status) ? OrderStatus.PROCESSING : order.status,
+                    "delivery.partnerUserId": new Types.ObjectId(deliveryUserId),
+                    "delivery.partnerProfileId": deliveryProfile._id,
+                    "delivery.status": DeliveryStatus.ASSIGNED,
+                    "delivery.otp": {
+                        code: otp,
+                        generatedAt: now,
+                    },
+                    "delivery.payoutAmount": payoutAmount,
+                    "delivery.assignedAt": now,
+                    "delivery.cancelledAt": undefined,
+                },
+                $push: {
+                    "delivery.events": deliveryEvent(DeliveryStatus.ASSIGNED, "ASSIGN_DELIVERY", adminId),
+                },
+            },
+            { returnDocument: "after" },
+        ));
+
+        if (!updated) throw new ApiError(404, "Order not found");
+
+        socketService.emitToUser(deliveryUserId, SocketEvents.ORDER_STATUS_UPDATE, {
+            orderId: updated.orderId,
+            status: updated.status,
+            deliveryStatus: DeliveryStatus.ASSIGNED,
+            message: `Order ${updated.orderId} has been assigned to you.`,
+        });
+        socketService.emitToUser(updated.userId?._id?.toString() || updated.userId?.toString(), SocketEvents.ORDER_STATUS_UPDATE, {
+            orderId: updated.orderId,
+            status: updated.status,
+            deliveryStatus: DeliveryStatus.ASSIGNED,
+            message: "A delivery partner has been assigned to your order.",
+        });
+
+        return updated;
+    }
+
+    async unassignDeliveryPartner(orderId: string, adminId?: string) {
+        const order = await orderDAO.findById(orderId);
+        if (!order) throw new ApiError(404, "Order not found");
+
+        if (order.delivery?.status === DeliveryStatus.DELIVERED || order.status === OrderStatus.DELIVERED) {
+            throw new ApiError(400, "Cannot unassign a delivered order");
+        }
+
+        const previousDeliveryUserId = order.delivery?.partnerUserId?._id?.toString() || order.delivery?.partnerUserId?.toString();
+
+        const updated = await populateOrderQuery(Order.findByIdAndUpdate(
+            order._id,
+            {
+                $set: {
+                    "delivery.status": DeliveryStatus.UNASSIGNED,
+                    "delivery.cancelledAt": new Date(),
+                },
+                $unset: {
+                    "delivery.partnerUserId": "",
+                    "delivery.partnerProfileId": "",
+                    "delivery.otp": "",
+                    "delivery.currentLocation": "",
+                },
+                $push: {
+                    "delivery.events": deliveryEvent(DeliveryStatus.UNASSIGNED, "UNASSIGN_DELIVERY", adminId),
+                },
+            },
+            { returnDocument: "after" },
+        ));
+
+        if (!updated) throw new ApiError(404, "Order not found");
+
+        if (previousDeliveryUserId) {
+            socketService.emitToUser(previousDeliveryUserId, SocketEvents.ORDER_STATUS_UPDATE, {
+                orderId: updated.orderId,
+                deliveryStatus: DeliveryStatus.UNASSIGNED,
+                message: `Order ${updated.orderId} has been unassigned.`,
+            });
+        }
+
+        return updated;
+    }
+
+    async adminUpdateOrderStatus(orderId: string, status: OrderStatus, reason?: string, options: { allowUnverifiedDeliveryOtp?: boolean } = {}) {
         const order = await orderDAO.findById(orderId);
         if (!order) throw new ApiError(404, "Order not found");
 
         const oldStatus = order.status;
+
+        if (
+            status === OrderStatus.DELIVERED &&
+            order.delivery?.partnerUserId &&
+            !order.delivery?.otp?.verifiedAt &&
+            !options.allowUnverifiedDeliveryOtp
+        ) {
+            throw new ApiError(400, "Delivery OTP must be verified before marking this assigned order delivered");
+        }
         
         // 1. Update status and tracking info
         const updateData: any = { status };
@@ -334,6 +476,15 @@ export class OrderService {
             updateData.cancellationReason = reason || "Cancelled by Administrator";
         } else if (status === OrderStatus.REFUNDED) {
             updateData.refundedAt = new Date();
+        }
+
+        if (
+            [OrderStatus.CANCELLED, OrderStatus.REJECTED, OrderStatus.REFUNDED].includes(status) &&
+            order.delivery?.partnerUserId &&
+            order.delivery?.status !== DeliveryStatus.DELIVERED
+        ) {
+            updateData["delivery.status"] = DeliveryStatus.CANCELLED;
+            updateData["delivery.cancelledAt"] = new Date();
         }
 
         const updatedOrder = await orderDAO.updateStatus(orderId, status);

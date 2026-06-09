@@ -49,6 +49,7 @@ export interface IAppConfig extends Document {
         defaultRadiusKm: number;
         minOrderAmount: number;
         estimatedMinutes: number;
+        riderPayoutAmount?: number;
     };
     updatedBy?: string;
 }

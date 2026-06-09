@@ -1,4 +1,5 @@
 import { ApiError } from "../../utils/ApiError";
+import { uploadToImageKit } from "../../utils/imagekit.util";
 import { MailService } from "../../utils/mail.service";
 import * as rbacService from "../rbac/rbac.service";
 import { RoleEnum } from "../rbac/rbac.types";
@@ -33,6 +34,40 @@ export class OnboardingService {
 
   static async getMyApplications(userId: string) {
     return await OnboardingDAO.findMyApplications(userId);
+  }
+
+  static async getStatus(userId: string) {
+    const [applications, approvedProfiles] = await Promise.all([
+      OnboardingDAO.findMyApplications(userId),
+      OnboardingDAO.findApprovedProfile(userId),
+    ]);
+
+    return {
+      applications,
+      sellerProfile: approvedProfiles.seller,
+      riderProfile: approvedProfiles.rider,
+      latestSellerApplication: applications.find((item: any) => item.type === ApplicationType.SELLER) || null,
+      latestRiderApplication: applications.find((item: any) => item.type === ApplicationType.RIDER) || null,
+    };
+  }
+
+  static async uploadDocuments(files: Express.Multer.File[] = []) {
+    if (!files.length) {
+      throw new ApiError(400, "At least one document file is required");
+    }
+
+    const uploads = await Promise.all(
+      files.map(async (file) => {
+        const upload = await uploadToImageKit(file.buffer, file.originalname, "onboarding-documents");
+        return {
+          name: file.originalname,
+          url: upload.url,
+          fileId: upload.fileId,
+        };
+      }),
+    );
+
+    return uploads;
   }
 
   static async getAllApplications(status?: string, type?: string) {

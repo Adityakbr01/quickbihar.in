@@ -13,6 +13,53 @@ export enum OrderStatus {
     FAILED = "FAILED",
 }
 
+export enum DeliveryStatus {
+    UNASSIGNED = "UNASSIGNED",
+    ASSIGNED = "ASSIGNED",
+    ACCEPTED = "ACCEPTED",
+    PICKED_UP = "PICKED_UP",
+    OUT_FOR_DELIVERY = "OUT_FOR_DELIVERY",
+    DELIVERED = "DELIVERED",
+    CANCELLED = "CANCELLED",
+}
+
+export interface IDeliveryLocation {
+    latitude: number;
+    longitude: number;
+    heading?: number;
+    updatedAt?: Date;
+}
+
+export interface IDeliveryEvent {
+    status: DeliveryStatus;
+    action: string;
+    note?: string;
+    actorId?: Types.ObjectId;
+    at: Date;
+    location?: IDeliveryLocation;
+}
+
+export interface IOrderDelivery {
+    partnerUserId?: Types.ObjectId;
+    partnerProfileId?: Types.ObjectId;
+    status: DeliveryStatus;
+    otp?: {
+        code?: string;
+        generatedAt?: Date;
+        verifiedAt?: Date;
+    };
+    payoutAmount?: number;
+    payoutCreditedAt?: Date;
+    assignedAt?: Date;
+    acceptedAt?: Date;
+    pickedUpAt?: Date;
+    outForDeliveryAt?: Date;
+    deliveredAt?: Date;
+    cancelledAt?: Date;
+    currentLocation?: IDeliveryLocation;
+    events?: IDeliveryEvent[];
+}
+
 export interface IOrderItem {
     productId: Types.ObjectId;
     title: string;
@@ -56,6 +103,7 @@ export interface IOrder extends Document {
     payableAmount: number;   // Final amount paid
     shippingAddress: IShippingAddress;
     status: OrderStatus;
+    delivery?: IOrderDelivery;
     cancellationReason?: string;
     rejectedAt?: Date;
     cancelledAt?: Date;

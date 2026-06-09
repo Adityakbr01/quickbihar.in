@@ -2,6 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, Lock, Mail, Store } from "lucide-react";
+import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -101,6 +102,12 @@ export default function SellerLoginForm() {
                 </>
               ) : "Open Seller Dashboard"}
             </Button>
+            <div className="text-center text-sm text-gray-400">
+              New seller?{" "}
+              <Link href="/seller/register" className="text-emerald-300 hover:text-emerald-200">
+                Register here
+              </Link>
+            </div>
           </form>
         </Form>
       </CardContent>

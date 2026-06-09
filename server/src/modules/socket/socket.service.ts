@@ -4,6 +4,8 @@ import jwt from "jsonwebtoken";
 import { ENV } from "../../config/env.config";
 import { User } from "../user/user.model";
 import { SocketEvents } from "../../constants/socketEvents";
+import { DeliveryBoy } from "../deliveryBoy/delivery.model";
+import { Order } from "../order/order.model";
 
 export class SocketService {
   private io: Server | null = null;
@@ -28,7 +30,7 @@ export class SocketService {
         }
 
         const decoded: any = jwt.verify(token, ENV.ACCESS_TOKEN_SECRET);
-        const user = await User.findById(decoded._id);
+        const user = await User.findById(decoded._id).populate("roleId");
 
         if (!user) {
           return next(new Error("Authentication error: User not found"));
@@ -44,6 +46,7 @@ export class SocketService {
     this.io.on("connection", (socket: Socket) => {
       const user = (socket as any).user;
       const userId = user._id.toString();
+      const roleName = user.roleId?.name || user.role?.name || user.role;
 
       console.log(
         `[SocketService] User connected: ${user.fullName} (${userId})`,
@@ -56,7 +59,7 @@ export class SocketService {
       this.userSockets.get(userId)?.push(socket.id);
 
       // Join rooms based on role
-      if (user.role === "admin" || user.role === "superadmin") {
+      if (roleName === "ADMIN" || roleName === "SUPER_ADMIN") {
         // Assuming superadmin might exist
         socket.join("admins");
         console.log(`[SocketService] User ${userId} joined admins room`);
@@ -80,22 +83,25 @@ export class SocketService {
       // Handle location updates from delivery partners
       socket.on(
         SocketEvents.UPDATE_DELIVERY_LOCATION,
-        (data: {
+        async (data: {
           orderId: string;
           latitude: number;
           longitude: number;
           heading?: number;
         }) => {
-          // Permission Check: Only delivery_partner or admin can update location
-          const isDev = process.env.NODE_ENV !== "production";
-          if (
-            !isDev &&
-            user.role !== "delivery_partner" &&
-            user.role !== "admin" &&
-            user.role !== "superadmin"
-          ) {
+          const order = await Order.findOne({
+            $or: [{ orderId: data.orderId }, ...(data.orderId?.match(/^[0-9a-fA-F]{24}$/) ? [{ _id: data.orderId }] : [])],
+          });
+
+          const isAdmin = roleName === "ADMIN" || roleName === "SUPER_ADMIN";
+          const isAssignedDelivery =
+            roleName === "DELIVERY" &&
+            order?.delivery?.partnerUserId?.toString() === userId &&
+            ["ASSIGNED", "ACCEPTED", "PICKED_UP", "OUT_FOR_DELIVERY"].includes(order.delivery?.status || "");
+
+          if (!order || (!isAdmin && !isAssignedDelivery)) {
             console.warn(
-              `[SocketService] Unauthorized location update attempt by ${userId} (role: ${user.role})`,
+              `[SocketService] Unauthorized location update attempt by ${userId} (role: ${roleName})`,
             );
             return;
           }
@@ -104,16 +110,28 @@ export class SocketService {
             `[SocketService] Location update for order ${data.orderId} from ${userId}`,
           );
 
-          // Broadcast to anyone in the order room
-          this.io
-            ?.to(`order_${data.orderId}`)
-            .emit(SocketEvents.DELIVERY_LOCATION_UPDATED, {
-              orderId: data.orderId,
-              latitude: data.latitude,
-              longitude: data.longitude,
-              heading: data.heading || 0,
-              timestamp: new Date().toISOString(),
-            });
+          const location = {
+            latitude: data.latitude,
+            longitude: data.longitude,
+            heading: data.heading || 0,
+            updatedAt: new Date(),
+          };
+
+          await Promise.all([
+            Order.updateOne({ _id: order._id }, { $set: { "delivery.currentLocation": location } }),
+            DeliveryBoy.updateOne(
+              { userId },
+              { $set: { currentLocation: { type: "Point", coordinates: [data.longitude, data.latitude] } } },
+            ),
+          ]);
+
+          this.emitToOrderRoom(order.orderId, SocketEvents.DELIVERY_LOCATION_UPDATED, {
+            orderId: order.orderId,
+            latitude: data.latitude,
+            longitude: data.longitude,
+            heading: data.heading || 0,
+            timestamp: new Date().toISOString(),
+          });
         },
       );
 
@@ -146,6 +164,11 @@ export class SocketService {
   emitToAdmins(event: string, data: any) {
     if (!this.io) return;
     this.io.to("admins").emit(event, data);
+  }
+
+  emitToOrderRoom(orderId: string, event: string, data: any) {
+    if (!this.io) return;
+    this.io.to(`order_${orderId}`).emit(event, data);
   }
 
   emitToAll(event: string, data: any) {

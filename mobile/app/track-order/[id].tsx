@@ -64,7 +64,7 @@ export default function TrackOrderScreen() {
   // Start background tracking IF user is delivery partner
   useLocationTracking({
     orderId,
-    enabled: userRole === "delivery_partner",
+    enabled: userRole === "DELIVERY",
   });
 
   if (loading) {
@@ -144,7 +144,7 @@ export default function TrackOrderScreen() {
       )}
 
       {/* Role Badge for Debug/Testing */}
-      {userRole === "delivery_partner" && (
+      {userRole === "DELIVERY" && (
         <View style={styles.roleBadge}>
           <Text style={styles.roleBadgeText}>Transmitting Live Location</Text>
         </View>

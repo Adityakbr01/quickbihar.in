@@ -11,13 +11,16 @@ import {
   RefreshCcw,
   Save,
   Search,
+  Truck,
   Trash2,
+  UserPlus,
   XCircle,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -28,6 +31,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ManagedPerson } from "../api/adminManagement.api";
+import type { DeliveryPartner, DeliveryStatus } from "@/features/delivery/api/delivery.api";
 import {
   AdminCategory,
   AdminCoupon,
@@ -46,17 +50,21 @@ import {
   useAdminCoupons,
   useAdminOrders,
   useAdminProducts,
+  useAssignDeliveryPartner,
   useCreateCatalogProduct,
   useCreateCategory,
   useCreateCoupon,
   useDeleteCatalogProduct,
   useDeleteCategory,
   useDeleteCoupon,
+  useDeliveryRiders,
   useUpdateCatalogProduct,
   useUpdateCategory,
   useUpdateCoupon,
+  useUnassignDeliveryPartner,
   useUpdateOrderStatus,
 } from "../hooks/useCatalogManagement";
+import { cn } from "@/lib/utils";
 
 const inputClass = "border-white/10 bg-white/5 text-white placeholder:text-gray-500";
 const selectClass = "h-9 rounded-lg border border-white/10 bg-[#181818] px-2 text-sm text-white outline-none";
@@ -77,11 +85,33 @@ const orderStatuses: Array<{ value: OrderStatus | "ALL"; label: string }> = [
 
 const editableOrderStatuses = orderStatuses.filter((item) => item.value !== "ALL") as Array<{ value: OrderStatus; label: string }>;
 
+const deliveryStatuses: Array<{ value: DeliveryStatus | "ALL"; label: string }> = [
+  { value: "ALL", label: "All delivery" },
+  { value: "UNASSIGNED", label: "Unassigned" },
+  { value: "ASSIGNED", label: "Assigned" },
+  { value: "ACCEPTED", label: "Accepted" },
+  { value: "PICKED_UP", label: "Picked up" },
+  { value: "OUT_FOR_DELIVERY", label: "Out for delivery" },
+  { value: "DELIVERED", label: "Delivered" },
+  { value: "CANCELLED", label: "Cancelled" },
+];
+
 export function OrderManagementPanel() {
   const [params, setParams] = useState<QueryParams>({ page: 1, limit: 10, sortBy: "createdAt", sortOrder: "desc" });
   const [selectedOrder, setSelectedOrder] = useState<AdminOrder | null>(null);
+  const [assignmentOrder, setAssignmentOrder] = useState<AdminOrder | null>(null);
   const ordersQuery = useAdminOrders(params);
   const updateOrderStatus = useUpdateOrderStatus();
+  const riderLookupParams = useMemo(() => {
+    const latitude = assignmentOrder?.shippingAddress?.latitude;
+    const longitude = assignmentOrder?.shippingAddress?.longitude;
+    return {
+      available: true,
+      ...(typeof latitude === "number" ? { latitude } : {}),
+      ...(typeof longitude === "number" ? { longitude } : {}),
+    };
+  }, [assignmentOrder?.shippingAddress?.latitude, assignmentOrder?.shippingAddress?.longitude]);
+  const ridersQuery = useDeliveryRiders(riderLookupParams);
   const orders = ordersQuery.data?.data || [];
 
   const setParam = (key: keyof QueryParams, value: QueryParams[keyof QueryParams]) => {
@@ -125,10 +155,21 @@ export function OrderManagementPanel() {
         onSortOrder={(value) => setParam("sortOrder", value)}
         onRefresh={() => ordersQuery.refetch()}
         extraAction={
-          <Button variant="outline" className="border-white/10 bg-white/5 text-white hover:bg-white/10" onClick={exportOrders}>
-            <FileDown className="h-4 w-4" />
-            Export
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <select
+              value={params.deliveryStatus || "ALL"}
+              onChange={(event) => setParam("deliveryStatus", event.target.value)}
+              className={selectClass}
+            >
+              {deliveryStatuses.map((status) => (
+                <option key={status.value} value={status.value}>{status.label}</option>
+              ))}
+            </select>
+            <Button variant="outline" className="border-white/10 bg-white/5 text-white hover:bg-white/10" onClick={exportOrders}>
+              <FileDown className="h-4 w-4" />
+              Export
+            </Button>
+          </div>
         }
       />
 
@@ -144,6 +185,7 @@ export function OrderManagementPanel() {
                   <TableHead className="text-gray-400">Customer</TableHead>
                   <TableHead className="text-gray-400">Products</TableHead>
                   <TableHead className="text-gray-400">Payment</TableHead>
+                  <TableHead className="text-gray-400">Delivery</TableHead>
                   <TableHead className="text-gray-400">Status</TableHead>
                   <TableHead className="text-right text-gray-400">Actions</TableHead>
                 </TableRow>
@@ -168,6 +210,9 @@ export function OrderManagementPanel() {
                       <div className="text-xs text-gray-500">{order.paymentInfo?.razorpayPaymentId ? "Paid" : "Pending"}</div>
                     </TableCell>
                     <TableCell>
+                      <DeliverySummary order={order} />
+                    </TableCell>
+                    <TableCell>
                       <select
                         value={order.status}
                         className={selectClass}
@@ -180,7 +225,16 @@ export function OrderManagementPanel() {
                       </select>
                     </TableCell>
                     <TableCell>
-                      <div className="flex justify-end">
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+                          onClick={() => setAssignmentOrder(order)}
+                        >
+                          <UserPlus className="h-3.5 w-3.5" />
+                          Delivery
+                        </Button>
                         <Button
                           size="sm"
                           variant="outline"
@@ -201,7 +255,120 @@ export function OrderManagementPanel() {
       </Card>
       <PaginationFooter page={params.page || 1} totalPages={ordersQuery.data?.totalPages || 1} onPage={(page) => setParam("page", page)} />
       <OrderDetailsDialog order={selectedOrder} onOpenChange={(open) => !open && setSelectedOrder(null)} />
+      {assignmentOrder && (
+        <DeliveryAssignmentDialog
+          key={assignmentOrder._id}
+          order={assignmentOrder}
+          riders={ridersQuery.data || []}
+          isLoading={ridersQuery.isLoading}
+          onOpenChange={(open) => !open && setAssignmentOrder(null)}
+        />
+      )}
     </div>
+  );
+}
+
+function DeliverySummary({ order }: { order: AdminOrder }) {
+  const status = order.delivery?.status || "UNASSIGNED";
+  const partner = deliveryPartnerOf(order);
+
+  return (
+    <div className="grid gap-1">
+      <DeliveryStatusBadge status={status} />
+      <div className="text-xs text-gray-500">{partner?.fullName || "No rider assigned"}</div>
+    </div>
+  );
+}
+
+function DeliveryAssignmentDialog({
+  order,
+  riders,
+  isLoading,
+  onOpenChange,
+}: {
+  order: AdminOrder;
+  riders: DeliveryPartner[];
+  isLoading: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
+  const assignDelivery = useAssignDeliveryPartner();
+  const unassignDelivery = useUnassignDeliveryPartner();
+  const current = deliveryPartnerOf(order);
+  const [deliveryUserId, setDeliveryUserId] = useState(current?.userId || current?._id || "");
+  const [payoutAmount, setPayoutAmount] = useState(order.delivery?.payoutAmount ? String(order.delivery.payoutAmount) : "");
+
+  const save = () => {
+    if (!deliveryUserId) return;
+    assignDelivery.mutate(
+      {
+        orderId: order._id,
+        deliveryUserId,
+        payoutAmount: payoutAmount.trim() ? Number(payoutAmount) : undefined,
+      },
+      {
+        onSuccess: () => onOpenChange(false),
+      },
+    );
+  };
+
+  const unassign = () => {
+    unassignDelivery.mutate(order._id, {
+      onSuccess: () => onOpenChange(false),
+    });
+  };
+
+  return (
+    <Dialog open onOpenChange={onOpenChange}>
+      <DialogContent className="border-white/10 bg-[#1c1c1c] text-white sm:max-w-xl">
+        <DialogHeader>
+          <DialogTitle>Delivery Assignment {order?.orderId}</DialogTitle>
+        </DialogHeader>
+        <div className="grid gap-4">
+            <div className="grid gap-3 rounded-lg border border-white/10 bg-white/[0.03] p-3">
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-sm text-gray-400">Current status</span>
+                <DeliveryStatusBadge status={order.delivery?.status || "UNASSIGNED"} />
+              </div>
+              <div className="flex items-center justify-between gap-3 text-sm">
+                <span className="text-gray-400">Customer OTP</span>
+                <span className="font-medium text-white">{order.deliveryOtp || order.delivery?.otp?.code || "-"}</span>
+              </div>
+            </div>
+
+            <div className="grid gap-2">
+              <label className="text-sm text-gray-300">Rider</label>
+              <select value={deliveryUserId} onChange={(event) => setDeliveryUserId(event.target.value)} className={selectClass}>
+                <option value="">{isLoading ? "Loading riders..." : "Select delivery rider"}</option>
+                {riders.map((rider) => (
+                  <option key={rider.userId || rider._id} value={rider.userId || rider._id}>
+                    {rider.fullName || rider.email} {rider.isOnline ? "(Online)" : "(Offline)"}
+                    {typeof rider.distanceKm === "number" ? ` - ${rider.distanceKm.toFixed(1)} km` : ""}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="grid gap-2">
+              <label className="text-sm text-gray-300">Payout Amount</label>
+              <Input value={payoutAmount} onChange={(event) => setPayoutAmount(event.target.value)} type="number" min="0" placeholder="Default payout" className={inputClass} />
+            </div>
+
+            <div className="flex flex-wrap justify-between gap-2">
+              <Button
+                variant="destructive"
+                onClick={unassign}
+                disabled={unassignDelivery.isPending || !deliveryPartnerOf(order)}
+              >
+                Unassign
+              </Button>
+              <Button onClick={save} disabled={assignDelivery.isPending || !deliveryUserId}>
+                <Truck className="h-4 w-4" />
+                Save Assignment
+              </Button>
+            </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -214,10 +381,18 @@ function OrderDetailsDialog({ order, onOpenChange }: { order: AdminOrder | null;
         </DialogHeader>
         {order && (
           <div className="grid gap-4">
-            <div className="grid gap-3 md:grid-cols-3">
+            <div className="grid gap-3 md:grid-cols-4">
               <DetailTile title="Customer" lines={[order.shippingAddress.fullName, order.shippingAddress.phone, order.userId?.email]} />
               <DetailTile title="Payment" lines={[`Payable: Rs. ${formatAmount(order.payableAmount)}`, `Tax: Rs. ${formatAmount(order.totalTax || 0)}`, order.paymentInfo?.razorpayPaymentId || "Payment pending"]} />
               <DetailTile title="Shipping" lines={[order.shippingAddress.street, `${order.shippingAddress.city}, ${order.shippingAddress.state}`, order.shippingAddress.pincode]} />
+              <DetailTile
+                title="Delivery"
+                lines={[
+                  deliveryStatusLabel(order.delivery?.status || "UNASSIGNED"),
+                  deliveryPartnerOf(order)?.fullName || "No rider assigned",
+                  `OTP: ${order.deliveryOtp || order.delivery?.otp?.code || "-"}`,
+                ]}
+              />
             </div>
             <Card className="border-white/10 bg-white/[0.03]">
               <CardHeader className="border-b border-white/10">
@@ -255,6 +430,7 @@ function OrderDetailsDialog({ order, onOpenChange }: { order: AdminOrder | null;
 
 export function CouponManagementPanel() {
   const [params, setParams] = useState<QueryParams>({ page: 1, limit: 10, sortBy: "createdAt", sortOrder: "desc" });
+  const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState<AdminCoupon | null>(null);
   const couponsQuery = useAdminCoupons(params);
   const createCoupon = useCreateCoupon();
@@ -272,14 +448,14 @@ export function CouponManagementPanel() {
         title="Coupon Management"
         search={params.search || ""}
         onSearch={(value) => setParam("search", value)}
-        status={params.isActive || "all"}
+        status={params.status || "all"}
         statuses={[
           { value: "all", label: "All statuses" },
           { value: "active", label: "Active" },
           { value: "inactive", label: "Inactive" },
           { value: "expired", label: "Expired" },
         ]}
-        onStatus={(value) => setParam("status", value)}
+        onStatus={(value) => setParam("status", value === "all" ? undefined : value)}
         sortBy={params.sortBy || "createdAt"}
         sortOptions={[
           { value: "createdAt", label: "Created" },
@@ -291,19 +467,12 @@ export function CouponManagementPanel() {
         sortOrder={params.sortOrder || "desc"}
         onSortOrder={(value) => setParam("sortOrder", value)}
         onRefresh={() => couponsQuery.refetch()}
-      />
-
-      <CouponForm
-        coupon={editing}
-        isPending={createCoupon.isPending || updateCoupon.isPending}
-        onCancel={() => setEditing(null)}
-        onSubmit={(payload) => {
-          if (editing) {
-            updateCoupon.mutate({ couponId: editing._id, payload }, { onSuccess: () => setEditing(null) });
-          } else {
-            createCoupon.mutate(payload);
-          }
-        }}
+        extraAction={
+          <Button type="button" onClick={() => setCreating(true)}>
+            <Plus className="h-4 w-4" />
+            Create Coupon
+          </Button>
+        }
       />
 
       <Card className="border-white/10 bg-[#1c1c1c]">
@@ -337,7 +506,16 @@ export function CouponManagementPanel() {
                       <div className="text-xs text-gray-400">{formatDate(coupon.startDate)}</div>
                       <div className="text-xs text-gray-400">{formatDate(coupon.endDate)}</div>
                     </TableCell>
-                    <TableCell><StatusBadge active={coupon.isActive && !isExpired(coupon.endDate)} label={coupon.isActive ? (isExpired(coupon.endDate) ? "Expired" : "Active") : "Inactive"} /></TableCell>
+                    <TableCell>
+                      <button
+                        type="button"
+                        onClick={() => updateCoupon.mutate({ couponId: coupon._id, payload: { isActive: !coupon.isActive } })}
+                        disabled={updateCoupon.isPending}
+                        className="rounded-full text-left transition hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        <StatusBadge active={coupon.isActive && !isExpired(coupon.endDate)} label={coupon.isActive ? (isExpired(coupon.endDate) ? "Expired" : "Active") : "Inactive"} />
+                      </button>
+                    </TableCell>
                     <TableCell>
                       <div className="flex justify-end gap-2">
                         <Button size="sm" variant="outline" className="border-white/10 bg-white/5 text-white hover:bg-white/10" onClick={() => setEditing(coupon)}>
@@ -364,11 +542,98 @@ export function CouponManagementPanel() {
         </CardContent>
       </Card>
       <PaginationFooter page={params.page || 1} totalPages={couponsQuery.data?.totalPages || 1} onPage={(page) => setParam("page", page)} />
+      <CouponCreateDialog
+        open={creating}
+        isPending={createCoupon.isPending}
+        onOpenChange={setCreating}
+        onSubmit={(payload) => {
+          createCoupon.mutate(payload, { onSuccess: () => setCreating(false) });
+        }}
+      />
+      <CouponEditDialog
+        coupon={editing}
+        isPending={updateCoupon.isPending}
+        onOpenChange={(open) => !open && setEditing(null)}
+        onSubmit={(payload) => {
+          if (!editing) return;
+          updateCoupon.mutate({ couponId: editing._id, payload }, { onSuccess: () => setEditing(null) });
+        }}
+      />
     </div>
   );
 }
 
-function CouponForm({ coupon, onSubmit, onCancel, isPending }: { coupon: AdminCoupon | null; onSubmit: (payload: CouponPayload) => void; onCancel: () => void; isPending: boolean }) {
+function CouponCreateDialog({
+  open,
+  isPending,
+  onOpenChange,
+  onSubmit,
+}: {
+  open: boolean;
+  isPending: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSubmit: (payload: CouponPayload) => void;
+}) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-h-[90vh] overflow-y-auto border-white/10 bg-[#1c1c1c] text-white sm:max-w-3xl">
+        <DialogHeader>
+          <DialogTitle>Create Coupon</DialogTitle>
+        </DialogHeader>
+        <CouponForm
+          key={open ? "create-coupon-open" : "create-coupon-closed"}
+          coupon={null}
+          isPending={isPending}
+          onCancel={() => onOpenChange(false)}
+          onSubmit={onSubmit}
+        />
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function CouponEditDialog({
+  coupon,
+  isPending,
+  onOpenChange,
+  onSubmit,
+}: {
+  coupon: AdminCoupon | null;
+  isPending: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSubmit: (payload: CouponPayload) => void;
+}) {
+  return (
+    <Dialog open={Boolean(coupon)} onOpenChange={onOpenChange}>
+      <DialogContent className="max-h-[90vh] overflow-y-auto border-white/10 bg-[#1c1c1c] text-white sm:max-w-3xl">
+        <DialogHeader>
+          <DialogTitle>Edit Coupon {coupon?.code}</DialogTitle>
+        </DialogHeader>
+        {coupon && (
+          <CouponForm
+            key={coupon._id}
+            coupon={coupon}
+            isPending={isPending}
+            onCancel={() => onOpenChange(false)}
+            onSubmit={onSubmit}
+          />
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function CouponForm({
+  coupon,
+  onSubmit,
+  onCancel,
+  isPending,
+}: {
+  coupon: AdminCoupon | null;
+  onSubmit: (payload: CouponPayload) => void;
+  onCancel: () => void;
+  isPending: boolean;
+}) {
   const [code, setCode] = useState(coupon?.code || "");
   const [description, setDescription] = useState(coupon?.description || "");
   const [discountType, setDiscountType] = useState<CouponDiscountType>(coupon?.discountType || "PERCENTAGE");
@@ -380,9 +645,16 @@ function CouponForm({ coupon, onSubmit, onCancel, isPending }: { coupon: AdminCo
   const [startDate, setStartDate] = useState(dateInputValue(coupon?.startDate));
   const [endDate, setEndDate] = useState(dateInputValue(coupon?.endDate));
   const [isActive, setIsActive] = useState(coupon?.isActive ?? true);
+  const [dateError, setDateError] = useState("");
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
+    if (!endDate) {
+      setDateError("End date is required.");
+      return;
+    }
+
+    setDateError("");
     onSubmit({
       code,
       description,
@@ -399,12 +671,7 @@ function CouponForm({ coupon, onSubmit, onCancel, isPending }: { coupon: AdminCo
   };
 
   return (
-    <Card key={coupon?._id || "new"} className="border-white/10 bg-[#1c1c1c]">
-      <CardHeader className="border-b border-white/10">
-        <CardTitle className="text-base text-white">{coupon ? "Edit Coupon" : "Create Coupon"}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={submit} className="grid gap-3 md:grid-cols-4">
+    <form onSubmit={submit} className="grid gap-3 md:grid-cols-4">
           <Input value={code} onChange={(event) => setCode(event.target.value.toUpperCase())} placeholder="Coupon Code" required className={inputClass} />
           <select value={discountType} onChange={(event) => setDiscountType(event.target.value as CouponDiscountType)} className={selectClass}>
             <option value="PERCENTAGE">Percentage</option>
@@ -419,8 +686,12 @@ function CouponForm({ coupon, onSubmit, onCancel, isPending }: { coupon: AdminCo
             <input type="checkbox" checked={isActive} onChange={(event) => setIsActive(event.target.checked)} />
             Active
           </label>
-          <Input value={startDate} onChange={(event) => setStartDate(event.target.value)} type="date" className={inputClass} />
-          <Input value={endDate} onChange={(event) => setEndDate(event.target.value)} type="date" required className={inputClass} />
+          <DatePicker value={startDate} onChange={setStartDate} placeholder="Start Date" className={inputClass} />
+          <DatePicker value={endDate} onChange={(value) => {
+            setEndDate(value);
+            if (value) setDateError("");
+          }} placeholder="End Date" required className={inputClass} />
+          {dateError && <div className="text-xs text-red-300 md:col-span-2">{dateError}</div>}
           <div className="md:col-span-2">
             <Input value={description} onChange={(event) => setDescription(event.target.value)} placeholder="Description" required className={inputClass} />
           </div>
@@ -429,20 +700,17 @@ function CouponForm({ coupon, onSubmit, onCancel, isPending }: { coupon: AdminCo
               <Save className="h-4 w-4" />
               {coupon ? "Save Coupon" : "Create Coupon"}
             </Button>
-            {coupon && (
-              <Button type="button" variant="outline" className="border-white/10 bg-white/5 text-white hover:bg-white/10" onClick={onCancel}>
-                Cancel
-              </Button>
-            )}
+            <Button type="button" variant="outline" className="border-white/10 bg-white/5 text-white hover:bg-white/10" onClick={onCancel}>
+              Cancel
+            </Button>
           </div>
         </form>
-      </CardContent>
-    </Card>
   );
 }
 
 export function ProductManagementPanel({ sellers }: { sellers: ManagedPerson[] }) {
   const [params, setParams] = useState<QueryParams>({ page: 1, limit: 10, sortBy: "createdAt", sortOrder: "desc" });
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editing, setEditing] = useState<AdminProduct | null>(null);
   const productsQuery = useAdminProducts(params);
   const categoriesQuery = useAdminCategories({ page: 1, limit: 100, sortBy: "title", sortOrder: "asc" });
@@ -480,23 +748,56 @@ export function ProductManagementPanel({ sellers }: { sellers: ManagedPerson[] }
         sortOrder={params.sortOrder || "desc"}
         onSortOrder={(value) => setParam("sortOrder", value)}
         onRefresh={() => productsQuery.refetch()}
+        extraAction={
+          <Button onClick={() => {
+            setEditing(null);
+            setIsCreateOpen(true);
+          }}>
+            <Plus className="h-4 w-4" />
+            Create Product
+          </Button>
+        }
       />
 
-      <ProductForm
-        key={editing?._id || "new-product"}
-        product={editing}
-        sellers={sellers}
-        categories={categories}
-        isPending={createProduct.isPending || updateProduct.isPending}
-        onCancel={() => setEditing(null)}
-        onSubmit={(payload, images) => {
-          if (editing) {
-            updateProduct.mutate({ productId: editing._id, payload, images }, { onSuccess: () => setEditing(null) });
-          } else {
-            createProduct.mutate({ payload, images });
-          }
-        }}
-      />
+      <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto border-white/10 bg-[#1c1c1c] text-white sm:max-w-5xl">
+          <DialogHeader>
+            <DialogTitle>Create Product</DialogTitle>
+          </DialogHeader>
+          <ProductForm
+            key="create-product-dialog"
+            product={null}
+            sellers={sellers}
+            categories={categories}
+            isPending={createProduct.isPending}
+            onCancel={() => setIsCreateOpen(false)}
+            onSubmit={(payload, images) => {
+              createProduct.mutate({ payload, images }, { onSuccess: () => setIsCreateOpen(false) });
+            }}
+          />
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={Boolean(editing)} onOpenChange={(open) => !open && setEditing(null)}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto border-white/10 bg-[#1c1c1c] text-white sm:max-w-5xl">
+          <DialogHeader>
+            <DialogTitle>Edit Product</DialogTitle>
+          </DialogHeader>
+          {editing && (
+            <ProductForm
+              key={editing._id}
+              product={editing}
+              sellers={sellers}
+              categories={categories}
+              isPending={updateProduct.isPending}
+              onCancel={() => setEditing(null)}
+              onSubmit={(payload, images) => {
+                updateProduct.mutate({ productId: editing._id, payload, images }, { onSuccess: () => setEditing(null) });
+              }}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
 
       <Card className="border-white/10 bg-[#1c1c1c]">
         <CardContent className="px-0">
@@ -540,7 +841,10 @@ export function ProductManagementPanel({ sellers }: { sellers: ManagedPerson[] }
                     </TableCell>
                     <TableCell>
                       <div className="flex justify-end gap-2">
-                        <Button size="sm" variant="outline" className="border-white/10 bg-white/5 text-white hover:bg-white/10" onClick={() => setEditing(product)}>
+                        <Button size="sm" variant="outline" className="border-white/10 bg-white/5 text-white hover:bg-white/10" onClick={() => {
+                          setIsCreateOpen(false);
+                          setEditing(product);
+                        }}>
                           <Edit className="h-3.5 w-3.5" />
                           Edit
                         </Button>
@@ -619,63 +923,56 @@ function ProductForm({ product, sellers, categories, onSubmit, onCancel, isPendi
   };
 
   return (
-    <Card className="border-white/10 bg-[#1c1c1c]">
-      <CardHeader className="border-b border-white/10">
-        <CardTitle className="text-base text-white">{product ? "Edit Product" : "Create Product"}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={submit} className="grid gap-4">
-          <div className="grid gap-3 md:grid-cols-4">
-            <select value={sellerId} onChange={(event) => setSellerId(event.target.value)} required={!product} className={selectClass}>
-              <option value="">Seller</option>
-              {sellers.map((seller) => (
-                <option key={seller._id} value={seller._id}>{seller.sellerProfile?.businessName || seller.fullName}</option>
-              ))}
-            </select>
-            <Input value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Product Name" required className={inputClass} />
-            <Input value={brand} onChange={(event) => setBrand(event.target.value)} placeholder="Brand" className={inputClass} />
-            <select value={category} onChange={(event) => setCategory(event.target.value)} required className={selectClass}>
-              <option value="">Category</option>
-              {categories.map((item) => (
-                <option key={item._id} value={item.title}>{item.title}</option>
-              ))}
-            </select>
-            <Input value={price} onChange={(event) => setPrice(event.target.value)} placeholder="Price" type="number" min="0" required className={inputClass} />
-            <Input value={originalPrice} onChange={(event) => setOriginalPrice(event.target.value)} placeholder="Sale/Original Price" type="number" min="0" className={inputClass} />
-            <Input value={sku} onChange={(event) => setSku(event.target.value)} placeholder="Product SKU" className={inputClass} />
-            <Input type="file" accept="image/*" multiple required={!product} onChange={(event) => setImages(Array.from(event.target.files || []))} className={inputClass} />
-          </div>
-          <div className="grid gap-3 md:grid-cols-2">
-            <textarea value={shortDescription} onChange={(event) => setShortDescription(event.target.value)} placeholder="Short Description" className={textareaClass} />
-            <textarea value={description} onChange={(event) => setDescription(event.target.value)} placeholder="Description" className={textareaClass} />
-          </div>
-          <VariantEditor variants={variants} onChange={setVariants} />
-          <div className="grid gap-3 md:grid-cols-3">
-            <Input value={tags} onChange={(event) => setTags(event.target.value)} placeholder="Tags, comma separated" className={inputClass} />
-            <Input value={seoTitle} onChange={(event) => setSeoTitle(event.target.value)} placeholder="SEO Meta Title" className={inputClass} />
-            <Input value={seoKeywords} onChange={(event) => setSeoKeywords(event.target.value)} placeholder="SEO Keywords" className={inputClass} />
-          </div>
-          <textarea value={seoDescription} onChange={(event) => setSeoDescription(event.target.value)} placeholder="SEO Meta Description" className={textareaClass} />
-          <div className="flex flex-wrap gap-3">
-            <label className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-gray-300">
-              <input type="checkbox" checked={isFeatured} onChange={(event) => setIsFeatured(event.target.checked)} />
-              Featured Product
-            </label>
-            <label className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-gray-300">
-              <input type="checkbox" checked={isActive} onChange={(event) => setIsActive(event.target.checked)} />
-              Active
-            </label>
-          </div>
-          <div className="flex gap-2">
-            <Button type="submit" disabled={isPending || (!product && !sellers.length)}>
-              <Save className="h-4 w-4" />
-              {product ? "Save Product" : "Create Product"}
-            </Button>
-            {product && <Button type="button" variant="outline" className="border-white/10 bg-white/5 text-white hover:bg-white/10" onClick={onCancel}>Cancel</Button>}
-          </div>
-        </form>
-      </CardContent>
-    </Card>
+    <form onSubmit={submit} className="grid gap-4">
+      <div className="grid gap-3 md:grid-cols-4">
+        <select value={sellerId} onChange={(event) => setSellerId(event.target.value)} required={!product} className={selectClass}>
+          <option value="">Seller</option>
+          {sellers.map((seller) => (
+            <option key={seller._id} value={seller._id}>{seller.sellerProfile?.businessName || seller.fullName}</option>
+          ))}
+        </select>
+        <Input value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Product Name" required className={inputClass} />
+        <Input value={brand} onChange={(event) => setBrand(event.target.value)} placeholder="Brand" className={inputClass} />
+        <select value={category} onChange={(event) => setCategory(event.target.value)} required className={selectClass}>
+          <option value="">Category</option>
+          {categories.map((item) => (
+            <option key={item._id} value={item.title}>{item.title}</option>
+          ))}
+        </select>
+        <Input value={price} onChange={(event) => setPrice(event.target.value)} placeholder="Price" type="number" min="0" required className={inputClass} />
+        <Input value={originalPrice} onChange={(event) => setOriginalPrice(event.target.value)} placeholder="Sale/Original Price" type="number" min="0" className={inputClass} />
+        <Input value={sku} onChange={(event) => setSku(event.target.value)} placeholder="Product SKU" className={inputClass} />
+        <Input type="file" accept="image/*" multiple required={!product} onChange={(event) => setImages(Array.from(event.target.files || []))} className={inputClass} />
+      </div>
+      <div className="grid gap-3 md:grid-cols-2">
+        <textarea value={shortDescription} onChange={(event) => setShortDescription(event.target.value)} placeholder="Short Description" className={textareaClass} />
+        <textarea value={description} onChange={(event) => setDescription(event.target.value)} placeholder="Description" className={textareaClass} />
+      </div>
+      <VariantEditor variants={variants} onChange={setVariants} />
+      <div className="grid gap-3 md:grid-cols-3">
+        <Input value={tags} onChange={(event) => setTags(event.target.value)} placeholder="Tags, comma separated" className={inputClass} />
+        <Input value={seoTitle} onChange={(event) => setSeoTitle(event.target.value)} placeholder="SEO Meta Title" className={inputClass} />
+        <Input value={seoKeywords} onChange={(event) => setSeoKeywords(event.target.value)} placeholder="SEO Keywords" className={inputClass} />
+      </div>
+      <textarea value={seoDescription} onChange={(event) => setSeoDescription(event.target.value)} placeholder="SEO Meta Description" className={textareaClass} />
+      <div className="flex flex-wrap gap-3">
+        <label className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-gray-300">
+          <input type="checkbox" checked={isFeatured} onChange={(event) => setIsFeatured(event.target.checked)} />
+          Featured Product
+        </label>
+        <label className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-gray-300">
+          <input type="checkbox" checked={isActive} onChange={(event) => setIsActive(event.target.checked)} />
+          Active
+        </label>
+      </div>
+      <div className="flex gap-2">
+        <Button type="submit" disabled={isPending || (!product && !sellers.length)}>
+          <Save className="h-4 w-4" />
+          {product ? "Save Product" : "Create Product"}
+        </Button>
+        <Button type="button" variant="outline" className="border-white/10 bg-white/5 text-white hover:bg-white/10" onClick={onCancel}>Cancel</Button>
+      </div>
+    </form>
   );
 }
 
@@ -711,6 +1008,7 @@ function VariantEditor({ variants, onChange }: { variants: ProductVariantPayload
 
 export function CategoryManagementPanel() {
   const [params, setParams] = useState<QueryParams>({ page: 1, limit: 10, sortBy: "priority", sortOrder: "desc" });
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editing, setEditing] = useState<AdminCategory | null>(null);
   const categoriesQuery = useAdminCategories(params);
   const allCategoriesQuery = useAdminCategories({ page: 1, limit: 100, sortBy: "title", sortOrder: "asc" });
@@ -748,22 +1046,54 @@ export function CategoryManagementPanel() {
         sortOrder={params.sortOrder || "desc"}
         onSortOrder={(value) => setParam("sortOrder", value)}
         onRefresh={() => categoriesQuery.refetch()}
+        extraAction={
+          <Button onClick={() => {
+            setEditing(null);
+            setIsCreateOpen(true);
+          }}>
+            <Plus className="h-4 w-4" />
+            Create Category
+          </Button>
+        }
       />
 
-      <CategoryForm
-        key={editing?._id || "new-category"}
-        category={editing}
-        categories={allCategories}
-        isPending={createCategory.isPending || updateCategory.isPending}
-        onCancel={() => setEditing(null)}
-        onSubmit={(payload, image) => {
-          if (editing) {
-            updateCategory.mutate({ categoryId: editing._id, payload, image }, { onSuccess: () => setEditing(null) });
-          } else if (image) {
-            createCategory.mutate({ payload, image });
-          }
-        }}
-      />
+      <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto border-white/10 bg-[#1c1c1c] text-white sm:max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>Create Category</DialogTitle>
+          </DialogHeader>
+          <CategoryForm
+            key="create-category-dialog"
+            category={null}
+            categories={allCategories}
+            isPending={createCategory.isPending}
+            onCancel={() => setIsCreateOpen(false)}
+            onSubmit={(payload, image) => {
+              if (image) createCategory.mutate({ payload, image }, { onSuccess: () => setIsCreateOpen(false) });
+            }}
+          />
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={Boolean(editing)} onOpenChange={(open) => !open && setEditing(null)}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto border-white/10 bg-[#1c1c1c] text-white sm:max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>Edit Category</DialogTitle>
+          </DialogHeader>
+          {editing && (
+            <CategoryForm
+              key={editing._id}
+              category={editing}
+              categories={allCategories}
+              isPending={updateCategory.isPending}
+              onCancel={() => setEditing(null)}
+              onSubmit={(payload, image) => {
+                updateCategory.mutate({ categoryId: editing._id, payload, image }, { onSuccess: () => setEditing(null) });
+              }}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
 
       <CategoryTree categories={allCategories} />
 
@@ -794,7 +1124,10 @@ export function CategoryManagementPanel() {
                     <TableCell><StatusBadge active={Boolean(category.isActive)} label={category.isActive ? "Active" : "Inactive"} /></TableCell>
                     <TableCell>
                       <div className="flex justify-end gap-2">
-                        <Button size="sm" variant="outline" className="border-white/10 bg-white/5 text-white hover:bg-white/10" onClick={() => setEditing(category)}>
+                        <Button size="sm" variant="outline" className="border-white/10 bg-white/5 text-white hover:bg-white/10" onClick={() => {
+                          setIsCreateOpen(false);
+                          setEditing(category);
+                        }}>
                           <Edit className="h-3.5 w-3.5" />
                           Edit
                         </Button>
@@ -857,41 +1190,34 @@ function CategoryForm({ category, categories, onSubmit, onCancel, isPending }: {
   };
 
   return (
-    <Card className="border-white/10 bg-[#1c1c1c]">
-      <CardHeader className="border-b border-white/10">
-        <CardTitle className="text-base text-white">{category ? "Edit Category" : "Create Category"}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={submit} className="grid gap-3 md:grid-cols-4">
-          <Input value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Category Name" required className={inputClass} />
-          <select value={parentId} onChange={(event) => setParentId(event.target.value)} className={selectClass}>
-            <option value="">No parent</option>
-            {categories.filter((item) => item._id !== category?._id).map((item) => (
-              <option key={item._id} value={item._id}>{item.title}</option>
-            ))}
-          </select>
-          <Input value={priority} onChange={(event) => setPriority(event.target.value)} placeholder="Priority" type="number" className={inputClass} />
-          <Input value={sortOrder} onChange={(event) => setSortOrder(event.target.value)} placeholder="Sort Order" type="number" className={inputClass} />
-          <Input type="file" accept="image/*" required={!category} onChange={(event) => setImage(event.target.files?.[0])} className={inputClass} />
-          <Input value={banner} onChange={(event) => setBanner(event.target.value)} placeholder="Category Banner URL" className={inputClass} />
-          <Input value={seoTitle} onChange={(event) => setSeoTitle(event.target.value)} placeholder="SEO Meta Title" className={inputClass} />
-          <Input value={seoKeywords} onChange={(event) => setSeoKeywords(event.target.value)} placeholder="SEO Keywords" className={inputClass} />
-          <textarea value={description} onChange={(event) => setDescription(event.target.value)} placeholder="Description" className={textareaClass} />
-          <textarea value={seoDescription} onChange={(event) => setSeoDescription(event.target.value)} placeholder="SEO Meta Description" className={textareaClass} />
-          <label className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-gray-300">
-            <input type="checkbox" checked={isActive} onChange={(event) => setIsActive(event.target.checked)} />
-            Active
-          </label>
-          <div className="flex gap-2">
-            <Button type="submit" disabled={isPending || (!category && !image)}>
-              <Save className="h-4 w-4" />
-              {category ? "Save Category" : "Create Category"}
-            </Button>
-            {category && <Button type="button" variant="outline" className="border-white/10 bg-white/5 text-white hover:bg-white/10" onClick={onCancel}>Cancel</Button>}
-          </div>
-        </form>
-      </CardContent>
-    </Card>
+    <form onSubmit={submit} className="grid gap-3 md:grid-cols-4">
+      <Input value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Category Name" required className={inputClass} />
+      <select value={parentId} onChange={(event) => setParentId(event.target.value)} className={selectClass}>
+        <option value="">No parent</option>
+        {categories.filter((item) => item._id !== category?._id).map((item) => (
+          <option key={item._id} value={item._id}>{item.title}</option>
+        ))}
+      </select>
+      <Input value={priority} onChange={(event) => setPriority(event.target.value)} placeholder="Priority" type="number" className={inputClass} />
+      <Input value={sortOrder} onChange={(event) => setSortOrder(event.target.value)} placeholder="Sort Order" type="number" className={inputClass} />
+      <Input type="file" accept="image/*" required={!category} onChange={(event) => setImage(event.target.files?.[0])} className={inputClass} />
+      <Input value={banner} onChange={(event) => setBanner(event.target.value)} placeholder="Category Banner URL" className={inputClass} />
+      <Input value={seoTitle} onChange={(event) => setSeoTitle(event.target.value)} placeholder="SEO Meta Title" className={inputClass} />
+      <Input value={seoKeywords} onChange={(event) => setSeoKeywords(event.target.value)} placeholder="SEO Keywords" className={inputClass} />
+      <textarea value={description} onChange={(event) => setDescription(event.target.value)} placeholder="Description" className={textareaClass} />
+      <textarea value={seoDescription} onChange={(event) => setSeoDescription(event.target.value)} placeholder="SEO Meta Description" className={textareaClass} />
+      <label className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-gray-300">
+        <input type="checkbox" checked={isActive} onChange={(event) => setIsActive(event.target.checked)} />
+        Active
+      </label>
+      <div className="flex gap-2">
+        <Button type="submit" disabled={isPending || (!category && !image)}>
+          <Save className="h-4 w-4" />
+          {category ? "Save Category" : "Create Category"}
+        </Button>
+        <Button type="button" variant="outline" className="border-white/10 bg-white/5 text-white hover:bg-white/10" onClick={onCancel}>Cancel</Button>
+      </div>
+    </form>
   );
 }
 
@@ -1046,6 +1372,37 @@ function StatusBadge({ active, label }: { active: boolean; label: string }) {
       {label}
     </Badge>
   );
+}
+
+function DeliveryStatusBadge({ status }: { status: DeliveryStatus }) {
+  const active = ["ASSIGNED", "ACCEPTED", "PICKED_UP", "OUT_FOR_DELIVERY"].includes(status);
+  return (
+    <Badge
+      variant="outline"
+      className={cn(
+        "border-white/10 text-gray-300",
+        active && "border-cyan-400/30 text-cyan-300",
+        status === "DELIVERED" && "border-emerald-400/30 text-emerald-300",
+        status === "CANCELLED" && "border-red-400/30 text-red-300",
+      )}
+    >
+      <Truck className="h-3 w-3" />
+      {deliveryStatusLabel(status)}
+    </Badge>
+  );
+}
+
+function deliveryPartnerOf(order?: AdminOrder | null): DeliveryPartner | null {
+  if (!order) return null;
+  if (order.deliveryPartner) return order.deliveryPartner;
+  if (typeof order.delivery?.partnerUserId === "object" && order.delivery.partnerUserId) {
+    return order.delivery.partnerUserId;
+  }
+  return null;
+}
+
+function deliveryStatusLabel(status: DeliveryStatus) {
+  return status.replace(/_/g, " ");
 }
 
 function downloadCsv(filename: string, rows: string[][]) {

@@ -1,7 +1,7 @@
 import { ApiResponse } from "../../utils/ApiResponse";
 import { asyncHandler } from "../../utils/asyncHandler";
 import { orderService } from "./order.service";
-import { createOrderSchema, verifyPaymentSchema } from "./order.validator";
+import { adminOrderStatusSchema, assignDeliverySchema, createOrderSchema, verifyPaymentSchema } from "./order.validator";
 
 export class OrderController {
     static createOrder = asyncHandler(async (req, res) => {
@@ -49,13 +49,32 @@ export class OrderController {
 
     static adminUpdateOrderStatus = asyncHandler(async (req, res) => {
         const { id } = req.params;
-        const { status, cancellationReason } = req.body;
+        const { status, cancellationReason } = adminOrderStatusSchema.parse(req.body);
         console.log(`[OrderController] Admin updating order ${id} to ${status}`);
         
         const result = await orderService.adminUpdateOrderStatus(id as string, status, cancellationReason);
 
         return res.status(200).json(
             new ApiResponse(200, result, "Order status updated successfully")
+        );
+    });
+
+    static assignDeliveryPartner = asyncHandler(async (req, res) => {
+        const { id } = req.params;
+        const body = assignDeliverySchema.parse(req.body);
+        const result = await orderService.assignDeliveryPartner(id as string, body, (req as any).user._id);
+
+        return res.status(200).json(
+            new ApiResponse(200, result, "Delivery partner assigned successfully")
+        );
+    });
+
+    static unassignDeliveryPartner = asyncHandler(async (req, res) => {
+        const { id } = req.params;
+        const result = await orderService.unassignDeliveryPartner(id as string, (req as any).user._id);
+
+        return res.status(200).json(
+            new ApiResponse(200, result, "Delivery partner unassigned successfully")
         );
     });
 }

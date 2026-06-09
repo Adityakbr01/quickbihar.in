@@ -1,5 +1,5 @@
 import mongoose, { Schema } from "mongoose";
-import { type IOrder, OrderStatus } from "./order.type";
+import { DeliveryStatus, type IOrder, OrderStatus } from "./order.type";
 
 const orderItemSchema = new Schema(
     {
@@ -41,6 +41,32 @@ const shippingAddressSchema = new Schema(
     { _id: false }
 );
 
+const deliveryLocationSchema = new Schema(
+    {
+        latitude: { type: Number },
+        longitude: { type: Number },
+        heading: { type: Number, default: 0 },
+        updatedAt: { type: Date },
+    },
+    { _id: false }
+);
+
+const deliveryEventSchema = new Schema(
+    {
+        status: {
+            type: String,
+            enum: Object.values(DeliveryStatus),
+            required: true,
+        },
+        action: { type: String, required: true },
+        note: { type: String },
+        actorId: { type: Schema.Types.ObjectId, ref: "User" },
+        at: { type: Date, default: Date.now },
+        location: deliveryLocationSchema,
+    },
+    { _id: false }
+);
+
 const orderSchema = new Schema<IOrder>(
     {
         orderId: {
@@ -75,6 +101,42 @@ const orderSchema = new Schema<IOrder>(
             enum: Object.values(OrderStatus),
             default: OrderStatus.PENDING_PAYMENT,
         },
+        delivery: {
+            partnerUserId: {
+                type: Schema.Types.ObjectId,
+                ref: "User",
+                index: true,
+            },
+            partnerProfileId: {
+                type: Schema.Types.ObjectId,
+                ref: "DeliveryBoy",
+                index: true,
+            },
+            status: {
+                type: String,
+                enum: Object.values(DeliveryStatus),
+                default: DeliveryStatus.UNASSIGNED,
+                index: true,
+            },
+            otp: {
+                code: String,
+                generatedAt: Date,
+                verifiedAt: Date,
+            },
+            payoutAmount: { type: Number, default: 0, min: 0 },
+            payoutCreditedAt: Date,
+            assignedAt: Date,
+            acceptedAt: Date,
+            pickedUpAt: Date,
+            outForDeliveryAt: Date,
+            deliveredAt: Date,
+            cancelledAt: Date,
+            currentLocation: deliveryLocationSchema,
+            events: {
+                type: [deliveryEventSchema],
+                default: [],
+            },
+        },
         cancellationReason: { type: String },
         rejectedAt: { type: Date },
         cancelledAt: { type: Date },
@@ -88,6 +150,8 @@ const orderSchema = new Schema<IOrder>(
     },
     {
         timestamps: true,
+        toJSON: { virtuals: true },
+        toObject: { virtuals: true },
     }
 );
 
@@ -99,5 +163,20 @@ orderSchema.pre("validate", async function () {
         this.orderId = `QB-${timestamp}${random}`;
     }
 });
+
+orderSchema.virtual("deliveryPartner").get(function () {
+    return this.delivery?.partnerUserId || null;
+});
+
+orderSchema.virtual("deliveryPartnerLocation").get(function () {
+    return this.delivery?.currentLocation || null;
+});
+
+orderSchema.virtual("deliveryOtp").get(function () {
+    return this.delivery?.otp?.code || null;
+});
+
+orderSchema.index({ "delivery.partnerUserId": 1, createdAt: -1 });
+orderSchema.index({ "delivery.status": 1, createdAt: -1 });
 
 export const Order = mongoose.model<IOrder>("Order", orderSchema);

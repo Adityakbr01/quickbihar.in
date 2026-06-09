@@ -21,6 +21,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { DateTimePicker } from "@/components/ui/date-time-picker";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import {
@@ -272,6 +274,7 @@ export function MarketingPromotionsPanel() {
   const [params, setParams] = useState<AdminListParams>({ page: 1, limit: 8, sortBy: "createdAt", sortOrder: "desc" });
   const [draft, setDraft] = useState<Record<string, any>>({});
   const [editing, setEditing] = useState<FlashSale | null>(null);
+  const [dateError, setDateError] = useState("");
   const flashSalesQuery = useFlashSales(params);
   const productsQuery = useAdminProducts({ page: 1, limit: 8, sortBy: "newest" });
   const createFlashSale = useCreateFlashSale();
@@ -282,10 +285,17 @@ export function MarketingPromotionsPanel() {
   const closeDialog = () => {
     setDraft({});
     setEditing(null);
+    setDateError("");
   };
 
   const submitFlashSale = (event: FormEvent) => {
     event.preventDefault();
+    if (!draft.startsAt || !draft.endsAt) {
+      setDateError("Start and end date are required.");
+      return;
+    }
+
+    setDateError("");
     const payload = {
       name: draft.name,
       slug: draft.slug || undefined,
@@ -413,8 +423,15 @@ export function MarketingPromotionsPanel() {
                 <option value="FIXED">Fixed Amount</option>
               </select>
               <Input required type="number" className={inputClass} placeholder="Discount value" value={draft.discountValue || ""} onChange={(event) => setDraftField(setDraft, "discountValue", event.target.value)} />
-              <Input required type="datetime-local" className={inputClass} value={draft.startsAt || ""} onChange={(event) => setDraftField(setDraft, "startsAt", event.target.value)} />
-              <Input required type="datetime-local" className={inputClass} value={draft.endsAt || ""} onChange={(event) => setDraftField(setDraft, "endsAt", event.target.value)} />
+              <DateTimePicker required className={inputClass} value={draft.startsAt || ""} onChange={(value) => {
+                setDraftField(setDraft, "startsAt", value);
+                if (value && draft.endsAt) setDateError("");
+              }} placeholder="Starts At" />
+              <DateTimePicker required className={inputClass} value={draft.endsAt || ""} onChange={(value) => {
+                setDraftField(setDraft, "endsAt", value);
+                if (draft.startsAt && value) setDateError("");
+              }} placeholder="Ends At" />
+              {dateError && <div className="text-xs text-red-300 sm:col-span-2">{dateError}</div>}
               <select className={selectClass} value={draft.status || "DRAFT"} onChange={(event) => setDraftField(setDraft, "status", event.target.value)}>
                 {["DRAFT", "SCHEDULED", "ACTIVE", "ENDED", "ARCHIVED"].map((status) => <option key={status} value={status}>{status}</option>)}
               </select>
@@ -629,8 +646,8 @@ export function ReportsAnalyticsPanel() {
       />
       <Card className="border-white/10 bg-[#1c1c1c]">
         <CardContent className="grid gap-3 p-4 md:grid-cols-3">
-          <Input type="date" className={inputClass} value={params.dateFrom || ""} onChange={(event) => setParams((current) => ({ ...current, dateFrom: event.target.value || undefined }))} />
-          <Input type="date" className={inputClass} value={params.dateTo || ""} onChange={(event) => setParams((current) => ({ ...current, dateTo: event.target.value || undefined }))} />
+          <DatePicker className={inputClass} value={params.dateFrom || ""} onChange={(value) => setParams((current) => ({ ...current, dateFrom: value || undefined }))} placeholder="Date From" />
+          <DatePicker className={inputClass} value={params.dateTo || ""} onChange={(value) => setParams((current) => ({ ...current, dateTo: value || undefined }))} placeholder="Date To" />
           <Button variant="outline" className="border-white/10 bg-white/5 text-white hover:bg-white/10" onClick={() => setParams({})}>
             <RefreshCcw className="h-4 w-4" />
             Reset
@@ -948,7 +965,7 @@ function ContentFormFields({ kind, draft, onChange }: { kind: ContentKind; draft
           <select className={selectClass} value={draft.status || "DRAFT"} onChange={(event) => onChange("status", event.target.value)}>
             {["DRAFT", "SCHEDULED", "SENT", "ARCHIVED"].map((item) => <option key={item} value={item}>{item}</option>)}
           </select>
-          <Input type="datetime-local" className={inputClass} value={draft.startsAt || ""} onChange={(event) => onChange("startsAt", event.target.value)} />
+          <DateTimePicker className={inputClass} value={draft.startsAt || ""} onChange={(value) => onChange("startsAt", value)} placeholder="Starts At" />
         </div>
       </>
     );

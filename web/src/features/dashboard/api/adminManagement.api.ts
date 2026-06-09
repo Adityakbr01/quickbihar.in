@@ -193,11 +193,18 @@ export interface ManagementGroup {
 
 export interface PayoutMethod {
   _id: string;
-  sellerId: string;
-  sellerProfileId: string;
+  partnerType?: PartnerType;
+  partnerId?: string;
+  sellerId?: string;
+  sellerProfileId?: string;
   sellerName?: string;
   sellerEmail?: string;
   businessName?: string;
+  deliveryId?: string;
+  deliveryProfileId?: string;
+  riderName?: string;
+  riderEmail?: string;
+  vehicleNumber?: string;
   type: "BANK" | "UPI" | "PAYPAL" | "STRIPE_CONNECT";
   label?: string;
   status: "PENDING_VERIFICATION" | "VERIFIED" | "REJECTED";
@@ -255,6 +262,7 @@ export interface AppConfig {
     defaultRadiusKm?: number;
     minOrderAmount?: number;
     estimatedMinutes?: number;
+    riderPayoutAmount?: number;
   };
 }
 
@@ -610,16 +618,21 @@ export const adminManagementApi = {
 
   reviewPayoutMethod: async ({
     sellerId,
+    deliveryId,
     methodId,
     status,
     reason,
   }: {
-    sellerId: string;
+    sellerId?: string;
+    deliveryId?: string;
     methodId: string;
     status: "VERIFIED" | "REJECTED";
     reason?: string;
   }): Promise<PayoutMethod> => {
-    const response = await axiosInstance.patch(`/admin/sellers/${sellerId}/payout-methods/${methodId}/status`, { status, reason });
+    const path = deliveryId
+      ? `/admin/delivery/${deliveryId}/payout-methods/${methodId}/status`
+      : `/admin/sellers/${sellerId}/payout-methods/${methodId}/status`;
+    const response = await axiosInstance.patch(path, { status, reason });
     return response.data.data;
   },
 

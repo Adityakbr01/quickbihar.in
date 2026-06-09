@@ -51,6 +51,7 @@ const appConfigSchema = new Schema<IAppConfig>(
             defaultRadiusKm: { type: Number, default: 5 },
             minOrderAmount: { type: Number, default: 0 },
             estimatedMinutes: { type: Number, default: 45 },
+            riderPayoutAmount: { type: Number, default: 40 },
         },
         updatedBy: {
             type: Schema.Types.ObjectId,

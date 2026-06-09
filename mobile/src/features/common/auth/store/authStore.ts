@@ -51,6 +51,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     await SecureStore.setItemAsync("userToken", token);
     await SecureStore.setItemAsync("refreshToken", refreshToken);
     await SecureStore.setItemAsync("userData", JSON.stringify(user));
+    await SecureStore.setItemAsync("userRole", typeof user.role === "string" ? user.role : user.role?.name || "");
     set({ user, token, refreshToken, isAuthenticated: true, isInitialized: true });
   },
 
@@ -58,6 +59,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     await SecureStore.deleteItemAsync("userToken");
     await SecureStore.deleteItemAsync("refreshToken");
     await SecureStore.deleteItemAsync("userData");
+    await SecureStore.deleteItemAsync("userRole");
     set({ user: null, token: null, refreshToken: null, isAuthenticated: false, isInitialized: true });
   },
 

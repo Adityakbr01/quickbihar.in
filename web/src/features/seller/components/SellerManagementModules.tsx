@@ -36,6 +36,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -877,8 +878,8 @@ function ReportsPanel() {
           <CardTitle className="flex flex-col gap-3 text-base text-white md:flex-row md:items-center md:justify-between">
             <span>Reports</span>
             <div className="flex flex-wrap gap-2">
-              <Input type="date" className={inputClass} onChange={(event) => setParams((prev) => ({ ...prev, dateFrom: event.target.value }))} />
-              <Input type="date" className={inputClass} onChange={(event) => setParams((prev) => ({ ...prev, dateTo: event.target.value }))} />
+              <DatePicker className={inputClass} value={params.dateFrom || ""} onChange={(value) => setParams((prev) => ({ ...prev, dateFrom: value || undefined }))} placeholder="Date From" />
+              <DatePicker className={inputClass} value={params.dateTo || ""} onChange={(value) => setParams((prev) => ({ ...prev, dateTo: value || undefined }))} placeholder="Date To" />
             </div>
           </CardTitle>
         </CardHeader>
@@ -1117,9 +1118,27 @@ function CouponDialog({
   onSubmit: (payload: SellerCouponPayload) => void;
 }) {
   const [open, setOpen] = useState(false);
+  const [startDate, setStartDate] = useState(dateInput(coupon?.startDate));
+  const [endDate, setEndDate] = useState(dateInput(coupon?.endDate));
+  const [dateError, setDateError] = useState("");
+
+  const changeOpen = (nextOpen: boolean) => {
+    setOpen(nextOpen);
+    setDateError("");
+    if (nextOpen) {
+      setStartDate(dateInput(coupon?.startDate));
+      setEndDate(dateInput(coupon?.endDate));
+    }
+  };
+
   const submit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
+    if (!endDate) {
+      setDateError("End date is required.");
+      return;
+    }
+
     onSubmit({
       code: text(form, "code"),
       description: text(form, "description"),
@@ -1129,14 +1148,14 @@ function CouponDialog({
       maxDiscountAmount: numberValue(form, "maxDiscountAmount"),
       usageLimit: numberValue(form, "usageLimit"),
       usageLimitPerUser: numberValue(form, "usageLimitPerUser"),
-      startDate: text(form, "startDate"),
-      endDate: text(form, "endDate"),
+      startDate,
+      endDate,
     });
-    setOpen(false);
+    changeOpen(false);
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={changeOpen}>
       <DialogTrigger render={trigger as never} />
       <DialogContent className="border-white/10 bg-[#1c1c1c] text-white sm:max-w-2xl">
         <DialogHeader>
@@ -1157,8 +1176,18 @@ function CouponDialog({
             <Field name="maxDiscountAmount" label="Maximum Discount" type="number" defaultValue={coupon?.maxDiscountAmount} />
             <Field name="usageLimit" label="Usage Limit" type="number" defaultValue={coupon?.usageLimit || 100} />
             <Field name="usageLimitPerUser" label="Per User Limit" type="number" defaultValue={coupon?.usageLimitPerUser || 1} />
-            <Field name="startDate" label="Start Date" type="date" defaultValue={dateInput(coupon?.startDate)} />
-            <Field name="endDate" label="End Date" type="date" defaultValue={dateInput(coupon?.endDate)} required />
+            <label className={labelClass}>
+              Start Date
+              <DatePicker name="startDate" value={startDate} onChange={setStartDate} placeholder="Start Date" className={inputClass} />
+            </label>
+            <label className={labelClass}>
+              End Date
+              <DatePicker name="endDate" value={endDate} onChange={(value) => {
+                setEndDate(value);
+                if (value) setDateError("");
+              }} placeholder="End Date" required className={inputClass} />
+            </label>
+            {dateError && <div className="text-xs text-red-300 md:col-span-2">{dateError}</div>}
             <Field name="description" label="Description" defaultValue={coupon?.description} required />
           </div>
           <DialogFooter className="border-white/10 bg-white/[0.03]">

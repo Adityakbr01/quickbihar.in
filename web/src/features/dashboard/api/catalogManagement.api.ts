@@ -1,4 +1,5 @@
 import axiosInstance from "@/lib/axios";
+import type { DeliveryLocation, DeliveryPartner, DeliveryStatus } from "@/features/delivery/api/delivery.api";
 
 export interface PaginatedResult<T> {
   data: T[];
@@ -19,6 +20,7 @@ export interface QueryParams {
   brand?: string;
   discountType?: string;
   isActive?: string;
+  deliveryStatus?: string;
 }
 
 export type OrderStatus =
@@ -66,8 +68,30 @@ export interface AdminOrder {
     state: string;
     pincode: string;
     landmark?: string;
+    latitude?: number;
+    longitude?: number;
   };
   status: OrderStatus;
+  delivery?: {
+    status?: DeliveryStatus;
+    partnerUserId?: DeliveryPartner | string;
+    payoutAmount?: number;
+    payoutCreditedAt?: string;
+    assignedAt?: string;
+    acceptedAt?: string;
+    pickedUpAt?: string;
+    outForDeliveryAt?: string;
+    deliveredAt?: string;
+    currentLocation?: DeliveryLocation;
+    otp?: {
+      code?: string;
+      generatedAt?: string;
+      verifiedAt?: string;
+    };
+  };
+  deliveryPartner?: DeliveryPartner | null;
+  deliveryPartnerLocation?: DeliveryLocation | null;
+  deliveryOtp?: string | null;
   cancellationReason?: string;
   paymentInfo?: {
     razorpayOrderId?: string;
@@ -78,6 +102,13 @@ export interface AdminOrder {
 }
 
 export type CouponDiscountType = "PERCENTAGE" | "FIXED";
+
+export interface DeliveryRiderQuery {
+  available?: boolean;
+  search?: string;
+  latitude?: number;
+  longitude?: number;
+}
 
 export interface AdminCoupon {
   _id: string;
@@ -279,6 +310,22 @@ export const catalogManagementApi = {
 
   updateOrderStatus: async ({ orderId, status, cancellationReason }: { orderId: string; status: OrderStatus; cancellationReason?: string }) => {
     const response = await axiosInstance.patch(`/orders/admin/status/${orderId}`, { status, cancellationReason });
+    return response.data.data;
+  },
+
+  getDeliveryRiders: async (params: DeliveryRiderQuery = {}): Promise<DeliveryPartner[]> => {
+    const response = await axiosInstance.get("/delivery/admin/riders", { params });
+    return response.data.data;
+  },
+
+  assignDeliveryPartner: async (payload: { orderId: string; deliveryUserId: string; payoutAmount?: number }): Promise<AdminOrder> => {
+    const { orderId, ...body } = payload;
+    const response = await axiosInstance.patch(`/orders/admin/${orderId}/delivery-assignment`, body);
+    return response.data.data;
+  },
+
+  unassignDeliveryPartner: async (orderId: string): Promise<AdminOrder> => {
+    const response = await axiosInstance.delete(`/orders/admin/${orderId}/delivery-assignment`);
     return response.data.data;
   },
 

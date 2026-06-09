@@ -49,6 +49,7 @@ export const updateAppConfigSchema = z.object({
         defaultRadiusKm: z.coerce.number().min(0).optional(),
         minOrderAmount: z.coerce.number().min(0).optional(),
         estimatedMinutes: z.coerce.number().min(1).optional(),
+        riderPayoutAmount: z.coerce.number().min(0).optional(),
     }).optional(),
 });
 

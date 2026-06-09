@@ -24,7 +24,7 @@ export class OnboardingDAO {
   }
 
   static async findMyApplications(userId: string | Types.ObjectId) {
-    return await Application.find({ userId });
+    return await Application.find({ userId }).sort({ createdAt: -1 });
   }
 
   static async findApplicationById(applicationId: string) {

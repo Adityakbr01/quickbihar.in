@@ -355,6 +355,17 @@ const serializeUser = (user: any, sellerProfile?: any, deliveryProfile?: any) =>
         vehicleType: deliveryProfile.vehicleType,
         vehicleNumber: deliveryProfile.vehicleNumber,
         licenseNumber: deliveryProfile.licenseNumber,
+        wallet: deliveryProfile.wallet || {
+            availableBalance: 0,
+            pendingPayoutBalance: 0,
+            lifetimeEarnings: 0,
+        },
+        currentLocation: deliveryProfile.currentLocation
+            ? {
+                longitude: deliveryProfile.currentLocation.coordinates?.[0],
+                latitude: deliveryProfile.currentLocation.coordinates?.[1],
+            }
+            : null,
     } : null,
 });
 
@@ -1271,7 +1282,11 @@ export class AdminService {
     }
 
     static async sendInvite(adminId: string, data: any) {
-        const inviteUrl = `${ENV.CORS_ORIGIN}/auth`;
+        const inviteUrl = data.role === RoleEnum.DELIVERY
+            ? `${ENV.CORS_ORIGIN}/delivery/login`
+            : data.role === RoleEnum.SELLER
+                ? `${ENV.CORS_ORIGIN}/seller/login`
+                : `${ENV.CORS_ORIGIN}/auth`;
         const sent = await MailService.sendAdminInvite(data.email, data.role, inviteUrl, data.fullName, data.message);
 
         if (!sent) throw new ApiError(500, "Failed to send invite email");
@@ -1304,6 +1319,19 @@ export class AdminService {
             requestedBy: new Types.ObjectId(adminId),
             processedAt: data.status === "PAID" ? new Date() : undefined,
         });
+
+        if (data.partnerType === "DELIVERY") {
+            const rider = await DeliveryBoy.findOne({ userId: data.partnerId });
+            if (rider?.wallet) {
+                if (["PENDING", "PROCESSING"].includes(payout.status)) {
+                    rider.wallet.availableBalance = Math.max(0, (rider.wallet.availableBalance || 0) - payout.amount);
+                    rider.wallet.pendingPayoutBalance = (rider.wallet.pendingPayoutBalance || 0) + payout.amount;
+                } else if (payout.status === "PAID") {
+                    rider.wallet.availableBalance = Math.max(0, (rider.wallet.availableBalance || 0) - payout.amount);
+                }
+                await rider.save();
+            }
+        }
 
         await MailService.sendPayoutNotice(partner.email, data.amount, payout.status, data.referenceId);
         await this.recordAdminMutation(adminId, "CREATE_PAYOUT", "AdminPayout", payout._id.toString(), {
@@ -1542,20 +1570,30 @@ export class AdminService {
 
     static async listPayoutMethods(query: any = {}) {
         const sellerFilter: any = {};
+        const deliveryFilter: any = {};
         if (query.status) {
             sellerFilter["payoutMethods.status"] = query.status;
+            deliveryFilter["payoutMethods.status"] = query.status;
         }
 
-        const sellers = await Seller.find(sellerFilter)
-            .populate("userId", "fullName email phone")
-            .sort({ updatedAt: -1 })
-            .lean();
+        const [sellers, riders] = await Promise.all([
+            Seller.find(sellerFilter)
+                .populate("userId", "fullName email phone")
+                .sort({ updatedAt: -1 })
+                .lean(),
+            DeliveryBoy.find(deliveryFilter)
+                .populate("userId", "fullName email phone")
+                .sort({ updatedAt: -1 })
+                .lean(),
+        ]);
 
-        return sellers.flatMap((seller: any) =>
+        const sellerMethods = sellers.flatMap((seller: any) =>
             (seller.payoutMethods || [])
                 .filter((method: any) => !query.status || method.status === query.status)
                 .map((method: any) => ({
                     _id: method._id?.toString(),
+                    partnerType: "SELLER",
+                    partnerId: seller.userId?._id?.toString() || seller.userId?.toString(),
                     sellerId: seller.userId?._id?.toString() || seller.userId?.toString(),
                     sellerProfileId: seller._id?.toString(),
                     sellerName: seller.userId?.fullName,
@@ -1573,6 +1611,34 @@ export class AdminService {
                     createdAt: method.createdAt,
                     verifiedAt: method.verifiedAt,
                 })),
+        );
+
+        const riderMethods = riders.flatMap((rider: any) =>
+            (rider.payoutMethods || [])
+                .filter((method: any) => !query.status || method.status === query.status)
+                .map((method: any) => ({
+                    _id: method._id?.toString(),
+                    partnerType: "DELIVERY",
+                    partnerId: rider.userId?._id?.toString() || rider.userId?.toString(),
+                    deliveryId: rider.userId?._id?.toString() || rider.userId?.toString(),
+                    deliveryProfileId: rider._id?.toString(),
+                    riderName: rider.userId?.fullName,
+                    riderEmail: rider.userId?.email,
+                    vehicleNumber: rider.vehicleNumber,
+                    type: method.type,
+                    label: method.label,
+                    status: method.status,
+                    isDefault: !!method.isDefault,
+                    bank: method.bank,
+                    upi: method.upi,
+                    rejectionReason: method.rejectionReason,
+                    createdAt: method.createdAt,
+                    verifiedAt: method.verifiedAt,
+                })),
+        );
+
+        return [...sellerMethods, ...riderMethods].sort(
+            (a: any, b: any) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime(),
         );
     }
 
@@ -1595,6 +1661,32 @@ export class AdminService {
 
         await seller.save();
         await this.recordAdminMutation(adminId, "REVIEW_PAYOUT_METHOD", "SellerPayoutMethod", methodId, {
+            before,
+            after: plainDoc(method),
+            metadata: { userId, status: data.status, reason: data.reason },
+        });
+        return method;
+    }
+
+    static async reviewDeliveryPayoutMethod(userId: string, methodId: string, adminId: string, data: any) {
+        const rider: any = await DeliveryBoy.findOne({ userId });
+        if (!rider) throw new ApiError(404, "Delivery profile not found");
+        const before = plainDoc(rider);
+
+        const method = rider.payoutMethods.id(methodId);
+        if (!method) throw new ApiError(404, "Payout method not found");
+
+        method.status = data.status;
+        method.verifiedBy = new Types.ObjectId(adminId);
+        method.verifiedAt = new Date();
+        method.rejectionReason = data.status === "REJECTED" ? data.reason : undefined;
+
+        if (data.status === "VERIFIED" && !rider.payoutMethods.some((item: any) => item.isDefault && item._id.toString() !== methodId)) {
+            method.isDefault = true;
+        }
+
+        await rider.save();
+        await this.recordAdminMutation(adminId, "REVIEW_DELIVERY_PAYOUT_METHOD", "DeliveryPayoutMethod", methodId, {
             before,
             after: plainDoc(method),
             metadata: { userId, status: data.status, reason: data.reason },
@@ -1732,6 +1824,32 @@ export class AdminService {
 
                     await seller.save();
                 }
+            }
+        }
+
+        if (payout.partnerType === "DELIVERY") {
+            const rider = await DeliveryBoy.findOne({ userId: payout.partnerId });
+            if (rider?.wallet) {
+                const wasReserved = ["PENDING", "PROCESSING"].includes(previousStatus);
+                const isTerminal = ["PAID", "FAILED"].includes(data.status);
+
+                if (wasReserved && isTerminal) {
+                    rider.wallet.pendingPayoutBalance = Math.max(
+                        0,
+                        (rider.wallet.pendingPayoutBalance || 0) - payout.amount,
+                    );
+
+                    if (data.status === "FAILED") {
+                        rider.wallet.availableBalance = (rider.wallet.availableBalance || 0) + payout.amount;
+                    }
+                }
+
+                if (!wasReserved && ["PENDING", "PROCESSING"].includes(data.status)) {
+                    rider.wallet.availableBalance = Math.max(0, (rider.wallet.availableBalance || 0) - payout.amount);
+                    rider.wallet.pendingPayoutBalance = (rider.wallet.pendingPayoutBalance || 0) + payout.amount;
+                }
+
+                await rider.save();
             }
         }
 

@@ -10,6 +10,7 @@
     "start": "bun run dist/server.js",
     "db:import": "bun run src/db/importData.ts",
     "rbac:seed": "bun run src/db/rbacSeed.ts",
+    "repair:partner-roles": "bun run src/db/repairPartnerRoles.ts",
     "test:auth": "bun test src/_tests_/auth.test.ts",
     "test:onboarding": "bun test src/_tests_/onboarding.test.ts",
     "test:rbac": "bun test src/_tests_/rbac.test.ts",

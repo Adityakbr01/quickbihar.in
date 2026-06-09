@@ -345,6 +345,17 @@ export class AdminController {
         return res.status(200).json(new ApiResponse(200, method, "Payout method reviewed successfully"));
     });
 
+    static reviewDeliveryPayoutMethod = asyncHandler(async (req, res) => {
+        const body = reviewPayoutMethodSchema.parse(req.body);
+        const method = await AdminService.reviewDeliveryPayoutMethod(
+            req.params.deliveryId as string,
+            req.params.methodId as string,
+            (req as any).user._id,
+            body,
+        );
+        return res.status(200).json(new ApiResponse(200, method, "Delivery payout method reviewed successfully"));
+    });
+
     static sellerSubmissions = asyncHandler(async (req, res) => {
         const query = listSellerSubmissionsSchema.parse(req.query);
         const submissions = await AdminService.listSellerSubmissions(query);

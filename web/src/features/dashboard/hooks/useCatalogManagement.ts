@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { catalogManagementApi, QueryParams } from "../api/catalogManagement.api";
+import { catalogManagementApi, type DeliveryRiderQuery, type QueryParams } from "../api/catalogManagement.api";
 
 export const useAdminOrders = (params: QueryParams) =>
   useQuery({
@@ -35,6 +35,38 @@ export const useUpdateOrderStatus = () => {
       toast.success("Order status updated");
     },
     onError: (error: Error) => toast.error(error.message || "Failed to update order"),
+  });
+};
+
+export const useDeliveryRiders = (params: DeliveryRiderQuery = {}) =>
+  useQuery({
+    queryKey: ["admin-delivery-riders", params],
+    queryFn: () => catalogManagementApi.getDeliveryRiders(params),
+  });
+
+export const useAssignDeliveryPartner = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: catalogManagementApi.assignDeliveryPartner,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-delivery-riders"] });
+      toast.success("Delivery partner assigned");
+    },
+    onError: (error: Error) => toast.error(error.message || "Failed to assign delivery partner"),
+  });
+};
+
+export const useUnassignDeliveryPartner = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: catalogManagementApi.unassignDeliveryPartner,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-delivery-riders"] });
+      toast.success("Delivery partner unassigned");
+    },
+    onError: (error: Error) => toast.error(error.message || "Failed to unassign delivery partner"),
   });
 };
 

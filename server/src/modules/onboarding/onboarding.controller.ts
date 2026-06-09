@@ -16,6 +16,17 @@ export class OnboardingController {
     return res.status(200).json(new ApiResponse(200, applications, "Applications fetched successfully"));
   });
 
+  static getStatus = asyncHandler(async (req: Request, res: Response) => {
+    const userId = (req as any).user._id;
+    const status = await OnboardingService.getStatus(userId);
+    return res.status(200).json(new ApiResponse(200, status, "Onboarding status fetched successfully"));
+  });
+
+  static uploadDocuments = asyncHandler(async (req: Request, res: Response) => {
+    const documents = await OnboardingService.uploadDocuments((req as any).files || []);
+    return res.status(201).json(new ApiResponse(201, documents, "Documents uploaded successfully"));
+  });
+
   static getAllApplications = asyncHandler(async (req: Request, res: Response) => {
     const { status, type } = req.query;
     const applications = await OnboardingService.getAllApplications(status as string, type as string);

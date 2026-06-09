@@ -16,6 +16,46 @@ const DeliveryProfileSchema = new Schema({
         aadhar: String,
     },
 
+    payoutMethods: [
+        {
+            type: {
+                type: String,
+                enum: ["BANK", "UPI"],
+                required: true,
+            },
+            label: String,
+            status: {
+                type: String,
+                enum: ["PENDING_VERIFICATION", "VERIFIED", "REJECTED"],
+                default: "PENDING_VERIFICATION",
+                index: true,
+            },
+            isDefault: {
+                type: Boolean,
+                default: false,
+            },
+            bank: {
+                accountHolderName: String,
+                accountNumber: String,
+                ifsc: String,
+                bankName: String,
+            },
+            upi: {
+                upiId: String,
+            },
+            rejectionReason: String,
+            verifiedBy: {
+                type: Types.ObjectId,
+                ref: "User",
+            },
+            verifiedAt: Date,
+            createdAt: {
+                type: Date,
+                default: Date.now,
+            },
+        },
+    ],
+
     address: {
         address: String,
         city: String,
@@ -29,6 +69,24 @@ const DeliveryProfileSchema = new Schema({
     licenseNumber: String,
 
     isVerified: { type: Boolean, default: false },
+
+    wallet: {
+        availableBalance: {
+            type: Number,
+            default: 0,
+            min: 0,
+        },
+        pendingPayoutBalance: {
+            type: Number,
+            default: 0,
+            min: 0,
+        },
+        lifetimeEarnings: {
+            type: Number,
+            default: 0,
+            min: 0,
+        },
+    },
 
     status: {
         type: String,
