@@ -163,52 +163,47 @@ const navigationGroups: Array<{
   items: Array<{ id: AdminSection; label: string; icon: ReactNode }>;
 }> = [
   {
-    title: "Dashboard",
-    items: [{ id: "overview", label: "Overview", icon: <LayoutDashboard className="h-4 w-4" /> }],
+    title: "Analytics",
+    items: [
+      { id: "overview", label: "Overview", icon: <LayoutDashboard className="h-4 w-4" /> },
+      { id: "reports-analytics", label: "Reports & Insights", icon: <BarChart3 className="h-4 w-4" /> },
+    ],
   },
   {
-    title: "Core Management",
+    title: "Catalog & Sales",
     items: [
       { id: "orders", label: "Orders", icon: <ClipboardList className="h-4 w-4" /> },
       { id: "products", label: "Products", icon: <Package className="h-4 w-4" /> },
       { id: "categories", label: "Categories", icon: <Tags className="h-4 w-4" /> },
-      { id: "coupons", label: "Coupons", icon: <CircleDollarSign className="h-4 w-4" /> },
-      { id: "people", label: "Users", icon: <Users className="h-4 w-4" /> },
-      { id: "seller-mall", label: "Sellers & Malls", icon: <Building2 className="h-4 w-4" /> },
-      { id: "seller-submissions", label: "Seller Reviews", icon: <ShieldCheck className="h-4 w-4" /> },
-      { id: "payouts", label: "Payouts", icon: <WalletCards className="h-4 w-4" /> },
+      { id: "inventory-logistics", label: "Inventory Center", icon: <Truck className="h-4 w-4" /> },
     ],
   },
   {
-    title: "Store Configuration",
+    title: "Marketing & CMS",
     items: [
-      { id: "store-configuration", label: "Store Settings", icon: <Settings className="h-4 w-4" /> },
+      { id: "coupons", label: "Coupons & Discounts", icon: <CircleDollarSign className="h-4 w-4" /> },
+      { id: "banners", label: "Banners Management", icon: <ImageIcon className="h-4 w-4" /> },
+      { id: "marketing-promotions", label: "Marketing Campaigns", icon: <Megaphone className="h-4 w-4" /> },
+      { id: "content-management", label: "Content Center", icon: <FileText className="h-4 w-4" /> },
+    ],
+  },
+  {
+    title: "Users & Malls",
+    items: [
+      { id: "people", label: "User Directory", icon: <Users className="h-4 w-4" /> },
+      { id: "seller-mall", label: "Sellers & Malls", icon: <Building2 className="h-4 w-4" /> },
+      { id: "seller-submissions", label: "Sellers Review Queue", icon: <ShieldCheck className="h-4 w-4" /> },
+      { id: "payouts", label: "Payouts & Wallets", icon: <WalletCards className="h-4 w-4" /> },
+    ],
+  },
+  {
+    title: "Store Config & System",
+    items: [
+      { id: "store-configuration", label: "General Settings", icon: <Settings className="h-4 w-4" /> },
       { id: "policies", label: "Global Policies", icon: <FileText className="h-4 w-4" /> },
       { id: "size-charts", label: "Size Charts", icon: <Ruler className="h-4 w-4" /> },
-      { id: "banners", label: "Banners", icon: <ImageIcon className="h-4 w-4" /> },
-    ],
-  },
-  {
-    title: "Content Management",
-    items: [{ id: "content-management", label: "Content Center", icon: <FileText className="h-4 w-4" /> }],
-  },
-  {
-    title: "Marketing & Promotions",
-    items: [{ id: "marketing-promotions", label: "Marketing Center", icon: <Megaphone className="h-4 w-4" /> }],
-  },
-  {
-    title: "Inventory & Logistics",
-    items: [{ id: "inventory-logistics", label: "Inventory Center", icon: <Package className="h-4 w-4" /> }],
-  },
-  {
-    title: "Reports & Analytics",
-    items: [{ id: "reports-analytics", label: "Reports", icon: <BarChart3 className="h-4 w-4" /> }],
-  },
-  {
-    title: "System Settings",
-    items: [
-      { id: "system-settings", label: "System Center", icon: <Database className="h-4 w-4" /> },
-      { id: "invites", label: "Invites", icon: <MailPlus className="h-4 w-4" /> },
+      { id: "system-settings", label: "System Core", icon: <Database className="h-4 w-4" /> },
+      { id: "invites", label: "Invites Console", icon: <MailPlus className="h-4 w-4" /> },
     ],
   },
 ];
@@ -366,90 +361,156 @@ export default function AdminDashboardPage() {
           <ScrollArea className="min-h-0 flex-1 bg-[#121212]">
             <div className="mx-auto w-full max-w-7xl px-4 py-5 lg:px-6">
               {activeSection === "overview" && (
-                <OverviewSection
-                  stats={stats}
-                  payouts={dashboardQuery.data?.recentPayouts || []}
-                  malls={malls}
-                  topMalls={dashboardQuery.data?.topMalls || []}
-                />
+                <div className="animate-in-fade-slide">
+                  <OverviewSection
+                    stats={stats}
+                    payouts={dashboardQuery.data?.recentPayouts || []}
+                    malls={malls}
+                    topMalls={dashboardQuery.data?.topMalls || []}
+                  />
+                </div>
               )}
 
               {activeSection === "store-configuration" && (
-                <StoreConfigurationSection
-                  group={getCatalogGroup(managementCatalog, "store-configuration")}
-                  config={appConfigQuery.data}
-                  isLoading={appConfigQuery.isLoading || catalogQuery.isLoading}
-                />
+                <div className="animate-in-fade-slide">
+                  <StoreConfigurationSection
+                    group={getCatalogGroup(managementCatalog, "store-configuration")}
+                    config={appConfigQuery.data}
+                    isLoading={appConfigQuery.isLoading || catalogQuery.isLoading}
+                  />
+                </div>
               )}
 
-              {activeSection === "orders" && <OrderManagementPanel />}
+              {activeSection === "orders" && (
+                <div className="animate-in-fade-slide">
+                  <OrderManagementPanel />
+                </div>
+              )}
 
-              {activeSection === "products" && <ProductManagementPanel sellers={sellerPeople} />}
+              {activeSection === "products" && (
+                <div className="animate-in-fade-slide">
+                  <ProductManagementPanel sellers={sellerPeople} />
+                </div>
+              )}
 
-              {activeSection === "categories" && <CategoryManagementPanel />}
+              {activeSection === "categories" && (
+                <div className="animate-in-fade-slide">
+                  <CategoryManagementPanel />
+                </div>
+              )}
 
-              {activeSection === "coupons" && <CouponManagementPanel />}
+              {activeSection === "coupons" && (
+                <div className="animate-in-fade-slide">
+                  <CouponManagementPanel />
+                </div>
+              )}
 
-              {activeSection === "content-management" && <ContentManagementPanel />}
+              {activeSection === "content-management" && (
+                <div className="animate-in-fade-slide">
+                  <ContentManagementPanel />
+                </div>
+              )}
 
-              {activeSection === "marketing-promotions" && <MarketingPromotionsPanel />}
+              {activeSection === "marketing-promotions" && (
+                <div className="animate-in-fade-slide">
+                  <MarketingPromotionsPanel />
+                </div>
+              )}
 
-              {activeSection === "inventory-logistics" && <InventoryLogisticsPanel />}
+              {activeSection === "inventory-logistics" && (
+                <div className="animate-in-fade-slide">
+                  <InventoryLogisticsPanel />
+                </div>
+              )}
 
-              {activeSection === "reports-analytics" && <ReportsAnalyticsPanel />}
+              {activeSection === "reports-analytics" && (
+                <div className="animate-in-fade-slide">
+                  <ReportsAnalyticsPanel />
+                </div>
+              )}
 
-              {activeSection === "system-settings" && <SystemSettingsPanel />}
+              {activeSection === "system-settings" && (
+                <div className="animate-in-fade-slide">
+                  <SystemSettingsPanel />
+                </div>
+              )}
 
               {activeSection === "people" && (
-                <PeopleSection
-                  people={people}
-                  isLoading={peopleQuery.isLoading}
-                  search={search}
-                  role={role}
-                  status={status}
-                  onSearch={setSearch}
-                  onRole={setRole}
-                  onStatus={setStatus}
-                  onBlock={(person) => setBlocked.mutate({ userId: person._id, isBlocked: !person.isBlocked })}
-                  onPartnerStatus={(person, type, partnerStatus) =>
-                    updatePartnerStatus.mutate({ userId: person._id, type, status: partnerStatus })
-                  }
-                />
+                <div className="animate-in-fade-slide">
+                  <PeopleSection
+                    people={people}
+                    isLoading={peopleQuery.isLoading}
+                    search={search}
+                    role={role}
+                    status={status}
+                    onSearch={setSearch}
+                    onRole={setRole}
+                    onStatus={setStatus}
+                    onBlock={(person) => setBlocked.mutate({ userId: person._id, isBlocked: !person.isBlocked })}
+                    onPartnerStatus={(person, type, partnerStatus) =>
+                      updatePartnerStatus.mutate({ userId: person._id, type, status: partnerStatus })
+                    }
+                  />
+                </div>
               )}
 
               {activeSection === "seller-mall" && (
-                <SellerMallSection
-                  sellers={sellerPeople}
-                  sellersLoading={allPeopleQuery.isLoading}
-                  malls={malls}
-                  mallsLoading={mallsQuery.isLoading}
-                  mallRequests={mallRequests}
-                  mallRequestsLoading={mallRequestsQuery.isLoading}
-                  mallCreationRequests={mallCreationRequests}
-                  mallCreationRequestsLoading={mallCreationRequestsQuery.isLoading}
-                  topMalls={dashboardQuery.data?.topMalls || []}
-                />
+                <div className="animate-in-fade-slide">
+                  <SellerMallSection
+                    sellers={sellerPeople}
+                    sellersLoading={allPeopleQuery.isLoading}
+                    malls={malls}
+                    mallsLoading={mallsQuery.isLoading}
+                    mallRequests={mallRequests}
+                    mallRequestsLoading={mallRequestsQuery.isLoading}
+                    mallCreationRequests={mallCreationRequests}
+                    mallCreationRequestsLoading={mallCreationRequestsQuery.isLoading}
+                    topMalls={dashboardQuery.data?.topMalls || []}
+                  />
+                </div>
               )}
 
-              {activeSection === "seller-submissions" && <SellerSubmissionsSection />}
+              {activeSection === "seller-submissions" && (
+                <div className="animate-in-fade-slide">
+                  <SellerSubmissionsSection />
+                </div>
+              )}
 
               {activeSection === "payouts" && (
-                <PayoutsSection
-                  partners={payoutPartners}
-                  payouts={payouts}
-                  payoutMethods={payoutMethods}
-                  payoutsLoading={payoutsQuery.isLoading}
-                  payoutMethodsLoading={payoutMethodsQuery.isLoading}
-                />
+                <div className="animate-in-fade-slide">
+                  <PayoutsSection
+                    partners={payoutPartners}
+                    payouts={payouts}
+                    payoutMethods={payoutMethods}
+                    payoutsLoading={payoutsQuery.isLoading}
+                    payoutMethodsLoading={payoutMethodsQuery.isLoading}
+                  />
+                </div>
               )}
 
-              {activeSection === "invites" && <InvitePanel />}
+              {activeSection === "invites" && (
+                <div className="animate-in-fade-slide">
+                  <InvitePanel />
+                </div>
+              )}
 
-              {activeSection === "policies" && <PolicyManagementPanel />}
+              {activeSection === "policies" && (
+                <div className="animate-in-fade-slide">
+                  <PolicyManagementPanel />
+                </div>
+              )}
 
-              {activeSection === "size-charts" && <SizeChartManagementPanel />}
+              {activeSection === "size-charts" && (
+                <div className="animate-in-fade-slide">
+                  <SizeChartManagementPanel />
+                </div>
+              )}
 
-              {activeSection === "banners" && <BannerManagementPanel />}
+              {activeSection === "banners" && (
+                <div className="animate-in-fade-slide">
+                  <BannerManagementPanel />
+                </div>
+              )}
             </div>
           </ScrollArea>
         </section>
@@ -482,36 +543,37 @@ function AdminSidebar({
           <div className="text-xs text-gray-500">Fashion Admin</div>
         </div>
       </div>
-      <nav className="scrollbar-none flex overflow-x-auto px-3 py-3 lg:min-h-0 lg:flex-1 lg:flex-col lg:overflow-x-hidden lg:overflow-y-auto">
+      <nav className="scrollbar-none flex overflow-x-auto px-3 py-3 lg:min-h-0 lg:flex-1 lg:flex-col lg:overflow-x-hidden lg:overflow-y-auto lg:space-y-4">
         {navigationGroups.map((group) => (
-          <div key={group.title} className="flex shrink-0 gap-2 lg:flex-col">
-            <div className="hidden px-2 pt-2 text-[11px] font-semibold uppercase tracking-normal text-gray-500 lg:block">
+          <div key={group.title} className="flex shrink-0 gap-2 lg:flex-col lg:space-y-1">
+            <div className="hidden px-2 pb-1 text-[11px] font-medium uppercase tracking-wider text-gray-500 lg:block">
               {group.title}
             </div>
             {group.items.map((section) => (
-              <Button
+              <button
                 key={section.id}
-                variant="ghost"
                 onClick={() => onSectionChange(section.id)}
                 className={cn(
-                  "h-10 justify-start gap-2 text-gray-300 hover:bg-white/10 hover:text-white",
-                  activeSection === section.id && "bg-white text-black hover:bg-white hover:text-black",
+                  "w-full h-10 flex items-center justify-start gap-3 px-3 py-2 text-sm rounded-lg transition-all duration-200 outline-none text-left",
+                  activeSection === section.id
+                    ? "bg-emerald-500/10 text-emerald-400 font-medium border border-emerald-500/20"
+                    : "text-gray-400 hover:text-white hover:bg-white/[0.05]"
                 )}
               >
-                {section.icon}
-                <span>{section.label}</span>
+                <span className="shrink-0">{section.icon}</span>
+                <span className="truncate">{section.label}</span>
                 {countBySection[section.id] !== undefined && (
                   <Badge
                     variant="outline"
                     className={cn(
                       "ml-auto min-w-7 rounded-full px-2 py-0.5 text-center text-[11px] font-semibold shadow-sm",
-                      countBadgeClass(countBySection[section.id] || 0),
+                      countBadgeClass(countBySection[section.id] || 0, activeSection === section.id),
                     )}
                   >
                     {formatSidebarCount(countBySection[section.id] || 0)}
                   </Badge>
                 )}
-              </Button>
+              </button>
             ))}
           </div>
         ))}
@@ -520,7 +582,11 @@ function AdminSidebar({
   );
 }
 
-function countBadgeClass(count: number) {
+function countBadgeClass(count: number, isActive?: boolean) {
+  if (isActive) {
+    return "border-emerald-500/30 bg-emerald-500/20 text-emerald-400 shadow-sm";
+  }
+
   if (count >= 15) {
     return "border-emerald-400/30 bg-emerald-400/10 text-emerald-200 shadow-emerald-500/10";
   }
@@ -1153,7 +1219,7 @@ function SellerMallSection({
       </div>
 
       {tab === "directory" ? (
-        <div className="grid gap-4 xl:grid-cols-[380px_1fr]">
+        <div className="animate-in-fade-slide grid gap-4 xl:grid-cols-[380px_1fr]">
           <MallCreatePanel />
           <MallRequestsPanel requests={mallRequests} isLoading={mallRequestsLoading} />
           <MallCreationRequestsPanel requests={mallCreationRequests} isLoading={mallCreationRequestsLoading} />
@@ -1162,7 +1228,9 @@ function SellerMallSection({
           <SellerMallAssignments sellers={sellers} malls={malls} isLoading={sellersLoading} />
         </div>
       ) : (
-        <SellerManagementPanel />
+        <div className="animate-in-fade-slide">
+          <SellerManagementPanel />
+        </div>
       )}
     </div>
   );
