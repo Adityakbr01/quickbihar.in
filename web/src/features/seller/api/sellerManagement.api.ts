@@ -94,6 +94,10 @@ export interface SellerStorePayload {
     shippingPolicy?: string;
     termsPolicy?: string;
   };
+  currentLocation?: {
+    lat: number;
+    lng: number;
+  };
   deliveryRadiusKm?: number;
   minOrderAmount?: number;
   deliveryFee?: number;
@@ -106,6 +110,10 @@ export interface SellerStoreResponse {
     isActive?: boolean;
     isSetupComplete?: boolean;
     setupMissingFields?: string[];
+    currentLocation?: {
+      type: "Point";
+      coordinates: [number, number];
+    };
   }) | null;
   setup: {
     isComplete: boolean;
@@ -278,6 +286,63 @@ export interface SellerOrder {
   createdAt?: string;
 }
 
+export interface SellerSubOrder {
+  _id: string;
+  subOrderId: string;
+  parentOrderId?: {
+    _id: string;
+    orderId: string;
+    userId?: {
+      _id: string;
+      fullName?: string;
+      email?: string;
+      phone?: string;
+    };
+    shippingAddress?: {
+      fullName?: string;
+      phone?: string;
+      street?: string;
+      city?: string;
+      state?: string;
+      pincode?: string;
+    };
+  };
+  items: Array<{
+    productId: string;
+    title: string;
+    sku: string;
+    size: string;
+    color: string;
+    quantity: number;
+    price: number;
+    sellerSubtotal?: number;
+  }>;
+  subtotal: number;
+  payableAmount: number;
+  status: string;
+  packageDetails?: {
+    weight?: number;
+    packageCount?: number;
+    isFragile?: boolean;
+    isCod?: boolean;
+    pickupNotes?: string;
+    dimensions?: {
+      length: number;
+      width: number;
+      height: number;
+    };
+  };
+  delivery?: {
+    status?: string;
+    pickupOtp?: string;
+    deliveryOtp?: string;
+    payoutAmount?: number;
+    pickupPhoto?: string;
+    deliveryPhoto?: string;
+  };
+  createdAt?: string;
+}
+
 export interface SellerCoupon {
   _id: string;
   code: string;
@@ -294,6 +359,8 @@ export interface SellerCoupon {
   isActive: boolean;
   approvalStatus?: ApprovalStatus;
   rejectionReason?: string;
+  appliesTo?: "ALL" | "SPECIFIC";
+  productIds?: string[];
 }
 
 export interface SellerCouponPayload {
@@ -308,6 +375,8 @@ export interface SellerCouponPayload {
   startDate?: string;
   endDate?: string;
   isActive?: boolean;
+  appliesTo?: "ALL" | "SPECIFIC";
+  productIds?: string[];
 }
 
 export interface SellerBanner {
@@ -645,6 +714,26 @@ export const sellerManagementApi = {
 
   updateOrderStatus: async ({ orderId, status }: { orderId: string; status: "CONFIRMED" | "PROCESSING" | "SHIPPED" }) => {
     const response = await axiosInstance.patch(`/sellers/orders/${orderId}/status`, { status });
+    return response.data.data;
+  },
+
+  getSubOrders: async (params: SellerQueryParams): Promise<PaginatedResult<SellerSubOrder>> => {
+    const response = await axiosInstance.get("/sellers/sub-orders", { params });
+    return normalizePaginated(response.data.data, params.page, params.limit);
+  },
+
+  getSubOrder: async (id: string): Promise<SellerSubOrder> => {
+    const response = await axiosInstance.get(`/sellers/sub-orders/${id}`);
+    return response.data.data;
+  },
+
+  updateSubOrderStatus: async ({ subOrderId, status, packageDetails }: { subOrderId: string; status: string; packageDetails?: any }) => {
+    const response = await axiosInstance.patch(`/sellers/sub-orders/${subOrderId}/status`, { status, packageDetails });
+    return response.data.data;
+  },
+
+  approveSubOrderCancellation: async ({ subOrderId, approve }: { subOrderId: string; approve: boolean }) => {
+    const response = await axiosInstance.post(`/sellers/sub-orders/${subOrderId}/cancellation-approval`, { approve });
     return response.data.data;
   },
 

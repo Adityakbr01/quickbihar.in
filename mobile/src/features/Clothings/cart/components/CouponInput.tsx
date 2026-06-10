@@ -20,8 +20,7 @@ const CouponInput = () => {
   const { 
     applyCoupon, 
     removeCoupon, 
-    appliedCoupon, 
-    discountAmount, 
+    appliedCoupons = [], 
     isLoading, 
     error 
   } = useCartStore();
@@ -29,50 +28,56 @@ const CouponInput = () => {
   const handleApply = async () => {
     if (!code.trim()) return;
     
+    // Check if coupon code is already applied
+    const isAlreadyApplied = appliedCoupons.some(
+      (c) => c.code.toUpperCase() === code.trim().toUpperCase()
+    );
+    if (isAlreadyApplied) {
+      Alert.alert("Coupon Already Applied", "This coupon is already applied to your cart.");
+      return;
+    }
+
     try {
       await applyCoupon(code.trim().toUpperCase());
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       setCode("");
     } catch (err: any) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      // Error is handled in store and displayed in UI
     }
   };
 
-  const handleRemove = () => {
+  const handleRemove = (couponCode: string) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    removeCoupon();
+    removeCoupon(couponCode);
   };
-
-  if (appliedCoupon) {
-    return (
-      <View style={styles.couponContainer}>
-        <Text style={styles.couponTitle}>Applied Coupon</Text>
-        <View style={styles.appliedCouponContainer}>
-          <View style={styles.appliedCouponInfo}>
-            <View style={styles.couponBadge}>
-              <Text style={styles.couponBadgeText}>{appliedCoupon.code}</Text>
-            </View>
-            <View>
-              <Text style={styles.appliedCouponText}>
-                Saved ₹{discountAmount.toLocaleString()}
-              </Text>
-              <Text style={[styles.couponStatusText, { color: theme.primary, marginTop: 2 }]}>
-                Coupon applied successfully!
-              </Text>
-            </View>
-          </View>
-          <TouchableOpacity onPress={handleRemove} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-            <Text style={styles.removeCouponText}>Remove</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    );
-  }
 
   return (
     <View style={styles.couponContainer}>
       <Text style={styles.couponTitle}>Offers & Benefits</Text>
+
+      {/* Render list of applied coupons */}
+      {appliedCoupons.map((coupon) => (
+        <View key={coupon.code} style={[styles.appliedCouponContainer, { marginBottom: 12 }]}>
+          <View style={styles.appliedCouponInfo}>
+            <View style={styles.couponBadge}>
+              <Text style={styles.couponBadgeText}>{coupon.code}</Text>
+            </View>
+            <View>
+              <Text style={styles.appliedCouponText}>
+                Saved ₹{(coupon.appliedDiscount || 0).toLocaleString()}
+              </Text>
+              <Text style={[styles.couponStatusText, { color: theme.primary, marginTop: 2, marginLeft: 0 }]}>
+                Coupon applied successfully!
+              </Text>
+            </View>
+          </View>
+          <TouchableOpacity onPress={() => handleRemove(coupon.code)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+            <Text style={styles.removeCouponText}>Remove</Text>
+          </TouchableOpacity>
+        </View>
+      ))}
+
+      {/* Render the input field to apply a coupon */}
       <View style={[
         styles.couponInputWrapper,
         error ? { borderColor: theme.error || "#ff4444" } : {}

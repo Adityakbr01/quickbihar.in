@@ -7,17 +7,20 @@ import {
   TouchableOpacity,
   SafeAreaView,
   Platform,
+  ScrollView,
+  Alert,
 } from "react-native";
 import { useLocalSearchParams, useRouter, Stack } from "expo-router";
 import { LeafletMapComponent } from "@/src/features/Clothings/trackOrder/components/LeafletMapComponent";
 import { DeliverySimulation } from "@/src/features/Clothings/trackOrder/components/DeliverySimulation";
 import { TrackingInfoCard } from "@/src/features/Clothings/trackOrder/components/TrackingInfoCard";
-import { getOrderByIdRequest } from "@/src/features/Clothings/order/api/order.api";
+import { getOrderByIdRequest, cancelSubOrderRequest } from "@/src/features/Clothings/order/api/order.api";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocationTracking } from "@/src/features/Clothings/trackOrder/hooks/useLocationTracking";
 import { useOrderTracking } from "@/src/features/Clothings/trackOrder/hooks/useOrderTracking";
 import * as SecureStore from "expo-secure-store";
 import { useSocketStore } from "@/src/store/useSocketStore";
+import { SocketEvents } from "@/src/constants/socketEvents";
 
 export default function TrackOrderScreen() {
   const { id } = useLocalSearchParams();
@@ -26,6 +29,8 @@ export default function TrackOrderScreen() {
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [userRole, setUserRole] = useState<string | null>(null);
+  const [selectedSubOrder, setSelectedSubOrder] = useState<any>(null);
+  const [cancelLoading, setCancelLoading] = useState(false);
 
   // Fetch order details and user role
   useEffect(() => {
@@ -37,8 +42,17 @@ export default function TrackOrderScreen() {
           SecureStore.getItemAsync("userRole"),
           useSocketStore.getState().connect(),
         ]);
-        setOrder(orderData?.data || orderData);
+        const fetchedOrder = orderData?.data || orderData;
+        setOrder(fetchedOrder);
         setUserRole(role);
+
+        // Select initial sub-order
+        if (fetchedOrder?.subOrders && fetchedOrder.subOrders.length > 0) {
+          const firstActive = fetchedOrder.subOrders.find((s: any) => 
+            !["DELIVERED", "CANCELLED", "COMPLETED"].includes(s.status)
+          ) || fetchedOrder.subOrders[0];
+          setSelectedSubOrder(firstActive);
+        }
       } catch (error) {
         console.error("Error fetching order for tracking:", error);
       } finally {
@@ -47,6 +61,38 @@ export default function TrackOrderScreen() {
     };
     fetchData();
   }, [orderId]);
+
+  // Listen for real-time status updates to refresh order details
+  useEffect(() => {
+    const socket = useSocketStore.getState().socket;
+    if (!socket) return;
+
+    const handleStatusUpdate = (data: any) => {
+      console.log("[TrackOrderScreen] Status update received:", data);
+      getOrderByIdRequest(orderId)
+        .then((orderData) => {
+          const updated = orderData?.data || orderData;
+          setOrder(updated);
+          
+          // Keep the currently selected sub-order in sync with the new data
+          if (updated?.subOrders && selectedSubOrder) {
+            const match = updated.subOrders.find((s: any) => s.subOrderId === selectedSubOrder.subOrderId);
+            if (match) setSelectedSubOrder(match);
+          } else if (updated?.subOrders && updated.subOrders.length > 0) {
+            setSelectedSubOrder(updated.subOrders[0]);
+          }
+        })
+        .catch((err) => console.error("Error updating order status in UI:", err));
+    };
+
+    socket.on(SocketEvents.ORDER_STATUS_UPDATE, handleStatusUpdate);
+    socket.on(SocketEvents.FULFILLMENT_EVENT, handleStatusUpdate);
+
+    return () => {
+      socket.off(SocketEvents.ORDER_STATUS_UPDATE, handleStatusUpdate);
+      socket.off(SocketEvents.FULFILLMENT_EVENT, handleStatusUpdate);
+    };
+  }, [orderId, selectedSubOrder]);
 
   // Destination coordinates from order address
   const destination = {
@@ -57,8 +103,9 @@ export default function TrackOrderScreen() {
   // Tracking hook (sockets, distance, ETA - no AnimatedRegion)
   const { riderLocation, distance, eta, heading } = useOrderTracking({
     orderId,
+    subOrderId: selectedSubOrder?.subOrderId,
     destination,
-    initialRiderLocation: order?.deliveryPartnerLocation,
+    initialRiderLocation: selectedSubOrder?.delivery?.currentLocation || order?.deliveryPartnerLocation,
   });
 
   // Start background tracking IF user is delivery partner
@@ -66,6 +113,44 @@ export default function TrackOrderScreen() {
     orderId,
     enabled: userRole === "DELIVERY",
   });
+
+  const handleSubOrderCancel = (subOrderId: string) => {
+    if (!subOrderId) return;
+    
+    Alert.alert(
+      "Cancel Shipment",
+      "Why do you want to cancel this package shipment?",
+      [
+        { text: "Change of Mind", onPress: () => submitCancellation(subOrderId, "Change of Mind") },
+        { text: "Incorrect Shipping Address", onPress: () => submitCancellation(subOrderId, "Incorrect Shipping Address") },
+        { text: "Delivery taking too long", onPress: () => submitCancellation(subOrderId, "Delivery taking too long") },
+        { text: "Dismiss", style: "cancel" },
+      ],
+      { cancelable: true }
+    );
+  };
+
+  const submitCancellation = async (subOrderId: string, reason: string) => {
+    try {
+      setCancelLoading(true);
+      const response = await cancelSubOrderRequest(subOrderId, reason);
+      Alert.alert("Success", response.message || "Cancellation request sent.");
+      
+      const orderData = await getOrderByIdRequest(orderId);
+      const updated = orderData?.data || orderData;
+      setOrder(updated);
+      
+      if (updated?.subOrders) {
+        const match = updated.subOrders.find((s: any) => s.subOrderId === subOrderId);
+        if (match) setSelectedSubOrder(match);
+      }
+    } catch (error: any) {
+      const errMsg = error.response?.data?.message || error.message || "Failed to cancel shipment";
+      Alert.alert("Cancellation Failed", errMsg);
+    } finally {
+      setCancelLoading(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -116,16 +201,79 @@ export default function TrackOrderScreen() {
           destination={destination}
           heading={heading}
         />
+
+        {/* Floating Shipment Selector at the top of the map */}
+        {order?.subOrders && order.subOrders.length > 0 && (
+          <View style={styles.shipmentSelector}>
+            <Text style={styles.shipmentSelectorTitle}>Split Shipments</Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.shipmentScrollContent}
+            >
+              {order.subOrders.map((sub: any) => {
+                const isSelected = selectedSubOrder?.subOrderId === sub.subOrderId;
+                const storeName = sub.storeId?.name || `Package ${sub.subOrderId.split("-").pop()}`;
+                
+                return (
+                  <TouchableOpacity
+                    key={sub.subOrderId}
+                    style={[
+                      styles.shipmentTab,
+                      isSelected && styles.shipmentTabActive,
+                    ]}
+                    onPress={() => setSelectedSubOrder(sub)}
+                  >
+                    <Ionicons
+                      name="cube-outline"
+                      size={16}
+                      color={isSelected ? "white" : "#666"}
+                      style={{ marginRight: 5 }}
+                    />
+                    <View>
+                      <Text
+                        style={[
+                          styles.shipmentTabLabel,
+                          isSelected && styles.shipmentTabLabelActive,
+                        ]}
+                        numberOfLines={1}
+                      >
+                        {storeName}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.shipmentTabSubLabel,
+                          isSelected && styles.shipmentTabSubLabelActive,
+                        ]}
+                      >
+                        {sub.status.replace(/_/g, " ")}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </View>
+        )}
       </View>
 
       {/* Info Card */}
       <SafeAreaView style={styles.infoSafeArea}>
         <TrackingInfoCard
-          status={order?.status || "On the way"}
+          status={selectedSubOrder?.status || order?.status || "On the way"}
           eta={eta}
           distance={distance}
-          riderName={order?.deliveryPartner?.fullName || "Karan Kumar"}
-          riderPhone={order?.deliveryPartner?.phone || "9999999999"}
+          riderName={selectedSubOrder?.delivery?.riderId?.fullName || order?.deliveryPartner?.fullName || ""}
+          riderPhone={selectedSubOrder?.delivery?.riderId?.phone || order?.deliveryPartner?.phone || ""}
+          deliveryOtp={selectedSubOrder?.delivery?.deliveryOtp}
+          timeline={selectedSubOrder?.timeline}
+          showCancelButton={
+            selectedSubOrder 
+              ? !["PICKED_UP", "IN_TRANSIT", "NEAR_CUSTOMER", "DELIVERED", "COMPLETED", "CANCELLED", "REJECTED"].includes(selectedSubOrder.status)
+              : false
+          }
+          onCancelRequest={() => handleSubOrderCancel(selectedSubOrder?.subOrderId)}
+          cancelButtonLoading={cancelLoading}
         />
       </SafeAreaView>
 
@@ -133,7 +281,7 @@ export default function TrackOrderScreen() {
       {__DEV__ && (
         <View style={styles.debugContainer}>
           <DeliverySimulation
-            orderId={orderId}
+            orderId={selectedSubOrder?.subOrderId || orderId}
             startLocation={{
               latitude: destination.latitude + 0.005,
               longitude: destination.longitude + 0.005,
@@ -172,98 +320,6 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-  },
-  infoCard: {
-    backgroundColor: "white",
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
-    padding: 20,
-    paddingTop: 10,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: -5 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 20,
-  },
-  grabber: {
-    width: 40,
-    height: 4,
-    backgroundColor: "#EEE",
-    borderRadius: 2,
-    alignSelf: "center",
-    marginBottom: 15,
-  },
-  infoRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 20,
-  },
-  statusBadge: {
-    backgroundColor: "#FFF0E6",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-  },
-  statusText: {
-    color: "#FF6B00",
-    fontWeight: "bold",
-    fontSize: 12,
-    textTransform: "uppercase",
-  },
-  etaText: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#333",
-  },
-  deliveryAgentRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 20,
-    backgroundColor: "#F9F9F9",
-    padding: 12,
-    borderRadius: 15,
-  },
-  avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "#EEE",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  agentInfo: {
-    flex: 1,
-    marginLeft: 12,
-  },
-  agentName: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#333",
-  },
-  agentSub: {
-    fontSize: 12,
-    color: "#999",
-  },
-  callButton: {
-    backgroundColor: "#00C853",
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  addressRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 5,
-  },
-  addressText: {
-    flex: 1,
-    marginLeft: 10,
-    color: "#666",
-    fontSize: 13,
-    lineHeight: 18,
   },
   iconButton: {
     backgroundColor: "white",
@@ -318,8 +374,68 @@ const styles = StyleSheet.create({
   },
   debugContainer: {
     position: "absolute",
-    top: 150,
+    top: 220,
     left: 0,
     right: 0,
+  },
+  shipmentSelector: {
+    position: "absolute",
+    top: Platform.OS === "ios" ? 100 : 90,
+    left: 15,
+    right: 15,
+    backgroundColor: "rgba(255, 255, 255, 0.95)",
+    borderRadius: 16,
+    padding: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 5,
+    elevation: 6,
+    borderWidth: 1,
+    borderColor: "#EAEAEA",
+  },
+  shipmentSelectorTitle: {
+    fontSize: 10,
+    fontWeight: "bold",
+    color: "#666",
+    marginBottom: 6,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+  shipmentScrollContent: {
+    paddingRight: 10,
+  },
+  shipmentTab: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F5F5F5",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 10,
+    marginRight: 10,
+    borderWidth: 1,
+    borderColor: "#EAEAEA",
+    minWidth: 140,
+  },
+  shipmentTabActive: {
+    backgroundColor: "#FF6B00",
+    borderColor: "#FF6B00",
+  },
+  shipmentTabLabel: {
+    fontSize: 12,
+    fontWeight: "bold",
+    color: "#333",
+  },
+  shipmentTabLabelActive: {
+    color: "white",
+  },
+  shipmentTabSubLabel: {
+    fontSize: 9,
+    color: "#888",
+    marginTop: 1,
+    textTransform: "capitalize",
+  },
+  shipmentTabSubLabelActive: {
+    color: "rgba(255, 255, 255, 0.8)",
   },
 });

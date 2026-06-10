@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { AddressType } from "./savedAddresses.model";
 
-export const addressSchema = z.object({
+const addressBaseSchema = z.object({
     fullName: z.string().min(2, "Full name is required"),
     phone: z.string().min(10, "Valid phone number required").max(15),
     street: z.string().min(5, "Street address is required"),
@@ -11,8 +11,27 @@ export const addressSchema = z.object({
     landmark: z.string().optional(),
     addressType: z.nativeEnum(AddressType).default(AddressType.HOME),
     isDefault: z.boolean().default(false),
-    latitude: z.number().optional(),
-    longitude: z.number().optional(),
+    latitude: z.coerce.number().min(-90).max(90),
+    longitude: z.coerce.number().min(-180).max(180),
 });
 
-export const updateAddressSchema = addressSchema.partial();
+export const addressSchema = addressBaseSchema.refine(
+    (address) => !(address.latitude === 0 && address.longitude === 0),
+    {
+        path: ["latitude"],
+        message: "Address location pin is required",
+    }
+);
+
+export const updateAddressSchema = addressBaseSchema.partial().refine(
+    (address) => {
+        if (address.latitude === undefined && address.longitude === undefined) return true;
+        return address.latitude !== undefined
+            && address.longitude !== undefined
+            && !(address.latitude === 0 && address.longitude === 0);
+    },
+    {
+        path: ["latitude"],
+        message: "Address location pin is required",
+    }
+);

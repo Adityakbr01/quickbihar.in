@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const createProductSchema = z.object({
+export const createProductObjectSchema = z.object({
     sellerId: z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid seller id").optional(),
     title: z.string().trim().min(1, "Title is required"),
     description: z.string().optional(),
@@ -10,7 +10,7 @@ export const createProductSchema = z.object({
     subCategory: z.string().trim().optional(),
     gender: z.string().trim().optional(),
     price: z.coerce.number().min(0, "Price must be positive"),
-    originalPrice: z.coerce.number().optional(),
+    originalPrice: z.coerce.number().min(0, "Original Price must be positive"),
     discountPercentage: z.coerce.number().optional(),
     currency: z.string().default("INR"),
  
@@ -104,9 +104,11 @@ export const createProductSchema = z.object({
      isActive: z.preprocess((val) => val === "true" || val === true, z.boolean()).default(true),
  
      refundPolicy: z.string().optional(),
- });
+});
 
-export const updateProductSchema = createProductSchema.partial();
+export const createProductSchema = createProductObjectSchema;
+
+export const updateProductSchema = createProductObjectSchema.partial();
 
 export type CreateProductBody = z.infer<typeof createProductSchema>;
 export type UpdateProductBody = z.infer<typeof updateProductSchema>;

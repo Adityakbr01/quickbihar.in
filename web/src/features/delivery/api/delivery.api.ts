@@ -2,12 +2,23 @@ import axiosInstance from "@/lib/axios";
 
 export type DeliveryStatus =
   | "UNASSIGNED"
+  | "ASSIGNMENT_OPEN"
   | "ASSIGNED"
   | "ACCEPTED"
+  | "RIDER_REJECTED"
+  | "ARRIVING_AT_STORE"
+  | "REACHED_STORE"
+  | "PICKUP_VERIFICATION_PENDING"
   | "PICKED_UP"
+  | "IN_TRANSIT"
+  | "NEAR_CUSTOMER"
   | "OUT_FOR_DELIVERY"
   | "DELIVERED"
-  | "CANCELLED";
+  | "DELIVERY_CONFIRMED"
+  | "CANCELLED"
+  | "FAILED"
+  | "RETURNING"
+  | "RETURNED";
 
 export type OrderStatus =
   | "PENDING_PAYMENT"
@@ -49,6 +60,7 @@ export interface DeliveryWallet {
   availableBalance: number;
   pendingPayoutBalance: number;
   lifetimeEarnings: number;
+  collectedCodLiability?: number;
 }
 
 export type DeliveryPayoutStatus = "PENDING" | "PROCESSING" | "PAID" | "FAILED";
@@ -308,6 +320,46 @@ export const deliveryApi = {
     bankDetails?: Record<string, string>;
   }) => {
     const response = await axiosInstance.patch("/delivery/profile", payload);
+    return response.data.data;
+  },
+
+  acceptSubOrder: async (subOrderId: string): Promise<any> => {
+    const response = await axiosInstance.post(`/delivery/sub-orders/${subOrderId}/accept`);
+    return response.data.data;
+  },
+
+  subOrderArriving: async (subOrderId: string): Promise<any> => {
+    const response = await axiosInstance.patch(`/delivery/sub-orders/${subOrderId}/arriving`);
+    return response.data.data;
+  },
+
+  subOrderReachedStore: async (subOrderId: string, location: { latitude: number; longitude: number }): Promise<any> => {
+    const response = await axiosInstance.patch(`/delivery/sub-orders/${subOrderId}/reached-store`, location);
+    return response.data.data;
+  },
+
+  subOrderPickup: async (subOrderId: string, payload: { pickupOtp: string; pickupPhoto?: string }): Promise<any> => {
+    const response = await axiosInstance.post(`/delivery/sub-orders/${subOrderId}/pickup`, payload);
+    return response.data.data;
+  },
+
+  subOrderTransit: async (subOrderId: string): Promise<any> => {
+    const response = await axiosInstance.patch(`/delivery/sub-orders/${subOrderId}/transit`);
+    return response.data.data;
+  },
+
+  subOrderNearCustomer: async (subOrderId: string, location: { latitude: number; longitude: number }): Promise<any> => {
+    const response = await axiosInstance.patch(`/delivery/sub-orders/${subOrderId}/near-customer`, location);
+    return response.data.data;
+  },
+
+  subOrderDeliver: async (subOrderId: string, payload: { deliveryOtp: string; deliveryPhoto?: string; deliverySignature?: string }): Promise<any> => {
+    const response = await axiosInstance.post(`/delivery/sub-orders/${subOrderId}/deliver`, payload);
+    return response.data.data;
+  },
+
+  subOrderCancel: async (subOrderId: string, reason: string): Promise<any> => {
+    const response = await axiosInstance.post(`/delivery/sub-orders/${subOrderId}/cancel`, { reason });
     return response.data.data;
   },
 };

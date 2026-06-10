@@ -53,7 +53,7 @@ const HomeHeader = ({ menuOpen, toggleMenu }: HomeHeaderProps) => {
     if (searchText.trim()) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       router.push({
-        pathname: "/search",
+        pathname: "/search" as any,
         params: { query: searchText.trim() }
       });
       collapseSearch();

@@ -1,10 +1,12 @@
 "use client";
 
 import React, { type FormEvent, useState, useEffect } from "react";
-import { Save } from "lucide-react";
+import { LocateFixed, MapPin, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
 import {
   useSellerStore,
   useSellerCategories,
@@ -39,6 +41,9 @@ export function SellerStoreSetupPanel() {
   const [refundPolicyId, setRefundPolicyId] = useState("");
   const [shippingPolicyId, setShippingPolicyId] = useState("");
   const [termsPolicyId, setTermsPolicyId] = useState("");
+  const [storeLat, setStoreLat] = useState("");
+  const [storeLng, setStoreLng] = useState("");
+  const [isLocatingStore, setIsLocatingStore] = useState(false);
 
   useEffect(() => {
     if (store?.policyRefs) {
@@ -47,11 +52,38 @@ export function SellerStoreSetupPanel() {
       setShippingPolicyId(entityId(store.policyRefs.shippingPolicy));
       setTermsPolicyId(entityId(store.policyRefs.termsPolicy));
     }
+    const [lng, lat] = store?.currentLocation?.coordinates || [];
+    setStoreLat(Number.isFinite(Number(lat)) ? String(lat) : "");
+    setStoreLng(Number.isFinite(Number(lng)) ? String(lng) : "");
   }, [store]);
+
+  const captureStoreLocation = () => {
+    if (typeof navigator === "undefined" || !navigator.geolocation) {
+      toast.error("Geolocation is not supported in this browser");
+      return;
+    }
+
+    setIsLocatingStore(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setStoreLat(String(position.coords.latitude));
+        setStoreLng(String(position.coords.longitude));
+        setIsLocatingStore(false);
+        toast.success("Store pickup GPS updated");
+      },
+      () => {
+        setIsLocatingStore(false);
+        toast.error("Could not read GPS. Allow location permission and stand at the pickup point.");
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 },
+    );
+  };
 
   const submitStore = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
+    const lat = Number(storeLat);
+    const lng = Number(storeLng);
 
     saveStore.mutate({
       name: text(form, "name"),
@@ -86,6 +118,7 @@ export function SellerStoreSetupPanel() {
         shippingPolicy: shippingPolicyId || undefined,
         termsPolicy: termsPolicyId || undefined,
       },
+      currentLocation: Number.isFinite(lat) && Number.isFinite(lng) ? { lat, lng } : undefined,
     });
   };
 
@@ -137,7 +170,7 @@ export function SellerStoreSetupPanel() {
               <Field name="shippingFee" label="Shipping Fee" type="number" defaultValue={store?.deliveryConfig?.shippingFee} />
               <Field name="freeShippingThreshold" label="Free Shipping Above" type="number" defaultValue={store?.deliveryConfig?.freeShippingThreshold} />
             </div>
-             <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
               <Field name="logoUrl" label="Logo URL" defaultValue={store?.logoUrl} />
               <Field name="bannerUrl" label="Banner URL" defaultValue={store?.bannerUrl} />
               <Field name="line1" label="Address" defaultValue={store?.address?.line1} />
@@ -146,6 +179,66 @@ export function SellerStoreSetupPanel() {
               <Field name="pincode" label="Pincode" defaultValue={store?.address?.pincode} />
               <Field name="country" label="Country" defaultValue={store?.address?.country || "India"} />
               <Field name="postalCode" label="Postal Code" defaultValue={store?.address?.postalCode} />
+            </div>
+
+            <div className="grid gap-3 rounded-lg border border-white/10 bg-white/[0.03] p-3">
+              <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <div className="flex items-center gap-2 text-sm font-medium text-white">
+                    <MapPin className="h-4 w-4 text-emerald-300" />
+                    Pickup GPS Location
+                  </div>
+                  <div className="mt-1 text-xs text-gray-500">
+                    Stand at the exact pickup gate or counter before capturing. Riders must pass this GPS check.
+                  </div>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+                  onClick={captureStoreLocation}
+                  disabled={isLocatingStore}
+                >
+                  <LocateFixed className="h-4 w-4" />
+                  {isLocatingStore ? "Locating..." : "Use Current Location"}
+                </Button>
+              </div>
+              <div className="grid gap-3 md:grid-cols-2">
+                <label className={labelClass}>
+                  Latitude
+                  <Input
+                    type="number"
+                    inputMode="decimal"
+                    step="any"
+                    value={storeLat}
+                    onChange={(event) => setStoreLat(event.target.value)}
+                    placeholder="25.594095"
+                    className={inputClass}
+                  />
+                </label>
+                <label className={labelClass}>
+                  Longitude
+                  <Input
+                    type="number"
+                    inputMode="decimal"
+                    step="any"
+                    value={storeLng}
+                    onChange={(event) => setStoreLng(event.target.value)}
+                    placeholder="85.137566"
+                    className={inputClass}
+                  />
+                </label>
+              </div>
+              {storeLat && storeLng && (
+                <a
+                  href={`https://www.google.com/maps/search/?api=1&query=${storeLat},${storeLng}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-xs font-medium text-emerald-300 hover:text-emerald-200"
+                >
+                  Check saved pickup point on Google Maps
+                </a>
+              )}
             </div>
 
             <div className="grid gap-3 rounded-lg border border-white/10 bg-white/[0.03] p-3">

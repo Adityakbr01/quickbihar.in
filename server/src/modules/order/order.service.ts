@@ -14,6 +14,8 @@ import { SocketEvents } from "../../constants/socketEvents";
 import { Seller } from "../seller/seller.model";
 import { SellerEarning, SellerNotification } from "../seller/sellerPanel.model";
 import { DeliveryBoy } from "../deliveryBoy/delivery.model";
+import { SubOrder, SubOrderStatus } from "./subOrder.model";
+import { TimelineHelper } from "./timeline.helper";
 
 const generateDeliveryOtp = () => Math.floor(100000 + Math.random() * 900000).toString();
 
@@ -29,6 +31,28 @@ const populateOrderQuery = (query: any) =>
     query
         .populate("userId", "fullName email phone")
         .populate("delivery.partnerUserId", "fullName email phone");
+
+const fulfillmentSummaryOf = (subOrders: any[]) => {
+    const statusCounts = subOrders.reduce((acc: Record<string, number>, subOrder: any) => {
+        const status = subOrder.status || "UNKNOWN";
+        acc[status] = (acc[status] || 0) + 1;
+        return acc;
+    }, {});
+
+    const terminalStatuses = ["DELIVERED", "DELIVERY_CONFIRMED", "COMPLETED", "CANCELLED", "REJECTED", "REFUNDED", "RETURNED"];
+    const activeSubOrders = subOrders.filter((subOrder) => !terminalStatuses.includes(subOrder.status));
+    const deliveredCount = subOrders.filter((subOrder) => ["DELIVERED", "DELIVERY_CONFIRMED", "COMPLETED"].includes(subOrder.status)).length;
+    const failedCount = subOrders.filter((subOrder) => ["PICKUP_FAILED", "DELIVERY_FAILED", "CUSTOMER_UNREACHABLE", "DISPUTED"].includes(subOrder.status)).length;
+
+    return {
+        totalSubOrders: subOrders.length,
+        activeSubOrders: activeSubOrders.length,
+        deliveredSubOrders: deliveredCount,
+        failedSubOrders: failedCount,
+        isMultiSeller: subOrders.length > 1,
+        statusCounts,
+    };
+};
 
 export class OrderService {
     private async notifyOrderSellers(order: any, status: OrderStatus, message: string) {
@@ -95,7 +119,24 @@ export class OrderService {
     }
 
     async createOrder(userId: string, data: any) {
-        const { items, shippingAddress, couponCode } = data;
+        const { items, shippingAddress } = data;
+        const codes = data.couponCodes || (data.couponCode ? [data.couponCode] : []);
+        const shippingLatitude = Number(shippingAddress?.latitude);
+        const shippingLongitude = Number(shippingAddress?.longitude);
+
+        if (
+            !Number.isFinite(shippingLatitude)
+            || !Number.isFinite(shippingLongitude)
+            || (shippingLatitude === 0 && shippingLongitude === 0)
+        ) {
+            throw new ApiError(400, "Delivery address location pin is required before placing an order");
+        }
+
+        const normalizedShippingAddress = {
+            ...shippingAddress,
+            latitude: shippingLatitude,
+            longitude: shippingLongitude,
+        };
 
         let totalAmount = 0;   // Post-product discount subtotal
         let totalTax = 0;      // Total GST amount
@@ -168,16 +209,51 @@ export class OrderService {
 
         // 2. Handle Coupon Discount with Refined Logic
         let couponDiscountAmount = 0;
-        if (couponCode) {
-            console.log(`[OrderService] Validating coupon: ${couponCode}`);
-            const sellerSubtotals = processedItems.reduce<Record<string, number>>((acc, item: any) => {
-                const sellerKey = item.sellerId?.toString();
-                if (sellerKey) acc[sellerKey] = (acc[sellerKey] || 0) + (item.sellerSubtotal || 0);
-                return acc;
-            }, {});
-            const validation = await couponService.validateCoupon(couponCode, totalAmount, userId, { sellerSubtotals });
-            couponDiscountAmount = validation.discountAmount;
-            console.log(`[OrderService] Coupon Applied: ${couponCode}, Savings=${couponDiscountAmount}`);
+        const appliedCouponsInfo: { code: string; sellerId: Types.ObjectId; discountAmount: number }[] = [];
+
+        if (codes && codes.length > 0) {
+            console.log(`[OrderService] Validating coupons: ${codes.join(", ")}`);
+            const validations = await couponService.validateMultipleCouponsForCart(codes, items, userId);
+            for (const val of validations) {
+                couponDiscountAmount += val.discountAmount;
+                appliedCouponsInfo.push({
+                    code: val.coupon.code,
+                    sellerId: new Types.ObjectId(val.coupon.sellerId as any),
+                    discountAmount: val.discountAmount,
+                });
+
+                // Distribute coupon discount to item.sellerSubtotal
+                const valSellerIdStr = val.sellerId;
+                const couponDoc = val.coupon;
+
+                const eligibleItems = processedItems.filter(item => {
+                    const isSeller = item.sellerId.toString() === valSellerIdStr;
+                    if (!isSeller) return false;
+                    
+                    if (couponDoc && couponDoc.appliesTo === "SPECIFIC") {
+                        return couponDoc.productIds?.some((id: any) => id.toString() === item.productId.toString()) || false;
+                    }
+                    return true;
+                });
+
+                const eligibleSubtotal = eligibleItems.reduce((sum, item) => sum + (item.price || 0) * (item.quantity || 0), 0);
+                if (eligibleSubtotal > 0) {
+                    let remainingDiscount = val.discountAmount;
+                    for (let i = 0; i < eligibleItems.length; i++) {
+                        const item = eligibleItems[i];
+                        if (!item) continue;
+                        const itemSubtotal = (item.price || 0) * (item.quantity || 0);
+                        let itemDiscount = 0;
+                        if (i === eligibleItems.length - 1) {
+                            itemDiscount = remainingDiscount;
+                        } else {
+                            itemDiscount = Math.round((itemSubtotal / eligibleSubtotal) * val.discountAmount);
+                            remainingDiscount -= itemDiscount;
+                        }
+                        item.sellerSubtotal = Math.max(0, itemSubtotal - itemDiscount);
+                    }
+                }
+            }
         }
 
         // Fetch Shipping Configuration
@@ -208,8 +284,10 @@ export class OrderService {
             discountAmount: couponDiscountAmount,
             shippingFee,
             payableAmount,
-            shippingAddress,
-            couponCode,
+            shippingAddress: normalizedShippingAddress,
+            couponCode: codes[0] || "",
+            couponCodes: codes,
+            couponDiscounts: appliedCouponsInfo,
             status: OrderStatus.PENDING_PAYMENT,
             paymentInfo: {
                 razorpayOrderId: razorpayOrder.id,
@@ -219,7 +297,7 @@ export class OrderService {
         // Emit New Order event to admins
         socketService.emitToAdmins(SocketEvents.NEW_ORDER, {
             orderId: order.orderId,
-            fullName: shippingAddress.fullName,
+            fullName: normalizedShippingAddress.fullName,
             amount: payableAmount,
             createdAt: order.createdAt
         });
@@ -285,8 +363,90 @@ export class OrderService {
         }
 
         // 5. Update Coupon Usage if applicable
-        if (order.couponCode) {
+        if (order.couponCodes && order.couponCodes.length > 0) {
+            for (const code of order.couponCodes) {
+                await couponService.incrementUsage(code);
+            }
+        } else if (order.couponCode) {
             await couponService.incrementUsage(order.couponCode);
+        }
+
+        // 6. Split Order into SubOrders (Multi-Vendor Independence)
+        const uniqueSellerIds = Array.from(new Set(order.items.map((item: any) => item.sellerId?.toString()).filter(Boolean)));
+        
+        for (let idx = 0; idx < uniqueSellerIds.length; idx++) {
+            const sellerId = uniqueSellerIds[idx] as string;
+            const sellerItems = order.items.filter((item: any) => item.sellerId?.toString() === sellerId);
+            
+            const subtotal = sellerItems.reduce((sum, item) => sum + (item.price || 0) * item.quantity, 0);
+            const tax = sellerItems.reduce((sum, item) => sum + (item.taxAmount || 0) * item.quantity, 0);
+            const shippingFeePerSeller = Math.round((order.shippingFee || 0) / uniqueSellerIds.length);
+            
+            const sellerCoupon = order.couponDiscounts?.find((cd: any) => cd.sellerId?.toString() === sellerId);
+            const sellerCouponDiscount = sellerCoupon ? sellerCoupon.discountAmount : 0;
+            const payableAmount = Math.max(0, subtotal + shippingFeePerSeller - sellerCouponDiscount);
+
+            const storeId = sellerItems[0]?.storeId;
+            const subOrderId = `${order.orderId}-S${idx + 1}`;
+
+            // Prevent duplicate sub-orders (idempotency check)
+            const existingSub = await SubOrder.findOne({ subOrderId });
+            if (existingSub) continue;
+
+            const pickupOtp = Math.floor(100000 + Math.random() * 900000).toString();
+            const deliveryOtp = Math.floor(100000 + Math.random() * 900000).toString();
+
+            await SubOrder.create({
+                subOrderId,
+                parentOrderId: order._id,
+                sellerId: new Types.ObjectId(sellerId),
+                storeId: storeId ? new Types.ObjectId(storeId.toString()) : undefined,
+                items: sellerItems.map((item: any) => ({
+                    productId: item.productId,
+                    title: item.title,
+                    sku: item.sku,
+                    size: item.size,
+                    color: item.color,
+                    quantity: item.quantity,
+                    price: item.price,
+                    sellerSubtotal: item.sellerSubtotal || (item.price * item.quantity),
+                })),
+                subtotal,
+                tax,
+                shippingFee: shippingFeePerSeller,
+                payableAmount,
+                status: SubOrderStatus.CONFIRMED,
+                packageDetails: {
+                    weight: 0,
+                    packageCount: 1,
+                    isFragile: false,
+                    isCod: order.payableAmount > 0 && order.paymentInfo?.razorpayOrderId === "COD",
+                    otpRequired: true,
+                },
+                delivery: {
+                    status: DeliveryStatus.UNASSIGNED,
+                    pickupOtp,
+                    deliveryOtp,
+                    payoutAmount: 0,
+                },
+                timeline: [
+                    TimelineHelper.createEvent(
+                        SubOrderStatus.CONFIRMED,
+                        "SYSTEM",
+                        undefined,
+                        undefined,
+                        { message: "Order payment verified and sub-order created" }
+                    )
+                ]
+            });
+
+            // Emit to seller room and user room
+            socketService.emitToUser(sellerId, SocketEvents.ORDER_STATUS_UPDATE, {
+                orderId: order.orderId,
+                subOrderId,
+                status: SubOrderStatus.CONFIRMED,
+                message: `New confirmed sub-order ${subOrderId} is ready for fulfillment.`
+            });
         }
 
         // Emission of events
@@ -328,7 +488,16 @@ export class OrderService {
             throw new ApiError(403, "You do not have permission to view this order");
         }
 
-        return order;
+        // 4. Fetch sub-orders and append them to the response
+        const subOrders = await SubOrder.find({ parentOrderId: order._id })
+            .populate("sellerId storeId delivery.riderId")
+            .lean();
+
+        return {
+            ...order.toObject(),
+            subOrders,
+            fulfillmentSummary: fulfillmentSummaryOf(subOrders),
+        };
     }
 
     async getAdminOrders(query: any = {}) {

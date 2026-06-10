@@ -35,7 +35,7 @@ const OrderSuccessScreen = () => {
 
     // Prevent back navigation to checkout
     const backHandler = BackHandler.addEventListener("hardwareBackPress", () => {
-      router.replace("/(tabs)/home");
+      router.replace("/(tabs)/home" as any);
       return true;
     });
 
@@ -184,7 +184,7 @@ const OrderSuccessScreen = () => {
         <View style={styles.buttonGroup}>
           <TouchableOpacity
             style={[styles.actionButton, styles.primaryActionButton]}
-            onPress={() => router.replace("/(tabs)/home")}
+            onPress={() => router.replace("/(tabs)/home" as any)}
           >
             <Ionicons name="cart-outline" size={20} color="#fff" />
             <Text style={[styles.actionButtonText, { color: "#fff" }]}>Continue Shopping</Text>

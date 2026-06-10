@@ -10,12 +10,14 @@ interface LatLng {
 
 interface UseOrderTrackingProps {
   orderId: string;
+  subOrderId?: string;
   destination: LatLng;
   initialRiderLocation?: LatLng;
 }
 
 export const useOrderTracking = ({
   orderId,
+  subOrderId,
   destination,
   initialRiderLocation,
 }: UseOrderTrackingProps) => {
@@ -32,7 +34,6 @@ export const useOrderTracking = ({
   const handleLocationUpdate = useCallback(
     (data: any) => {
       console.log(`[useOrderTracking] Received location update for ${data.orderId}:`, data);
-      // Server emits 'delivery_location_updated'
       if (data.orderId !== orderId) return;
 
       const newLocation: LatLng = {
@@ -40,7 +41,6 @@ export const useOrderTracking = ({
         longitude: data.longitude,
       };
 
-      // Calculate Metrics
       const newDistance = calculateDistance(
         newLocation.latitude,
         newLocation.longitude,
@@ -54,7 +54,6 @@ export const useOrderTracking = ({
         ? calculateHeading(lastLocationRef.current, newLocation)
         : 0;
 
-      // Update State
       setRiderLocation(newLocation);
       setDistance(newDistance);
       setEta(newEta);
@@ -70,21 +69,61 @@ export const useOrderTracking = ({
   useEffect(() => {
     if (!socket || !isConnected) return;
 
-    console.log(`[useOrderTracking] Joining room for order: ${orderId}`);
-    
-    // Join Order Room (Server expects string orderId, not object)
-    socket.emit(SocketEvents.JOIN_ORDER_ROOM, orderId);
+    if (subOrderId) {
+      console.log(`[useOrderTracking] Joining room for sub-order: ${subOrderId}`);
+      socket.emit("join_suborder_room", subOrderId);
 
-    // Listen for rider updates
-    socket.on(SocketEvents.DELIVERY_LOCATION_UPDATED, handleLocationUpdate);
-    console.log(`[useOrderTracking] Listening for ${SocketEvents.DELIVERY_LOCATION_UPDATED}`);
+      const handleSubOrderLocation = (data: any) => {
+        console.log(`[useOrderTracking] Received sub-order location:`, data);
+        if (data.subOrderId !== subOrderId) return;
 
-    return () => {
-      console.log(`[useOrderTracking] Leaving room: ${orderId}`);
-      socket.emit(SocketEvents.LEAVE_ORDER_ROOM, orderId);
-      socket.off(SocketEvents.DELIVERY_LOCATION_UPDATED, handleLocationUpdate);
-    };
-  }, [orderId, socket, isConnected, handleLocationUpdate]);
+        const newLocation: LatLng = {
+          latitude: data.latitude,
+          longitude: data.longitude,
+        };
+
+        const newDistance = calculateDistance(
+          newLocation.latitude,
+          newLocation.longitude,
+          destination.latitude,
+          destination.longitude
+        );
+
+        const newEta = calculateETA(newDistance);
+        
+        const newHeading = lastLocationRef.current 
+          ? calculateHeading(lastLocationRef.current, newLocation)
+          : 0;
+
+        setRiderLocation(newLocation);
+        setDistance(newDistance);
+        setEta(newEta);
+        if (newHeading !== 0) {
+          setHeading(newHeading);
+        }
+
+        lastLocationRef.current = newLocation;
+      };
+
+      socket.on("delivery_location_updated", handleSubOrderLocation);
+
+      return () => {
+        console.log(`[useOrderTracking] Leaving sub-order room: ${subOrderId}`);
+        socket.emit("leave_suborder_room", subOrderId);
+        socket.off("delivery_location_updated", handleSubOrderLocation);
+      };
+    } else {
+      console.log(`[useOrderTracking] Joining room for order: ${orderId}`);
+      socket.emit(SocketEvents.JOIN_ORDER_ROOM, orderId);
+      socket.on(SocketEvents.DELIVERY_LOCATION_UPDATED, handleLocationUpdate);
+
+      return () => {
+        console.log(`[useOrderTracking] Leaving room: ${orderId}`);
+        socket.emit(SocketEvents.LEAVE_ORDER_ROOM, orderId);
+        socket.off(SocketEvents.DELIVERY_LOCATION_UPDATED, handleLocationUpdate);
+      };
+    }
+  }, [orderId, subOrderId, socket, isConnected, handleLocationUpdate, destination]);
 
   return {
     riderLocation,

@@ -1,6 +1,10 @@
 import { ApiResponse } from "../../utils/ApiResponse";
 import { asyncHandler } from "../../utils/asyncHandler";
 import { AdminService } from "./admin.service";
+import { ApiError } from "../../utils/ApiError";
+import { Types } from "mongoose";
+import { DeliveryBoy } from "../deliveryBoy/delivery.model";
+import { CodSettlement } from "../fulfillment/codSettlement.model";
 import {
     adminListQuerySchema,
     adminPolicySchema,
@@ -489,5 +493,69 @@ export class AdminController {
             body,
         );
         return res.status(200).json(new ApiResponse(200, seller, "Seller mall request reviewed successfully"));
+    });
+
+    static settleCodLiability = asyncHandler(async (req, res) => {
+        const riderId = req.params.riderId as string;
+        if (!riderId) {
+            throw new ApiError(400, "Rider ID is required");
+        }
+        const { amount } = req.body;
+        if (typeof amount !== "number" || amount <= 0) {
+            throw new ApiError(400, "Valid deposit amount is required");
+        }
+
+        const riderProfile = await DeliveryBoy.findOne({
+            $or: [
+                { userId: new Types.ObjectId(riderId) },
+                ...(riderId.match(/^[0-9a-fA-F]{24}$/) ? [{ _id: new Types.ObjectId(riderId) }] : [])
+            ]
+        });
+
+        if (!riderProfile) {
+            throw new ApiError(404, "Rider profile not found");
+        }
+
+        if (!riderProfile.wallet) {
+            riderProfile.wallet = { availableBalance: 0, pendingPayoutBalance: 0, lifetimeEarnings: 0, collectedCodLiability: 0 };
+        }
+
+        const currentLiability = riderProfile.wallet.collectedCodLiability || 0;
+        if (amount > currentLiability) {
+            throw new ApiError(400, `Cannot settle amount ${amount} greater than current collected liability ${currentLiability}`);
+        }
+
+        riderProfile.wallet.collectedCodLiability = Math.max(0, currentLiability - amount);
+        await riderProfile.save();
+
+        await CodSettlement.create({
+            riderId: riderProfile.userId as any,
+            riderProfileId: riderProfile._id,
+            amount,
+            previousLiability: currentLiability,
+            newLiability: riderProfile.wallet.collectedCodLiability,
+            status: "VERIFIED",
+            note: req.body?.note || "COD cash deposit settled by admin",
+            referenceId: req.body?.referenceId,
+            verifiedBy: (req as any).user._id,
+        });
+
+        const { AdminPayout } = await import("./admin.model");
+        const payoutLog = await AdminPayout.create({
+            partnerId: riderProfile.userId as any,
+            partnerType: "DELIVERY",
+            amount,
+            status: "PAID",
+            method: "COD_CASH_DEPOSIT",
+            note: `COD liability cash deposit settled by Admin. Previous liability: ${currentLiability}. New: ${riderProfile.wallet.collectedCodLiability}`,
+            requestedBy: (req as any).user._id,
+            processedBy: (req as any).user._id,
+            processedAt: new Date()
+        });
+
+        return res.status(200).json(new ApiResponse(200, {
+            payoutLog,
+            collectedCodLiability: riderProfile.wallet.collectedCodLiability
+        }, `Successfully settled rider COD liability of ₹${amount}`));
     });
 }

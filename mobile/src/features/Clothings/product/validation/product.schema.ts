@@ -17,7 +17,7 @@ export const productSchema = z.object({
   price: z.number().positive("Price must be greater than 0"),
   isGstApplicable: z.boolean().default(false),
   gstPercentage: z.number().min(0).max(100).default(0),
-  originalPrice: z.number().positive("Original price must be greater than 0").optional(),
+  originalPrice: z.number().positive("Original price must be greater than 0"),
   tags: z.array(z.string()).min(1, "At least one tag is required"),
   variants: z.array(variantSchema).min(1, "At least one variant is required"),
   sizeChartId: z.string().optional(),

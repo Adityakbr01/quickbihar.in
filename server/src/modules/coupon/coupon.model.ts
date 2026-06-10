@@ -83,6 +83,17 @@ const couponSchema = new Schema<ICoupon>(
             type: Boolean,
             default: true,
         },
+        appliesTo: {
+            type: String,
+            enum: ["ALL", "SPECIFIC"],
+            default: "ALL",
+            required: true,
+        },
+        productIds: {
+            type: [Schema.Types.ObjectId],
+            ref: "Product",
+            default: [],
+        },
     },
     { timestamps: true }
 );

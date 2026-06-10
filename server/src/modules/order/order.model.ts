@@ -35,8 +35,8 @@ const shippingAddressSchema = new Schema(
         state: { type: String, required: true },
         pincode: { type: String, required: true },
         landmark: { type: String },
-        latitude: { type: Number },
-        longitude: { type: Number },
+        latitude: { type: Number, required: true },
+        longitude: { type: Number, required: true },
     },
     { _id: false }
 );
@@ -147,6 +147,14 @@ const orderSchema = new Schema<IOrder>(
             razorpaySignature: { type: String },
         },
         couponCode: { type: String },
+        couponCodes: { type: [String], default: [] },
+        couponDiscounts: [
+            {
+                code: { type: String, required: true },
+                sellerId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+                discountAmount: { type: Number, required: true },
+            }
+        ],
     },
     {
         timestamps: true,

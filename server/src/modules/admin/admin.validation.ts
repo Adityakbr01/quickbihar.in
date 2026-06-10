@@ -4,7 +4,7 @@ import { RoleEnum } from "../rbac/rbac.types";
 export const listPeopleSchema = z.object({
     role: z.nativeEnum(RoleEnum).optional(),
     search: z.string().trim().optional(),
-    status: z.enum(["active", "blocked", "verified", "unverified"]).optional(),
+    status: z.enum(["active", "blocked", "verified", "unverified", "PENDING", "APPROVED", "REJECTED"]).optional(),
 });
 
 export const blockUserSchema = z.object({

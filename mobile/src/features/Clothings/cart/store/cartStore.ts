@@ -19,6 +19,8 @@ export interface CartItem {
   selectedSize?: string;
   selectedColor?: string;
   taxAmount?: number;
+  sellerId?: string;
+  storeId?: string;
 }
 
 interface CartState {
@@ -33,6 +35,7 @@ interface CartState {
     fee: number;
   };
   appliedCoupon: ICoupon | null;
+  appliedCoupons: ICoupon[];
   discountAmount: number;
 
   // Actions
@@ -44,7 +47,7 @@ interface CartState {
   syncLocalCart: () => Promise<void>;
   clearCart: () => Promise<void>;
   applyCoupon: (code: string) => Promise<void>;
-  removeCoupon: () => void;
+  removeCoupon: (code?: string) => void;
   revalidateCoupon: () => Promise<void>;
   handleStockUpdate: (data: { productId: string; sku: string; newStock: number }) => void;
 }
@@ -75,11 +78,12 @@ export const useCartStore = create<CartState>()(
         fee: 99,
       },
       appliedCoupon: null,
+      appliedCoupons: [],
       discountAmount: 0,
 
       addItem: async (product, sku, quantity = 1) => {
         const { isAuthenticated } = useAuthStore.getState();
-        const { items, appliedCoupon } = get();
+        const { items, appliedCoupons } = get();
 
         const existingItem = items.find((item) => item.sku === sku);
         let newItems = [...items];
@@ -109,6 +113,8 @@ export const useCartStore = create<CartState>()(
             image: product.images?.[0]?.url || product.image,
             selectedSize: variant?.size,
             selectedColor: variant?.color,
+            sellerId: product.sellerId || product.seller?._id || product.seller,
+            storeId: product.storeId || product.store?._id || product.store,
           };
           newItems.push(newItem);
         }
@@ -122,7 +128,7 @@ export const useCartStore = create<CartState>()(
               quantity,
             });
             await get().fetchCart();
-            if (appliedCoupon) await get().revalidateCoupon();
+            if (appliedCoupons && appliedCoupons.length > 0) await get().revalidateCoupon();
           } catch (error: any) {
             set({ error: error.response?.data?.message || "Failed to add item to cart" });
           } finally {
@@ -133,20 +139,20 @@ export const useCartStore = create<CartState>()(
           const subtotal = newItems.reduce((acc, item) => acc + (item.price || 0) * item.quantity, 0);
           const totalTax = newItems.reduce((acc, item) => acc + (item.taxAmount || 0) * item.quantity, 0);
           set({ items: newItems, itemCount: newItems.length, subtotal, totalTax });
-          if (appliedCoupon) await get().revalidateCoupon();
+          if (appliedCoupons && appliedCoupons.length > 0) await get().revalidateCoupon();
         }
       },
 
       removeItem: async (sku) => {
         const { isAuthenticated } = useAuthStore.getState();
-        const { items, appliedCoupon } = get();
+        const { items, appliedCoupons } = get();
 
         if (isAuthenticated) {
           try {
             set({ isLoading: true });
             await axiosInstance.delete(`/cart/remove/${sku}`);
             await get().fetchCart();
-            if (appliedCoupon) await get().revalidateCoupon();
+            if (appliedCoupons && appliedCoupons.length > 0) await get().revalidateCoupon();
           } catch (error: any) {
             set({ error: error.response?.data?.message || "Failed to remove item" });
           } finally {
@@ -157,20 +163,20 @@ export const useCartStore = create<CartState>()(
           const subtotal = Math.round(newItems.reduce((acc, item) => acc + (item.price || 0) * item.quantity, 0));
           const totalTax = Math.round(newItems.reduce((acc, item) => acc + (item.taxAmount || 0) * item.quantity, 0));
           set({ items: newItems, itemCount: newItems.length, subtotal, totalTax });
-          if (appliedCoupon) await get().revalidateCoupon();
+          if (appliedCoupons && appliedCoupons.length > 0) await get().revalidateCoupon();
         }
       },
 
       updateQuantity: async (sku, quantity) => {
         const { isAuthenticated } = useAuthStore.getState();
-        const { items, appliedCoupon } = get();
+        const { items, appliedCoupons } = get();
 
         if (isAuthenticated) {
           try {
             set({ isLoading: true });
             await axiosInstance.patch("/cart/update", { sku, quantity });
             await get().fetchCart();
-            if (appliedCoupon) await get().revalidateCoupon();
+            if (appliedCoupons && appliedCoupons.length > 0) await get().revalidateCoupon();
           } catch (error: any) {
             set({ error: error.response?.data?.message || "Failed to update quantity" });
           } finally {
@@ -183,7 +189,7 @@ export const useCartStore = create<CartState>()(
           const subtotal = Math.round(newItems.reduce((acc, item) => acc + (item.price || 0) * item.quantity, 0));
           const totalTax = Math.round(newItems.reduce((acc, item) => acc + (item.taxAmount || 0) * item.quantity, 0));
           set({ items: newItems, subtotal, totalTax });
-          if (appliedCoupon) await get().revalidateCoupon();
+          if (appliedCoupons && appliedCoupons.length > 0) await get().revalidateCoupon();
         }
       },
 
@@ -218,7 +224,7 @@ export const useCartStore = create<CartState>()(
             itemCount: response.data.data.itemCount,
             error: null,
           });
-          if (get().appliedCoupon) await get().revalidateCoupon();
+          if (get().appliedCoupons && get().appliedCoupons.length > 0) await get().revalidateCoupon();
         } catch (error: any) {
           set({ error: error.response?.data?.message || "Failed to fetch cart" });
         } finally {
@@ -260,25 +266,48 @@ export const useCartStore = create<CartState>()(
         if (isAuthenticated) {
           await axiosInstance.delete("/cart/clear");
         }
-        set({ items: [], subtotal: 0, itemCount: 0, appliedCoupon: null, discountAmount: 0 });
+        set({ items: [], subtotal: 0, itemCount: 0, appliedCoupon: null, appliedCoupons: [], discountAmount: 0 });
       },
 
       applyCoupon: async (code: string) => {
         try {
           set({ isLoading: true, error: null });
-          const { subtotal } = get();
-          const response = await axiosInstance.post("/coupons/validate", { code, orderAmount: subtotal });
-          const { coupon, discountAmount } = response.data.data;
+          const { items, appliedCoupons } = get();
+          
+          const itemsPayload = items.map((item) => ({
+            productId: typeof item.productId === 'object' ? (item.productId as any)._id : item.productId,
+            sku: item.sku,
+            quantity: item.quantity,
+          }));
+
+          const response = await axiosInstance.post("/coupons/validate", { 
+            code, 
+            items: itemsPayload 
+          });
+          const { coupon, discountAmount, sellerId } = response.data.data;
+
+          const couponWithDiscount = {
+            ...coupon,
+            appliedDiscount: discountAmount,
+          };
+
+          const sellerKey = sellerId || coupon.sellerId || "global";
+
+          const filteredCoupons = (appliedCoupons || []).filter(
+            (c) => (c.sellerId || "global") !== sellerKey
+          );
+
+          const newAppliedCoupons = [...filteredCoupons, couponWithDiscount];
+          const totalDiscount = newAppliedCoupons.reduce((acc, c) => acc + (c.appliedDiscount || 0), 0);
 
           set({
-            appliedCoupon: coupon,
-            discountAmount,
+            appliedCoupons: newAppliedCoupons,
+            appliedCoupon: newAppliedCoupons[0] || null,
+            discountAmount: totalDiscount,
             error: null
           });
         } catch (error: any) {
           set({
-            appliedCoupon: null,
-            discountAmount: 0,
             error: error.response?.data?.message || "Invalid coupon code"
           });
           throw error;
@@ -287,45 +316,109 @@ export const useCartStore = create<CartState>()(
         }
       },
 
-      removeCoupon: () => {
-        set({ appliedCoupon: null, discountAmount: 0 });
-      },
-
-      revalidateCoupon: async () => {
-        const { appliedCoupon, subtotal } = get();
-        if (!appliedCoupon) return;
-
-        // Local calculation for instant UI feedback
-        let calculatedDiscount = 0;
-        if (subtotal < appliedCoupon.minOrderValue) {
-          // Subtotal fell below minimum requirement
-          set({ appliedCoupon: null, discountAmount: 0 });
+      removeCoupon: (code?: string) => {
+        const { appliedCoupons } = get();
+        if (!code) {
+          set({ appliedCoupons: [], appliedCoupon: null, discountAmount: 0 });
           return;
         }
 
-        if (appliedCoupon.discountType === "PERCENTAGE") {
-          calculatedDiscount = (subtotal * appliedCoupon.discountValue) / 100;
-          if (appliedCoupon.maxDiscountAmount && appliedCoupon.maxDiscountAmount > 0 && calculatedDiscount > appliedCoupon.maxDiscountAmount) {
-            calculatedDiscount = appliedCoupon.maxDiscountAmount;
-          }
-        } else {
-          // FIXED discount
-          calculatedDiscount = appliedCoupon.discountValue;
+        const newAppliedCoupons = (appliedCoupons || []).filter((c) => c.code !== code);
+        const totalDiscount = newAppliedCoupons.reduce((acc, c) => acc + (c.appliedDiscount || 0), 0);
+
+        set({
+          appliedCoupons: newAppliedCoupons,
+          appliedCoupon: newAppliedCoupons[0] || null,
+          discountAmount: totalDiscount,
+        });
+      },
+
+      revalidateCoupon: async () => {
+        const { appliedCoupons, items } = get();
+        if (!appliedCoupons || appliedCoupons.length === 0) {
+          set({ discountAmount: 0 });
+          return;
         }
 
-        set({ discountAmount: calculatedDiscount });
+        const itemsPayload = items.map((item) => ({
+          productId: typeof item.productId === 'object' ? (item.productId as any)._id : item.productId,
+          sku: item.sku,
+          quantity: item.quantity,
+        }));
 
-        // Still hit the server to be 100% sure (e.g. expiry, usage limits)
+        // First do local quick calculation
+        const localValidCoupons: ICoupon[] = [];
+        for (const coupon of appliedCoupons) {
+          const couponSellerId = coupon.sellerId;
+          
+          let sellerSubtotal = 0;
+          for (const item of items) {
+            const itemSellerId = item.sellerId;
+            if (itemSellerId === couponSellerId) {
+              if (coupon.appliesTo === "SPECIFIC") {
+                const isEligible = coupon.productIds?.includes(item.productId);
+                if (!isEligible) continue;
+              }
+              sellerSubtotal += (item.price || 0) * item.quantity;
+            }
+          }
+
+          if (sellerSubtotal >= coupon.minOrderValue) {
+            let localDiscount = 0;
+            if (coupon.discountType === "PERCENTAGE") {
+              localDiscount = (sellerSubtotal * coupon.discountValue) / 100;
+              if (coupon.maxDiscountAmount && coupon.maxDiscountAmount > 0 && localDiscount > coupon.maxDiscountAmount) {
+                localDiscount = coupon.maxDiscountAmount;
+              }
+            } else {
+              localDiscount = Math.min(coupon.discountValue, sellerSubtotal);
+            }
+            localDiscount = Math.round(localDiscount);
+            localValidCoupons.push({
+              ...coupon,
+              appliedDiscount: localDiscount,
+            });
+          }
+        }
+
+        const tempTotalDiscount = localValidCoupons.reduce((acc, c) => acc + (c.appliedDiscount || 0), 0);
+        set({
+          appliedCoupons: localValidCoupons,
+          appliedCoupon: localValidCoupons[0] || null,
+          discountAmount: tempTotalDiscount,
+        });
+
+        if (localValidCoupons.length === 0) return;
+
+        // Parallel server validation
         try {
-          const response = await axiosInstance.post("/coupons/validate", {
-            code: appliedCoupon.code,
-            orderAmount: subtotal
+          const promises = localValidCoupons.map(async (coupon) => {
+            try {
+              const response = await axiosInstance.post("/coupons/validate", {
+                code: coupon.code,
+                items: itemsPayload
+              });
+              const { coupon: serverCoupon, discountAmount } = response.data.data;
+              return {
+                ...serverCoupon,
+                appliedDiscount: discountAmount,
+              };
+            } catch (err) {
+              return null;
+            }
           });
-          const { discountAmount } = response.data.data;
-          set({ discountAmount });
+
+          const serverResults = await Promise.all(promises);
+          const finalCoupons = serverResults.filter((c): c is ICoupon => c !== null);
+          const finalTotalDiscount = finalCoupons.reduce((acc, c) => acc + (c.appliedDiscount || 0), 0);
+
+          set({
+            appliedCoupons: finalCoupons,
+            appliedCoupon: finalCoupons[0] || null,
+            discountAmount: finalTotalDiscount,
+          });
         } catch (error) {
-          // If server says it's invalid (e.g. expired while browsing), remove it
-          set({ appliedCoupon: null, discountAmount: 0 });
+          console.error("Error during server coupon revalidation:", error);
         }
       },
 
@@ -365,6 +458,7 @@ export const useCartStore = create<CartState>()(
         subtotal: state.subtotal,
         itemCount: state.itemCount,
         appliedCoupon: state.appliedCoupon,
+        appliedCoupons: state.appliedCoupons,
         discountAmount: state.discountAmount
       }),
     }

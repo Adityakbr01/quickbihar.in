@@ -85,6 +85,10 @@ export const sellerStoreSchema = z.object({
         shippingPolicy: mongoIdSchema.optional().nullable(),
         termsPolicy: mongoIdSchema.optional().nullable(),
     }).optional(),
+    currentLocation: z.object({
+        lat: z.coerce.number().min(-90).max(90),
+        lng: z.coerce.number().min(-180).max(180),
+    }).optional(),
     timings: z.preprocess(parseJson, z.array(z.object({
         day: z.coerce.number().min(0).max(6),
         openTime: z.string(),
@@ -124,6 +128,8 @@ export const sellerCouponSchema = z.object({
     usageLimit: z.coerce.number().int().min(1).optional(),
     usageLimitPerUser: z.coerce.number().int().min(1).optional(),
     isActive: boolFromForm.optional(),
+    appliesTo: z.enum(["ALL", "SPECIFIC"]).optional().default("ALL"),
+    productIds: z.preprocess(parseJson, z.array(mongoIdSchema).optional()),
 });
 
 export const sellerBannerSchema = z.object({

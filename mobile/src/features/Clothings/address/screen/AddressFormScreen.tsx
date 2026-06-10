@@ -182,6 +182,19 @@ const AddressFormScreen = () => {
   const onSubmit = async (formData: AddressFormValues) => {
     try {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      const hasLocationPin = Number.isFinite(Number(formData.latitude))
+        && Number.isFinite(Number(formData.longitude))
+        && !(Number(formData.latitude) === 0 && Number(formData.longitude) === 0);
+
+      if (!hasLocationPin) {
+        showAlert(
+          "Location Pin Required",
+          "Please tap Use My Current Location before saving this address. Delivery riders use this pin for pickup and delivery verification.",
+          [{ text: "OK", style: "default" }]
+        );
+        return;
+      }
+
       if (isEditing && id) {
         await updateAddress.mutateAsync({ id, data: formData });
       } else {
@@ -191,6 +204,16 @@ const AddressFormScreen = () => {
       router.back();
     } catch (error: any) {
       showAlert("Save Failed", error.message || "Failed to save address");
+    }
+  };
+
+  const onInvalidSubmit = (formErrors: Record<string, any>) => {
+    if (formErrors.latitude || formErrors.longitude) {
+      showAlert(
+        "Location Pin Required",
+        "Please tap Use My Current Location before saving this address. Delivery riders use this pin for delivery verification.",
+        [{ text: "OK", style: "default" }]
+      );
     }
   };
 
@@ -315,7 +338,7 @@ const AddressFormScreen = () => {
 
         <TouchableOpacity
           style={styles.submitButton}
-          onPress={handleSubmit(onSubmit)}
+          onPress={handleSubmit(onSubmit, onInvalidSubmit)}
           disabled={createAddress.isPending || updateAddress.isPending}
         >
           {createAddress.isPending || updateAddress.isPending ? (

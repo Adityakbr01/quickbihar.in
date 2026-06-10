@@ -29,6 +29,7 @@ export interface PartnerProfile {
     availableBalance: number;
     pendingPayoutBalance: number;
     lifetimeEarnings: number;
+    collectedCodLiability?: number;
   };
   store?: {
     _id: string;
@@ -1092,6 +1093,21 @@ export const adminManagementApi = {
 
   deleteSeller: async (id: string): Promise<ManagedPerson> => {
     const response = await axiosInstance.delete(`/admin/sellers/${id}`);
+    return response.data.data;
+  },
+
+  getAdminSubOrders: async (params: AdminListParams & { sellerId?: string; riderId?: string }): Promise<PaginatedAdminResult<any>> => {
+    const response = await axiosInstance.get("/orders/admin/sub-orders", { params });
+    return response.data.data;
+  },
+
+  adminAssignRider: async ({ subOrderId, riderUserId }: { subOrderId: string; riderUserId: string }) => {
+    const response = await axiosInstance.post(`/orders/admin/sub-orders/${subOrderId}/assign`, { riderUserId });
+    return response.data.data;
+  },
+
+  adminSettleCod: async (subOrderId: string) => {
+    const response = await axiosInstance.post(`/orders/admin/sub-orders/${subOrderId}/cod-settle`);
     return response.data.data;
   },
 };

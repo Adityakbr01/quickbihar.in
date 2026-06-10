@@ -343,6 +343,13 @@ export class SellerService {
         const existingStore = await this.getLatestStore(userId, false);
         const payload: any = { ...data };
 
+        if (payload.currentLocation) {
+            payload.currentLocation = {
+                type: "Point",
+                coordinates: [payload.currentLocation.lng, payload.currentLocation.lat],
+            };
+        }
+
         if (payload.categoryConfig) {
             const nextCategoryConfig = {
                 ...payload.categoryConfig,
@@ -717,6 +724,20 @@ export class SellerService {
         const existing = await Coupon.findOne({ code: data.code.toUpperCase() }).lean();
         if (existing) throw new ApiError(400, "Coupon code already exists");
 
+        if (data.appliesTo === "SPECIFIC") {
+            if (!data.productIds || !data.productIds.length) {
+                throw new ApiError(400, "At least one product must be selected for specific coupons");
+            }
+            const count = await Product.countDocuments({
+                _id: { $in: data.productIds },
+                sellerId: userId,
+                isDeleted: false
+            });
+            if (count !== data.productIds.length) {
+                throw new ApiError(400, "One or more selected products do not belong to you");
+            }
+        }
+
         return await Coupon.create({
             ...data,
             code: data.code.toUpperCase(),
@@ -736,6 +757,23 @@ export class SellerService {
     static async updateCoupon(userId: string, couponId: string, data: any) {
         const coupon = await Coupon.findOne({ _id: couponId, sellerId: userId, scope: "SELLER" });
         if (!coupon) throw new ApiError(404, "Coupon not found");
+
+        const appliesTo = data.appliesTo !== undefined ? data.appliesTo : coupon.appliesTo;
+        const productIds = data.productIds !== undefined ? data.productIds : coupon.productIds;
+
+        if (appliesTo === "SPECIFIC") {
+            if (!productIds || !productIds.length) {
+                throw new ApiError(400, "At least one product must be selected for specific coupons");
+            }
+            const count = await Product.countDocuments({
+                _id: { $in: productIds },
+                sellerId: userId,
+                isDeleted: false
+            });
+            if (count !== productIds.length) {
+                throw new ApiError(400, "One or more selected products do not belong to you");
+            }
+        }
 
         Object.assign(coupon, {
             ...data,

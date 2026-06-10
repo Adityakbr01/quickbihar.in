@@ -80,5 +80,7 @@ router.delete("/malls/:id", AdminController.deleteMall);
 router.patch("/sellers/:id/mall", AdminController.assignSellerMall);
 router.patch("/sellers/:id/mall-request", AdminController.reviewMallRequest);
 
+// Rider COD Liability Settlement
+router.post("/delivery/:riderId/settle-cod", AdminController.settleCodLiability);
 
 export default router;

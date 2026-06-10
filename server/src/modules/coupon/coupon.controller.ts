@@ -29,9 +29,15 @@ export const deleteCoupon = asyncHandler(async (req: Request, res: Response) => 
 });
 
 export const validateCoupon = asyncHandler(async (req: Request, res: Response) => {
-    const { code, orderAmount } = req.body;
-    // req.user._id would be used here in a real app
+    const { code, orderAmount, items } = req.body;
     const userId = (req as any).user?._id || "guest";
-    const result = await couponService.validateCoupon(code, Number(orderAmount), userId);
+    
+    let result;
+    if (items && Array.isArray(items) && items.length > 0) {
+        result = await couponService.validateCouponForCart(code, items, userId.toString());
+    } else {
+        result = await couponService.validateCoupon(code, Number(orderAmount || 0), userId.toString());
+    }
+    
     return res.status(200).json(new ApiResponse(200, result, "Coupon is valid"));
 });

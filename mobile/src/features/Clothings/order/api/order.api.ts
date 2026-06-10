@@ -14,8 +14,11 @@ export interface CreateOrderData {
     state: string;
     pincode: string;
     landmark?: string;
+    latitude: number;
+    longitude: number;
   };
   couponCode?: string;
+  couponCodes?: string[];
 }
 
 export interface VerifyPaymentData {
@@ -51,5 +54,20 @@ export const getAdminOrdersRequest = async () => {
 
 export const updateOrderStatusRequest = async (orderId: string, status: string, reason?: string) => {
   const response = await axiosInstance.patch(`/orders/admin/status/${orderId}`, { status, cancellationReason: reason });
+  return response.data;
+};
+
+export const getSubOrderByIdRequest = async (subOrderId: string) => {
+  const response = await axiosInstance.get(`/orders/sub-orders/${subOrderId}`);
+  return response.data;
+};
+
+export const cancelSubOrderRequest = async (subOrderId: string, reason: string) => {
+  const response = await axiosInstance.post(`/orders/sub-orders/${subOrderId}/cancel`, { reason });
+  return response.data;
+};
+
+export const returnSubOrderRequest = async (subOrderId: string, reason: string) => {
+  const response = await axiosInstance.post(`/orders/sub-orders/${subOrderId}/return`, { reason });
   return response.data;
 };

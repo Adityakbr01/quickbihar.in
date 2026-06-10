@@ -19,8 +19,8 @@ export const addressSchema = z.object({
   landmark: z.string().optional(),
   addressType: z.nativeEnum(AddressType),
   isDefault: z.boolean(),
-  latitude: z.number().optional(),
-  longitude: z.number().optional(),
+  latitude: z.number().refine((value) => value !== 0, "Tap Use My Current Location to pin this address"),
+  longitude: z.number().refine((value) => value !== 0, "Tap Use My Current Location to pin this address"),
 });
 
 export type AddressFormValues = z.infer<typeof addressSchema>;

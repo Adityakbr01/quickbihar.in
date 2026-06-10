@@ -4,6 +4,7 @@ import connectDB from "./config/db";
 import { ENV } from "./config/env.config";
 import { socketService } from "./modules/socket/socket.service";
 import { seedRbac } from "./seed/seed";
+import { MatchingService } from "./modules/delivery/matching.service";
 
 const port = ENV.PORT;
 const httpServer = createServer(app);
@@ -21,6 +22,8 @@ connectDB()
     // await seedAppConfig();
     // await seedRbac();
 
+    // Start background matching loop
+    MatchingService.start();
 
     httpServer.listen(port, () => {
       console.log(`🚀 Server and Sockets are running at port : ${port}`);

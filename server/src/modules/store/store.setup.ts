@@ -12,6 +12,7 @@ export const STORE_SETUP_REQUIRED_FIELDS = [
     "address.state",
     "address.country",
     "address.postalCode",
+    "store.currentLocation",
     "delivery.deliveryAreas",
     "delivery.shippingFee",
     "delivery.freeShippingThreshold",
@@ -31,6 +32,7 @@ export const buildStoreSetupStatus = (store: any) => {
     const deliveryConfig = raw.deliveryConfig || {};
     const seo = raw.seo || {};
     const policyRefs = raw.policyRefs || {};
+    const coordinates = raw.currentLocation?.coordinates || [];
 
     const deliveryFee = deliveryConfig.shippingFee ?? raw.deliveryFee;
     const freeShippingThreshold = deliveryConfig.freeShippingThreshold ?? raw.minOrderAmount;
@@ -45,6 +47,7 @@ export const buildStoreSetupStatus = (store: any) => {
         "address.state": hasText(address.state),
         "address.country": hasText(address.country),
         "address.postalCode": hasAnyText(address.postalCode, address.pincode),
+        "store.currentLocation": Number.isFinite(Number(coordinates[0])) && Number.isFinite(Number(coordinates[1])),
         "category.primaryCategory": hasText(categoryConfig.primaryCategory),
         "category.subcategories": hasList(categoryConfig.subcategories),
         "delivery.deliveryAreas": hasList(deliveryConfig.deliveryAreas),

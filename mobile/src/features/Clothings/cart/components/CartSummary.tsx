@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text } from "react-native";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { createCartStyles } from "../styles/cartStyles";
+import { useCartStore } from "../store/cartStore";
 
 interface CartSummaryProps {
   subtotal: number;
@@ -22,6 +23,7 @@ const CartSummary = ({
 }: CartSummaryProps) => {
   const theme = useTheme();
   const styles = createCartStyles(theme);
+  const { appliedCoupons = [] } = useCartStore();
   
   // Total discount includes hardcoded discount + coupon discount
   const totalDiscount = discount + discountAmount;
@@ -56,13 +58,31 @@ const CartSummary = ({
         </Text>
       </View>
       
-      {(discount > 0 || discountAmount > 0) && (
+      {discount > 0 && (
+        <View style={styles.summaryRow}>
+          <Text style={styles.summaryLabel}>Discount</Text>
+          <Text style={[styles.summaryValue, { color: theme.primary }]}>
+            -{formatPrice(discount)}
+          </Text>
+        </View>
+      )}
+
+      {appliedCoupons.map((coupon) => (
+        <View key={coupon.code} style={styles.summaryRow}>
+          <Text style={styles.summaryLabel}>Coupon ({coupon.code})</Text>
+          <Text style={[styles.summaryValue, { color: theme.primary }]}>
+            -{formatPrice(coupon.appliedDiscount || 0)}
+          </Text>
+        </View>
+      ))}
+
+      {appliedCoupons.length === 0 && discountAmount > 0 && (
         <View style={styles.summaryRow}>
           <Text style={styles.summaryLabel}>
-            Discount {appliedCoupon ? `(${appliedCoupon.code})` : ""}
+            Coupon {appliedCoupon ? `(${appliedCoupon.code})` : ""}
           </Text>
           <Text style={[styles.summaryValue, { color: theme.primary }]}>
-            -{formatPrice(totalDiscount)}
+            -{formatPrice(discountAmount)}
           </Text>
         </View>
       )}

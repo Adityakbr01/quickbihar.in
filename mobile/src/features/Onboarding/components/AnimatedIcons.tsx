@@ -199,21 +199,21 @@ export const CreditCardIcon = () => {
         <View style={iconStyles.card}>
           <LinearGradient
             colors={["rgba(255,255,255,0.4)", "rgba(255,255,255,0.05)"]}
-            style={StyleSheet.absoluteFillObject}
+            style={StyleSheet.absoluteFill}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
           />
           <View style={iconStyles.cardStrip} />
           {/* Holographic sweeping line */}
-          <Animated.View style={[StyleSheet.absoluteFillObject, shimmerStyle]}>
+          <Animated.View style={[StyleSheet.absoluteFill, shimmerStyle]}>
             <LinearGradient
               colors={["transparent", "rgba(255,255,255,0.8)", "transparent"]}
               start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-              style={[StyleSheet.absoluteFillObject, { width: 40, transform: [{ skewX: "-20deg" }] }]}
+              style={[StyleSheet.absoluteFill, { width: 40, transform: [{ skewX: "-20deg" }] }]}
             />
           </Animated.View>
           <View style={iconStyles.chip}>
-            <LinearGradient colors={["#fcd34d", "#b45309"]} style={StyleSheet.absoluteFillObject} />
+            <LinearGradient colors={["#fcd34d", "#b45309"]} style={StyleSheet.absoluteFill} />
           </View>
         </View>
       </Animated.View>
@@ -310,13 +310,13 @@ export const TruckIcon = () => {
         <View style={iconStyles.truckBody}>
           <LinearGradient
             colors={["rgba(255,255,255,0.6)", "rgba(255,255,255,0.05)"]}
-            style={StyleSheet.absoluteFillObject}
+            style={StyleSheet.absoluteFill}
             start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
           />
           <View style={iconStyles.truckCabin}>
             <LinearGradient
               colors={["rgba(255,255,255,0.5)", "rgba(255,255,255,0.1)"]}
-              style={StyleSheet.absoluteFillObject}
+              style={StyleSheet.absoluteFill}
               start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
             />
             <View style={iconStyles.truckWindow} />

@@ -1,7 +1,8 @@
-import { useAuthStore } from "@/src/features/common/auth/store/authStore";
+import { RoleEnum, useAuthStore } from "@/src/features/common/auth/store/authStore";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import {
   DashboardCircleSettingsIcon,
+  DeliveryTruck01Icon,
   Home01Icon,
   Search01Icon,
   ShoppingCartCheck01Icon,
@@ -40,16 +41,25 @@ export default function TabsLayout() {
   const theme = useTheme();
   const { user, isAuthenticated } = useAuthStore();
   const router = useRouter();
-  const isAdmin = user?.role?.name === "ADMIN";
+  const roleName = typeof user?.role === "string" ? user.role : user?.role?.name;
+  const isAdmin = roleName === RoleEnum.ADMIN;
+  const isRider = roleName === RoleEnum.DELIVERY || roleName === "RIDER";
 
   const isWeb = Platform.OS === "web";
 
   const ALL_TABS = [
     ...TABS_CONFIG,
     {
+      name: "rider",
+      label: "Rider",
+      icon: DeliveryTruck01Icon,
+      hidden: !isRider,
+    },
+    {
       name: "admin",
       label: "Admin",
       icon: DashboardCircleSettingsIcon,
+      hidden: !isAdmin,
     },
   ];
 
@@ -92,7 +102,7 @@ export default function TabsLayout() {
           key={tab.name}
           name={tab.name}
           options={{
-            href: tab.name === "admin" && !isAdmin ? null : undefined,
+            href: "hidden" in tab && tab.hidden ? null : undefined,
             tabBarLabel: tab.label,
             tabBarIcon: ({ size, focused }) => (
               <HugeiconsIcon

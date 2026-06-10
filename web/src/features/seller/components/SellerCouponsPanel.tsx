@@ -20,6 +20,7 @@ import type {
 import {
   useSellerCoupons,
   useSellerCouponMutations,
+  useSellerProducts,
 } from "../hooks/useSellerManagement";
 import {
   ModuleCard,
@@ -63,7 +64,7 @@ export function SellerCouponsPanel() {
     >
       <SimpleTable
         empty={couponsQuery.isLoading ? "Loading coupons..." : "No coupons found."}
-        columns={["Code", "Rule", "Usage", "Dates", "Approval", "Actions"]}
+        columns={["Code", "Rule", "Target", "Usage", "Dates", "Approval", "Actions"]}
         rows={(couponsQuery.data?.data || []).map((coupon) => [
           <div key={`${coupon._id}-code`} className="font-medium text-white">
             {coupon.code}
@@ -73,6 +74,7 @@ export function SellerCouponsPanel() {
               ? `${coupon.discountValue}%`
               : `Rs. ${formatAmount(coupon.discountValue)}`
           } off`,
+          coupon.appliesTo === "SPECIFIC" ? "Specific Products" : "All Products",
           `${coupon.usedCount}/${coupon.usageLimit}`,
           `${formatDate(coupon.startDate)} - ${formatDate(coupon.endDate)}`,
           <StatusBadge key={`${coupon._id}-status`} label={coupon.approvalStatus || "APPROVED"} />,
@@ -120,6 +122,11 @@ function CouponDialog({
   const [startDate, setStartDate] = useState(dateInput(coupon?.startDate));
   const [endDate, setEndDate] = useState(dateInput(coupon?.endDate));
   const [dateError, setDateError] = useState("");
+  const [appliesTo, setAppliesTo] = useState<"ALL" | "SPECIFIC">(coupon?.appliesTo || "ALL");
+  const [selectedProductIds, setSelectedProductIds] = useState<string[]>(coupon?.productIds || []);
+
+  const productsQuery = useSellerProducts({ page: 1, limit: 1000 });
+  const products = productsQuery.data?.data || [];
 
   const changeOpen = (nextOpen: boolean) => {
     setOpen(nextOpen);
@@ -127,6 +134,8 @@ function CouponDialog({
     if (nextOpen) {
       setStartDate(dateInput(coupon?.startDate));
       setEndDate(dateInput(coupon?.endDate));
+      setAppliesTo(coupon?.appliesTo || "ALL");
+      setSelectedProductIds(coupon?.productIds || []);
     }
   };
 
@@ -135,6 +144,10 @@ function CouponDialog({
     const form = new FormData(event.currentTarget);
     if (!endDate) {
       setDateError("End date is required.");
+      return;
+    }
+    if (appliesTo === "SPECIFIC" && selectedProductIds.length === 0) {
+      setDateError("At least one product must be selected for specific coupons.");
       return;
     }
 
@@ -149,6 +162,8 @@ function CouponDialog({
       usageLimitPerUser: numberValue(form, "usageLimitPerUser"),
       startDate,
       endDate,
+      appliesTo,
+      productIds: appliesTo === "SPECIFIC" ? selectedProductIds : [],
     });
     changeOpen(false);
   };
@@ -203,8 +218,83 @@ function CouponDialog({
                 className={inputClass}
               />
             </label>
-            {dateError && <div className="text-xs text-red-300 md:col-span-2">{dateError}</div>}
             <Field name="description" label="Description" defaultValue={coupon?.description} required />
+
+            <div className="grid gap-2 md:col-span-2">
+              <span className={labelClass}>Coupon Target</span>
+              <div className="flex gap-6 mt-1">
+                <label className="flex items-center gap-2 text-sm text-white/80 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="appliesTo"
+                    value="ALL"
+                    checked={appliesTo === "ALL"}
+                    onChange={() => setAppliesTo("ALL")}
+                    className="text-[#fb923c] focus:ring-0 focus:ring-offset-0 bg-white/5 border-white/10"
+                  />
+                  Apply to all my products
+                </label>
+                <label className="flex items-center gap-2 text-sm text-white/80 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="appliesTo"
+                    value="SPECIFIC"
+                    checked={appliesTo === "SPECIFIC"}
+                    onChange={() => setAppliesTo("SPECIFIC")}
+                    className="text-[#fb923c] focus:ring-0 focus:ring-offset-0 bg-white/5 border-white/10"
+                  />
+                  Apply to specific products
+                </label>
+              </div>
+            </div>
+
+            {appliesTo === "SPECIFIC" && (
+              <div className="grid gap-2 md:col-span-2">
+                <span className={labelClass}>Select Products</span>
+                <div className="max-h-48 overflow-y-auto border border-white/10 rounded-md bg-white/[0.02] p-2 space-y-1">
+                  {products.map((product) => {
+                    const isChecked = selectedProductIds.includes(product._id);
+                    return (
+                      <label
+                        key={product._id}
+                        className="flex items-center gap-3 p-2 rounded-md hover:bg-white/5 cursor-pointer text-sm text-white/80"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={() => {
+                            if (isChecked) {
+                              setSelectedProductIds(selectedProductIds.filter((id) => id !== product._id));
+                            } else {
+                              setSelectedProductIds([...selectedProductIds, product._id]);
+                            }
+                          }}
+                          className="rounded text-[#fb923c] focus:ring-0 focus:ring-offset-0 bg-white/5 border-white/10"
+                        />
+                        {product.images?.[0]?.url && (
+                          <img
+                            src={product.images[0].url}
+                            alt={product.title}
+                            className="w-8 h-8 rounded object-cover"
+                          />
+                        )}
+                        <div className="flex-1 truncate">
+                          <span className="font-medium">{product.title}</span>
+                          <span className="block text-xs text-white/40">SKU: {product.details?.sku || "N/A"}</span>
+                        </div>
+                      </label>
+                    );
+                  })}
+                  {products.length === 0 && !productsQuery.isLoading && (
+                    <div className="text-center text-sm text-white/40 py-4">
+                      No products found. Please create products first.
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {dateError && <div className="text-xs text-red-300 md:col-span-2">{dateError}</div>}
           </div>
           <DialogFooter className="border-white/10 bg-white/[0.03] gap-2">
             <Button type="button" variant="outline" onClick={() => changeOpen(false)}>

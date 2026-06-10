@@ -70,7 +70,7 @@ export default function AuthScreen() {
         locations={[0, 0.28, 0.62, 0.9, 9.2]}
         start={{ x: -0.4, y: 0 }}
         end={{ x: -0.8, y: 1 }}
-        style={StyleSheet.absoluteFillObject}
+        style={StyleSheet.absoluteFill}
       />
 
       <KeyboardAvoidingView

@@ -29,7 +29,7 @@ const productSchema = new Schema(
 
         price: { type: Number, required: true },
 
-        originalPrice: { type: Number },
+        originalPrice: { type: Number, required: true },
 
         discountPercentage: { type: Number },
 
@@ -168,10 +168,10 @@ productSchema.virtual("discountLabel").get(function () {
 
 productSchema.index({ title: "text", description: "text", tags: "text" });
 
-// Auto calculate totalStock and generate SKUs before validation
+// Auto calculate totalStock, validate prices, and generate SKUs before validation
 productSchema.pre("validate", async function () {
-    // Generate Product Base SKU if not exists
-    if (!this.details?.sku) {
+    // Generate/override Product Base SKU if isNew or not exists
+    if (this.isNew || !this.details?.sku) {
         const brandPart = (this.brand || "QB").toUpperCase().replace(/\s+/g, "").substring(0, 3);
         const catPart = (this.category || "PRD").toUpperCase().replace(/\s+/g, "").substring(0, 3);
         const randomPart = Math.random().toString(36).substring(2, 7).toUpperCase();
@@ -188,15 +188,16 @@ productSchema.pre("validate", async function () {
         }
     }
 
-    // Generate Variant SKUs
+    // Generate/force Variant SKUs
     if (this.isModified("variants")) {
         this.totalStock = this.variants.reduce((sum, variant) => sum + (variant.stock || 0), 0);
 
         this.variants.forEach(variant => {
-            if (!variant.sku) {
-                const size = variant.size.toUpperCase().replace(/\s+/g, "");
-                const color = variant.color.toUpperCase().replace(/\s+/g, "");
-                variant.sku = `${this.details?.sku}-${size}-${color}`;
+            const size = variant.size.toUpperCase().replace(/\s+/g, "");
+            const color = variant.color.toUpperCase().replace(/\s+/g, "");
+            const expectedSku = `${this.details?.sku}-${size}-${color}`;
+            if (!variant.sku || variant.sku !== expectedSku) {
+                variant.sku = expectedSku;
             }
         });
     }

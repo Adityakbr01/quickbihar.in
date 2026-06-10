@@ -1,6 +1,7 @@
 "use client";
 
 import { type FormEvent, useMemo, useState } from "react";
+import { cn } from "@/lib/utils";
 import {
   CheckCircle2,
   Eye,
@@ -349,7 +350,7 @@ function PayoutPanel({
             </div>
             <PayoutPartnerBadge type={selectedProfile?.type || "SELLER"} />
           </div>
-          <div className="grid gap-2 sm:grid-cols-3">
+          <div className={cn("grid gap-2", selectedProfile?.type === "DELIVERY" ? "sm:grid-cols-4" : "sm:grid-cols-3")}>
             <MiniMoney
               label="Available"
               value={selectedWallet?.availableBalance}
@@ -362,6 +363,12 @@ function PayoutPanel({
               label="Lifetime"
               value={selectedWallet?.lifetimeEarnings}
             />
+            {selectedProfile?.type === "DELIVERY" && (
+              <MiniMoney
+                label="COD Liability"
+                value={selectedWallet?.collectedCodLiability || 0}
+              />
+            )}
           </div>
           <div className="flex flex-wrap items-center gap-2 text-xs text-gray-400">
             <span>

@@ -33,6 +33,11 @@ router.get("/orders", SellerController.orders);
 router.get("/orders/:id", SellerController.orderDetails);
 router.patch("/orders/:id/status", SellerController.updateOrderStatus);
 
+router.get("/sub-orders", SellerController.listSubOrders);
+router.get("/sub-orders/:id", SellerController.subOrderDetails);
+router.patch("/sub-orders/:id/status", SellerController.updateSubOrderStatus);
+router.post("/sub-orders/:id/cancellation-approval", SellerController.approveSubOrderCancellation);
+
 router.get("/coupons", SellerController.coupons);
 router.post("/coupons", SellerController.createCoupon);
 router.patch("/coupons/:id/submit", SellerController.submitCoupon);

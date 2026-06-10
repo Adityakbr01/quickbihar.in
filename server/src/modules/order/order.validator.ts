@@ -15,14 +15,21 @@ const shippingAddressSchema = z.object({
     state: z.string().min(2, "State is required"),
     pincode: z.string().min(6, "Pincode required").max(6),
     landmark: z.string().optional(),
-    latitude: z.coerce.number().min(-90).max(90).optional(),
-    longitude: z.coerce.number().min(-180).max(180).optional(),
-});
+    latitude: z.coerce.number().min(-90).max(90),
+    longitude: z.coerce.number().min(-180).max(180),
+}).refine(
+    (address) => !(address.latitude === 0 && address.longitude === 0),
+    {
+        path: ["latitude"],
+        message: "Delivery address location pin is required",
+    }
+);
 
 export const createOrderSchema = z.object({
     items: z.array(orderItemSchema).min(1, "Order must have at least one item"),
     shippingAddress: shippingAddressSchema,
     couponCode: z.string().optional(),
+    couponCodes: z.array(z.string()).optional(),
 });
 
 export const verifyPaymentSchema = z.object({

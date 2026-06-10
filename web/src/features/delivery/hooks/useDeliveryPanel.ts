@@ -124,3 +124,104 @@ export const useUpdateDeliveryProfile = () => {
     onError: (error: Error) => toast.error(error.message || "Failed to update profile"),
   });
 };
+
+export const useAcceptSubOrder = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: deliveryApi.acceptSubOrder,
+    onSuccess: () => {
+      invalidateDelivery(queryClient);
+      toast.success("Delivery accepted successfully");
+    },
+    onError: (error: Error) => toast.error(error.message || "Failed to accept delivery"),
+  });
+};
+
+export const useSubOrderArriving = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: deliveryApi.subOrderArriving,
+    onSuccess: () => {
+      invalidateDelivery(queryClient);
+      toast.success("Status updated: Arriving at store");
+    },
+    onError: (error: Error) => toast.error(error.message || "Failed to update status"),
+  });
+};
+
+export const useSubOrderReachedStore = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ subOrderId, location }: { subOrderId: string; location: { latitude: number; longitude: number } }) =>
+      deliveryApi.subOrderReachedStore(subOrderId, location),
+    onSuccess: () => {
+      invalidateDelivery(queryClient);
+      toast.success("Status updated: Reached store");
+    },
+    onError: (error: Error) => toast.error(error.message || "Failed to verify store checkpoint"),
+  });
+};
+
+export const useSubOrderPickup = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ subOrderId, payload }: { subOrderId: string; payload: { pickupOtp: string; pickupPhoto?: string } }) =>
+      deliveryApi.subOrderPickup(subOrderId, payload),
+    onSuccess: () => {
+      invalidateDelivery(queryClient);
+      toast.success("Sub-order picked up successfully");
+    },
+    onError: (error: Error) => toast.error(error.message || "Failed to verify pickup OTP"),
+  });
+};
+
+export const useSubOrderTransit = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: deliveryApi.subOrderTransit,
+    onSuccess: () => {
+      invalidateDelivery(queryClient);
+      toast.success("Status updated: Out for delivery");
+    },
+    onError: (error: Error) => toast.error(error.message || "Failed to update status"),
+  });
+};
+
+export const useSubOrderNearCustomer = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ subOrderId, location }: { subOrderId: string; location: { latitude: number; longitude: number } }) =>
+      deliveryApi.subOrderNearCustomer(subOrderId, location),
+    onSuccess: () => {
+      invalidateDelivery(queryClient);
+      toast.success("Status updated: Near customer");
+    },
+    onError: (error: Error) => toast.error(error.message || "Failed to verify customer checkpoint"),
+  });
+};
+
+export const useSubOrderDeliver = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ subOrderId, payload }: { subOrderId: string; payload: { deliveryOtp: string; deliveryPhoto?: string; deliverySignature?: string } }) =>
+      deliveryApi.subOrderDeliver(subOrderId, payload),
+    onSuccess: () => {
+      invalidateDelivery(queryClient);
+      toast.success("Delivery completed successfully. Payout credited.");
+    },
+    onError: (error: Error) => toast.error(error.message || "Failed to complete delivery"),
+  });
+};
+
+export const useSubOrderCancel = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ subOrderId, reason }: { subOrderId: string; reason: string }) =>
+      deliveryApi.subOrderCancel(subOrderId, reason),
+    onSuccess: () => {
+      invalidateDelivery(queryClient);
+      toast.success("Delivery job cancelled successfully");
+    },
+    onError: (error: Error) => toast.error(error.message || "Failed to cancel delivery"),
+  });
+};

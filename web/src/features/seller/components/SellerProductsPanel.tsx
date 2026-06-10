@@ -166,6 +166,19 @@ function ProductDialog({
     product?.variants?.length ? product.variants : [{ size: "", color: "", stock: 0, sku: "" }]
   );
   const [sizeChartId, setSizeChartId] = useState(entityId(product?.sizeChartId));
+  const [sellingPrice, setSellingPrice] = useState<number | "">(product?.price ?? "");
+  const [originalPrice, setOriginalPrice] = useState<number | "">(product?.originalPrice ?? "");
+
+  const discountPercentage = useMemo(() => {
+    const sPrice = Number(sellingPrice);
+    const oPrice = Number(originalPrice);
+    if (oPrice && sPrice && oPrice > sPrice) {
+      return Math.round(((oPrice - sPrice) / oPrice) * 100);
+    }
+    return 0;
+  }, [sellingPrice, originalPrice]);
+
+  const priceError = "";
 
   const [returnPolicyId, setReturnPolicyId] = useState(
     product?.policyRefs?.returnPolicy || store?.policyRefs?.returnPolicy || ""
@@ -231,6 +244,8 @@ function ProductDialog({
     setTermsPolicyId(product?.policyRefs?.termsPolicy || store?.policyRefs?.termsPolicy || "");
     setIsExpressAvailable(product?.deliveryInfo?.isExpressAvailable ?? false);
     setIsCodAvailable(product?.deliveryInfo?.isCodAvailable ?? true);
+    setSellingPrice(product?.price ?? "");
+    setOriginalPrice(product?.originalPrice ?? "");
   };
 
   const changeOpen = (nextOpen: boolean) => {
@@ -273,6 +288,12 @@ function ProductDialog({
       setImageError("Maximum 5 product images are allowed.");
       return;
     }
+    const sPrice = Number(sellingPrice);
+    const oPrice = Number(originalPrice);
+    if (!oPrice) {
+      alert("MRP / Original Price is required.");
+      return;
+    }
     const form = new FormData(event.currentTarget);
     onSubmit(
       {
@@ -281,8 +302,8 @@ function ProductDialog({
         category: category,
         subCategory: subCategory || undefined,
         gender: gender || undefined,
-        price: numberValue(form, "price") || 0,
-        originalPrice: numberValue(form, "originalPrice"),
+        price: sPrice || 0,
+        originalPrice: oPrice,
         isGstApplicable: form.get("isGstApplicable") === "on",
         gstPercentage: numberValue(form, "gstPercentage") || 0,
         sizeChartId: sizeChartId || undefined,
@@ -406,14 +427,48 @@ function ProductDialog({
                 <option value="Unisex">Unisex</option>
               </select>
             </label>
-            <Field name="price" label="Selling Price" type="number" defaultValue={product?.price} required />
-            <Field
-              name="originalPrice"
-              label="MRP / Original Price"
-              type="number"
-              defaultValue={product?.originalPrice}
-              optional
-            />
+            <div className="grid gap-3 md:grid-cols-2 md:col-span-2">
+              <label className={labelClass}>
+                <span className="flex items-center gap-2">
+                  Selling Price
+                  <span className="text-[10px] normal-case text-red-300">Required</span>
+                </span>
+                <Input
+                  name="price"
+                  type="number"
+                  value={sellingPrice}
+                  onChange={(e) => setSellingPrice(e.target.value === "" ? "" : Number(e.target.value))}
+                  required
+                  min="0"
+                  className={inputClass}
+                />
+              </label>
+              <label className={labelClass}>
+                <span className="flex items-center gap-2">
+                  MRP / Original Price
+                  <span className="text-[10px] normal-case text-red-300">Required</span>
+                </span>
+                <Input
+                  name="originalPrice"
+                  type="number"
+                  value={originalPrice}
+                  onChange={(e) => setOriginalPrice(e.target.value === "" ? "" : Number(e.target.value))}
+                  required
+                  min="0"
+                  className={inputClass}
+                />
+              </label>
+              {discountPercentage > 0 && (
+                <div className="md:col-span-2 rounded border border-emerald-500/20 bg-emerald-500/5 px-3 py-1.5 text-xs font-semibold text-emerald-400">
+                  Calculated Discount: {discountPercentage}% OFF
+                </div>
+              )}
+              {priceError && (
+                <div className="md:col-span-2 rounded border border-red-500/20 bg-red-500/5 px-3 py-1.5 text-xs font-semibold text-red-300">
+                  {priceError}
+                </div>
+              )}
+            </div>
             <label className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-gray-300">
               <input name="isGstApplicable" type="checkbox" defaultChecked={Boolean(product?.isGstApplicable)} />
               GST Applicable
@@ -429,8 +484,8 @@ function ProductDialog({
               name="baseSku"
               label="Product SKU"
               defaultValue={product?.details?.sku}
-              optional
-              helper="Leave blank to generate automatically."
+              disabled
+              helper="Auto-generated by backend."
             />
             <Field
               name="tags"
@@ -485,35 +540,55 @@ function ProductDialog({
                   key={`${image.fileId}-${index}`}
                   className="flex items-center justify-between gap-3 rounded border border-white/10 bg-black/20 px-3 py-2 text-xs text-gray-300"
                 >
-                  <span className="truncate">{image.url}</span>
+                  <div className="flex items-center gap-2 overflow-hidden flex-1">
+                    <img
+                      src={image.url}
+                      alt="Product Preview"
+                      className="h-10 w-10 rounded object-cover border border-white/10"
+                    />
+                    <span className="truncate">{image.url}</span>
+                  </div>
                   <Button
                     type="button"
                     size="sm"
                     variant="ghost"
-                    className="text-red-300 hover:bg-red-400/10 hover:text-red-200"
+                    className="text-red-300 hover:bg-red-400/10 hover:text-red-200 shrink-0"
                     onClick={() => removeExistingImage(index)}
                   >
                     Remove
                   </Button>
                 </div>
               ))}
-              {newImages.map((image, index) => (
-                <div
-                  key={`${image.name}-${index}`}
-                  className="flex items-center justify-between gap-3 rounded border border-white/10 bg-black/20 px-3 py-2 text-xs text-gray-300"
-                >
-                  <span className="truncate">{image.name}</span>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="ghost"
-                    className="text-red-300 hover:bg-red-400/10 hover:text-red-200"
-                    onClick={() => removeNewImage(index)}
+              {newImages.map((image, index) => {
+                const previewUrl = URL.createObjectURL(image);
+                return (
+                  <div
+                    key={`${image.name}-${index}`}
+                    className="flex items-center justify-between gap-3 rounded border border-white/10 bg-black/20 px-3 py-2 text-xs text-gray-300"
                   >
-                    Remove
-                  </Button>
-                </div>
-              ))}
+                    <div className="flex items-center gap-2 overflow-hidden flex-1">
+                      <img
+                        src={previewUrl}
+                        alt="New Preview"
+                        className="h-10 w-10 rounded object-cover border border-white/10"
+                      />
+                      <span className="truncate">{image.name}</span>
+                    </div>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      className="text-red-300 hover:bg-red-400/10 hover:text-red-200 shrink-0"
+                      onClick={() => {
+                        removeNewImage(index);
+                        URL.revokeObjectURL(previewUrl);
+                      }}
+                    >
+                      Remove
+                    </Button>
+                  </div>
+                );
+              })}
             </div>
           </section>
 
@@ -786,10 +861,10 @@ function SellerVariantEditor({
           </label>
           <label className={labelClass}>
             Variant SKU
-            <span className="text-[10px] normal-case text-gray-500">Optional</span>
+            <span className="text-[10px] normal-case text-gray-500">Auto-generated</span>
             <Input
               value={variant.sku || ""}
-              onChange={(event) => update(index, "sku", event.target.value)}
+              disabled
               placeholder="Auto-generated"
               className={inputClass}
             />

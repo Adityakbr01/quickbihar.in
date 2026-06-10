@@ -44,7 +44,7 @@ const Skeleton = ({ width, height, borderRadius = 8, style }: SkeletonProps) => 
                     height,
                     borderRadius,
                     backgroundColor: theme.border,
-                },
+                } as any,
                 animatedStyle,
                 style,
             ]}

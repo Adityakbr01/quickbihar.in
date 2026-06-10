@@ -23,6 +23,10 @@ const envSchema = z.object({
     .enum(["development", "production", "test"])
     .default("development"),
 
+  MATCHING_STAGE4_RADIUS_KM: z.coerce.number().positive().default(8),
+  RIDER_MAX_ACCEPTED_ORDERS_PER_WINDOW: z.coerce.number().int().positive().default(15),
+  RIDER_ACCEPTANCE_WINDOW_HOURS: z.coerce.number().positive().default(12),
+
   REDIS_URL: z.string().default("redis://localhost:6379"),
 
   // ADMIN

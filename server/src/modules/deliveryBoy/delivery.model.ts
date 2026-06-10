@@ -86,6 +86,11 @@ const DeliveryProfileSchema = new Schema({
             default: 0,
             min: 0,
         },
+        collectedCodLiability: {
+            type: Number,
+            default: 0,
+            min: 0,
+        },
     },
 
     status: {

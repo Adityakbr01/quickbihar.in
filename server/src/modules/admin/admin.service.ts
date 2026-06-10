@@ -1223,6 +1223,7 @@ export class AdminService {
 
     static async listPeople(query: any) {
         const filter: any = {};
+        const partnerStatuses = ["PENDING", "APPROVED", "REJECTED"];
 
         if (query.search) {
             const searchRegex = new RegExp(query.search, "i");
@@ -1238,6 +1239,18 @@ export class AdminService {
         if (query.status === "blocked") filter.isBlocked = true;
         if (query.status === "verified") filter.isVerified = true;
         if (query.status === "unverified") filter.isVerified = { $ne: true };
+        if (partnerStatuses.includes(query.status)) {
+            const profileQueries: Promise<any[]>[] = [];
+            if (!query.role || query.role === RoleEnum.SELLER) {
+                profileQueries.push(Seller.find({ status: query.status }).select("userId").lean());
+            }
+            if (!query.role || query.role === RoleEnum.DELIVERY) {
+                profileQueries.push(DeliveryBoy.find({ status: query.status }).select("userId").lean());
+            }
+
+            const profiles = (await Promise.all(profileQueries)).flat();
+            filter._id = { $in: profiles.map((profile: any) => profile.userId).filter(Boolean) };
+        }
 
         if (query.role) {
             const role = await Role.findOne({ name: query.role }).lean();

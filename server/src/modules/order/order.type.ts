@@ -15,17 +15,28 @@ export enum OrderStatus {
 
 export enum DeliveryStatus {
     UNASSIGNED = "UNASSIGNED",
+    ASSIGNMENT_OPEN = "ASSIGNMENT_OPEN",
     ASSIGNED = "ASSIGNED",
     ACCEPTED = "ACCEPTED",
+    RIDER_REJECTED = "RIDER_REJECTED",
+    ARRIVING_AT_STORE = "ARRIVING_AT_STORE",
+    REACHED_STORE = "REACHED_STORE",
+    PICKUP_VERIFICATION_PENDING = "PICKUP_VERIFICATION_PENDING",
     PICKED_UP = "PICKED_UP",
+    IN_TRANSIT = "IN_TRANSIT",
+    NEAR_CUSTOMER = "NEAR_CUSTOMER",
     OUT_FOR_DELIVERY = "OUT_FOR_DELIVERY",
     DELIVERED = "DELIVERED",
+    DELIVERY_CONFIRMED = "DELIVERY_CONFIRMED",
     CANCELLED = "CANCELLED",
+    FAILED = "FAILED",
+    RETURNING = "RETURNING",
+    RETURNED = "RETURNED",
 }
 
 export interface IDeliveryLocation {
-    latitude: number;
-    longitude: number;
+    latitude?: number;
+    longitude?: number;
     heading?: number;
     updatedAt?: Date;
 }
@@ -76,6 +87,8 @@ export interface IOrderItem {
     warehouseName?: string;
     latitude?: number;
     longitude?: number;
+    taxAmount?: number;
+    basePrice?: number;
 }
 
 export interface IShippingAddress {
@@ -86,8 +99,8 @@ export interface IShippingAddress {
     state: string;
     pincode: string;
     landmark?: string;
-    latitude?: number;
-    longitude?: number;
+    latitude: number;
+    longitude: number;
 }
 
 export interface IOrder extends Document {
@@ -114,6 +127,8 @@ export interface IOrder extends Document {
         razorpaySignature?: string;
     };
     couponCode?: string;
+    couponCodes?: string[];
+    couponDiscounts?: Array<{ code: string; sellerId: any; discountAmount: number }>;
     createdAt: Date;
     updatedAt: Date;
 }

@@ -30,8 +30,13 @@ const ProductPricing = ({
   errors,
 }: ProductPricingProps) => {
   const basePrice = Number(price) || 0;
+  const original = Number(originalPrice) || 0;
   const gstRate = Number(gstPercentage) || 0;
   const finalPrice = isGstApplicable ? basePrice * (1 + gstRate / 100) : basePrice;
+
+  const discount = original > basePrice && original > 0
+    ? Math.round(((original - basePrice) / original) * 100)
+    : 0;
 
   return (
     <View style={styles.section}>
@@ -51,17 +56,27 @@ const ProductPricing = ({
           {errors?.price && <Text style={styles.errorText}>{errors.price}</Text>}
         </View>
         <View style={{ flex: 1, marginLeft: 10 }}>
-          <Text style={styles.label}>MRP (₹) [Optional]</Text>
+          <Text style={styles.label}>MRP (₹) [Required]</Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, errors?.originalPrice && styles.inputError]}
             value={originalPrice}
             onChangeText={setOriginalPrice}
             keyboardType="numeric"
             placeholder="e.g. 1499"
             placeholderTextColor={theme.tertiaryText}
           />
+          {errors?.originalPrice && <Text style={styles.errorText}>{errors.originalPrice}</Text>}
         </View>
       </View>
+
+      {discount > 0 && (
+        <View style={{ marginVertical: 6, padding: 8, backgroundColor: "#e6f4ea", borderRadius: 8, borderWidth: 1, borderColor: "#34a853" }}>
+          <Text style={{ color: "#137333", fontSize: 12, fontWeight: "600" }}>
+            Auto-calculated Discount: {discount}% OFF
+          </Text>
+        </View>
+      )}
+
 
       <View style={[styles.row, { alignItems: "center", justifyContent: "space-between", marginVertical: 8 }]}>
         <Text style={[styles.label, { marginBottom: 0 }]}>GST Applicable</Text>

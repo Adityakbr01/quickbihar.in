@@ -3,10 +3,10 @@ import * as SecureStore from "expo-secure-store";
 import { useAuthStore } from "../features/common/auth/store/authStore";
 
 // For Real Devices: Use your machine's local IP address.
-// Current IP: 10.58.126.27
+// Current IP: 10.147.135.27
 // For Android emulator: 10.0.2.2
 // For iOS Simulator/Web: localhost
-export const LOCAL_URL = "http://10.58.126.27:8000";
+export const LOCAL_URL = "http://10.147.135.27:8000";
 const PROD_URL = "https://quickbihar-in.onrender.com/api/v1";
 const BASE_URL = __DEV__ ? LOCAL_URL + "/api/v1" : PROD_URL;
 

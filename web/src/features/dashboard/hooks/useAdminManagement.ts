@@ -756,3 +756,37 @@ export const useDeleteSeller = () => {
     onError: (error: Error) => toast.error(error.message || "Failed to deactivate seller account"),
   });
 };
+
+export const useAdminSubOrders = (params: AdminListParams & { sellerId?: string; riderId?: string }) =>
+  useQuery({
+    queryKey: ["admin-sub-orders", params],
+    queryFn: () => adminManagementApi.getAdminSubOrders(params),
+  });
+
+export const useAdminAssignRider = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: adminManagementApi.adminAssignRider,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-sub-orders"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-dashboard"] });
+      toast.success("Rider manually assigned successfully");
+    },
+    onError: (error: Error) => toast.error(error.message || "Failed to assign rider"),
+  });
+};
+
+export const useAdminSettleCod = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: adminManagementApi.adminSettleCod,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-sub-orders"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-payouts"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-people"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-dashboard"] });
+      toast.success("COD liability settled successfully");
+    },
+    onError: (error: Error) => toast.error(error.message || "Failed to settle COD liability"),
+  });
+};

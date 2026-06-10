@@ -8,5 +8,5 @@ export default function Index() {
     return null;
   }
 
-  return <Redirect href="/(tabs)/clothing" />;
+  return <Redirect href={"/(tabs)/clothing" as any} />;
 }

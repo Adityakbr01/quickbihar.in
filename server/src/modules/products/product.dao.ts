@@ -121,7 +121,10 @@ export class ProductDAO {
     }
 
     static async updateById(id: string, data: any, options: any = { returnDocument: "after" }) {
-        return await Product.findByIdAndUpdate(id, data, options);
+        const product = await Product.findById(id);
+        if (!product) return null;
+        product.set(data);
+        return await product.save();
     }
 
     static async softDeleteById(id: string) {

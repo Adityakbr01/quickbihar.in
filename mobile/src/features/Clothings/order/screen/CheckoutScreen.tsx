@@ -34,6 +34,7 @@ const CheckoutScreen = () => {
     totalTax,
     discountAmount,
     appliedCoupon,
+    appliedCoupons = [],
     clearCart,
     shippingRules,
     fetchShippingConfig,
@@ -78,6 +79,14 @@ const CheckoutScreen = () => {
   const shipping = subtotal >= shippingRules.threshold ? 0 : shippingRules.fee;
   const totalPayable = subtotal + shipping - discountAmount;
 
+  const hasAddressGps = (address: any) => {
+    const latitude = Number(address?.latitude);
+    const longitude = Number(address?.longitude);
+    return Number.isFinite(latitude)
+      && Number.isFinite(longitude)
+      && !(latitude === 0 && longitude === 0);
+  };
+
   useEffect(() => {
     fetchAddresses();
   }, []);
@@ -114,6 +123,25 @@ const CheckoutScreen = () => {
       return;
     }
 
+    if (!hasAddressGps(selectedAddress)) {
+      showAlert(
+        "Location Pin Required",
+        "Please edit this delivery address and tap Use My Current Location before placing the order.",
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Update Address",
+            onPress: () =>
+              router.push({
+                pathname: "/account/address-form",
+                params: { id: selectedAddress._id, data: JSON.stringify(selectedAddress) },
+              }),
+          },
+        ],
+      );
+      return;
+    }
+
     try {
       setIsProcessingPayment(true);
 
@@ -135,8 +163,11 @@ const CheckoutScreen = () => {
           state: selectedAddress.state,
           pincode: selectedAddress.pincode,
           landmark: selectedAddress.landmark,
+          latitude: Number(selectedAddress.latitude),
+          longitude: Number(selectedAddress.longitude),
         },
         couponCode: appliedCoupon?.code,
+        couponCodes: (appliedCoupons || []).map((c) => c.code),
       };
 
       const orderResponse = await createOrderRequest(orderData);
@@ -284,23 +315,81 @@ const CheckoutScreen = () => {
           <Text style={[styles.sectionTitle, { marginBottom: 20 }]}>
             Order Summary
           </Text>
-          {items.map((item) => (
-            <View key={item.sku} style={styles.itemRow}>
-              <Image source={{ uri: item.image }} style={styles.itemImage} />
-              <View style={styles.itemInfo}>
-                <Text style={styles.itemTitle} numberOfLines={1}>
-                  {item.productTitle}
-                </Text>
-                <Text style={styles.itemVariant}>
-                  {item.selectedSize} / {item.selectedColor} • Qty{" "}
-                  {item.quantity}
-                </Text>
-              </View>
-              <Text style={styles.itemPrice}>
-                ₹{((item.price || 0) * item.quantity).toLocaleString()}
-              </Text>
-            </View>
-          ))}
+          {(() => {
+            const groupedItems = items.reduce((acc, item) => {
+              const sellerId = item.sellerId || "unknown";
+              if (!acc[sellerId]) acc[sellerId] = [];
+              acc[sellerId].push(item);
+              return acc;
+            }, {} as Record<string, typeof items>);
+
+            return Object.entries(groupedItems).map(([sellerId, sellerItems]) => {
+              const sellerSubtotal = sellerItems.reduce(
+                (sum, item) => sum + (item.price || 0) * item.quantity,
+                0
+              );
+
+              const sellerCoupon = (appliedCoupons || []).find(
+                (c) => (c.sellerId || "global") === sellerId
+              );
+              const couponDiscount = sellerCoupon?.appliedDiscount || 0;
+              const finalSellerSubtotal = Math.max(0, sellerSubtotal - couponDiscount);
+              const sellerDisplayName = sellerId !== "unknown"
+                ? `Store: #${sellerId.substring(sellerId.length - 6).toUpperCase()}`
+                : "Seller Section";
+
+              return (
+                <View key={sellerId} style={{ marginBottom: 20, borderBottomWidth: 1, borderBottomColor: theme.border, paddingBottom: 16 }}>
+                  <Text style={{ fontSize: 15, fontWeight: "700", color: theme.text, marginBottom: 12 }}>
+                    {sellerDisplayName}
+                  </Text>
+                  
+                  {sellerItems.map((item) => (
+                    <View key={item.sku} style={styles.itemRow}>
+                      <Image source={{ uri: item.image }} style={styles.itemImage} />
+                      <View style={styles.itemInfo}>
+                        <Text style={styles.itemTitle} numberOfLines={1}>
+                          {item.productTitle}
+                        </Text>
+                        <Text style={styles.itemVariant}>
+                          {item.selectedSize} / {item.selectedColor} • Qty{" "}
+                          {item.quantity}
+                        </Text>
+                      </View>
+                      <Text style={styles.itemPrice}>
+                        ₹{((item.price || 0) * item.quantity).toLocaleString()}
+                      </Text>
+                    </View>
+                  ))}
+
+                  <View style={{ marginTop: 12, gap: 6, paddingLeft: 8 }}>
+                    <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+                      <Text style={{ fontSize: 13, color: theme.secondaryText }}>Subtotal</Text>
+                      <Text style={{ fontSize: 13, fontWeight: "600", color: theme.text }}>
+                        ₹{sellerSubtotal.toLocaleString()}
+                      </Text>
+                    </View>
+                    {couponDiscount > 0 && (
+                      <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+                        <Text style={{ fontSize: 13, color: theme.primary }}>
+                          Coupon ({sellerCoupon?.code})
+                        </Text>
+                        <Text style={{ fontSize: 13, fontWeight: "600", color: theme.primary }}>
+                          -₹{couponDiscount.toLocaleString()}
+                        </Text>
+                      </View>
+                    )}
+                    <View style={{ flexDirection: "row", justifyContent: "space-between", borderTopWidth: 0.5, borderTopColor: theme.border, paddingTop: 6 }}>
+                      <Text style={{ fontSize: 13, fontWeight: "700", color: theme.text }}>Net Seller Total</Text>
+                      <Text style={{ fontSize: 13, fontWeight: "700", color: theme.primary }}>
+                        ₹{finalSellerSubtotal.toLocaleString()}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+              );
+            });
+          })()}
         </View>
 
         {/* Bill Details */}
@@ -370,7 +459,18 @@ const CheckoutScreen = () => {
             </Text>
           </View>
 
-          {discountAmount > 0 ? (
+          {appliedCoupons.map((coupon) => (
+            <View key={coupon.code} style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>
+                Coupon ({coupon.code})
+              </Text>
+              <Text style={[styles.summaryValue, styles.discountText]}>
+                -₹{(coupon.appliedDiscount || 0).toLocaleString()}
+              </Text>
+            </View>
+          ))}
+          
+          {appliedCoupons.length === 0 && discountAmount > 0 && (
             <View style={styles.summaryRow}>
               <Text style={styles.summaryLabel}>
                 Coupon ({appliedCoupon?.code || ""})
@@ -379,7 +479,7 @@ const CheckoutScreen = () => {
                 -₹{discountAmount.toLocaleString()}
               </Text>
             </View>
-          ) : null}
+          )}
 
           <View style={styles.divider} />
 

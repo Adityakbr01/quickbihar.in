@@ -153,7 +153,7 @@ export default function OnboardingScreen({ onDone }: { onDone?: () => void }) {
         locations={[0, 0.28, 0.52, 0.78, 1]}
         start={{ x: 0.2, y: 0 }}
         end={{ x: 0.8, y: 1 }}
-        style={StyleSheet.absoluteFillObject}
+        style={StyleSheet.absoluteFill}
       />
 
       <OnboardingSlide

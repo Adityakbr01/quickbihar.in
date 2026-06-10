@@ -29,6 +29,8 @@ export interface ICoupon {
     reviewedBy?: string;
     reviewedAt?: Date;
     rejectionReason?: string;
+    appliesTo?: "ALL" | "SPECIFIC";
+    productIds?: string[];
     isActive: boolean;
     createdAt: Date;
     updatedAt: Date;

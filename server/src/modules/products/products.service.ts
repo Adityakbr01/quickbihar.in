@@ -207,6 +207,9 @@ export class ProductService {
             ]);
             const slug = this.generateSlug(validatedData.title);
             const { sellerId: _ignoredSellerId, ...productPayload } = validatedData;
+            if (productPayload.details) {
+                delete productPayload.details.sku;
+            }
             productPayload.policyRefs = policyRefs;
             if (policyRefs?.refundPolicy) {
                 productPayload.refundPolicy = policyRefs.refundPolicy;
@@ -278,7 +281,7 @@ export class ProductService {
             if (!product) throw new ApiError(404, "Product not found");
 
             // Permission check: Sellers can only edit their own products
-            if (this.isSellerRole(role) && product.sellerId.toString() !== sellerId) {
+            if (this.isSellerRole(role) && product.sellerId.toString() !== sellerId.toString()) {
                 throw new ApiError(403, "You do not have permission to edit this product");
             }
 
@@ -298,6 +301,9 @@ export class ProductService {
             ]);
             let updatePayload: any = { ...validatedData };
             delete updatePayload.sellerId;
+            if (updatePayload.details) {
+                delete updatePayload.details.sku;
+            }
             if (Object.prototype.hasOwnProperty.call(validatedData, "policyRefs")) {
                 updatePayload.policyRefs = policyRefs || {};
                 if (policyRefs?.refundPolicy) {
@@ -359,7 +365,7 @@ export class ProductService {
         const product = await ProductDAO.findById(id);
         if (!product) throw new ApiError(404, "Product not found");
 
-        if (this.isSellerRole(role) && product.sellerId.toString() !== sellerId) {
+        if (this.isSellerRole(role) && product.sellerId.toString() !== sellerId.toString()) {
             throw new ApiError(403, "You do not have permission to delete this product");
         }
 

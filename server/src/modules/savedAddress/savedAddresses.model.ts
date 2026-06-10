@@ -17,8 +17,8 @@ export interface ISavedAddress extends Document {
     landmark?: string;
     addressType: AddressType;
     isDefault: boolean;
-    latitude?: number;
-    longitude?: number;
+    latitude: number;
+    longitude: number;
 }
 
 const savedAddressSchema = new Schema<ISavedAddress>(
@@ -45,8 +45,8 @@ const savedAddressSchema = new Schema<ISavedAddress>(
             type: Boolean,
             default: false,
         },
-        latitude: { type: Number },
-        longitude: { type: Number },
+        latitude: { type: Number, required: true },
+        longitude: { type: Number, required: true },
     },
     {
         timestamps: true,

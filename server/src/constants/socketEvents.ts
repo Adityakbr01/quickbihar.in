@@ -18,4 +18,10 @@ export const SocketEvents = {
   LEAVE_ORDER_ROOM: "leave_order_room",
   UPDATE_DELIVERY_LOCATION: "update_delivery_location",
   DELIVERY_LOCATION_UPDATED: "delivery_location_updated",
+  FULFILLMENT_EVENT: "fulfillment_event",
+  RIDER_JOB_OFFER: "rider_job_offer",
+  RIDER_OFFER_CLOSED: "rider_offer_closed",
+  SUBORDER_STATUS_UPDATE: "suborder_status_update",
+  JOIN_SUBORDER_ROOM: "join_suborder_room",
+  LEAVE_SUBORDER_ROOM: "leave_suborder_room",
 };

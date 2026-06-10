@@ -13,11 +13,18 @@ export const couponSchema = z.object({
     usageLimit: z.number().int().positive().optional(),
     usageLimitPerUser: z.number().int().positive().optional(),
     isActive: z.boolean().optional(),
+    appliesTo: z.enum(["ALL", "SPECIFIC"]).optional().default("ALL"),
+    productIds: z.array(z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid Product ID")).optional(),
 });
 
 export const updateCouponSchema = couponSchema.partial();
 
 export const validateCouponSchema = z.object({
     code: z.string(),
-    orderAmount: z.number().positive(),
+    orderAmount: z.number().positive().optional(),
+    items: z.array(z.object({
+        productId: z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid Product ID"),
+        sku: z.string().min(1, "SKU is required"),
+        quantity: z.number().int().min(1),
+    })).optional(),
 });

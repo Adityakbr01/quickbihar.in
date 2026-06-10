@@ -1,6 +1,8 @@
 import { ApiResponse } from "../../utils/ApiResponse";
 import { asyncHandler } from "../../utils/asyncHandler";
 import { SellerService } from "./seller.service";
+import { SubOrderService } from "../order/subOrder.service";
+import { ApiError } from "../../utils/ApiError";
 import {
     createMallRequestSchema,
     payoutMethodSchema,
@@ -303,5 +305,53 @@ export class SellerController {
         const body = payoutRequestSchema.parse(req.body);
         const payout = await SellerService.createPayoutRequest((req as any).user._id, body);
         return res.status(201).json(new ApiResponse(201, payout, "Payout request submitted successfully"));
+    });
+
+    static listSubOrders = asyncHandler(async (req, res) => {
+        const query = req.query;
+        const subOrders = await SubOrderService.listSellerSubOrders((req as any).user._id, query);
+        return res.status(200).json(new ApiResponse(200, subOrders, "Seller sub-orders fetched successfully"));
+    });
+
+    static subOrderDetails = asyncHandler(async (req, res) => {
+        const subOrder = await SubOrderService.getSellerSubOrder((req as any).user._id, req.params.id as string);
+        return res.status(200).json(new ApiResponse(200, subOrder, "Seller sub-order details fetched successfully"));
+    });
+
+    static updateSubOrderStatus = asyncHandler(async (req, res) => {
+        const sellerId = (req as any).user._id.toString();
+        const subOrderId = req.params.id as string;
+        const { status, packageDetails } = req.body;
+        
+        const ipAddress = req.ip || req.socket.remoteAddress;
+        const deviceInfo = req.headers["user-agent"] || "Unknown";
+
+        let result;
+        if (status === "PROCESSING") {
+            result = await SubOrderService.transitionToProcessing(subOrderId, sellerId, { ipAddress, deviceInfo });
+        } else if (status === "PACKED") {
+            result = await SubOrderService.transitionToPacked(subOrderId, sellerId, { ipAddress, deviceInfo });
+        } else if (status === "READY_FOR_PICKUP") {
+            if (!packageDetails || typeof packageDetails.weight !== "number") {
+                throw new ApiError(400, "Package details (weight) are required to mark ready for pickup");
+            }
+            result = await SubOrderService.transitionToReadyForPickup(subOrderId, sellerId, packageDetails, { ipAddress, deviceInfo });
+        } else {
+            throw new ApiError(400, `Invalid status update by seller: ${status}`);
+        }
+
+        return res.status(200).json(new ApiResponse(200, result, `Sub-order status updated to ${status} successfully`));
+    });
+
+    static approveSubOrderCancellation = asyncHandler(async (req, res) => {
+        const sellerId = (req as any).user._id.toString();
+        const subOrderId = req.params.id as string;
+        const { approve } = req.body;
+
+        const ipAddress = req.ip || req.socket.remoteAddress;
+        const deviceInfo = req.headers["user-agent"] || "Unknown";
+
+        const result = await SubOrderService.sellerApproveCancellation(subOrderId, sellerId, !!approve, { ipAddress, deviceInfo });
+        return res.status(200).json(new ApiResponse(200, result, approve ? "Cancellation approved" : "Cancellation rejected"));
     });
 }

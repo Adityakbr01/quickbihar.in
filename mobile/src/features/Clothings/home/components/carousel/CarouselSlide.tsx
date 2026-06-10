@@ -26,14 +26,14 @@ const CarouselSlide = ({ item }: CarouselSlideProps) => {
       case "category":
       case "collection":
         router.push({
-          pathname: "/(tabs)/search",
+          pathname: "/(tabs)/search" as any,
           params: { query: item.title || "" },
         });
         break;
       case "product":
         // Simulated product search
         router.push({
-          pathname: "/(tabs)/search",
+          pathname: "/(tabs)/search" as any,
           params: { query: item.title || "" },
         });
         break;

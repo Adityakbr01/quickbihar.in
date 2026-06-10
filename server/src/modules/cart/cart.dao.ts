@@ -2,7 +2,7 @@ import { Cart, type ICart, type ICartItem } from "./cart.model";
 
 export class CartDAO {
     async findByUserId(userId: string) {
-        return await Cart.findOne({ userId }).populate("items.productId", "title price images originalPrice discountPercentage variants isGstApplicable gstPercentage");
+        return await Cart.findOne({ userId }).populate("items.productId", "title price images originalPrice discountPercentage variants isGstApplicable gstPercentage sellerId storeId");
     }
 
     async findRawByUserId(userId: string) {

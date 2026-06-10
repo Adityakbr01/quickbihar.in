@@ -50,7 +50,9 @@ export class CartService {
                 selectedSize: variant?.size,
                 selectedColor: variant?.color,
                 stockStatus: variant ? (variant.stock >= item.quantity ? "IN_STOCK" : "LOW_STOCK") : "OUT_OF_STOCK",
-                availableStock: variant?.stock || 0
+                availableStock: variant?.stock || 0,
+                sellerId: product.sellerId,
+                storeId: product.storeId,
             };
         }).filter(Boolean);
 

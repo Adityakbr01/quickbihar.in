@@ -1,5 +1,7 @@
 import { SocketEvents } from "@/src/constants/socketEvents";
+import axiosInstance from "@/src/api/axiosInstance";
 import { socketClient } from "@/src/lib/socket";
+import * as SecureStore from "expo-secure-store";
 import React, { useEffect } from "react";
 import { useCartStore } from "../features/Clothings/cart/store/cartStore";
 import { useAuthStore } from "../features/common/auth/store/authStore";
@@ -10,10 +12,28 @@ export const SocketListenerProvider: React.FC<{
   const handleStockUpdate = useCartStore((state) => state.handleStockUpdate);
   const { token, isAuthenticated } = useAuthStore();
 
+  const recoverFulfillmentEvents = async () => {
+    try {
+      const after = await SecureStore.getItemAsync("lastFulfillmentEventId");
+      const response = await axiosInstance.get("/events", { params: after ? { after } : { limit: 20 } });
+      const events = response.data?.data || [];
+      const last = events[events.length - 1];
+      if (last?.eventId) {
+        await SecureStore.setItemAsync("lastFulfillmentEventId", last.eventId);
+      }
+      if (events.length) {
+        console.log(`[SocketListener] Recovered ${events.length} fulfillment events`);
+      }
+    } catch (error) {
+      console.log("[SocketListener] Fulfillment recovery skipped");
+    }
+  };
+
   useEffect(() => {
     if (isAuthenticated && token) {
       console.log("[SocketListener] Authenticated - Connecting Socket...");
       socketClient.connect(token);
+      recoverFulfillmentEvents();
     } else {
       console.log(
         "[SocketListener] Not Authenticated - Disconnecting Socket...",
@@ -39,8 +59,15 @@ export const SocketListenerProvider: React.FC<{
       }
     });
 
+    socketClient.on(SocketEvents.FULFILLMENT_EVENT, async (event) => {
+      if (event?.eventId) {
+        await SecureStore.setItemAsync("lastFulfillmentEventId", event.eventId);
+      }
+    });
+
     return () => {
       socketClient.off(SocketEvents.STOCK_UPDATE);
+      socketClient.off(SocketEvents.FULFILLMENT_EVENT);
     };
   }, [handleStockUpdate]);
 

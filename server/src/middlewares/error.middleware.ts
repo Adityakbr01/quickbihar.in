@@ -10,9 +10,17 @@ export const errorHandler = (
   let error = err;
 
   if (!(error instanceof ApiError)) {
-    const statusCode = error.statusCode || 500;
-    const message = error.message || "Something went wrong";
-    error = new ApiError(statusCode, message, error?.errors || [], err.stack);
+    let statusCode = error.statusCode || 500;
+    let message = error.message || "Something went wrong";
+    let errors = error?.errors || [];
+
+    if (error.name === "ValidationError") {
+      statusCode = 400;
+      message = "Validation Error";
+      errors = Object.values(error.errors).map((el: any) => el.message);
+    }
+
+    error = new ApiError(statusCode, message, errors, err.stack);
   }
 
   // Log error to console for server visibility

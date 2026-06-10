@@ -84,6 +84,12 @@ export const useSellerInventory = (params: SellerQueryParams) =>
 export const useSellerOrders = (params: SellerQueryParams) =>
   useQuery({ queryKey: sellerKeys.orders(params), queryFn: () => sellerManagementApi.getOrders(params) });
 
+export const useSellerSubOrders = (params: SellerQueryParams) =>
+  useQuery({ queryKey: [...sellerKeys.all, "sub-orders", params] as const, queryFn: () => sellerManagementApi.getSubOrders(params) });
+
+export const useSellerSubOrderDetails = (id: string) =>
+  useQuery({ queryKey: [...sellerKeys.all, "sub-order", id] as const, queryFn: () => sellerManagementApi.getSubOrder(id), enabled: !!id });
+
 export const useSellerCoupons = (params: SellerQueryParams) =>
   useQuery({ queryKey: sellerKeys.coupons(params), queryFn: () => sellerManagementApi.getCoupons(params) });
 
@@ -180,6 +186,30 @@ export const useSellerOrderStatusMutation = () => {
       toast.success("Order status updated");
     },
     onError: mutationError("Failed to update order"),
+  });
+};
+
+export const useSellerSubOrderStatusMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: sellerManagementApi.updateSubOrderStatus,
+    onSuccess: () => {
+      invalidateSeller(queryClient);
+      toast.success("Sub-order status updated");
+    },
+    onError: mutationError("Failed to update sub-order status"),
+  });
+};
+
+export const useSellerSubOrderCancellationMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: sellerManagementApi.approveSubOrderCancellation,
+    onSuccess: () => {
+      invalidateSeller(queryClient);
+      toast.success("Cancellation request processed");
+    },
+    onError: mutationError("Failed to process cancellation request"),
   });
 };
 

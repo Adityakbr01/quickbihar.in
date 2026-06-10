@@ -18,6 +18,12 @@ export interface ICoupon {
     usageLimitPerUser: number;
     isActive: boolean;
     isExpired?: boolean;
+    scope?: "GLOBAL" | "SELLER";
+    sellerId?: string;
+    storeId?: string;
+    appliesTo?: "ALL" | "SPECIFIC";
+    productIds?: string[];
+    appliedDiscount?: number;
     createdAt: string;
     updatedAt: string;
 }

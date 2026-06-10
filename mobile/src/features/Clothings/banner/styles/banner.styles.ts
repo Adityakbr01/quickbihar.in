@@ -25,12 +25,20 @@ export const createBannerStyles = (theme: any) => StyleSheet.create({
         height: 220,
     },
     cardOverlay: {
-        ...StyleSheet.absoluteFillObject,
+        position: "absolute",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
         padding: 16,
         justifyContent: "space-between",
     },
     cardOverlayGradient: {
-        ...StyleSheet.absoluteFillObject,
+        position: "absolute",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
         backgroundColor: "transparent",
     },
     cardBadgeContainer: {

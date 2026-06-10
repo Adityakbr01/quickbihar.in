@@ -4,8 +4,19 @@ import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import type { DeliveryStatus, DeliveryOrder } from "@/features/delivery/api/delivery.api";
 
-export const activeStatuses: DeliveryStatus[] = ["ASSIGNED", "ACCEPTED", "PICKED_UP", "OUT_FOR_DELIVERY"];
-export const terminalStatuses: DeliveryStatus[] = ["DELIVERED", "CANCELLED"];
+export const activeStatuses: DeliveryStatus[] = [
+  "ASSIGNMENT_OPEN",
+  "ASSIGNED",
+  "ACCEPTED",
+  "ARRIVING_AT_STORE",
+  "REACHED_STORE",
+  "PICKUP_VERIFICATION_PENDING",
+  "PICKED_UP",
+  "IN_TRANSIT",
+  "NEAR_CUSTOMER",
+  "OUT_FOR_DELIVERY",
+];
+export const terminalStatuses: DeliveryStatus[] = ["DELIVERED", "DELIVERY_CONFIRMED", "CANCELLED", "FAILED", "RETURNED"];
 
 export const selectClass = "h-9 rounded-lg border border-white/10 bg-[#181818] px-2 text-sm text-white outline-none";
 export const inputClass = "border-white/10 bg-white/5 text-white placeholder:text-gray-500";
@@ -38,8 +49,9 @@ export function DeliveryStatusBadge({ status }: { status: DeliveryStatus }) {
   const className = cn(
     "border-white/10 text-gray-300",
     status === "DELIVERED" && "border-emerald-400/30 text-emerald-300",
+    status === "DELIVERY_CONFIRMED" && "border-emerald-400/30 text-emerald-300",
     activeStatuses.includes(status) && "border-cyan-400/30 text-cyan-300",
-    status === "CANCELLED" && "border-red-400/30 text-red-300",
+    (status === "CANCELLED" || status === "FAILED") && "border-red-400/30 text-red-300",
   );
   return <Badge variant="outline" className={className}>{deliveryStatusLabel(status)}</Badge>;
 }
