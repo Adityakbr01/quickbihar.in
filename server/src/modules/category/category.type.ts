@@ -12,6 +12,7 @@ export interface ICategory extends Document {
     priority: number;
     sortOrder?: number;
     isActive: boolean;
+    isFeatured: boolean;
     seo?: {
         metaTitle?: string;
         metaDescription?: string;

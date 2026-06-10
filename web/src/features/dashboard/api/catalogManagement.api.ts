@@ -159,6 +159,7 @@ export interface AdminProduct {
   brand?: string;
   category: string;
   subCategory?: string;
+  gender?: string;
   price: number;
   originalPrice?: number;
   images?: Array<{ url: string; fileId: string }>;
@@ -204,11 +205,6 @@ export interface AdminProduct {
     latitude?: number;
     longitude?: number;
   };
-  policies?: {
-    returnPolicy?: string;
-    refundPolicy?: string;
-    shippingPolicy?: string;
-  };
   policyRefs?: {
     returnPolicy?: string;
     refundPolicy?: string;
@@ -229,6 +225,7 @@ export interface ProductPayload {
   brand?: string;
   category: string;
   subCategory?: string;
+  gender?: string;
   price: number;
   originalPrice?: number;
   sizeChartId?: string;
@@ -267,11 +264,6 @@ export interface ProductPayload {
     latitude?: number;
     longitude?: number;
   };
-  policies?: {
-    returnPolicy?: string;
-    refundPolicy?: string;
-    shippingPolicy?: string;
-  };
   policyRefs?: {
     returnPolicy?: string;
     refundPolicy?: string;
@@ -299,6 +291,10 @@ export interface AdminBanner {
   endDate?: string;
   isActive: boolean;
   isAds?: boolean;
+  clicks?: number;
+  impressions?: number;
+  scope?: string;
+  approvalStatus?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -322,6 +318,7 @@ export interface BannerPayload {
 export interface AdminSizeChart {
   _id: string;
   name: string;
+  description?: string;
   category: string;
   unit: "inches" | "cm";
   fields: string[];
@@ -377,6 +374,7 @@ export interface AdminCategory {
   priority?: number;
   sortOrder?: number;
   isActive?: boolean;
+  isFeatured?: boolean;
   seo?: {
     metaTitle?: string;
     metaDescription?: string;
@@ -392,6 +390,7 @@ export interface CategoryPayload {
   priority?: number;
   sortOrder?: number;
   isActive?: boolean;
+  isFeatured?: boolean;
   banner?: string;
   seo?: {
     metaTitle?: string;
@@ -444,7 +443,7 @@ const productFormData = (payload: ProductPayload, images?: File[]) => {
   appendOptional(formData, "deliveryInfo", payload.deliveryInfo);
   appendOptional(formData, "compliance", payload.compliance);
   appendOptional(formData, "logistics", payload.logistics);
-  appendOptional(formData, "policies", payload.policies);
+  appendOptional(formData, "gender", payload.gender);
   appendOptional(formData, "refundPolicy", payload.refundPolicy);
   appendOptional(formData, "existingImages", payload.existingImages);
   appendOptional(formData, "isFeatured", payload.isFeatured);
@@ -461,6 +460,7 @@ const categoryFormData = (payload: CategoryPayload, image?: File) => {
   appendOptional(formData, "priority", payload.priority);
   appendOptional(formData, "sortOrder", payload.sortOrder);
   appendOptional(formData, "isActive", payload.isActive);
+  appendOptional(formData, "isFeatured", payload.isFeatured);
   appendOptional(formData, "banner", payload.banner);
   appendOptional(formData, "seo", payload.seo);
   if (image) formData.append("image", image);

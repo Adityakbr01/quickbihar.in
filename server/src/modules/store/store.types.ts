@@ -49,12 +49,7 @@ export interface IStore extends Document {
         metaTitle?: string;
         metaDescription?: string;
     };
-    policies?: {
-        returnPolicy?: string;
-        refundPolicy?: string;
-        shippingPolicy?: string;
-        termsAndConditions?: string;
-    };
+
     policyRefs?: {
         returnPolicy?: Types.ObjectId;
         refundPolicy?: Types.ObjectId;

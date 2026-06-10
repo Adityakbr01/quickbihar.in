@@ -3,7 +3,7 @@ import type { CreateCategoryBody, UpdateCategoryBody } from "./category.validati
 
 export class CategoryDAO {
     static async create(data: CreateCategoryBody & { slug: string }) {
-        return await Category.create(data);
+        return await Category.create(data as any);
     }
 
     static async findAll(query: any = {}) {
@@ -66,7 +66,7 @@ export class CategoryDAO {
     }
 
     static async updateById(id: string, data: UpdateCategoryBody & { slug?: string }) {
-        return await Category.findByIdAndUpdate(id, data, { returnDocument: "after" });
+        return await Category.findByIdAndUpdate(id, data as any, { returnDocument: "after" });
     }
 
     static async deleteById(id: string) {

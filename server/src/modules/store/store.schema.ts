@@ -31,12 +31,7 @@ const seoSchema = z.object({
     metaDescription: optionalText,
 });
 
-const policiesSchema = z.object({
-    returnPolicy: optionalText,
-    refundPolicy: optionalText,
-    shippingPolicy: optionalText,
-    termsAndConditions: optionalText,
-});
+
 
 const objectIdText = z.string().trim().regex(/^[0-9a-fA-F]{24}$/).optional().or(z.literal(""));
 
@@ -69,7 +64,7 @@ export const createStoreSchema = z.object({
     categoryConfig: categoryConfigSchema.optional(),
     deliveryConfig: deliveryConfigSchema.optional(),
     seo: seoSchema.optional(),
-    policies: policiesSchema.optional(),
+
     policyRefs: policyRefsSchema.optional(),
 
     currentLocation: z.object({

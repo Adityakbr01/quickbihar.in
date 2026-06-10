@@ -43,6 +43,7 @@ export interface IRefundPolicy {
   brand: string;
   category: string;
   subCategory?: string;
+  gender?: string;
   price: number;
   originalPrice: number;
   discountPercentage: number;

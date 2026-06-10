@@ -12,6 +12,8 @@ export const productSchema = z.object({
   description: z.string().trim().min(10, "Description must be at least 10 characters"),
   brand: z.string().trim().min(1, "Brand is required"),
   category: z.string().trim().min(1, "Category is required"),
+  subCategory: z.string().trim().optional(),
+  gender: z.string().trim().optional(),
   price: z.number().positive("Price must be greater than 0"),
   isGstApplicable: z.boolean().default(false),
   gstPercentage: z.number().min(0).max(100).default(0),

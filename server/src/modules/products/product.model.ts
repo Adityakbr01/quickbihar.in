@@ -25,6 +25,7 @@ const productSchema = new Schema(
         category: { type: String, required: true },
 
         subCategory: { type: String },
+        gender: { type: String, enum: ["Men", "Women", "Kids", "Unisex"], default: "Unisex" },
 
         price: { type: Number, required: true },
 
@@ -120,11 +121,7 @@ const productSchema = new Schema(
             longitude: Number,
         },
 
-        policies: {
-            returnPolicy: String,
-            refundPolicy: String,
-            shippingPolicy: String,
-        },
+
 
         policyRefs: {
             returnPolicy: { type: Schema.Types.ObjectId, ref: "RefundPolicy" },

@@ -349,10 +349,6 @@ export class SellerService {
                 primaryCategory: payload.categoryConfig.primaryCategory?.trim(),
                 subcategories: uniqueTextList(payload.categoryConfig.subcategories || []),
             };
-            const hasLockedCategories = Boolean(existingStore && categoryConfigValues(existingStore.categoryConfig).length);
-            if (hasLockedCategories && !sameCategoryConfig(existingStore.categoryConfig, nextCategoryConfig)) {
-                throw new ApiError(400, "Store categories are locked after setup. Request a category change or ask admin to update them.");
-            }
             await assertActiveCategoryChoices(categoryConfigValues(nextCategoryConfig));
             payload.categoryConfig = {
                 ...(existingStore?.categoryConfig || {}),

@@ -39,7 +39,12 @@ const ProductSizeChartSelector = ({
 
       {selectedChart && (
         <>
-          <Text style={[styles.label, { marginTop: 12, marginBottom: 4 }]}>Preview: {selectedChart.name}</Text>
+          {selectedChart.description ? (
+            <Text style={{ fontSize: 12, color: theme.secondaryText, marginTop: 4, marginBottom: 12, lineHeight: 16 }}>
+              {selectedChart.description}
+            </Text>
+          ) : null}
+          <Text style={[styles.label, { marginTop: 8, marginBottom: 4 }]}>Preview: {selectedChart.name}</Text>
           <ProductSizeChartPreview theme={theme} styles={styles} chart={selectedChart} />
         </>
       )}

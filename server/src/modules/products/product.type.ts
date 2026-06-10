@@ -16,6 +16,7 @@ export interface IProduct {
 
     category: string;
     subCategory?: string;
+    gender?: string;
 
     price: number;
     originalPrice?: number;
@@ -82,11 +83,7 @@ export interface IProduct {
         longitude?: number;
     };
 
-    policies?: {
-        returnPolicy?: string;
-        refundPolicy?: string;
-        shippingPolicy?: string;
-    };
+
 
     policyRefs?: {
         returnPolicy?: string;

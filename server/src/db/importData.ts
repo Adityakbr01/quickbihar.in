@@ -89,6 +89,9 @@ async function importData() {
       }
 
       const processedData = transformEJSON(data);
+      if (!mongoose.connection.db) {
+          throw new Error("Database connection not established");
+      }
       const collection = mongoose.connection.db.collection(collectionName);
 
       try {

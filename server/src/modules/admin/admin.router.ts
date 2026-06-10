@@ -80,17 +80,5 @@ router.delete("/malls/:id", AdminController.deleteMall);
 router.patch("/sellers/:id/mall", AdminController.assignSellerMall);
 router.patch("/sellers/:id/mall-request", AdminController.reviewMallRequest);
 
-// Policy CRUD
-router.get("/policies", AdminController.listPolicies);
-router.post("/policies", AdminController.createPolicy);
-router.patch("/policies/:id", AdminController.updatePolicy);
-router.delete("/policies/:id", AdminController.deletePolicy);
-
-// Seller CRUD
-router.get("/sellers", AdminController.listSellers);
-router.get("/sellers/:id", AdminController.getSeller);
-router.post("/sellers", AdminController.createSeller);
-router.patch("/sellers/:id", AdminController.updateSeller);
-router.delete("/sellers/:id", AdminController.deleteSeller);
 
 export default router;

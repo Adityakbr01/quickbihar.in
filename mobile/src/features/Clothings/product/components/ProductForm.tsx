@@ -55,6 +55,8 @@ const ProductForm = ({ visible, onClose, onSubmit, initialData, loading }: Produ
   const [description, setDescription] = useState("");
   const [brand, setBrand] = useState("");
   const [category, setCategory] = useState("");
+  const [subCategory, setSubCategory] = useState("");
+  const [gender, setGender] = useState("");
   const [price, setPrice] = useState("");
   const [isGstApplicable, setIsGstApplicable] = useState(false);
   const [gstPercentage, setGstPercentage] = useState("0");
@@ -100,7 +102,7 @@ const ProductForm = ({ visible, onClose, onSubmit, initialData, loading }: Produ
         setDiscountPercentage(String(initialData.discountPercentage || ""));
         setImages(initialData.images.map(img => ({ url: img.url, fileId: img.fileId })));
         setVariants(initialData.variants);
-        setSizeChartId(initialData.sizeChartId || "");
+        setSizeChartId(typeof initialData.sizeChartId === "string" ? initialData.sizeChartId : initialData.sizeChartId?._id || "");
         setTags(initialData.tags.join(", "));
         setFit(initialData.details?.fit || "");
         setPattern(initialData.details?.pattern || "");
@@ -119,6 +121,8 @@ const ProductForm = ({ visible, onClose, onSubmit, initialData, loading }: Produ
         setLatitude(initialData.logistics?.latitude);
         setLongitude(initialData.logistics?.longitude);
         setRefundPolicyId(typeof initialData.refundPolicy === 'string' ? initialData.refundPolicy : initialData.refundPolicy?._id || "");
+        setSubCategory(initialData.subCategory || "");
+        setGender(initialData.gender || "");
       } else {
         resetForm();
       }
@@ -127,7 +131,7 @@ const ProductForm = ({ visible, onClose, onSubmit, initialData, loading }: Produ
   }, [visible, initialData]);
 
   const resetForm = () => {
-    setTitle(""); setDescription(""); setBrand(""); setCategory(""); setPrice("");
+    setTitle(""); setDescription(""); setBrand(""); setCategory(""); setSubCategory(""); setGender(""); setPrice("");
     setIsGstApplicable(false); setGstPercentage("0");
     setOriginalPrice(""); setDiscountPercentage("");
     setImages([]); setVariants([{ size: "", color: "", stock: 0, sku: "" }]);
@@ -167,7 +171,7 @@ const ProductForm = ({ visible, onClose, onSubmit, initialData, loading }: Produ
 
   const validate = () => {
     const dataToValidate = {
-      title, description, brand, category,
+      title, description, brand, category, subCategory, gender,
       price: Number(price),
       isGstApplicable,
       gstPercentage: Number(gstPercentage),
@@ -226,6 +230,8 @@ const ProductForm = ({ visible, onClose, onSubmit, initialData, loading }: Produ
     formData.append("description", description);
     formData.append("brand", brand);
     formData.append("category", category);
+    formData.append("subCategory", subCategory);
+    formData.append("gender", gender);
     formData.append("price", price);
     formData.append("isGstApplicable", String(isGstApplicable));
     formData.append("gstPercentage", gstPercentage);
@@ -262,7 +268,7 @@ const ProductForm = ({ visible, onClose, onSubmit, initialData, loading }: Produ
       const hasNewImages = images.some(img => img.uri);
       if (!hasNewImages) {
         onSubmit({
-          title, description, brand, category, price: Number(price),
+          title, description, brand, category, subCategory, gender, price: Number(price),
           isGstApplicable,
           gstPercentage: Number(gstPercentage),
           originalPrice: originalPrice ? Number(originalPrice) : undefined,
@@ -305,10 +311,10 @@ const ProductForm = ({ visible, onClose, onSubmit, initialData, loading }: Produ
           </View>
 
           <ScrollView style={styles.form} contentContainerStyle={styles.formContent} showsVerticalScrollIndicator={false}>
-            <ProductBasicInfo {...{ theme, styles, title, setTitle, description, setDescription, brand, setBrand, tags, setTags, errors }} />
+            <ProductBasicInfo {...{ theme, styles, title, setTitle, description, setDescription, brand, setBrand, tags, setTags, gender, setGender, errors }} />
             <ProductPricing {...{ theme, styles, price, setPrice, originalPrice, setOriginalPrice, isGstApplicable, setIsGstApplicable, gstPercentage, setGstPercentage, errors }} />
             <ProductMedia {...{ theme, styles, images, pickImage, removeImage, errors }} />
-            <ProductCategorySelector {...{ theme, styles, categories, category, setCategory, errors }} />
+            <ProductCategorySelector {...{ theme, styles, categories, category, setCategory, subCategory, setSubCategory, errors }} />
             <ProductSizeChartSelector {...{ theme, styles, sizeCharts, sizeChartId, setSizeChartId }} />
             <ProductRefundPolicySelector {...{ theme, styles, refundPolicyId, setRefundPolicyId }} />
             <ProductSpecifications {...{ theme, styles, fit, setFit, pattern, setPattern, material, setMaterial, sleeve, setSleeve, washCare, setWashCare }} />

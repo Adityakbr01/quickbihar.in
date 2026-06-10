@@ -114,4 +114,10 @@ const bannerSchema = new Schema<IBanner>(
     { timestamps: true }
 );
 
+bannerSchema.pre("save", function () {
+    if (this.endDate && this.endDate < new Date()) {
+        this.isActive = false;
+    }
+});
+
 export const Banner = mongoose.model<IBanner>("Banner", bannerSchema);

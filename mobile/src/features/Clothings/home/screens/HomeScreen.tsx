@@ -74,9 +74,12 @@ const HomeScreen = ({ rootSlug }: { rootSlug?: string }) => {
             <HomeHeader menuOpen={menuOpen} toggleMenu={toggleMenu} />
 
             <View style={{ marginTop: 12 }}>
+              {/* He is Done */}
               <TopHomeCarousel />
             </View>
+            {/* He is Done */}
             <HomeCategories />
+            {/* Not Started */}
             <TopMallSection />
             <TopSellingSection />
             <MoreDealsHeader {...moreDealsState} />

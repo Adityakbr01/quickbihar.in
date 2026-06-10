@@ -8,6 +8,7 @@ export const createProductSchema = z.object({
     brand: z.string().optional(),
     category: z.string().trim().min(1, "Category is required"),
     subCategory: z.string().trim().optional(),
+    gender: z.string().trim().optional(),
     price: z.coerce.number().min(0, "Price must be positive"),
     originalPrice: z.coerce.number().optional(),
     discountPercentage: z.coerce.number().optional(),
@@ -87,15 +88,6 @@ export const createProductSchema = z.object({
              warehouseName: z.string().optional(),
              latitude: z.coerce.number().optional(),
              longitude: z.coerce.number().optional(),
-         })
-     ).optional(),
-
-     policies: z.preprocess(
-         (val) => typeof val === "string" ? JSON.parse(val) : val,
-         z.object({
-             returnPolicy: z.string().optional(),
-             refundPolicy: z.string().optional(),
-             shippingPolicy: z.string().optional(),
          })
      ).optional(),
 

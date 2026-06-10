@@ -15,7 +15,7 @@ import {
   useWindowDimensions,
   View,
 } from "react-native";
-import { getCategoriesRequest } from "../../category/api/category.api";
+import { getPublicCategoriesRequest } from "../../category/api/category.api";
 import { getPublicProductsRequest } from "../../product/api/product.api";
 import { DealProductCard } from "../components/DealProductCard";
 import { DealProductSkeleton } from "../components/DealProductSkeleton";
@@ -90,8 +90,8 @@ export const useMoreDealsLogic = () => {
 
   // 1. Fetch Real Categories
   const { data: categories } = useQuery({
-    queryKey: ["categories", "root"],
-    queryFn: () => getCategoriesRequest(),
+    queryKey: ["categories", "public"],
+    queryFn: () => getPublicCategoriesRequest(),
   });
 
   // Map categories for the BottomSheet options fallback to CATEGORY_OPTIONS
@@ -99,7 +99,8 @@ export const useMoreDealsLogic = () => {
     if (!categories || categories.length === 0) return CATEGORY_OPTIONS;
     return categories.map((cat) => ({
       id: cat._id,
-      title: cat.name,
+      title: cat.title,
+      parentId: typeof cat.parentId === "object" ? (cat.parentId as any)?._id : cat.parentId,
     }));
   }, [categories]);
 
@@ -114,17 +115,44 @@ export const useMoreDealsLogic = () => {
     queryKey: [
       "paginatedProducts",
       selectedCategoryOptions,
+      selectedGenderOptions,
       effectiveSearchQuery,
       activeFilter.title,
+      categories,
     ],
     queryFn: ({ pageParam = 1 }) => {
+      let mappedCategory: string | undefined = undefined;
+      let mappedSubCategory: string | undefined = undefined;
+
+      if (selectedCategoryOptions.length > 0) {
+        const selectedTitle = selectedCategoryOptions[0];
+        const matchedCat = categories?.find((cat) => cat.title === selectedTitle);
+        if (matchedCat) {
+          const parentId =
+            typeof matchedCat.parentId === "object"
+              ? (matchedCat.parentId as any)?._id
+              : matchedCat.parentId;
+          if (parentId) {
+            // It is a subcategory!
+            const parentCat = categories?.find((cat) => cat._id === parentId);
+            mappedCategory = parentCat ? parentCat.title : undefined;
+            mappedSubCategory = matchedCat.title;
+          } else {
+            // It is a parent category!
+            mappedCategory = matchedCat.title;
+          }
+        } else {
+          // Fallback if not found in categories
+          mappedCategory = selectedTitle;
+        }
+      }
+
       const params: any = {
         page: pageParam,
         limit: 10,
-        category:
-          selectedCategoryOptions.length > 0
-            ? selectedCategoryOptions[0]
-            : undefined,
+        category: mappedCategory,
+        subCategory: mappedSubCategory,
+        gender: selectedGenderOptions.length > 0 ? selectedGenderOptions[0] : undefined,
         search: effectiveSearchQuery || undefined,
       };
 

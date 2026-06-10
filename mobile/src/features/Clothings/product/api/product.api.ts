@@ -18,6 +18,8 @@ export const getPublicProductsRequest = async (params: {
   limit?: number;
   search?: string;
   category?: string;
+  subCategory?: string;
+  gender?: string;
   minPrice?: number;
   maxPrice?: number;
   brand?: string;

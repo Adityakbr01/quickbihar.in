@@ -43,7 +43,6 @@ export const sellerNavigation = [
     items: [
       { id: "dashboard", label: "Dashboard", icon: <LayoutDashboard className="h-4 w-4" /> },
       { id: "products", label: "Products", icon: <Package className="h-4 w-4" /> },
-      { id: "categories", label: "Categories", icon: <Tags className="h-4 w-4" /> },
       { id: "inventory", label: "Inventory", icon: <Warehouse className="h-4 w-4" /> },
       { id: "orders", label: "Orders", icon: <ClipboardList className="h-4 w-4" /> },
     ],
@@ -74,7 +73,6 @@ export type SellerSection = (typeof sellerNavigation)[number]["items"][number]["
 export const sectionLabels: Record<SellerSection, string> = {
   dashboard: "Dashboard",
   products: "Products",
-  categories: "Categories",
   inventory: "Inventory",
   orders: "Orders",
   coupons: "Coupons",
@@ -144,7 +142,6 @@ export function SellerSectionRenderer({
   if (activeSection === "dashboard") return <SellerDashboardPanel />;
   if (activeSection === "store") return <SellerStoreSetupPanel />;
   if (activeSection === "products") return <SellerProductsPanel />;
-  if (activeSection === "categories") return <SellerCategoriesPanel />;
   if (activeSection === "inventory") return <SellerInventoryPanel />;
   if (activeSection === "orders") return <SellerOrdersPanel />;
   if (activeSection === "coupons") return <SellerCouponsPanel />;

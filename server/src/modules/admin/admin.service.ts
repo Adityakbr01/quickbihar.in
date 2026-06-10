@@ -322,7 +322,7 @@ const serializeSellerStore = (store?: any) => store ? {
     address: store.address,
     contact: store.contact || {},
     deliveryConfig: store.deliveryConfig || {},
-    policies: store.policies || {},
+    policies: undefined,
     policyRefs: store.policyRefs || {},
     categoryConfig: {
         primaryCategory: store.categoryConfig?.primaryCategory,
@@ -1260,7 +1260,7 @@ export class AdminService {
                 .lean(),
             DeliveryBoy.find({ userId: { $in: userIds } }).lean(),
             Store.find({ sellerId: { $in: userIds } })
-                .select("sellerId name description logoUrl bannerUrl isActive isVerified isSetupComplete setupMissingFields address contact categoryConfig deliveryConfig policies policyRefs createdAt")
+                .select("sellerId name description logoUrl bannerUrl isActive isVerified isSetupComplete setupMissingFields address contact categoryConfig deliveryConfig policyRefs createdAt")
                 .sort({ createdAt: -1 })
                 .lean(),
         ]);

@@ -2,6 +2,7 @@ import { z } from "zod";
 
 export const createSizeChartSchema = z.object({
     name: z.string().trim().min(1, "Name is required"),
+    description: z.string().trim().optional(),
     category: z.string().trim().min(1, "Category is required"),
     unit: z.enum(["inches", "cm"]).default("inches"),
     fields: z.array(z.string().min(1)).min(1, "At least one field is required"),

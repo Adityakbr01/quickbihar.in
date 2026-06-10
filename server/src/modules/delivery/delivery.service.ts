@@ -136,7 +136,7 @@ const deliveryHistoryDateFilter = (query: any) => {
             "createdAt",
         ];
 
-    return { $or: fields.map((field) => ({ [field]: range })) };
+    return { $or: fields.map((field) => ({ [field as string]: range })) };
 };
 
 const walletOf = (profile: any) => profile?.wallet || {

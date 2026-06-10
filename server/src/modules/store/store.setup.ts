@@ -12,8 +12,6 @@ export const STORE_SETUP_REQUIRED_FIELDS = [
     "address.state",
     "address.country",
     "address.postalCode",
-    "category.primaryCategory",
-    "category.subcategories",
     "delivery.deliveryAreas",
     "delivery.shippingFee",
     "delivery.freeShippingThreshold",
@@ -32,7 +30,6 @@ export const buildStoreSetupStatus = (store: any) => {
     const categoryConfig = raw.categoryConfig || {};
     const deliveryConfig = raw.deliveryConfig || {};
     const seo = raw.seo || {};
-    const policies = raw.policies || {};
     const policyRefs = raw.policyRefs || {};
 
     const deliveryFee = deliveryConfig.shippingFee ?? raw.deliveryFee;
@@ -56,9 +53,9 @@ export const buildStoreSetupStatus = (store: any) => {
         "seo.storeTitle": hasText(seo.storeTitle),
         "seo.metaTitle": hasText(seo.metaTitle),
         "seo.metaDescription": hasText(seo.metaDescription),
-        "policyRefs.returnPolicy": hasText(policyRefs.returnPolicy?.toString?.() || policyRefs.returnPolicy) || hasText(policies.returnPolicy),
-        "policyRefs.refundPolicy": hasText(policyRefs.refundPolicy?.toString?.() || policyRefs.refundPolicy) || hasText(policies.refundPolicy),
-        "policyRefs.shippingPolicy": hasText(policyRefs.shippingPolicy?.toString?.() || policyRefs.shippingPolicy) || hasText(policies.shippingPolicy),
+        "policyRefs.returnPolicy": hasText(policyRefs.returnPolicy?.toString?.() || policyRefs.returnPolicy),
+        "policyRefs.refundPolicy": hasText(policyRefs.refundPolicy?.toString?.() || policyRefs.refundPolicy),
+        "policyRefs.shippingPolicy": hasText(policyRefs.shippingPolicy?.toString?.() || policyRefs.shippingPolicy),
     };
 
     const missingFields = STORE_SETUP_REQUIRED_FIELDS.filter((field) => !checks[field]);
@@ -94,10 +91,6 @@ export const mergeStoreForSetup = (existingStore: any, updates: any) => {
         seo: {
             ...(existing.seo || {}),
             ...(updates.seo || {}),
-        },
-        policies: {
-            ...(existing.policies || {}),
-            ...(updates.policies || {}),
         },
         policyRefs: {
             ...(existing.policyRefs || {}),

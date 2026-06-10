@@ -78,12 +78,7 @@ export const sellerStoreSchema = z.object({
         metaTitle: optionalText,
         metaDescription: optionalText,
     }).optional(),
-    policies: z.object({
-        returnPolicy: optionalText,
-        refundPolicy: optionalText,
-        shippingPolicy: optionalText,
-        termsAndConditions: optionalText,
-    }).optional(),
+
     policyRefs: z.object({
         returnPolicy: mongoIdSchema.optional().nullable(),
         refundPolicy: mongoIdSchema.optional().nullable(),
@@ -149,6 +144,7 @@ export const sellerBannerSchema = z.object({
 
 export const sellerSizeChartSchema = z.object({
     name: z.string().trim().min(1, "Name is required"),
+    description: z.string().trim().optional(),
     category: z.string().trim().min(1, "Category is required"),
     unit: z.enum(["inches", "cm"]).default("inches"),
     fields: z.preprocess(parseJson, z.array(z.string().trim().min(1)).min(1)),

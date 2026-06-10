@@ -10,6 +10,7 @@ const sizeChartRowSchema = new Schema(
 const sizeChartSchema = new Schema(
     {
         name: { type: String, required: true },
+        description: { type: String },
 
         category: { type: String, required: true },
 

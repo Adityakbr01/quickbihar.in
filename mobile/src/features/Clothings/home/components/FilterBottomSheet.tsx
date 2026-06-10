@@ -15,6 +15,8 @@ import { HugeiconsIcon } from "@hugeicons/react-native";
 export interface FilterOption {
   title: string;
   icon?: any;
+  id?: string;
+  parentId?: string;
 }
 
 interface FilterBottomSheetProps {
@@ -92,37 +94,133 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
             contentContainerStyle={styles.scrollContent}
           >
             <View style={styles.pillsContainer}>
-              {options.map((option) => {
-                const isSelected = tempOptions.includes(option.title);
-                return (
-                  <TouchableOpacity
-                    key={option.title}
-                    style={[
-                      styles.pillButton,
-                      isSelected && styles.pillButtonActive,
-                    ]}
-                    onPress={() => handleToggleOption(option.title)}
-                    activeOpacity={0.7}
-                  >
-                    {option.icon && (
-                      <HugeiconsIcon
-                        icon={option.icon}
-                        size={18}
-                        color={isSelected ? "#fff" : theme.text}
-                        style={{ marginRight: 6 }}
-                      />
-                    )}
-                    <Text
+              {(() => {
+                const isCategories = title === "Categories";
+                const rootOptions = isCategories ? options.filter(opt => !opt.parentId) : options;
+                const subOptions = isCategories ? options.filter(opt => opt.parentId) : [];
+
+                return rootOptions.map((option) => {
+                  const isSelected = tempOptions.includes(option.title);
+                  const matchingSubs = subOptions.filter(sub => sub.parentId === option.id);
+
+                  if (isCategories) {
+                    return (
+                      <View key={option.title} style={{ width: "100%", marginBottom: 12 }}>
+                        <TouchableOpacity
+                          style={[
+                            styles.pillButton,
+                            isSelected && styles.pillButtonActive,
+                            { width: "100%", flexDirection: "row", justifyContent: "space-between" }
+                          ]}
+                          onPress={() => {
+                            const subTitles = matchingSubs.map(s => s.title);
+                            setTempOptions(prev => {
+                              const filtered = prev.filter(o => !subTitles.includes(o));
+                              return filtered.includes(option.title)
+                                ? filtered.filter(o => o !== option.title)
+                                : [...filtered, option.title];
+                            });
+                          }}
+                          activeOpacity={0.7}
+                        >
+                          <View style={{ flexDirection: "row", alignItems: "center" }}>
+                            {option.icon && (
+                              <HugeiconsIcon
+                                icon={option.icon}
+                                size={18}
+                                color={isSelected ? "#fff" : theme.text}
+                                style={{ marginRight: 6 }}
+                              />
+                            )}
+                            <Text
+                              style={[
+                                styles.pillText,
+                                isSelected && styles.pillTextActive,
+                              ]}
+                            >
+                              {option.title}
+                            </Text>
+                          </View>
+                          {matchingSubs.length > 0 && (
+                            <Ionicons
+                              name={isSelected ? "chevron-up" : "chevron-down"}
+                              size={16}
+                              color={isSelected ? "#fff" : theme.secondaryText}
+                            />
+                          )}
+                        </TouchableOpacity>
+
+                        {/* Subcategories section */}
+                        {matchingSubs.length > 0 && (
+                          <View style={{ paddingLeft: 12, marginTop: 8, flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+                            {matchingSubs.map((sub) => {
+                              const isSubSelected = tempOptions.includes(sub.title);
+                              return (
+                                <TouchableOpacity
+                                  key={sub.title}
+                                  style={[
+                                    styles.pillButton,
+                                    isSubSelected && styles.pillButtonActive,
+                                    { paddingHorizontal: 12, paddingVertical: 8, margin: 0 }
+                                  ]}
+                                  onPress={() => {
+                                    setTempOptions(prev => {
+                                      const filtered = prev.filter(o => o !== option.title);
+                                      return filtered.includes(sub.title)
+                                        ? filtered.filter(o => o !== sub.title)
+                                        : [...filtered, sub.title];
+                                    });
+                                  }}
+                                  activeOpacity={0.7}
+                                >
+                                  <Text
+                                    style={[
+                                      styles.pillText,
+                                      isSubSelected && styles.pillTextActive,
+                                      { fontSize: 12 }
+                                    ]}
+                                  >
+                                    {sub.title}
+                                  </Text>
+                                </TouchableOpacity>
+                              );
+                            })}
+                          </View>
+                        )}
+                      </View>
+                    );
+                  }
+
+                  return (
+                    <TouchableOpacity
+                      key={option.title}
                       style={[
-                        styles.pillText,
-                        isSelected && styles.pillTextActive,
+                        styles.pillButton,
+                        isSelected && styles.pillButtonActive,
                       ]}
+                      onPress={() => handleToggleOption(option.title)}
+                      activeOpacity={0.7}
                     >
-                      {option.title}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
+                      {option.icon && (
+                        <HugeiconsIcon
+                          icon={option.icon}
+                          size={18}
+                          color={isSelected ? "#fff" : theme.text}
+                          style={{ marginRight: 6 }}
+                        />
+                      )}
+                      <Text
+                        style={[
+                          styles.pillText,
+                          isSelected && styles.pillTextActive,
+                        ]}
+                      >
+                        {option.title}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                });
+              })()}
             </View>
           </ScrollView>
 

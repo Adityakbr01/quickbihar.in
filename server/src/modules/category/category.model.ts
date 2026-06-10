@@ -53,6 +53,10 @@ const categorySchema = new Schema<ICategory>(
             type: Boolean,
             default: true,
         },
+        isFeatured: {
+            type: Boolean,
+            default: false,
+        },
         seo: {
             metaTitle: String,
             metaDescription: String,

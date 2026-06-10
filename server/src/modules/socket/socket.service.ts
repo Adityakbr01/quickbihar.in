@@ -97,7 +97,7 @@ export class SocketService {
           const isAssignedDelivery =
             roleName === "DELIVERY" &&
             order?.delivery?.partnerUserId?.toString() === userId &&
-            ["ASSIGNED", "ACCEPTED", "PICKED_UP", "OUT_FOR_DELIVERY"].includes(order.delivery?.status || "");
+            ["ASSIGNED", "ACCEPTED", "PICKED_UP", "OUT_FOR_DELIVERY"].includes(order?.delivery?.status || "");
 
           if (!order || (!isAdmin && !isAssignedDelivery)) {
             console.warn(

@@ -1,5 +1,5 @@
 import WishlistHeart from "@/src/components/common/WishlistHeart";
-import { IProduct } from "@/src/features/product/types/product.types";
+import { IProduct } from "@/src/features/Clothings/product/types/product.types";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";

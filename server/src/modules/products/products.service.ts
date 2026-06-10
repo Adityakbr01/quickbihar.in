@@ -113,7 +113,11 @@ export class ProductService {
             const policy = await RefundPolicy.findOne({
                 _id: id,
                 isActive: true,
-                policyType: expectedTypes[key] || { $exists: true },
+                $or: [
+                    { policyType: expectedTypes[key] },
+                    { policyType: { $exists: false } },
+                    { policyType: "" }
+                ]
             }).lean();
             if (!policy) throw new ApiError(400, `Selected ${key} is not an active admin policy.`);
         }));
@@ -131,6 +135,22 @@ export class ProductService {
 
         if (!categoryDoc) {
             throw new ApiError(400, "Product category must be active and assigned by admin before product creation.");
+        }
+
+        if (subCategory) {
+            const subCategorySlug = slugify(subCategory);
+            const subCategoryDoc = await Category.findOne({
+                isActive: true,
+                parentId: categoryDoc._id.toString(),
+                $or: [
+                    { title: { $regex: new RegExp(`^${escapeRegex(subCategory)}$`, "i") } },
+                    { slug: subCategorySlug },
+                ],
+            }).lean();
+
+            if (!subCategoryDoc) {
+                throw new ApiError(400, `Selected subcategory "${subCategory}" must be an active subcategory of "${categoryDoc.title}".`);
+            }
         }
 
         return {
@@ -163,20 +183,7 @@ export class ProductService {
             throw new ApiError(400, "Store must be active before creating products.");
         }
 
-        const { requestedValues } = await this.assertCategoryAssigned(category, subCategory);
-        const categoryConfig = store.categoryConfig || {};
-        const allowedValues = [
-            categoryConfig.primaryCategory,
-            ...(categoryConfig.subcategories || []),
-        ]
-            .filter((value): value is string => typeof value === "string" && value.trim().length > 0)
-            .flatMap((value) => [normalize(value), slugify(value)]);
-        const requestedNormalized = requestedValues.flatMap((value) => [normalize(value), slugify(value)]);
-        const isAllowed = requestedNormalized.some((value) => allowedValues.includes(value));
-
-        if (!isAllowed) {
-            throw new ApiError(400, "Product category is not assigned to this seller store.");
-        }
+        await this.assertCategoryAssigned(category, subCategory);
 
         return { seller, store };
     }

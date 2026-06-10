@@ -4,7 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { createProductCardStyles } from "../style/ProductCard.style";
-import { IProduct } from "@/src/features/product/types/product.types";
+import { IProduct } from "@/src/features/Clothings/product/types/product.types";
 import { Product as MockProduct } from "../lib/mockData";
 import { useWishlistStore } from "../../wishlist/store/wishlistStore";
 import { useCartStore } from "../../cart/store/cartStore";

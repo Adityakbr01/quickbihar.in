@@ -24,13 +24,13 @@ export const getAllRefundPolicies = asyncHandler(async (req: Request, res: Respo
 });
 
 export const updateRefundPolicy = asyncHandler(async (req: Request, res: Response) => {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const policy = await refundPolicyService.updatePolicy(id, req.body);
     return res.status(200).json(new ApiResponse(200, policy, "Refund policy updated successfully"));
 });
 
 export const deleteRefundPolicy = asyncHandler(async (req: Request, res: Response) => {
-    const { id } = req.params;
+    const id = req.params.id as string;
     await refundPolicyService.deletePolicy(id);
     return res.status(200).json(new ApiResponse(200, null, "Refund policy deleted successfully"));
 });

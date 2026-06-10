@@ -4,7 +4,7 @@
     "slug": "QuickBihar",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/QuickBihar_Icon_1024.png",
+    "icon": "./assets/images/icon.png",
     "scheme": "QuickBihar",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -15,10 +15,9 @@
     "android": {
       "package": "com.adityakbr.mobile",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
+        "foregroundImage": "./assets/images/icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
     },
     "web": {

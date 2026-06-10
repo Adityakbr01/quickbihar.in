@@ -218,6 +218,7 @@ export const updateAdminSellerSchema = adminSellerSchema.partial();
 
 export const adminSizeChartSchema = z.object({
     name: z.string().trim().min(1),
+    description: z.string().trim().optional(),
     category: z.string().trim().min(1),
     unit: z.enum(["inches", "cm"]).default("inches"),
     fields: z.array(z.string().trim().min(1)).min(1),

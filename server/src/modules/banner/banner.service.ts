@@ -32,6 +32,7 @@ export class BannerService {
     }
 
     static async getAllBanners() {
+        await BannerDAO.deactivateExpired();
         return await BannerDAO.findAllBanners();
     }
 

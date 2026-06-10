@@ -281,6 +281,7 @@ function CategoryForm({
   const [sortOrder, setSortOrder] = useState(String(category?.sortOrder ?? ""));
   const [banner, setBanner] = useState(category?.banner || "");
   const [isActive, setIsActive] = useState(category?.isActive ?? true);
+  const [isFeatured, setIsFeatured] = useState(category?.isFeatured ?? false);
   const [seoTitle, setSeoTitle] = useState(category?.seo?.metaTitle || "");
   const [seoDescription, setSeoDescription] = useState(
     category?.seo?.metaDescription || "",
@@ -301,6 +302,7 @@ function CategoryForm({
         sortOrder: numericOrUndefined(sortOrder),
         banner: optionalValue(banner),
         isActive,
+        isFeatured,
         seo: {
           metaTitle: optionalValue(seoTitle),
           metaDescription: optionalValue(seoDescription),
@@ -390,6 +392,13 @@ function CategoryForm({
         <Switch
           checked={isActive}
           onCheckedChange={setIsActive}
+        />
+      </div>
+      <div className="flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-gray-300 h-9">
+        <span>Is Featured</span>
+        <Switch
+          checked={isFeatured}
+          onCheckedChange={setIsFeatured}
         />
       </div>
       <div className="flex gap-2 md:col-span-4 mt-2">

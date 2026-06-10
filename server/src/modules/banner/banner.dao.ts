@@ -35,11 +35,22 @@ export class BannerDAO {
     }
 
     static async updateById(id: string, updateData: any) {
+        if (updateData.endDate && new Date(updateData.endDate) < new Date()) {
+            updateData.isActive = false;
+        }
         return await Banner.findByIdAndUpdate(id, updateData, { returnDocument: "after" });
     }
 
     static async deleteById(id: string) {
         return await Banner.findByIdAndDelete(id);
+    }
+
+    static async deactivateExpired() {
+        const now = new Date();
+        return await Banner.updateMany(
+            { endDate: { $lte: now }, isActive: true },
+            { $set: { isActive: false } }
+        );
     }
 
     static async incrementClicks(id: string) {

@@ -44,6 +44,18 @@ export class ProductDAO {
             finalQuery.category = query.category;
         }
 
+        if (query.subCategory) {
+            finalQuery.subCategory = query.subCategory;
+        }
+
+        if (query.gender) {
+            if (Array.isArray(query.gender)) {
+                finalQuery.gender = { $in: query.gender };
+            } else {
+                finalQuery.gender = query.gender;
+            }
+        }
+
         if (query.brand) {
             finalQuery.brand = { $regex: new RegExp(query.brand, "i") };
         }

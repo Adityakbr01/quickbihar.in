@@ -7,6 +7,7 @@ export interface SearchFilters {
   maxPrice?: number;
   brand?: string;
   sortBy?: string;
+  gender?: string;
 }
 
 export const useSearchProducts = (query: string, filters: SearchFilters = {}) => {

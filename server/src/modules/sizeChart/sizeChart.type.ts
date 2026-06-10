@@ -5,6 +5,7 @@ export interface ISizeChartRow {
 
 export interface ISizeChart {
     name: string;
+    description?: string;
     category: string;
 
     unit: "inches" | "cm";

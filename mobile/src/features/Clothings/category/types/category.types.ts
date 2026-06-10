@@ -6,6 +6,9 @@ export interface Category {
     imagePublicId: string;
     priority: number;
     isActive: boolean;
+    isFeatured?: boolean;
+    isFeature?: boolean;
+    parentId?: string;
     createdAt: string;
     updatedAt: string;
 }

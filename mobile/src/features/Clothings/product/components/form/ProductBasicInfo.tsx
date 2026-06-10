@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, TextInput } from "react-native";
+import { View, Text, TextInput, TouchableOpacity } from "react-native";
 import { Theme } from "@/src/theme/Provider/ThemeProvider";
 
 interface ProductBasicInfoProps {
@@ -13,6 +13,8 @@ interface ProductBasicInfoProps {
   setBrand: (v: string) => void;
   tags: string;
   setTags: (v: string) => void;
+  gender: string;
+  setGender: (v: string) => void;
   errors?: any;
 }
 
@@ -27,6 +29,8 @@ const ProductBasicInfo = ({
   setBrand,
   tags,
   setTags,
+  gender,
+  setGender,
   errors,
 }: ProductBasicInfoProps) => {
   return (
@@ -77,6 +81,25 @@ const ProductBasicInfo = ({
           />
           {errors?.tags && <Text style={styles.errorText}>{errors.tags}</Text>}
         </View>
+      </View>
+
+      <Text style={[styles.label, { marginTop: 12 }]}>Gender (Optional)</Text>
+      <View style={[styles.row, { flexWrap: "wrap", gap: 8, marginTop: 4 }]}>
+        {["Men", "Women", "Kids", "Unisex"].map((g) => (
+          <TouchableOpacity
+            key={g}
+            style={[
+              styles.categoryChip,
+              gender === g && styles.categoryChipActive,
+              { paddingHorizontal: 16, height: 36, justifyContent: "center" }
+            ]}
+            onPress={() => setGender(gender === g ? "" : g)}
+          >
+            <Text style={[styles.categoryChipText, gender === g && styles.categoryChipTextActive]}>
+              {g}
+            </Text>
+          </TouchableOpacity>
+        ))}
       </View>
     </View>
   );

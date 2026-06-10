@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { catalogManagementApi, type DeliveryRiderQuery, type QueryParams } from "../api/catalogManagement.api";
+import { catalogManagementApi, type AdminBanner, type DeliveryRiderQuery, type QueryParams } from "../api/catalogManagement.api";
 
 export const useAdminOrders = (params: QueryParams) =>
   useQuery({
@@ -261,11 +261,24 @@ export const useUpdateAdminBanner = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: catalogManagementApi.updateAdminBanner,
+    onMutate: async ({ id, payload }) => {
+      await queryClient.cancelQueries({ queryKey: ["admin-banners"] });
+      const previous = queryClient.getQueryData<AdminBanner[]>(["admin-banners"]);
+      queryClient.setQueryData<AdminBanner[]>(["admin-banners"], (old) =>
+        old?.map((b) => (b._id === id ? { ...b, ...payload } : b))
+      );
+      return { previous };
+    },
+    onError: (error: Error, _variables, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(["admin-banners"], context.previous);
+      }
+      toast.error(error.message || "Failed to update banner");
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-banners"] });
       toast.success("Banner updated successfully");
     },
-    onError: (error: Error) => toast.error(error.message || "Failed to update banner"),
   });
 };
 

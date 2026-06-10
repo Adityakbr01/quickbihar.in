@@ -1,6 +1,6 @@
 "use client";
 
-import React, { type FormEvent, useState } from "react";
+import React, { type FormEvent, useState, useEffect } from "react";
 import { Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,31 +27,31 @@ import {
 
 export function SellerStoreSetupPanel() {
   const storeQuery = useSellerStore();
-  const categoriesQuery = useSellerCategories();
   const saveStore = useSaveSellerStore();
   const toggleOpen = useToggleSellerStoreOpen();
   const refundPoliciesQuery = useSellerPolicies();
 
   const store = storeQuery.data?.store;
   const missingFields = storeQuery.data?.setup.missingFields || [];
-  const availableCategories =
-    categoriesQuery.data?.available.filter((category) => category.isActive !== false) || [];
-  const categoryLocked = Boolean(
-    store?.categoryConfig?.primaryCategory || store?.categoryConfig?.subcategories?.length
-  );
-  const savedSubcategories = store?.categoryConfig?.subcategories || [];
   const refundPolicies = refundPoliciesQuery.data || [];
 
-  const [returnPolicyId, setReturnPolicyId] = useState(store?.policyRefs?.returnPolicy || "");
-  const [refundPolicyId, setRefundPolicyId] = useState(store?.policyRefs?.refundPolicy || "");
-  const [shippingPolicyId, setShippingPolicyId] = useState(store?.policyRefs?.shippingPolicy || "");
-  const [termsPolicyId, setTermsPolicyId] = useState(store?.policyRefs?.termsPolicy || "");
+  const [returnPolicyId, setReturnPolicyId] = useState("");
+  const [refundPolicyId, setRefundPolicyId] = useState("");
+  const [shippingPolicyId, setShippingPolicyId] = useState("");
+  const [termsPolicyId, setTermsPolicyId] = useState("");
+
+  useEffect(() => {
+    if (store?.policyRefs) {
+      setReturnPolicyId(entityId(store.policyRefs.returnPolicy));
+      setRefundPolicyId(entityId(store.policyRefs.refundPolicy));
+      setShippingPolicyId(entityId(store.policyRefs.shippingPolicy));
+      setTermsPolicyId(entityId(store.policyRefs.termsPolicy));
+    }
+  }, [store]);
 
   const submitStore = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
-    const primaryCategory = text(form, "primaryCategory");
-    const subcategories = formValues(form, "subcategories");
 
     saveStore.mutate({
       name: text(form, "name"),
@@ -70,14 +70,6 @@ export function SellerStoreSetupPanel() {
         email: text(form, "email"),
         phone: text(form, "phone"),
       },
-      ...(!categoryLocked
-        ? {
-            categoryConfig: {
-              primaryCategory,
-              subcategories,
-            },
-          }
-        : {}),
       deliveryConfig: {
         deliveryAreas: list(text(form, "deliveryAreas")),
         shippingFee: numberValue(form, "shippingFee"),
@@ -104,7 +96,7 @@ export function SellerStoreSetupPanel() {
       .filter(Boolean);
   };
 
-  if (storeQuery.isLoading || categoriesQuery.isLoading)
+  if (storeQuery.isLoading)
     return <LoadingState label="Loading store..." />;
 
   return (
@@ -145,69 +137,7 @@ export function SellerStoreSetupPanel() {
               <Field name="shippingFee" label="Shipping Fee" type="number" defaultValue={store?.deliveryConfig?.shippingFee} />
               <Field name="freeShippingThreshold" label="Free Shipping Above" type="number" defaultValue={store?.deliveryConfig?.freeShippingThreshold} />
             </div>
-            <div className="grid gap-3 rounded-lg border border-white/10 bg-white/[0.03] p-3">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div>
-                  <div className="text-sm font-medium text-white">Store Categories</div>
-                  <div className="text-xs text-gray-500">
-                    Sellers can choose only admin-created categories. Saved categories are locked; admin can change them after review.
-                  </div>
-                </div>
-                {categoryLocked && (
-                  <Badge variant="outline" className="border-amber-400/30 text-amber-300">
-                    Locked
-                  </Badge>
-                )}
-              </div>
-              <div className="grid gap-3 md:grid-cols-[minmax(220px,320px)_1fr]">
-                <label className={labelClass}>
-                  Primary Category
-                  <select
-                    name="primaryCategory"
-                    defaultValue={store?.categoryConfig?.primaryCategory || ""}
-                    required={!categoryLocked}
-                    disabled={categoryLocked}
-                    className={selectClass}
-                  >
-                    <option value="">Select category</option>
-                    {availableCategories.map((category) => (
-                      <option key={category._id} value={category.title}>
-                        {category.title}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label className={labelClass}>
-                  Subcategories
-                  <div className="grid max-h-40 gap-2 overflow-y-auto rounded-lg border border-white/10 bg-[#181818] p-2 md:grid-cols-2">
-                    {availableCategories.length ? (
-                      availableCategories.map((category) => (
-                        <label
-                          key={category._id}
-                          className="flex items-center gap-2 rounded border border-white/5 bg-white/[0.03] px-2 py-1.5 text-xs normal-case text-gray-300"
-                        >
-                          <input
-                            type="checkbox"
-                            name="subcategories"
-                            value={category.title}
-                            defaultChecked={savedSubcategories.some(
-                              (value) => categoryKey(value) === categoryKey(category.title)
-                            )}
-                            disabled={categoryLocked}
-                          />
-                          {category.title}
-                        </label>
-                      ))
-                    ) : (
-                      <div className="text-xs normal-case text-gray-500">
-                        No active categories available. Ask admin to create categories first.
-                      </div>
-                    )}
-                  </div>
-                </label>
-              </div>
-            </div>
-            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+             <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
               <Field name="logoUrl" label="Logo URL" defaultValue={store?.logoUrl} />
               <Field name="bannerUrl" label="Banner URL" defaultValue={store?.bannerUrl} />
               <Field name="line1" label="Address" defaultValue={store?.address?.line1} />
@@ -298,32 +228,7 @@ export function SellerStoreSetupPanel() {
               </div>
             </div>
 
-            <div className="grid gap-3 rounded-lg border border-white/10 bg-white/[0.03] p-3">
-              <div className="text-sm font-medium text-white">Legacy Policies (Read-Only)</div>
-              <div className="text-xs text-gray-500">
-                Legacy store policy description fields. These are read-only fallbacks.
-              </div>
-              <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-                <Field
-                  name="returnPolicy"
-                  label="Legacy Return Policy text"
-                  defaultValue={store?.policies?.returnPolicy}
-                  disabled
-                />
-                <Field
-                  name="refundPolicy"
-                  label="Legacy Refund Policy text"
-                  defaultValue={store?.policies?.refundPolicy}
-                  disabled
-                />
-                <Field
-                  name="shippingPolicy"
-                  label="Legacy Shipping Policy text"
-                  defaultValue={store?.policies?.shippingPolicy}
-                  disabled
-                />
-              </div>
-            </div>
+
 
             <div className="grid gap-3 md:grid-cols-3">
               <Field name="storeTitle" label="Store Title" defaultValue={store?.seo?.storeTitle} />
@@ -354,4 +259,11 @@ function categoryKey(value?: string) {
     .trim()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
+}
+
+function entityId(value: unknown) {
+  if (!value) return "";
+  if (typeof value === "string") return value;
+  if (typeof value === "object" && "_id" in value) return String((value as { _id?: string })._id || "");
+  return "";
 }

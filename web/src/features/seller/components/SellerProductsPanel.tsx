@@ -1,6 +1,6 @@
 "use client";
 
-import React, { type FormEvent, type ReactNode, useState } from "react";
+import React, { type FormEvent, type ReactNode, useState, useMemo } from "react";
 import { Plus, Edit, Send, Trash2, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -63,7 +63,7 @@ export function SellerProductsPanel() {
   const mutations = useSellerProductMutations();
 
   const assignedCategoryOptions = sellerAssignedCategoryOptions(categoriesQuery.data);
-  const productCreateBlocked = !assignedCategoryOptions.length;
+  const productCreateBlocked = categoriesQuery.isLoading ? false : !assignedCategoryOptions.length;
 
   return (
     <ModuleCard
@@ -87,7 +87,7 @@ export function SellerProductsPanel() {
     >
       {productCreateBlocked && (
         <div className="mb-3 rounded-lg border border-amber-400/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-100">
-          Product creation is available after your store has active assigned categories.
+          Product creation is available after categories are loaded.
         </div>
       )}
       <SimpleTable
@@ -188,15 +188,36 @@ function ProductDialog({
   );
 
   const categoryOptions = categories;
-  const defaultCategory =
+  const initialCategory =
     product?.category &&
     categories.some((category) => categoryKey(category.title) === categoryKey(product.category))
       ? product.category
       : categoryOptions[0]?.title || "";
+
+  const [category, setCategory] = useState(initialCategory);
+  const [subCategory, setSubCategory] = useState(product?.subCategory || "");
+  const [gender, setGender] = useState(product?.gender || "");
   const categoryBlocked = !categoryOptions.length;
+
+  const categoriesQuery = useSellerCategories();
+  const subCategories = useMemo(() => {
+    if (!category || !categoriesQuery.data?.available) return [];
+    const catDoc = categoriesQuery.data.available.find(
+      (item: any) => categoryKey(item.title) === categoryKey(category) || categoryKey(item.slug) === categoryKey(category)
+    );
+    if (!catDoc) return [];
+    return categoriesQuery.data.available.filter((item: any) => {
+      const pId = typeof item.parentId === "object" ? item.parentId?._id : item.parentId;
+      return pId === catDoc._id;
+    });
+  }, [category, categoriesQuery.data]);
+
   const selectedChart = sizeCharts.find((chart) => chart._id === sizeChartId);
 
   const resetDraft = () => {
+    setCategory(product?.category || categoryOptions[0]?.title || "");
+    setSubCategory(product?.subCategory || "");
+    setGender(product?.gender || "");
     setExistingImages(product?.images || []);
     setNewImages([]);
     setImageError("");
@@ -257,7 +278,9 @@ function ProductDialog({
       {
         title: text(form, "title"),
         brand: text(form, "brand") || undefined,
-        category: text(form, "category"),
+        category: category,
+        subCategory: subCategory || undefined,
+        gender: gender || undefined,
         price: numberValue(form, "price") || 0,
         originalPrice: numberValue(form, "originalPrice"),
         isGstApplicable: form.get("isGstApplicable") === "on",
@@ -321,7 +344,7 @@ function ProductDialog({
         <form onSubmit={submit} className="grid gap-4">
           {categoryBlocked && (
             <div className="rounded-lg border border-amber-400/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-100">
-              Assign active categories in store setup before creating products.
+              No categories available. Please contact administrator.
             </div>
           )}
           <div className="grid gap-3 md:grid-cols-2">
@@ -332,21 +355,56 @@ function ProductDialog({
               <span className="text-[10px] normal-case text-red-300">Required</span>
               <select
                 name="category"
-                defaultValue={defaultCategory}
+                value={category}
+                onChange={(e) => {
+                  setCategory(e.target.value);
+                  setSubCategory("");
+                }}
                 required
                 disabled={categoryBlocked}
                 className={selectClass}
               >
-                <option value="">Select assigned category</option>
+                <option value="">Select category</option>
                 {categoryOptions.map((category) => (
                   <option key={category._id} value={category.title}>
                     {category.title}
                   </option>
                 ))}
               </select>
-              <span className="text-xs normal-case text-gray-500">
-                Only categories assigned to your store are shown.
-              </span>
+            </label>
+            <label className={labelClass}>
+              Subcategory
+              <span className="text-[10px] normal-case text-gray-500">Optional</span>
+              <select
+                name="subCategory"
+                value={subCategory}
+                onChange={(e) => setSubCategory(e.target.value)}
+                disabled={subCategories.length === 0}
+                className={selectClass}
+              >
+                <option value="">No subcategory selected</option>
+                {subCategories.map((sub: any) => (
+                  <option key={sub._id} value={sub.title}>
+                    {sub.title}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className={labelClass}>
+              Gender
+              <span className="text-[10px] normal-case text-gray-500">Optional</span>
+              <select
+                name="gender"
+                value={gender}
+                onChange={(e) => setGender(e.target.value)}
+                className={selectClass}
+              >
+                <option value="">Select Gender</option>
+                <option value="Men">Men</option>
+                <option value="Women">Women</option>
+                <option value="Kids">Kids</option>
+                <option value="Unisex">Unisex</option>
+              </select>
             </label>
             <Field name="price" label="Selling Price" type="number" defaultValue={product?.price} required />
             <Field
@@ -475,6 +533,11 @@ function ProductDialog({
                 </option>
               ))}
             </select>
+            {selectedChart?.description && (
+              <div className="text-xs text-blue-300/90 bg-blue-500/5 border border-blue-500/20 rounded p-2">
+                {selectedChart.description}
+              </div>
+            )}
             {selectedChart && <SizeChartPreview chart={selectedChart} />}
           </section>
 
@@ -493,7 +556,7 @@ function ProductDialog({
                 >
                   <option value="">No Return Policy</option>
                   {refundPolicies
-                    .filter((p) => p.policyType === "RETURN")
+                    .filter((p) => p.policyType === "RETURN" || !p.policyType)
                     .map((policy) => (
                       <option key={policy._id} value={policy._id}>
                         {policy.name}
@@ -511,7 +574,7 @@ function ProductDialog({
                 >
                   <option value="">No Refund Policy</option>
                   {refundPolicies
-                    .filter((p) => p.policyType === "REFUND")
+                    .filter((p) => p.policyType === "REFUND" || !p.policyType)
                     .map((policy) => (
                       <option key={policy._id} value={policy._id}>
                         {policy.name}
@@ -579,7 +642,7 @@ function ProductDialog({
               <Field
                 name="deliveryReturnPolicy"
                 label="Delivery Return Statement"
-                defaultValue={product?.deliveryInfo?.returnPolicy || store?.policies?.returnPolicy}
+                defaultValue={product?.deliveryInfo?.returnPolicy}
                 optional
               />
               <Field
@@ -792,27 +855,11 @@ function SizeChartPreview({ chart }: { chart: SellerSizeChart }) {
   );
 }
 
-function sellerAssignedCategoryValues(categories?: any) {
-  const values = [categories?.assigned?.primaryCategory, ...(categories?.assigned?.subcategories || [])];
-  const seen = new Set<string>();
-  return values
-    .map((value) => value?.trim())
-    .filter((value): value is string => Boolean(value))
-    .filter((value) => {
-      const key = categoryKey(value);
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    });
-}
 
 function sellerAssignedCategoryOptions(categories?: any) {
-  const assigned = sellerAssignedCategoryValues(categories);
-  const assignedKeys = new Set(assigned.map(categoryKey));
   return (categories?.available || []).filter(
     (category: any) =>
-      category.isActive !== false &&
-      (assignedKeys.has(categoryKey(category.title)) || assignedKeys.has(categoryKey(category.slug)))
+      category.isActive !== false && !category.parentId
   );
 }
 

@@ -10,6 +10,7 @@ export const createCategorySchema = z.object({
     priority: z.coerce.number().int().default(0),
     sortOrder: z.coerce.number().int().optional(),
     isActive: z.preprocess((val) => val === "true" || val === true, z.boolean()).default(true),
+    isFeatured: z.preprocess((val) => val === "true" || val === true, z.boolean()).default(false),
     parentId: z.string().optional().nullable(),
     parentModel: z.enum(["Category", "SubCategory"]).optional(),
     seo: z.preprocess(

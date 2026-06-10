@@ -419,11 +419,12 @@ function ProductForm({
   const initialSellerId = product?.sellerId || sellers[0]?._id || "";
   const initialSeller = sellers.find((seller) => seller._id === initialSellerId);
   const initialStore = initialSeller?.sellerProfile?.store;
-  const initialPolicyDefaults = initialStore?.policies || {};
   const [sellerId, setSellerId] = useState(initialSellerId);
   const [title, setTitle] = useState(product?.title || "");
   const [brand, setBrand] = useState(product?.brand || "");
   const [category, setCategory] = useState(product?.category || "");
+  const [subCategory, setSubCategory] = useState(product?.subCategory || "");
+  const [gender, setGender] = useState(product?.gender || "");
   const [description, setDescription] = useState(product?.description || "");
   const [shortDescription, setShortDescription] = useState(
     product?.shortDescription || "",
@@ -492,7 +493,6 @@ function ProductForm({
   );
   const [deliveryReturnPolicy, setDeliveryReturnPolicy] = useState(
     product?.deliveryInfo?.returnPolicy ||
-      initialPolicyDefaults.returnPolicy ||
       "",
   );
   const [manufacturerDetail, setManufacturerDetail] = useState(
@@ -522,50 +522,24 @@ function ProductForm({
     [sellerId, sellers],
   );
   const selectedStore = selectedSeller?.sellerProfile?.store;
-  const assignedCategoryValues = useMemo(
-    () =>
-      compactList([
-        selectedStore?.categoryConfig?.primaryCategory,
-        ...(selectedStore?.categoryConfig?.subcategories || []),
-      ]),
-    [
-      selectedStore?.categoryConfig?.primaryCategory,
-      selectedStore?.categoryConfig?.subcategories,
-    ],
+  const parentCategories = useMemo(
+    () => activeCategories.filter((cat) => !cat.parentId),
+    [activeCategories]
   );
-  const assignedCategoryOptions = useMemo(() => {
-    if (!assignedCategoryValues.length) return [];
-    return activeCategories.filter((item) =>
-      categoryMatchesAssignment(item.title, item, assignedCategoryValues),
-    );
-  }, [activeCategories, assignedCategoryValues]);
-  const categoryOptions = assignedCategoryOptions;
-  const rawSelectedCategoryDoc = activeCategories.find(
-    (item) => item.title === category || item.slug === category,
+  const effectiveCategory = category || parentCategories[0]?.title || "";
+  const selectedCategoryDoc = useMemo(
+    () => activeCategories.find((item) => item.title === effectiveCategory || item.slug === effectiveCategory),
+    [effectiveCategory, activeCategories]
   );
-  const rawCategoryAllowed = categoryMatchesAssignment(
-    category,
-    rawSelectedCategoryDoc,
-    assignedCategoryValues,
-  );
-  const effectiveCategory =
-    category && rawCategoryAllowed ? category : categoryOptions[0]?.title || "";
-  const selectedCategoryDoc = activeCategories.find(
-    (item) => item.title === effectiveCategory || item.slug === effectiveCategory,
-  );
-  const categoryAllowed = categoryMatchesAssignment(
-    effectiveCategory,
-    selectedCategoryDoc,
-    assignedCategoryValues,
-  );
-  const categoryMismatch = Boolean(
-    effectiveCategory && assignedCategoryValues.length && !categoryAllowed,
-  );
-  const storeCategoryHelper = selectedSeller
-    ? assignedCategoryValues.length
-      ? `Assigned to this seller store: ${assignedCategoryValues.join(", ")}`
-      : "This seller store has no assigned product category yet."
-    : "Choose the seller store before selecting a product category.";
+
+  const subCategories = useMemo(() => {
+    if (!selectedCategoryDoc) return [];
+    return activeCategories.filter((item) => {
+      const pId = typeof item.parentId === "object" ? item.parentId?._id : item.parentId;
+      return pId === selectedCategoryDoc._id;
+    });
+  }, [selectedCategoryDoc, activeCategories]);
+
   const selectedChart = sizeCharts.find((chart) => chart._id === sizeChartId);
   const totalImages = existingImages.length + newImages.length;
   const submitBlockReason = useMemo(() => {
@@ -580,24 +554,12 @@ function ProductForm({
       if (selectedStore.isActive === false) {
         return "Selected seller store is inactive.";
       }
-      if (!assignedCategoryValues.length) {
-        return "Selected seller store has no assigned product category.";
-      }
-      if (!categoryOptions.length) {
-        return "Assigned seller categories are not active catalog categories.";
-      }
-      if (categoryMismatch) {
-        return "Selected category is not assigned to this seller store.";
-      }
     }
     if (!effectiveCategory) return "Select a product category.";
     if (totalImages < 1) return "Add at least one product image.";
     if (totalImages > 5) return "A product can have a maximum of 5 images.";
     return "";
   }, [
-    assignedCategoryValues.length,
-    categoryMismatch,
-    categoryOptions.length,
     effectiveCategory,
     product,
     selectedSeller,
@@ -659,6 +621,8 @@ function ProductForm({
         title,
         brand: optionalValue(brand),
         category: effectiveCategory,
+        subCategory: subCategory || undefined,
+        gender: optionalValue(gender),
         description: optionalValue(description),
         shortDescription: optionalValue(shortDescription),
         price: Number(price),
@@ -720,11 +684,6 @@ function ProductForm({
       {submitBlockReason && (
         <ProductNotice tone="error">{submitBlockReason}</ProductNotice>
       )}
-      {selectedSeller && (
-        <ProductNotice tone={assignedCategoryValues.length ? "info" : "warning"}>
-          {storeCategoryHelper}
-        </ProductNotice>
-      )}
 
       <ProductFormSection
         title="Basic Info"
@@ -761,7 +720,7 @@ function ProductForm({
           </ProductField>
         </div>
 
-        <div className="grid gap-3 md:grid-cols-3">
+        <div className="grid gap-3 md:grid-cols-4">
           <ProductField
             label="Brand"
             helper="Optional. Leave blank if the product has no separate brand."
@@ -776,30 +735,57 @@ function ProductForm({
           <ProductField
             label="Product Category"
             required
-            helper={
-              assignedCategoryValues.length
-                ? "Only categories assigned to this seller store are shown."
-                : "Assign a category to this seller store before product creation."
-            }
-            error={
-              categoryMismatch
-                ? "This category is not assigned to the selected seller store."
-                : null
-            }
+            helper="Select main category."
           >
             <select
               value={effectiveCategory}
-              onChange={(event) => setCategory(event.target.value)}
+              onChange={(event) => {
+                setCategory(event.target.value);
+                setSubCategory("");
+              }}
               required
               className={selectClass}
-              disabled={!categoryOptions.length}
             >
-              <option value="">Select assigned category</option>
-              {categoryOptions.map((item) => (
+              <option value="">Select category</option>
+              {parentCategories.map((item) => (
                 <option key={item._id} value={item.title}>
                   {item.title}
                 </option>
               ))}
+            </select>
+          </ProductField>
+          <ProductField
+            label="Product Subcategory"
+            helper={subCategories.length > 0 ? "Select subcategory." : "No subcategories available."}
+          >
+            <select
+              value={subCategory}
+              onChange={(event) => setSubCategory(event.target.value)}
+              className={selectClass}
+              disabled={subCategories.length === 0}
+            >
+              <option value="">No subcategory selected</option>
+              {subCategories.map((item) => (
+                <option key={item._id} value={item.title}>
+                  {item.title}
+                </option>
+              ))}
+            </select>
+          </ProductField>
+          <ProductField
+            label="Gender"
+            helper="Optional. Select target audience gender."
+          >
+            <select
+              value={gender}
+              onChange={(event) => setGender(event.target.value)}
+              className={selectClass}
+            >
+              <option value="">Select Gender</option>
+              <option value="Men">Men</option>
+              <option value="Women">Women</option>
+              <option value="Kids">Kids</option>
+              <option value="Unisex">Unisex</option>
             </select>
           </ProductField>
           <ProductField
@@ -957,6 +943,11 @@ function ProductForm({
             </option>
           ))}
         </select>
+        {selectedChart?.description && (
+          <div className="text-xs text-blue-300/90 bg-blue-500/5 border border-blue-500/20 rounded p-2">
+            {selectedChart.description}
+          </div>
+        )}
         {selectedChart && <SizeChartPreview chart={selectedChart} />}
       </ProductFormSection>
 

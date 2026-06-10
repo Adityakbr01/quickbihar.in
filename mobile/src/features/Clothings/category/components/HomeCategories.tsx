@@ -7,7 +7,7 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
 import { useCategories } from "../hooks/useCategories";
 import { Category } from "../types/category.types";
@@ -24,10 +24,10 @@ const HomeCategories = () => {
       style={styles.categoryItem}
       activeOpacity={0.7}
       onPress={() => {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
         router.push({
-          pathname: "/(tabs)/search",
-          params: { query: item.title }
+          pathname: "/(tabs)/clothing/search",
+          params: { query: item.title },
         });
       }}
     >
@@ -43,6 +43,13 @@ const HomeCategories = () => {
       </Text>
     </TouchableOpacity>
   );
+
+  const featuredCategories = React.useMemo(() => {
+    if (!categories) return [];
+    const featured = categories.filter((cat) => cat.isFeatured || cat.isFeature);
+    if (featured.length > 0) return featured;
+    return categories.filter((cat) => !cat.parentId); // fallback to root categories
+  }, [categories]);
 
   if (isLoading) {
     return (
@@ -66,7 +73,7 @@ const HomeCategories = () => {
   return (
     <View style={styles.container}>
       <FlatList
-        data={categories}
+        data={featuredCategories}
         renderItem={renderItem}
         keyExtractor={(item) => item._id}
         horizontal
@@ -100,7 +107,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xs,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: '#f0f0f0',
+    backgroundColor: "#f0f0f0",
   },
   image: {
     width: "100%",

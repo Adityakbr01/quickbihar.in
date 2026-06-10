@@ -88,12 +88,6 @@ export interface SellerStorePayload {
     metaTitle?: string;
     metaDescription?: string;
   };
-  policies?: {
-    returnPolicy?: string;
-    refundPolicy?: string;
-    shippingPolicy?: string;
-    termsAndConditions?: string;
-  };
   policyRefs?: {
     returnPolicy?: string;
     refundPolicy?: string;
@@ -136,6 +130,7 @@ export interface SellerProduct {
   brand?: string;
   category: string;
   subCategory?: string;
+  gender?: string;
   price: number;
   originalPrice?: number;
   images?: Array<{ url: string; fileId: string }>;
@@ -176,11 +171,6 @@ export interface SellerProduct {
     latitude?: number;
     longitude?: number;
   };
-  policies?: {
-    returnPolicy?: string;
-    refundPolicy?: string;
-    shippingPolicy?: string;
-  };
   policyRefs?: {
     returnPolicy?: string;
     refundPolicy?: string;
@@ -201,6 +191,7 @@ export interface SellerProductPayload {
   brand?: string;
   category: string;
   subCategory?: string;
+  gender?: string;
   price: number;
   originalPrice?: number;
   sizeChartId?: string;
@@ -238,11 +229,6 @@ export interface SellerProductPayload {
     warehouseName?: string;
     latitude?: number;
     longitude?: number;
-  };
-  policies?: {
-    returnPolicy?: string;
-    refundPolicy?: string;
-    shippingPolicy?: string;
   };
   policyRefs?: {
     returnPolicy?: string;
@@ -352,6 +338,7 @@ export interface SellerBannerPayload {
 export interface SellerSizeChart {
   _id: string;
   name: string;
+  description?: string;
   category: string;
   unit: "inches" | "cm";
   fields: string[];
@@ -366,6 +353,7 @@ export interface SellerSizeChart {
 
 export interface SellerSizeChartPayload {
   name: string;
+  description?: string;
   category: string;
   unit: "inches" | "cm";
   fields: string[];
@@ -538,7 +526,7 @@ const productFormData = (payload: Partial<SellerProductPayload>, images?: File[]
   appendOptional(formData, "deliveryInfo", payload.deliveryInfo);
   appendOptional(formData, "compliance", payload.compliance);
   appendOptional(formData, "logistics", payload.logistics);
-  appendOptional(formData, "policies", payload.policies);
+  appendOptional(formData, "gender", payload.gender);
   appendOptional(formData, "policyRefs", payload.policyRefs);
   appendOptional(formData, "refundPolicy", payload.refundPolicy);
   appendOptional(formData, "existingImages", payload.existingImages);
