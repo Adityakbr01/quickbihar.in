@@ -90,6 +90,12 @@ const orderSchema = new Schema<IOrder>(
         productDiscount: { type: Number, default: 0 },
         discountAmount: { type: Number, default: 0 },
         shippingFee: { type: Number, default: 0, required: false },
+        dynamicDeliverySurcharge: { type: Number, default: 0 },
+        platformCommissionTotal: { type: Number, default: 0 },
+        riderPayoutEstimateTotal: { type: Number, default: 0 },
+        appGrossRevenue: { type: Number, default: 0 },
+        appNetAfterRiderEstimate: { type: Number, default: 0 },
+        pricingSnapshot: { type: Schema.Types.Mixed },
         totalTax: { type: Number, default: 0 },
         payableAmount: { type: Number, required: true },
         shippingAddress: {

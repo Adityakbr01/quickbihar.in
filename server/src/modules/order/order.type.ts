@@ -71,6 +71,19 @@ export interface IOrderDelivery {
     events?: IDeliveryEvent[];
 }
 
+export interface IOrderPricingSnapshot {
+    model?: string;
+    quotedAt?: Date;
+    marketplaceCommissionPercent?: number;
+    shippingFee?: number;
+    dynamicDeliverySurcharge?: number;
+    platformCommissionTotal?: number;
+    riderPayoutEstimateTotal?: number;
+    appGrossRevenue?: number;
+    appNetAfterRiderEstimate?: number;
+    sellerBreakdowns?: any[];
+}
+
 export interface IOrderItem {
     productId: Types.ObjectId;
     title: string;
@@ -112,6 +125,12 @@ export interface IOrder extends Document {
     productDiscount: number; // Total savings from product price drops
     discountAmount: number;  // Savings from Coupon
     shippingFee: number;
+    dynamicDeliverySurcharge?: number;
+    platformCommissionTotal?: number;
+    riderPayoutEstimateTotal?: number;
+    appGrossRevenue?: number;
+    appNetAfterRiderEstimate?: number;
+    pricingSnapshot?: IOrderPricingSnapshot;
     totalTax: number;        // Total GST amount
     payableAmount: number;   // Final amount paid
     shippingAddress: IShippingAddress;

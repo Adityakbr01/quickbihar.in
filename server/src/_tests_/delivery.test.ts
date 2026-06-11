@@ -20,6 +20,10 @@ let updatedOrder: any;
 let currentProfile: any;
 let subOrderRows: any[] = [];
 let subOrderCount = 0;
+let productRows = new Map<string, any>();
+let storeRows: any[] = [];
+let couponValidations: any[] = [];
+let appConfigValue: any = { delivery: { riderPayoutAmount: 40 } };
 
 const queryMock = (value: any) => {
   const query: any = {
@@ -53,6 +57,12 @@ const payoutCreate = mock((payload) => Promise.resolve({
 }));
 const subOrderFind = mock(() => listQueryMock(subOrderRows));
 const subOrderCountDocuments = mock(() => Promise.resolve(subOrderCount));
+const productFindById = mock((id: string) => Promise.resolve(productRows.get(id) || null));
+const couponValidateMultiple = mock(() => Promise.resolve(couponValidations));
+const appConfigGetConfig = mock(() => Promise.resolve(appConfigValue));
+const storeFind = mock(() => ({
+  lean: mock(() => Promise.resolve(storeRows)),
+}));
 
 mock.module("../modules/order/order.service", () => ({
   orderService: {
@@ -101,7 +111,26 @@ mock.module("../modules/user/user.model", () => ({
 
 mock.module("../modules/appConfig/appConfig.service", () => ({
   appConfigService: {
-    getConfig: mock(() => Promise.resolve({ delivery: { riderPayoutAmount: 40 } })),
+    getConfig: appConfigGetConfig,
+  },
+}));
+
+mock.module("../modules/products/product.dao", () => ({
+  ProductDAO: {
+    findById: productFindById,
+  },
+}));
+
+mock.module("../modules/coupon/coupon.service", () => ({
+  couponService: {
+    validateMultipleCouponsForCart: couponValidateMultiple,
+    incrementUsage: mock(() => Promise.resolve(undefined)),
+  },
+}));
+
+mock.module("../modules/store/store.model", () => ({
+  Store: {
+    find: storeFind,
   },
 }));
 
@@ -113,6 +142,24 @@ mock.module("../modules/socket/socket.service", () => ({
 }));
 
 const { deliveryService } = await import("../modules/delivery/delivery.service");
+const { calculateRiderPayout } = await import("../modules/order/subOrder.service");
+const { orderPricingService } = await import("../modules/order/orderPricing.service");
+
+const productForQuote = (overrides: any = {}) => ({
+  _id: new Types.ObjectId("645a2c2b8f8f2b1a2c3d4e81"),
+  title: "Quote Shirt",
+  price: 799,
+  originalPrice: 799,
+  isActive: true,
+  approvalStatus: "APPROVED",
+  isGstApplicable: false,
+  gstPercentage: 0,
+  sellerId: new Types.ObjectId("645a2c2b8f8f2b1a2c3d4e82"),
+  storeId: new Types.ObjectId("645a2c2b8f8f2b1a2c3d4e83"),
+  variants: [{ sku: "QS-M-BLK", size: "M", color: "Black", stock: 10 }],
+  logistics: { latitude: 25.5941, longitude: 85.1376 },
+  ...overrides,
+});
 
 describe("DeliveryService", () => {
   beforeEach(() => {
@@ -125,6 +172,14 @@ describe("DeliveryService", () => {
     subOrderCountDocuments.mockClear();
     subOrderRows = [];
     subOrderCount = 0;
+    productRows = new Map();
+    storeRows = [];
+    couponValidations = [];
+    appConfigValue = { delivery: { riderPayoutAmount: 40 } };
+    productFindById.mockClear();
+    couponValidateMultiple.mockClear();
+    appConfigGetConfig.mockClear();
+    storeFind.mockClear();
     currentProfile = null;
     currentOrder = {
       _id: ORDER_ID,
@@ -267,6 +322,109 @@ describe("DeliveryService", () => {
     expect(payload.payoutMethodId).toBeUndefined();
     expect(payout.partnerType).toBe("DELIVERY");
     expect(save).toHaveBeenCalled();
+  });
+
+  test("calculates rider payout from configured slabs and active bonuses", () => {
+    const payout = calculateRiderPayout(
+      8.2,
+      { rain: 1, peak: 0, festival: 0, night: 0 },
+      {
+        upto3Km: 22,
+        upto5Km: 35,
+        upto8Km: 50,
+        extraPerKmAfter8: 7,
+        rainBonus: 12,
+      },
+    );
+
+    expect(payout.basePayout).toBe(57);
+    expect(payout.totalPayout).toBe(69);
+    expect(payout.bonuses.rain).toBe(12);
+  });
+
+  test("quotes free-shipping order with rider paid from platform commission", async () => {
+    const product = productForQuote();
+    productRows.set(product._id.toString(), product);
+    appConfigValue = {
+      shipping: { freeShippingThreshold: 1, shippingFee: 99 },
+      marketplace: { commissionPercent: 15 },
+      delivery: {
+        riderPayoutRules: { upto3Km: 20, upto5Km: 30, upto8Km: 45, extraPerKmAfter8: 5 },
+        bonusRules: {
+          rainBonus: 12,
+          peakBonus: 10,
+          festivalBonus: 15,
+          nightBonus: 8,
+          rainMode: "FORCE_OFF",
+          peakMode: "FORCE_OFF",
+          festivalMode: "FORCE_OFF",
+          nightMode: "FORCE_OFF",
+        },
+      },
+    };
+
+    const quote = await orderPricingService.buildQuote(USER_ID, {
+      items: [{ productId: product._id.toString(), sku: "QS-M-BLK", quantity: 1 }],
+      shippingAddress: {
+        fullName: "Customer",
+        phone: "9999999999",
+        street: "Main Road",
+        city: "Patna",
+        state: "Bihar",
+        pincode: "800001",
+        latitude: 25.5942,
+        longitude: 85.1377,
+      },
+    });
+
+    expect(quote.payableAmount).toBe(799);
+    expect(quote.shippingFee).toBe(0);
+    expect(quote.dynamicDeliverySurcharge).toBe(0);
+    expect(quote.platformCommissionTotal).toBe(119.85);
+    expect(quote.riderPayoutEstimateTotal).toBe(20);
+    expect(quote.appNetAfterRiderEstimate).toBe(99.85);
+    expect(quote.sellerBreakdowns[0]?.sellerNet).toBe(679.15);
+  });
+
+  test("adds visible dynamic surcharge when delivery bonuses are active", async () => {
+    const product = productForQuote();
+    productRows.set(product._id.toString(), product);
+    appConfigValue = {
+      shipping: { freeShippingThreshold: 1, shippingFee: 99 },
+      marketplace: { commissionPercent: 15 },
+      delivery: {
+        riderPayoutRules: { upto3Km: 20, upto5Km: 30, upto8Km: 45, extraPerKmAfter8: 5 },
+        bonusRules: {
+          rainBonus: 12,
+          peakBonus: 10,
+          festivalBonus: 15,
+          nightBonus: 8,
+          rainMode: "FORCE_ON",
+          peakMode: "FORCE_ON",
+          festivalMode: "FORCE_OFF",
+          nightMode: "FORCE_OFF",
+        },
+      },
+    };
+
+    const quote = await orderPricingService.buildQuote(USER_ID, {
+      items: [{ productId: product._id.toString(), sku: "QS-M-BLK", quantity: 1 }],
+      shippingAddress: {
+        fullName: "Customer",
+        phone: "9999999999",
+        street: "Main Road",
+        city: "Patna",
+        state: "Bihar",
+        pincode: "800001",
+        latitude: 25.5942,
+        longitude: 85.1377,
+      },
+    });
+
+    expect(quote.dynamicDeliverySurcharge).toBe(22);
+    expect(quote.payableAmount).toBe(821);
+    expect(quote.sellerBreakdowns[0]?.riderBonuses).toEqual({ rain: 12, peak: 10, festival: 0, night: 0 });
+    expect(quote.riderPayoutEstimateTotal).toBe(42);
   });
 
   test("blocks offer acceptance until rider profile is complete and approved", async () => {

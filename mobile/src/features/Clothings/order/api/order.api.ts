@@ -27,6 +27,54 @@ export interface VerifyPaymentData {
   razorpaySignature: string;
 }
 
+export interface OrderQuoteBreakdown {
+  sellerId: string;
+  storeId?: string;
+  sellerItemSubtotal: number;
+  sellerCouponShare: number;
+  customerDeliveryFeeShare: number;
+  customerDynamicSurchargeShare: number;
+  platformCommission: number;
+  sellerNet: number;
+  distanceKm: number;
+  riderBasePayout: number;
+  riderPayoutEstimate: number;
+  riderBonuses: {
+    rain: number;
+    peak: number;
+    festival: number;
+    night: number;
+  };
+  bonusFlags: {
+    rain: boolean;
+    peak: boolean;
+    festival: boolean;
+    night: boolean;
+  };
+}
+
+export interface OrderQuoteData {
+  subtotal: number;
+  totalAmount: number;
+  totalTax: number;
+  mrpTotal: number;
+  productDiscount: number;
+  discountAmount: number;
+  shippingFee: number;
+  dynamicDeliverySurcharge: number;
+  payableAmount: number;
+  platformCommissionTotal: number;
+  riderPayoutEstimateTotal: number;
+  appGrossRevenue: number;
+  appNetAfterRiderEstimate: number;
+  sellerBreakdowns: OrderQuoteBreakdown[];
+}
+
+export const quoteOrderRequest = async (data: CreateOrderData) => {
+  const response = await axiosInstance.post("/orders/quote", data);
+  return response.data;
+};
+
 export const createOrderRequest = async (data: CreateOrderData) => {
   const response = await axiosInstance.post("/orders", data);
   return response.data;

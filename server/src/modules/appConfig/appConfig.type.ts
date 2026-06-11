@@ -45,11 +45,38 @@ export interface IAppConfig extends Document {
         code: string;
         symbol: string;
     };
+    marketplace?: {
+        commissionPercent?: number;
+    };
     delivery: {
         defaultRadiusKm: number;
         minOrderAmount: number;
         estimatedMinutes: number;
         riderPayoutAmount?: number;
+        riderPayoutRules?: {
+            upto3Km?: number;
+            upto5Km?: number;
+            upto8Km?: number;
+            extraPerKmAfter8?: number;
+            rainBonus?: number;
+            peakBonus?: number;
+            festivalBonus?: number;
+            nightBonus?: number;
+        };
+        bonusRules?: {
+            rainBonus?: number;
+            peakBonus?: number;
+            festivalBonus?: number;
+            nightBonus?: number;
+            rainMode?: "AUTO" | "FORCE_ON" | "FORCE_OFF";
+            peakMode?: "AUTO" | "FORCE_ON" | "FORCE_OFF";
+            festivalMode?: "AUTO" | "FORCE_ON" | "FORCE_OFF";
+            nightMode?: "AUTO" | "FORCE_ON" | "FORCE_OFF";
+            peakWindows?: Array<{ start: string; end: string }>;
+            festivalWindows?: Array<{ name?: string; startDate: string; endDate: string }>;
+            nightStart?: string;
+            nightEnd?: string;
+        };
     };
     updatedBy?: string;
 }

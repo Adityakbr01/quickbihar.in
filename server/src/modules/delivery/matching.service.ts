@@ -5,7 +5,7 @@ import { DeliveryBoy } from "../deliveryBoy/delivery.model";
 import { socketService } from "../socket/socket.service";
 import {
   distanceKmBetween,
-  calculateRiderPayout,
+  lockedOrCalculatedRiderPayout,
 } from "../order/subOrder.service";
 import { SocketEvents } from "../../constants/socketEvents";
 import {
@@ -15,6 +15,7 @@ import {
 import { ENV } from "../../config/env.config";
 import { riderCapacityCountsByRider } from "./riderCapacity";
 import { riderProfileMissingFields } from "./riderEligibility";
+import { appConfigService } from "../appConfig/appConfig.service";
 
 export class MatchingService {
   private static isLoopRunning = false;
@@ -685,12 +686,8 @@ export class MatchingService {
       distanceKm = distanceKmBetween(storeCoords, customerCoords) || 0;
     }
 
-    const payoutInfo = calculateRiderPayout(distanceKm, {
-      rain: subOrder.delivery?.bonuses?.rain || 0,
-      peak: subOrder.delivery?.bonuses?.peak || 0,
-      festival: subOrder.delivery?.bonuses?.festival || 0,
-      night: subOrder.delivery?.bonuses?.night || 0,
-    });
+    const appConfig = await appConfigService.getConfig();
+    const payoutInfo = lockedOrCalculatedRiderPayout(subOrder, distanceKm, appConfig);
 
     // Score riders
     const ridersWithScores = qualifiedRiders.map((rider) => {

@@ -45,11 +45,45 @@ export const updateAppConfigSchema = z.object({
         code: z.string().trim().min(3).max(3).optional(),
         symbol: z.string().trim().max(8).optional(),
     }).optional(),
+    marketplace: z.object({
+        commissionPercent: z.coerce.number().min(0).max(100).optional(),
+    }).optional(),
     delivery: z.object({
         defaultRadiusKm: z.coerce.number().min(0).optional(),
         minOrderAmount: z.coerce.number().min(0).optional(),
         estimatedMinutes: z.coerce.number().min(1).optional(),
         riderPayoutAmount: z.coerce.number().min(0).optional(),
+        riderPayoutRules: z.object({
+            upto3Km: z.coerce.number().min(0).optional(),
+            upto5Km: z.coerce.number().min(0).optional(),
+            upto8Km: z.coerce.number().min(0).optional(),
+            extraPerKmAfter8: z.coerce.number().min(0).optional(),
+            rainBonus: z.coerce.number().min(0).optional(),
+            peakBonus: z.coerce.number().min(0).optional(),
+            festivalBonus: z.coerce.number().min(0).optional(),
+            nightBonus: z.coerce.number().min(0).optional(),
+        }).optional(),
+        bonusRules: z.object({
+            rainBonus: z.coerce.number().min(0).optional(),
+            peakBonus: z.coerce.number().min(0).optional(),
+            festivalBonus: z.coerce.number().min(0).optional(),
+            nightBonus: z.coerce.number().min(0).optional(),
+            rainMode: z.enum(["AUTO", "FORCE_ON", "FORCE_OFF"]).optional(),
+            peakMode: z.enum(["AUTO", "FORCE_ON", "FORCE_OFF"]).optional(),
+            festivalMode: z.enum(["AUTO", "FORCE_ON", "FORCE_OFF"]).optional(),
+            nightMode: z.enum(["AUTO", "FORCE_ON", "FORCE_OFF"]).optional(),
+            peakWindows: z.array(z.object({
+                start: z.string().regex(/^\d{2}:\d{2}$/),
+                end: z.string().regex(/^\d{2}:\d{2}$/),
+            })).optional(),
+            festivalWindows: z.array(z.object({
+                name: z.string().trim().optional(),
+                startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+                endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+            })).optional(),
+            nightStart: z.string().regex(/^\d{2}:\d{2}$/).optional(),
+            nightEnd: z.string().regex(/^\d{2}:\d{2}$/).optional(),
+        }).optional(),
     }).optional(),
 });
 

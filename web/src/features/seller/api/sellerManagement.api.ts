@@ -249,6 +249,26 @@ export interface SellerProductPayload {
   isActive?: boolean;
 }
 
+export interface SellerMarketplaceConfig {
+  marketplace?: {
+    commissionPercent?: number;
+  };
+  delivery?: {
+    riderPayoutRules?: {
+      upto3Km?: number;
+      upto5Km?: number;
+      upto8Km?: number;
+      extraPerKmAfter8?: number;
+    };
+    bonusRules?: {
+      rainBonus?: number;
+      peakBonus?: number;
+      festivalBonus?: number;
+      nightBonus?: number;
+    };
+  };
+}
+
 export interface SellerOrder {
   _id: string;
   orderId: string;
@@ -630,6 +650,11 @@ export const sellerManagementApi = {
 
   getStore: async (): Promise<SellerStoreResponse> => {
     const response = await axiosInstance.get("/sellers/store");
+    return response.data.data;
+  },
+
+  getAppConfig: async (): Promise<SellerMarketplaceConfig> => {
+    const response = await axiosInstance.get("/app-config");
     return response.data.data;
   },
 

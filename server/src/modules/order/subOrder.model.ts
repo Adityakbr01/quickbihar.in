@@ -74,6 +74,11 @@ export interface ISubOrder extends Document {
   subtotal: number;
   tax: number;
   shippingFee: number;
+  dynamicDeliverySurcharge?: number;
+  platformCommission?: number;
+  sellerNet?: number;
+  appNetAfterRider?: number;
+  pricingSnapshot?: Record<string, any>;
   payableAmount: number;
   status: SubOrderStatus;
   packageDetails?: {
@@ -98,6 +103,7 @@ export interface ISubOrder extends Document {
     pickupOtp?: string;
     deliveryOtp?: string;
     payoutAmount: number;
+    distanceKm?: number;
     bonuses?: {
       rain: number;
       peak: number;
@@ -186,6 +192,11 @@ const subOrderSchema = new Schema<ISubOrder>(
     subtotal: { type: Number, required: true },
     tax: { type: Number, default: 0 },
     shippingFee: { type: Number, default: 0 },
+    dynamicDeliverySurcharge: { type: Number, default: 0 },
+    platformCommission: { type: Number, default: 0 },
+    sellerNet: { type: Number, default: 0 },
+    appNetAfterRider: { type: Number, default: 0 },
+    pricingSnapshot: { type: Schema.Types.Mixed },
     payableAmount: { type: Number, required: true },
     status: {
       type: String,
@@ -228,6 +239,7 @@ const subOrderSchema = new Schema<ISubOrder>(
       pickupOtp: String,
       deliveryOtp: String,
       payoutAmount: { type: Number, default: 0 },
+      distanceKm: { type: Number, default: 0 },
       bonuses: {
         rain: { type: Number, default: 0 },
         peak: { type: Number, default: 0 },

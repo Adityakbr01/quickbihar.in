@@ -32,6 +32,8 @@ export const createOrderSchema = z.object({
     couponCodes: z.array(z.string()).optional(),
 });
 
+export const quoteOrderSchema = createOrderSchema;
+
 export const verifyPaymentSchema = z.object({
     razorpayOrderId: z.string().min(1, "Razorpay Order ID is required"),
     razorpayPaymentId: z.string().min(1, "Razorpay Payment ID is required"),

@@ -1,11 +1,20 @@
 import { ApiResponse } from "../../utils/ApiResponse";
 import { asyncHandler } from "../../utils/asyncHandler";
 import { orderService } from "./order.service";
-import { adminOrderStatusSchema, assignDeliverySchema, createOrderSchema, verifyPaymentSchema } from "./order.validator";
+import { adminOrderStatusSchema, assignDeliverySchema, createOrderSchema, quoteOrderSchema, verifyPaymentSchema } from "./order.validator";
 import { SubOrderService } from "./subOrder.service";
 import { ApiError } from "../../utils/ApiError";
 
 export class OrderController {
+    static quoteOrder = asyncHandler(async (req, res) => {
+        const validatedData = quoteOrderSchema.parse(req.body);
+        const result = await orderService.quoteOrder((req as any).user._id, validatedData);
+
+        return res.status(200).json(
+            new ApiResponse(200, result, "Order quote fetched successfully")
+        );
+    });
+
     static createOrder = asyncHandler(async (req, res) => {
         const validatedData = createOrderSchema.parse(req.body);
         const result = await orderService.createOrder((req as any).user._id, validatedData);

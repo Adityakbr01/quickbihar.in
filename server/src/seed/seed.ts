@@ -41,11 +41,38 @@ export const seedAppConfig = async () => {
                 logoUrl: "",
                 faviconUrl: "",
             },
+            marketplace: {
+                commissionPercent: ENV.MARKETPLACE_COMMISSION_PERCENT,
+            },
             delivery: {
                 defaultRadiusKm: 5,
                 minOrderAmount: 0,
                 estimatedMinutes: 45,
                 riderPayoutAmount: 40,
+                riderPayoutRules: {
+                    upto3Km: ENV.RIDER_PAYOUT_UPTO_3_KM,
+                    upto5Km: ENV.RIDER_PAYOUT_UPTO_5_KM,
+                    upto8Km: ENV.RIDER_PAYOUT_UPTO_8_KM,
+                    extraPerKmAfter8: ENV.RIDER_PAYOUT_EXTRA_PER_KM_AFTER_8,
+                    rainBonus: ENV.RIDER_PAYOUT_RAIN_BONUS,
+                    peakBonus: ENV.RIDER_PAYOUT_PEAK_BONUS,
+                    festivalBonus: ENV.RIDER_PAYOUT_FESTIVAL_BONUS,
+                    nightBonus: ENV.RIDER_PAYOUT_NIGHT_BONUS,
+                },
+                bonusRules: {
+                    rainBonus: ENV.RIDER_PAYOUT_RAIN_BONUS,
+                    peakBonus: ENV.RIDER_PAYOUT_PEAK_BONUS,
+                    festivalBonus: ENV.RIDER_PAYOUT_FESTIVAL_BONUS,
+                    nightBonus: ENV.RIDER_PAYOUT_NIGHT_BONUS,
+                    rainMode: "AUTO" as const,
+                    peakMode: "AUTO" as const,
+                    festivalMode: "AUTO" as const,
+                    nightMode: "AUTO" as const,
+                    peakWindows: [{ start: "18:00", end: "21:00" }],
+                    festivalWindows: [],
+                    nightStart: "22:00",
+                    nightEnd: "06:00",
+                },
             },
         };
 
@@ -60,6 +87,25 @@ export const seedAppConfig = async () => {
                 existing.shipping = defaultConfig.shipping;
                 await existing.save();
                 console.log("✅ Updated App Config with shipping rules!");
+            }
+            if (!existing.delivery) {
+                existing.delivery = defaultConfig.delivery;
+                await existing.save();
+                console.log("Updated App Config with delivery rules!");
+            } else if (!existing.delivery.riderPayoutRules) {
+                existing.delivery.riderPayoutRules = defaultConfig.delivery.riderPayoutRules;
+                await existing.save();
+                console.log("Updated App Config with rider payout rules!");
+            }
+            if (!existing.marketplace) {
+                existing.marketplace = defaultConfig.marketplace;
+                await existing.save();
+                console.log("Updated App Config with marketplace commission rules!");
+            }
+            if (existing.delivery && !existing.delivery.bonusRules) {
+                existing.delivery.bonusRules = defaultConfig.delivery.bonusRules;
+                await existing.save();
+                console.log("Updated App Config with delivery bonus rules!");
             }
         }
     } catch (error) {

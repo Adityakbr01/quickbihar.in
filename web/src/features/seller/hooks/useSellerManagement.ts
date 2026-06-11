@@ -36,6 +36,9 @@ export const useSellerSetupStatusV2 = () =>
 export const useSellerStore = () =>
   useQuery({ queryKey: sellerKeys.store(), queryFn: sellerManagementApi.getStore });
 
+export const useSellerAppConfig = () =>
+  useQuery({ queryKey: [...sellerKeys.all, "app-config"] as const, queryFn: sellerManagementApi.getAppConfig });
+
 export const useSaveSellerStore = () => {
   const queryClient = useQueryClient();
   return useMutation({

@@ -16,6 +16,7 @@ router.post("/admin/sub-orders/:id/assign", isAdmin, OrderController.adminAssign
 router.post("/admin/sub-orders/:id/cod-settle", isAdmin, OrderController.adminSettleCod);
 
 // User Routes
+router.post("/quote", OrderController.quoteOrder);
 router.post("/", OrderController.createOrder);
 router.post("/verify", OrderController.verifyPayment);
 router.get("/me", OrderController.getMyOrders);

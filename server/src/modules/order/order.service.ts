@@ -16,6 +16,7 @@ import { SellerEarning, SellerNotification } from "../seller/sellerPanel.model";
 import { DeliveryBoy } from "../deliveryBoy/delivery.model";
 import { SubOrder, SubOrderStatus } from "./subOrder.model";
 import { TimelineHelper } from "./timeline.helper";
+import { orderPricingService } from "./orderPricing.service";
 
 const generateDeliveryOtp = () => Math.floor(100000 + Math.random() * 900000).toString();
 
@@ -77,12 +78,22 @@ export class OrderService {
     }
 
     private async creditSellerEarnings(order: any) {
+        const sellerBreakdowns = (order.pricingSnapshot?.sellerBreakdowns || []) as any[];
         for (const item of order.items || []) {
             const sellerId = item.sellerId?.toString();
             if (!sellerId) continue;
 
-            const grossAmount = item.sellerSubtotal || item.price * item.quantity;
-            const commissionAmount = 0;
+            const sellerItems = (order.items || []).filter((orderItem: any) => orderItem.sellerId?.toString() === sellerId);
+            const sellerNetSubtotal = sellerItems.reduce(
+                (sum: number, orderItem: any) => sum + Number(orderItem.sellerSubtotal ?? ((orderItem.price || 0) * (orderItem.quantity || 0))),
+                0,
+            );
+            const sellerBreakdown = sellerBreakdowns.find((breakdown) => breakdown.sellerId?.toString() === sellerId);
+            const sellerCommissionTotal = Number(sellerBreakdown?.platformCommission || 0);
+            const grossAmount = Number(item.sellerSubtotal ?? (item.price * item.quantity));
+            const commissionAmount = sellerNetSubtotal > 0
+                ? Math.round(((grossAmount / sellerNetSubtotal) * sellerCommissionTotal) * 100) / 100
+                : 0;
             const netAmount = Math.max(0, grossAmount - commissionAmount);
             const key = {
                 orderObjectId: order._id,
@@ -118,9 +129,29 @@ export class OrderService {
         }
     }
 
+    async quoteOrder(userId: string, data: any) {
+        const quote = await orderPricingService.buildQuote(userId, data);
+        return {
+            subtotal: quote.totalAmount,
+            totalAmount: quote.totalAmount,
+            totalTax: quote.totalTax,
+            mrpTotal: quote.mrpTotal,
+            productDiscount: quote.productDiscount,
+            discountAmount: quote.discountAmount,
+            shippingFee: quote.shippingFee,
+            dynamicDeliverySurcharge: quote.dynamicDeliverySurcharge,
+            payableAmount: quote.payableAmount,
+            platformCommissionTotal: quote.platformCommissionTotal,
+            riderPayoutEstimateTotal: quote.riderPayoutEstimateTotal,
+            appGrossRevenue: quote.appGrossRevenue,
+            appNetAfterRiderEstimate: quote.appNetAfterRiderEstimate,
+            sellerBreakdowns: quote.sellerBreakdowns,
+            pricingSnapshot: quote.pricingSnapshot,
+        };
+    }
+
     async createOrder(userId: string, data: any) {
-        const { items, shippingAddress } = data;
-        const codes = data.couponCodes || (data.couponCode ? [data.couponCode] : []);
+        const { shippingAddress } = data;
         const shippingLatitude = Number(shippingAddress?.latitude);
         const shippingLongitude = Number(shippingAddress?.longitude);
 
@@ -138,156 +169,39 @@ export class OrderService {
             longitude: shippingLongitude,
         };
 
-        let totalAmount = 0;   // Post-product discount subtotal
-        let totalTax = 0;      // Total GST amount
-        let mrpTotal = 0;      // Pre-discount total
-        const processedItems = [];
-
-        // 1. Validate Products and Calculate Totals from Database
         console.log(`[OrderService] Initiating order for user: ${userId}`);
-        for (const item of items) {
-            const product = await ProductDAO.findById(item.productId);
-            if (!product) {
-                console.error(`[OrderService] Product not found: ${item.productId}`);
-                throw new ApiError(404, `Product not found: ${item.productId}`);
-            }
+        const quote = await orderPricingService.buildQuote(userId, data);
+        console.log(
+            `[OrderService] Final Payable Amount: ${quote.payableAmount} ` +
+            `(Subtotal: ${quote.totalAmount}, Coupon: ${quote.discountAmount}, Shipping: ${quote.shippingFee}, Dynamic: ${quote.dynamicDeliverySurcharge})`
+        );
 
-            if (!product.isActive || (product.approvalStatus && product.approvalStatus !== "APPROVED")) {
-                throw new ApiError(400, `${product.title} is not available for purchase`);
-            }
-
-            // Find specific variant for SKU and price
-            const variant = product.variants.find(v => v.sku === item.sku);
-            if (!variant) {
-                console.error(`[OrderService] SKU ${item.sku} not found for product ${product.title}`);
-                throw new ApiError(404, `Variant with SKU ${item.sku} not found`);
-            }
-
-            if (variant.stock < item.quantity) {
-                console.error(`[OrderService] Insufficient stock for ${product.title}: ${variant.stock} < ${item.quantity}`);
-                throw new ApiError(400, `Insufficient stock for ${product.title}`);
-            }
-
-            // SOURCE OF TRUTH: Always use DB prices, ignore client values
-            const basePrice = product.price; // Discounted/Selling Price (Exclusive)
-            const itemPrice = Math.round(product.isGstApplicable
-                ? basePrice * (1 + (product.gstPercentage || 0) / 100)
-                : basePrice);
-
-            const itemOriginalPrice = product.originalPrice || product.price;
-            const taxAmount = Math.round(itemPrice - basePrice);
-
-            totalAmount += itemPrice * item.quantity;
-            totalTax += taxAmount * item.quantity;
-            mrpTotal += itemOriginalPrice * item.quantity;
-
-            processedItems.push({
-                productId: product._id,
-                title: product.title,
-                sku: variant.sku,
-                size: variant.size,
-                color: variant.color,
-                quantity: item.quantity,
-                price: itemPrice, // Final inclusive price
-                sellerId: product.sellerId,
-                storeId: product.storeId,
-                sellerSubtotal: itemPrice * item.quantity,
-                settlementStatus: "PENDING",
-                basePrice: basePrice, // Exclusive price for tax records
-                taxAmount,
-                isGstApplicable: product.isGstApplicable,
-                gstPercentage: product.gstPercentage,
-                pickupLocation: product.logistics?.pickupLocation,
-                warehouseName: product.logistics?.warehouseName,
-                latitude: product.logistics?.latitude,
-                longitude: product.logistics?.longitude,
-            });
-        }
-
-        const productDiscount = mrpTotal - totalAmount;
-        console.log(`[OrderService] Calculations: MRP=${mrpTotal}, Subtotal=${totalAmount}, ProductDiscount=${productDiscount}`);
-
-        // 2. Handle Coupon Discount with Refined Logic
-        let couponDiscountAmount = 0;
-        const appliedCouponsInfo: { code: string; sellerId: Types.ObjectId; discountAmount: number }[] = [];
-
-        if (codes && codes.length > 0) {
-            console.log(`[OrderService] Validating coupons: ${codes.join(", ")}`);
-            const validations = await couponService.validateMultipleCouponsForCart(codes, items, userId);
-            for (const val of validations) {
-                couponDiscountAmount += val.discountAmount;
-                appliedCouponsInfo.push({
-                    code: val.coupon.code,
-                    sellerId: new Types.ObjectId(val.coupon.sellerId as any),
-                    discountAmount: val.discountAmount,
-                });
-
-                // Distribute coupon discount to item.sellerSubtotal
-                const valSellerIdStr = val.sellerId;
-                const couponDoc = val.coupon;
-
-                const eligibleItems = processedItems.filter(item => {
-                    const isSeller = item.sellerId.toString() === valSellerIdStr;
-                    if (!isSeller) return false;
-                    
-                    if (couponDoc && couponDoc.appliesTo === "SPECIFIC") {
-                        return couponDoc.productIds?.some((id: any) => id.toString() === item.productId.toString()) || false;
-                    }
-                    return true;
-                });
-
-                const eligibleSubtotal = eligibleItems.reduce((sum, item) => sum + (item.price || 0) * (item.quantity || 0), 0);
-                if (eligibleSubtotal > 0) {
-                    let remainingDiscount = val.discountAmount;
-                    for (let i = 0; i < eligibleItems.length; i++) {
-                        const item = eligibleItems[i];
-                        if (!item) continue;
-                        const itemSubtotal = (item.price || 0) * (item.quantity || 0);
-                        let itemDiscount = 0;
-                        if (i === eligibleItems.length - 1) {
-                            itemDiscount = remainingDiscount;
-                        } else {
-                            itemDiscount = Math.round((itemSubtotal / eligibleSubtotal) * val.discountAmount);
-                            remainingDiscount -= itemDiscount;
-                        }
-                        item.sellerSubtotal = Math.max(0, itemSubtotal - itemDiscount);
-                    }
-                }
-            }
-        }
-
-        // Fetch Shipping Configuration
-        const config = await appConfigService.getConfig();
-        const shippingRules = config?.shipping || { freeShippingThreshold: 2000, shippingFee: 99 };
-
-        const payableBeforeShipping = totalAmount - couponDiscountAmount;
-        const shippingFee = payableBeforeShipping >= shippingRules.freeShippingThreshold ? 0 : shippingRules.shippingFee;
-        const payableAmount = payableBeforeShipping + shippingFee;
-
-        console.log(`[OrderService] Final Payable Amount: ${payableAmount} (Subtotal: ${totalAmount}, Coupon: ${couponDiscountAmount}, Shipping: ${shippingFee})`);
-
-        // 3. Create Razorpay Order
         const razorpayOrder = await razorpay.orders.create({
-            amount: Math.round(payableAmount * 100), // Razorpay expects paise
+            amount: Math.round(quote.payableAmount * 100),
             currency: "INR",
             receipt: `receipt_${Date.now()}`,
         });
 
-        // 4. Create Order in Database
         const order = await orderDAO.create({
             userId: new Types.ObjectId(userId) as any,
-            items: processedItems as any,
-            totalAmount,
-            totalTax,
-            mrpTotal,
-            productDiscount,
-            discountAmount: couponDiscountAmount,
-            shippingFee,
-            payableAmount,
+            items: quote.processedItems as any,
+            totalAmount: quote.totalAmount,
+            totalTax: quote.totalTax,
+            mrpTotal: quote.mrpTotal,
+            productDiscount: quote.productDiscount,
+            discountAmount: quote.discountAmount,
+            shippingFee: quote.shippingFee,
+            dynamicDeliverySurcharge: quote.dynamicDeliverySurcharge,
+            platformCommissionTotal: quote.platformCommissionTotal,
+            riderPayoutEstimateTotal: quote.riderPayoutEstimateTotal,
+            appGrossRevenue: quote.appGrossRevenue,
+            appNetAfterRiderEstimate: quote.appNetAfterRiderEstimate,
+            pricingSnapshot: quote.pricingSnapshot,
+            payableAmount: quote.payableAmount,
             shippingAddress: normalizedShippingAddress,
-            couponCode: codes[0] || "",
-            couponCodes: codes,
-            couponDiscounts: appliedCouponsInfo,
+            couponCode: quote.couponCodes[0] || "",
+            couponCodes: quote.couponCodes,
+            couponDiscounts: quote.appliedCouponsInfo,
             status: OrderStatus.PENDING_PAYMENT,
             paymentInfo: {
                 razorpayOrderId: razorpayOrder.id,
@@ -298,7 +212,7 @@ export class OrderService {
         socketService.emitToAdmins(SocketEvents.NEW_ORDER, {
             orderId: order.orderId,
             fullName: normalizedShippingAddress.fullName,
-            amount: payableAmount,
+            amount: quote.payableAmount,
             createdAt: order.createdAt
         });
 
@@ -373,6 +287,14 @@ export class OrderService {
 
         // 6. Split Order into SubOrders (Multi-Vendor Independence)
         const uniqueSellerIds = Array.from(new Set(order.items.map((item: any) => item.sellerId?.toString()).filter(Boolean)));
+        const pricingBreakdowns = ((order as any).pricingSnapshot?.sellerBreakdowns || []) as any[];
+        const splitAmount = (amount: number, count: number, index: number) => {
+            if (count <= 0) return 0;
+            const paise = Math.round(Number(amount || 0) * 100);
+            const base = Math.floor(paise / count);
+            const remainder = paise % count;
+            return Math.round(((base + (index < remainder ? 1 : 0)) / 100) * 100) / 100;
+        };
         
         for (let idx = 0; idx < uniqueSellerIds.length; idx++) {
             const sellerId = uniqueSellerIds[idx] as string;
@@ -380,11 +302,22 @@ export class OrderService {
             
             const subtotal = sellerItems.reduce((sum, item) => sum + (item.price || 0) * item.quantity, 0);
             const tax = sellerItems.reduce((sum, item) => sum + (item.taxAmount || 0) * item.quantity, 0);
-            const shippingFeePerSeller = Math.round((order.shippingFee || 0) / uniqueSellerIds.length);
+            const pricingBreakdown = pricingBreakdowns.find((breakdown) => breakdown.sellerId?.toString() === sellerId);
+            const shippingFeePerSeller = Number(
+                pricingBreakdown?.customerDeliveryFeeShare
+                ?? splitAmount(order.shippingFee || 0, uniqueSellerIds.length, idx)
+            );
+            const dynamicDeliverySurcharge = Number(pricingBreakdown?.customerDynamicSurchargeShare || 0);
+            const platformCommission = Number(pricingBreakdown?.platformCommission || 0);
+            const sellerNetFromSnapshot = pricingBreakdown?.sellerNet;
+            const riderPayoutEstimate = Number(pricingBreakdown?.riderPayoutEstimate || 0);
+            const riderBonuses = pricingBreakdown?.riderBonuses || { rain: 0, peak: 0, festival: 0, night: 0 };
+            const appNetAfterRider = Number(pricingBreakdown?.appNetAfterRider || 0);
             
             const sellerCoupon = order.couponDiscounts?.find((cd: any) => cd.sellerId?.toString() === sellerId);
             const sellerCouponDiscount = sellerCoupon ? sellerCoupon.discountAmount : 0;
-            const payableAmount = Math.max(0, subtotal + shippingFeePerSeller - sellerCouponDiscount);
+            const sellerNet = Number(sellerNetFromSnapshot ?? Math.max(0, subtotal - sellerCouponDiscount - platformCommission));
+            const payableAmount = Math.max(0, subtotal + shippingFeePerSeller + dynamicDeliverySurcharge - sellerCouponDiscount);
 
             const storeId = sellerItems[0]?.storeId;
             const subOrderId = `${order.orderId}-S${idx + 1}`;
@@ -414,6 +347,11 @@ export class OrderService {
                 subtotal,
                 tax,
                 shippingFee: shippingFeePerSeller,
+                dynamicDeliverySurcharge,
+                platformCommission,
+                sellerNet,
+                appNetAfterRider,
+                pricingSnapshot: pricingBreakdown,
                 payableAmount,
                 status: SubOrderStatus.CONFIRMED,
                 packageDetails: {
@@ -427,7 +365,9 @@ export class OrderService {
                     status: DeliveryStatus.UNASSIGNED,
                     pickupOtp,
                     deliveryOtp,
-                    payoutAmount: 0,
+                    payoutAmount: riderPayoutEstimate,
+                    distanceKm: Number(pricingBreakdown?.distanceKm || 0),
+                    bonuses: riderBonuses,
                 },
                 timeline: [
                     TimelineHelper.createEvent(
@@ -533,7 +473,13 @@ export class OrderService {
         }
 
         const now = new Date();
-        const payoutAmount = Number(data.payoutAmount ?? config?.delivery?.riderPayoutAmount ?? order.shippingFee ?? 0);
+        const payoutAmount = Number(
+            data.payoutAmount
+            ?? (order as any).riderPayoutEstimateTotal
+            ?? config?.delivery?.riderPayoutAmount
+            ?? order.shippingFee
+            ?? 0
+        );
         const otp = generateDeliveryOtp();
 
         const updated = await populateOrderQuery(Order.findByIdAndUpdate(

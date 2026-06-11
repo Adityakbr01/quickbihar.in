@@ -15,7 +15,12 @@ import RazorpayCheckout from "react-native-razorpay";
 import Toast from "react-native-toast-message";
 import { getAddressesRequest } from "../../address/api/address.api";
 import { useCartStore } from "../../cart/store/cartStore";
-import { createOrderRequest, verifyPaymentRequest } from "../api/order.api";
+import {
+  createOrderRequest,
+  quoteOrderRequest,
+  verifyPaymentRequest,
+} from "../api/order.api";
+import type { OrderQuoteData } from "../api/order.api";
 import { RAZORPAY_CONFIG } from "../config/razorpay.config";
 import { createOrderStyles } from "../style/orderStyles";
 import IOSAlertDialog, {
@@ -49,6 +54,9 @@ const CheckoutScreen = () => {
   const [selectedAddress, setSelectedAddress] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [quote, setQuote] = useState<OrderQuoteData | null>(null);
+  const [isQuoteLoading, setIsQuoteLoading] = useState(false);
+  const [quoteError, setQuoteError] = useState("");
 
   // Alert Configuration
   const [alertConfig, setAlertConfig] = useState<{
@@ -77,7 +85,18 @@ const CheckoutScreen = () => {
 
   // Constants using dynamic rules
   const shipping = subtotal >= shippingRules.threshold ? 0 : shippingRules.fee;
-  const totalPayable = subtotal + shipping - discountAmount;
+  const totalPayable = quote?.payableAmount ?? (subtotal + shipping - discountAmount);
+  const displayShipping = quote?.shippingFee ?? shipping;
+  const dynamicDeliverySurcharge = quote?.dynamicDeliverySurcharge ?? 0;
+  const activeBonusLabels = quote?.sellerBreakdowns
+    ?.flatMap((breakdown) => {
+      const labels: string[] = [];
+      if (breakdown.bonusFlags?.rain && breakdown.riderBonuses?.rain > 0) labels.push(`Rain Rs. ${breakdown.riderBonuses.rain}`);
+      if (breakdown.bonusFlags?.peak && breakdown.riderBonuses?.peak > 0) labels.push(`Peak Rs. ${breakdown.riderBonuses.peak}`);
+      if (breakdown.bonusFlags?.festival && breakdown.riderBonuses?.festival > 0) labels.push(`Festival Rs. ${breakdown.riderBonuses.festival}`);
+      if (breakdown.bonusFlags?.night && breakdown.riderBonuses?.night > 0) labels.push(`Night Rs. ${breakdown.riderBonuses.night}`);
+      return labels;
+    }) || [];
 
   const hasAddressGps = (address: any) => {
     const latitude = Number(address?.latitude);
@@ -90,6 +109,60 @@ const CheckoutScreen = () => {
   useEffect(() => {
     fetchAddresses();
   }, []);
+
+  const buildOrderData = () => ({
+    items: items.map((item) => ({
+      productId:
+        typeof item.productId === "object"
+          ? (item.productId as any)._id
+          : item.productId,
+      sku: item.sku,
+      quantity: item.quantity,
+    })),
+    shippingAddress: {
+      fullName: selectedAddress.fullName,
+      phone: selectedAddress.phone,
+      street: selectedAddress.street,
+      city: selectedAddress.city,
+      state: selectedAddress.state,
+      pincode: selectedAddress.pincode,
+      landmark: selectedAddress.landmark,
+      latitude: Number(selectedAddress.latitude),
+      longitude: Number(selectedAddress.longitude),
+    },
+    couponCode: appliedCoupon?.code,
+    couponCodes: (appliedCoupons || []).map((c) => c.code),
+  });
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const fetchQuote = async () => {
+      if (!selectedAddress || !hasAddressGps(selectedAddress) || items.length === 0) {
+        setQuote(null);
+        return;
+      }
+
+      try {
+        setIsQuoteLoading(true);
+        setQuoteError("");
+        const response = await quoteOrderRequest(buildOrderData());
+        if (!cancelled) setQuote(response.data);
+      } catch (error: any) {
+        if (!cancelled) {
+          setQuote(null);
+          setQuoteError(error.response?.data?.message || error.message || "Unable to fetch delivery quote");
+        }
+      } finally {
+        if (!cancelled) setIsQuoteLoading(false);
+      }
+    };
+
+    fetchQuote();
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedAddress, items, appliedCoupon?.code, appliedCoupons]);
 
   const fetchAddresses = async () => {
     try {
@@ -145,31 +218,11 @@ const CheckoutScreen = () => {
     try {
       setIsProcessingPayment(true);
 
-      // 1. Create Order on Backend
-      const orderData = {
-        items: items.map((item) => ({
-          productId:
-            typeof item.productId === "object"
-              ? (item.productId as any)._id
-              : item.productId,
-          sku: item.sku,
-          quantity: item.quantity,
-        })),
-        shippingAddress: {
-          fullName: selectedAddress.fullName,
-          phone: selectedAddress.phone,
-          street: selectedAddress.street,
-          city: selectedAddress.city,
-          state: selectedAddress.state,
-          pincode: selectedAddress.pincode,
-          landmark: selectedAddress.landmark,
-          latitude: Number(selectedAddress.latitude),
-          longitude: Number(selectedAddress.longitude),
-        },
-        couponCode: appliedCoupon?.code,
-        couponCodes: (appliedCoupons || []).map((c) => c.code),
-      };
+      const orderData = buildOrderData();
+      const quoteResponse = await quoteOrderRequest(orderData);
+      setQuote(quoteResponse.data);
 
+      // 1. Create Order on Backend
       const orderResponse = await createOrderRequest(orderData);
       const { razorpayOrder, order } = orderResponse.data;
 
@@ -455,9 +508,36 @@ const CheckoutScreen = () => {
           <View style={styles.summaryRow}>
             <Text style={styles.summaryLabel}>Shipping Fee</Text>
             <Text style={styles.summaryValue}>
-              {shipping === 0 ? "FREE" : `₹${shipping}`}
+              {displayShipping === 0 ? "FREE" : `Rs. ${displayShipping.toLocaleString()}`}
             </Text>
           </View>
+
+          {dynamicDeliverySurcharge > 0 && (
+            <>
+              <View style={styles.summaryRow}>
+                <Text style={styles.summaryLabel}>Dynamic Delivery Surcharge</Text>
+                <Text style={styles.summaryValue}>
+                  Rs. {dynamicDeliverySurcharge.toLocaleString()}
+                </Text>
+              </View>
+              {activeBonusLabels.length > 0 && (
+                <Text style={{ marginTop: -8, marginBottom: 12, color: theme.secondaryText, fontSize: 12 }}>
+                  {Array.from(new Set(activeBonusLabels)).join(" | ")}
+                </Text>
+              )}
+            </>
+          )}
+
+          {isQuoteLoading && (
+            <Text style={{ marginBottom: 12, color: theme.secondaryText, fontSize: 12 }}>
+              Updating delivery quote...
+            </Text>
+          )}
+          {quoteError ? (
+            <Text style={{ marginBottom: 12, color: "#dc2626", fontSize: 12 }}>
+              {quoteError}
+            </Text>
+          ) : null}
 
           {appliedCoupons.map((coupon) => (
             <View key={coupon.code} style={styles.summaryRow}>
@@ -495,9 +575,9 @@ const CheckoutScreen = () => {
       {/* Footer */}
       <View style={styles.footer}>
         <TouchableOpacity
-          style={[styles.payButton, { opacity: isProcessingPayment ? 0.7 : 1 }]}
+          style={[styles.payButton, { opacity: isProcessingPayment || isQuoteLoading ? 0.7 : 1 }]}
           onPress={handlePlaceOrder}
-          disabled={isProcessingPayment}
+          disabled={isProcessingPayment || isQuoteLoading}
         >
           {isProcessingPayment ? (
             <View style={styles.payButtonContent}>

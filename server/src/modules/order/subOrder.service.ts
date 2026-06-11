@@ -17,6 +17,8 @@ import { fulfillmentEventService } from "../fulfillment/fulfillmentEvent.service
 import { SavedAddress } from "../savedAddress/savedAddresses.model";
 import { riderCapacitySnapshot } from "../delivery/riderCapacity";
 import { assertRiderCanAcceptOffers } from "../delivery/riderEligibility";
+import { appConfigService } from "../appConfig/appConfig.service";
+import { ENV } from "../../config/env.config";
 
 // GPS distance calculation utility
 const finiteLocation = (location?: any) => {
@@ -42,29 +44,104 @@ export const distanceKmBetween = (from?: any, to?: any) => {
     return radiusKm * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 };
 
-export function calculateRiderPayout(distanceKm: number, bonuses?: { rain?: number; peak?: number; festival?: number; night?: number }) {
-    let payout = 20; // Default base
+export type RiderPayoutRules = {
+    upto3Km?: number;
+    upto5Km?: number;
+    upto8Km?: number;
+    extraPerKmAfter8?: number;
+    rainBonus?: number;
+    peakBonus?: number;
+    festivalBonus?: number;
+    nightBonus?: number;
+};
+
+const riderPayoutRulesWithDefaults = (rules?: RiderPayoutRules | null): Required<RiderPayoutRules> => ({
+    upto3Km: Number(rules?.upto3Km ?? ENV.RIDER_PAYOUT_UPTO_3_KM),
+    upto5Km: Number(rules?.upto5Km ?? ENV.RIDER_PAYOUT_UPTO_5_KM),
+    upto8Km: Number(rules?.upto8Km ?? ENV.RIDER_PAYOUT_UPTO_8_KM),
+    extraPerKmAfter8: Number(rules?.extraPerKmAfter8 ?? ENV.RIDER_PAYOUT_EXTRA_PER_KM_AFTER_8),
+    rainBonus: Number(rules?.rainBonus ?? ENV.RIDER_PAYOUT_RAIN_BONUS),
+    peakBonus: Number(rules?.peakBonus ?? ENV.RIDER_PAYOUT_PEAK_BONUS),
+    festivalBonus: Number(rules?.festivalBonus ?? ENV.RIDER_PAYOUT_FESTIVAL_BONUS),
+    nightBonus: Number(rules?.nightBonus ?? ENV.RIDER_PAYOUT_NIGHT_BONUS),
+});
+
+const configuredBonus = (activeValue: any, configuredAmount: number) => {
+    const value = Number(activeValue || 0);
+    if (value <= 0) return 0;
+    return configuredAmount > 0 ? configuredAmount : value;
+};
+
+export function calculateRiderPayout(
+    distanceKm: number,
+    bonuses?: { rain?: number; peak?: number; festival?: number; night?: number },
+    rules?: RiderPayoutRules | null,
+) {
+    const payoutRules = riderPayoutRulesWithDefaults(rules);
+    let payout = payoutRules.upto3Km;
     if (distanceKm <= 3) {
-        payout = 20;
+        payout = payoutRules.upto3Km;
     } else if (distanceKm <= 5) {
-        payout = 30;
+        payout = payoutRules.upto5Km;
     } else if (distanceKm <= 8) {
-        payout = 45;
+        payout = payoutRules.upto8Km;
     } else {
         const extraKm = Math.ceil(distanceKm - 8);
-        payout = 45 + (extraKm * 5);
+        payout = payoutRules.upto8Km + (extraKm * payoutRules.extraPerKmAfter8);
     }
 
-    const rain = bonuses?.rain || 0;
-    const peak = bonuses?.peak || 0;
-    const festival = bonuses?.festival || 0;
-    const night = bonuses?.night || 0;
+    const rain = configuredBonus(bonuses?.rain, payoutRules.rainBonus);
+    const peak = configuredBonus(bonuses?.peak, payoutRules.peakBonus);
+    const festival = configuredBonus(bonuses?.festival, payoutRules.festivalBonus);
+    const night = configuredBonus(bonuses?.night, payoutRules.nightBonus);
 
     return {
         basePayout: payout,
         totalPayout: payout + rain + peak + festival + night,
         bonuses: { rain, peak, festival, night }
     };
+}
+
+export const riderPayoutRulesFromConfig = (config: any): RiderPayoutRules => {
+    const payoutRules = config?.delivery?.riderPayoutRules || {};
+    const bonusRules = config?.delivery?.bonusRules || {};
+    return {
+        upto3Km: payoutRules.upto3Km,
+        upto5Km: payoutRules.upto5Km,
+        upto8Km: payoutRules.upto8Km,
+        extraPerKmAfter8: payoutRules.extraPerKmAfter8,
+        rainBonus: bonusRules.rainBonus ?? payoutRules.rainBonus,
+        peakBonus: bonusRules.peakBonus ?? payoutRules.peakBonus,
+        festivalBonus: bonusRules.festivalBonus ?? payoutRules.festivalBonus,
+        nightBonus: bonusRules.nightBonus ?? payoutRules.nightBonus,
+    };
+};
+
+export function lockedOrCalculatedRiderPayout(subOrder: any, distanceKm: number, config: any) {
+    const snapshot = subOrder?.pricingSnapshot || {};
+    const lockedPayout = Number(subOrder?.delivery?.payoutAmount || snapshot.riderPayoutEstimate || 0);
+    const lockedBonuses = subOrder?.delivery?.bonuses || snapshot.riderBonuses || {};
+    if (lockedPayout > 0) {
+        const bonuses = {
+            rain: Number(lockedBonuses.rain || 0),
+            peak: Number(lockedBonuses.peak || 0),
+            festival: Number(lockedBonuses.festival || 0),
+            night: Number(lockedBonuses.night || 0),
+        };
+        const bonusTotal = bonuses.rain + bonuses.peak + bonuses.festival + bonuses.night;
+        return {
+            basePayout: Math.max(0, lockedPayout - bonusTotal),
+            totalPayout: lockedPayout,
+            bonuses,
+        };
+    }
+
+    return calculateRiderPayout(distanceKm, {
+        rain: subOrder.delivery?.bonuses?.rain || 0,
+        peak: subOrder.delivery?.bonuses?.peak || 0,
+        festival: subOrder.delivery?.bonuses?.festival || 0,
+        night: subOrder.delivery?.bonuses?.night || 0
+    }, riderPayoutRulesFromConfig(config));
 }
 
 export class SubOrderService {
@@ -482,13 +559,8 @@ export class SubOrderService {
             distanceKm = distanceKmBetween(storeCoords, customerCoords) || 0;
         }
 
-        // Apply bonus parameters if present in the configuration or query
-        const payoutInfo = calculateRiderPayout(distanceKm, {
-            rain: subOrder.delivery?.bonuses?.rain || 0,
-            peak: subOrder.delivery?.bonuses?.peak || 0,
-            festival: subOrder.delivery?.bonuses?.festival || 0,
-            night: subOrder.delivery?.bonuses?.night || 0
-        });
+        const appConfig = await appConfigService.getConfig();
+        const payoutInfo = lockedOrCalculatedRiderPayout(subOrder, distanceKm, appConfig);
         const assignedAt = new Date();
 
         // Perform the atomic transition
@@ -1281,12 +1353,8 @@ export class SubOrderService {
             distanceKm = distanceKmBetween(storeCoords, customerCoords) || 0;
         }
 
-        const payoutInfo = calculateRiderPayout(distanceKm, {
-            rain: subOrder.delivery?.bonuses?.rain || 0,
-            peak: subOrder.delivery?.bonuses?.peak || 0,
-            festival: subOrder.delivery?.bonuses?.festival || 0,
-            night: subOrder.delivery?.bonuses?.night || 0
-        });
+        const appConfig = await appConfigService.getConfig();
+        const payoutInfo = lockedOrCalculatedRiderPayout(subOrder, distanceKm, appConfig);
 
         // Update fields
         subOrder.status = SubOrderStatus.RIDER_ASSIGNED;

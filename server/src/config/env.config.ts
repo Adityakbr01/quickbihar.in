@@ -26,6 +26,15 @@ const envSchema = z.object({
   MATCHING_STAGE4_RADIUS_KM: z.coerce.number().positive().default(8),
   RIDER_MAX_ACCEPTED_ORDERS_PER_WINDOW: z.coerce.number().int().positive().default(15),
   RIDER_ACCEPTANCE_WINDOW_HOURS: z.coerce.number().positive().default(12),
+  RIDER_PAYOUT_UPTO_3_KM: z.coerce.number().min(0).default(20),
+  RIDER_PAYOUT_UPTO_5_KM: z.coerce.number().min(0).default(30),
+  RIDER_PAYOUT_UPTO_8_KM: z.coerce.number().min(0).default(45),
+  RIDER_PAYOUT_EXTRA_PER_KM_AFTER_8: z.coerce.number().min(0).default(5),
+  RIDER_PAYOUT_RAIN_BONUS: z.coerce.number().min(0).default(0),
+  RIDER_PAYOUT_PEAK_BONUS: z.coerce.number().min(0).default(0),
+  RIDER_PAYOUT_FESTIVAL_BONUS: z.coerce.number().min(0).default(0),
+  RIDER_PAYOUT_NIGHT_BONUS: z.coerce.number().min(0).default(0),
+  MARKETPLACE_COMMISSION_PERCENT: z.coerce.number().min(0).max(100).default(15),
 
   REDIS_URL: z.string().default("redis://localhost:6379"),
 

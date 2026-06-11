@@ -23,11 +23,13 @@ import type {
   SellerPolicy,
   ProductVariantPayload,
   SellerStoreResponse,
+  SellerMarketplaceConfig,
 } from "@/features/seller/api/sellerManagement.api";
 import {
   useSellerProducts,
   useSellerCategories,
   useSellerStore,
+  useSellerAppConfig,
   useSellerSizeCharts,
   useSellerPolicies,
   useSellerProductMutations,
@@ -58,6 +60,7 @@ export function SellerProductsPanel() {
   const productsQuery = useSellerProducts(params);
   const categoriesQuery = useSellerCategories();
   const storeQuery = useSellerStore();
+  const appConfigQuery = useSellerAppConfig();
   const sizeChartsQuery = useSellerSizeCharts({ page: 1, limit: 100, approvalStatus: "APPROVED" });
   const refundPoliciesQuery = useSellerPolicies();
   const mutations = useSellerProductMutations();
@@ -72,6 +75,7 @@ export function SellerProductsPanel() {
         <ProductDialog
           categories={assignedCategoryOptions}
           store={storeQuery.data?.store}
+          appConfig={appConfigQuery.data}
           sizeCharts={sizeChartsQuery.data?.data || []}
           refundPolicies={refundPoliciesQuery.data || []}
           trigger={
@@ -109,6 +113,7 @@ export function SellerProductsPanel() {
               product={product}
               categories={assignedCategoryOptions}
               store={storeQuery.data?.store}
+              appConfig={appConfigQuery.data}
               sizeCharts={sizeChartsQuery.data?.data || []}
               refundPolicies={refundPoliciesQuery.data || []}
               trigger={
@@ -145,6 +150,7 @@ function ProductDialog({
   product,
   categories,
   store,
+  appConfig,
   sizeCharts,
   refundPolicies,
   trigger,
@@ -153,6 +159,7 @@ function ProductDialog({
   product?: SellerProduct;
   categories: SellerCategoryOption[];
   store?: SellerStoreResponse["store"];
+  appConfig?: SellerMarketplaceConfig;
   sizeCharts: SellerSizeChart[];
   refundPolicies: SellerPolicy[];
   trigger: ReactNode;
@@ -177,6 +184,16 @@ function ProductDialog({
     }
     return 0;
   }, [sellingPrice, originalPrice]);
+
+  const commissionPercent = Number(appConfig?.marketplace?.commissionPercent ?? 15);
+  const sellingPriceNumber = Number(sellingPrice || 0);
+  const estimatedCommission = useMemo(
+    () => Math.round(((sellingPriceNumber * commissionPercent) / 100) * 100) / 100,
+    [sellingPriceNumber, commissionPercent],
+  );
+  const estimatedSellerNet = Math.max(0, Math.round((sellingPriceNumber - estimatedCommission) * 100) / 100);
+  const payoutRules = appConfig?.delivery?.riderPayoutRules || {};
+  const bonusRules = appConfig?.delivery?.bonusRules || {};
 
   const priceError = "";
 
@@ -468,6 +485,41 @@ function ProductDialog({
                   {priceError}
                 </div>
               )}
+              <div className="md:col-span-2 grid gap-3 rounded-lg border border-white/10 bg-black/20 p-3 text-xs text-gray-300">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="font-semibold text-white">Seller net estimate</span>
+                  <span className="text-gray-400">Hybrid marketplace model</span>
+                </div>
+                <div className="grid gap-2 md:grid-cols-3">
+                  <div className="rounded border border-white/10 bg-white/[0.03] px-3 py-2">
+                    <div className="text-gray-500">Selling price</div>
+                    <div className="mt-1 font-semibold text-white">Rs. {formatAmount(sellingPriceNumber)}</div>
+                  </div>
+                  <div className="rounded border border-white/10 bg-white/[0.03] px-3 py-2">
+                    <div className="text-gray-500">Commission ({commissionPercent}%)</div>
+                    <div className="mt-1 font-semibold text-amber-200">- Rs. {formatAmount(estimatedCommission)}</div>
+                  </div>
+                  <div className="rounded border border-emerald-400/20 bg-emerald-500/10 px-3 py-2">
+                    <div className="text-emerald-100/80">Estimated seller payout</div>
+                    <div className="mt-1 font-semibold text-emerald-200">Rs. {formatAmount(estimatedSellerNet)}</div>
+                  </div>
+                </div>
+                <div className="rounded border border-blue-400/20 bg-blue-500/10 px-3 py-2 text-blue-100/90">
+                  Delivery rider payout is funded from visible customer delivery/dynamic charges plus platform commission. It is not added as a hidden seller deduction.
+                </div>
+                <div className="grid gap-2 md:grid-cols-4">
+                  <div className="rounded border border-white/10 px-3 py-2">0-3 km: Rs. {formatAmount(payoutRules.upto3Km ?? 20)}</div>
+                  <div className="rounded border border-white/10 px-3 py-2">3-5 km: Rs. {formatAmount(payoutRules.upto5Km ?? 30)}</div>
+                  <div className="rounded border border-white/10 px-3 py-2">5-8 km: Rs. {formatAmount(payoutRules.upto8Km ?? 45)}</div>
+                  <div className="rounded border border-white/10 px-3 py-2">After 8 km: +Rs. {formatAmount(payoutRules.extraPerKmAfter8 ?? 5)}/km</div>
+                </div>
+                <div className="grid gap-2 md:grid-cols-4 text-gray-400">
+                  <div>Rain bonus: Rs. {formatAmount(bonusRules.rainBonus ?? 0)}</div>
+                  <div>Peak bonus: Rs. {formatAmount(bonusRules.peakBonus ?? 0)}</div>
+                  <div>Festival bonus: Rs. {formatAmount(bonusRules.festivalBonus ?? 0)}</div>
+                  <div>Night bonus: Rs. {formatAmount(bonusRules.nightBonus ?? 0)}</div>
+                </div>
+              </div>
             </div>
             <label className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-gray-300">
               <input name="isGstApplicable" type="checkbox" defaultChecked={Boolean(product?.isGstApplicable)} />
