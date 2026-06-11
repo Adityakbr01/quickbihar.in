@@ -31,7 +31,7 @@
     "@react-navigation/native": "^7.1.8",
     "@tanstack/react-query": "^5.99.0",
     "@types/react-native-razorpay": "^2.2.6",
-    "axios": "^1.15.0",
+    "axios": "^1.16.0",
     "buffer": "^6.0.3",
     "dayjs": "^1.11.20",
     "engine.io-client": "6.5.4",
