@@ -256,7 +256,7 @@ export class SellerService {
 
     static async getDashboard(userId: string) {
         const setup = await this.getSetupStatus(userId);
-        const { filter: orderFilter } = await this.sellerOrderBase(userId);
+        const { filter: orderFilter, ownedProductIds } = await this.sellerOrderBase(userId);
 
         const [
             productStats,
@@ -321,7 +321,7 @@ export class SellerService {
                 pendingPayouts,
                 pendingReviews: pendingReviews.reduce((sum, count) => sum + count, 0),
             },
-            recentOrders,
+            recentOrders: recentOrders.map((order) => serializeOrderForSeller(order, userId, ownedProductIds)),
             recentNotifications,
         };
     }
@@ -554,11 +554,19 @@ export class SellerService {
                 _id: product._id,
                 title: product.title,
                 sku: product.details?.sku,
+                brand: product.brand,
+                category: product.category,
+                subCategory: product.subCategory,
+                price: product.price,
+                originalPrice: product.originalPrice,
+                images: product.images || [],
                 totalStock: product.totalStock,
                 isActive: product.isActive,
                 approvalStatus: product.approvalStatus,
                 variants: product.variants,
                 lowStock: (product.totalStock || 0) <= LOW_STOCK_THRESHOLD,
+                createdAt: product.createdAt,
+                updatedAt: product.updatedAt,
             })),
         };
     }
@@ -607,7 +615,7 @@ export class SellerService {
         await this.getApprovedSeller(userId);
         const filter: any = { sellerId: userId };
         if (query.search) filter.sku = { $regex: new RegExp(String(query.search), "i") };
-        if (query.status) filter.movementType = query.status;
+        if (query.status && query.status !== "ALL") filter.movementType = query.status;
         applyDateRange(filter, query);
 
         return await paginated(InventoryMovement, filter, query, ["createdAt", "sku", "movementType"]);

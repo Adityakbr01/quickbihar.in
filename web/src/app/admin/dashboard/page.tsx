@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { LogOut, RefreshCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -47,13 +47,17 @@ import { PayoutsSection } from "@/features/dashboard/components/PayoutsSection";
 import { InvitePanel } from "@/features/dashboard/components/InvitePanel";
 import { getCatalogGroup } from "@/features/dashboard/components/utils";
 import type { AdminSection } from "@/features/dashboard/components/types";
-import { sectionLabels } from "@/features/dashboard/components/types";
+import {
+  adminSectionFromPathname,
+  adminSectionHref,
+  sectionLabels,
+} from "@/features/dashboard/components/types";
 
 export default function AdminDashboardPage() {
   const router = useRouter();
+  const pathname = usePathname();
   const { user, isAuthenticated, clearAuth } = useAuthStore();
   const [hasHydrated, setHasHydrated] = useState(false);
-  const [activeSection, setActiveSection] = useState<AdminSection>("overview");
   const [search, setSearch] = useState("");
   const [role, setRole] = useState<
     "ALL" | "USER" | "SELLER" | "DELIVERY" | "ADMIN" | "SUPER_ADMIN"
@@ -65,6 +69,7 @@ export default function AdminDashboardPage() {
   const roleName =
     typeof user?.role === "string" ? user.role : user?.role?.name;
   const isAdminUser = ["ADMIN", "SUPER_ADMIN"].includes(roleName || "");
+  const activeSection = adminSectionFromPathname(pathname);
 
   useEffect(() => {
     const persistApi = useAuthStore.persist;
@@ -161,6 +166,10 @@ export default function AdminDashboardPage() {
     appConfigQuery.refetch();
   };
 
+  const changeSection = (section: AdminSection) => {
+    router.push(adminSectionHref(section));
+  };
+
   if (!hasHydrated || !isAuthenticated || !isAdminUser) {
     return <div className="min-h-screen bg-[#121212]" />;
   }
@@ -170,7 +179,7 @@ export default function AdminDashboardPage() {
       <div className="flex h-screen overflow-hidden flex-col lg:flex-row">
         <AdminSidebar
           activeSection={activeSection}
-          onSectionChange={setActiveSection}
+          onSectionChange={changeSection}
           counts={{
             people: stats?.totalUsers || allPeople.length,
             sellers: stats?.sellers || sellerPeople.length,

@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { verifyJWT, isAdmin, isDelivery } from "../../middlewares/auth.middleware";
 import { DeliveryController } from "./delivery.controller";
+import { legacyParentDeliveryGone } from "./legacyDeliveryGone";
 
 const router = Router();
 
@@ -25,8 +26,8 @@ router.get("/offers", isDelivery, DeliveryController.offers);
 router.post("/offers/:id/accept", isDelivery, DeliveryController.acceptOffer);
 router.post("/offers/:id/reject", isDelivery, DeliveryController.rejectOffer);
 router.get("/orders/:id", isDelivery, DeliveryController.orderById);
-router.patch("/orders/:id/status", isDelivery, DeliveryController.updateOrderStatus);
-router.post("/orders/:id/location", isDelivery, DeliveryController.updateOrderLocation);
+router.patch("/orders/:id/status", isDelivery, legacyParentDeliveryGone);
+router.post("/orders/:id/location", isDelivery, legacyParentDeliveryGone);
 
 // Sub-order Rider Fulfillment
 router.post("/sub-orders/:id/accept", isDelivery, DeliveryController.acceptSubOrder);

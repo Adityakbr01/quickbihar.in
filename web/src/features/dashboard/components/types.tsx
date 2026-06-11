@@ -91,6 +91,96 @@ export const sectionLabels: Record<AdminSection, string> = {
   banners: "Banners",
 };
 
+export const adminSectionPathSegments: Record<AdminSection, string> = {
+  overview: "",
+  orders: "Orders",
+  products: "Products",
+  categories: "Categories",
+  coupons: "Coupons",
+  "store-configuration": "Store-Configuration",
+  "content-management": "Content",
+  "marketing-promotions": "Marketing",
+  "inventory-logistics": "Inventory",
+  "reports-analytics": "Reports",
+  "system-settings": "System",
+  people: "People",
+  "seller-mall": "Seller-Mall",
+  "seller-submissions": "Seller-Submissions",
+  payouts: "Payouts",
+  invites: "Invites",
+  policies: "Policies",
+  "size-charts": "Size-Charts",
+  banners: "Banners",
+};
+
+const adminSectionAliases: Record<string, AdminSection> = {
+  dashboard: "overview",
+  overview: "overview",
+  orders: "orders",
+  order: "orders",
+  products: "products",
+  product: "products",
+  categories: "categories",
+  category: "categories",
+  coupons: "coupons",
+  coupon: "coupons",
+  discounts: "coupons",
+  "store-configuration": "store-configuration",
+  settings: "store-configuration",
+  "general-settings": "store-configuration",
+  content: "content-management",
+  cms: "content-management",
+  "content-management": "content-management",
+  marketing: "marketing-promotions",
+  promotions: "marketing-promotions",
+  "marketing-promotions": "marketing-promotions",
+  inventory: "inventory-logistics",
+  logistics: "inventory-logistics",
+  "inventory-logistics": "inventory-logistics",
+  reports: "reports-analytics",
+  analytics: "reports-analytics",
+  "reports-analytics": "reports-analytics",
+  system: "system-settings",
+  "system-settings": "system-settings",
+  people: "people",
+  users: "people",
+  "user-directory": "people",
+  "seller-mall": "seller-mall",
+  sellers: "seller-mall",
+  malls: "seller-mall",
+  "seller-submissions": "seller-submissions",
+  submissions: "seller-submissions",
+  "review-queue": "seller-submissions",
+  payouts: "payouts",
+  wallets: "payouts",
+  invites: "invites",
+  policies: "policies",
+  "size-charts": "size-charts",
+  sizecharts: "size-charts",
+  banners: "banners",
+};
+
+const normalizeAdminSectionSegment = (value?: string) =>
+  decodeURIComponent(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/&/g, "and")
+    .replace(/[\s_]+/g, "-")
+    .replace(/[^a-z0-9-]/g, "")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+
+export function adminSectionFromPathname(pathname: string): AdminSection {
+  const parts = pathname.split("/").filter(Boolean);
+  const segment = parts[0] === "admin" && parts[1] === "dashboard" ? parts[2] : "";
+  return adminSectionAliases[normalizeAdminSectionSegment(segment)] || "overview";
+}
+
+export function adminSectionHref(section: AdminSection) {
+  const segment = adminSectionPathSegments[section];
+  return segment ? `/admin/dashboard/${segment}` : "/admin/dashboard";
+}
+
 export const navigationGroups: Array<{
   title: string;
   items: Array<{ id: AdminSection; label: string; icon: ReactNode }>;

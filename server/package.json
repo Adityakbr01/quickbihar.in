@@ -9,12 +9,15 @@
     "build": "bun build src/server.ts --target bun --outdir ./dist --packages external",
     "start": "bun run dist/server.js",
     "db:import": "bun run src/db/importData.ts",
+    "settlements:sync-indexes": "bun run src/db/syncSellerEarningIndexes.ts",
+    "settlements:backfill": "bun run src/db/backfillSellerSettlements.ts",
     "rbac:seed": "bun run src/db/rbacSeed.ts",
     "repair:partner-roles": "bun run src/db/repairPartnerRoles.ts",
     "test:auth": "bun test src/_tests_/auth.test.ts",
     "test:onboarding": "bun test src/_tests_/onboarding.test.ts",
     "test:rbac": "bun test src/_tests_/rbac.test.ts",
-    "test:all": "bun test src/_tests_/auth.test.ts src/_tests_/onboarding.test.ts src/_tests_/rbac.test.ts"
+    "test:settlements": "bun test src/_tests_/sellerSettlement.test.ts",
+    "test:all": "bun test src/_tests_/auth.test.ts src/_tests_/onboarding.test.ts src/_tests_/rbac.test.ts src/_tests_/sellerSettlement.test.ts"
   },
   "devDependencies": {
     "@types/bcryptjs": "^3.0.0",

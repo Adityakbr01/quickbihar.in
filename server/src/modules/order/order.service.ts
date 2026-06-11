@@ -17,6 +17,7 @@ import { DeliveryBoy } from "../deliveryBoy/delivery.model";
 import { SubOrder, SubOrderStatus } from "./subOrder.model";
 import { TimelineHelper } from "./timeline.helper";
 import { orderPricingService } from "./orderPricing.service";
+import { sellerSettlementService } from "../seller/sellerSettlement.service";
 
 const generateDeliveryOtp = () => Math.floor(100000 + Math.random() * 900000).toString();
 
@@ -619,7 +620,15 @@ export class OrderService {
         }
 
         if (status === OrderStatus.DELIVERED) {
-            await this.creditSellerEarnings(order);
+            const subOrderCount = await SubOrder.countDocuments({ parentOrderId: order._id });
+            if (subOrderCount > 0) {
+                await sellerSettlementService.settleDeliveredSubOrdersForOrder(order._id, {
+                    source: "ADMIN_DELIVERY",
+                    note: "Parent order was marked delivered by admin.",
+                });
+            } else {
+                await this.creditSellerEarnings(order);
+            }
         }
 
         // 3. Notify User via Socket

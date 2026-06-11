@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-const mongoIdSchema = z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid id");
+const mongoIdSchema = z.string().trim().regex(/^[0-9a-fA-F]{24}$/, "Invalid id");
 
 const optionalText = z.string().trim().optional();
 const optionalUrl = z.string().trim().url().optional().or(z.literal(""));
@@ -32,6 +32,13 @@ const dateFromForm = z.preprocess((value) => {
     if (!value) return undefined;
     return new Date(String(value));
 }, z.date().optional());
+
+const optionalCleanText = (max = 300) =>
+    z.preprocess((value) => {
+        if (typeof value !== "string") return value;
+        const trimmed = value.trim();
+        return trimmed || undefined;
+    }, z.string().max(max).optional());
 
 export const sellerListQuerySchema = z.object({
     page: z.coerce.number().int().min(1).optional(),
@@ -108,7 +115,7 @@ export const sellerStockUpdateSchema = z.object({
     productId: mongoIdSchema,
     sku: z.string().trim().min(1),
     stock: z.coerce.number().int().min(0),
-    reason: z.string().trim().max(300).optional(),
+    reason: optionalCleanText(300),
 });
 
 export const sellerOrderStatusSchema = z.object({

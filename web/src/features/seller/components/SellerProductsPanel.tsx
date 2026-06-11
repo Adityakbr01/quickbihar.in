@@ -1,6 +1,6 @@
 "use client";
 
-import React, { type FormEvent, type ReactNode, useState, useMemo } from "react";
+import React, { type FormEvent, type ReactNode, useEffect, useState, useMemo } from "react";
 import { Plus, Edit, Send, Trash2, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -55,7 +55,11 @@ import {
 
 type SellerCategoryOption = { _id: string; title: string; slug?: string; isActive?: boolean };
 
-export function SellerProductsPanel() {
+export function SellerProductsPanel({
+  initialApprovalStatus,
+}: {
+  initialApprovalStatus?: SellerQueryParams["approvalStatus"];
+}) {
   const [params, setParams] = useState<SellerQueryParams>({ page: 1, limit: 10 });
   const productsQuery = useSellerProducts(params);
   const categoriesQuery = useSellerCategories();
@@ -67,6 +71,20 @@ export function SellerProductsPanel() {
 
   const assignedCategoryOptions = sellerAssignedCategoryOptions(categoriesQuery.data);
   const productCreateBlocked = categoriesQuery.isLoading ? false : !assignedCategoryOptions.length;
+
+  useEffect(() => {
+    if (!initialApprovalStatus) {
+      setParams((current) =>
+        current.approvalStatus ? { ...current, approvalStatus: undefined, page: 1 } : current,
+      );
+      return;
+    }
+    setParams((current) =>
+      current.approvalStatus === initialApprovalStatus
+        ? current
+        : { ...current, approvalStatus: initialApprovalStatus, page: 1 },
+    );
+  }, [initialApprovalStatus]);
 
   return (
     <ModuleCard

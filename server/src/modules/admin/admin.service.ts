@@ -35,6 +35,51 @@ import {
 import { AdminPayout } from "./admin.model";
 
 const userProjection = "-password -refreshToken -fcmToken";
+const reservedPayoutStatuses = ["PENDING", "PROCESSING"];
+
+const walletOf = (profile: any) => {
+    if (!profile.wallet) {
+        profile.wallet = {
+            availableBalance: 0,
+            pendingPayoutBalance: 0,
+            lifetimeEarnings: 0,
+        };
+    }
+    return profile.wallet;
+};
+
+const reserveWalletForCreatedPayout = (wallet: any, amountInput: number, status: string) => {
+    const amount = Number(amountInput || 0);
+    if (reservedPayoutStatuses.includes(status)) {
+        wallet.availableBalance = Math.max(0, (wallet.availableBalance || 0) - amount);
+        wallet.pendingPayoutBalance = (wallet.pendingPayoutBalance || 0) + amount;
+    } else if (status === "PAID") {
+        wallet.availableBalance = Math.max(0, (wallet.availableBalance || 0) - amount);
+    }
+};
+
+const applyPayoutStatusWalletTransition = (wallet: any, amountInput: number, previousStatus: string, nextStatus: string) => {
+    const amount = Number(amountInput || 0);
+    const wasReserved = reservedPayoutStatuses.includes(previousStatus);
+    const isReserved = reservedPayoutStatuses.includes(nextStatus);
+    const isTerminal = ["PAID", "FAILED"].includes(nextStatus);
+
+    if (wasReserved && isTerminal) {
+        wallet.pendingPayoutBalance = Math.max(0, (wallet.pendingPayoutBalance || 0) - amount);
+        if (nextStatus === "FAILED") {
+            wallet.availableBalance = (wallet.availableBalance || 0) + amount;
+        }
+    }
+
+    if (!wasReserved && isReserved) {
+        wallet.availableBalance = Math.max(0, (wallet.availableBalance || 0) - amount);
+        wallet.pendingPayoutBalance = (wallet.pendingPayoutBalance || 0) + amount;
+    }
+
+    if (!wasReserved && nextStatus === "PAID") {
+        wallet.availableBalance = Math.max(0, (wallet.availableBalance || 0) - amount);
+    }
+};
 
 const roleNameOf = (role: any) => role?.name || role || "USER";
 
@@ -1587,15 +1632,18 @@ export class AdminService {
             processedAt: data.status === "PAID" ? new Date() : undefined,
         });
 
+        if (data.partnerType === "SELLER") {
+            const seller = await Seller.findOne({ userId: data.partnerId });
+            if (seller) {
+                reserveWalletForCreatedPayout(walletOf(seller), payout.amount, payout.status);
+                await seller.save();
+            }
+        }
+
         if (data.partnerType === "DELIVERY") {
             const rider = await DeliveryBoy.findOne({ userId: data.partnerId });
-            if (rider?.wallet) {
-                if (["PENDING", "PROCESSING"].includes(payout.status)) {
-                    rider.wallet.availableBalance = Math.max(0, (rider.wallet.availableBalance || 0) - payout.amount);
-                    rider.wallet.pendingPayoutBalance = (rider.wallet.pendingPayoutBalance || 0) + payout.amount;
-                } else if (payout.status === "PAID") {
-                    rider.wallet.availableBalance = Math.max(0, (rider.wallet.availableBalance || 0) - payout.amount);
-                }
+            if (rider) {
+                reserveWalletForCreatedPayout(walletOf(rider), payout.amount, payout.status);
                 await rider.save();
             }
         }
@@ -2082,47 +2130,16 @@ export class AdminService {
 
         if (payout.partnerType === "SELLER") {
             const seller = await Seller.findOne({ userId: payout.partnerId });
-            if (seller?.wallet) {
-                const wasReserved = ["PENDING", "PROCESSING"].includes(previousStatus);
-                const isTerminal = ["PAID", "FAILED"].includes(data.status);
-
-                if (wasReserved && isTerminal) {
-                    seller.wallet.pendingPayoutBalance = Math.max(
-                        0,
-                        (seller.wallet.pendingPayoutBalance || 0) - payout.amount,
-                    );
-
-                    if (data.status === "FAILED") {
-                        seller.wallet.availableBalance = (seller.wallet.availableBalance || 0) + payout.amount;
-                    }
-
-                    await seller.save();
-                }
+            if (seller) {
+                applyPayoutStatusWalletTransition(walletOf(seller), payout.amount, previousStatus, data.status);
+                await seller.save();
             }
         }
 
         if (payout.partnerType === "DELIVERY") {
             const rider = await DeliveryBoy.findOne({ userId: payout.partnerId });
-            if (rider?.wallet) {
-                const wasReserved = ["PENDING", "PROCESSING"].includes(previousStatus);
-                const isTerminal = ["PAID", "FAILED"].includes(data.status);
-
-                if (wasReserved && isTerminal) {
-                    rider.wallet.pendingPayoutBalance = Math.max(
-                        0,
-                        (rider.wallet.pendingPayoutBalance || 0) - payout.amount,
-                    );
-
-                    if (data.status === "FAILED") {
-                        rider.wallet.availableBalance = (rider.wallet.availableBalance || 0) + payout.amount;
-                    }
-                }
-
-                if (!wasReserved && ["PENDING", "PROCESSING"].includes(data.status)) {
-                    rider.wallet.availableBalance = Math.max(0, (rider.wallet.availableBalance || 0) - payout.amount);
-                    rider.wallet.pendingPayoutBalance = (rider.wallet.pendingPayoutBalance || 0) + payout.amount;
-                }
-
+            if (rider) {
+                applyPayoutStatusWalletTransition(walletOf(rider), payout.amount, previousStatus, data.status);
                 await rider.save();
             }
         }

@@ -507,11 +507,33 @@ export interface SellerWarehouse {
 export interface SellerInventoryProduct {
   _id: string;
   title: string;
+  sku?: string;
+  brand?: string;
+  category?: string;
+  subCategory?: string;
+  price?: number;
+  originalPrice?: number;
+  images?: Array<{ url: string; fileId: string }>;
   totalStock?: number;
   variants: ProductVariantPayload[];
   approvalStatus?: ApprovalStatus;
   isActive?: boolean;
   lowStock?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface SellerInventoryMovement {
+  _id: string;
+  productId: string | { _id: string; title?: string };
+  sku: string;
+  variantLabel?: string;
+  movementType: "IN" | "OUT" | "ADJUSTMENT" | "ORDER" | "RETURN";
+  quantity: number;
+  previousStock: number;
+  newStock: number;
+  reason?: string;
+  createdAt?: string;
 }
 
 export interface SellerCustomer {
@@ -724,6 +746,11 @@ export const sellerManagementApi = {
 
   getInventory: async (params: SellerQueryParams): Promise<PaginatedResult<SellerInventoryProduct>> => {
     const response = await axiosInstance.get("/sellers/inventory", { params });
+    return normalizePaginated(response.data.data, params.page, params.limit);
+  },
+
+  getInventoryMovements: async (params: SellerQueryParams): Promise<PaginatedResult<SellerInventoryMovement>> => {
+    const response = await axiosInstance.get("/sellers/inventory/movements", { params });
     return normalizePaginated(response.data.data, params.page, params.limit);
   },
 

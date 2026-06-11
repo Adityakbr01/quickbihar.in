@@ -500,17 +500,6 @@ export const catalogManagementApi = {
     return response.data.data;
   },
 
-  assignDeliveryPartner: async (payload: { orderId: string; deliveryUserId: string; payoutAmount?: number }): Promise<AdminOrder> => {
-    const { orderId, ...body } = payload;
-    const response = await axiosInstance.patch(`/orders/admin/${orderId}/delivery-assignment`, body);
-    return response.data.data;
-  },
-
-  unassignDeliveryPartner: async (orderId: string): Promise<AdminOrder> => {
-    const response = await axiosInstance.delete(`/orders/admin/${orderId}/delivery-assignment`);
-    return response.data.data;
-  },
-
   getCoupons: async (params: QueryParams): Promise<PaginatedResult<AdminCoupon>> => {
     const response = await axiosInstance.get("/coupons", { params });
     return normalizePaginated<AdminCoupon>(response.data.data, params.page, params.limit);

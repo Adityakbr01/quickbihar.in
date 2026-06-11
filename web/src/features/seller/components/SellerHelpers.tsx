@@ -26,20 +26,38 @@ export function Metric({
   title,
   value,
   icon,
+  onClick,
 }: {
   title: string;
   value: string | number;
   icon: ReactNode;
+  onClick?: () => void;
 }) {
+  const content = (
+    <CardContent className="flex items-center justify-between gap-3 p-3 sm:p-4">
+      <div className="min-w-0">
+        <p className="text-xs font-medium uppercase text-gray-500">{title}</p>
+        <p className="mt-1 break-words text-lg font-semibold text-white sm:text-2xl">{value}</p>
+      </div>
+      <div className="shrink-0 rounded-lg bg-white/5 p-2 text-emerald-300">{icon}</div>
+    </CardContent>
+  );
+
+  if (onClick) {
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        className="w-full rounded-lg border border-white/10 bg-[#1c1c1c] text-left transition hover:border-emerald-400/30 hover:bg-white/[0.04] focus:outline-none focus:ring-2 focus:ring-emerald-400/40"
+      >
+        {content}
+      </button>
+    );
+  }
+
   return (
     <Card className="border-white/10 bg-[#1c1c1c]">
-      <CardContent className="flex items-center justify-between p-4">
-        <div>
-          <p className="text-xs font-medium uppercase text-gray-500">{title}</p>
-          <p className="mt-1 text-2xl font-semibold text-white">{value}</p>
-        </div>
-        <div className="rounded-lg bg-white/5 p-2 text-emerald-300">{icon}</div>
-      </CardContent>
+      {content}
     </Card>
   );
 }

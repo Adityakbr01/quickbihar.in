@@ -15,6 +15,7 @@ const sellerKeys = {
   refundPolicies: () => [...sellerKeys.all, "refund-policies"] as const,
   warehouses: () => [...sellerKeys.all, "warehouses"] as const,
   inventory: (params: SellerQueryParams) => [...sellerKeys.all, "inventory", params] as const,
+  inventoryMovements: (params: SellerQueryParams) => [...sellerKeys.all, "inventory-movements", params] as const,
   orders: (params: SellerQueryParams) => [...sellerKeys.all, "orders", params] as const,
   coupons: (params: SellerQueryParams) => [...sellerKeys.all, "coupons", params] as const,
   customers: (params: SellerQueryParams) => [...sellerKeys.all, "customers", params] as const,
@@ -83,6 +84,12 @@ export const useSellerWarehouses = () =>
 
 export const useSellerInventory = (params: SellerQueryParams) =>
   useQuery({ queryKey: sellerKeys.inventory(params), queryFn: () => sellerManagementApi.getInventory(params) });
+
+export const useSellerInventoryMovements = (params: SellerQueryParams) =>
+  useQuery({
+    queryKey: sellerKeys.inventoryMovements(params),
+    queryFn: () => sellerManagementApi.getInventoryMovements(params),
+  });
 
 export const useSellerOrders = (params: SellerQueryParams) =>
   useQuery({ queryKey: sellerKeys.orders(params), queryFn: () => sellerManagementApi.getOrders(params) });

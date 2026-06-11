@@ -275,24 +275,6 @@ export const deliveryApi = {
     return response.data.data;
   },
 
-  updateOrderStatus: async (payload: {
-    orderId: string;
-    action: Exclude<DeliveryStatus, "UNASSIGNED" | "ASSIGNED" | "CANCELLED">;
-    otp?: string;
-    note?: string;
-    location?: DeliveryLocation;
-  }): Promise<DeliveryOrder> => {
-    const { orderId, ...body } = payload;
-    const response = await axiosInstance.patch(`/delivery/orders/${orderId}/status`, body);
-    return response.data.data;
-  },
-
-  updateOrderLocation: async (payload: { orderId: string } & DeliveryLocation): Promise<DeliveryOrder> => {
-    const { orderId, ...body } = payload;
-    const response = await axiosInstance.post(`/delivery/orders/${orderId}/location`, body);
-    return response.data.data;
-  },
-
   addPayoutMethod: async (payload:
     | { type: "BANK"; label?: string; bank: NonNullable<DeliveryPayoutMethod["bank"]> }
     | { type: "UPI"; label?: string; upi: NonNullable<DeliveryPayoutMethod["upi"]> }

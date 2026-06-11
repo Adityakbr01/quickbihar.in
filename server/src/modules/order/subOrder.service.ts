@@ -19,6 +19,7 @@ import { riderCapacitySnapshot } from "../delivery/riderCapacity";
 import { assertRiderCanAcceptOffers } from "../delivery/riderEligibility";
 import { appConfigService } from "../appConfig/appConfig.service";
 import { ENV } from "../../config/env.config";
+import { sellerSettlementService } from "../seller/sellerSettlement.service";
 
 // GPS distance calculation utility
 const finiteLocation = (location?: any) => {
@@ -994,6 +995,11 @@ export class SubOrderService {
 
             await riderProfile.save();
         }
+
+        await sellerSettlementService.settleSubOrder(subOrder, {
+            source: "RIDER_DELIVERY",
+            note: "Delivery OTP and proof verified by assigned rider.",
+        });
 
         await this.syncParentOrderStatus(subOrder.parentOrderId, requestInfo);
         await this.publishUpdate(subOrder, {

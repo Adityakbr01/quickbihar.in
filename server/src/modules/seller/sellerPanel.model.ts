@@ -123,18 +123,26 @@ const SellerEarningSchema = new Schema(
             required: true,
             index: true,
         },
+        subOrderObjectId: {
+            type: Types.ObjectId,
+            ref: "SubOrder",
+        },
+        subOrderId: {
+            type: String,
+            index: true,
+        },
+        idempotencyKey: {
+            type: String,
+        },
         productId: {
             type: Types.ObjectId,
             ref: "Product",
-            required: true,
         },
         sku: {
             type: String,
-            required: true,
         },
         quantity: {
             type: Number,
-            required: true,
             min: 1,
         },
         grossAmount: {
@@ -159,6 +167,14 @@ const SellerEarningSchema = new Schema(
             index: true,
         },
         creditedAt: Date,
+        settlementSource: {
+            type: String,
+            enum: ["RIDER_DELIVERY", "ADMIN_DELIVERY", "BACKFILL", "LEGACY_ORDER"],
+        },
+        settlementNote: String,
+        metadata: {
+            type: Schema.Types.Mixed,
+        },
         payoutId: {
             type: Types.ObjectId,
             ref: "AdminPayout",
@@ -167,7 +183,8 @@ const SellerEarningSchema = new Schema(
     { timestamps: true, versionKey: false },
 );
 
-SellerEarningSchema.index({ orderObjectId: 1, productId: 1, sku: 1 }, { unique: true });
+SellerEarningSchema.index({ idempotencyKey: 1 }, { unique: true, sparse: true });
+SellerEarningSchema.index({ subOrderObjectId: 1 }, { unique: true, sparse: true });
 SellerEarningSchema.index({ sellerId: 1, createdAt: -1 });
 
 const SellerCategoryRequestSchema = new Schema(

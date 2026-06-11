@@ -33,8 +33,6 @@ import {
   useDeliveryPayoutMutations,
   useDeliveryPayouts,
   useUpdateDeliveryAvailability,
-  useUpdateDeliveryLocation,
-  useUpdateDeliveryOrderStatus,
   useUpdateDeliveryProfile,
   useAcceptSubOrder,
 } from "@/features/delivery/hooks/useDeliveryPanel";
@@ -162,8 +160,6 @@ export default function DeliveryDashboardPage() {
   const earningsQuery = useDeliveryEarnings(earningsParams);
   const payoutsQuery = useDeliveryPayouts();
   const updateAvailability = useUpdateDeliveryAvailability();
-  const updateOrderStatus = useUpdateDeliveryOrderStatus();
-  const updateLocation = useUpdateDeliveryLocation();
   const payoutMutations = useDeliveryPayoutMutations();
   const updateProfile = useUpdateDeliveryProfile();
   const acceptJob = useAcceptSubOrder();

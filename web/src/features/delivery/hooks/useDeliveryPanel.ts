@@ -59,30 +59,6 @@ export const useUpdateDeliveryAvailability = () => {
   });
 };
 
-export const useUpdateDeliveryOrderStatus = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: deliveryApi.updateOrderStatus,
-    onSuccess: () => {
-      invalidateDelivery(queryClient);
-      toast.success("Delivery status updated");
-    },
-    onError: (error: Error) => toast.error(error.message || "Failed to update delivery status"),
-  });
-};
-
-export const useUpdateDeliveryLocation = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: deliveryApi.updateOrderLocation,
-    onSuccess: () => {
-      invalidateDelivery(queryClient);
-      toast.success("Location updated");
-    },
-    onError: (error: Error) => toast.error(error.message || "Failed to update location"),
-  });
-};
-
 export const useDeliveryPayoutMutations = () => {
   const queryClient = useQueryClient();
   return {

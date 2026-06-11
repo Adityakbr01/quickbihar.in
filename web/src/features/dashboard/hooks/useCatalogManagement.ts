@@ -63,32 +63,6 @@ export const useDeliveryRiders = (params: DeliveryRiderQuery = {}) =>
     queryFn: () => catalogManagementApi.getDeliveryRiders(params),
   });
 
-export const useAssignDeliveryPartner = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: catalogManagementApi.assignDeliveryPartner,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
-      queryClient.invalidateQueries({ queryKey: ["admin-delivery-riders"] });
-      toast.success("Delivery partner assigned");
-    },
-    onError: (error: Error) => toast.error(error.message || "Failed to assign delivery partner"),
-  });
-};
-
-export const useUnassignDeliveryPartner = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: catalogManagementApi.unassignDeliveryPartner,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
-      queryClient.invalidateQueries({ queryKey: ["admin-delivery-riders"] });
-      toast.success("Delivery partner unassigned");
-    },
-    onError: (error: Error) => toast.error(error.message || "Failed to unassign delivery partner"),
-  });
-};
-
 export const useCreateCoupon = () => {
   const queryClient = useQueryClient();
   return useMutation({
