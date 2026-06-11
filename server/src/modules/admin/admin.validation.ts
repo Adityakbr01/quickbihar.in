@@ -4,7 +4,7 @@ import { RoleEnum } from "../rbac/rbac.types";
 export const listPeopleSchema = z.object({
     role: z.nativeEnum(RoleEnum).optional(),
     search: z.string().trim().optional(),
-    status: z.enum(["active", "blocked", "verified", "unverified", "PENDING", "APPROVED", "REJECTED"]).optional(),
+    status: z.enum(["active", "blocked", "verified", "unverified", "deleted", "PENDING", "APPROVED", "REJECTED"]).optional(),
 });
 
 export const blockUserSchema = z.object({
@@ -25,6 +25,21 @@ export const inviteUserSchema = z.object({
     role: z.enum([RoleEnum.USER, RoleEnum.SELLER, RoleEnum.DELIVERY, RoleEnum.ADMIN]),
     fullName: z.string().trim().min(2).max(80).optional(),
     message: z.string().trim().max(500).optional(),
+});
+
+export const adminUserSchema = z.object({
+    fullName: z.string().trim().min(2).max(100),
+    email: z.string().trim().email(),
+    username: z.string().trim().min(2).max(80).optional(),
+    phone: z.string().trim().max(30).optional(),
+    password: z.string().min(6).max(120),
+    role: z.enum([RoleEnum.USER, RoleEnum.SELLER, RoleEnum.DELIVERY, RoleEnum.ADMIN, RoleEnum.SUPER_ADMIN]),
+    isVerified: z.boolean().optional(),
+    isBlocked: z.boolean().optional(),
+});
+
+export const updateAdminUserSchema = adminUserSchema.partial().extend({
+    deletionReason: z.string().trim().max(300).optional(),
 });
 
 export const createPayoutSchema = z.object({

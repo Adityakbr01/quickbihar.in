@@ -6,6 +6,7 @@ import { Banner } from "../banner/banner.model";
 import { Category } from "../category/category.model";
 import { Coupon } from "../coupon/coupon.model";
 import { Order } from "../order/order.model";
+import { SubOrder } from "../order/subOrder.model";
 import { OrderStatus } from "../order/order.type";
 import { Product } from "../products/product.model";
 import { ProductService } from "../products/products.service";
@@ -28,6 +29,27 @@ import {
 const APPROVAL_STATUSES = ["DRAFT", "PENDING_REVIEW", "APPROVED", "REJECTED"] as const;
 const FULFILLMENT_STATUSES = [OrderStatus.CONFIRMED, OrderStatus.PROCESSING, OrderStatus.SHIPPED];
 const LOW_STOCK_THRESHOLD = 5;
+const SELLER_REVENUE_SUBORDER_STATUSES = [
+    "PAYMENT_VERIFIED",
+    "CONFIRMED",
+    "SELLER_ACCEPTED",
+    "PROCESSING",
+    "PACKED",
+    "READY_FOR_PICKUP",
+    "RIDER_ASSIGNMENT_OPEN",
+    "RIDER_ASSIGNED",
+    "RIDER_ACCEPTED",
+    "RIDER_ARRIVING",
+    "RIDER_REACHED_STORE",
+    "PICKUP_VERIFICATION_PENDING",
+    "PICKED_UP",
+    "IN_TRANSIT",
+    "NEAR_CUSTOMER",
+    "DELIVERED",
+    "DELIVERY_CONFIRMED",
+    "COMPLETED",
+    "PARTIAL_DELIVERY",
+];
 
 const slugify = (value: string) =>
     value
@@ -257,10 +279,14 @@ export class SellerService {
     static async getDashboard(userId: string) {
         const setup = await this.getSetupStatus(userId);
         const { filter: orderFilter, ownedProductIds } = await this.sellerOrderBase(userId);
+        const recentFrom = new Date();
+        recentFrom.setDate(recentFrom.getDate() - 29);
 
         const [
             productStats,
             orderStats,
+            dailyRevenue,
+            productPerformance,
             lowStockCount,
             unreadNotifications,
             pendingPayouts,
@@ -281,6 +307,53 @@ export class SellerService {
             Order.aggregate([
                 { $match: orderFilter },
                 { $group: { _id: "$status", count: { $sum: 1 }, revenue: { $sum: "$payableAmount" } } },
+            ]),
+            SubOrder.aggregate([
+                {
+                    $match: {
+                        sellerId: asObjectId(userId),
+                        status: { $in: SELLER_REVENUE_SUBORDER_STATUSES },
+                        createdAt: { $gte: recentFrom },
+                    },
+                },
+                {
+                    $group: {
+                        _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+                        orders: { $sum: 1 },
+                        revenue: { $sum: "$payableAmount" },
+                        sellerNet: { $sum: "$sellerNet" },
+                        platformCommission: { $sum: "$platformCommission" },
+                    },
+                },
+                { $sort: { _id: 1 } },
+            ]),
+            SubOrder.aggregate([
+                {
+                    $match: {
+                        sellerId: asObjectId(userId),
+                        status: { $in: SELLER_REVENUE_SUBORDER_STATUSES },
+                    },
+                },
+                { $unwind: "$items" },
+                {
+                    $group: {
+                        _id: "$items.productId",
+                        title: { $first: "$items.title" },
+                        sku: { $first: "$items.sku" },
+                        quantity: { $sum: "$items.quantity" },
+                        revenue: {
+                            $sum: {
+                                $cond: [
+                                    { $gt: [{ $ifNull: ["$items.sellerSubtotal", 0] }, 0] },
+                                    "$items.sellerSubtotal",
+                                    { $multiply: ["$items.price", "$items.quantity"] },
+                                ],
+                            },
+                        },
+                    },
+                },
+                { $sort: { revenue: -1 } },
+                { $limit: 8 },
             ]),
             Product.countDocuments({
                 sellerId: userId,
@@ -321,6 +394,8 @@ export class SellerService {
                 pendingPayouts,
                 pendingReviews: pendingReviews.reduce((sum, count) => sum + count, 0),
             },
+            dailyRevenue,
+            productPerformance,
             recentOrders: recentOrders.map((order) => serializeOrderForSeller(order, userId, ownedProductIds)),
             recentNotifications,
         };

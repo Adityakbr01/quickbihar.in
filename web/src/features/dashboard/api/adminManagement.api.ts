@@ -14,6 +14,12 @@ export interface PartnerProfile {
   businessName?: string;
   sellerType?: string;
   gstNumber?: string;
+  address?: {
+    address?: string;
+    city?: string;
+    state?: string;
+    pincode?: string;
+  };
   mallId?: string;
   mallName?: string;
   mallUnit?: string;
@@ -76,6 +82,9 @@ export interface ManagedPerson {
   role: AdminRole;
   isVerified: boolean;
   isBlocked: boolean;
+  deletedAt?: string;
+  deletedBy?: string;
+  deletionReason?: string;
   createdAt?: string;
   sellerProfile?: PartnerProfile | null;
   deliveryProfile?: PartnerProfile | null;
@@ -101,6 +110,11 @@ export interface DashboardStats {
   deliveredOrders?: number;
   revenue?: number;
   totalSales?: number;
+  platformEarnings?: number;
+  platformNetEarnings?: number;
+  platformCommission?: number;
+  deliveryRevenue?: number;
+  riderPayoutEstimate?: number;
   totalProducts?: number;
   lowStockProducts?: number;
   pendingReviews?: number;
@@ -123,6 +137,19 @@ export interface Payout {
 
 export interface DashboardResponse {
   stats: DashboardStats;
+  dailyRevenue?: Array<{
+    _id: string;
+    orders: number;
+    revenue: number;
+    platformEarnings: number;
+    platformNetEarnings: number;
+  }>;
+  ordersByStatus?: Array<{
+    _id: string;
+    count: number;
+    revenue: number;
+    platformEarnings: number;
+  }>;
   recentPayouts: Payout[];
   topMalls: Mall[];
 }
@@ -401,6 +428,18 @@ export interface SellerPayload {
   };
 }
 
+export interface AdminUserPayload {
+  fullName?: string;
+  email?: string;
+  username?: string;
+  phone?: string;
+  password?: string;
+  role?: AdminRole;
+  isVerified?: boolean;
+  isBlocked?: boolean;
+  deletionReason?: string;
+}
+
 export interface SellerSubmission {
   _id: string;
   sellerId?: {
@@ -611,6 +650,138 @@ export interface AdminReports {
   customerSummary: Array<{ _id: string; fullName?: string; email?: string; orders: number; revenue: number; lastOrderAt?: string }>;
 }
 
+export interface PartnerSummary {
+  totalOrders: number;
+  deliveredOrders: number;
+  cancelledOrders: number;
+  grossAmount: number;
+  partnerEarnings: number;
+  riderPayoutAmount?: number;
+  distanceKm?: number;
+  availableBalance: number;
+  pendingPayoutBalance: number;
+  lifetimeEarnings: number;
+  collectedCodLiability?: number;
+  paidPayoutAmount: number;
+  pendingPayoutAmount: number;
+  paidPayoutCount: number;
+  pendingPayoutCount: number;
+  failedPayoutCount: number;
+  transactionCount: number;
+}
+
+export interface PartnerStatusBreakdownRow {
+  _id: string;
+  count: number;
+  grossAmount: number;
+  partnerEarnings: number;
+}
+
+export interface PartnerDailyReportRow {
+  _id: string;
+  orders: number;
+  deliveredOrders: number;
+  grossAmount: number;
+  partnerEarnings: number;
+}
+
+export interface PartnerTransaction {
+  _id: string;
+  type: "EARNING" | "PAYOUT" | "COD_SETTLEMENT";
+  label: string;
+  amount: number;
+  grossAmount?: number;
+  commissionAmount?: number;
+  status?: string;
+  method?: string;
+  referenceId?: string;
+  note?: string;
+  createdAt?: string;
+}
+
+export interface PartnerInsight {
+  partner: ManagedPerson;
+  summary: PartnerSummary;
+  statusBreakdown: PartnerStatusBreakdownRow[];
+  daily: PartnerDailyReportRow[];
+  transactions: PartnerTransaction[];
+  productPerformance?: Array<{ _id: string; title?: string; sku?: string; quantity: number; revenue: number }>;
+  inventory?: {
+    totalProducts: number;
+    activeProducts: number;
+    totalStock: number;
+    lowStockProducts: number;
+    outOfStockProducts: number;
+  };
+  riderPerformance?: {
+    totalPayout: number;
+    totalDistanceKm: number;
+    rainBonus: number;
+    peakBonus: number;
+    festivalBonus: number;
+    nightBonus: number;
+    codCollected: number;
+  };
+  codSettlements?: Array<{
+    _id: string;
+    amount: number;
+    previousLiability?: number;
+    newLiability?: number;
+    status: "PENDING" | "VERIFIED" | "REJECTED";
+    referenceId?: string;
+    note?: string;
+    depositedAt?: string;
+    createdAt?: string;
+  }>;
+}
+
+export interface AdminSubOrder {
+  _id: string;
+  subOrderId: string;
+  parentOrderId?: {
+    _id?: string;
+    orderId?: string;
+    shippingAddress?: {
+      fullName?: string;
+      phone?: string;
+      street?: string;
+      city?: string;
+      pincode?: string;
+    };
+  };
+  sellerId?: { _id?: string; fullName?: string; email?: string } | string;
+  storeId?: {
+    _id?: string;
+    name?: string;
+    contact?: { phone?: string };
+    address?: { line1?: string; city?: string };
+  };
+  items?: Array<{
+    title?: string;
+    sku?: string;
+    size?: string;
+    color?: string;
+    quantity: number;
+    price: number;
+  }>;
+  payableAmount?: number;
+  status: string;
+  packageDetails?: {
+    isCod?: boolean;
+    weight?: number;
+    packageCount?: number;
+    isFragile?: boolean;
+  };
+  delivery?: {
+    status?: string;
+    riderId?: { _id?: string; fullName?: string; phone?: string } | string;
+    payoutAmount?: number;
+  };
+  timeline?: Array<{ status?: string; timestamp?: string }>;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export interface AdminLog {
   _id: string;
   actorId?: { fullName?: string; email?: string } | string;
@@ -687,6 +858,26 @@ export const adminManagementApi = {
 
   getPeople: async (params: { role?: string; status?: string; search?: string }): Promise<ManagedPerson[]> => {
     const response = await axiosInstance.get("/admin/people", { params });
+    return response.data.data;
+  },
+
+  getUser: async (id: string): Promise<ManagedPerson> => {
+    const response = await axiosInstance.get(`/admin/users/${id}`);
+    return response.data.data;
+  },
+
+  createUser: async (payload: AdminUserPayload): Promise<ManagedPerson> => {
+    const response = await axiosInstance.post("/admin/users", payload);
+    return response.data.data;
+  },
+
+  updateUser: async ({ id, payload }: { id: string; payload: AdminUserPayload }): Promise<ManagedPerson> => {
+    const response = await axiosInstance.patch(`/admin/users/${id}`, payload);
+    return response.data.data;
+  },
+
+  deleteUser: async ({ id, deletionReason }: { id: string; deletionReason?: string }): Promise<ManagedPerson> => {
+    const response = await axiosInstance.delete(`/admin/users/${id}`, { data: { deletionReason } });
     return response.data.data;
   },
 
@@ -1108,6 +1299,26 @@ export const adminManagementApi = {
     return response.data.data;
   },
 
+  getSellerInsights: async ({ id, params }: { id: string; params: AdminListParams }): Promise<PartnerInsight> => {
+    const response = await axiosInstance.get(`/admin/sellers/${id}/insights`, { params });
+    return response.data.data;
+  },
+
+  getRiders: async (params: AdminListParams): Promise<ManagedPerson[]> => {
+    const response = await axiosInstance.get("/admin/riders", { params });
+    return response.data.data;
+  },
+
+  getRider: async (id: string): Promise<ManagedPerson> => {
+    const response = await axiosInstance.get(`/admin/riders/${id}`);
+    return response.data.data;
+  },
+
+  getRiderInsights: async ({ id, params }: { id: string; params: AdminListParams }): Promise<PartnerInsight> => {
+    const response = await axiosInstance.get(`/admin/riders/${id}/insights`, { params });
+    return response.data.data;
+  },
+
   createSeller: async (payload: SellerPayload): Promise<ManagedPerson> => {
     const response = await axiosInstance.post("/admin/sellers", payload);
     return response.data.data;
@@ -1123,7 +1334,7 @@ export const adminManagementApi = {
     return response.data.data;
   },
 
-  getAdminSubOrders: async (params: AdminListParams & { sellerId?: string; riderId?: string }): Promise<PaginatedAdminResult<any>> => {
+  getAdminSubOrders: async (params: AdminListParams & { sellerId?: string; riderId?: string }): Promise<PaginatedAdminResult<AdminSubOrder>> => {
     const response = await axiosInstance.get("/orders/admin/sub-orders", { params });
     return response.data.data;
   },
@@ -1135,6 +1346,11 @@ export const adminManagementApi = {
 
   adminSettleCod: async (subOrderId: string) => {
     const response = await axiosInstance.post(`/orders/admin/sub-orders/${subOrderId}/cod-settle`);
+    return response.data.data;
+  },
+
+  settleRiderCod: async ({ riderId, amount, referenceId, note }: { riderId: string; amount: number; referenceId?: string; note?: string }) => {
+    const response = await axiosInstance.post(`/admin/delivery/${riderId}/settle-cod`, { amount, referenceId, note });
     return response.data.data;
   },
 };

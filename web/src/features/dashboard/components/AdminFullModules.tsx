@@ -3,3 +3,7 @@ export { MarketingPromotionsPanel } from "./marketing/MarketingPromotionsPanel";
 export { InventoryLogisticsPanel } from "./inventory/InventoryLogisticsPanel";
 export { ReportsAnalyticsPanel } from "./reports/ReportsAnalyticsPanel";
 export { SystemSettingsPanel } from "./system/SystemSettingsPanel";
+export {
+  RiderDirectoryPanel,
+  SellerDirectoryPanel,
+} from "./partners/PartnerDirectoryPanel";

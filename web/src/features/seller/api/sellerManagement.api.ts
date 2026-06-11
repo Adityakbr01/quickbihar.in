@@ -53,6 +53,20 @@ export interface SellerDashboard {
     pendingPayouts: number;
     pendingReviews: number;
   };
+  dailyRevenue?: Array<{
+    _id: string;
+    orders: number;
+    revenue: number;
+    sellerNet: number;
+    platformCommission: number;
+  }>;
+  productPerformance?: Array<{
+    _id: string;
+    title?: string;
+    sku?: string;
+    quantity: number;
+    revenue: number;
+  }>;
   recentOrders: SellerOrder[];
   recentNotifications: SellerNotification[];
 }
@@ -779,7 +793,15 @@ export const sellerManagementApi = {
     return response.data.data;
   },
 
-  updateSubOrderStatus: async ({ subOrderId, status, packageDetails }: { subOrderId: string; status: string; packageDetails?: any }) => {
+  updateSubOrderStatus: async ({
+    subOrderId,
+    status,
+    packageDetails,
+  }: {
+    subOrderId: string;
+    status: string;
+    packageDetails?: Record<string, unknown>;
+  }) => {
     const response = await axiosInstance.patch(`/sellers/sub-orders/${subOrderId}/status`, { status, packageDetails });
     return response.data.data;
   },

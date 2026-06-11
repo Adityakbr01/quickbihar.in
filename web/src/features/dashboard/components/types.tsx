@@ -34,6 +34,8 @@ export type AdminSection =
   | "reports-analytics"
   | "system-settings"
   | "people"
+  | "seller-directory"
+  | "rider-directory"
   | "seller-mall"
   | "seller-submissions"
   | "payouts"
@@ -60,6 +62,7 @@ export const statusOptions = [
   "blocked",
   "verified",
   "unverified",
+  "deleted",
 ] as const;
 
 export const inputClass =
@@ -82,7 +85,9 @@ export const sectionLabels: Record<AdminSection, string> = {
   "reports-analytics": "Reports & Analytics",
   "system-settings": "System Settings",
   people: "User Management",
-  "seller-mall": "Seller & Mall Management",
+  "seller-directory": "Sellers",
+  "rider-directory": "Riders",
+  "seller-mall": "Malls & Seller Requests",
   "seller-submissions": "Seller Review Queue",
   payouts: "Payouts",
   invites: "Invites",
@@ -104,6 +109,8 @@ export const adminSectionPathSegments: Record<AdminSection, string> = {
   "reports-analytics": "Reports",
   "system-settings": "System",
   people: "People",
+  "seller-directory": "Sellers",
+  "rider-directory": "Riders",
   "seller-mall": "Seller-Mall",
   "seller-submissions": "Seller-Submissions",
   payouts: "Payouts",
@@ -145,8 +152,17 @@ const adminSectionAliases: Record<string, AdminSection> = {
   people: "people",
   users: "people",
   "user-directory": "people",
+  sellers: "seller-directory",
+  seller: "seller-directory",
+  "seller-directory": "seller-directory",
+  "seller-hub": "seller-directory",
+  riders: "rider-directory",
+  rider: "rider-directory",
+  "rider-directory": "rider-directory",
+  "rider-hub": "rider-directory",
+  delivery: "rider-directory",
+  "delivery-partners": "rider-directory",
   "seller-mall": "seller-mall",
-  sellers: "seller-mall",
   malls: "seller-mall",
   "seller-submissions": "seller-submissions",
   submissions: "seller-submissions",
@@ -259,8 +275,18 @@ export const navigationGroups: Array<{
         icon: <Users className="h-4 w-4" />,
       },
       {
+        id: "seller-directory",
+        label: "Sellers",
+        icon: <Store className="h-4 w-4" />,
+      },
+      {
+        id: "rider-directory",
+        label: "Riders",
+        icon: <Truck className="h-4 w-4" />,
+      },
+      {
         id: "seller-mall",
-        label: "Sellers & Malls",
+        label: "Malls & Requests",
         icon: <Building2 className="h-4 w-4" />,
       },
       {

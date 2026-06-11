@@ -11,6 +11,8 @@ import {
   InventoryLogisticsPanel,
   MarketingPromotionsPanel,
   ReportsAnalyticsPanel,
+  RiderDirectoryPanel,
+  SellerDirectoryPanel,
   SystemSettingsPanel,
 } from "@/features/dashboard/components/AdminFullModules";
 import {
@@ -38,7 +40,6 @@ import {
 
 import { AdminSidebar } from "@/features/dashboard/components/AdminSidebar";
 import { OverviewSection } from "@/features/dashboard/components/OverviewSection";
-import { ManagementGroupSection } from "@/features/dashboard/components/ManagementGroupSection";
 import { StoreConfigurationSection } from "@/features/dashboard/components/StoreConfigurationSection";
 import { PeopleSection } from "@/features/dashboard/components/PeopleSection";
 import { SellerSubmissionsSection } from "@/features/dashboard/components/SellerSubmissionsSection";
@@ -63,7 +64,7 @@ export default function AdminDashboardPage() {
     "ALL" | "USER" | "SELLER" | "DELIVERY" | "ADMIN" | "SUPER_ADMIN"
   >("ALL");
   const [status, setStatus] = useState<
-    "all" | "active" | "blocked" | "verified" | "unverified"
+    "all" | "active" | "blocked" | "verified" | "unverified" | "deleted"
   >("all");
 
   const roleName =
@@ -145,6 +146,10 @@ export default function AdminDashboardPage() {
     () => allPeople.filter((person) => Boolean(person.sellerProfile)),
     [allPeople],
   );
+  const riderPeople = useMemo(
+    () => allPeople.filter((person) => Boolean(person.deliveryProfile)),
+    [allPeople],
+  );
   const payoutPartners = useMemo(
     () =>
       allPeople.filter((person) =>
@@ -183,6 +188,7 @@ export default function AdminDashboardPage() {
           counts={{
             people: stats?.totalUsers || allPeople.length,
             sellers: stats?.sellers || sellerPeople.length,
+            riders: stats?.deliveryBoys || riderPeople.length,
             malls: stats?.malls || malls.length,
             payouts:
               (stats?.pendingPayouts || 0) +
@@ -232,6 +238,8 @@ export default function AdminDashboardPage() {
                 <div className="animate-in-fade-slide">
                   <OverviewSection
                     stats={stats}
+                    dailyRevenue={dashboardQuery.data?.dailyRevenue || []}
+                    ordersByStatus={dashboardQuery.data?.ordersByStatus || []}
                     payouts={dashboardQuery.data?.recentPayouts || []}
                     malls={malls}
                     topMalls={dashboardQuery.data?.topMalls || []}
@@ -333,6 +341,18 @@ export default function AdminDashboardPage() {
                       })
                     }
                   />
+                </div>
+              )}
+
+              {activeSection === "seller-directory" && (
+                <div className="animate-in-fade-slide">
+                  <SellerDirectoryPanel />
+                </div>
+              )}
+
+              {activeSection === "rider-directory" && (
+                <div className="animate-in-fade-slide">
+                  <RiderDirectoryPanel />
                 </div>
               )}
 

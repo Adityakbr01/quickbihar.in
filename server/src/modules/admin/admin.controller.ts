@@ -8,6 +8,7 @@ import { CodSettlement } from "../fulfillment/codSettlement.model";
 import {
     adminListQuerySchema,
     adminPolicySchema,
+    adminUserSchema,
     adminSellerSchema,
     announcementSchema,
     backupCreateSchema,
@@ -33,6 +34,7 @@ import {
     systemConfigSchema,
     updateAnnouncementSchema,
     updateAdminPolicySchema,
+    updateAdminUserSchema,
     updateAdminSellerSchema,
     updateBlogPostSchema,
     updateCmsPageSchema,
@@ -300,6 +302,33 @@ export class AdminController {
         return res.status(200).json(new ApiResponse(200, people, "People fetched successfully"));
     });
 
+    static userDetails = asyncHandler(async (req, res) => {
+        const user = await AdminService.getUser(req.params.id as string);
+        return res.status(200).json(new ApiResponse(200, user, "User fetched successfully"));
+    });
+
+    static createUser = asyncHandler(async (req, res) => {
+        const body = adminUserSchema.parse(req.body);
+        const user = await AdminService.createUser((req as any).user._id, body);
+        return res.status(201).json(new ApiResponse(201, user, "User created successfully"));
+    });
+
+    static updateUser = asyncHandler(async (req, res) => {
+        const body = updateAdminUserSchema.parse(req.body);
+        const user = await AdminService.updateUser((req as any).user._id, req.params.id as string, body);
+        return res.status(200).json(new ApiResponse(200, user, "User updated successfully"));
+    });
+
+    static deleteUser = asyncHandler(async (req, res) => {
+        const body = updateAdminUserSchema.pick({ deletionReason: true }).parse(req.body || {});
+        const user = await AdminService.deleteUser(
+            (req as any).user._id,
+            req.params.id as string,
+            body.deletionReason,
+        );
+        return res.status(200).json(new ApiResponse(200, user, "User deactivated successfully"));
+    });
+
     static policies = asyncHandler(async (req, res) => {
         const query = adminListQuerySchema.parse(req.query);
         const policies = await AdminService.listPolicies({ ...query, type: req.query.type });
@@ -332,6 +361,29 @@ export class AdminController {
     static sellerDetails = asyncHandler(async (req, res) => {
         const seller = await AdminService.getSeller(req.params.id as string);
         return res.status(200).json(new ApiResponse(200, seller, "Seller fetched successfully"));
+    });
+
+    static sellerInsights = asyncHandler(async (req, res) => {
+        const query = adminListQuerySchema.parse(req.query);
+        const insights = await AdminService.getSellerInsights(req.params.id as string, query);
+        return res.status(200).json(new ApiResponse(200, insights, "Seller insights fetched successfully"));
+    });
+
+    static riders = asyncHandler(async (req, res) => {
+        const query = listPeopleSchema.parse({ ...req.query, role: "DELIVERY" });
+        const riders = await AdminService.listRiders(query);
+        return res.status(200).json(new ApiResponse(200, riders, "Riders fetched successfully"));
+    });
+
+    static riderDetails = asyncHandler(async (req, res) => {
+        const rider = await AdminService.getRider(req.params.id as string);
+        return res.status(200).json(new ApiResponse(200, rider, "Rider fetched successfully"));
+    });
+
+    static riderInsights = asyncHandler(async (req, res) => {
+        const query = adminListQuerySchema.parse(req.query);
+        const insights = await AdminService.getRiderInsights(req.params.id as string, query);
+        return res.status(200).json(new ApiResponse(200, insights, "Rider insights fetched successfully"));
     });
 
     static createSeller = asyncHandler(async (req, res) => {

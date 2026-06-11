@@ -17,6 +17,9 @@ export interface IUser extends Document {
   roleId: Types.ObjectId;
   isVerified?: boolean;
   isBlocked?: boolean;
+  deletedAt?: Date;
+  deletedBy?: Types.ObjectId;
+  deletionReason?: string;
   refreshToken?: string;
   isPasswordCorrect(password: string): Promise<boolean>;
   generateAccessToken(): string;
@@ -67,6 +70,18 @@ const userSchema = new Schema<IUser>(
     },
     isVerified: { type: Boolean, default: false, index: true },
     isBlocked: { type: Boolean, default: false, index: true },
+    deletedAt: {
+      type: Date,
+      index: true,
+    },
+    deletedBy: {
+      type: Types.ObjectId,
+      ref: "User",
+    },
+    deletionReason: {
+      type: String,
+      trim: true,
+    },
     refreshToken: {
       type: String,
     },

@@ -3,6 +3,7 @@ import type {
   DeliveryPartner,
   DeliveryStatus,
 } from "@/features/delivery/api/delivery.api";
+import * as XLSX from "xlsx";
 
 export const inputClass =
   "w-full border-white/10 bg-white/5 text-white placeholder:text-gray-500";
@@ -11,10 +12,15 @@ export const selectClass =
 export const textareaClass =
   "min-h-20 rounded-lg border border-white/10 bg-white/5 px-2.5 py-2 text-sm text-white outline-none placeholder:text-gray-500";
 
-export function downloadCsv(filename: string, rows: string[][]) {
+export type ExportCell = string | number | boolean | null | undefined;
+export type ExportRow = ExportCell[];
+
+export function downloadCsv(filename: string, rows: ExportRow[]) {
   const csv = rows
     .map((row) =>
-      row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(","),
+      row
+        .map((cell) => `"${String(cell ?? "").replace(/"/g, '""')}"`)
+        .join(","),
     )
     .join("\n");
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
@@ -23,6 +29,18 @@ export function downloadCsv(filename: string, rows: string[][]) {
   link.download = filename;
   link.click();
   URL.revokeObjectURL(link.href);
+}
+
+export function downloadXlsx(
+  filename: string,
+  sheets: Record<string, ExportRow[]>,
+) {
+  const workbook = XLSX.utils.book_new();
+  Object.entries(sheets).forEach(([name, rows]) => {
+    const sheet = XLSX.utils.aoa_to_sheet(rows);
+    XLSX.utils.book_append_sheet(workbook, sheet, name.slice(0, 31) || "Sheet");
+  });
+  XLSX.writeFile(workbook, filename);
 }
 
 export function formatDate(value?: string) {
@@ -38,7 +56,7 @@ export function dateInputValue(value?: string) {
   if (!value) return "";
   try {
     return new Date(value).toISOString().slice(0, 10);
-  } catch (e) {
+  } catch {
     return "";
   }
 }
@@ -104,4 +122,15 @@ export function deliveryStatusLabel(status: DeliveryStatus) {
 export function entityId(value: string) {
   const match = value?.match(/\/([^\/]+)$/);
   return match ? match[1] : value;
+}
+
+export function formatDateTime(value?: string) {
+  if (!value) return "-";
+  return new Intl.DateTimeFormat("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(value));
 }

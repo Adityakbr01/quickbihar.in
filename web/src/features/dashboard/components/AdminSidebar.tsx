@@ -12,6 +12,7 @@ export function AdminSidebar({
   counts: {
     people: number;
     sellers: number;
+    riders: number;
     malls: number;
     payouts: number;
     mallRequests: number;
@@ -20,7 +21,9 @@ export function AdminSidebar({
 }) {
   const countBySection: Partial<Record<AdminSection, number>> = {
     people: counts.people,
-    "seller-mall": counts.sellers + counts.malls + counts.mallRequests,
+    "seller-directory": counts.sellers,
+    "rider-directory": counts.riders,
+    "seller-mall": counts.malls + counts.mallRequests,
     payouts: counts.payouts,
   };
 
@@ -39,9 +42,9 @@ export function AdminSidebar({
         {navigationGroups.map((group) => (
           <div
             key={group.title}
-            className="flex shrink-0 gap-2 lg:flex-col lg:space-y-1"
+            className="flex shrink-0 lg:flex-col lg:space-y-1"
           >
-            <div className="hidden px-2 pb-1 text-[11px] font-medium uppercase tracking-wider text-gray-500 lg:block">
+            <div className="hidden px-2 pb-1 text-[11px] font-medium uppercase tracking-wider text-gray-100 lg:block">
               {group.title}
             </div>
             {group.items.map((section) => (

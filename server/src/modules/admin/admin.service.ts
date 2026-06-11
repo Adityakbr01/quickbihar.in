@@ -8,13 +8,15 @@ import { DeliveryBoy } from "../deliveryBoy/delivery.model";
 import { Mall } from "../mall/mall.model";
 import { MallService } from "../mall/mall.service";
 import { Order } from "../order/order.model";
+import { SubOrder } from "../order/subOrder.model";
 import { Product } from "../products/product.model";
 import { RefundPolicy } from "../refundPolicy/refundPolicy.model";
 import { Role } from "../rbac/rbac.model";
 import * as rbacService from "../rbac/rbac.service";
 import { RoleEnum } from "../rbac/rbac.types";
 import { Seller } from "../seller/seller.model";
-import { InventoryMovement, SellerCategoryRequest, SellerNotification } from "../seller/sellerPanel.model";
+import { CodSettlement } from "../fulfillment/codSettlement.model";
+import { InventoryMovement, SellerCategoryRequest, SellerEarning, SellerNotification } from "../seller/sellerPanel.model";
 import { SizeChart } from "../sizeChart/sizeChart.model";
 import { Store } from "../store/store.model";
 import { buildStoreSetupStatus, mergeStoreForSetup } from "../store/store.setup";
@@ -214,6 +216,13 @@ const dateFilter = (query: any = {}) => {
     return Object.keys(range).length ? { createdAt: range } : {};
 };
 
+const dateRangeForField = (field: string, query: any = {}) => {
+    const range: any = {};
+    if (query.dateFrom) range.$gte = query.dateFrom;
+    if (query.dateTo) range.$lte = query.dateTo;
+    return Object.keys(range).length ? { [field]: range } : {};
+};
+
 const paginatedFind = async (model: any, filter: any, query: any = {}, populate?: any) => {
     const { page, limit, skip } = listOptions(query);
     let findQuery = model.find(filter).sort(listSort(query)).skip(skip).limit(limit);
@@ -265,6 +274,114 @@ const uniqueSlugFor = async (model: any, source: string, providedSlug?: string, 
 const asObjectId = (value: any) => value instanceof Types.ObjectId ? value : new Types.ObjectId(String(value));
 
 const plainDoc = (doc: any) => doc?.toObject ? doc.toObject() : doc;
+
+const idString = (value: any) => value?._id?.toString?.() || value?.toString?.() || "";
+
+const deliveredSubOrderStatuses = ["DELIVERED", "DELIVERY_CONFIRMED", "COMPLETED"];
+const cancelledSubOrderStatuses = [
+    "CANCELLED",
+    "REJECTED",
+    "SELLER_REJECTED",
+    "SELLER_CANCELLED",
+    "CUSTOMER_CANCELLED",
+    "RIDER_CANCELLED",
+    "RIDER_NO_SHOW",
+    "STORE_CLOSED",
+    "PICKUP_FAILED",
+    "DELIVERY_FAILED",
+    "CUSTOMER_UNREACHABLE",
+    "RETURNED",
+    "REFUNDED",
+];
+
+const payoutSummaryFromRows = (rows: any[] = []) => rows.reduce(
+    (summary, payout) => {
+        const amount = Number(payout.amount || 0);
+        if (payout.status === "PAID") {
+            summary.paidAmount += amount;
+            summary.paidCount += 1;
+        }
+        if (reservedPayoutStatuses.includes(payout.status)) {
+            summary.pendingAmount += amount;
+            summary.pendingCount += 1;
+        }
+        if (payout.status === "FAILED") {
+            summary.failedCount += 1;
+        }
+        return summary;
+    },
+    { paidAmount: 0, pendingAmount: 0, paidCount: 0, pendingCount: 0, failedCount: 0 },
+);
+
+const transactionDate = (transaction: any) =>
+    new Date(transaction.createdAt || transaction.creditedAt || transaction.depositedAt || 0).getTime();
+
+const serializePayoutTransaction = (payout: any) => ({
+    _id: idString(payout._id),
+    type: "PAYOUT",
+    label: payout.status === "PAID" ? "Payout paid" : "Payout request",
+    amount: Number(payout.amount || 0),
+    status: payout.status,
+    method: payout.method,
+    referenceId: payout.referenceId,
+    note: payout.note,
+    createdAt: payout.createdAt,
+});
+
+const platformGrossExpression = () => ({
+    $cond: [
+        { $gt: [{ $ifNull: ["$appGrossRevenue", 0] }, 0] },
+        "$appGrossRevenue",
+        {
+            $add: [
+                { $ifNull: ["$platformCommissionTotal", 0] },
+                { $ifNull: ["$shippingFee", 0] },
+                { $ifNull: ["$dynamicDeliverySurcharge", 0] },
+            ],
+        },
+    ],
+});
+
+const platformNetExpression = () => ({
+    $cond: [
+        { $gt: [{ $ifNull: ["$appNetAfterRiderEstimate", 0] }, 0] },
+        "$appNetAfterRiderEstimate",
+        {
+            $subtract: [
+                platformGrossExpression(),
+                { $ifNull: ["$riderPayoutEstimateTotal", 0] },
+            ],
+        },
+    ],
+});
+
+const usernameFrom = (value: string) =>
+    value.toLowerCase().trim().replace(/[^a-z0-9_]/g, "_").replace(/_+/g, "_").replace(/^_|_$/g, "") || `user_${Date.now()}`;
+
+const uniqueUsername = async (source: string, excludeId?: string) => {
+    const base = usernameFrom(source);
+    let username = base;
+    let suffix = 1;
+    const filterFor = (value: string) => ({
+        username: value,
+        ...(excludeId ? { _id: { $ne: asObjectId(excludeId) } } : {}),
+    });
+
+    while (await User.exists(filterFor(username))) {
+        suffix += 1;
+        username = `${base}_${suffix}`;
+    }
+
+    return username;
+};
+
+const assertEmailAvailable = async (email: string, excludeId?: string) => {
+    const existing = await User.findOne({
+        email: email.toLowerCase(),
+        ...(excludeId ? { _id: { $ne: asObjectId(excludeId) } } : {}),
+    }).select("_id").lean();
+    if (existing) throw new ApiError(409, "Email is already used by another user");
+};
 
 const cleanPolicyRefs = (refs: any = {}) => {
     const next: Record<string, Types.ObjectId> = {};
@@ -385,6 +502,9 @@ const serializeUser = (user: any, sellerProfile?: any, deliveryProfile?: any, se
     role: roleNameOf(user.roleId),
     isVerified: !!user.isVerified,
     isBlocked: !!user.isBlocked,
+    deletedAt: user.deletedAt,
+    deletedBy: user.deletedBy?._id?.toString?.() || user.deletedBy?.toString?.(),
+    deletionReason: user.deletionReason,
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
     sellerProfile: sellerProfile ? {
@@ -428,10 +548,18 @@ const serializeUser = (user: any, sellerProfile?: any, deliveryProfile?: any, se
         vehicleType: deliveryProfile.vehicleType,
         vehicleNumber: deliveryProfile.vehicleNumber,
         licenseNumber: deliveryProfile.licenseNumber,
+        address: deliveryProfile.address,
+        payoutMethodsSummary: {
+            total: deliveryProfile.payoutMethods?.length || 0,
+            verified: deliveryProfile.payoutMethods?.filter((method: any) => method.status === "VERIFIED").length || 0,
+            pending: deliveryProfile.payoutMethods?.filter((method: any) => method.status === "PENDING_VERIFICATION").length || 0,
+            rejected: deliveryProfile.payoutMethods?.filter((method: any) => method.status === "REJECTED").length || 0,
+        },
         wallet: deliveryProfile.wallet || {
             availableBalance: 0,
             pendingPayoutBalance: 0,
             lifetimeEarnings: 0,
+            collectedCodLiability: 0,
         },
         currentLocation: deliveryProfile.currentLocation
             ? {
@@ -1152,6 +1280,10 @@ export class AdminService {
     }
 
     static async getDashboard() {
+        const revenueStatuses = ["PAID", "CONFIRMED", "PROCESSING", "SHIPPED", "DELIVERED"];
+        const recentFrom = new Date();
+        recentFrom.setDate(recentFrom.getDate() - 29);
+
         const [
             totalUsers,
             blockedUsers,
@@ -1172,6 +1304,9 @@ export class AdminService {
             pendingOrders,
             deliveredOrders,
             revenueAgg,
+            platformAgg,
+            dailyRevenue,
+            ordersByStatus,
             totalProducts,
             lowStockProducts,
             pendingSellerProducts,
@@ -1204,8 +1339,52 @@ export class AdminService {
             Order.countDocuments({ status: { $in: ["PENDING_PAYMENT", "PAID", "CONFIRMED", "PROCESSING"] } }),
             Order.countDocuments({ status: "DELIVERED" }),
             Order.aggregate([
-                { $match: { status: { $in: ["PAID", "CONFIRMED", "PROCESSING", "SHIPPED", "DELIVERED"] } } },
+                { $match: { status: { $in: revenueStatuses } } },
                 { $group: { _id: null, revenue: { $sum: "$payableAmount" }, sales: { $sum: "$totalAmount" } } },
+            ]),
+            Order.aggregate([
+                { $match: { status: { $in: revenueStatuses } } },
+                {
+                    $group: {
+                        _id: null,
+                        platformEarnings: { $sum: platformGrossExpression() },
+                        platformNetEarnings: { $sum: platformNetExpression() },
+                        platformCommission: { $sum: "$platformCommissionTotal" },
+                        deliveryRevenue: {
+                            $sum: {
+                                $add: [
+                                    { $ifNull: ["$shippingFee", 0] },
+                                    { $ifNull: ["$dynamicDeliverySurcharge", 0] },
+                                ],
+                            },
+                        },
+                        riderPayoutEstimate: { $sum: "$riderPayoutEstimateTotal" },
+                    },
+                },
+            ]),
+            Order.aggregate([
+                { $match: { status: { $in: revenueStatuses }, createdAt: { $gte: recentFrom } } },
+                {
+                    $group: {
+                        _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+                        orders: { $sum: 1 },
+                        revenue: { $sum: "$payableAmount" },
+                        platformEarnings: { $sum: platformGrossExpression() },
+                        platformNetEarnings: { $sum: platformNetExpression() },
+                    },
+                },
+                { $sort: { _id: 1 } },
+            ]),
+            Order.aggregate([
+                {
+                    $group: {
+                        _id: "$status",
+                        count: { $sum: 1 },
+                        revenue: { $sum: "$payableAmount" },
+                        platformEarnings: { $sum: platformGrossExpression() },
+                    },
+                },
+                { $sort: { count: -1 } },
             ]),
             Product.countDocuments({ isDeleted: { $ne: true } }),
             Product.countDocuments({ totalStock: { $lte: 10 }, isDeleted: { $ne: true } }),
@@ -1250,6 +1429,11 @@ export class AdminService {
                 deliveredOrders,
                 revenue: revenueAgg[0]?.revenue || 0,
                 totalSales: revenueAgg[0]?.sales || 0,
+                platformEarnings: platformAgg[0]?.platformEarnings || 0,
+                platformNetEarnings: platformAgg[0]?.platformNetEarnings || 0,
+                platformCommission: platformAgg[0]?.platformCommission || 0,
+                deliveryRevenue: platformAgg[0]?.deliveryRevenue || 0,
+                riderPayoutEstimate: platformAgg[0]?.riderPayoutEstimate || 0,
                 totalProducts,
                 lowStockProducts,
                 pendingReviews:
@@ -1261,6 +1445,8 @@ export class AdminService {
                 activeFlashSales,
                 sentAnnouncements,
             },
+            dailyRevenue,
+            ordersByStatus,
             recentPayouts,
             topMalls,
         };
@@ -1280,10 +1466,14 @@ export class AdminService {
             ];
         }
 
-        if (query.status === "active") filter.isBlocked = { $ne: true };
+        if (query.status === "active") {
+            filter.isBlocked = { $ne: true };
+            filter.deletedAt = { $exists: false };
+        }
         if (query.status === "blocked") filter.isBlocked = true;
         if (query.status === "verified") filter.isVerified = true;
         if (query.status === "unverified") filter.isVerified = { $ne: true };
+        if (query.status === "deleted") filter.deletedAt = { $exists: true };
         if (partnerStatuses.includes(query.status)) {
             const profileQueries: Promise<any[]>[] = [];
             if (!query.role || query.role === RoleEnum.SELLER) {
@@ -1341,6 +1531,162 @@ export class AdminService {
         );
     }
 
+    static async getUser(userId: string) {
+        const user = await User.findById(userId).select(userProjection).populate("roleId").lean();
+        if (!user) throw new ApiError(404, "User not found");
+
+        const [seller, delivery, store] = await Promise.all([
+            Seller.findOne({ userId })
+                .populate("mallId", "name slug address.city isActive")
+                .populate("mallRequest.mallId", "name slug address.city isActive")
+                .lean(),
+            DeliveryBoy.findOne({ userId }).lean(),
+            Store.findOne({ sellerId: userId })
+                .select("sellerId name description logoUrl bannerUrl isActive isVerified isSetupComplete setupMissingFields address contact categoryConfig deliveryConfig policyRefs createdAt")
+                .lean(),
+        ]);
+
+        return serializeUser(user, seller, delivery, store);
+    }
+
+    static async createUser(adminId: string, data: any) {
+        await assertEmailAvailable(data.email);
+        const role = await rbacService.getRoleByName(data.role);
+        const username = await uniqueUsername(data.username || data.email.split("@")[0]);
+        const user = await User.create({
+            fullName: data.fullName,
+            email: data.email.toLowerCase(),
+            username,
+            phone: data.phone,
+            password: data.password,
+            roleId: role._id,
+            isVerified: data.isVerified ?? true,
+            isBlocked: data.isBlocked ?? false,
+        });
+
+        await this.ensurePartnerProfile(user._id.toString(), data.role, data);
+        await this.recordAdminMutation(adminId, "CREATE_USER", "User", user._id.toString(), {
+            after: { ...plainDoc(user), password: undefined },
+            metadata: { role: data.role },
+        });
+
+        return await this.getUser(user._id.toString());
+    }
+
+    static async updateUser(adminId: string, userId: string, data: any) {
+        const user: any = await User.findById(userId).populate("roleId");
+        if (!user) throw new ApiError(404, "User not found");
+        const before = await this.getUser(userId).catch(() => null);
+        const currentRole = roleNameOf(user.roleId);
+
+        if (adminId?.toString() === userId?.toString()) {
+            if (data.isBlocked === true) throw new ApiError(400, "You cannot block your own admin account");
+            if (data.role && ![RoleEnum.ADMIN, RoleEnum.SUPER_ADMIN].includes(data.role)) {
+                throw new ApiError(400, "You cannot remove your own admin role");
+            }
+        }
+
+        if (data.email !== undefined) {
+            await assertEmailAvailable(data.email, userId);
+            user.email = data.email.toLowerCase();
+        }
+        if (data.username !== undefined) {
+            user.username = await uniqueUsername(data.username, userId);
+        }
+        if (data.fullName !== undefined) user.fullName = data.fullName;
+        if (data.phone !== undefined) user.phone = data.phone;
+        if (data.isVerified !== undefined) user.isVerified = data.isVerified;
+        if (data.isBlocked !== undefined) user.isBlocked = data.isBlocked;
+        if (data.password) user.password = data.password;
+
+        let nextRole = currentRole;
+        if (data.role && data.role !== currentRole) {
+            const role = await rbacService.getRoleByName(data.role);
+            user.roleId = role._id;
+            nextRole = data.role;
+        }
+
+        if (data.isBlocked === false && user.deletedAt) {
+            user.deletedAt = undefined;
+            user.deletedBy = undefined;
+            user.deletionReason = undefined;
+        }
+
+        await user.save();
+        await this.ensurePartnerProfile(user._id.toString(), nextRole, data);
+        const after = await this.getUser(userId);
+        await this.recordAdminMutation(adminId, "UPDATE_USER", "User", userId, {
+            before,
+            after,
+            metadata: { previousRole: currentRole, role: nextRole },
+        });
+        return after;
+    }
+
+    static async deleteUser(adminId: string, userId: string, reason?: string) {
+        if (adminId?.toString() === userId?.toString()) {
+            throw new ApiError(400, "You cannot delete your own admin account");
+        }
+
+        const user: any = await User.findById(userId).populate("roleId");
+        if (!user) throw new ApiError(404, "User not found");
+        const before = await this.getUser(userId).catch(() => null);
+
+        user.isBlocked = true;
+        user.refreshToken = undefined;
+        user.deletedAt = new Date();
+        user.deletedBy = asObjectId(adminId);
+        user.deletionReason = reason;
+        await user.save();
+
+        const after = await this.getUser(userId);
+        await this.recordAdminMutation(adminId, "SOFT_DELETE_USER", "User", userId, {
+            before,
+            after,
+            severity: "WARNING",
+            metadata: { reason },
+        });
+        return after;
+    }
+
+    private static async ensurePartnerProfile(userId: string, role: string, data: any = {}) {
+        if (role === RoleEnum.SELLER) {
+            await Seller.findOneAndUpdate(
+                { userId: asObjectId(userId) },
+                {
+                    $setOnInsert: {
+                        userId: asObjectId(userId),
+                        businessName: data.businessName || data.fullName || "Seller",
+                        sellerType: "CLOTHING",
+                        status: "PENDING",
+                        isVerified: false,
+                    },
+                },
+                { upsert: true, returnDocument: "after", setDefaultsOnInsert: true },
+            );
+        }
+
+        if (role === RoleEnum.DELIVERY) {
+            await DeliveryBoy.findOneAndUpdate(
+                { userId: asObjectId(userId) },
+                {
+                    $setOnInsert: {
+                        userId: asObjectId(userId),
+                        status: "PENDING",
+                        isVerified: false,
+                        wallet: {
+                            availableBalance: 0,
+                            pendingPayoutBalance: 0,
+                            lifetimeEarnings: 0,
+                            collectedCodLiability: 0,
+                        },
+                    },
+                },
+                { upsert: true, returnDocument: "after", setDefaultsOnInsert: true },
+            );
+        }
+    }
+
     static async listPolicies(query: any = {}) {
         const filter: any = {};
         if (query.type) filter.policyType = query.type;
@@ -1392,6 +1738,328 @@ export class AdminService {
         ]);
         if (!seller) throw new ApiError(404, "Seller profile not found");
         return serializeUser(user, seller, undefined, store);
+    }
+
+    static async listRiders(query: any = {}) {
+        return await this.listPeople({ ...query, role: RoleEnum.DELIVERY });
+    }
+
+    static async getRider(userId: string) {
+        const user = await User.findById(userId).select(userProjection).populate("roleId").lean();
+        if (!user) throw new ApiError(404, "Rider user not found");
+        const rider = await DeliveryBoy.findOne({ userId }).lean();
+        if (!rider) throw new ApiError(404, "Rider profile not found");
+        return serializeUser(user, undefined, rider);
+    }
+
+    static async getSellerInsights(userId: string, query: any = {}) {
+        const partner = await this.getSeller(userId);
+        return await this.getPartnerInsights("SELLER", userId, query, partner);
+    }
+
+    static async getRiderInsights(userId: string, query: any = {}) {
+        const partner = await this.getRider(userId);
+        return await this.getPartnerInsights("DELIVERY", userId, query, partner);
+    }
+
+    private static async getPartnerInsights(type: "SELLER" | "DELIVERY", userId: string, query: any = {}, partner: any) {
+        const userObjectId = asObjectId(userId);
+        const subOrderMatch: any = {
+            ...(type === "SELLER"
+                ? { sellerId: userObjectId }
+                : { "delivery.riderId": userObjectId }),
+            ...dateRangeForField("createdAt", query),
+        };
+        const partnerEarningsExpression = type === "SELLER" ? "$sellerNet" : "$delivery.payoutAmount";
+
+        const [
+            totals,
+            statusBreakdown,
+            daily,
+            payouts,
+            transactions,
+            sellerExtras,
+            riderExtras,
+        ] = await Promise.all([
+            SubOrder.aggregate([
+                { $match: subOrderMatch },
+                {
+                    $group: {
+                        _id: null,
+                        totalOrders: { $sum: 1 },
+                        deliveredOrders: {
+                            $sum: { $cond: [{ $in: ["$status", deliveredSubOrderStatuses] }, 1, 0] },
+                        },
+                        cancelledOrders: {
+                            $sum: { $cond: [{ $in: ["$status", cancelledSubOrderStatuses] }, 1, 0] },
+                        },
+                        grossAmount: { $sum: "$payableAmount" },
+                        partnerEarnings: { $sum: partnerEarningsExpression },
+                        riderPayoutAmount: { $sum: "$delivery.payoutAmount" },
+                        distanceKm: { $sum: "$delivery.distanceKm" },
+                    },
+                },
+            ]),
+            SubOrder.aggregate([
+                { $match: subOrderMatch },
+                {
+                    $group: {
+                        _id: "$status",
+                        count: { $sum: 1 },
+                        grossAmount: { $sum: "$payableAmount" },
+                        partnerEarnings: { $sum: partnerEarningsExpression },
+                    },
+                },
+                { $sort: { count: -1 } },
+            ]),
+            SubOrder.aggregate([
+                { $match: subOrderMatch },
+                {
+                    $group: {
+                        _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+                        orders: { $sum: 1 },
+                        deliveredOrders: {
+                            $sum: { $cond: [{ $in: ["$status", deliveredSubOrderStatuses] }, 1, 0] },
+                        },
+                        grossAmount: { $sum: "$payableAmount" },
+                        partnerEarnings: { $sum: partnerEarningsExpression },
+                    },
+                },
+                { $sort: { _id: 1 } },
+                { $limit: 90 },
+            ]),
+            AdminPayout.find({ partnerId: userObjectId, partnerType: type })
+                .populate("processedBy", "fullName email")
+                .sort({ createdAt: -1 })
+                .limit(200)
+                .lean(),
+            this.getPartnerTransactions(type, userObjectId, query),
+            type === "SELLER" ? this.getSellerInsightExtras(userObjectId, subOrderMatch) : Promise.resolve(null),
+            type === "DELIVERY" ? this.getRiderInsightExtras(userObjectId, subOrderMatch, query) : Promise.resolve(null),
+        ]);
+
+        const profile = type === "SELLER" ? partner.sellerProfile : partner.deliveryProfile;
+        const wallet = profile?.wallet || {};
+        const payoutSummary = payoutSummaryFromRows(payouts);
+        const total = totals[0] || {};
+
+        return {
+            partner,
+            summary: {
+                totalOrders: total.totalOrders || 0,
+                deliveredOrders: total.deliveredOrders || 0,
+                cancelledOrders: total.cancelledOrders || 0,
+                grossAmount: total.grossAmount || 0,
+                partnerEarnings: total.partnerEarnings || 0,
+                riderPayoutAmount: total.riderPayoutAmount || 0,
+                distanceKm: total.distanceKm || 0,
+                availableBalance: wallet.availableBalance || 0,
+                pendingPayoutBalance: wallet.pendingPayoutBalance || 0,
+                lifetimeEarnings: wallet.lifetimeEarnings || 0,
+                collectedCodLiability: wallet.collectedCodLiability || 0,
+                paidPayoutAmount: payoutSummary.paidAmount,
+                pendingPayoutAmount: payoutSummary.pendingAmount,
+                paidPayoutCount: payoutSummary.paidCount,
+                pendingPayoutCount: payoutSummary.pendingCount,
+                failedPayoutCount: payoutSummary.failedCount,
+                transactionCount: transactions.length,
+            },
+            statusBreakdown,
+            daily,
+            transactions,
+            ...(sellerExtras || {}),
+            ...(riderExtras || {}),
+        };
+    }
+
+    private static async getPartnerTransactions(type: "SELLER" | "DELIVERY", userObjectId: Types.ObjectId, query: any = {}) {
+        const payoutFilter = {
+            partnerId: userObjectId,
+            partnerType: type,
+            ...dateRangeForField("createdAt", query),
+        };
+        const payoutPromise = AdminPayout.find(payoutFilter)
+            .sort({ createdAt: -1 })
+            .limit(100)
+            .lean();
+
+        if (type === "SELLER") {
+            const [earnings, payouts] = await Promise.all([
+                SellerEarning.find({
+                    sellerId: userObjectId,
+                    ...dateRangeForField("createdAt", query),
+                })
+                    .sort({ createdAt: -1 })
+                    .limit(100)
+                    .lean(),
+                payoutPromise,
+            ]);
+
+            return [
+                ...earnings.map((earning: any) => ({
+                    _id: idString(earning._id),
+                    type: "EARNING",
+                    label: "Seller earning",
+                    amount: Number(earning.netAmount || 0),
+                    grossAmount: Number(earning.grossAmount || 0),
+                    commissionAmount: Number(earning.commissionAmount || 0),
+                    status: earning.status,
+                    referenceId: earning.subOrderId || earning.orderId,
+                    note: earning.settlementNote,
+                    createdAt: earning.creditedAt || earning.createdAt,
+                })),
+                ...payouts.map(serializePayoutTransaction),
+            ].sort((a, b) => transactionDate(b) - transactionDate(a)).slice(0, 200);
+        }
+
+        const [deliveredOrders, payouts, settlements] = await Promise.all([
+            SubOrder.find({
+                "delivery.riderId": userObjectId,
+                status: { $in: deliveredSubOrderStatuses },
+                ...dateRangeForField("updatedAt", query),
+            })
+                .select("subOrderId delivery.payoutAmount delivery.distanceKm status updatedAt packageDetails.isCod payableAmount")
+                .sort({ updatedAt: -1 })
+                .limit(100)
+                .lean(),
+            payoutPromise,
+            CodSettlement.find({
+                riderId: userObjectId,
+                ...dateRangeForField("createdAt", query),
+            })
+                .sort({ createdAt: -1 })
+                .limit(100)
+                .lean(),
+        ]);
+
+        return [
+            ...deliveredOrders.map((subOrder: any) => ({
+                _id: idString(subOrder._id),
+                type: "EARNING",
+                label: "Rider delivery earning",
+                amount: Number(subOrder.delivery?.payoutAmount || 0),
+                grossAmount: Number(subOrder.payableAmount || 0),
+                status: subOrder.status,
+                referenceId: subOrder.subOrderId,
+                note: subOrder.packageDetails?.isCod ? "COD delivery" : "Prepaid delivery",
+                createdAt: subOrder.updatedAt,
+            })),
+            ...payouts.map(serializePayoutTransaction),
+            ...settlements.map((settlement: any) => ({
+                _id: idString(settlement._id),
+                type: "COD_SETTLEMENT",
+                label: "COD cash settlement",
+                amount: Number(settlement.amount || 0),
+                status: settlement.status,
+                referenceId: settlement.referenceId,
+                note: settlement.note,
+                createdAt: settlement.depositedAt || settlement.createdAt,
+            })),
+        ].sort((a, b) => transactionDate(b) - transactionDate(a)).slice(0, 200);
+    }
+
+    private static async getSellerInsightExtras(userObjectId: Types.ObjectId, subOrderMatch: any) {
+        const [productPerformance, inventoryRows] = await Promise.all([
+            SubOrder.aggregate([
+                { $match: subOrderMatch },
+                { $unwind: "$items" },
+                {
+                    $group: {
+                        _id: "$items.productId",
+                        title: { $first: "$items.title" },
+                        sku: { $first: "$items.sku" },
+                        quantity: { $sum: "$items.quantity" },
+                        revenue: {
+                            $sum: {
+                                $ifNull: [
+                                    "$items.sellerSubtotal",
+                                    { $multiply: ["$items.price", "$items.quantity"] },
+                                ],
+                            },
+                        },
+                    },
+                },
+                { $sort: { revenue: -1 } },
+                { $limit: 20 },
+            ]),
+            Product.aggregate([
+                { $match: { sellerId: userObjectId, isDeleted: { $ne: true } } },
+                {
+                    $group: {
+                        _id: null,
+                        totalProducts: { $sum: 1 },
+                        activeProducts: { $sum: { $cond: ["$isActive", 1, 0] } },
+                        totalStock: { $sum: "$totalStock" },
+                        lowStockProducts: { $sum: { $cond: [{ $lte: ["$totalStock", 10] }, 1, 0] } },
+                        outOfStockProducts: { $sum: { $cond: [{ $eq: ["$totalStock", 0] }, 1, 0] } },
+                    },
+                },
+            ]),
+        ]);
+
+        return {
+            productPerformance,
+            inventory: inventoryRows[0] || {
+                totalProducts: 0,
+                activeProducts: 0,
+                totalStock: 0,
+                lowStockProducts: 0,
+                outOfStockProducts: 0,
+            },
+        };
+    }
+
+    private static async getRiderInsightExtras(userObjectId: Types.ObjectId, subOrderMatch: any, query: any = {}) {
+        const [deliveryRows, codSettlements] = await Promise.all([
+            SubOrder.aggregate([
+                { $match: subOrderMatch },
+                {
+                    $group: {
+                        _id: null,
+                        totalPayout: { $sum: "$delivery.payoutAmount" },
+                        totalDistanceKm: { $sum: "$delivery.distanceKm" },
+                        rainBonus: { $sum: "$delivery.bonuses.rain" },
+                        peakBonus: { $sum: "$delivery.bonuses.peak" },
+                        festivalBonus: { $sum: "$delivery.bonuses.festival" },
+                        nightBonus: { $sum: "$delivery.bonuses.night" },
+                        codCollected: {
+                            $sum: {
+                                $cond: [
+                                    {
+                                        $and: [
+                                            { $in: ["$status", deliveredSubOrderStatuses] },
+                                            { $eq: ["$packageDetails.isCod", true] },
+                                        ],
+                                    },
+                                    "$payableAmount",
+                                    0,
+                                ],
+                            },
+                        },
+                    },
+                },
+            ]),
+            CodSettlement.find({
+                riderId: userObjectId,
+                ...dateRangeForField("createdAt", query),
+            })
+                .sort({ createdAt: -1 })
+                .limit(50)
+                .lean(),
+        ]);
+
+        return {
+            riderPerformance: deliveryRows[0] || {
+                totalPayout: 0,
+                totalDistanceKm: 0,
+                rainBonus: 0,
+                peakBonus: 0,
+                festivalBonus: 0,
+                nightBonus: 0,
+                codCollected: 0,
+            },
+            codSettlements,
+        };
     }
 
     static async createSeller(adminId: string, data: any) {
@@ -1542,10 +2210,15 @@ export class AdminService {
     }
 
     static async setUserBlocked(userId: string, isBlocked: boolean, adminId?: string) {
+        if (adminId?.toString() === userId?.toString() && isBlocked) {
+            throw new ApiError(400, "You cannot block your own admin account");
+        }
         const before = await User.findById(userId).select(userProjection).lean();
         const user = await User.findByIdAndUpdate(
             userId,
-            { $set: { isBlocked } },
+            isBlocked
+                ? { $set: { isBlocked } }
+                : { $set: { isBlocked }, $unset: { deletedAt: 1, deletedBy: 1, deletionReason: 1 } },
             { returnDocument: "after" },
         ).select(userProjection).populate("roleId");
 

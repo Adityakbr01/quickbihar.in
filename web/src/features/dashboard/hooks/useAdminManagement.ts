@@ -26,6 +26,13 @@ export const useManagedPeople = (params: { role?: string; status?: string; searc
     queryFn: () => adminManagementApi.getPeople(params),
   });
 
+export const useAdminUser = (id: string) =>
+  useQuery({
+    queryKey: ["admin-user", id],
+    queryFn: () => adminManagementApi.getUser(id),
+    enabled: !!id,
+  });
+
 export const usePayouts = () =>
   useQuery({
     queryKey: ["admin-payouts"],
@@ -62,10 +69,57 @@ export const useSetBlocked = () => {
     mutationFn: adminManagementApi.setBlocked,
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["admin-people"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-sellers"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-riders"] });
       queryClient.invalidateQueries({ queryKey: ["admin-dashboard"] });
       toast.success(variables.isBlocked ? "User blocked" : "User unblocked");
     },
     onError: (error: Error) => toast.error(error.message || "Failed to update user"),
+  });
+};
+
+const invalidatePeopleCrud = (queryClient: ReturnType<typeof useQueryClient>) => {
+  queryClient.invalidateQueries({ queryKey: ["admin-people"] });
+  queryClient.invalidateQueries({ queryKey: ["admin-sellers"] });
+  queryClient.invalidateQueries({ queryKey: ["admin-riders"] });
+  queryClient.invalidateQueries({ queryKey: ["admin-dashboard"] });
+};
+
+export const useCreateAdminUser = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: adminManagementApi.createUser,
+    onSuccess: () => {
+      invalidatePeopleCrud(queryClient);
+      toast.success("User created successfully");
+    },
+    onError: (error: Error) => toast.error(error.message || "Failed to create user"),
+  });
+};
+
+export const useUpdateAdminUser = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: adminManagementApi.updateUser,
+    onSuccess: (_, variables) => {
+      invalidatePeopleCrud(queryClient);
+      queryClient.invalidateQueries({ queryKey: ["admin-user", variables.id] });
+      toast.success("User updated successfully");
+    },
+    onError: (error: Error) => toast.error(error.message || "Failed to update user"),
+  });
+};
+
+export const useDeleteAdminUser = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: adminManagementApi.deleteUser,
+    onSuccess: (_, variables) => {
+      invalidatePeopleCrud(queryClient);
+      queryClient.invalidateQueries({ queryKey: ["admin-user", variables.id] });
+      toast.success("User deactivated successfully");
+    },
+    onError: (error: Error) => toast.error(error.message || "Failed to deactivate user"),
   });
 };
 
@@ -87,6 +141,8 @@ export const useUpdatePartnerStatus = () => {
     mutationFn: adminManagementApi.updatePartnerStatus,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-people"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-sellers"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-riders"] });
       queryClient.invalidateQueries({ queryKey: ["admin-dashboard"] });
       toast.success("Partner status updated");
     },
@@ -719,6 +775,33 @@ export const useAdminSeller = (id: string) =>
     enabled: !!id,
   });
 
+export const useSellerInsights = (id: string, params: AdminListParams) =>
+  useQuery({
+    queryKey: ["admin-seller-insights", id, params],
+    queryFn: () => adminManagementApi.getSellerInsights({ id, params }),
+    enabled: !!id,
+  });
+
+export const useAdminRiders = (params: AdminListParams) =>
+  useQuery({
+    queryKey: ["admin-riders", params],
+    queryFn: () => adminManagementApi.getRiders(params),
+  });
+
+export const useAdminRider = (id: string) =>
+  useQuery({
+    queryKey: ["admin-rider", id],
+    queryFn: () => adminManagementApi.getRider(id),
+    enabled: !!id,
+  });
+
+export const useRiderInsights = (id: string, params: AdminListParams) =>
+  useQuery({
+    queryKey: ["admin-rider-insights", id, params],
+    queryFn: () => adminManagementApi.getRiderInsights({ id, params }),
+    enabled: !!id,
+  });
+
 export const useCreateSeller = () => {
   const queryClient = useQueryClient();
   return useMutation({
@@ -788,5 +871,21 @@ export const useAdminSettleCod = () => {
       toast.success("COD liability settled successfully");
     },
     onError: (error: Error) => toast.error(error.message || "Failed to settle COD liability"),
+  });
+};
+
+export const useSettleRiderCod = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: adminManagementApi.settleRiderCod,
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["admin-riders"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-rider-insights", variables.riderId] });
+      queryClient.invalidateQueries({ queryKey: ["admin-people"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-payouts"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-dashboard"] });
+      toast.success("Rider COD liability settled successfully");
+    },
+    onError: (error: Error) => toast.error(error.message || "Failed to settle rider COD liability"),
   });
 };
