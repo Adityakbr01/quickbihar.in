@@ -16,6 +16,7 @@ import { CodSettlement } from "../fulfillment/codSettlement.model";
 import { fulfillmentEventService } from "../fulfillment/fulfillmentEvent.service";
 import { SavedAddress } from "../savedAddress/savedAddresses.model";
 import { riderCapacitySnapshot } from "../delivery/riderCapacity";
+import { assertRiderCanAcceptOffers } from "../delivery/riderEligibility";
 
 // GPS distance calculation utility
 const finiteLocation = (location?: any) => {
@@ -431,10 +432,8 @@ export class SubOrderService {
     // 4. READY_FOR_PICKUP -> RIDER_ASSIGNED (Rider accepts offer)
     static async riderAcceptOrder(riderUserId: string, subOrderId: string, requestInfo?: IRequestInfo) {
         // Atomic fetch & update to prevent race conditions
-        const riderProfile = await DeliveryBoy.findOne({ userId: new Types.ObjectId(riderUserId), status: "APPROVED" }).populate("userId");
-        if (!riderProfile) {
-            throw new ApiError(404, "Rider profile not found or not approved");
-        }
+        const riderProfile = await DeliveryBoy.findOne({ userId: new Types.ObjectId(riderUserId) }).populate("userId");
+        assertRiderCanAcceptOffers(riderProfile);
 
         // Fetch store coordinates & calculate distance for payout
         const subOrder = await SubOrder.findOne({

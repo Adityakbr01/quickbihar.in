@@ -14,6 +14,14 @@ import { MAX_RIDER_REJECTIONS_PER_SUB_ORDER, RiderOffer } from "../fulfillment/r
 import { SubOrderService } from "../order/subOrder.service";
 import { MatchingService } from "./matching.service";
 import { riderCapacitySnapshot } from "./riderCapacity";
+import {
+    assertRiderCanAcceptOffers,
+    riderApprovalSnapshot,
+    riderApprovalSnapshotChanged,
+    riderCanAcceptOffers,
+    riderOfferBlockMessage,
+    riderProfileMissingFields,
+} from "./riderEligibility";
 
 const ACTIVE_DELIVERY_STATUSES = [
     DeliveryStatus.ASSIGNED,
@@ -125,26 +133,11 @@ const deliveryHistoryDateFilter = (query: any) => {
     const range = dateRange(query);
     if (!range) return {};
 
-    const statusFieldMap: Record<string, string> = {
-        [DeliveryStatus.ASSIGNED]: "delivery.assignedAt",
-        [DeliveryStatus.ACCEPTED]: "delivery.acceptedAt",
-        [DeliveryStatus.PICKED_UP]: "delivery.pickedUpAt",
-        [DeliveryStatus.OUT_FOR_DELIVERY]: "delivery.outForDeliveryAt",
-        [DeliveryStatus.DELIVERED]: "delivery.deliveredAt",
-    };
-
-    const fields = query.status && statusFieldMap[query.status]
-        ? [statusFieldMap[query.status]]
-        : [
-            "delivery.assignedAt",
-            "delivery.acceptedAt",
-            "delivery.pickedUpAt",
-            "delivery.outForDeliveryAt",
-            "delivery.deliveredAt",
-            "delivery.payoutCreditedAt",
-            "updatedAt",
-            "createdAt",
-        ];
+    const fields = [
+        "delivery.assignedAt",
+        "updatedAt",
+        "createdAt",
+    ];
 
     return { $or: fields.map((field) => ({ [field as string]: range })) };
 };
@@ -155,6 +148,20 @@ const walletOf = (profile: any) => profile?.wallet || {
     lifetimeEarnings: 0,
     collectedCodLiability: 0,
 };
+
+const PROFILE_UPI_METHOD_ID = "PROFILE_UPI";
+const PROFILE_BANK_METHOD_ID = "PROFILE_BANK";
+
+const emptyDeliveryProfile = (user: any) => ({
+    userId: user?._id || user,
+    fullName: user?.fullName,
+    email: user?.email,
+    phone: user?.phone,
+    status: "PENDING",
+    isVerified: false,
+    isOnline: false,
+    wallet: walletOf(null),
+});
 
 const payoutMethodLabel = (method: any) => {
     if (method.type === "BANK") return method.bank?.bankName || method.label || "Bank account";
@@ -176,24 +183,77 @@ const serializePayoutMethod = (method: any) => ({
     displayName: payoutMethodLabel(method),
 });
 
-const serializeDeliveryProfile = (profile: any) => ({
-    _id: profile._id?.toString(),
-    userId: profile.userId,
-    fullName: profile.userId?.fullName,
-    email: profile.userId?.email,
-    phone: profile.userId?.phone,
-    status: profile.status,
-    isVerified: !!profile.isVerified,
-    isOnline: !!profile.isOnline,
-    vehicleType: profile.vehicleType,
-    vehicleNumber: profile.vehicleNumber,
-    licenseNumber: profile.licenseNumber,
-    address: profile.address,
-    bankDetails: profile.bankDetails,
-    payoutMethods: (profile.payoutMethods || []).map(serializePayoutMethod),
-    wallet: walletOf(profile),
-    currentLocation: coordinatesFromGeoJson(profile.currentLocation),
-});
+const profilePayoutMethodStatus = (profile: any) =>
+    profile?.status === "APPROVED" && profile?.isVerified ? "VERIFIED" : "PENDING_VERIFICATION";
+
+const serializeProfilePayoutMethods = (profile: any) => {
+    const methods: any[] = [];
+    const bankDetails = profile?.bankDetails || {};
+    const status = profilePayoutMethodStatus(profile);
+    if (bankDetails.upi) {
+        methods.push({
+            _id: PROFILE_UPI_METHOD_ID,
+            type: "UPI",
+            label: "Profile UPI",
+            status,
+            isDefault: false,
+            upi: { upiId: bankDetails.upi },
+            displayName: `Profile UPI - ${bankDetails.upi}`,
+            source: "PROFILE",
+        });
+    }
+    if (bankDetails.accountNumber && bankDetails.ifsc && bankDetails.bankName) {
+        const last4 = String(bankDetails.accountNumber).slice(-4);
+        methods.push({
+            _id: PROFILE_BANK_METHOD_ID,
+            type: "BANK",
+            label: "Profile Bank",
+            status,
+            isDefault: false,
+            bank: {
+                accountHolderName: profile?.userId?.fullName,
+                accountNumber: bankDetails.accountNumber,
+                ifsc: bankDetails.ifsc,
+                bankName: bankDetails.bankName,
+            },
+            displayName: `Profile Bank - A/C ${last4}`,
+            source: "PROFILE",
+        });
+    }
+    return methods;
+};
+
+const resolvePayoutMethod = (profile: any, payoutMethodId: string) => {
+    if (payoutMethodId === PROFILE_UPI_METHOD_ID || payoutMethodId === PROFILE_BANK_METHOD_ID) {
+        return serializeProfilePayoutMethods(profile).find((method) => method._id === payoutMethodId) || null;
+    }
+    return profile.payoutMethods?.id?.(payoutMethodId) || null;
+};
+
+const serializeDeliveryProfile = (profile: any) => {
+    const missingFields = riderProfileMissingFields(profile);
+    return {
+        _id: profile._id?.toString(),
+        userId: profile.userId,
+        fullName: profile.userId?.fullName,
+        email: profile.userId?.email,
+        phone: profile.userId?.phone || profile.phone,
+        status: profile.status,
+        isVerified: !!profile.isVerified,
+        isOnline: !!profile.isOnline,
+        vehicleType: profile.vehicleType,
+        vehicleNumber: profile.vehicleNumber,
+        licenseNumber: profile.licenseNumber,
+        address: profile.address,
+        bankDetails: profile.bankDetails,
+        payoutMethods: (profile.payoutMethods || []).map(serializePayoutMethod),
+        wallet: walletOf(profile),
+        currentLocation: coordinatesFromGeoJson(profile.currentLocation),
+        approvalMissingFields: missingFields,
+        canAcceptOffers: riderCanAcceptOffers(profile),
+        offerBlockReason: riderOfferBlockMessage(profile),
+    };
+};
 
 const serializeOffer = (offer: any) => ({
     _id: offer._id?.toString(),
@@ -298,7 +358,17 @@ export class DeliveryService {
 
     static async getMyProfile(userId: string) {
         const profile = await DeliveryBoy.findOne({ userId }).populate("userId", "fullName email phone").lean();
-        if (!profile) throw new ApiError(404, "Delivery profile not found");
+        if (!profile) {
+            const user = await User.findById(userId).select("fullName email phone").lean();
+            const emptyProfile = serializeDeliveryProfile(emptyDeliveryProfile(user));
+            return {
+                profile: emptyProfile,
+                stats: {
+                    activeOrders: 0,
+                    completedOrders: 0,
+                },
+            };
+        }
 
         const activeStatuses = ["READY_FOR_PICKUP", "RIDER_ASSIGNED", "RIDER_ARRIVING", "RIDER_REACHED_STORE", "PICKED_UP", "IN_TRANSIT", "NEAR_CUSTOMER"];
         const activeOrders = await SubOrder.countDocuments({
@@ -321,7 +391,24 @@ export class DeliveryService {
 
     static async getDashboard(userId: string) {
         const profile = await DeliveryBoy.findOne({ userId }).populate("userId", "fullName email phone").lean();
-        if (!profile) throw new ApiError(404, "Delivery profile not found");
+        if (!profile) {
+            const user = await User.findById(userId).select("fullName email phone").lean();
+            return {
+                profile: serializeDeliveryProfile(emptyDeliveryProfile(user)),
+                stats: {
+                    activeOrders: 0,
+                    todayDeliveries: 0,
+                    completedOrders: 0,
+                    pendingPayouts: 0,
+                    availableBalance: 0,
+                    pendingPayoutBalance: 0,
+                    lifetimeEarnings: 0,
+                },
+                activeOrders: [],
+                recentOrders: [],
+                recentPayouts: [],
+            };
+        }
 
         const todayStart = new Date();
         todayStart.setHours(0, 0, 0, 0);
@@ -386,12 +473,14 @@ export class DeliveryService {
         const limit = Math.min(Math.max(Number(query.limit) || 20, 1), 100);
         const filter: any = {
             "delivery.riderId": new Types.ObjectId(userId),
-            status: { $in: ["DELIVERED", "COMPLETED", "CANCELLED", "REJECTED"] }
+            status: { $in: ["DELIVERED", "COMPLETED", "CANCELLED", "REJECTED", "RIDER_CANCELLED", "DELIVERY_FAILED", "CUSTOMER_UNREACHABLE", "RETURNED"] },
         };
 
         if (query.status) {
             filter.status = query.status;
         }
+
+        Object.assign(filter, deliveryHistoryDateFilter(query));
 
         const [dataDb, total] = await Promise.all([
             SubOrder.find(filter)
@@ -420,12 +509,20 @@ export class DeliveryService {
             status: "DELIVERED",
         };
 
+        Object.assign(filter, dateRangeFilter("updatedAt", query));
+
         const [profile, subOrders] = await Promise.all([
             DeliveryBoy.findOne({ userId }).lean(),
             SubOrder.find(filter).populate("parentOrderId").sort({ updatedAt: -1 }).limit(200).lean(),
         ]);
 
-        if (!profile) throw new ApiError(404, "Delivery profile not found");
+        if (!profile) {
+            return {
+                wallet: walletOf(null),
+                totalCredited: 0,
+                ledger: [],
+            };
+        }
 
         const ledger = subOrders.map((subOrder: any) => ({
             _id: subOrder._id?.toString(),
@@ -445,8 +542,14 @@ export class DeliveryService {
     }
 
     static async listPayouts(userId: string) {
-        const profile = await DeliveryBoy.findOne({ userId }).lean();
-        if (!profile) throw new ApiError(404, "Delivery profile not found");
+        const profile = await DeliveryBoy.findOne({ userId }).populate("userId", "fullName email phone").lean();
+        if (!profile) {
+            return {
+                wallet: walletOf(null),
+                payoutMethods: [],
+                payouts: [],
+            };
+        }
 
         const payouts = await AdminPayout.find({ partnerId: userId, partnerType: "DELIVERY" })
             .populate("processedBy", "fullName email")
@@ -456,7 +559,10 @@ export class DeliveryService {
 
         return {
             wallet: walletOf(profile),
-            payoutMethods: (profile.payoutMethods || []).map(serializePayoutMethod),
+            payoutMethods: [
+                ...serializeProfilePayoutMethods(profile),
+                ...(profile.payoutMethods || []).map(serializePayoutMethod),
+            ],
             payouts,
         };
     }
@@ -497,10 +603,10 @@ export class DeliveryService {
     }
 
     static async createPayoutRequest(userId: string, data: any) {
-        const profile: any = await DeliveryBoy.findOne({ userId, status: "APPROVED", isVerified: true });
+        const profile: any = await DeliveryBoy.findOne({ userId, status: "APPROVED", isVerified: true }).populate("userId", "fullName email phone");
         if (!profile) throw new ApiError(403, "Approved delivery profile required");
 
-        const method = profile.payoutMethods.id(data.payoutMethodId);
+        const method = resolvePayoutMethod(profile, data.payoutMethodId);
         if (!method || method.status !== "VERIFIED") {
             throw new ApiError(400, "A verified payout method is required before requesting payout");
         }
@@ -519,8 +625,8 @@ export class DeliveryService {
             partnerType: "DELIVERY",
             amount: data.amount,
             status: "PENDING",
-            method: payoutMethodLabel(method),
-            payoutMethodId: method._id,
+            method: method.displayName || payoutMethodLabel(method),
+            ...(Types.ObjectId.isValid(method._id) ? { payoutMethodId: method._id } : {}),
             note: data.note,
             requestedBy: new Types.ObjectId(userId),
         });
@@ -530,27 +636,60 @@ export class DeliveryService {
     }
 
     static async updateProfile(userId: string, data: any) {
-        const profile: any = await DeliveryBoy.findOne({ userId }).populate("userId", "fullName email phone");
-        if (!profile) throw new ApiError(404, "Delivery profile not found");
+        let profile: any = await DeliveryBoy.findOne({ userId }).populate("userId", "fullName email phone");
+        const user = profile?.userId || await User.findById(userId).select("fullName email phone").lean();
+        if (!profile) {
+            profile = new DeliveryBoy({
+                userId: toObjectId(userId),
+                status: "PENDING",
+                isVerified: false,
+                isOnline: false,
+            });
+        }
 
+        const beforeSnapshot = riderApprovalSnapshot({ ...(profile.toObject?.() || profile), userId: user });
         const setData: any = {};
         for (const key of ["vehicleType", "vehicleNumber", "licenseNumber", "address", "bankDetails"]) {
             if (data[key] !== undefined) setData[key] = data[key];
-        }
-
-        if (Object.keys(setData).length) {
-            await DeliveryBoy.updateOne({ userId }, { $set: setData });
         }
 
         if (data.phone !== undefined) {
             await User.updateOne({ _id: userId }, { $set: { phone: data.phone } });
         }
 
+        if (Object.keys(setData).length) {
+            profile.set(setData);
+        }
+
+        const afterForApproval = {
+            ...(profile.toObject?.() || profile),
+            userId: {
+                ...(user || {}),
+                phone: data.phone !== undefined ? data.phone : user?.phone,
+            },
+        };
+        const missingFields = riderProfileMissingFields(afterForApproval);
+        const sensitiveChanged = riderApprovalSnapshotChanged(beforeSnapshot, riderApprovalSnapshot(afterForApproval));
+        const wasApproved = profile.status === "APPROVED" && !!profile.isVerified;
+        if (!wasApproved || sensitiveChanged || missingFields.length) {
+            profile.status = "PENDING";
+            profile.isVerified = false;
+            profile.isOnline = false;
+        }
+
+        await profile.save();
+
         const updated = await DeliveryBoy.findOne({ userId }).populate("userId", "fullName email phone").lean();
         return serializeDeliveryProfile(updated);
     }
 
     static async updateAvailability(userId: string, data: any) {
+        const currentProfile = await DeliveryBoy.findOne({ userId }).populate("userId", "fullName email phone");
+        if (data.isOnline) {
+            assertRiderCanAcceptOffers(currentProfile);
+        }
+        if (!currentProfile) throw new ApiError(404, "Delivery profile not found");
+
         const setData: any = { isOnline: data.isOnline };
         if (data.location) {
             setData.currentLocation = {
@@ -560,12 +699,12 @@ export class DeliveryService {
         }
 
         const profile = await DeliveryBoy.findOneAndUpdate(
-            { userId, status: "APPROVED", isVerified: true },
+            { userId },
             { $set: setData },
             { returnDocument: "after" },
         ).populate("userId", "fullName email phone");
 
-        if (!profile) throw new ApiError(403, "Approved delivery profile required");
+        if (!profile) throw new ApiError(404, "Delivery profile not found");
         if (data.isOnline && data.location) {
             MatchingService.processMatchingPool().catch((error) => {
                 console.error("[DeliveryService] Failed to refresh rider matching pool:", error);
@@ -608,22 +747,33 @@ export class DeliveryService {
     }
 
     static async listOffers(userId: string) {
-        const profile = await DeliveryBoy.findOne({
-            userId: new Types.ObjectId(idString(userId)),
-            status: "APPROVED",
-            isVerified: true,
-            isOnline: true,
-            "currentLocation.coordinates.0": { $exists: true },
-            "currentLocation.coordinates.1": { $exists: true },
-        }).select("_id").lean();
+        const riderObjectId = new Types.ObjectId(idString(userId));
+        const profile = await DeliveryBoy.findOne({ userId: riderObjectId })
+            .populate("userId", "fullName email phone")
+            .lean();
+
+        if (!riderCanAcceptOffers(profile) || !profile?.isOnline || !profile?.currentLocation?.coordinates?.length) {
+            await RiderOffer.updateMany(
+                { riderId: riderObjectId, status: "OPEN" },
+                {
+                    $set: {
+                        status: "CANCELLED",
+                        respondedAt: new Date(),
+                        metadata: {
+                            reason: "rider_profile_not_eligible",
+                            message: riderOfferBlockMessage(profile),
+                        },
+                    },
+                },
+            );
+            return [];
+        }
 
         if (profile) {
             await MatchingService.processMatchingPool().catch((error) => {
                 console.error("[DeliveryService] Failed to refresh rider offers:", error);
             });
         }
-
-        const riderObjectId = new Types.ObjectId(idString(userId));
 
         await RiderOffer.updateMany(
             { riderId: riderObjectId, status: "OPEN", expiresAt: { $lte: new Date() } },
@@ -711,6 +861,10 @@ export class DeliveryService {
     }
 
     static async acceptOffer(userId: string, offerId: string, requestInfo?: any) {
+        const profile = await DeliveryBoy.findOne({ userId: new Types.ObjectId(idString(userId)) })
+            .populate("userId", "fullName email phone")
+            .lean();
+        assertRiderCanAcceptOffers(profile);
         return await SubOrderService.riderAcceptOffer(idString(userId), offerId, requestInfo);
     }
 

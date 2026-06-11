@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { DeliveryStatus } from "../order/order.type";
 import { deliveryLocationSchema } from "../order/order.validator";
+import { SubOrderStatus } from "../order/subOrder.model";
 
 export const listRidersSchema = z.object({
     available: z.coerce.boolean().optional(),
@@ -14,8 +15,13 @@ export const updateAvailabilitySchema = z.object({
     location: deliveryLocationSchema.optional(),
 });
 
+const riderOrderStatusSchema = z.union([
+    z.nativeEnum(DeliveryStatus),
+    z.nativeEnum(SubOrderStatus),
+]);
+
 export const listDeliveryOrdersSchema = z.object({
-    status: z.nativeEnum(DeliveryStatus).optional(),
+    status: riderOrderStatusSchema.optional(),
     page: z.coerce.number().int().min(1).optional(),
     limit: z.coerce.number().int().min(1).max(100).optional(),
 });
@@ -56,7 +62,10 @@ export const deliveryPayoutMethodSchema = z.discriminatedUnion("type", [
 
 export const deliveryPayoutRequestSchema = z.object({
     amount: z.coerce.number().positive("Payout amount must be greater than zero"),
-    payoutMethodId: z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid payout method id"),
+    payoutMethodId: z.union([
+        z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid payout method id"),
+        z.enum(["PROFILE_UPI", "PROFILE_BANK"]),
+    ]),
     note: z.string().trim().max(500).optional(),
 });
 

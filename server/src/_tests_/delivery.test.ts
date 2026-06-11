@@ -10,14 +10,33 @@ import { DeliveryStatus, OrderStatus } from "../modules/order/order.type";
 const USER_ID = "645a2c2b8f8f2b1a2c3d4e5f";
 const ORDER_ID = "645a2c2b8f8f2b1a2c3d4e6f";
 const METHOD_ID = "645a2c2b8f8f2b1a2c3d4e71";
+const SubOrderStatus = {
+  RIDER_CANCELLED: "RIDER_CANCELLED",
+  DELIVERED: "DELIVERED",
+} as const;
 
 let currentOrder: any;
 let updatedOrder: any;
 let currentProfile: any;
+let subOrderRows: any[] = [];
+let subOrderCount = 0;
 
 const queryMock = (value: any) => {
   const query: any = {
     populate: mock(() => query),
+    lean: mock(() => Promise.resolve(value)),
+    then: (resolve: any) => Promise.resolve(value).then(resolve),
+  };
+  return query;
+};
+
+const listQueryMock = (value: any[]) => {
+  const query: any = {
+    populate: mock(() => query),
+    sort: mock(() => query),
+    skip: mock(() => query),
+    limit: mock(() => query),
+    lean: mock(() => Promise.resolve(value)),
     then: (resolve: any) => Promise.resolve(value).then(resolve),
   };
   return query;
@@ -25,13 +44,15 @@ const queryMock = (value: any) => {
 
 const adminUpdateOrderStatus = mock(() => Promise.resolve({}));
 const deliveryUpdateOne = mock(() => Promise.resolve({ modifiedCount: 1 }));
-const deliveryFindOne = mock(() => Promise.resolve(currentProfile));
+const deliveryFindOne = mock(() => queryMock(currentProfile));
 const orderUpdateOne = mock(() => Promise.resolve({ modifiedCount: 1 }));
 const payoutCreate = mock((payload) => Promise.resolve({
   _id: "payout-id",
   ...payload,
   populate: mock(() => Promise.resolve({ _id: "payout-id", ...payload })),
 }));
+const subOrderFind = mock(() => listQueryMock(subOrderRows));
+const subOrderCountDocuments = mock(() => Promise.resolve(subOrderCount));
 
 mock.module("../modules/order/order.service", () => ({
   orderService: {
@@ -54,6 +75,14 @@ mock.module("../modules/deliveryBoy/delivery.model", () => ({
     findOne: deliveryFindOne,
     updateOne: deliveryUpdateOne,
   },
+}));
+
+mock.module("../modules/order/subOrder.model", () => ({
+  SubOrder: {
+    find: subOrderFind,
+    countDocuments: subOrderCountDocuments,
+  },
+  SubOrderStatus,
 }));
 
 mock.module("../modules/admin/admin.model", () => ({
@@ -92,6 +121,10 @@ describe("DeliveryService", () => {
     deliveryFindOne.mockClear();
     orderUpdateOne.mockClear();
     payoutCreate.mockClear();
+    subOrderFind.mockClear();
+    subOrderCountDocuments.mockClear();
+    subOrderRows = [];
+    subOrderCount = 0;
     currentProfile = null;
     currentOrder = {
       _id: ORDER_ID,
@@ -208,5 +241,107 @@ describe("DeliveryService", () => {
     expect(payout.partnerType).toBe("DELIVERY");
     expect(payoutCreate).toHaveBeenCalled();
     expect(save).toHaveBeenCalled();
+  });
+
+  test("creates a rider payout request with verified profile UPI", async () => {
+    const save = mock(() => Promise.resolve());
+    currentProfile = {
+      status: "APPROVED",
+      isVerified: true,
+      userId: { _id: USER_ID, fullName: "Rider One", phone: "9999999999" },
+      wallet: { availableBalance: 150, pendingPayoutBalance: 0, lifetimeEarnings: 150 },
+      bankDetails: { upi: "rider@upi" },
+      payoutMethods: { id: mock(() => null) },
+      save,
+    };
+
+    const payout = await deliveryService.createPayoutRequest(USER_ID, {
+      amount: 100,
+      payoutMethodId: "PROFILE_UPI",
+    });
+
+    const payload = (payoutCreate.mock.calls[payoutCreate.mock.calls.length - 1] as any[])[0] as any;
+    expect(currentProfile.wallet.availableBalance).toBe(50);
+    expect(currentProfile.wallet.pendingPayoutBalance).toBe(100);
+    expect(payload.method).toBe("Profile UPI - rider@upi");
+    expect(payload.payoutMethodId).toBeUndefined();
+    expect(payout.partnerType).toBe("DELIVERY");
+    expect(save).toHaveBeenCalled();
+  });
+
+  test("blocks offer acceptance until rider profile is complete and approved", async () => {
+    currentProfile = {
+      status: "PENDING",
+      isVerified: false,
+      userId: { _id: USER_ID, phone: "" },
+      vehicleType: "",
+      vehicleNumber: "",
+      licenseNumber: "",
+      address: {},
+      bankDetails: {},
+    };
+
+    await expect(deliveryService.acceptOffer(USER_ID, "offer-123")).rejects.toThrow("Complete your rider profile first");
+  });
+
+  test("filters rider history by sub-order status and date range", async () => {
+    subOrderRows = [
+      {
+        _id: new Types.ObjectId(),
+        subOrderId: "SO-HISTORY",
+        parentOrderId: { shippingAddress: { fullName: "Customer" } },
+        shippingAddress: { fullName: "Customer" },
+        items: [],
+        status: SubOrderStatus.RIDER_CANCELLED,
+        payableAmount: 100,
+        delivery: { riderId: USER_ID, payoutAmount: 0 },
+        updatedAt: new Date("2026-06-10T10:00:00.000Z"),
+      },
+    ];
+    subOrderCount = 1;
+
+    const result = await deliveryService.listHistory(USER_ID, {
+      status: SubOrderStatus.RIDER_CANCELLED,
+      dateFrom: new Date("2026-06-10T00:00:00.000Z"),
+      dateTo: new Date("2026-06-10T00:00:00.000Z"),
+      page: 1,
+      limit: 10,
+    });
+
+    const filter = (subOrderFind.mock.calls[0] as any[])[0] as any;
+    expect(filter.status).toBe(SubOrderStatus.RIDER_CANCELLED);
+    expect(filter.$or.length).toBeGreaterThan(0);
+    expect(filter.$or.some((entry: any) => entry.updatedAt?.$gte)).toBe(true);
+    expect((subOrderCountDocuments.mock.calls[0] as any[])[0]).toEqual(filter);
+    expect(result.total).toBe(1);
+    expect((result.data[0] as any).orderId).toBe("SO-HISTORY");
+  });
+
+  test("filters rider earnings ledger by updated date range", async () => {
+    currentProfile = {
+      wallet: { availableBalance: 80, pendingPayoutBalance: 0, lifetimeEarnings: 80 },
+    };
+    subOrderRows = [
+      {
+        _id: new Types.ObjectId(),
+        subOrderId: "SO-EARN",
+        parentOrderId: { shippingAddress: { fullName: "Rider Customer" } },
+        status: SubOrderStatus.DELIVERED,
+        delivery: { riderId: USER_ID, payoutAmount: 80 },
+        updatedAt: new Date("2026-06-09T10:00:00.000Z"),
+      },
+    ];
+
+    const result = await deliveryService.getEarnings(USER_ID, {
+      dateFrom: new Date("2026-06-09T00:00:00.000Z"),
+      dateTo: new Date("2026-06-09T00:00:00.000Z"),
+    });
+
+    const filter = (subOrderFind.mock.calls[0] as any[])[0] as any;
+    expect(filter.status).toBe(SubOrderStatus.DELIVERED);
+    expect(filter.updatedAt.$gte).toBeInstanceOf(Date);
+    expect(filter.updatedAt.$lte).toBeInstanceOf(Date);
+    expect(result.totalCredited).toBe(80);
+    expect((result.ledger[0] as any).customerName).toBe("Rider Customer");
   });
 });
