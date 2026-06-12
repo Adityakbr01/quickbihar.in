@@ -1,9 +1,11 @@
 import React from "react";
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, Image, ActivityIndicator } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from "react-native";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { Theme, useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { IProduct } from "../types/product.types";
 import { AiEditingIcon, Delete02Icon, PackageIcon } from "@hugeicons/core-free-icons";
+import { FlashList } from "@shopify/flash-list";
+import { Image } from "expo-image";
 
 interface ProductListProps {
   products: IProduct[];
@@ -35,7 +37,8 @@ const ProductList = ({ products, onEdit, onDelete, loading }: ProductListProps) 
         <Image
           source={{ uri: item.images && item.images[0]?.url }}
           style={styles.thumbnail}
-          resizeMode="cover"
+          contentFit="cover"
+          transition={200}
         />
         {item.discountPercentage > 0 && (
           <View style={styles.discountBadge}>
@@ -69,7 +72,7 @@ const ProductList = ({ products, onEdit, onDelete, loading }: ProductListProps) 
   );
 
   return (
-    <FlatList
+    <FlashList
       data={products}
       keyExtractor={(item) => item._id}
       renderItem={renderItem}

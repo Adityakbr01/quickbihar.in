@@ -1,9 +1,10 @@
 import React, { memo } from "react";
-import { View, Text, TouchableOpacity, Image, ActivityIndicator } from "react-native";
+import { View, Text, TouchableOpacity, ActivityIndicator } from "react-native";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { Delete02Icon, Edit01Icon } from "@hugeicons/core-free-icons";
 import { LinearGradient } from "expo-linear-gradient";
+import { Image } from "expo-image";
 import { createBannerStyles } from "../styles/banner.styles";
 import { Banner } from "../types/banner.types";
 
@@ -21,7 +22,7 @@ const BannerCard = ({ banner, onDelete, onEdit, isDeleting }: BannerCardProps) =
     return (
         <View style={styles.card}>
             <View>
-                <Image source={{ uri: banner.image }} style={styles.cardImage} resizeMode="cover" />
+                <Image source={{ uri: banner.image }} style={styles.cardImage} contentFit="cover" transition={200} />
                 <LinearGradient
                     colors={["rgba(0,0,0,0.6)", "transparent", "rgba(0,0,0,0.4)"]}
                     style={styles.cardOverlayGradient}

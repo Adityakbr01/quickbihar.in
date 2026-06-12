@@ -2,18 +2,19 @@ import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { spacing } from "@/src/theme/spacing";
 import React from "react";
 import {
-  FlatList,
-  Image,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+import { FlashList } from "@shopify/flash-list";
+import { Image } from "expo-image";
 import { useCategories } from "../hooks/useCategories";
 import { Category } from "../types/category.types";
 import CategorySkeleton from "./CategorySkeleton";
 import { useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
+
 const HomeCategories = () => {
   const theme = useTheme();
   const router = useRouter();
@@ -35,7 +36,8 @@ const HomeCategories = () => {
         <Image
           source={{ uri: item.image }}
           style={styles.image}
-          resizeMode="cover"
+          contentFit="cover"
+          transition={200}
         />
       </View>
       <Text style={[styles.title, { color: theme.text }]} numberOfLines={1}>
@@ -54,7 +56,7 @@ const HomeCategories = () => {
   if (isLoading) {
     return (
       <View style={styles.container}>
-        <FlatList
+        <FlashList
           data={[1, 2, 3, 4, 5, 6]}
           renderItem={() => <CategorySkeleton />}
           keyExtractor={(item) => item.toString()}
@@ -72,7 +74,7 @@ const HomeCategories = () => {
 
   return (
     <View style={styles.container}>
-      <FlatList
+      <FlashList
         data={featuredCategories}
         renderItem={renderItem}
         keyExtractor={(item) => item._id}

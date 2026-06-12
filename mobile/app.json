@@ -4,18 +4,21 @@
     "slug": "QuickBihar",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/icons/ios-icon-default.png",
     "scheme": "QuickBihar",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.adityakbr.mobile"
+      "bundleIdentifier": "com.adityakbr.mobile",
+      "icon": "./assets/images/icons/ios-icon-default.png"
     },
     "android": {
       "package": "com.adityakbr.mobile",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/icon.png",
+        "foregroundImage": "./assets/images/icons/android-icon-foreground.png",
+        "backgroundImage": "./assets/images/icons/android-icon-background.png",
+        "monochromeImage": "./assets/images/icons/android-icon-monochrome.png",
         "backgroundColor": "#ffffff"
       },
       "predictiveBackGestureEnabled": false
@@ -30,11 +33,12 @@
         "expo-splash-screen",
         {
           "backgroundColor": "#0f0f0f",
-          "image": "./assets/images/QuickBihar_Wordmark.png",
+          "image": "./assets/images/icons/splash-icon.png",
           "imageWidth": 190,
           "resizeMode": "contain",
           "dark": {
-            "backgroundColor": "#0f0f0f"
+            "backgroundColor": "#0f0f0f",
+            "image": "./assets/images/icons/splash-icon.png"
           }
         }
       ],
