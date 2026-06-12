@@ -17,7 +17,8 @@
     "build:android:preview": "eas build --platform android --profile preview",
     "build:android:prod": "eas build --platform android --profile production",
     "build:android:local": "eas build --platform android --profile preview --local",
-    "build:local": "npx expo prebuild && cd android && ./gradlew assembleRelease --info"
+    "build:local": "npx expo prebuild && cd android && ./gradlew assembleRelease --info",
+    "build":"bun expo run:android --variant release"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",

@@ -73,6 +73,11 @@ export const SocketListenerProvider: React.FC<{
     socketClient.on(SocketEvents.NEW_NOTIFICATION, (data) => {
       console.log("[SocketListener] New live notification received:", data);
       queryClient.invalidateQueries({ queryKey: ["user-notifications"] });
+      Toast.show({
+        type: "info",
+        text1: data?.title || "New Notification",
+        text2: data?.description || "",
+      });
     });
 
     return () => {

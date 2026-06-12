@@ -11,10 +11,12 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.adityakbr.mobile",
-      "icon": "./assets/images/icons/ios-icon-default.png"
+      "icon": "./assets/images/icons/ios-icon-default.png",
+      "googleServicesFile": "./GoogleService-Info.plist"
     },
     "android": {
       "package": "com.adityakbr.mobile",
+      "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/icons/android-icon-foreground.png",
         "backgroundImage": "./assets/images/icons/android-icon-background.png",
