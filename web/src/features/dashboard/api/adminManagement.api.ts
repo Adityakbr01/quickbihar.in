@@ -1424,4 +1424,16 @@ export const adminManagementApi = {
     const response = await axiosInstance.post(`/admin/delivery/${riderId}/settle-cod`, { amount, referenceId, note });
     return response.data.data;
   },
+
+  sendNotification: async (payload: FormData | any): Promise<any> => {
+    const response = await axiosInstance.post("/notifications/send", payload, {
+      headers: payload instanceof FormData ? { "Content-Type": "multipart/form-data" } : undefined,
+    });
+    return response.data.data;
+  },
+
+  getNotificationHistory: async (): Promise<any[]> => {
+    const response = await axiosInstance.get("/notifications/history");
+    return response.data.data;
+  },
 };

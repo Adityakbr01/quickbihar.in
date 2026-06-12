@@ -9,6 +9,7 @@ import {
   Image as ImageIcon,
   LayoutDashboard,
   MailPlus,
+  Bell,
   Megaphone,
   Package,
   Ruler,
@@ -42,7 +43,8 @@ export type AdminSection =
   | "invites"
   | "policies"
   | "size-charts"
-  | "banners";
+  | "banners"
+  | "notifications";
 
 export type RoleFilter = (typeof roleOptions)[number];
 export type StatusFilter = (typeof statusOptions)[number];
@@ -94,6 +96,7 @@ export const sectionLabels: Record<AdminSection, string> = {
   policies: "Global Policies",
   "size-charts": "Size Charts",
   banners: "Banners",
+  notifications: "Notification Center",
 };
 
 export const adminSectionPathSegments: Record<AdminSection, string> = {
@@ -118,6 +121,7 @@ export const adminSectionPathSegments: Record<AdminSection, string> = {
   policies: "Policies",
   "size-charts": "Size-Charts",
   banners: "Banners",
+  notifications: "Notifications",
 };
 
 const adminSectionAliases: Record<string, AdminSection> = {
@@ -174,6 +178,8 @@ const adminSectionAliases: Record<string, AdminSection> = {
   "size-charts": "size-charts",
   sizecharts: "size-charts",
   banners: "banners",
+  notifications: "notifications",
+  notification: "notifications",
 };
 
 const normalizeAdminSectionSegment = (value?: string) =>
@@ -264,6 +270,11 @@ export const navigationGroups: Array<{
         label: "Content Center",
         icon: <FileText className="h-4 w-4" />,
       },
+      {
+        id: "notifications",
+        label: "Notification Center",
+        icon: <Bell className="h-4 w-4" />,
+      },
     ],
   },
   {
@@ -343,4 +354,5 @@ export const managementIconByName: Record<string, ReactNode> = {
   "User Management": <Users className="h-4 w-4" />,
   "Seller Management": <Store className="h-4 w-4" />,
   "Mall Management": <Building2 className="h-4 w-4" />,
+  "Notification Management": <Bell className="h-4 w-4" />,
 };

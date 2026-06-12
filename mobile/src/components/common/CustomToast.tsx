@@ -5,6 +5,7 @@ import {
   StyleSheet,
   Dimensions,
   useColorScheme,
+  Image,
 } from 'react-native';
 import { ToastConfig } from 'react-native-toast-message';
 import { Ionicons } from '@expo/vector-icons';
@@ -70,6 +71,12 @@ const IOSToast = ({ props, icon, color, isSuccess }: any) => {
               style={styles.lottie}
             />
           </View>
+        ) : props.props?.imageUrl ? (
+          <Image
+            source={{ uri: props.props.imageUrl }}
+            style={{ width: 44, height: 44, borderRadius: 8, marginRight: 12 }}
+            resizeMode="cover"
+          />
         ) : (
           icon && (
             <Ionicons
@@ -118,6 +125,14 @@ export const toastConfig: ToastConfig = {
       props={props}
       icon="information-circle"
       color="#007AFF"
+    />
+  ),
+
+  inAppNotification: (props) => (
+    <IOSToast
+      props={props}
+      icon="notifications"
+      color="#FF9500"
     />
   ),
 };

@@ -37,6 +37,9 @@ const AccountMain = () => {
     } else if (label === "My Orders") {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       router.push("/account/orders");
+    } else if (label === "Notifications") {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      router.push("/account/notifications");
     } else {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }

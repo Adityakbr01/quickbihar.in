@@ -889,3 +889,21 @@ export const useSettleRiderCod = () => {
     onError: (error: Error) => toast.error(error.message || "Failed to settle rider COD liability"),
   });
 };
+
+export const useAdminNotifications = () =>
+  useQuery({
+    queryKey: ["admin-notifications"],
+    queryFn: adminManagementApi.getNotificationHistory,
+  });
+
+export const useSendNotification = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: adminManagementApi.sendNotification,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-notifications"] });
+      toast.success("Notification campaign sent successfully");
+    },
+    onError: (error: Error) => toast.error(error.message || "Failed to send notification"),
+  });
+};

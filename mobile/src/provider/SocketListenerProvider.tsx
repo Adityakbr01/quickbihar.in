@@ -5,10 +5,15 @@ import * as SecureStore from "expo-secure-store";
 import React, { useEffect } from "react";
 import { useCartStore } from "../features/Clothings/cart/store/cartStore";
 import { useAuthStore } from "../features/common/auth/store/authStore";
+import { useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "expo-router";
+import Toast from "react-native-toast-message";
 
 export const SocketListenerProvider: React.FC<{
   children: React.ReactNode;
 }> = ({ children }) => {
+  const queryClient = useQueryClient();
+  const router = useRouter();
   const handleStockUpdate = useCartStore((state) => state.handleStockUpdate);
   const { token, isAuthenticated } = useAuthStore();
 
@@ -65,11 +70,17 @@ export const SocketListenerProvider: React.FC<{
       }
     });
 
+    socketClient.on(SocketEvents.NEW_NOTIFICATION, (data) => {
+      console.log("[SocketListener] New live notification received:", data);
+      queryClient.invalidateQueries({ queryKey: ["user-notifications"] });
+    });
+
     return () => {
       socketClient.off(SocketEvents.STOCK_UPDATE);
       socketClient.off(SocketEvents.FULFILLMENT_EVENT);
+      socketClient.off(SocketEvents.NEW_NOTIFICATION);
     };
-  }, [handleStockUpdate]);
+  }, [handleStockUpdate, queryClient, router]);
 
   return <>{children}</>;
 };

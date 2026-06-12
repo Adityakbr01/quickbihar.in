@@ -35,6 +35,12 @@ export default function AccountLayout() {
           headerTitle: "Delivery Address",
         }}
       />
+      <Stack.Screen
+        name="notifications"
+        options={{
+          headerTitle: "Notification Center",
+        }}
+      />
     </Stack>
   );
 }

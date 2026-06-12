@@ -24,6 +24,7 @@ import {
 import { PolicyManagementPanel } from "@/features/dashboard/components/policies/PolicyManagementPanel";
 import { SizeChartManagementPanel } from "@/features/dashboard/components/sizeCharts/SizeChartManagementPanel";
 import { BannerManagementPanel } from "@/features/dashboard/components/banners/BannerManagementPanel";
+import { NotificationManagementPanel } from "@/features/dashboard/components/notifications/NotificationManagementPanel";
 import {
   useAdminDashboard,
   useAppConfig,
@@ -413,6 +414,12 @@ export default function AdminDashboardPage() {
               {activeSection === "banners" && (
                 <div className="animate-in-fade-slide">
                   <BannerManagementPanel />
+                </div>
+              )}
+
+              {activeSection === "notifications" && (
+                <div className="animate-in-fade-slide">
+                  <NotificationManagementPanel />
                 </div>
               )}
             </div>

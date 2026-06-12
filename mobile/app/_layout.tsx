@@ -11,12 +11,14 @@ import { useColorScheme, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 
+function AppNotificationsInit() {
+  usePushNotifications();
+  return null;
+}
+
 export default function RootLayout() {
   const scheme = useColorScheme();
   const initializeAuth = useAuthStore((state) => state.initializeAuth);
-
-  // Initialize push notifications logic (UX optimized / Expo Go guarded internally)
-  usePushNotifications();
 
   useEffect(() => {
     async function prepare() {
@@ -33,6 +35,7 @@ export default function RootLayout() {
     <View style={{ flex: 1 }}>
       <SafeAreaProvider>
         <QueryProvider>
+          <AppNotificationsInit />
           <StatusBar style={scheme === "dark" ? "light" : "dark"} />
           <ThemeProvider>
             <SocketListenerProvider>

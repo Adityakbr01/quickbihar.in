@@ -5,6 +5,7 @@ import { ENV } from "./config/env.config";
 import { socketService } from "./modules/socket/socket.service";
 import { seedRbac } from "./seed/seed";
 import { MatchingService } from "./modules/delivery/matching.service";
+import { startNotificationWorker } from "./modules/notification/notification.worker";
 
 const port = ENV.PORT;
 const httpServer = createServer(app);
@@ -24,6 +25,9 @@ connectDB()
 
     // Start background matching loop
     MatchingService.start();
+
+    // Start background notification worker
+    startNotificationWorker();
 
     httpServer.listen(port, () => {
       console.log(`🚀 Server and Sockets are running at port : ${port}`);

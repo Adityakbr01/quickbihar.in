@@ -13,6 +13,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { homeStyles as styles } from "../style/homeStyles";
 import AnimatedBurger from "./AnimatedBurger";
+import { useNotifications } from "@/src/features/Clothings/notification/hooks/useNotifications";
 
 const bellLottie = require("@/assets/lottie/Notification Bell.json");
 
@@ -33,6 +34,10 @@ const HomeHeader = ({ menuOpen, toggleMenu }: HomeHeaderProps) => {
   const [searchText, setSearchText] = useState("");
   const isSearchOpenRef = useRef(false);
   const inputRef = useRef<TextInput>(null);
+
+  const { data: notifications = [] } = useNotifications();
+  const hasUnread = notifications.some((n) => !n.isRead);
+  const lottieRef = useRef<LottieView>(null);
 
   const openSearch = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -140,6 +145,7 @@ const HomeHeader = ({ menuOpen, toggleMenu }: HomeHeaderProps) => {
           onPress={() => {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
             handleOutsidePress();
+            router.push("/account/notifications");
           }}
           style={[
             styles.notifBtn,
@@ -148,10 +154,11 @@ const HomeHeader = ({ menuOpen, toggleMenu }: HomeHeaderProps) => {
           ]}
         >
           <LottieView
-            key={theme.text}
+            ref={lottieRef}
+            key={theme.text + "_" + hasUnread}
             source={bellLottie}
-            autoPlay
-            loop
+            autoPlay={hasUnread}
+            loop={hasUnread}
             resizeMode="cover"
             renderMode="SOFTWARE"
             style={[
@@ -164,12 +171,14 @@ const HomeHeader = ({ menuOpen, toggleMenu }: HomeHeaderProps) => {
                 : []
             }
           />
-          <View
-            style={[
-              styles.notifDot,
-              { borderColor: theme.secondaryBackground, backgroundColor: '#FF3830' },
-            ]}
-          />
+          {hasUnread && (
+            <View
+              style={[
+                styles.notifDot,
+                { borderColor: theme.secondaryBackground, backgroundColor: '#FF3830' },
+              ]}
+            />
+          )}
         </Pressable>
       </View>
     </View>

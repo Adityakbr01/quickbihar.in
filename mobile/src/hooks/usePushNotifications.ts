@@ -5,11 +5,37 @@ import Constants from "expo-constants";
 import { registerForPushNotificationsAsync, initializeNotificationHandler } from "../lib/notification";
 import { useAuthStore } from "../features/common/auth/store/authStore";
 import { updateFcmTokenRequest } from "../features/Clothings/profileInfo/api/profile.api";
+import { useQueryClient } from "@tanstack/react-query";
 
 const HAS_ASKED_KEY = "has_asked_push_notifications";
 
 export const usePushNotifications = () => {
   const { isAuthenticated, isInitialized } = useAuthStore();
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    let subscription: any;
+
+    const registerListener = async () => {
+      try {
+        const Notifications = await import("expo-notifications");
+        subscription = Notifications.addNotificationReceivedListener((notification) => {
+          console.log("[usePushNotifications] Foreground notification received:", notification);
+          queryClient.invalidateQueries({ queryKey: ["user-notifications"] });
+        });
+      } catch (err) {
+        console.warn("[usePushNotifications] Failed to register notification listener:", err);
+      }
+    };
+
+    registerListener();
+
+    return () => {
+      if (subscription) {
+        subscription.remove();
+      }
+    };
+  }, [queryClient]);
 
   useEffect(() => {
     if (!isInitialized || !isAuthenticated) return;

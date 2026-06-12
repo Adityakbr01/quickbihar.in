@@ -48,6 +48,7 @@ import sellerRouter from "./modules/seller/seller.router";
 import mallRouter from "./modules/mall/mall.router";
 import deliveryRouter from "./modules/delivery/delivery.router";
 import fulfillmentEventRouter from "./modules/fulfillment/fulfillmentEvent.router";
+import notificationRouter from "./modules/notification/notification.router";
 
 // Routes Declaration
 app.use("/api/v1/auth", authRouter); // working
@@ -56,6 +57,7 @@ app.use("/api/v1/sellers", sellerRouter);
 app.use("/api/v1/malls", mallRouter);
 app.use("/api/v1/delivery", deliveryRouter);
 app.use("/api/v1/events", fulfillmentEventRouter);
+app.use("/api/v1/notifications", notificationRouter);
 app.use("/api/v1/onboarding", onboardingRouter); // working
 app.use("/api/v1/stores", storeRouter);  // working
 app.use("/api/v1/categories", categoryRouter);

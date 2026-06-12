@@ -39,6 +39,7 @@ const MallDetailScreen: React.FC<MallDetailScreenProps> = ({ id }) => {
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState("");
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
 
   if (isLoading) {
     return (
@@ -104,7 +105,6 @@ const MallDetailScreen: React.FC<MallDetailScreenProps> = ({ id }) => {
   const mallImages = (mall.images && mall.images.length > 0)
     ? mall.images
     : [{ url: mall.image || mall.coverImageUrl || mall.logoUrl || "https://images.unsplash.com/photo-1519501025264-65ba15a82390?w=800" }];
-  const [activeImageIndex, setActiveImageIndex] = useState(0);
 
   const handleGetDirections = () => {
     const { latitude, longitude } = mall.address || {};

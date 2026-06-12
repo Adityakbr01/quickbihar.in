@@ -24,4 +24,6 @@ export const SocketEvents = {
   SUBORDER_STATUS_UPDATE: "suborder_status_update",
   JOIN_SUBORDER_ROOM: "join_suborder_room",
   LEAVE_SUBORDER_ROOM: "leave_suborder_room",
+  NEW_NOTIFICATION: "new_notification",
 };
+
