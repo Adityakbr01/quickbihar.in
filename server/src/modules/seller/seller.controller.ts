@@ -3,6 +3,7 @@ import { asyncHandler } from "../../utils/asyncHandler";
 import { SellerService } from "./seller.service";
 import { SubOrderService } from "../order/subOrder.service";
 import { ApiError } from "../../utils/ApiError";
+import { normalizeMallPayload, uploadMallMediaFiles } from "../mall/mall.media";
 import {
     createMallRequestSchema,
     payoutMethodSchema,
@@ -275,6 +276,11 @@ export class SellerController {
         return res.status(200).json(new ApiResponse(200, notification, "Notification marked as read"));
     });
 
+    static getMall = asyncHandler(async (req, res) => {
+        const detail = await SellerService.getSellerMall((req as any).user._id);
+        return res.status(200).json(new ApiResponse(200, detail, "Seller mall details fetched successfully"));
+    });
+
     static requestMallConnection = asyncHandler(async (req, res) => {
         const body = requestMallSchema.parse(req.body);
         const seller = await SellerService.requestMallConnection((req as any).user._id, body);
@@ -282,9 +288,59 @@ export class SellerController {
     });
 
     static requestMallCreation = asyncHandler(async (req, res) => {
-        const body = createMallRequestSchema.parse(req.body);
+        const media = await uploadMallMediaFiles(req.files);
+        const normalized = normalizeMallPayload(req.body);
+        let images = normalized.images || [];
+        if (media.images) {
+            images = [...images, ...media.images];
+        }
+
+        const body = createMallRequestSchema.parse({
+            ...normalized,
+            logoUrl: media.logoUrl || normalized.logoUrl,
+            logoImagePublicId: media.logoImagePublicId || normalized.logoImagePublicId,
+            coverImageUrl: media.coverImageUrl || normalized.coverImageUrl,
+            coverImagePublicId: media.coverImagePublicId || normalized.coverImagePublicId,
+            images,
+        });
         const mall = await SellerService.requestMallCreation((req as any).user._id, body);
         return res.status(201).json(new ApiResponse(201, mall, "Mall creation request submitted successfully"));
+    });
+
+    static updateMall = asyncHandler(async (req, res) => {
+        const mallId = req.params.id as string;
+        if (!mallId) throw new ApiError(400, "Mall ID is required");
+
+        const media = await uploadMallMediaFiles(req.files);
+        const normalized = normalizeMallPayload(req.body);
+        let images = normalized.images || [];
+        if (media.images) {
+            images = [...images, ...media.images];
+        }
+
+        const body = createMallRequestSchema.partial().parse({
+            ...normalized,
+            logoUrl: media.logoUrl !== undefined ? media.logoUrl : normalized.logoUrl,
+            logoImagePublicId: media.logoImagePublicId !== undefined ? media.logoImagePublicId : normalized.logoImagePublicId,
+            coverImageUrl: media.coverImageUrl !== undefined ? media.coverImageUrl : normalized.coverImageUrl,
+            coverImagePublicId: media.coverImagePublicId !== undefined ? media.coverImagePublicId : normalized.coverImagePublicId,
+            images: images.length > 0 ? images : undefined,
+        });
+
+        if (body.images && (body.images.length < 1 || body.images.length > 5)) {
+            throw new ApiError(400, "Mall must have between 1 and 5 images");
+        }
+
+        const mall = await SellerService.updateSellerMall((req as any).user._id, mallId, body);
+        return res.status(200).json(new ApiResponse(200, mall, "Mall details updated and submitted for approval"));
+    });
+
+    static deleteMall = asyncHandler(async (req, res) => {
+        const mallId = req.params.id as string;
+        if (!mallId) throw new ApiError(400, "Mall ID is required");
+
+        const seller = await SellerService.deleteSellerMall((req as any).user._id, mallId);
+        return res.status(200).json(new ApiResponse(200, seller, "Mall association removed successfully"));
     });
 
     static addPayoutMethod = asyncHandler(async (req, res) => {

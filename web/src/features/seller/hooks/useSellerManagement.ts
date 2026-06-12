@@ -371,6 +371,13 @@ export const useSellerNotificationMutation = () => {
   });
 };
 
+export const useSellerMall = () => {
+  return useQuery({
+    queryKey: ["seller-mall"],
+    queryFn: sellerManagementApi.getSellerMall,
+  });
+};
+
 export const useSellerMallMutations = () => {
   const queryClient = useQueryClient();
   return {
@@ -386,9 +393,28 @@ export const useSellerMallMutations = () => {
       mutationFn: sellerManagementApi.requestMallCreation,
       onSuccess: () => {
         invalidateSeller(queryClient);
+        queryClient.invalidateQueries({ queryKey: ["seller-mall"] });
         toast.success("Mall creation request submitted");
       },
       onError: mutationError("Failed to request mall creation"),
+    }),
+    updateMall: useMutation({
+      mutationFn: sellerManagementApi.updateSellerMall,
+      onSuccess: () => {
+        invalidateSeller(queryClient);
+        queryClient.invalidateQueries({ queryKey: ["seller-mall"] });
+        toast.success("Mall details updated and submitted for approval");
+      },
+      onError: mutationError("Failed to update mall"),
+    }),
+    deleteMall: useMutation({
+      mutationFn: sellerManagementApi.deleteSellerMall,
+      onSuccess: () => {
+        invalidateSeller(queryClient);
+        queryClient.invalidateQueries({ queryKey: ["seller-mall"] });
+        toast.success("Mall link/request deleted successfully");
+      },
+      onError: mutationError("Failed to delete mall link/request"),
     }),
   };
 };

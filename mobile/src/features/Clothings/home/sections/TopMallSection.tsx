@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, FlatList, TouchableOpacity, useWindowDimensions, StyleSheet, Platform } from "react-native";
 import LottieView from "lottie-react-native";
 import { useQuery } from "@tanstack/react-query";
+import { useRouter } from "expo-router";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { createTopMallSectionStyles } from "../style/TopMallSection.style";
 import { MOCK_MALLS } from "../lib/mockData";
@@ -14,6 +15,7 @@ const TopMallSection = () => {
   const theme = useTheme() as any;
   const { width: windowWidth } = useWindowDimensions();
   const styles = React.useMemo(() => createTopMallSectionStyles(theme), [theme]);
+  const router = useRouter();
 
   // Handle snapping and width logic
   const isWeb = windowWidth > 600;
@@ -54,7 +56,7 @@ const TopMallSection = () => {
             />
           </View>
         </View>
-        <TouchableOpacity style={styles.seeAllBtn}>
+        <TouchableOpacity style={styles.seeAllBtn} onPress={() => router.push("/mall" as any)}>
           <Text style={styles.seeAll}>Explore All</Text>
         </TouchableOpacity>
       </View>

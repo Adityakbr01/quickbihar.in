@@ -39,6 +39,17 @@ export interface SellerSetupStatus {
     mallName?: string;
     mallUnit?: string;
     mallFloor?: string;
+    mallRequest?: {
+      mallId?: string;
+      mallName?: string;
+      mallUnit?: string;
+      mallFloor?: string;
+      message?: string;
+      status?: "PENDING" | "APPROVED" | "REJECTED";
+      requestedAt?: string;
+      reviewedAt?: string;
+      rejectionReason?: string;
+    } | null;
     wallet: {
       availableBalance: number;
       pendingPayoutBalance: number;
@@ -75,11 +86,61 @@ export interface SellerMallCreatePayload {
     city?: string;
     state?: string;
     pincode?: string;
+    latitude?: number;
+    longitude?: number;
   };
+  contact?: {
+    managerName?: string;
+    email?: string;
+  };
+  logoUrl?: string;
+  coverImageUrl?: string;
+  logo?: File;
+  coverImage?: File;
+  images?: Array<{ url: string; fileId?: string }>;
+  newImages?: File[];
   mallUnit?: string;
   mallFloor?: string;
   message?: string;
+  mobileNumber?: string;
+  isMobileVisible?: boolean;
 }
+
+const appendText = (formData: FormData, key: string, value?: string) => {
+  if (value?.trim()) formData.append(key, value.trim());
+};
+
+export const buildSellerMallFormData = (payload: SellerMallCreatePayload | FormData) => {
+  if (payload instanceof FormData) return payload;
+
+  const formData = new FormData();
+  appendText(formData, "name", payload.name);
+  appendText(formData, "description", payload.description);
+  appendText(formData, "logoUrl", payload.logoUrl);
+  appendText(formData, "coverImageUrl", payload.coverImageUrl);
+  appendText(formData, "mallUnit", payload.mallUnit);
+  appendText(formData, "mallFloor", payload.mallFloor);
+  appendText(formData, "message", payload.message);
+  appendText(formData, "mobileNumber", payload.mobileNumber);
+  if (payload.isMobileVisible !== undefined) {
+    formData.append("isMobileVisible", String(payload.isMobileVisible));
+  }
+  
+  if (payload.address) formData.append("address", JSON.stringify(payload.address));
+  if (payload.contact) formData.append("contact", JSON.stringify(payload.contact));
+  if (payload.images) formData.append("images", JSON.stringify(payload.images));
+  
+  if (payload.logo) formData.append("logo", payload.logo);
+  if (payload.coverImage) formData.append("coverImage", payload.coverImage);
+  
+  if (payload.newImages && Array.isArray(payload.newImages)) {
+    payload.newImages.forEach((file: File) => {
+      formData.append("images", file);
+    });
+  }
+  
+  return formData;
+};
 
 export interface SellerPayoutMethodPayload {
   type: PayoutMethodType;
@@ -106,8 +167,11 @@ export const sellerPanelApi = {
     return response.data.data;
   },
 
-  requestMallCreation: async (payload: SellerMallCreatePayload) => {
-    const response = await axiosInstance.post("/sellers/malls", payload);
+  requestMallCreation: async (payload: SellerMallCreatePayload | FormData) => {
+    const body = buildSellerMallFormData(payload);
+    const response = await axiosInstance.post("/sellers/malls", body, {
+      headers: body instanceof FormData ? { "Content-Type": "multipart/form-data" } : undefined,
+    });
     return response.data.data;
   },
 
@@ -123,6 +187,11 @@ export const sellerPanelApi = {
 
   requestPayout: async (payload: { amount: number; payoutMethodId: string; note?: string }) => {
     const response = await axiosInstance.post("/sellers/payout-requests", payload);
+    return response.data.data;
+  },
+
+  getPublicMalls: async (): Promise<any[]> => {
+    const response = await axiosInstance.get("/malls");
     return response.data.data;
   },
 };

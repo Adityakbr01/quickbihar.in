@@ -24,18 +24,27 @@ const CarouselSlide = ({ item }: CarouselSlideProps) => {
     // Real-world redirection logic
     switch (item.redirectType) {
       case "category":
+        router.push({
+          pathname: "/(tabs)/clothing/search" as any,
+          params: {
+            categoryId: item.redirectId || "",
+            categoryName: item.title || "",
+          },
+        });
+        break;
       case "collection":
         router.push({
-          pathname: "/(tabs)/search" as any,
+          pathname: "/(tabs)/clothing/search" as any,
           params: { query: item.title || "" },
         });
         break;
       case "product":
-        // Simulated product search
-        router.push({
-          pathname: "/(tabs)/search" as any,
-          params: { query: item.title || "" },
-        });
+        if (item.redirectId) {
+          router.push({
+            pathname: "/product/[id]" as any,
+            params: { id: item.redirectId },
+          });
+        }
         break;
       case "external":
         if (item.externalUrl) {

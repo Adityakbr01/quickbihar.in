@@ -1,6 +1,7 @@
 import { Types } from "mongoose";
 import { ENV } from "../../config/env.config";
 import { ApiError } from "../../utils/ApiError";
+import { deleteFromImageKit } from "../../utils/imagekit.util";
 import { MailService } from "../../utils/mail.service";
 import { Banner } from "../banner/banner.model";
 import { Coupon } from "../coupon/coupon.model";
@@ -2396,6 +2397,7 @@ export class AdminService {
             ...data,
             slug,
             totalStores: data.totalStores || 0,
+            reviewCount: data.reviewCount || 0,
             status: data.status || "APPROVED",
             isActive: data.isActive ?? true,
         });
@@ -2417,6 +2419,14 @@ export class AdminService {
 
         const mall = await Mall.findByIdAndUpdate(mallId, update, { returnDocument: "after" });
         if (!mall) throw new ApiError(404, "Mall not found");
+
+        if (data.logoImagePublicId && before?.logoImagePublicId && before.logoImagePublicId !== data.logoImagePublicId) {
+            await deleteFromImageKit(before.logoImagePublicId);
+        }
+        if (data.coverImagePublicId && before?.coverImagePublicId && before.coverImagePublicId !== data.coverImagePublicId) {
+            await deleteFromImageKit(before.coverImagePublicId);
+        }
+
         if (adminId) {
             await this.recordAdminMutation(adminId, "UPDATE", "Mall", mallId, { before, after: plainDoc(mall) });
         }

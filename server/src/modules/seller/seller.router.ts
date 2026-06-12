@@ -60,8 +60,11 @@ router.get("/reports", SellerController.reports);
 router.get("/notifications", SellerController.notifications);
 router.patch("/notifications/:id/read", SellerController.markNotificationRead);
 
+router.get("/mall", SellerController.getMall);
 router.post("/mall-request", SellerController.requestMallConnection);
-router.post("/malls", SellerController.requestMallCreation);
+router.post("/malls", upload.fields([{ name: "logo", maxCount: 1 }, { name: "coverImage", maxCount: 1 }, { name: "images", maxCount: 5 }]), SellerController.requestMallCreation);
+router.patch("/malls/:id", upload.fields([{ name: "logo", maxCount: 1 }, { name: "coverImage", maxCount: 1 }, { name: "images", maxCount: 5 }]), SellerController.updateMall);
+router.delete("/malls/:id", SellerController.deleteMall);
 router.post("/payout-methods", SellerController.addPayoutMethod);
 router.patch("/payout-methods/:methodId/default", SellerController.setDefaultPayoutMethod);
 router.post("/payout-requests", SellerController.createPayoutRequest);

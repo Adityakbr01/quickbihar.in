@@ -22,14 +22,28 @@ const MallSchema = new Schema(
             city: String,
             state: String,
             pincode: String,
+            latitude: Number,
+            longitude: Number,
         },
         contact: {
             managerName: String,
-            phone: String,
             email: String,
         },
         logoUrl: String,
+        logoImagePublicId: String,
         coverImageUrl: String,
+        coverImagePublicId: String,
+        images: [
+            {
+                url: String,
+                fileId: String,
+            }
+        ],
+        mobileNumber: String,
+        isMobileVisible: {
+            type: Boolean,
+            default: true,
+        },
         totalStores: {
             type: Number,
             default: 0,
@@ -40,6 +54,11 @@ const MallSchema = new Schema(
             default: 4.5,
             min: 0,
             max: 5,
+        },
+        reviewCount: {
+            type: Number,
+            default: 0,
+            min: 0,
         },
         isFeatured: {
             type: Boolean,

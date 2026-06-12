@@ -225,7 +225,10 @@ export class SellerService {
 
     static async getSetupStatus(userId: string) {
         const [seller, stores] = await Promise.all([
-            Seller.findOne({ userId }).populate("mallId", "name slug address.city isActive").lean(),
+            Seller.findOne({ userId })
+                .populate("mallId")
+                .populate("mallRequest.mallId")
+                .lean(),
             Store.find({ sellerId: userId }).sort({ createdAt: -1 }).lean(),
         ]);
 
@@ -253,6 +256,17 @@ export class SellerService {
                 mallName: (seller.mallId as any)?.name,
                 mallUnit: seller.mallUnit,
                 mallFloor: seller.mallFloor,
+                mallRequest: seller.mallRequest ? {
+                    mallId: seller.mallRequest.mallId?._id?.toString?.() || seller.mallRequest.mallId?.toString?.(),
+                    mallName: (seller.mallRequest.mallId as any)?.name,
+                    mallUnit: seller.mallRequest.mallUnit,
+                    mallFloor: seller.mallRequest.mallFloor,
+                    message: seller.mallRequest.message,
+                    status: seller.mallRequest.status,
+                    requestedAt: seller.mallRequest.requestedAt,
+                    reviewedAt: seller.mallRequest.reviewedAt,
+                    rejectionReason: seller.mallRequest.rejectionReason,
+                } : null,
                 wallet: seller.wallet || {
                     availableBalance: 0,
                     pendingPayoutBalance: 0,
@@ -1227,12 +1241,7 @@ export class SellerService {
     }
 
     static async requestMallCreation(userId: string, data: any) {
-        await this.getApprovedSeller(userId);
-
-        const pendingMall = await Mall.findOne({ requestedBy: userId, status: "PENDING" }).lean();
-        if (pendingMall) {
-            throw new ApiError(400, "A mall creation request is already pending");
-        }
+        const seller = await this.getApprovedSeller(userId);
 
         const baseSlug = slugify(data.name);
         let slug = baseSlug;
@@ -1249,6 +1258,13 @@ export class SellerService {
             description: data.description,
             address: data.address,
             contact: data.contact,
+            logoUrl: data.logoUrl,
+            logoImagePublicId: data.logoImagePublicId,
+            coverImageUrl: data.coverImageUrl,
+            coverImagePublicId: data.coverImagePublicId,
+            images: data.images,
+            mobileNumber: data.mobileNumber,
+            isMobileVisible: data.isMobileVisible !== false,
             isActive: false,
             status: "PENDING",
             requestedBy: new Types.ObjectId(userId),
@@ -1258,6 +1274,16 @@ export class SellerService {
                 message: data.message,
             },
         });
+
+        seller.mallRequest = {
+            mallId: mall._id,
+            mallUnit: data.mallUnit,
+            mallFloor: data.mallFloor,
+            message: data.message,
+            status: "PENDING",
+            requestedAt: new Date(),
+        };
+        await seller.save();
 
         await this.notifySeller(userId, {
             type: "MALL",
@@ -1359,5 +1385,137 @@ export class SellerService {
             resourceId: payout._id.toString(),
         });
         return await payout.populate("partnerId", "fullName email");
+    }
+
+    static async getSellerMall(userId: string) {
+        const seller = await Seller.findOne({ userId }).lean();
+        if (!seller) throw new ApiError(404, "Seller profile not found");
+
+        const requestedMalls = await Mall.find({ requestedBy: userId }).sort({ createdAt: -1 }).lean();
+
+        let linkedMall = null;
+        const linkedMallId = seller.mallId || seller.mallRequest?.mallId;
+        if (linkedMallId) {
+            linkedMall = await Mall.findById(linkedMallId).lean();
+        }
+
+        const mallsMap = new Map();
+        for (const m of requestedMalls) {
+            mallsMap.set(m._id.toString(), m);
+        }
+        if (linkedMall) {
+            mallsMap.set(linkedMall._id.toString(), linkedMall);
+        }
+        const malls = Array.from(mallsMap.values());
+
+        return {
+            malls,
+            mallRequest: seller.mallRequest || null,
+            mallId: seller.mallId || null,
+            mallUnit: seller.mallUnit,
+            mallFloor: seller.mallFloor,
+        };
+    }
+
+    static async updateSellerMall(userId: string, mallId: string, data: any) {
+        const seller = await Seller.findOne({ userId });
+        if (!seller) throw new ApiError(404, "Seller profile not found");
+
+        const mall = await Mall.findById(mallId);
+        if (!mall) {
+            throw new ApiError(404, "No mall found to update");
+        }
+
+        const isRequestedByMe = mall.requestedBy?.toString() === userId;
+        const isLinkedToMe = seller.mallId?.toString() === mall._id.toString() || seller.mallRequest?.mallId?.toString() === mall._id.toString();
+        if (!isRequestedByMe && !isLinkedToMe) {
+            throw new ApiError(403, "You do not have permission to edit this mall");
+        }
+
+        if (data.name) {
+            mall.name = data.name;
+            const baseSlug = slugify(data.name);
+            let slug = baseSlug;
+            let suffix = 1;
+            while (await Mall.exists({ slug, _id: { $ne: mall._id } })) {
+                suffix += 1;
+                slug = `${baseSlug}-${suffix}`;
+            }
+            mall.slug = slug;
+        }
+
+        if (data.description !== undefined) mall.description = data.description;
+        if (data.address) {
+            mall.address = {
+                ...mall.address,
+                ...data.address,
+            };
+        }
+        if (data.contact) {
+            mall.contact = {
+                ...mall.contact,
+                ...data.contact,
+            };
+        }
+        if (data.logoUrl !== undefined) mall.logoUrl = data.logoUrl;
+        if (data.logoImagePublicId !== undefined) mall.logoImagePublicId = data.logoImagePublicId;
+        if (data.coverImageUrl !== undefined) mall.coverImageUrl = data.coverImageUrl;
+        if (data.coverImagePublicId !== undefined) mall.coverImagePublicId = data.coverImagePublicId;
+        if (data.images !== undefined) mall.images = data.images;
+        if (data.mobileNumber !== undefined) mall.mobileNumber = data.mobileNumber;
+        if (data.isMobileVisible !== undefined) mall.isMobileVisible = data.isMobileVisible;
+
+        mall.status = "PENDING";
+        mall.isActive = false;
+
+        await mall.save();
+
+        if (seller.mallRequest && seller.mallRequest.mallId?.toString() === mall._id.toString()) {
+            seller.mallRequest.status = "PENDING";
+            await seller.save();
+        }
+
+        await this.notifySeller(userId, {
+            type: "MALL",
+            title: "Mall details updated",
+            message: `${mall.name} has been updated and sent for re-approval.`,
+            severity: "INFO",
+            resourceType: "MALL",
+            resourceId: mall._id.toString(),
+        });
+
+        return mall;
+    }
+
+    static async deleteSellerMall(userId: string, mallId: string) {
+        const seller = await Seller.findOne({ userId });
+        if (!seller) throw new ApiError(404, "Seller profile not found");
+
+        const mall = await Mall.findById(mallId);
+        if (!mall) throw new ApiError(404, "Mall not found");
+
+        const isRequestedByMe = mall.requestedBy?.toString() === userId;
+        const isLinkedToMe = seller.mallId?.toString() === mall._id.toString() || seller.mallRequest?.mallId?.toString() === mall._id.toString();
+        if (!isRequestedByMe && !isLinkedToMe) {
+            throw new ApiError(403, "You do not have permission to delete this mall");
+        }
+
+        // If it is the seller's active linked mall, unlink it
+        if (seller.mallId?.toString() === mall._id.toString()) {
+            seller.mallId = undefined;
+            seller.mallUnit = undefined;
+            seller.mallFloor = undefined;
+        }
+        if (seller.mallRequest?.mallId?.toString() === mall._id.toString()) {
+            seller.mallRequest = undefined;
+        }
+        await seller.save();
+
+        // If the mall is requested by the seller and is still PENDING, we delete it
+        if (isRequestedByMe && mall.status === "PENDING") {
+            await Mall.deleteOne({ _id: mall._id });
+        }
+
+        return seller;
     }
 }

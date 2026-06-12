@@ -5,6 +5,7 @@ import type {
   SellerPayoutMethodPayload,
   SellerSetupStatus,
 } from "./sellerPanel.api";
+import { buildSellerMallFormData } from "./sellerPanel.api";
 
 export interface PaginatedResult<T> {
   data: T[];
@@ -945,8 +946,29 @@ export const sellerManagementApi = {
     return response.data.data;
   },
 
-  requestMallCreation: async (payload: SellerMallCreatePayload) => {
-    const response = await axiosInstance.post("/sellers/malls", payload);
+  requestMallCreation: async (payload: SellerMallCreatePayload | FormData) => {
+    const body = buildSellerMallFormData(payload);
+    const response = await axiosInstance.post("/sellers/malls", body, {
+      headers: body instanceof FormData ? { "Content-Type": "multipart/form-data" } : undefined,
+    });
+    return response.data.data;
+  },
+
+  getSellerMall: async (): Promise<any> => {
+    const response = await axiosInstance.get("/sellers/mall");
+    return response.data.data;
+  },
+
+  updateSellerMall: async ({ id, payload }: { id: string; payload: SellerMallCreatePayload | FormData }) => {
+    const body = buildSellerMallFormData(payload);
+    const response = await axiosInstance.patch(`/sellers/malls/${id}`, body, {
+      headers: body instanceof FormData ? { "Content-Type": "multipart/form-data" } : undefined,
+    });
+    return response.data.data;
+  },
+
+  deleteSellerMall: async (id: string): Promise<any> => {
+    const response = await axiosInstance.delete(`/sellers/malls/${id}`);
     return response.data.data;
   },
 };

@@ -1,7 +1,14 @@
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import LottieView from "lottie-react-native";
 import React from "react";
-import { FlatList, Platform, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  FlatList,
+  Platform,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { ProductCard } from "../components/ProductCard";
 import { ProductCardSkeleton } from "../components/ProductCardSkeleton";
 import { createTopSellingSectionStyles } from "../style/TopSellingSection.style";
@@ -55,7 +62,10 @@ const TopSellingSection = () => {
           <View
             style={[
               localStyles.lottieWrapper,
-              Platform.OS === 'web' && { filter: theme.text === '#ffffff' ? 'invert(1)' : 'none' } as any
+              Platform.OS === "web" &&
+                ({
+                  filter: theme.text === "#ffffff" ? "invert(1)" : "none",
+                } as any),
             ]}
           >
             <LottieView
@@ -67,24 +77,27 @@ const TopSellingSection = () => {
               renderMode="SOFTWARE" // Essential for colorFilters to work on many Android devices
               style={[
                 localStyles.arrowLottie,
-                Platform.OS === 'web' && { filter: theme.text === '#ffffff' ? 'invert(1)' : 'none' } as any
+                Platform.OS === "web" &&
+                  ({
+                    filter: theme.text === "#ffffff" ? "invert(1)" : "none",
+                  } as any),
               ]}
               colorFilters={
                 theme.text === "#ffffff"
                   ? [
-                    {
-                      keypath: "Shape Layer 2.Shape 1.Stroke 1",
-                      color: "#ffffff",
-                    },
-                    {
-                      keypath: "Shape Layer 2.Shape 2.Stroke 1",
-                      color: "#ffffff",
-                    },
-                    {
-                      keypath: "**", // Fallback wildcard
-                      color: "#ffffff",
-                    },
-                  ]
+                      {
+                        keypath: "Shape Layer 2.Shape 1.Stroke 1",
+                        color: "#ffffff",
+                      },
+                      {
+                        keypath: "Shape Layer 2.Shape 2.Stroke 1",
+                        color: "#ffffff",
+                      },
+                      {
+                        keypath: "**", // Fallback wildcard
+                        color: "#ffffff",
+                      },
+                    ]
                   : []
               }
             />
@@ -95,7 +108,7 @@ const TopSellingSection = () => {
         </TouchableOpacity>
       </View>
       <FlatList
-        data={trendingProducts.data || []}
+        data={(trendingProducts.data || []).slice(0, 10)}
         renderItem={({ item }) => <ProductCard item={item} />}
         keyExtractor={(item: any) => item._id || item.id}
         horizontal
@@ -119,7 +132,7 @@ const localStyles = StyleSheet.create({
     overflow: "hidden",
     justifyContent: "center",
     alignItems: "center",
-    paddingTop: 10
+    paddingTop: 10,
   },
   arrowLottie: {
     width: "100%",

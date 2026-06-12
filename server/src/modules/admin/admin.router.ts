@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { verifyJWT, isAdmin } from "../../middlewares/auth.middleware";
+import { upload } from "../../middlewares/multer.middleware";
 import { AdminController } from "./admin.controller";
 
 const router = Router();
@@ -81,8 +82,8 @@ router.patch("/seller-submissions/:type/:id/review", AdminController.reviewSelle
 router.get("/malls", AdminController.malls);
 router.get("/mall-requests", AdminController.mallRequests);
 router.get("/mall-creation-requests", AdminController.mallCreationRequests);
-router.post("/malls", AdminController.createMall);
-router.patch("/malls/:id", AdminController.updateMall);
+router.post("/malls", upload.fields([{ name: "logo", maxCount: 1 }, { name: "coverImage", maxCount: 1 }, { name: "images", maxCount: 5 }]), AdminController.createMall);
+router.patch("/malls/:id", upload.fields([{ name: "logo", maxCount: 1 }, { name: "coverImage", maxCount: 1 }, { name: "images", maxCount: 5 }]), AdminController.updateMall);
 router.patch("/malls/:id/review", AdminController.reviewMallCreation);
 router.delete("/malls/:id", AdminController.deleteMall);
 router.patch("/sellers/:id/mall", AdminController.assignSellerMall);

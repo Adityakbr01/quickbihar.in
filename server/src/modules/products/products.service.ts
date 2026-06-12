@@ -254,7 +254,7 @@ export class ProductService {
     }
 
     static async getTrendingProducts() {
-        return await ProductDAO.findAll({ isTrending: true, isActive: true, publicOnly: true });
+        return await ProductDAO.getTopSellingProducts(10);
     }
 
     static async getSellerProducts(sellerId: string) {

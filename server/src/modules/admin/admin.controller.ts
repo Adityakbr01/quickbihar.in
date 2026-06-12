@@ -5,6 +5,7 @@ import { ApiError } from "../../utils/ApiError";
 import { Types } from "mongoose";
 import { DeliveryBoy } from "../deliveryBoy/delivery.model";
 import { CodSettlement } from "../fulfillment/codSettlement.model";
+import { normalizeMallPayload, uploadMallMediaFiles } from "../mall/mall.media";
 import {
     adminListQuerySchema,
     adminPolicySchema,
@@ -505,13 +506,46 @@ export class AdminController {
     });
 
     static createMall = asyncHandler(async (req, res) => {
-        const body = createMallSchema.parse(req.body);
+        const media = await uploadMallMediaFiles(req.files);
+        const normalized = normalizeMallPayload(req.body);
+        let images = normalized.images || [];
+        if (media.images) {
+            images = [...images, ...media.images];
+        }
+
+        const body = createMallSchema.parse({
+            ...normalized,
+            logoUrl: media.logoUrl || normalized.logoUrl,
+            logoImagePublicId: media.logoImagePublicId || normalized.logoImagePublicId,
+            coverImageUrl: media.coverImageUrl || normalized.coverImageUrl,
+            coverImagePublicId: media.coverImagePublicId || normalized.coverImagePublicId,
+            images,
+        });
         const mall = await AdminService.createMall(body, (req as any).user._id);
         return res.status(201).json(new ApiResponse(201, mall, "Mall created successfully"));
     });
 
     static updateMall = asyncHandler(async (req, res) => {
-        const body = updateMallSchema.parse(req.body);
+        const media = await uploadMallMediaFiles(req.files);
+        const normalized = normalizeMallPayload(req.body);
+        let images = normalized.images || [];
+        if (media.images) {
+            images = [...images, ...media.images];
+        }
+
+        const body = updateMallSchema.parse({
+            ...normalized,
+            logoUrl: media.logoUrl !== undefined ? media.logoUrl : normalized.logoUrl,
+            logoImagePublicId: media.logoImagePublicId !== undefined ? media.logoImagePublicId : normalized.logoImagePublicId,
+            coverImageUrl: media.coverImageUrl !== undefined ? media.coverImageUrl : normalized.coverImageUrl,
+            coverImagePublicId: media.coverImagePublicId !== undefined ? media.coverImagePublicId : normalized.coverImagePublicId,
+            images: images.length > 0 ? images : undefined,
+        });
+
+        if (body.images && (body.images.length < 1 || body.images.length > 5)) {
+            throw new ApiError(400, "Mall must have between 1 and 5 images");
+        }
+
         const mall = await AdminService.updateMall(req.params.id as string, body, (req as any).user._id);
         return res.status(200).json(new ApiResponse(200, mall, "Mall updated successfully"));
     });

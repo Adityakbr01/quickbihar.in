@@ -6,17 +6,23 @@ import { createTopMallSectionStyles } from "../style/TopMallSection.style";
 import type { TopMall } from "../api/mall.api";
 import { StarIcon, Location01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
+import { useRouter } from "expo-router";
 
 interface MallCardProps {
   mall: TopMall;
 }
 
 export const MallCard = ({ mall }: MallCardProps) => {
+  const router = useRouter();
   const theme = useTheme() as any;
   const styles = React.useMemo(() => createTopMallSectionStyles(theme), [theme]);
 
   return (
-    <TouchableOpacity activeOpacity={0.9} style={styles.cardContainer}>
+    <TouchableOpacity
+      activeOpacity={0.9}
+      style={styles.cardContainer}
+      onPress={() => router.push(`/mall/${mall.id || mall._id}` as any)}
+    >
       <Image source={{ uri: mall.image }} style={styles.cardImage} resizeMode="cover" />
       
       {/* Dynamic Rating Badge */}

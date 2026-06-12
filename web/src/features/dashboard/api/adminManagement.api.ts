@@ -164,17 +164,25 @@ export interface Mall {
     city?: string;
     state?: string;
     pincode?: string;
+    latitude?: number;
+    longitude?: number;
   };
   contact?: {
     managerName?: string;
-    phone?: string;
     email?: string;
   };
   logoUrl?: string;
+  logoImagePublicId?: string;
   coverImageUrl?: string;
+  coverImagePublicId?: string;
+  images?: Array<{ url: string; fileId?: string }>;
   totalStores?: number;
   sellerCount?: number;
   rating?: number;
+  reviewCount?: number;
+  image?: string;
+  location?: string;
+  tagline?: string;
   isFeatured?: boolean;
   featuredRank?: number;
   isActive: boolean;
@@ -190,6 +198,8 @@ export interface Mall {
     mallFloor?: string;
     message?: string;
   };
+  mobileNumber?: string;
+  isMobileVisible?: boolean;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -200,13 +210,22 @@ export interface MallPayload {
   address?: Mall["address"];
   contact?: Mall["contact"];
   logoUrl?: string;
+  logoImagePublicId?: string;
   coverImageUrl?: string;
+  coverImagePublicId?: string;
+  logo?: File;
+  coverImage?: File;
+  images?: Array<{ url: string; fileId?: string }>;
+  newImages?: File[];
   totalStores?: number;
   rating?: number;
+  reviewCount?: number;
   isFeatured?: boolean;
   featuredRank?: number;
   isActive?: boolean;
   status?: "PENDING" | "APPROVED" | "REJECTED";
+  mobileNumber?: string;
+  isMobileVisible?: boolean;
 }
 
 export interface SellerMallRequest {
@@ -236,6 +255,46 @@ export interface ManagementFeature {
   route?: string | null;
   note: string;
 }
+
+const appendText = (formData: FormData, key: string, value?: string | number | boolean) => {
+  if (value === undefined || value === null || value === "") return;
+  formData.append(key, String(value));
+};
+
+const buildMallRequestBody = (payload: MallPayload | FormData) => {
+  if (payload instanceof FormData) return payload;
+
+  const formData = new FormData();
+  appendText(formData, "name", payload.name);
+  appendText(formData, "description", payload.description);
+  appendText(formData, "logoUrl", payload.logoUrl);
+  appendText(formData, "coverImageUrl", payload.coverImageUrl);
+  appendText(formData, "totalStores", payload.totalStores);
+  appendText(formData, "rating", payload.rating);
+  appendText(formData, "reviewCount", payload.reviewCount);
+  appendText(formData, "isFeatured", payload.isFeatured);
+  appendText(formData, "featuredRank", payload.featuredRank);
+  appendText(formData, "isActive", payload.isActive);
+  appendText(formData, "status", payload.status);
+  appendText(formData, "mobileNumber", payload.mobileNumber);
+  if (payload.isMobileVisible !== undefined) {
+    formData.append("isMobileVisible", String(payload.isMobileVisible));
+  }
+  
+  if (payload.address) formData.append("address", JSON.stringify(payload.address));
+  if (payload.contact) formData.append("contact", JSON.stringify(payload.contact));
+  if (payload.images) formData.append("images", JSON.stringify(payload.images));
+  
+  if (payload.logo) formData.append("logo", payload.logo);
+  if (payload.coverImage) formData.append("coverImage", payload.coverImage);
+  
+  if (payload.newImages && Array.isArray(payload.newImages)) {
+    payload.newImages.forEach((file: File) => {
+      formData.append("images", file);
+    });
+  }
+  return formData;
+};
 
 export interface ManagementGroup {
   id: string;
@@ -977,13 +1036,25 @@ export const adminManagementApi = {
     return response.data.data;
   },
 
-  createMall: async (payload: MallPayload): Promise<Mall> => {
-    const response = await axiosInstance.post("/admin/malls", payload);
+  createMall: async (payload: MallPayload | FormData): Promise<Mall> => {
+    const body = buildMallRequestBody(payload);
+    const response = await axiosInstance.post("/admin/malls", body, {
+      headers: body instanceof FormData ? { "Content-Type": "multipart/form-data" } : undefined,
+    });
     return response.data.data;
   },
 
-  updateMall: async ({ mallId, updates }: { mallId: string; updates: Partial<MallPayload> }): Promise<Mall> => {
-    const response = await axiosInstance.patch(`/admin/malls/${mallId}`, updates);
+  updateMall: async ({
+    mallId,
+    updates,
+  }: {
+    mallId: string;
+    updates: Partial<MallPayload> | FormData;
+  }): Promise<Mall> => {
+    const body = buildMallRequestBody(updates as MallPayload | FormData);
+    const response = await axiosInstance.patch(`/admin/malls/${mallId}`, body, {
+      headers: body instanceof FormData ? { "Content-Type": "multipart/form-data" } : undefined,
+    });
     return response.data.data;
   },
 

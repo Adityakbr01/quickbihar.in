@@ -213,4 +213,117 @@ export class ProductDAO {
             }
         );
     }
+
+    static async getTopSellingProducts(limit = 10) {
+        let Order: any;
+        try {
+            const mongoose = require("mongoose");
+            Order = mongoose.model("Order");
+        } catch (e) {
+            try {
+                Order = require("../order/order.model").Order;
+            } catch (err) {
+                // If model is not found
+            }
+        }
+
+        const productIds: any[] = [];
+        const salesMap = new Map<string, number>();
+
+        if (Order) {
+            try {
+                const topSales = await Order.aggregate([
+                    {
+                        $match: {
+                            status: { $in: ["PAID", "CONFIRMED", "PROCESSING", "SHIPPED", "DELIVERED"] }
+                        }
+                    },
+                    { $unwind: "$items" },
+                    {
+                        $group: {
+                            _id: "$items.productId",
+                            salesCount: { $sum: "$items.quantity" }
+                        }
+                    },
+                    { $sort: { salesCount: -1 } },
+                    { $limit: 50 }
+                ]);
+
+                for (const sale of topSales) {
+                    if (sale._id) {
+                        const idStr = sale._id.toString();
+                        productIds.push(sale._id);
+                        salesMap.set(idStr, sale.salesCount);
+                    }
+                }
+            } catch (err) {
+                console.error("Failed to aggregate order sales:", err);
+            }
+        }
+
+        // Fetch products with sales
+        const productsWithSales = await Product.find({
+            _id: { $in: productIds },
+            isActive: true,
+            isDeleted: false,
+            $or: [{ approvalStatus: "APPROVED" }, { approvalStatus: { $exists: false } }]
+        });
+
+        // Fetch fallback products if needed
+        const fallbackLimit = limit - productsWithSales.length;
+        let fallbackProducts: any[] = [];
+        if (fallbackLimit > 0) {
+            fallbackProducts = await Product.find({
+                _id: { $nin: productIds },
+                isActive: true,
+                isDeleted: false,
+                $or: [{ approvalStatus: "APPROVED" }, { approvalStatus: { $exists: false } }]
+            })
+            .sort({
+                "ratings.average": -1,
+                "ratings.count": -1,
+                isTrending: -1,
+                isFeatured: -1,
+                createdAt: -1
+            })
+            .limit(fallbackLimit);
+        }
+
+        const allProducts = [...productsWithSales, ...fallbackProducts];
+
+        // Sort combined list
+        allProducts.sort((a: any, b: any) => {
+            const salesA = salesMap.get(a._id.toString()) || 0;
+            const salesB = salesMap.get(b._id.toString()) || 0;
+            if (salesB !== salesA) {
+                return salesB - salesA;
+            }
+            const ratingA = a.ratings?.average || 0;
+            const ratingB = b.ratings?.average || 0;
+            if (ratingB !== ratingA) {
+                return ratingB - ratingA;
+            }
+            const countA = a.ratings?.count || 0;
+            const countB = b.ratings?.count || 0;
+            if (countB !== countA) {
+                return countB - countA;
+            }
+            const trendingA = a.isTrending ? 1 : 0;
+            const trendingB = b.isTrending ? 1 : 0;
+            if (trendingB !== trendingA) {
+                return trendingB - trendingA;
+            }
+            const featuredA = a.isFeatured ? 1 : 0;
+            const featuredB = b.isFeatured ? 1 : 0;
+            if (featuredB !== featuredA) {
+                return featuredB - featuredA;
+            }
+            const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+            const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+            return dateB - dateA;
+        });
+
+        const finalProducts = allProducts.slice(0, limit);
+        return { data: finalProducts, total: finalProducts.length };
+    }
 }

@@ -63,11 +63,12 @@ export const mallAddressSchema = z.object({
     city: z.string().trim().optional(),
     state: z.string().trim().optional(),
     pincode: z.string().trim().optional(),
+    latitude: z.coerce.number().optional().nullable(),
+    longitude: z.coerce.number().optional().nullable(),
 });
 
 export const mallContactSchema = z.object({
     managerName: z.string().trim().optional(),
-    phone: z.string().trim().optional(),
     email: z.string().email().optional().or(z.literal("")),
 });
 
@@ -77,9 +78,18 @@ export const createMallSchema = z.object({
     address: mallAddressSchema.optional(),
     contact: mallContactSchema.optional(),
     logoUrl: z.string().url().optional().or(z.literal("")),
+    logoImagePublicId: z.string().trim().optional(),
     coverImageUrl: z.string().url().optional().or(z.literal("")),
+    coverImagePublicId: z.string().trim().optional(),
+    images: z.array(z.object({
+        url: z.string().url(),
+        fileId: z.string().optional(),
+    })).min(1, "At least one image is required").max(5, "At most 5 images are allowed").optional(),
+    mobileNumber: z.string().trim().min(10, "Mobile number is required").max(15, "Invalid mobile number").optional(),
+    isMobileVisible: z.coerce.boolean().optional(),
     totalStores: z.coerce.number().int().min(0).optional(),
     rating: z.coerce.number().min(0).max(5).optional(),
+    reviewCount: z.coerce.number().int().min(0).optional(),
     isFeatured: z.boolean().optional(),
     featuredRank: z.coerce.number().int().min(1).max(10).optional(),
     isActive: z.boolean().optional(),

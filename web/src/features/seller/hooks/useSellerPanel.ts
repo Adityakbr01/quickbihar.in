@@ -67,3 +67,9 @@ export const useRequestSellerPayout = () => {
     onError: (error: Error) => toast.error(error.message || "Failed to request payout"),
   });
 };
+
+export const usePublicMalls = () =>
+  useQuery({
+    queryKey: ["public-malls"],
+    queryFn: sellerPanelApi.getPublicMalls,
+  });
