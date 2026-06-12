@@ -6,15 +6,18 @@ import { registerForPushNotificationsAsync, initializeNotificationHandler } from
 import { useAuthStore } from "../features/common/auth/store/authStore";
 import { updateFcmTokenRequest } from "../features/Clothings/profileInfo/api/profile.api";
 import { useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "expo-router";
 
 const HAS_ASKED_KEY = "has_asked_push_notifications";
 
 export const usePushNotifications = () => {
   const { isAuthenticated, isInitialized } = useAuthStore();
   const queryClient = useQueryClient();
+  const router = useRouter();
 
   useEffect(() => {
     let subscription: any;
+    let responseSubscription: any;
 
     const registerListener = async () => {
       try {
@@ -22,6 +25,25 @@ export const usePushNotifications = () => {
         subscription = Notifications.addNotificationReceivedListener((notification) => {
           console.log("[usePushNotifications] Foreground notification received:", notification);
           queryClient.invalidateQueries({ queryKey: ["user-notifications"] });
+        });
+
+        responseSubscription = Notifications.addNotificationResponseReceivedListener((response) => {
+          console.log("[usePushNotifications] Notification clicked/interacted:", response);
+          const data = response?.notification?.request?.content?.data;
+          if (data) {
+            const { redirectType, redirectId, externalUrl } = data;
+            console.log(`[usePushNotifications] Handling click redirect: type=${redirectType}, id=${redirectId}, url=${externalUrl}`);
+            
+            if (redirectType === "product" && redirectId) {
+              router.push(`/product/${redirectId}` as any);
+            } else if (redirectType === "category" && redirectId) {
+              router.push(`/mall` as any);
+            } else if (redirectType === "external" && externalUrl) {
+              import("expo-web-browser").then((WebBrowser) => {
+                WebBrowser.openBrowserAsync(externalUrl);
+              });
+            }
+          }
         });
       } catch (err) {
         console.warn("[usePushNotifications] Failed to register notification listener:", err);
@@ -34,8 +56,11 @@ export const usePushNotifications = () => {
       if (subscription) {
         subscription.remove();
       }
+      if (responseSubscription) {
+        responseSubscription.remove();
+      }
     };
-  }, [queryClient]);
+  }, [queryClient, router]);
 
   useEffect(() => {
     if (!isInitialized || !isAuthenticated) return;
@@ -51,26 +76,10 @@ export const usePushNotifications = () => {
         // 1. Initialize Handler (Lazy)
         await initializeNotificationHandler();
 
-        // 2. Import Notifications Dynamically for permissions
-        const Notifications = await import("expo-notifications");
-
-        const { status: existingStatus } = await Notifications.getPermissionsAsync();
-        const hasAskedPreviously = await SecureStore.getItemAsync(HAS_ASKED_KEY);
-        
-        let finalStatus = existingStatus;
-
-        if (existingStatus !== "granted" && !hasAskedPreviously) {
-          console.log("[usePushNotifications] First time ask - Prompting user");
-          const { status } = await Notifications.requestPermissionsAsync();
-          finalStatus = status;
-          await SecureStore.setItemAsync(HAS_ASKED_KEY, "true");
-        }
-
-        if (finalStatus === "granted") {
-          const token = await registerForPushNotificationsAsync();
-          if (token) {
-            await updateFcmTokenRequest(token);
-          }
+        // 2. Register & request permission (handles prompts automatically)
+        const token = await registerForPushNotificationsAsync();
+        if (token) {
+          await updateFcmTokenRequest(token);
         }
       } catch (error: any) {
         console.log("[usePushNotifications] Setup skipped:", error.message);

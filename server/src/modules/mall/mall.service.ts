@@ -129,7 +129,7 @@ export class MallService {
         const review = await MallReview.findOneAndUpdate(
             { mallId: mallObjectId, userId: new Types.ObjectId(userId) },
             { $set: { rating, comment } },
-            { upsert: true, new: true, runValidators: true, setDefaultsOnInsert: true },
+            { upsert: true, returnDocument: 'after', runValidators: true, setDefaultsOnInsert: true },
         );
 
         const stats = await MallReview.aggregate([

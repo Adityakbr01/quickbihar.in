@@ -17,6 +17,11 @@
     "android": {
       "package": "com.adityakbr.mobile",
       "googleServicesFile": "./google-services.json",
+      "permissions": [
+        "android.permission.POST_NOTIFICATIONS",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
+      ],
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/icons/android-icon-foreground.png",
         "backgroundImage": "./assets/images/icons/android-icon-background.png",
@@ -50,7 +55,8 @@
       "expo-web-browser",
       "expo-image",
       "expo-status-bar",
-      "expo-video"
+      "expo-video",
+      "expo-notifications"
     ],
     "experiments": {
       "typedRoutes": true,

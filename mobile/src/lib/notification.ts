@@ -23,34 +23,26 @@ export async function registerForPushNotificationsAsync() {
     });
   }
 
-  if (Device.isDevice) {
-    const { status: existingStatus } = await Notifications.getPermissionsAsync();
-    let finalStatus = existingStatus;
-    if (existingStatus !== "granted") {
-      const { status } = await Notifications.requestPermissionsAsync();
-      finalStatus = status;
-    }
-    if (finalStatus !== "granted") {
-      console.warn("Failed to get push token for push notification!");
-      return;
-    }
+  const { status: existingStatus } = await Notifications.getPermissionsAsync();
+  let finalStatus = existingStatus;
+  if (existingStatus !== "granted") {
+    const { status } = await Notifications.requestPermissionsAsync();
+    finalStatus = status;
+  }
+  if (finalStatus !== "granted") {
+    console.warn("Failed to get push token for push notification!");
+    return;
+  }
 
+  if (Device.isDevice) {
     try {
-      const projectId =
-        Constants?.expoConfig?.extra?.eas?.projectId ??
-        Constants?.easConfig?.projectId;
-      if (!projectId) {
-        console.warn(
-          "Project ID not found in Constants. Notification token might fail."
-        );
-      }
-      token = (await Notifications.getExpoPushTokenAsync({ projectId })).data;
-      console.log("[Notification] Token sync successful");
+      token = (await Notifications.getDevicePushTokenAsync()).data;
+      console.log("[Notification] Direct FCM Device Token retrieved successfully");
     } catch (e) {
-      console.error("[Notification] Error getting token:", e);
+      console.error("[Notification] Error getting native device token:", e);
     }
   } else {
-    console.log("[Notification] Physical device required for tokens");
+    console.log("[Notification] Simulator detected - permission requested but skipping FCM token retrieval");
   }
 
   return token;

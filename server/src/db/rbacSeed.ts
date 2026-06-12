@@ -25,7 +25,7 @@ async function seedRBAC() {
           description: (perm as any).description,
           module: (perm as any).module || "SYSTEM_GEN",
         },
-        { upsert: true, new: true, returnDocument: 'after' }
+        { upsert: true, returnDocument: 'after' }
       );
       permCount++;
     }
@@ -44,7 +44,7 @@ async function seedRBAC() {
           isActive: true,
           description: RoleDescriptions[roleName] || `System role for ${roleName}`
         },
-        { upsert: true, new: true, returnDocument: 'after' }
+        { upsert: true, returnDocument: 'after' }
       );
       roleCount++;
     }

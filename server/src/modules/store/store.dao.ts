@@ -43,4 +43,4 @@ export const getStoreConfigDAO = (_type: StoreType, storeId: string) =>
     ClothingStoreConfig.findOne({ storeId });
 
 export const updateStoreConfigDAO = (_type: StoreType, storeId: string, data: any) =>
-    ClothingStoreConfig.findOneAndUpdate({ storeId }, data, { new: true });
+    ClothingStoreConfig.findOneAndUpdate({ storeId }, data, { returnDocument: 'after' });

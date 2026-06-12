@@ -173,7 +173,7 @@ export class NotificationController {
     await NotificationRead.findOneAndUpdate(
       { userId: user._id, notificationId },
       { readAt: new Date() },
-      { upsert: true, new: true }
+      { upsert: true, returnDocument: 'after' }
     );
 
     res.status(200).json(new ApiResponse(200, null, "Notification marked as read"));

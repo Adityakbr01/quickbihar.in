@@ -8,6 +8,7 @@ import { User } from "../user/user.model";
 import { Role } from "../rbac/rbac.model";
 import { socketService } from "../socket/socket.service";
 import { SocketEvents } from "../../constants/socketEvents";
+import { notificationService } from "./notification.service";
 
 // Dedicated connection for the Worker client
 const workerConnection = new Redis(ENV.REDIS_URL, {
@@ -72,10 +73,12 @@ export class NotificationWorker {
               }
             }
 
-            console.log(`[NotificationWorker] Dispatching to ${fcmTokens.length} FCM devices and ${expoTokens.length} Expo devices`);
+            console.log(`[🔥 FIREBASE_FCM] Notification Worker processing job. Target users: ${targetUsers.length}`);
+            console.log(`[🔥 FIREBASE_FCM] Active Tokens: ${tokens.length} total (Expo: ${expoTokens.length}, Native FCM: ${fcmTokens.length})`);
 
             // Send via Google FCM
             if (fcmTokens.length > 0) {
+              console.log(`[🔥 FIREBASE_FCM] Dispatching native FCM multicast to tokens:`, fcmTokens);
               const fcmChunks = chunkArray(fcmTokens, 500);
               for (const chunk of fcmChunks) {
                 try {
@@ -116,16 +119,21 @@ export class NotificationWorker {
                     };
                   }
 
+                  console.log(`[🔥 FIREBASE_FCM] Sending native FCM chunk of ${chunk.length} tokens...`);
                   const response = await admin.messaging().sendEachForMulticast(message);
-                  console.log(`[NotificationWorker] FCM Multicast Success: ${response.successCount}, Failures: ${response.failureCount}`);
+                  console.log(`[🔥 FIREBASE_FCM] FCM Multicast Success: ${response.successCount}, Failures: ${response.failureCount}`);
+                  if (response.failureCount > 0) {
+                    console.log(`[🔥 FIREBASE_FCM] FCM Errors:`, response.responses.filter(r => !r.success).map(r => r.error));
+                  }
                 } catch (fcmError) {
-                  console.error("[NotificationWorker] Error sending FCM chunk:", fcmError);
+                  console.error("[🔥 FIREBASE_FCM] Error sending FCM chunk:", fcmError);
                 }
               }
             }
 
             // Send via Expo Push Service
             if (expoTokens.length > 0) {
+              console.log(`[🔥 FIREBASE_FCM] Dispatching Expo push to tokens:`, expoTokens);
               const expoChunks = chunkArray(expoTokens, 100);
               for (const chunk of expoChunks) {
                 try {
@@ -147,6 +155,7 @@ export class NotificationWorker {
                     channelId: "default",
                   }));
 
+                  console.log(`[🔥 FIREBASE_FCM] Sending Expo HTTP chunk of ${chunk.length} tokens...`);
                   await axios.post("https://exp.host/--/api/v2/push/send", expoPayload, {
                     headers: {
                       Accept: "application/json",
@@ -154,9 +163,9 @@ export class NotificationWorker {
                       "Content-Type": "application/json",
                     },
                   });
-                  console.log(`[NotificationWorker] Expo Push Chunk of ${chunk.length} sent successfully`);
+                  console.log(`[🔥 FIREBASE_FCM] Expo Push Chunk of ${chunk.length} sent successfully`);
                 } catch (expoError: any) {
-                  console.error("[NotificationWorker] Error sending Expo push chunk:", expoError?.response?.data || expoError.message);
+                  console.error("[🔥 FIREBASE_FCM] Error sending Expo push chunk:", expoError?.response?.data || expoError.message);
                 }
               }
             }

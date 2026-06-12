@@ -1,5 +1,6 @@
 import admin from "firebase-admin";
 import { ENV } from "../../config/env.config";
+import axios from "axios";
 
 export class NotificationService {
   private isInitialized = false;
@@ -27,8 +28,43 @@ export class NotificationService {
   }
 
   async sendPush(token: string, title: string, body: string, data?: any) {
+    if (!token || typeof token !== "string" || token.trim() === "") {
+      console.warn("[NotificationService] Empty token, skipping notification");
+      return;
+    }
+
+    console.log(`[🔥 FIREBASE_FCM] Preparing push notification. Target Token: ${token.substring(0, 30)}...`);
+
+    // Check if it's an Expo Push Token
+    if (token.startsWith("ExponentPushToken[") || token.startsWith("ExpoPushToken[")) {
+      try {
+        console.log(`[🔥 FIREBASE_FCM] Routing Expo Token via Expo Push API: ${token}`);
+        const expoPayload = {
+          to: token,
+          title,
+          body,
+          data: data || {},
+          sound: "default",
+          channelId: "default",
+        };
+
+        const response = await axios.post("https://exp.host/--/api/v2/push/send", expoPayload, {
+          headers: {
+            Accept: "application/json",
+            "Accept-encoding": "gzip, deflate",
+            "Content-Type": "application/json",
+          },
+        });
+        console.log("[🔥 FIREBASE_FCM] Expo notification dispatched successfully. Response:", response.data);
+        return response.data;
+      } catch (error: any) {
+        console.error("[🔥 FIREBASE_FCM] Error dispatching Expo notification:", error?.response?.data || error.message);
+        return;
+      }
+    }
+
     if (!this.isInitialized) {
-      console.warn("[NotificationService] Firebase not initialized, skipping notification");
+      console.warn("[🔥 FIREBASE_FCM] Firebase not initialized, skipping direct FCM delivery");
       return;
     }
 
@@ -42,11 +78,12 @@ export class NotificationService {
         token,
       };
 
+      console.log(`[🔥 FIREBASE_FCM] Dispatching native FCM push to Firebase SDK...`);
       const response = await admin.messaging().send(message);
-      console.log(`[NotificationService] Notification sent successfully: ${response}`);
+      console.log(`[🔥 FIREBASE_FCM] Native FCM push successful! Message ID: ${response}`);
       return response;
     } catch (error) {
-      console.error("[NotificationService] Error sending notification:", error);
+      console.error("[🔥 FIREBASE_FCM] Error dispatching native FCM push:", error);
     }
   }
 
