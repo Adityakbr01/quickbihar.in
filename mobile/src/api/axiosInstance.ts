@@ -7,7 +7,7 @@ import { useAuthStore } from "../features/common/auth/store/authStore";
 // For Android emulator: 10.0.2.2
 // For iOS Simulator/Web: localhost
 export const LOCAL_URL = "http://10.147.135.27:8000";
-const PROD_URL = "https://quickbihar-in.onrender.com/api/v1";
+const PROD_URL = "https://quickbihar-server.onrender.com/api/v1";
 const BASE_URL = __DEV__ ? LOCAL_URL + "/api/v1" : PROD_URL;
 
 const axiosInstance = axios.create({
