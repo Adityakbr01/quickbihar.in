@@ -101,28 +101,31 @@ export class NotificationWorker {
             let successCount = 0;
             let failureCount = 0;
 
+            // Compute and optimize media URLs/deep links once for all channels
+            let generatedDeepLink = notification.deepLink || "";
+            if (!generatedDeepLink) {
+              if (notification.redirectType === "product" && notification.redirectId) {
+                generatedDeepLink = `quickbihar://product/${notification.redirectId}`;
+              } else if (notification.redirectType === "category" && notification.redirectId) {
+                generatedDeepLink = `quickbihar://category/${notification.redirectId}`;
+              } else if (notification.redirectType === "external" && notification.externalUrl) {
+                generatedDeepLink = notification.externalUrl;
+              }
+            }
+
+            let rawAttachmentUrl = notification.imageUrl || notification.richContent?.image;
+            if (rawAttachmentUrl && !rawAttachmentUrl.startsWith("https://")) {
+              console.warn(`[NotificationWorker] Invalid image URL (must be HTTPS): ${rawAttachmentUrl}`);
+              rawAttachmentUrl = undefined;
+            }
+            const attachmentUrl = optimizeNotificationImageUrl(rawAttachmentUrl);
+
             // Send via Google FCM
             if (fcmTokens.length > 0) {
               console.log(`[🔥 FIREBASE_FCM] Dispatching native FCM multicast to tokens:`, fcmTokens);
               const fcmChunks = chunkArray(fcmTokens, 500);
               for (const chunk of fcmChunks) {
                 try {
-                  let generatedDeepLink = notification.deepLink || "";
-                  if (!generatedDeepLink) {
-                    if (notification.redirectType === "product" && notification.redirectId) {
-                      generatedDeepLink = `quickbihar://product/${notification.redirectId}`;
-                    } else if (notification.redirectType === "category" && notification.redirectId) {
-                      generatedDeepLink = `quickbihar://category/${notification.redirectId}`;
-                    } else if (notification.redirectType === "external" && notification.externalUrl) {
-                      generatedDeepLink = notification.externalUrl;
-                    }
-                  }
-
-                  let attachmentUrl = notification.imageUrl || notification.richContent?.image;
-                  if (attachmentUrl && !attachmentUrl.startsWith("https://")) {
-                    console.warn(`[NotificationWorker] Invalid image URL (must be HTTPS): ${attachmentUrl}`);
-                    attachmentUrl = undefined;
-                  }
 
                   const message: any = {
                     tokens: chunk,
@@ -185,7 +188,7 @@ export class NotificationWorker {
                       payload: {
                         aps: {
                           sound: "default",
-                          ...(attachmentUrl ? { mutableContent: true } : {}),
+                          ...(attachmentUrl ? { "mutable-content": 1 } : {}),
                         },
                       },
                       headers: {
@@ -240,11 +243,11 @@ export class NotificationWorker {
                         notificationId: notification._id.toString(),
                         title: notification.title,
                         body: notification.description || notification.body || "",
-                        imageUrl: notification.imageUrl || notification.richContent?.image || "",
+                        imageUrl: attachmentUrl || "",
                         redirectType: notification.redirectType || "none",
                         redirectId: notification.redirectId || "",
                         externalUrl: notification.externalUrl || "",
-                        deepLink: notification.deepLink || "",
+                        deepLink: generatedDeepLink,
                         priority: notification.priority || "MEDIUM",
                         deliveryType: notification.deliveryType || "ALERT",
                       },
@@ -404,3 +407,23 @@ function getCategoryForButtonText(text?: string): string | undefined {
   
   return "PROMOTION_LEARN_MORE";
 }
+
+// Helper to optimize image URLs dynamically using ImageKit transformation parameters
+function optimizeNotificationImageUrl(url?: string): string | undefined {
+  if (!url || url.trim() === "") return undefined;
+  
+  // If the image is hosted on ImageKit, apply size, format, and quality optimizations
+  if (url.includes("ik.imagekit.io")) {
+    try {
+      const parsedUrl = new URL(url);
+      parsedUrl.searchParams.set("tr", "w-800,q-80,f-auto");
+      return parsedUrl.toString();
+    } catch (e) {
+      console.warn("[NotificationWorker] Failed to parse image URL for optimization:", e);
+      return url;
+    }
+  }
+  
+  return url;
+}
+
