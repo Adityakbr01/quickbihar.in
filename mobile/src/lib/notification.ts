@@ -21,6 +21,14 @@ export async function registerForPushNotificationsAsync() {
       vibrationPattern: [0, 250, 250, 250],
       lightColor: "#FF231F7C",
     });
+
+    await Notifications.setNotificationChannelAsync("promotions", {
+      name: "Promotions",
+      importance: Notifications.AndroidImportance.MAX,
+      vibrationPattern: [0, 250, 250, 250],
+      lightColor: "#FF231F7C",
+      lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
+    });
   }
 
   const { status: existingStatus } = await Notifications.getPermissionsAsync();
@@ -66,4 +74,84 @@ export async function initializeNotificationHandler() {
       shouldShowList: true,
     }),
   });
+
+  await Notifications.setNotificationCategoryAsync("PROMOTION_BUY_NOW", [
+    {
+      identifier: "BUY_NOW",
+      buttonTitle: "Buy Now",
+      options: { opensAppToForeground: true },
+    },
+  ]);
+
+  await Notifications.setNotificationCategoryAsync("PROMOTION_SHOP_NOW", [
+    {
+      identifier: "SHOP_NOW",
+      buttonTitle: "Shop Now",
+      options: { opensAppToForeground: true },
+    },
+  ]);
+
+  await Notifications.setNotificationCategoryAsync("PROMOTION_VIEW_DETAILS", [
+    {
+      identifier: "VIEW_DETAILS",
+      buttonTitle: "View Details",
+      options: { opensAppToForeground: true },
+    },
+  ]);
+
+  await Notifications.setNotificationCategoryAsync("PROMOTION_ORDER_NOW", [
+    {
+      identifier: "ORDER_NOW",
+      buttonTitle: "Order Now",
+      options: { opensAppToForeground: true },
+    },
+  ]);
+
+  await Notifications.setNotificationCategoryAsync("PROMOTION_CLAIM_OFFER", [
+    {
+      identifier: "CLAIM_OFFER",
+      buttonTitle: "Claim Offer",
+      options: { opensAppToForeground: true },
+    },
+  ]);
+
+  await Notifications.setNotificationCategoryAsync("PROMOTION_LEARN_MORE", [
+    {
+      identifier: "LEARN_MORE",
+      buttonTitle: "Learn More",
+      options: { opensAppToForeground: true },
+    },
+  ]);
+
+  await Notifications.setNotificationCategoryAsync("PROMOTION_OPEN_LINK", [
+    {
+      identifier: "OPEN_LINK",
+      buttonTitle: "Open Link",
+      options: { opensAppToForeground: true },
+    },
+  ]);
+
+  await Notifications.setNotificationCategoryAsync("PROMOTION_CHECK_IT_OUT", [
+    {
+      identifier: "CHECK_IT_OUT",
+      buttonTitle: "Check It Out",
+      options: { opensAppToForeground: true },
+    },
+  ]);
+
+  await Notifications.setNotificationCategoryAsync("PROMOTION_VIEW_PRODUCT", [
+    {
+      identifier: "VIEW_PRODUCT",
+      buttonTitle: "View Product",
+      options: { opensAppToForeground: true },
+    },
+  ]);
+
+  await Notifications.setNotificationCategoryAsync("PROMOTION_VIEW_ORDER", [
+    {
+      identifier: "VIEW_ORDER",
+      buttonTitle: "View Order",
+      options: { opensAppToForeground: true },
+    },
+  ]);
 }

@@ -85,6 +85,16 @@ export const createNotificationStyles = (theme: Theme) =>
       borderLeftWidth: 4,
       borderLeftColor: theme.primary,
     },
+    cardRich: {
+      paddingBottom: 16,
+    },
+    richBannerImage: {
+      width: "100%",
+      height: 160,
+      borderRadius: 8,
+      marginTop: 12,
+      backgroundColor: theme.secondaryBackground,
+    },
     notificationImage: {
       width: 50,
       height: 50,
@@ -169,5 +179,19 @@ export const createNotificationStyles = (theme: Theme) =>
     },
     backButton: {
       padding: 4,
+    },
+    richActionButton: {
+      width: "100%",
+      height: 38,
+      borderRadius: 19,
+      backgroundColor: theme.primary,
+      justifyContent: "center",
+      alignItems: "center",
+      marginTop: 12,
+    },
+    richActionButtonText: {
+      color: "#FFFFFF",
+      fontSize: 13,
+      fontWeight: "600",
     },
   });

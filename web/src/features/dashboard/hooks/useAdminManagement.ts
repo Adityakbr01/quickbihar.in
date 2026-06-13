@@ -890,10 +890,17 @@ export const useSettleRiderCod = () => {
   });
 };
 
-export const useAdminNotifications = () =>
+export const useAdminNotifications = (params?: {
+  search?: string;
+  status?: string;
+  priority?: string;
+  notificationType?: string;
+  sortBy?: string;
+  sortOrder?: string;
+}) =>
   useQuery({
-    queryKey: ["admin-notifications"],
-    queryFn: adminManagementApi.getNotificationHistory,
+    queryKey: ["admin-notifications", params],
+    queryFn: () => adminManagementApi.getNotificationHistory(params),
   });
 
 export const useSendNotification = () => {
@@ -902,8 +909,62 @@ export const useSendNotification = () => {
     mutationFn: adminManagementApi.sendNotification,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-notification-analytics"] });
       toast.success("Notification campaign sent successfully");
     },
     onError: (error: Error) => toast.error(error.message || "Failed to send notification"),
   });
 };
+
+export const useAdminNotificationDetails = (id: string) =>
+  useQuery({
+    queryKey: ["admin-notification-details", id],
+    queryFn: () => adminManagementApi.getNotificationDetails(id),
+    enabled: !!id,
+  });
+
+export const useUpdateAdminNotification = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: adminManagementApi.updateNotification,
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["admin-notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-notification-details", variables.id] });
+      queryClient.invalidateQueries({ queryKey: ["admin-notification-analytics"] });
+      toast.success("Notification campaign updated successfully");
+    },
+    onError: (error: Error) => toast.error(error.message || "Failed to update notification"),
+  });
+};
+
+export const useDeleteAdminNotification = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: adminManagementApi.deleteNotification,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-notification-analytics"] });
+      toast.success("Notification campaign deleted successfully");
+    },
+    onError: (error: Error) => toast.error(error.message || "Failed to delete notification"),
+  });
+};
+
+export const useResendAdminNotification = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: adminManagementApi.resendNotification,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-notification-analytics"] });
+      toast.success("Notification campaign queued for re-sending");
+    },
+    onError: (error: Error) => toast.error(error.message || "Failed to re-send notification"),
+  });
+};
+
+export const useNotificationAnalytics = () =>
+  useQuery({
+    queryKey: ["admin-notification-analytics"],
+    queryFn: adminManagementApi.getNotificationAnalytics,
+  });

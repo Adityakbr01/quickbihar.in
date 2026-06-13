@@ -17,6 +17,8 @@ export interface INotificationItem {
   externalUrl?: string;
   createdAt: string;
   isRead: boolean;
+  notificationType?: "NORMAL" | "RICH";
+  actionButtonText?: string;
 }
 
 export const useNotifications = () => {

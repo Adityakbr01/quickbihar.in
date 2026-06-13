@@ -1432,8 +1432,42 @@ export const adminManagementApi = {
     return response.data.data;
   },
 
-  getNotificationHistory: async (): Promise<any[]> => {
-    const response = await axiosInstance.get("/notifications/history");
+  getNotificationHistory: async (params?: {
+    search?: string;
+    status?: string;
+    priority?: string;
+    notificationType?: string;
+    sortBy?: string;
+    sortOrder?: string;
+  }): Promise<any[]> => {
+    const response = await axiosInstance.get("/notifications/history", { params });
+    return response.data.data;
+  },
+
+  getNotificationDetails: async (id: string): Promise<any> => {
+    const response = await axiosInstance.get(`/notifications/${id}`);
+    return response.data.data;
+  },
+
+  updateNotification: async ({ id, payload }: { id: string; payload: FormData | any }): Promise<any> => {
+    const response = await axiosInstance.patch(`/notifications/${id}`, payload, {
+      headers: payload instanceof FormData ? { "Content-Type": "multipart/form-data" } : undefined,
+    });
+    return response.data.data;
+  },
+
+  deleteNotification: async (id: string): Promise<any> => {
+    const response = await axiosInstance.delete(`/notifications/${id}`);
+    return response.data.data;
+  },
+
+  resendNotification: async (id: string): Promise<any> => {
+    const response = await axiosInstance.post(`/notifications/${id}/resend`);
+    return response.data.data;
+  },
+
+  getNotificationAnalytics: async (): Promise<any> => {
+    const response = await axiosInstance.get("/notifications/analytics");
     return response.data.data;
   },
 };

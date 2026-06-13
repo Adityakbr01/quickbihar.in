@@ -1,8 +1,7 @@
 import axios from "axios";
 
-// Since this is the Web app running on host machine, and server is on localhost:8000
 const axiosInstance = axios.create({
-  baseURL: "http://localhost:8000/api/v1",
+  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1",
   timeout: 10000,
   headers: {
     "Content-Type": "application/json",

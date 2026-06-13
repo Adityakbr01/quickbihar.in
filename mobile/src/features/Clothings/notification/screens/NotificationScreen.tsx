@@ -86,13 +86,19 @@ const NotificationScreen = () => {
   };
 
   const renderNotificationItem = ({ item }: { item: INotificationItem }) => {
+    const isRich = item.notificationType === "RICH" && !!item.imageUrl;
+
     return (
       <TouchableOpacity
-        style={[styles.card, !item.isRead && styles.cardUnread]}
+        style={[
+          styles.card,
+          !item.isRead && styles.cardUnread,
+          isRich && styles.cardRich,
+        ]}
         onPress={() => handleNotificationPress(item)}
         activeOpacity={0.7}
       >
-        {item.imageUrl ? (
+        {item.imageUrl && !isRich ? (
           <Image
             source={{ uri: item.imageUrl }}
             style={styles.notificationImage}
@@ -123,6 +129,24 @@ const NotificationScreen = () => {
           <Text style={styles.description} numberOfLines={3}>
             {item.description}
           </Text>
+          {isRich && item.imageUrl && (
+            <Image
+              source={{ uri: item.imageUrl }}
+              style={styles.richBannerImage}
+              resizeMode="cover"
+            />
+          )}
+          {isRich && item.redirectType !== "none" && (
+            <TouchableOpacity
+              style={styles.richActionButton}
+              onPress={() => handleNotificationPress(item)}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.richActionButtonText}>
+                {item.actionButtonText || (item.redirectType === "product" ? "Buy Now!" : "View Details")}
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         {!item.isRead && <View style={styles.unreadDot} />}

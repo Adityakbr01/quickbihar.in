@@ -3,7 +3,6 @@ import { verifyJWT } from "../../middlewares/auth.middleware";
 import { NotificationController } from "./notification.controller";
 import { RoleEnum } from "../rbac/rbac.types";
 import { ApiError } from "../../utils/ApiError";
-
 import { upload } from "../../middlewares/multer.middleware";
 
 const router = Router();
@@ -24,13 +23,35 @@ const isAdminOrSuperAdmin = (req: Request, res: Response, next: NextFunction) =>
   }
 };
 
-// 📣 Admin endpoints
-router.post("/send", verifyJWT, isAdminOrSuperAdmin, upload.single("image"), NotificationController.sendNotification);
-router.get("/history", verifyJWT, isAdminOrSuperAdmin, NotificationController.getNotificationHistory);
+// 📣 Static / Specific Endpoints First
 
-// 📱 Client endpoints (User / Rider / Seller inbox)
+// GET Endpoints
+router.get("/history", verifyJWT, isAdminOrSuperAdmin, NotificationController.getNotificationHistory);
+router.get("/analytics", verifyJWT, isAdminOrSuperAdmin, NotificationController.getNotificationAnalytics);
 router.get("/user", verifyJWT, NotificationController.getUserNotifications);
+
+// POST Endpoints
+router.post("/send", verifyJWT, isAdminOrSuperAdmin, upload.single("image"), NotificationController.sendNotification);
+
+// PATCH Endpoints
 router.patch("/read-all", verifyJWT, NotificationController.markAllAsRead);
+
+
+// 📣 Dynamic / Parameterized Endpoints Last (to prevent route clashing)
+
+// GET Dynamic
+router.get("/:id", verifyJWT, isAdminOrSuperAdmin, NotificationController.getNotificationDetails);
+
+// POST Dynamic
+router.post("/:id/resend", verifyJWT, isAdminOrSuperAdmin, NotificationController.resendNotification);
+
+// PATCH Dynamic
 router.patch("/:id/read", verifyJWT, NotificationController.markAsRead);
+router.patch("/:id/delivered", verifyJWT, NotificationController.reportDelivery);
+router.patch("/:id/opened", verifyJWT, NotificationController.reportOpen);
+router.patch("/:id", verifyJWT, isAdminOrSuperAdmin, upload.single("image"), NotificationController.updateNotification);
+
+// DELETE Dynamic
+router.delete("/:id", verifyJWT, isAdminOrSuperAdmin, NotificationController.deleteNotification);
 
 export default router;

@@ -104,6 +104,11 @@ export class SocketService {
       socket.join(`user:${userId}`);
       console.log(`[SocketService] User ${userId} joined room: user_${userId}`);
 
+      if (roleName) {
+        socket.join(`role_${roleName.toLowerCase()}`);
+        console.log(`[SocketService] User ${userId} joined role room: role_${roleName.toLowerCase()}`);
+      }
+
       if (roleName === "ADMIN" || roleName === "SUPER_ADMIN") {
         socket.join("admins");
         socket.join("admin");

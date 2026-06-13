@@ -6,16 +6,24 @@ export enum TargetType {
   SPECIFIC = "SPECIFIC",
 }
 
-export enum DeliveryType {
+export enum DeliveryChannel {
   IN_APP = "IN_APP",
   FCM = "FCM",
   BOTH = "BOTH",
 }
 
+export enum DeliveryType {
+  ALERT = "ALERT",
+  SILENT = "SILENT",
+  LIVE_ACTIVITY = "LIVE_ACTIVITY",
+}
+
 export enum NotificationStatus {
   PENDING = "PENDING",
   PROCESSING = "PROCESSING",
-  COMPLETED = "COMPLETED",
+  SENT = "SENT",
+  DELIVERED = "DELIVERED",
+  OPENED = "OPENED",
   FAILED = "FAILED",
 }
 
@@ -33,11 +41,27 @@ export enum RedirectType {
   EXTERNAL = "external",
 }
 
+export enum NotificationType {
+  NORMAL = "NORMAL",
+  RICH = "RICH",
+}
+
+export enum Priority {
+  HIGH = "HIGH",
+  MEDIUM = "MEDIUM",
+  LOW = "LOW",
+}
+
 export interface INotification extends Document {
   title: string;
   description: string;
+  body?: string;
   imageUrl?: string;
+  richContent?: {
+    image?: string;
+  };
   channel: NotificationChannel;
+  deliveryChannel: DeliveryChannel;
   deliveryType: DeliveryType;
   targetType: TargetType;
   targetRole?: string;
@@ -46,6 +70,17 @@ export interface INotification extends Document {
   redirectType: RedirectType;
   redirectId?: string;
   externalUrl?: string;
+  deepLink?: string;
+  scheduledAt?: Date;
+  expiresAt?: Date;
+  notificationType: NotificationType;
+  priority: Priority;
+  actionButtonText?: string;
+  sentCount: number;
+  deliveryCount: number;
+  openCount: number;
+  failedCount: number;
+  jobId?: string;
   error?: string;
   createdAt: Date;
   updatedAt: Date;
@@ -63,9 +98,19 @@ const notificationSchema = new Schema<INotification>(
       required: true,
       trim: true,
     },
+    body: {
+      type: String,
+      trim: true,
+    },
     imageUrl: {
       type: String,
       trim: true,
+    },
+    richContent: {
+      image: {
+        type: String,
+        trim: true,
+      },
     },
     channel: {
       type: String,
@@ -74,10 +119,17 @@ const notificationSchema = new Schema<INotification>(
       trim: true,
       index: true,
     },
+    deliveryChannel: {
+      type: String,
+      enum: Object.values(DeliveryChannel),
+      default: DeliveryChannel.BOTH,
+      index: true,
+    },
     deliveryType: {
       type: String,
       enum: Object.values(DeliveryType),
-      required: true,
+      default: DeliveryType.ALERT,
+      index: true,
     },
     targetType: {
       type: String,
@@ -115,6 +167,53 @@ const notificationSchema = new Schema<INotification>(
       type: String,
       trim: true,
     },
+    deepLink: {
+      type: String,
+      trim: true,
+    },
+    scheduledAt: {
+      type: Date,
+      index: true,
+    },
+    expiresAt: {
+      type: Date,
+    },
+    notificationType: {
+      type: String,
+      enum: Object.values(NotificationType),
+      default: NotificationType.NORMAL,
+      index: true,
+    },
+    actionButtonText: {
+      type: String,
+      trim: true,
+    },
+    priority: {
+      type: String,
+      enum: Object.values(Priority),
+      default: Priority.MEDIUM,
+      index: true,
+    },
+    sentCount: {
+      type: Number,
+      default: 0,
+    },
+    deliveryCount: {
+      type: Number,
+      default: 0,
+    },
+    openCount: {
+      type: Number,
+      default: 0,
+    },
+    failedCount: {
+      type: Number,
+      default: 0,
+    },
+    jobId: {
+      type: String,
+      trim: true,
+    },
     error: {
       type: String,
     },
@@ -124,4 +223,20 @@ const notificationSchema = new Schema<INotification>(
   }
 );
 
+// Pre-validate hook to automatically migrate legacy database records on save
+notificationSchema.pre("validate", function (next) {
+  const doc = this as any;
+  if (["BOTH", "IN_APP", "FCM"].includes(doc.deliveryType)) {
+    doc.deliveryChannel = doc.deliveryType;
+    doc.deliveryType = "ALERT";
+  }
+  if (doc.status === "COMPLETED") {
+    doc.status = "SENT";
+  }
+  if (typeof next === "function") {
+    next();
+  }
+});
+
 export const Notification = mongoose.model<INotification>("Notification", notificationSchema);
+

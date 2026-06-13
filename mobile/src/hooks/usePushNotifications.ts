@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { Linking } from "react-native";
 import * as SecureStore from "expo-secure-store";
 import * as Device from "expo-device";
 import Constants from "expo-constants";
@@ -30,18 +31,60 @@ export const usePushNotifications = () => {
         responseSubscription = Notifications.addNotificationResponseReceivedListener((response) => {
           console.log("[usePushNotifications] Notification clicked/interacted:", response);
           const data = response?.notification?.request?.content?.data;
+          const actionIdentifier = response.actionIdentifier;
+
           if (data) {
-            const { redirectType, redirectId, externalUrl } = data;
-            console.log(`[usePushNotifications] Handling click redirect: type=${redirectType}, id=${redirectId}, url=${externalUrl}`);
+            const { redirectType, redirectId, externalUrl, deepLink } = data as {
+              redirectType?: string;
+              redirectId?: string;
+              externalUrl?: string;
+              deepLink?: string;
+            };
+            console.log(`[usePushNotifications] Handling click redirect: type=${redirectType}, id=${redirectId}, url=${externalUrl}, deepLink=${deepLink}, action=${actionIdentifier}`);
             
-            if (redirectType === "product" && redirectId) {
-              router.push(`/product/${redirectId}` as any);
-            } else if (redirectType === "category" && redirectId) {
-              router.push(`/mall` as any);
-            } else if (redirectType === "external" && externalUrl) {
-              import("expo-web-browser").then((WebBrowser) => {
-                WebBrowser.openBrowserAsync(externalUrl);
-              });
+            const promoActions = [
+              "BUY_NOW",
+              "SHOP_NOW",
+              "VIEW_DETAILS",
+              "ORDER_NOW",
+              "CLAIM_OFFER",
+              "LEARN_MORE",
+              "OPEN_LINK",
+              "CHECK_IT_OUT",
+              "VIEW_PRODUCT",
+              "VIEW_ORDER"
+            ];
+            const isPromoAction = promoActions.includes(actionIdentifier);
+            if (isPromoAction || actionIdentifier === "default") {
+              const fallbackRouting = () => {
+                if (redirectType === "product" && redirectId) {
+                  router.push(`/product/${redirectId}` as any);
+                } else if (redirectType === "category" && redirectId) {
+                  router.push(`/mall` as any);
+                } else if (redirectType === "external" && externalUrl) {
+                  import("expo-web-browser").then((WebBrowser) => {
+                    WebBrowser.openBrowserAsync(externalUrl);
+                  });
+                }
+              };
+
+              if (deepLink) {
+                Linking.canOpenURL(deepLink).then((supported) => {
+                  if (supported) {
+                    Linking.openURL(deepLink).catch((err) => {
+                      console.error("[usePushNotifications] Failed to open deepLink, using local routing:", err);
+                      fallbackRouting();
+                    });
+                  } else {
+                    console.warn("[usePushNotifications] Deep link scheme not supported locally, using local routing:", deepLink);
+                    fallbackRouting();
+                  }
+                });
+                return;
+              }
+
+              // Fallback to legacy app routing directly if no deepLink
+              fallbackRouting();
             }
           }
         });

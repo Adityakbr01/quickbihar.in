@@ -8,8 +8,8 @@ import { Toaster } from "@/components/ui/sonner";
 const spaceGrotesk = Space_Grotesk({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "QuickBihar | Admin Portal",
-  description: "Administrative dashboard for QuickBihar.in",
+  title: "QuickBihar - Bihar's Fastest Growing E-Commerce Platform",
+  description: "Shop online with QuickBihar.in — best prices, fastest delivery across Bihar.",
 };
 
 export default function RootLayout({
