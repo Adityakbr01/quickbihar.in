@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, FlatList, ActivityIndicator, Modal, TextInput, ScrollView, Switch } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Modal, TextInput, ScrollView, Switch } from "react-native";
+import { FlashList } from "@shopify/flash-list";
 import { useRouter } from "expo-router";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { HugeiconsIcon } from "@hugeicons/react-native";
@@ -152,7 +153,7 @@ const RefundPolicyAdminScreen = () => {
       {isLoading ? (
         <ActivityIndicator style={{ flex: 1 }} color={theme.primary} />
       ) : (
-        <FlatList
+        <FlashList
           data={policies?.data}
           keyExtractor={(item) => item._id}
           contentContainerStyle={{ padding: 20 }}

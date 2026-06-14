@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Alert } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert } from "react-native";
+import { FlashList } from "@shopify/flash-list";
 import IOSAlertDialog from "@/src/components/ui/IOSAlertDialog";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { Add01Icon, ArrowLeft01Icon, Coupon02Icon } from "@hugeicons/core-free-icons";
@@ -76,7 +77,7 @@ const CouponManagementScreen = () => {
         </TouchableOpacity>
       </View>
 
-      <FlatList
+      <FlashList
         data={coupons}
         keyExtractor={(item) => item._id}
         renderItem={({ item }) => (

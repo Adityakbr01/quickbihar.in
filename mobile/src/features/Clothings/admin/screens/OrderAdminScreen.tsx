@@ -4,11 +4,11 @@ import {
   Text,
   TouchableOpacity,
   ActivityIndicator,
-  FlatList,
   Modal,
   TextInput,
   Platform,
 } from "react-native";
+import { FlashList } from "@shopify/flash-list";
 import { useRouter } from "expo-router";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { HugeiconsIcon } from "@hugeicons/react-native";
@@ -204,7 +204,7 @@ const OrderAdminScreen = () => {
 
         {/* Status Tabs */}
         <View style={styles.filterTabs}>
-          <FlatList
+          <FlashList
             data={["ALL", "PENDING_PAYMENT", "CONFIRMED", "SHIPPED", "DELIVERED", "REJECTED", "CANCELLED"]}
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -233,7 +233,7 @@ const OrderAdminScreen = () => {
             <ActivityIndicator size="large" color={theme.primary} />
           </View>
         ) : (
-          <FlatList
+          <FlashList
             data={filteredOrders}
             renderItem={renderOrderItem}
             keyExtractor={(item) => item._id}

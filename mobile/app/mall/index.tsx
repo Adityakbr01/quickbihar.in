@@ -2,7 +2,6 @@ import React, { useState, useMemo } from "react";
 import {
   View,
   Text,
-  FlatList,
   TextInput,
   TouchableOpacity,
   Image,
@@ -11,6 +10,7 @@ import {
   RefreshControl,
   Dimensions,
 } from "react-native";
+import { FlashList } from "@shopify/flash-list";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter, Stack } from "expo-router";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
@@ -115,7 +115,7 @@ export default function AllMallsScreen() {
         </View>
       </View>
 
-      <FlatList
+      <FlashList
         data={filteredMalls}
         keyExtractor={(item) => item.id || item._id}
         contentContainerStyle={styles.listContent}

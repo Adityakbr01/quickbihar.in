@@ -11,8 +11,8 @@ import {
   Dimensions,
   Share,
   Linking,
-  FlatList,
 } from "react-native";
+import { FlashList } from "@shopify/flash-list";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
@@ -125,7 +125,7 @@ const MallDetailScreen: React.FC<MallDetailScreenProps> = ({ id }) => {
       <ScrollView style={[styles.container, { backgroundColor: theme.background }]} showsVerticalScrollIndicator={false}>
         {/* Cover Image Slider & Header */}
         <View style={styles.heroContainer}>
-          <FlatList
+          <FlashList
             data={mallImages}
             horizontal
             pagingEnabled
@@ -136,7 +136,7 @@ const MallDetailScreen: React.FC<MallDetailScreenProps> = ({ id }) => {
               const index = Math.round(event.nativeEvent.contentOffset.x / slideSize);
               setActiveImageIndex(index);
             }}
-            renderItem={({ item }) => (
+            renderItem={({ item }: { item: any }) => (
               <Image source={{ uri: item.url }} style={[styles.coverImage, { width: SCREEN_WIDTH }]} resizeMode="cover" />
             )}
           />

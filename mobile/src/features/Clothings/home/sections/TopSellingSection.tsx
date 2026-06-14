@@ -2,13 +2,13 @@ import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import LottieView from "lottie-react-native";
 import React from "react";
 import {
-  FlatList,
   Platform,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+import { FlashList } from "@shopify/flash-list";
 import { ProductCard } from "../components/ProductCard";
 import { ProductCardSkeleton } from "../components/ProductCardSkeleton";
 import { createTopSellingSectionStyles } from "../style/TopSellingSection.style";
@@ -107,7 +107,7 @@ const TopSellingSection = () => {
           <Text style={styles.seeAll}>See All</Text>
         </TouchableOpacity>
       </View>
-      <FlatList
+      <FlashList
         data={(trendingProducts.data || []).slice(0, 10)}
         renderItem={({ item }) => <ProductCard item={item} />}
         keyExtractor={(item: any) => item._id || item.id}

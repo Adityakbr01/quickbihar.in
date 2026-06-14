@@ -1,5 +1,6 @@
 import React, { memo, useCallback } from "react";
-import { FlatList, TouchableOpacity, Text, StyleSheet, View } from "react-native";
+import { TouchableOpacity, Text, StyleSheet, View } from "react-native";
+import { FlashList } from "@shopify/flash-list";
 
 interface BadgeSelectorProps {
     options: string[];
@@ -35,7 +36,7 @@ const BadgeSelector = ({ options, value, onChange, theme, styles, formatLabel, e
 
     return (
         <View>
-            <FlatList
+            <FlashList
                 data={options}
                 renderItem={renderItem}
                 keyExtractor={(item) => item}

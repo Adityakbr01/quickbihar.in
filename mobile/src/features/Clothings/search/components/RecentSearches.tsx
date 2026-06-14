@@ -2,12 +2,12 @@ import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import React from "react";
 import {
-  FlatList,
   Pressable,
   StyleSheet,
   Text,
   View,
 } from "react-native";
+import { FlashList } from "@shopify/flash-list";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 
 interface RecentSearchesProps {
@@ -36,7 +36,7 @@ const RecentSearches = ({
         </Pressable>
       </View>
 
-      <FlatList
+      <FlashList
         data={history}
         keyExtractor={(item) => item}
         renderItem={({ item }) => (

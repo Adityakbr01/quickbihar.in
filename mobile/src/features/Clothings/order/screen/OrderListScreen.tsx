@@ -2,11 +2,11 @@ import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
-  FlatList,
   TouchableOpacity,
   ActivityIndicator,
   RefreshControl,
 } from "react-native";
+import { FlashList } from "@shopify/flash-list";
 import { useRouter, Stack } from "expo-router";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
@@ -218,7 +218,7 @@ const OrderListScreen = () => {
           <View style={{ width: 44 }} />
         </View>
 
-        <FlatList
+        <FlashList
           data={orders}
           renderItem={renderOrderItem}
           keyExtractor={(item) => item._id}

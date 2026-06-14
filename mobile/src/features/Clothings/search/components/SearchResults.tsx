@@ -1,6 +1,5 @@
 import React from "react";
 import {
-  FlatList,
   StyleSheet,
   Text,
   View,
@@ -8,6 +7,7 @@ import {
   Dimensions,
   ActivityIndicator,
 } from "react-native";
+import { FlashList } from "@shopify/flash-list";
 import { Ionicons } from "@expo/vector-icons";
 import { Image as ExpoImage } from "expo-image";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
@@ -68,18 +68,25 @@ const SearchResults = ({
   };
 
   return (
-    <FlatList
+    <FlashList
       data={results}
       keyExtractor={(item) => item._id}
       numColumns={2}
       contentContainerStyle={styles.listContent}
-      columnWrapperStyle={styles.columnWrapper}
       onEndReached={onEndReached}
       onEndReachedThreshold={0.5}
       ListFooterComponent={renderFooter}
-      renderItem={({ item }) => (
+      renderItem={({ item, index }) => (
         <Pressable
-          style={[styles.productCard, { backgroundColor: theme.background }]}
+          style={[
+            styles.productCard,
+            {
+              backgroundColor: theme.background,
+              marginBottom: 16,
+              marginLeft: index % 2 === 0 ? 0 : 8,
+              marginRight: index % 2 === 0 ? 8 : 0,
+            },
+          ]}
           onPress={() => onItemPress(item._id)}
         >
           <View style={styles.imageContainer}>

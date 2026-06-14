@@ -1,5 +1,6 @@
 import React from "react";
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from "react-native";
+import { FlashList } from "@shopify/flash-list";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { Theme, useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { ISizeChart } from "../types/sizeChart.types";
@@ -56,7 +57,7 @@ const SizeChartList = ({ charts, onEdit, onDelete, loading }: SizeChartListProps
   );
 
   return (
-    <FlatList
+    <FlashList
       data={charts}
       keyExtractor={(item) => item._id}
       renderItem={renderItem}

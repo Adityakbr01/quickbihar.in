@@ -34,7 +34,7 @@ export const RegisterForm: React.FC<AuthFormProps & { register: any }> = ({
     setApiError(null);
     setApiSuccess(null);
     register(data, {
-      onSuccess: (response) => {
+      onSuccess: (response: any) => {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         setOtpEmail(data.email);
         switchMode("otp");
