@@ -61,6 +61,10 @@ const TopHomeCarousel = () => {
           onProgressChange={(_, absoluteProgress) => {
             progressValue.value = absoluteProgress;
           }}
+          onConfigurePanGesture={(gesture) => {
+            "worklet";
+            gesture.activeOffsetX([-10, 10]);
+          }}
           renderItem={({ item, index }) => (
             <CarouselSlide item={item} index={index} />
           )}

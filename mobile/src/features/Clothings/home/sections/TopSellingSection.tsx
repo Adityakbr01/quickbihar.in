@@ -114,7 +114,8 @@ const TopSellingSection = () => {
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.listContent}
-        snapToInterval={210 + gap} // Exact physical bounds from card width (210) + gap (16)
+        ItemSeparatorComponent={() => <View style={{ width: 16 }} />}
+        snapToInterval={240 + 16}
         decelerationRate="fast"
       />
     </View>

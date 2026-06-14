@@ -69,6 +69,7 @@ const TopMallSection = () => {
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.listContent}
+        ItemSeparatorComponent={() => <View style={{ width: 16 }} />}
         snapToInterval={cardWidth + gap}
         decelerationRate="fast"
       />
