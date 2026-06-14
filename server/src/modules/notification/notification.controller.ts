@@ -163,7 +163,7 @@ export class NotificationController {
    * 📜 Admin: Get notification history with advanced filters, search, and pagination
    */
   static getNotificationHistory = asyncHandler(async (req: Request, res: Response) => {
-    const { search, status, priority, notificationType, sortBy, sortOrder } = req.query;
+    const { search, status, priority, notificationType, sortBy, sortOrder, page, limit } = req.query;
 
     const query: any = {};
 
@@ -189,11 +189,35 @@ export class NotificationController {
     const sortField = (sortBy as string) || "createdAt";
     const sortDir = sortOrder === "asc" ? 1 : -1;
 
-    const history = await Notification.find(query)
-      .populate("targetUser", "fullName email username avatar")
-      .sort({ [sortField]: sortDir });
+    const pageNum = parseInt(page as string, 10) || 1;
+    const limitNum = parseInt(limit as string, 10) || 10;
+    const skipNum = (pageNum - 1) * limitNum;
 
-    res.status(200).json(new ApiResponse(200, history, "Notification history retrieved successfully"));
+    const [data, total] = await Promise.all([
+      Notification.find(query)
+        .populate("targetUser", "fullName email username avatar")
+        .sort({ [sortField]: sortDir })
+        .skip(skipNum)
+        .limit(limitNum)
+        .lean(),
+      Notification.countDocuments(query)
+    ]);
+
+    const totalPages = Math.max(1, Math.ceil(total / limitNum));
+
+    res.status(200).json(
+      new ApiResponse(
+        200,
+        {
+          data,
+          total,
+          page: pageNum,
+          limit: limitNum,
+          totalPages
+        },
+        "Notification history retrieved successfully"
+      )
+    );
   });
 
   /**
@@ -347,6 +371,15 @@ export class NotificationController {
         } else if (notification.targetUser) {
           socketService.emitToUser(notification.targetUser.toString(), "notification_updated", socketPayload);
         }
+
+        // Queue background push notification updates for Live Activities to update system lock screens
+        if (notification.deliveryType === DeliveryType.LIVE_ACTIVITY) {
+          console.log(`[NotificationController] Queueing campaign update push for Live Activity ${notification._id}`);
+          await notificationQueue.add(
+            "sendNotification",
+            { notificationId: notification._id.toString(), isUpdate: true }
+          );
+        }
       }
     }
 
@@ -387,6 +420,38 @@ export class NotificationController {
     await NotificationTrack.deleteMany({ notificationId: id });
 
     res.status(200).json(new ApiResponse(200, null, "Notification campaign deleted successfully"));
+  });
+
+  /**
+   * 📣 Admin: Batch delete notification campaigns
+   */
+  static batchDeleteNotifications = asyncHandler(async (req: Request, res: Response) => {
+    const { ids } = req.body;
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+      throw new ApiError(400, "Invalid or empty campaign IDs provided");
+    }
+
+    // Find all notifications to be deleted
+    const notifications = await Notification.find({ _id: { $in: ids } });
+
+    // Cleanup pending jobs in BullMQ
+    for (const notif of notifications) {
+      if (notif.jobId && notif.status === NotificationStatus.PENDING) {
+        try {
+          const job = await notificationQueue.getJob(notif.jobId);
+          if (job) await job.remove();
+        } catch (jobErr) {
+          console.error(`Error removing BullMQ job for notification ${notif._id}:`, jobErr);
+        }
+      }
+    }
+
+    // Perform database deletion
+    await Notification.deleteMany({ _id: { $in: ids } });
+    await NotificationRead.deleteMany({ notificationId: { $in: ids } });
+    await NotificationTrack.deleteMany({ notificationId: { $in: ids } });
+
+    res.status(200).json(new ApiResponse(200, null, `${ids.length} notification campaigns deleted successfully`));
   });
 
   /**

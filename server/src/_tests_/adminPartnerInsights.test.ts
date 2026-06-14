@@ -367,7 +367,7 @@ describe("AdminService partner insights", () => {
     expect(result.summary.paidPayoutAmount).toBe(300);
     expect(result.summary.pendingPayoutAmount).toBe(100);
     expect(result.inventory.totalProducts).toBe(7);
-    expect(result.productPerformance[0].title).toBe("Kurta");
+    expect(result.productPerformance![0]!.title).toBe("Kurta");
     expect(result.transactions.map((row: any) => row.type)).toContain("EARNING");
     expect(result.transactions.map((row: any) => row.type)).toContain("PAYOUT");
 
@@ -425,7 +425,7 @@ describe("AdminService partner insights", () => {
     expect(result.summary.collectedCodLiability).toBe(250);
     expect(result.summary.pendingPayoutAmount).toBe(150);
     expect(result.riderPerformance.codCollected).toBe(900);
-    expect(result.codSettlements[0].referenceId).toBe("CASH-1");
+    expect(result.codSettlements![0]!.referenceId).toBe("CASH-1");
     expect(result.transactions.map((row: any) => row.type)).toContain("COD_SETTLEMENT");
     expect(result.transactions.map((row: any) => row.type)).toContain("EARNING");
 

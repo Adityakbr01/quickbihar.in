@@ -897,11 +897,26 @@ export const useAdminNotifications = (params?: {
   notificationType?: string;
   sortBy?: string;
   sortOrder?: string;
+  page?: number;
+  limit?: number;
 }) =>
   useQuery({
     queryKey: ["admin-notifications", params],
     queryFn: () => adminManagementApi.getNotificationHistory(params),
   });
+
+export const useBatchDeleteNotifications = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: adminManagementApi.batchDeleteNotifications,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-notification-analytics"] });
+      toast.success("Selected notifications deleted successfully");
+    },
+    onError: (error: Error) => toast.error(error.message || "Failed to delete notifications"),
+  });
+};
 
 export const useSendNotification = () => {
   const queryClient = useQueryClient();

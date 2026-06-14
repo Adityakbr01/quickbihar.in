@@ -51,6 +51,7 @@ import {
   useDeleteAdminNotification,
   useResendAdminNotification,
   useNotificationAnalytics,
+  useBatchDeleteNotifications,
 } from "../../hooks/useAdminManagement";
 import {
   useAdminCategories,
@@ -75,6 +76,12 @@ export function NotificationManagementPanel() {
   const [filterPriority, setFilterPriority] = useState("all");
   const [filterType, setFilterType] = useState("all");
   const [sortOrder, setSortOrder] = useState("desc");
+
+  // Pagination & selection state
+  const [page, setPage] = useState(1);
+  const [limit] = useState(10);
+  const [selectedCampaigns, setSelectedCampaigns] = useState<string[]>([]);
+  const [isBatchDeleteOpen, setIsBatchDeleteOpen] = useState(false);
 
   // Dialog open controls
   const [isSendOpen, setIsSendOpen] = useState(false);
@@ -117,6 +124,12 @@ export function NotificationManagementPanel() {
   const [editStatus, setEditStatus] = useState("");
   const [priority, setPriority] = useState("MEDIUM");
 
+  // Reset page and selection when filters change
+  useEffect(() => {
+    setPage(1);
+    setSelectedCampaigns([]);
+  }, [search, filterStatus, filterPriority, filterType, sortOrder]);
+
   // React Query Hooks
   const notificationsQuery = useAdminNotifications({
     search: search || undefined,
@@ -125,6 +138,8 @@ export function NotificationManagementPanel() {
     notificationType: filterType === "all" ? undefined : filterType,
     sortBy: "createdAt",
     sortOrder: sortOrder,
+    page,
+    limit,
   });
 
   const analyticsQuery = useNotificationAnalytics();
@@ -132,6 +147,7 @@ export function NotificationManagementPanel() {
   const updateMutation = useUpdateAdminNotification();
   const deleteMutation = useDeleteAdminNotification();
   const resendMutation = useResendAdminNotification();
+  const batchDeleteMutation = useBatchDeleteNotifications();
 
   // Autocomplete Queries
   const categoriesQuery = useAdminCategories({ page: 1, limit: 100, sortBy: "title", sortOrder: "asc" });
@@ -142,7 +158,33 @@ export function NotificationManagementPanel() {
   const products = productsQuery.data?.data || [];
   const candidates = peopleQuery.data || [];
 
-  const history = notificationsQuery.data || [];
+  const notificationsData = notificationsQuery.data || { data: [], total: 0, page: 1, limit: 10, totalPages: 1 };
+  const history = notificationsData.data || [];
+
+  // Selection handlers
+  const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.checked) {
+      setSelectedCampaigns(history.map((item: any) => item._id));
+    } else {
+      setSelectedCampaigns([]);
+    }
+  };
+
+  const handleSelectCampaign = (id: string) => {
+    setSelectedCampaigns((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
+
+  const handleBatchDelete = async () => {
+    batchDeleteMutation.mutate(selectedCampaigns, {
+      onSuccess: () => {
+        setSelectedCampaigns([]);
+        setIsBatchDeleteOpen(false);
+        analyticsQuery.refetch();
+      },
+    });
+  };
   const analytics = analyticsQuery.data || {
     totalCampaigns: 0,
     sentCount: 0,
@@ -600,6 +642,17 @@ export function NotificationManagementPanel() {
             <RefreshCw className="h-3.5 w-3.5" />
           </Button>
 
+          {selectedCampaigns.length > 0 && (
+            <Button
+              onClick={() => setIsBatchDeleteOpen(true)}
+              variant="destructive"
+              className="bg-red-600 hover:bg-red-700 text-white h-9"
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Delete Selected ({selectedCampaigns.length})
+            </Button>
+          )}
+
           <Button
             onClick={openCompose}
             className="bg-primary hover:bg-primary/95 text-white h-9"
@@ -624,6 +677,19 @@ export function NotificationManagementPanel() {
               <Table>
                 <TableHeader>
                   <TableRow className="border-white/5 hover:bg-transparent">
+                    <TableHead className="w-[40px] pl-6 pr-0">
+                      <input
+                        type="checkbox"
+                        checked={history.length > 0 && selectedCampaigns.length === history.length}
+                        ref={(input) => {
+                          if (input) {
+                            input.indeterminate = selectedCampaigns.length > 0 && selectedCampaigns.length < history.length;
+                          }
+                        }}
+                        onChange={handleSelectAll}
+                        className="rounded border-white/20 bg-white/5 text-primary focus:ring-0 cursor-pointer"
+                      />
+                    </TableHead>
                     <TableHead className="px-4 text-gray-400 font-semibold text-xs">Details</TableHead>
                     <TableHead className="text-gray-400 font-semibold text-xs">Message</TableHead>
                     <TableHead className="text-gray-400 font-semibold text-xs">Delivery Channel</TableHead>
@@ -635,16 +701,25 @@ export function NotificationManagementPanel() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {history.map((item) => {
+                  {history.map((item: any) => {
                     const deliveryPct = item.sentCount > 0 ? Math.round((item.deliveryCount / item.sentCount) * 100) : 0;
                     const openPct = item.deliveryCount > 0 ? Math.round((item.openCount / item.deliveryCount) * 100) : 0;
                     const isSilent = item.deliveryType === "SILENT";
 
+                    const isChecked = selectedCampaigns.includes(item._id);
                     return (
                       <TableRow
                         key={item._id}
-                        className="border-white/5 hover:bg-white/[0.02] transition-colors"
+                        className={`border-white/5 hover:bg-white/[0.02] transition-colors ${isChecked ? "bg-white/[0.01]" : ""}`}
                       >
+                        <TableCell className="pl-6 pr-0">
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={() => handleSelectCampaign(item._id)}
+                            className="rounded border-white/20 bg-white/5 text-primary focus:ring-0 cursor-pointer"
+                          />
+                        </TableCell>
                         <TableCell className="px-4">
                           <div className="flex items-center gap-3">
                             {item.imageUrl || item.richContent?.image ? (
@@ -780,6 +855,58 @@ export function NotificationManagementPanel() {
                   })}
                 </TableBody>
               </Table>
+            </div>
+          )}
+
+          {/* Pagination Controls */}
+          {!notificationsQuery.isLoading && notificationsData.totalPages > 1 && (
+            <div className="flex items-center justify-between border-t border-white/5 px-6 py-4 bg-[#141414]">
+              <span className="text-xs text-gray-400">
+                Showing <span className="font-semibold text-white">{history.length}</span> of{" "}
+                <span className="font-semibold text-white">{notificationsData.total}</span> campaigns (Page {page} of {notificationsData.totalPages})
+              </span>
+              
+              <div className="flex items-center gap-2">
+                <Button
+                  onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+                  disabled={page === 1}
+                  variant="outline"
+                  className="border-white/10 bg-[#1c1c1c] text-xs h-8 px-3 text-gray-300 disabled:opacity-40"
+                >
+                  Previous
+                </Button>
+                
+                {Array.from({ length: notificationsData.totalPages }, (_, i) => i + 1)
+                  .filter((p) => Math.abs(p - page) <= 2 || p === 1 || p === notificationsData.totalPages)
+                  .map((p, index, array) => {
+                    const showEllipsis = index > 0 && p - array[index - 1] > 1;
+                    return (
+                      <React.Fragment key={p}>
+                        {showEllipsis && <span className="text-gray-600 text-xs px-1">...</span>}
+                        <Button
+                          onClick={() => setPage(p)}
+                          variant={p === page ? "default" : "outline"}
+                          className={`h-8 w-8 p-0 text-xs font-semibold ${
+                            p === page
+                              ? "bg-primary text-white"
+                              : "border-white/10 bg-[#1c1c1c] text-gray-300 hover:bg-white/5"
+                          }`}
+                        >
+                          {p}
+                        </Button>
+                      </React.Fragment>
+                    );
+                  })}
+
+                <Button
+                  onClick={() => setPage((prev) => Math.min(notificationsData.totalPages, prev + 1))}
+                  disabled={page === notificationsData.totalPages}
+                  variant="outline"
+                  className="border-white/10 bg-[#1c1c1c] text-xs h-8 px-3 text-gray-300 disabled:opacity-40"
+                >
+                  Next
+                </Button>
+              </div>
             </div>
           )}
         </CardContent>
@@ -1408,6 +1535,7 @@ export function NotificationManagementPanel() {
                       className={`${selectClass} w-full`}
                     >
                       <option value="SENT">Sent</option>
+                      <option value="PROCESSING">Processing</option>
                       <option value="DELIVERED">Delivered</option>
                       <option value="OPENED">Opened</option>
                       <option value="FAILED">Failed</option>
@@ -1585,6 +1713,38 @@ export function NotificationManagementPanel() {
               className="bg-rose-500 hover:bg-rose-600 text-white text-xs"
             >
               {deleteMutation.isPending ? "Deleting..." : "Delete Campaign"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Batch Delete Campaigns Dialog */}
+      <Dialog open={isBatchDeleteOpen} onOpenChange={setIsBatchDeleteOpen}>
+        <DialogContent className="border-white/10 bg-[#161616] text-white max-w-sm shadow-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-rose-400">
+              <Trash2 className="h-5 w-5" />
+              Delete Selected Campaigns?
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-2 text-sm text-gray-300">
+            Are you sure you want to delete the <span className="font-bold text-white">{selectedCampaigns.length}</span> selected notification campaigns? Any pending scheduled jobs will be cancelled. This action cannot be undone.
+          </div>
+          <DialogFooter className="pt-2">
+            <Button
+              onClick={() => setIsBatchDeleteOpen(false)}
+              variant="outline"
+              className="border-white/10 bg-white/5 text-white hover:bg-white/10 text-xs"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleBatchDelete}
+              disabled={batchDeleteMutation.isPending}
+              variant="destructive"
+              className="bg-rose-500 hover:bg-rose-600 text-white text-xs"
+            >
+              {batchDeleteMutation.isPending ? "Deleting..." : `Delete Selected (${selectedCampaigns.length})`}
             </Button>
           </DialogFooter>
         </DialogContent>

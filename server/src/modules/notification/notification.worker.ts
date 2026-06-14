@@ -27,8 +27,8 @@ export class NotificationWorker {
     this.worker = new Worker(
       "notification-queue",
       async (job: Job) => {
-        const { notificationId } = job.data;
-        console.log(`[NotificationWorker] Processing job ${job.id} for notification ${notificationId}`);
+        const { notificationId, isUpdate } = job.data;
+        console.log(`[NotificationWorker] Processing job ${job.id} for notification ${notificationId} (isUpdate: ${!!isUpdate})`);
 
         const notification = await Notification.findById(notificationId);
         if (!notification) {
@@ -36,31 +36,35 @@ export class NotificationWorker {
           return;
         }
 
-        // Check if the notification campaign has expired
-        if (notification.expiresAt && new Date() > new Date(notification.expiresAt)) {
-          console.warn(`[NotificationWorker] Campaign ${notificationId} expired at ${notification.expiresAt}`);
-          notification.status = NotificationStatus.FAILED;
-          notification.error = "Notification campaign expired before delivery";
+        const isUpdateCampaign = !!isUpdate;
+
+        if (!isUpdateCampaign) {
+          // Check if the notification campaign has expired
+          if (notification.expiresAt && new Date() > new Date(notification.expiresAt)) {
+            console.warn(`[NotificationWorker] Campaign ${notificationId} expired at ${notification.expiresAt}`);
+            notification.status = NotificationStatus.FAILED;
+            notification.error = "Notification campaign expired before delivery";
+            await notification.save();
+
+            // Emit status update to admin
+            socketService.emitToAdmins("notification_status_update", {
+              notificationId: notification._id.toString(),
+              status: NotificationStatus.FAILED,
+              error: notification.error,
+            });
+            return;
+          }
+
+          // Update status to PROCESSING
+          notification.status = NotificationStatus.PROCESSING;
           await notification.save();
 
           // Emit status update to admin
           socketService.emitToAdmins("notification_status_update", {
             notificationId: notification._id.toString(),
-            status: NotificationStatus.FAILED,
-            error: notification.error,
+            status: NotificationStatus.PROCESSING,
           });
-          return;
         }
-
-        // Update status to PROCESSING
-        notification.status = NotificationStatus.PROCESSING;
-        await notification.save();
-
-        // Emit status update to admin
-        socketService.emitToAdmins("notification_status_update", {
-          notificationId: notification._id.toString(),
-          status: NotificationStatus.PROCESSING,
-        });
 
         try {
           // 1. Retrieve Target Users
@@ -137,6 +141,9 @@ export class NotificationWorker {
               for (const chunk of fcmChunks) {
                 try {
 
+                  const isLiveActivity = notification.deliveryType === DeliveryType.LIVE_ACTIVITY;
+                  const isOngoing = isLiveActivity && ["PENDING", "PROCESSING", "SENT"].includes(notification.status || "");
+
                   const message: any = {
                     tokens: chunk,
                     data: {
@@ -151,6 +158,7 @@ export class NotificationWorker {
                       deepLink: generatedDeepLink,
                       priority: notification.priority || "MEDIUM",
                       deliveryType: notification.deliveryType || "ALERT",
+                      status: notification.status || "",
                     },
                   };
 
@@ -190,6 +198,7 @@ export class NotificationWorker {
                       notification: {
                         sound: "default",
                         channelId,
+                        tag: notification._id.toString(),
                         ...(attachmentUrl ? { image: attachmentUrl } : {}),
                       },
                     };
@@ -260,6 +269,7 @@ export class NotificationWorker {
                         deepLink: generatedDeepLink,
                         priority: notification.priority || "MEDIUM",
                         deliveryType: notification.deliveryType || "ALERT",
+                        status: notification.status || "",
                       },
                     };
 
@@ -309,50 +319,54 @@ export class NotificationWorker {
             notification.failedCount = 0;
           }
 
-          // Update status to SENT
-          notification.status = NotificationStatus.SENT;
-          await notification.save();
-          console.log(`[NotificationWorker] Job ${job.id} completed successfully`);
+          if (!isUpdateCampaign) {
+            // Update status to SENT
+            notification.status = NotificationStatus.SENT;
+            await notification.save();
+            console.log(`[NotificationWorker] Job ${job.id} completed successfully`);
 
-          // Emit live socket notification if delivery channel is IN_APP or BOTH
-          if (notification.deliveryChannel === DeliveryChannel.IN_APP || notification.deliveryChannel === DeliveryChannel.BOTH) {
-            const socketPayload = {
-              _id: notification._id.toString(),
-              title: notification.title,
-              description: notification.description,
-              body: notification.body || "",
-              imageUrl: notification.imageUrl || notification.richContent?.image || "",
-              channel: notification.channel,
-              deliveryChannel: notification.deliveryChannel,
-              deliveryType: notification.deliveryType,
-              redirectType: notification.redirectType,
-              redirectId: notification.redirectId || "",
-              externalUrl: notification.externalUrl || "",
-              deepLink: notification.deepLink || "",
-              priority: notification.priority || "MEDIUM",
-              createdAt: notification.createdAt.toISOString(),
-              isRead: false,
-            };
+            // Emit live socket notification if delivery channel is IN_APP or BOTH
+            if (notification.deliveryChannel === DeliveryChannel.IN_APP || notification.deliveryChannel === DeliveryChannel.BOTH) {
+              const socketPayload = {
+                _id: notification._id.toString(),
+                title: notification.title,
+                description: notification.description,
+                body: notification.body || "",
+                imageUrl: notification.imageUrl || notification.richContent?.image || "",
+                channel: notification.channel,
+                deliveryChannel: notification.deliveryChannel,
+                deliveryType: notification.deliveryType,
+                redirectType: notification.redirectType,
+                redirectId: notification.redirectId || "",
+                externalUrl: notification.externalUrl || "",
+                deepLink: notification.deepLink || "",
+                priority: notification.priority || "MEDIUM",
+                createdAt: notification.createdAt.toISOString(),
+                isRead: false,
+              };
 
-            if (notification.targetType === "ALL") {
-              socketService.emitToAll(SocketEvents.NEW_NOTIFICATION, socketPayload);
-            } else if (notification.targetType === "ROLE" && notification.targetRole) {
-              socketService.emitToRoom(`role_${notification.targetRole.toLowerCase()}`, SocketEvents.NEW_NOTIFICATION, socketPayload);
-            } else {
-              for (const u of targetUsers) {
-                socketService.emitToUser(u._id.toString(), SocketEvents.NEW_NOTIFICATION, socketPayload);
+              if (notification.targetType === "ALL") {
+                socketService.emitToAll(SocketEvents.NEW_NOTIFICATION, socketPayload);
+              } else if (notification.targetType === "ROLE" && notification.targetRole) {
+                socketService.emitToRoom(`role_${notification.targetRole.toLowerCase()}`, SocketEvents.NEW_NOTIFICATION, socketPayload);
+              } else {
+                for (const u of targetUsers) {
+                  socketService.emitToUser(u._id.toString(), SocketEvents.NEW_NOTIFICATION, socketPayload);
+                }
               }
+              console.log(`[NotificationWorker] Dispatched live socket event for notification ${notification._id}`);
             }
-            console.log(`[NotificationWorker] Dispatched live socket event for notification ${notification._id}`);
-          }
 
-          // Emit status update to admin
-          socketService.emitToAdmins("notification_status_update", {
-            notificationId: notification._id.toString(),
-            status: NotificationStatus.SENT,
-            sentCount: notification.sentCount,
-            failedCount: notification.failedCount,
-          });
+            // Emit status update to admin
+            socketService.emitToAdmins("notification_status_update", {
+              notificationId: notification._id.toString(),
+              status: NotificationStatus.SENT,
+              sentCount: notification.sentCount,
+              failedCount: notification.failedCount,
+            });
+          } else {
+            console.log(`[NotificationWorker] Job ${job.id} campaign update push dispatched successfully`);
+          }
         } catch (error: any) {
           console.error(`[NotificationWorker] Job ${job.id} failed:`, error);
           notification.status = NotificationStatus.FAILED;

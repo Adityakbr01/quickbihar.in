@@ -80,10 +80,61 @@ export const SocketListenerProvider: React.FC<{
       });
     });
 
+    socketClient.on(SocketEvents.NOTIFICATION_UPDATED, async (data) => {
+      console.log("[SocketListener] Notification updated event received:", data);
+      queryClient.invalidateQueries({ queryKey: ["user-notifications"] });
+
+      // Trigger OS-level persistent system notification
+      try {
+        const Notifications = await import("expo-notifications");
+        const activeStatuses = ["PENDING", "PROCESSING", "SENT"];
+        const isOngoing = activeStatuses.includes(data.status || "");
+        const notificationId = data.notificationId || data._id;
+
+        if (notificationId) {
+          if (isOngoing) {
+            // Present persistent ongoing system notification on Android/iOS lock screens / status bars
+            await Notifications.scheduleNotificationAsync({
+              identifier: notificationId,
+              content: {
+                title: data.title || "Live Activity",
+                body: data.description || "",
+                data: data,
+              },
+              trigger: null,
+            });
+          } else {
+            // Dismiss the persistent sticky notification
+            await Notifications.dismissNotificationAsync(notificationId);
+
+            // Present a final normal notification that can be swiped away by the user
+            await Notifications.scheduleNotificationAsync({
+              identifier: notificationId,
+              content: {
+                title: data.title || "Live Activity Complete",
+                body: data.description || "",
+                data: data,
+              },
+              trigger: null,
+            });
+          }
+        }
+      } catch (err) {
+        console.warn("[SocketListener] Failed to schedule local persistent notification:", err);
+      }
+
+      Toast.show({
+        type: "success",
+        text1: data?.title || "Live Activity Update",
+        text2: data?.description || "",
+      });
+    });
+
     return () => {
       socketClient.off(SocketEvents.STOCK_UPDATE);
       socketClient.off(SocketEvents.FULFILLMENT_EVENT);
       socketClient.off(SocketEvents.NEW_NOTIFICATION);
+      socketClient.off(SocketEvents.NOTIFICATION_UPDATED);
     };
   }, [handleStockUpdate, queryClient, router]);
 

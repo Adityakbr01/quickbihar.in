@@ -1439,7 +1439,9 @@ export const adminManagementApi = {
     notificationType?: string;
     sortBy?: string;
     sortOrder?: string;
-  }): Promise<any[]> => {
+    page?: number;
+    limit?: number;
+  }): Promise<any> => {
     const response = await axiosInstance.get("/notifications/history", { params });
     return response.data.data;
   },
@@ -1458,6 +1460,11 @@ export const adminManagementApi = {
 
   deleteNotification: async (id: string): Promise<any> => {
     const response = await axiosInstance.delete(`/notifications/${id}`);
+    return response.data.data;
+  },
+
+  batchDeleteNotifications: async (ids: string[]): Promise<any> => {
+    const response = await axiosInstance.post("/notifications/batch-delete", { ids });
     return response.data.data;
   },
 

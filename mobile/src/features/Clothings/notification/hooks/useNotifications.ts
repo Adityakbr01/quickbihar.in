@@ -19,6 +19,9 @@ export interface INotificationItem {
   isRead: boolean;
   notificationType?: "NORMAL" | "RICH";
   actionButtonText?: string;
+  deliveryType?: "ALERT" | "SILENT" | "LIVE_ACTIVITY";
+  status?: "PENDING" | "PROCESSING" | "SENT" | "DELIVERED" | "OPENED" | "FAILED";
+  deepLink?: string;
 }
 
 export const useNotifications = () => {
