@@ -6,6 +6,7 @@ import {
   TextStyle,
   ActivityIndicator,
 } from "react-native";
+import * as Haptics from "expo-haptics";
 import { useTheme } from "../Provider/ThemeProvider";
 import ThemedText from "./ThemedText";
 import Animated, {
@@ -51,6 +52,13 @@ export const Button: React.FC<ButtonProps> = ({
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
   }));
+
+  const handlePress = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    if (onPress) {
+      onPress();
+    }
+  };
 
   const getSizeStyles = () => {
     switch (size) {
@@ -127,7 +135,7 @@ export const Button: React.FC<ButtonProps> = ({
   return (
     <Animated.View style={[animatedStyle, style]}>
       <Pressable
-        onPress={onPress}
+        onPress={handlePress}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
         disabled={disabled || loading}

@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Lock, Mail, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { loginSchema, LoginValues } from "../schemas/auth.schema";
 import { useLogin } from "../hooks/useAuth";
 
@@ -33,31 +33,28 @@ export default function AdminLoginForm() {
   }
 
   return (
-    <Card className="w-full max-w-sm py-16 bg-white/5 relative z-10">
+    <Card className="relative z-10 w-full max-w-sm border-none bg-transparent py-4 shadow-none">
       <CardHeader className="space-y-1 text-center">
-        <CardTitle className="text-3xl font-bold tracking-tight text-white">Admin Portal</CardTitle>
+        <CardTitle className="text-3xl font-extrabold tracking-tight text-white">Admin Portal</CardTitle>
         <CardDescription className="text-gray-400">
-          Enter your credentials to manage QuickBihar.in
+          Sign in to manage the platform
         </CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
             <FormField
               control={form.control}
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-gray-200">Email</FormLabel>
+                  <FormLabel className="text-gray-300">Email</FormLabel>
                   <FormControl>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                      <Input
-                        placeholder="admin@quickbihar.in"
-                        {...field}
-                        className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-blue-500 transition-colors"
-                      />
-                    </div>
+                    <Input
+                      placeholder="admin@quickbihar.in"
+                      {...field}
+                      className="bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-blue-500 transition-colors"
+                    />
                   </FormControl>
                   <FormMessage className="text-red-400" />
                 </FormItem>
@@ -68,17 +65,14 @@ export default function AdminLoginForm() {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-gray-200">Password</FormLabel>
+                  <FormLabel className="text-gray-300">Password</FormLabel>
                   <FormControl>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                      <Input
-                        type="password"
-                        placeholder="••••••••"
-                        {...field}
-                        className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-blue-500 transition-colors"
-                      />
-                    </div>
+                    <Input
+                      type="password"
+                      placeholder="••••••••"
+                      {...field}
+                      className="bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-blue-500 transition-colors"
+                    />
                   </FormControl>
                   <FormMessage className="text-red-400" />
                 </FormItem>

@@ -7,6 +7,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
 import { SymbolView } from "expo-symbols";
+import * as Haptics from "expo-haptics";
 import { useTheme } from "../Provider/ThemeProvider";
 
 interface SocialButtonProps {
@@ -36,6 +37,13 @@ export const SocialButton: React.FC<SocialButtonProps> = ({
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
   }));
+
+  const handlePress = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    if (onPress) {
+      onPress();
+    }
+  };
 
   const styles = StyleSheet.create({
     container: {
@@ -72,7 +80,7 @@ export const SocialButton: React.FC<SocialButtonProps> = ({
   return (
     <Animated.View style={[animatedStyle, style, styles.container]}>
       <Pressable
-        onPress={onPress}
+        onPress={handlePress}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
         disabled={disabled}

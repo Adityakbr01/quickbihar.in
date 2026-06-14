@@ -165,12 +165,9 @@ export default function PartnerRegisterForm({ mode }: { mode: PartnerMode }) {
   };
 
   return (
-    <Card className="relative z-10 w-full max-w-2xl border-white/10 bg-white/5">
-      <CardHeader className="space-y-2 text-center">
-        <div className={`mx-auto flex h-11 w-11 items-center justify-center rounded-lg ${iconClass}`}>
-          <Icon className="h-5 w-5" />
-        </div>
-        <CardTitle className="text-3xl font-bold tracking-tight text-white">{title}</CardTitle>
+    <Card className="relative z-10 w-full max-w-2xl border-none bg-transparent py-4 shadow-none">
+      <CardHeader className="space-y-1 text-center">
+        <CardTitle className="text-3xl font-extrabold tracking-tight text-white">{title}</CardTitle>
         <CardDescription className="text-gray-400">
           {phaseLabel(phase, status)}
         </CardDescription>

@@ -33,7 +33,7 @@ export const TextInput = React.forwardRef<RNTextInput, TextInputProps>(
       label: {
         fontSize: 16,
         fontWeight: "600",
-        color: isGlass ? "rgba(255,255,255,0.9)" : theme.text,
+        color: theme.text,
         marginBottom: isGlass ? 0 : 8,
       },
       inputContainer: {
@@ -43,24 +43,34 @@ export const TextInput = React.forwardRef<RNTextInput, TextInputProps>(
         paddingHorizontal: isGlass ? 16 : 12,
         paddingVertical: isGlass ? 0 : 4,
         borderRadius: isGlass ? 16 : spacing.xl,
-        backgroundColor: isGlass ? "rgba(255, 255, 255, 0.08)" : theme.secondaryBackground,
+        backgroundColor: isGlass
+          ? (theme.background === "#ffffff" ? "rgba(0, 0, 0, 0.04)" : "rgba(255, 255, 255, 0.06)")
+          : theme.secondaryBackground,
         borderWidth: 1.5,
         borderColor: isGlass
-          ? (error ? "#ef4444" : isFocused ? "rgba(255, 255, 255, 0.6)" : "rgba(255, 255, 255, 0.15)")
+          ? (error
+              ? "#ef4444"
+              : isFocused
+                ? (theme.background === "#ffffff" ? "rgba(0, 0, 0, 0.4)" : "rgba(255, 255, 255, 0.6)")
+                : (theme.background === "#ffffff" ? "rgba(0, 0, 0, 0.08)" : "rgba(255, 255, 255, 0.15)"))
           : (error ? theme.error : isFocused ? theme.primary : theme.border),
         gap: isGlass ? 12 : 10,
       },
       inputContainerFocused: {
-        backgroundColor: isGlass ? "rgba(255, 255, 255, 0.12)" : theme.secondaryBackground,
+        backgroundColor: isGlass
+          ? (theme.background === "#ffffff" ? "rgba(0, 0, 0, 0.06)" : "rgba(255, 255, 255, 0.12)")
+          : theme.secondaryBackground,
       },
       inputContainerError: {
-        backgroundColor: isGlass ? "rgba(239, 68, 68, 0.05)" : theme.secondaryBackground,
+        backgroundColor: isGlass
+          ? (theme.background === "#ffffff" ? "rgba(239, 68, 68, 0.03)" : "rgba(239, 68, 68, 0.05)")
+          : theme.secondaryBackground,
       },
       input: {
         flex: 1,
         height: isGlass ? "100%" : undefined,
         fontSize: 16,
-        color: isGlass ? "#ffffff" : theme.text,
+        color: theme.text,
         fontWeight: "500",
       },
       errorText: {
@@ -87,7 +97,7 @@ export const TextInput = React.forwardRef<RNTextInput, TextInputProps>(
             ref={ref}
             {...props}
             style={[styles.input, props.style]}
-            placeholderTextColor={isGlass ? "rgba(255, 255, 255, 0.78)" : theme.secondaryText}
+            placeholderTextColor={theme.secondaryText}
             onFocus={(e) => {
               setIsFocused(true);
               props.onFocus?.(e);

@@ -1,25 +1,29 @@
 import React, { useState, useEffect } from "react";
-import { View, TouchableOpacity, Text } from "react-native";
+import { View, TouchableOpacity, Text, ActivityIndicator } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import * as Haptics from "expo-haptics";
 import { TextInput } from "@/src/theme/components/TextInput";
-import { useVerifyOTP, useRequestOTP } from "../hooks/useAuth";
+import { useRequestOTP } from "../hooks/useAuth";
 import { AuthFormProps } from "./auth.types";
-import { styles } from "../styles/auth.style";
+import { createAuthStyles } from "../styles/auth.style";
+import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 
 interface OTPFormProps extends AuthFormProps {
   otpEmail: string;
 }
 
-export const OTPForm: React.FC<OTPFormProps> = ({
+export const OTPForm: React.FC<OTPFormProps & { verifyOTP: any }> = ({
   loading,
   setApiError,
   setApiSuccess,
   otpEmail,
+  verifyOTP,
 }) => {
+  const theme = useTheme() as any;
+  const styles = createAuthStyles(theme);
   const [otpValue, setOtpValue] = useState("");
   const [cooldown, setCooldown] = useState(0);
 
-  const { mutate: verifyOTP } = useVerifyOTP();
   const { mutate: requestOTP } = useRequestOTP();
 
   useEffect(() => {
@@ -37,14 +41,20 @@ export const OTPForm: React.FC<OTPFormProps> = ({
   const handleVerifyOTP = () => {
     if (otpValue.length !== 6) {
       setApiError("Please enter a valid 6-digit OTP");
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       return;
     }
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setApiError(null);
     setApiSuccess(null);
     verifyOTP(
       { email: otpEmail, otp: otpValue },
       {
+        onSuccess: () => {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        },
         onError: (error: any) => {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
           setApiError(error.message || "OTP verification failed.");
         },
       }
@@ -54,14 +64,17 @@ export const OTPForm: React.FC<OTPFormProps> = ({
   const handleResendOTP = () => {
     if (cooldown > 0) return;
 
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setApiError(null);
     setApiSuccess(null);
     requestOTP(otpEmail, {
       onSuccess: () => {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         setApiSuccess("A new OTP has been sent to your email.");
         setCooldown(60); // Start 60s cooldown
       },
       onError: (error: any) => {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
         const msg = error.message || "Failed to resend OTP.";
         setApiError(msg);
         if (msg.toLowerCase().includes("wait") || msg.toLowerCase().includes("seconds")) {
@@ -85,7 +98,7 @@ export const OTPForm: React.FC<OTPFormProps> = ({
         editable={!loading}
         returnKeyType="done"
         onSubmitEditing={handleVerifyOTP}
-        icon={<Ionicons name="shield-checkmark-outline" size={20} color="rgba(255,255,255,0.7)" />}
+        icon={<Ionicons name="shield-checkmark-outline" size={20} color={theme.secondaryText} />}
       />
 
       <TouchableOpacity
@@ -94,9 +107,11 @@ export const OTPForm: React.FC<OTPFormProps> = ({
         onPress={handleVerifyOTP}
         disabled={loading}
       >
-        <Text style={styles.continueBtnText}>
-          Verify & Continue <Ionicons name="arrow-forward-outline" size={20} color="#0f172a" />
-        </Text>
+        {loading ? (
+          <ActivityIndicator color="#0f172a" size="small" />
+        ) : (
+          <Text style={styles.continueBtnText}>Verify & Continue</Text>
+        )}
       </TouchableOpacity>
 
       <View style={{ marginTop: 20, alignItems: "center" }}>
@@ -106,7 +121,7 @@ export const OTPForm: React.FC<OTPFormProps> = ({
         >
           <Text
             style={{
-              color: cooldown > 0 ? "rgba(255,255,255,0.4)" : "#ffffff",
+              color: cooldown > 0 ? theme.tertiaryText : theme.text,
               fontSize: 14,
               fontWeight: "600",
             }}

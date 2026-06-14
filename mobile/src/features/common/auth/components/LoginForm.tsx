@@ -1,38 +1,58 @@
 import React, { useRef, useState } from "react";
-import { View, TouchableOpacity, Text, TextInput as RNTextInput } from "react-native";
+import {
+  View,
+  TouchableOpacity,
+  Text,
+  TextInput as RNTextInput,
+  ActivityIndicator,
+} from "react-native";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Ionicons } from "@expo/vector-icons";
+import * as Haptics from "expo-haptics";
 import { TextInput } from "@/src/theme/components/TextInput";
 import { loginSchema, LoginFormData } from "../validation/auth.schema";
-import { useLogin } from "../hooks/useAuth";
 import { AuthFormProps } from "./auth.types";
-import { styles } from "../styles/auth.style";
+import { createAuthStyles } from "../styles/auth.style";
+import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 
-export const LoginForm: React.FC<AuthFormProps> = ({
+export const LoginForm: React.FC<AuthFormProps & { login: any }> = ({
   loading,
   setApiError,
   setApiSuccess,
   switchMode,
   setOtpEmail,
+  login,
 }) => {
+  const theme = useTheme() as any;
+  const styles = createAuthStyles(theme);
   const [showPassword, setShowPassword] = useState(false);
   const passwordRef = useRef<RNTextInput>(null);
 
-  const { control, handleSubmit, formState: { errors } } = useForm<LoginFormData>({
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: { email: "", password: "" },
   });
 
-  const { mutate: login } = useLogin();
-
   const handleLogin = (data: LoginFormData) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setApiError(null);
     setApiSuccess(null);
     login(data, {
+      onSuccess: () => {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      },
       onError: (error: any) => {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
         const msg = error.message || "Login failed.";
-        if (msg.toLowerCase().includes("not verified") || msg.toLowerCase().includes("otp")) {
+        if (
+          msg.toLowerCase().includes("not verified") ||
+          msg.toLowerCase().includes("otp")
+        ) {
           setOtpEmail(data.email);
           switchMode("otp");
           setApiError(null);
@@ -64,7 +84,13 @@ export const LoginForm: React.FC<AuthFormProps> = ({
             value={value}
             editable={!loading}
             error={errors.email?.message}
-            icon={<Ionicons name="mail-outline" size={20} color="rgba(255,255,255,0.7)" />}
+            icon={
+              <Ionicons
+                name="mail-outline"
+                size={20}
+                color={theme.secondaryText}
+              />
+            }
           />
         )}
       />
@@ -88,17 +114,26 @@ export const LoginForm: React.FC<AuthFormProps> = ({
               value={value}
               editable={!loading}
               error={errors.password?.message}
-              icon={<Ionicons name="lock-closed-outline" size={20} color="rgba(255,255,255,0.7)" />}
+              icon={
+                <Ionicons
+                  name="lock-closed-outline"
+                  size={20}
+                  color={theme.secondaryText}
+                />
+              }
               rightIcon={
                 <TouchableOpacity
-                  onPress={() => setShowPassword(!showPassword)}
+                  onPress={() => {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    setShowPassword(!showPassword);
+                  }}
                   style={{ padding: 4 }}
                   hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                 >
                   <Ionicons
                     name={showPassword ? "eye-off-outline" : "eye-outline"}
                     size={20}
-                    color="rgba(255,255,255,0.6)"
+                    color={theme.secondaryText}
                   />
                 </TouchableOpacity>
               }
@@ -113,9 +148,11 @@ export const LoginForm: React.FC<AuthFormProps> = ({
         onPress={handleSubmit(handleLogin)}
         disabled={loading}
       >
-        <Text style={styles.continueBtnText}>
-          Sign In <Ionicons name="arrow-forward-outline" size={20} color="#0f172a" />
-        </Text>
+        {loading ? (
+          <ActivityIndicator color="#0f172a" size="small" />
+        ) : (
+          <Text style={styles.continueBtnText}>Sign In</Text>
+        )}
       </TouchableOpacity>
     </View>
   );

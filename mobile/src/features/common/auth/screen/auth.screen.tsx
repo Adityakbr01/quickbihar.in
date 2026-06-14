@@ -1,6 +1,4 @@
 import { Ionicons } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
-import LottieView from "lottie-react-native";
 import React, { useState } from "react";
 import {
   KeyboardAvoidingView,
@@ -17,9 +15,10 @@ import Animated, {
   FadeInUp,
   LinearTransition,
 } from "react-native-reanimated";
+import * as Haptics from "expo-haptics";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { styles } from "../styles/auth.style";
-import { lightTheme } from "@/src/theme/colors";
+import { createAuthStyles } from "../styles/auth.style";
+import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { useLogin, useRegister, useVerifyOTP } from "../hooks/useAuth";
 import { LoginForm } from "../components/LoginForm";
 import { RegisterForm } from "../components/RegisterForm";
@@ -28,18 +27,21 @@ import { AuthMode } from "../components/auth.types";
 
 export default function AuthScreen() {
   const insets = useSafeAreaInsets();
+  const theme = useTheme() as any;
+  const styles = createAuthStyles(theme);
   const [apiError, setApiError] = useState<string | null>(null);
   const [apiSuccess, setApiSuccess] = useState<string | null>(null);
   const [mode, setMode] = useState<AuthMode>("login");
   const [otpEmail, setOtpEmail] = useState("");
 
-  const { isPending: loginPending } = useLogin();
-  const { isPending: registerPending } = useRegister();
-  const { isPending: otpPending } = useVerifyOTP();
+  const { mutate: login, isPending: loginPending } = useLogin();
+  const { mutate: register, isPending: registerPending } = useRegister();
+  const { mutate: verifyOTP, isPending: otpPending } = useVerifyOTP();
 
   const loading = loginPending || registerPending || otpPending;
 
   const switchMode = (newMode: AuthMode) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setApiError(null);
     setApiSuccess(null);
     setMode(newMode);
@@ -61,16 +63,11 @@ export default function AuthScreen() {
   return (
     <View style={styles.screen}>
       <StatusBar
-        barStyle="light-content"
+        barStyle={
+          theme.background === "#ffffff" ? "dark-content" : "light-content"
+        }
         translucent
         backgroundColor="transparent"
-      />
-      <LinearGradient
-        colors={lightTheme.spgradient}
-        locations={[0, 0.28, 0.62, 0.9, 9.2]}
-        start={{ x: -0.4, y: 0 }}
-        end={{ x: -0.8, y: 1 }}
-        style={StyleSheet.absoluteFill}
       />
 
       <KeyboardAvoidingView
@@ -78,179 +75,178 @@ export default function AuthScreen() {
         style={styles.keyboardView}
       >
         <ScrollView
-          contentContainerStyle={[
-            styles.scrollContent,
-            { paddingBottom: insets.bottom + 40 },
-          ]}
+          style={{ flex: 1 }}
+          contentContainerStyle={{ flexGrow: 1 }}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Lottie Animation */}
-          <Animated.View
-            style={styles.iconContainer}
-            entering={FadeInDown.delay(getDelay(0)).duration(600)}
+          <View
+            style={[
+              styles.scrollContent,
+              {
+                paddingTop: insets.top + 40,
+                paddingBottom: insets.bottom + 40,
+              },
+            ]}
           >
-            <LottieView
-              source={require("@/assets/lottie/Gift box.json")}
-              autoPlay
-              loop
-              style={{ width: 340, height: 240 }}
-            />
-          </Animated.View>
-
-          {/* Header */}
-          <Animated.View
-            style={styles.header}
-            entering={FadeInDown.delay(getDelay(1)).duration(600)}
-          >
-            <Text style={styles.title}>
-              {mode === "login"
-                ? "Welcome Back"
-                : mode === "register"
-                  ? "Create Account"
-                  : "Verify Email"}
-            </Text>
-            <Text style={styles.subtitle}>
-              {mode === "login"
-                ? "Sign in with your email and password."
-                : mode === "register"
-                  ? "Create a new account to get started."
-                  : `Enter the 6-digit code sent to ${otpEmail}`}
-            </Text>
-          </Animated.View>
-
-          {/* Success Banner */}
-          {apiSuccess && (
+            {/* Header */}
             <Animated.View
-              entering={FadeInDown}
-              layout={LinearTransition}
-              style={localStyles.successBanner}
+              style={styles.header}
+              entering={FadeInDown.delay(getDelay(1)).duration(600)}
             >
-              <Ionicons
-                name="checkmark-circle-outline"
-                size={20}
-                color="#86efac"
-              />
-              <Text style={localStyles.successBannerText}>{apiSuccess}</Text>
+              <Text style={styles.title}>
+                {mode === "login"
+                  ? "Sign In"
+                  : mode === "register"
+                    ? "Create Account"
+                    : "Verify Email"}
+              </Text>
+              <Text style={styles.subtitle}>
+                {mode === "login"
+                  ? "Welcome back! Enter your details to continue."
+                  : mode === "register"
+                    ? "Create a new account to get started."
+                    : `Enter the 6-digit code sent to ${otpEmail}`}
+              </Text>
             </Animated.View>
-          )}
 
-          {/* Error Banner */}
-          {apiError && (
-            <Animated.View
-              entering={FadeInDown}
-              layout={LinearTransition}
-              style={styles.errorBanner}
-            >
-              <Ionicons name="warning-outline" size={20} color="#fca5a5" />
-              <Text style={styles.errorBannerText}>{apiError}</Text>
-            </Animated.View>
-          )}
-
-          {/* Conditional Forms */}
-          <Animated.View entering={FadeInDown.delay(getDelay(2)).duration(600)}>
-            {mode === "login" && <LoginForm {...sharedProps} />}
-            {mode === "register" && <RegisterForm {...sharedProps} />}
-            {mode === "otp" && <OTPForm {...sharedProps} otpEmail={otpEmail} />}
-          </Animated.View>
-
-          {/* Mode Toggle */}
-          {mode !== "otp" && (
-            <Animated.View
-              entering={FadeInDown.delay(getDelay(4)).duration(600)}
-              style={{ marginTop: 24, alignItems: "center" }}
-            >
-              <TouchableOpacity
-                activeOpacity={0.7}
-                onPress={() =>
-                  switchMode(mode === "login" ? "register" : "login")
-                }
-                disabled={loading}
+            {/* Success Banner */}
+            {apiSuccess && (
+              <Animated.View
+                entering={FadeInDown}
+                layout={LinearTransition}
+                style={localStyles.successBanner}
               >
-                <Text
-                  style={{
-                    color: "rgba(255,255,255,0.7)",
-                    fontSize: 14,
-                    fontWeight: "500",
-                  }}
+                <Ionicons
+                  name="checkmark-circle-outline"
+                  size={20}
+                  color="#86efac"
+                />
+                <Text style={localStyles.successBannerText}>{apiSuccess}</Text>
+              </Animated.View>
+            )}
+
+            {/* Error Banner */}
+            {apiError && (
+              <Animated.View
+                entering={FadeInDown}
+                layout={LinearTransition}
+                style={styles.errorBanner}
+              >
+                <Ionicons name="warning-outline" size={20} color="#fca5a5" />
+                <Text style={styles.errorBannerText}>{apiError}</Text>
+              </Animated.View>
+            )}
+
+            {/* Conditional Forms */}
+            <Animated.View
+              entering={FadeInDown.delay(getDelay(2)).duration(600)}
+            >
+              {mode === "login" && <LoginForm {...sharedProps} login={login} />}
+              {mode === "register" && <RegisterForm {...sharedProps} register={register} />}
+              {mode === "otp" && (
+                <OTPForm {...sharedProps} otpEmail={otpEmail} verifyOTP={verifyOTP} />
+              )}
+            </Animated.View>
+
+            {/* Mode Toggle */}
+            {mode !== "otp" && (
+              <Animated.View
+                entering={FadeInDown.delay(getDelay(4)).duration(600)}
+                style={{ marginTop: 24, alignItems: "center" }}
+              >
+                <TouchableOpacity
+                  activeOpacity={0.7}
+                  onPress={() =>
+                    switchMode(mode === "login" ? "register" : "login")
+                  }
+                  disabled={loading}
                 >
-                  {mode === "login"
-                    ? "Don't have an account? "
-                    : "Already have an account? "}
                   <Text
                     style={{
-                      color: "#ffffff",
-                      fontWeight: "700",
-                      textDecorationLine: "underline",
+                      color: theme.secondaryText,
+                      fontSize: 14,
+                      fontWeight: "500",
                     }}
                   >
-                    {mode === "login" ? "Sign Up" : "Sign In"}
+                    {mode === "login"
+                      ? "Don't have an account? "
+                      : "Already have an account? "}
+                    <Text
+                      style={{
+                        color: theme.text,
+                        fontWeight: "700",
+                        textDecorationLine: "underline",
+                      }}
+                    >
+                      {mode === "login" ? "Sign Up" : "Sign In"}
+                    </Text>
                   </Text>
-                </Text>
-              </TouchableOpacity>
-            </Animated.View>
-          )}
+                </TouchableOpacity>
+              </Animated.View>
+            )}
 
-          {/* Back to login from OTP */}
-          {mode === "otp" && (
-            <Animated.View
-              entering={FadeInUp.delay(200).duration(400)}
-              style={{ marginTop: 24, alignItems: "center" }}
-            >
-              <TouchableOpacity
-                activeOpacity={0.7}
-                onPress={() => switchMode("login")}
-                disabled={loading}
+            {/* Back to login from OTP */}
+            {mode === "otp" && (
+              <Animated.View
+                entering={FadeInUp.delay(200).duration(400)}
+                style={{ marginTop: 24, alignItems: "center" }}
               >
+                <TouchableOpacity
+                  activeOpacity={0.7}
+                  onPress={() => switchMode("login")}
+                  disabled={loading}
+                >
+                  <Text
+                    style={{
+                      color: theme.secondaryText,
+                      fontSize: 14,
+                      fontWeight: "500",
+                    }}
+                  >
+                    ← Back to Sign In
+                  </Text>
+                </TouchableOpacity>
+              </Animated.View>
+            )}
+
+            {/* Terms Footer */}
+            <Animated.View
+              entering={FadeInDown.delay(getDelay(5)).duration(600)}
+              style={{ marginTop: 30, alignItems: "center" }}
+            >
+              <Text
+                style={{
+                  color: theme.tertiaryText,
+                  fontSize: 12,
+                  textAlign: "center",
+                  lineHeight: 18,
+                }}
+              >
+                By continuing, you agree to our{" "}
                 <Text
                   style={{
-                    color: "rgba(255,255,255,0.7)",
-                    fontSize: 14,
-                    fontWeight: "500",
+                    fontWeight: "600",
+                    color: theme.secondaryText,
+                    textDecorationLine: "underline",
                   }}
                 >
-                  ← Back to Sign In
+                  Terms of Service
                 </Text>
-              </TouchableOpacity>
+                {"\n"}and{" "}
+                <Text
+                  style={{
+                    fontWeight: "600",
+                    color: theme.secondaryText,
+                    textDecorationLine: "underline",
+                  }}
+                >
+                  Privacy Policy
+                </Text>
+                .
+              </Text>
             </Animated.View>
-          )}
-
-          {/* Terms Footer */}
-          <Animated.View
-            entering={FadeInDown.delay(getDelay(5)).duration(600)}
-            style={{ marginTop: 30, alignItems: "center" }}
-          >
-            <Text
-              style={{
-                color: "rgba(255,255,255,0.5)",
-                fontSize: 12,
-                textAlign: "center",
-                lineHeight: 18,
-              }}
-            >
-              By continuing, you agree to our{" "}
-              <Text
-                style={{
-                  fontWeight: "600",
-                  color: "rgba(255,255,255,0.8)",
-                  textDecorationLine: "underline",
-                }}
-              >
-                Terms of Service
-              </Text>
-              {"\n"}and{" "}
-              <Text
-                style={{
-                  fontWeight: "600",
-                  color: "rgba(255,255,255,0.8)",
-                  textDecorationLine: "underline",
-                }}
-              >
-                Privacy Policy
-              </Text>
-              .
-            </Text>
-          </Animated.View>
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </View>
