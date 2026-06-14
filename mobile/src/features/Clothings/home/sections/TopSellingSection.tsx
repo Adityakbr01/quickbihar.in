@@ -1,26 +1,28 @@
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import LottieView from "lottie-react-native";
-import React from "react";
+import React, { useRef } from "react";
 import {
   Platform,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
-import { FlashList } from "@shopify/flash-list";
 import { ProductCard } from "../components/ProductCard";
 import { ProductCardSkeleton } from "../components/ProductCardSkeleton";
 import { createTopSellingSectionStyles } from "../style/TopSellingSection.style";
 
 import { useQuery } from "@tanstack/react-query";
-import { ScrollView as NativeScrollView } from "react-native";
 import { getTrendingProductsRequest } from "../../product/api/product.api";
 
 const arrowLottie = require("@/assets/lottie/arrow.json");
-
+const CARD_WIDTH = 240;
+const GAP = 12;
+const ITEM_WIDTH = CARD_WIDTH + GAP;
 const TopSellingSection = () => {
   const theme = useTheme() as any;
+  const scrollRef = useRef<ScrollView>(null);
   const styles = React.useMemo(
     () => createTopSellingSectionStyles(theme),
     [theme],
@@ -31,25 +33,30 @@ const TopSellingSection = () => {
     queryFn: getTrendingProductsRequest,
   });
 
-  const gap = 16;
+  const products = (trendingProducts?.data || []).slice(0, 10);
 
   if (isLoading) {
     return (
       <View style={styles.container}>
-        <NativeScrollView
+        <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={[styles.listContent, { gap: 16 }]}
+          contentContainerStyle={{
+            paddingHorizontal: 16,
+            paddingBottom: 8,
+            gap: GAP,
+          }}
         >
           {[1, 2, 3].map((key) => (
-            <ProductCardSkeleton key={key} />
+            <View key={key} style={{ width: CARD_WIDTH }}>
+              <ProductCardSkeleton />
+            </View>
           ))}
-        </NativeScrollView>
+        </ScrollView>
       </View>
     );
   }
 
-  // Optional: Hide section if no products found
   if (!trendingProducts || trendingProducts.total === 0) {
     return null;
   }
@@ -58,7 +65,7 @@ const TopSellingSection = () => {
     <View style={styles.container}>
       <View style={styles.header}>
         <View style={localStyles.titleContainer}>
-          <Text style={styles.title}>Top Selling </Text>
+          <Text style={styles.title}>Top Selling</Text>
           <View
             style={[
               localStyles.lottieWrapper,
@@ -74,7 +81,7 @@ const TopSellingSection = () => {
               autoPlay
               loop
               resizeMode="contain"
-              renderMode="SOFTWARE" // Essential for colorFilters to work on many Android devices
+              renderMode="SOFTWARE"
               style={[
                 localStyles.arrowLottie,
                 Platform.OS === "web" &&
@@ -85,18 +92,9 @@ const TopSellingSection = () => {
               colorFilters={
                 theme.text === "#ffffff"
                   ? [
-                      {
-                        keypath: "Shape Layer 2.Shape 1.Stroke 1",
-                        color: "#ffffff",
-                      },
-                      {
-                        keypath: "Shape Layer 2.Shape 2.Stroke 1",
-                        color: "#ffffff",
-                      },
-                      {
-                        keypath: "**", // Fallback wildcard
-                        color: "#ffffff",
-                      },
+                      { keypath: "Shape Layer 2.Shape 1.Stroke 1", color: "#ffffff" },
+                      { keypath: "Shape Layer 2.Shape 2.Stroke 1", color: "#ffffff" },
+                      { keypath: "**", color: "#ffffff" },
                     ]
                   : []
               }
@@ -107,19 +105,32 @@ const TopSellingSection = () => {
           <Text style={styles.seeAll}>See All</Text>
         </TouchableOpacity>
       </View>
-      <FlashList
-        data={(trendingProducts.data || []).slice(0, 10)}
-        renderItem={({ item, index }) => (
-          <View style={{ marginRight: (trendingProducts.data || []).slice(0, 10).length - 1 === index ? 0 : gap }}>
-            <ProductCard item={item} />
-          </View>
-        )}
-        keyExtractor={(item: any) => item._id || item.id}
+
+      <ScrollView
+        ref={scrollRef}
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.listContent}
-        estimatedItemSize={240}
-      />
+        contentContainerStyle={{
+          paddingHorizontal: 16,
+          paddingBottom: 8,
+        }}
+        snapToInterval={ITEM_WIDTH}
+        snapToAlignment="start"
+        decelerationRate="fast"
+        contentOffset={{ x: 0, y: 0 }}
+      >
+        {products.map((item: any, index: number) => (
+          <View
+            key={item._id || item.id}
+            style={{
+              width: CARD_WIDTH,
+              marginRight: index === products.length - 1 ? 0 : GAP,
+            }}
+          >
+            <ProductCard item={item} />
+          </View>
+        ))}
+      </ScrollView>
     </View>
   );
 };
