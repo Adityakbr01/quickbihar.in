@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef } from "react";
 import {
   View,
   Text,
@@ -8,7 +8,6 @@ import {
   Platform,
   ScrollView,
 } from "react-native";
-import { FlashList } from "@shopify/flash-list";
 import LottieView from "lottie-react-native";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
@@ -23,13 +22,13 @@ const fireLottie = require("@/assets/lottie/Fire.json");
 const TopMallSection = () => {
   const theme = useTheme() as any;
   const { width: windowWidth } = useWindowDimensions();
+  const scrollRef = useRef<ScrollView>(null);
   const styles = React.useMemo(
     () => createTopMallSectionStyles(theme),
     [theme],
   );
   const router = useRouter();
 
-  // Handle snapping and width logic
   const isWeb = windowWidth > 600;
   const cardWidth = isWeb ? 300 : 260;
   const gap = 16;
@@ -44,10 +43,16 @@ const TopMallSection = () => {
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={[styles.listContent, { gap: 16 }]}
+          contentContainerStyle={{
+            paddingHorizontal: 16,
+            paddingBottom: 8,
+            gap,
+          }}
         >
           {[1, 2, 3].map((key) => (
-            <MallCardSkeleton key={key} />
+            <View key={key} style={{ width: cardWidth }}>
+              <MallCardSkeleton />
+            </View>
           ))}
         </ScrollView>
       </View>
@@ -96,16 +101,30 @@ const TopMallSection = () => {
         </TouchableOpacity>
       </View>
 
-      <FlashList
-        data={malls}
-        renderItem={({ item }) => <MallCard mall={item} />}
-        keyExtractor={(item) => item.id}
+      <ScrollView
+        ref={scrollRef}
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={{
+          paddingHorizontal: 16,
+          paddingBottom: 8,
+        }}
         snapToInterval={cardWidth + gap}
+        snapToAlignment="start"
         decelerationRate="fast"
-      />
+      >
+        {malls.map((item: any, index: number) => (
+          <View
+            key={item.id}
+            style={{
+              width: cardWidth,
+              marginRight: index === malls.length - 1 ? 0 : gap,
+            }}
+          >
+            <MallCard mall={item} />
+          </View>
+        ))}
+      </ScrollView>
     </View>
   );
 };
