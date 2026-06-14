@@ -519,7 +519,9 @@ export class NotificationController {
             { deliveryChannel: { $in: [DeliveryChannel.IN_APP, DeliveryChannel.BOTH] } },
             { deliveryType: { $in: ["IN_APP", "BOTH"] as any } }
           ],
-        }
+        },
+        // Validation: notification must be created after the user's account creation
+        { createdAt: { $gte: user.createdAt || new Date(0) } }
       ],
       // Allow sent, delivered, or opened statuses
       status: { $in: [NotificationStatus.SENT, NotificationStatus.DELIVERED, NotificationStatus.OPENED, "COMPLETED" as any] },

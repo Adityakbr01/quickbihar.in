@@ -12,6 +12,7 @@ import { useCartStore } from "../../cart/store/cartStore";
 import { useWishlistStore } from "../../wishlist/store/wishlistStore";
 import { DealProduct as MockProduct } from "../lib/dealsMockData";
 import { createDealProductCardStyles } from "../style/DealProductCard.style";
+import { VariantSelectorBottomSheet } from "../../product/components/modals/VariantSelectorBottomSheet";
 
 const cyclerLottie = require("@/assets/lottie/Cycler.json");
 
@@ -28,18 +29,41 @@ export const DealProductCard = ({ product, width }: DealProductCardProps) => {
   );
   const router = useRouter();
   const addItem = useCartStore(state => state.addItem);
+  const cartItems = useCartStore(state => state.items);
 
   const id = (product as IProduct)._id || 'mock';
   const isWishlisted = useWishlistStore(state => state.items.includes(id));
   const toggleWishlist = useWishlistStore(state => state.toggleItem);
 
+  const [isSheetVisible, setIsSheetVisible] = React.useState(false);
+
+  const variants = (product as IProduct).variants || [];
+  const uniqueColors = React.useMemo(() => {
+    return Array.from(new Set(variants.map(v => v.color?.trim()).filter(Boolean))) as string[];
+  }, [variants]);
+  
+  const uniqueSizes = React.useMemo(() => {
+    return Array.from(new Set(variants.map(v => v.size?.trim()).filter(Boolean))) as string[];
+  }, [variants]);
+
+  const isSelectionApplicable = variants.length > 0;
+  const sku = variants[0]?.sku || (product as MockProduct).id || 'default-sku';
+
+  const isInCart = React.useMemo(() => {
+    if (isSelectionApplicable) return false;
+    return cartItems.some(cartItem => cartItem.sku === sku);
+  }, [cartItems, sku, isSelectionApplicable]);
+
   const handleAddToCart = async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-
-    const sku =
-      (product as IProduct).variants?.[0]?.sku ||
-      (product as MockProduct).id ||
-      'default-sku';
+    if (isInCart) {
+      router.push("/clothing/cart");
+      return;
+    }
+    if (isSelectionApplicable) {
+      setIsSheetVisible(true);
+      return;
+    }
 
     try {
       await addItem(product, sku, 1);
@@ -138,15 +162,28 @@ export const DealProductCard = ({ product, width }: DealProductCardProps) => {
 
           (
             <TouchableOpacity
-              style={styles.addButton}
+              style={[
+                styles.addButton,
+                isInCart && { backgroundColor: theme.primary }
+              ]}
               activeOpacity={0.8}
               onPress={(e) => {
                 e.stopPropagation();
                 handleAddToCart();
               }}
             >
-              <Ionicons name="bag-add-outline" size={14} color="#fff" />
-              <Text style={styles.addText}>Add</Text>
+              <Ionicons
+                name={
+                  isInCart
+                    ? "arrow-forward-outline"
+                    : "bag-add-outline"
+                }
+                size={14}
+                color="#fff"
+              />
+              <Text style={styles.addText}>
+                {isInCart ? "Go to Cart" : "Add"}
+              </Text>
             </TouchableOpacity>
           )}
       </View>
@@ -212,6 +249,15 @@ export const DealProductCard = ({ product, width }: DealProductCardProps) => {
           </View>
         ) : null}
       </View>
+
+      {isSheetVisible && (
+        <VariantSelectorBottomSheet
+          visible={isSheetVisible}
+          onClose={() => setIsSheetVisible(false)}
+          product={product}
+          theme={theme}
+        />
+      )}
     </TouchableOpacity>
   );
 };

@@ -10,6 +10,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import LivingPixelOcean from "@/src/components/LivingPixelOcean";
+import { LinearGradient } from "expo-linear-gradient";
 import Animated, {
   FadeInDown,
   FadeInUp,
@@ -62,6 +64,14 @@ export default function AuthScreen() {
 
   return (
     <View style={styles.screen}>
+      {/* Top 30% Ocean background with fade out */}
+      <View style={localStyles.oceanContainer} pointerEvents="none">
+        <LivingPixelOcean />
+        <LinearGradient
+          colors={["transparent", theme.background]}
+          style={StyleSheet.absoluteFill}
+        />
+      </View>
       <StatusBar
         barStyle={
           theme.background === "#ffffff" ? "dark-content" : "light-content"
@@ -143,9 +153,15 @@ export default function AuthScreen() {
               entering={FadeInDown.delay(getDelay(2)).duration(600)}
             >
               {mode === "login" && <LoginForm {...sharedProps} login={login} />}
-              {mode === "register" && <RegisterForm {...sharedProps} register={register} />}
+              {mode === "register" && (
+                <RegisterForm {...sharedProps} register={register} />
+              )}
               {mode === "otp" && (
-                <OTPForm {...sharedProps} otpEmail={otpEmail} verifyOTP={verifyOTP} />
+                <OTPForm
+                  {...sharedProps}
+                  otpEmail={otpEmail}
+                  verifyOTP={verifyOTP}
+                />
               )}
             </Animated.View>
 
@@ -254,6 +270,14 @@ export default function AuthScreen() {
 }
 
 const localStyles = StyleSheet.create({
+  oceanContainer: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    height: "30%",
+    overflow: "hidden",
+  },
   successBanner: {
     flexDirection: "row",
     alignItems: "center",

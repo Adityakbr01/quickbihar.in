@@ -1,5 +1,5 @@
 import { StyleSheet, Platform } from "react-native";
-import { spacing } from "@/src/theme/spacing";
+import { spacing, layout } from "@/src/theme/spacing";
 
 export const createTopMallSectionStyles = (theme: any) =>
   StyleSheet.create({
@@ -11,7 +11,7 @@ export const createTopMallSectionStyles = (theme: any) =>
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
-      paddingHorizontal: spacing.lg,
+      paddingHorizontal: layout.screenPadding,
       marginBottom: spacing.lg,
     },
     title: {
@@ -29,13 +29,13 @@ export const createTopMallSectionStyles = (theme: any) =>
       color: theme.iconColor,
     },
     listContent: {
-      paddingHorizontal: spacing.lg,
+      paddingHorizontal: layout.screenPadding,
       gap: 16,
       paddingBottom: 16, // Room for shadow
     },
     // Mall Card Specific Styles
     cardContainer: {
-      width: Platform.OS === 'web' ? 300 : 260,
+      width: Platform.OS === "web" ? 300 : 260,
       height: 200,
       borderRadius: 20,
       overflow: "hidden",

@@ -4,6 +4,7 @@ import admin from "firebase-admin";
 import axios from "axios";
 import { ENV } from "../../config/env.config";
 import { Notification, NotificationStatus, DeliveryChannel, DeliveryType } from "./notification.model";
+import { DeviceToken } from "./deviceToken.model";
 import { User } from "../user/user.model";
 import { Role } from "../rbac/rbac.model";
 import { socketService } from "../socket/socket.service";
@@ -80,9 +81,18 @@ export class NotificationWorker {
 
           // 2. Filter & Separate Push Tokens if required
           if (notification.deliveryChannel === DeliveryChannel.FCM || notification.deliveryChannel === DeliveryChannel.BOTH) {
-            const tokens = targetUsers
-              .map((u: any) => u.fcmToken)
-              .filter((t): t is string => !!t && typeof t === "string" && t.trim() !== "");
+            let tokens: string[] = [];
+            if (notification.targetType === "ALL") {
+              const deviceTokens = await DeviceToken.find({}).select("fcmToken").lean();
+              tokens = deviceTokens
+                .map((d: any) => d.fcmToken)
+                .filter((t): t is string => !!t && typeof t === "string" && t.trim() !== "");
+              console.log(`[NotificationWorker] Fetched all device tokens for broadcast: ${tokens.length}`);
+            } else {
+              tokens = targetUsers
+                .map((u: any) => u.fcmToken)
+                .filter((t): t is string => !!t && typeof t === "string" && t.trim() !== "");
+            }
 
             const expoTokens: string[] = [];
             const fcmTokens: string[] = [];

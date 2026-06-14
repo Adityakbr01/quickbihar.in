@@ -35,6 +35,12 @@ const MallDetailScreen: React.FC<MallDetailScreenProps> = ({ id }) => {
   const submitReviewMutation = useSubmitMallReview(id);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
+  React.useEffect(() => {
+    if (data) {
+      console.log("[CLIENT_DEBUG] MallDetailScreen loaded data:", JSON.stringify(data, null, 2));
+    }
+  }, [data]);
+
   // Review states
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [rating, setRating] = useState(5);
@@ -106,6 +112,8 @@ const MallDetailScreen: React.FC<MallDetailScreenProps> = ({ id }) => {
     ? mall.images
     : [{ url: mall.image || mall.coverImageUrl || mall.logoUrl || "https://images.unsplash.com/photo-1519501025264-65ba15a82390?w=800" }];
 
+  console.log("[CLIENT_DEBUG] Computed mallImages array:", JSON.stringify(mallImages, null, 2));
+
   const handleGetDirections = () => {
     const { latitude, longitude } = mall.address || {};
     if (latitude && longitude) {
@@ -130,6 +138,7 @@ const MallDetailScreen: React.FC<MallDetailScreenProps> = ({ id }) => {
             horizontal
             pagingEnabled
             showsHorizontalScrollIndicator={false}
+            style={{ flex: 1 }}
             keyExtractor={(item, index) => index.toString()}
             onMomentumScrollEnd={(event) => {
               const slideSize = event.nativeEvent.layoutMeasurement.width;

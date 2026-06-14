@@ -109,14 +109,16 @@ const TopSellingSection = () => {
       </View>
       <FlashList
         data={(trendingProducts.data || []).slice(0, 10)}
-        renderItem={({ item }) => <ProductCard item={item} />}
+        renderItem={({ item, index }) => (
+          <View style={{ marginRight: (trendingProducts.data || []).slice(0, 10).length - 1 === index ? 0 : gap }}>
+            <ProductCard item={item} />
+          </View>
+        )}
         keyExtractor={(item: any) => item._id || item.id}
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.listContent}
-        ItemSeparatorComponent={() => <View style={{ width: 16 }} />}
-        snapToInterval={240 + 16}
-        decelerationRate="fast"
+        estimatedItemSize={240}
       />
     </View>
   );

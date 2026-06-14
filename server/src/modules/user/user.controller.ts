@@ -1,3 +1,6 @@
+import jwt from "jsonwebtoken";
+import { ENV } from "../../config/env.config";
+import { DeviceToken } from "../notification/deviceToken.model";
 import { ApiResponse } from "../../utils/ApiResponse";
 import { asyncHandler } from "../../utils/asyncHandler";
 import { ApiError } from "../../utils/ApiError";
@@ -61,15 +64,41 @@ export class UserController {
      * Update FCM Token for Push Notifications
      */
     static updateFcmToken = asyncHandler(async (req, res) => {
-        const userId = (req as any).user._id;
         const { fcmToken } = req.body;
 
         if (!fcmToken) {
             throw new ApiError(400, "FCM Token is required");
         }
 
-        console.log(`[SERVER] Syncing FCM Token for User ${userId}`);
-        await UserDAO.updateById(userId, { fcmToken });
+        // Try to decode optional JWT token to link FCM to user if authenticated
+        let userId: string | undefined = undefined;
+        try {
+            const token = req.cookies?.accessToken || req.header("Authorization")?.replace("Bearer ", "");
+            if (token) {
+                const decodedToken: any = jwt.verify(token, ENV.ACCESS_TOKEN_SECRET);
+                const user = await UserDAO.findById(decodedToken?._id);
+                if (user) {
+                    userId = user._id.toString();
+                    (req as any).user = user;
+                }
+            }
+        } catch (error) {
+            console.log("[SERVER] Guest or invalid token in updateFcmToken, registering as guest device:", error instanceof Error ? error.message : error);
+        }
+
+        if (userId) {
+            console.log(`[SERVER] Syncing FCM Token for User ${userId}`);
+            await UserDAO.updateById(userId, { fcmToken });
+        } else {
+            console.log(`[SERVER] Registering FCM Token for guest device`);
+        }
+
+        // Also track all FCM tokens in a unified DeviceToken collection
+        await DeviceToken.findOneAndUpdate(
+            { fcmToken },
+            { userId: userId || null },
+            { upsert: true, new: true }
+        );
 
         return res.status(200).json(new ApiResponse(200, {}, "FCM Token updated successfully"));
     });

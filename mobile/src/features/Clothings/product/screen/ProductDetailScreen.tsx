@@ -128,9 +128,34 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
     } catch { }
   }, [dp.title, dp.price]);
 
-  const { addItem, isLoading: isAddingToCart } = useCartStore();
+  const addItem = useCartStore((state) => state.addItem);
+  const isAddingToCart = useCartStore((state) => state.isLoading);
+  const cartItems = useCartStore((state) => state.items);
+
+  const selectedVariant = useMemo(() => {
+    return dp.variants?.find(
+      (v) =>
+        (!selectedColor || v.color.trim() === selectedColor) &&
+        (!selectedSize || v.size === selectedSize)
+    );
+  }, [dp.variants, selectedColor, selectedSize]);
+
+  const hasSizes = sizesForColor.length > 0;
+  const hasColors = uniqueColors.length > 0;
+  const isSelectionComplete =
+    (!hasSizes || selectedSize !== null) && (!hasColors || selectedColor !== null);
+
+  const isInCart = useMemo(() => {
+    if (!isSelectionComplete || !selectedVariant) return false;
+    return cartItems.some((item) => item.sku === selectedVariant.sku);
+  }, [isSelectionComplete, selectedVariant, cartItems]);
 
   const handleAddToBag = async () => {
+    if (isInCart) {
+      router.push("/clothing/cart");
+      return;
+    }
+
     if (!selectedSize && sizesForColor.length > 0) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       Toast.show({
@@ -142,10 +167,7 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
       return;
     }
 
-    const variant = dp.variants?.find(
-      (v) => v.color.trim() === selectedColor && v.size === selectedSize
-    ) || dp.variants?.[0];
-
+    const variant = selectedVariant || dp.variants?.[0];
     const sku = variant?.sku || "default-sku";
 
     try {
@@ -922,20 +944,42 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
         </TouchableOpacity>
         {/* Add to Bag Button */}
         {(() => {
-          const selectedVariant = dp.variants?.find(
-            (v) => v.color.trim() === selectedColor && v.size === selectedSize
-          );
           const isOutOfStock = !!((dp.totalStock ?? 0) <= 0 || (selectedSize && (selectedVariant?.stock ?? 0) <= 0));
+          const buttonDisabled = isAddingToCart || (!isSelectionComplete) || (isOutOfStock && !isInCart);
+
+          // Determine button text and icon
+          let buttonText = "ADD TO BAG";
+          let buttonIcon = "bag-handle-outline";
+
+          if (isInCart) {
+            buttonText = "GO TO CART";
+            buttonIcon = "arrow-forward-outline";
+          } else if (isOutOfStock) {
+            buttonText = "OUT OF STOCK";
+            buttonIcon = "close-circle-outline";
+          } else if (!isSelectionComplete) {
+            if (hasColors && !selectedColor) {
+              buttonText = "SELECT COLOR";
+              buttonIcon = "color-palette-outline";
+            } else if (hasSizes && !selectedSize) {
+              buttonText = "SELECT SIZE";
+              buttonIcon = "resize-outline";
+            }
+          }
 
           return (
             <TouchableOpacity
               onPress={handleAddToBag}
-              disabled={isAddingToCart || isOutOfStock}
+              disabled={buttonDisabled}
               style={[
                 s.addToBagBtn,
                 {
-                  backgroundColor: isOutOfStock ? theme.secondaryText : theme.primary,
-                  opacity: (isAddingToCart || isOutOfStock) ? 0.7 : 1
+                  backgroundColor: isInCart
+                    ? theme.primary
+                    : buttonDisabled
+                    ? theme.secondaryText || "#9ca3af"
+                    : theme.primary,
+                  opacity: isAddingToCart ? 0.7 : 1
                 }
               ]}
               activeOpacity={0.8}
@@ -944,9 +988,13 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
                 <ActivityIndicator color="#fff" size="small" />
               ) : (
                 <>
-                  <Ionicons name={isOutOfStock ? "close-circle-outline" : "bag-handle-outline"} size={20} color="#fff" />
+                  <Ionicons
+                    name={buttonIcon as any}
+                    size={20}
+                    color="#fff"
+                  />
                   <Text style={s.addToBagText}>
-                    {isOutOfStock ? "OUT OF STOCK" : "ADD TO BAG"}
+                    {buttonText}
                   </Text>
                 </>
               )}

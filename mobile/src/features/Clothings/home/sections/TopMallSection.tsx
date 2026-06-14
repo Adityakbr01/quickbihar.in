@@ -1,12 +1,20 @@
 import React from "react";
-import { View, Text, TouchableOpacity, useWindowDimensions, StyleSheet, Platform } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  useWindowDimensions,
+  StyleSheet,
+  Platform,
+  ScrollView,
+} from "react-native";
 import { FlashList } from "@shopify/flash-list";
 import LottieView from "lottie-react-native";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { createTopMallSectionStyles } from "../style/TopMallSection.style";
-import { MOCK_MALLS } from "../lib/mockData";
+import { MallCardSkeleton } from "../components/MallCardSkeleton";
 import { MallCard } from "../components/MallCard";
 import { getTopMallsRequest } from "../api/mall.api";
 
@@ -15,7 +23,10 @@ const fireLottie = require("@/assets/lottie/Fire.json");
 const TopMallSection = () => {
   const theme = useTheme() as any;
   const { width: windowWidth } = useWindowDimensions();
-  const styles = React.useMemo(() => createTopMallSectionStyles(theme), [theme]);
+  const styles = React.useMemo(
+    () => createTopMallSectionStyles(theme),
+    [theme],
+  );
   const router = useRouter();
 
   // Handle snapping and width logic
@@ -26,7 +37,24 @@ const TopMallSection = () => {
     queryKey: ["topMalls"],
     queryFn: getTopMallsRequest,
   });
-  const malls = topMalls?.length ? topMalls : isLoading ? MOCK_MALLS.slice(0, 3) : [];
+
+  if (isLoading) {
+    return (
+      <View style={styles.container}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={[styles.listContent, { gap: 16 }]}
+        >
+          {[1, 2, 3].map((key) => (
+            <MallCardSkeleton key={key} />
+          ))}
+        </ScrollView>
+      </View>
+    );
+  }
+
+  const malls = topMalls || [];
 
   if (!malls.length) {
     return null;
@@ -46,7 +74,10 @@ const TopMallSection = () => {
               resizeMode="contain"
               style={[
                 localStyles.fireLottie,
-                Platform.OS === 'web' && { filter: theme.text === '#ffffff' ? 'invert(1)' : 'none' } as any
+                Platform.OS === "web" &&
+                  ({
+                    filter: theme.text === "#ffffff" ? "invert(1)" : "none",
+                  } as any),
               ]}
               colorFilters={[
                 {
@@ -57,7 +88,10 @@ const TopMallSection = () => {
             />
           </View>
         </View>
-        <TouchableOpacity style={styles.seeAllBtn} onPress={() => router.push("/mall" as any)}>
+        <TouchableOpacity
+          style={styles.seeAllBtn}
+          onPress={() => router.push("/mall" as any)}
+        >
           <Text style={styles.seeAll}>Explore All</Text>
         </TouchableOpacity>
       </View>
@@ -69,7 +103,6 @@ const TopMallSection = () => {
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.listContent}
-        ItemSeparatorComponent={() => <View style={{ width: 16 }} />}
         snapToInterval={cardWidth + gap}
         decelerationRate="fast"
       />

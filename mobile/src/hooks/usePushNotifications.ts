@@ -106,7 +106,7 @@ export const usePushNotifications = () => {
   }, [queryClient, router]);
 
   useEffect(() => {
-    if (!isInitialized || !isAuthenticated) return;
+    if (!isInitialized) return;
 
     const isExpoGo = Constants.appOwnership === "expo";
     if (isExpoGo) {

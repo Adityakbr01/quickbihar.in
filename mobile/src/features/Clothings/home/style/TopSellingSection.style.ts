@@ -1,5 +1,5 @@
 import { StyleSheet } from "react-native";
-import { spacing } from "@/src/theme/spacing";
+import { spacing, layout } from "@/src/theme/spacing";
 
 export const createTopSellingSectionStyles = (theme: any) =>
   StyleSheet.create({
@@ -15,7 +15,7 @@ export const createTopSellingSectionStyles = (theme: any) =>
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
-      paddingHorizontal: spacing.lg,
+      paddingHorizontal: layout.screenPadding,
       marginBottom: spacing.lg,
     },
     title: {
@@ -33,7 +33,7 @@ export const createTopSellingSectionStyles = (theme: any) =>
       color: theme.iconColor,
     },
     listContent: {
-      paddingHorizontal: spacing.lg,
+      paddingHorizontal: layout.screenPadding,
       gap: 16,
       paddingBottom: 8, // Room for shadow lift
     },

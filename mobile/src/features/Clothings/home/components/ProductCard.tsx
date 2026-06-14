@@ -11,6 +11,7 @@ import { useCartStore } from "../../cart/store/cartStore";
 import * as Haptics from "expo-haptics";
 import Toast from "react-native-toast-message";
 import WishlistHeart from "@/src/components/common/WishlistHeart";
+import { VariantSelectorBottomSheet } from "../../product/components/modals/VariantSelectorBottomSheet";
 
 interface ProductCardProps {
   item: IProduct | MockProduct;
@@ -21,14 +22,42 @@ export const ProductCard = ({ item }: ProductCardProps) => {
   const styles = React.useMemo(() => createProductCardStyles(theme), [theme]);
   const router = useRouter();
   const addItem = useCartStore(state => state.addItem);
+  const cartItems = useCartStore(state => state.items);
 
   const id = (item as IProduct)._id || 'mock';
   const isWishlisted = useWishlistStore(state => state.items.includes(id));
   const toggleWishlist = useWishlistStore(state => state.toggleItem);
 
+  const [isSheetVisible, setIsSheetVisible] = React.useState(false);
+
+  const variants = (item as IProduct).variants || [];
+  const uniqueColors = React.useMemo(() => {
+    return Array.from(new Set(variants.map(v => v.color?.trim()).filter(Boolean))) as string[];
+  }, [variants]);
+  
+  const uniqueSizes = React.useMemo(() => {
+    return Array.from(new Set(variants.map(v => v.size?.trim()).filter(Boolean))) as string[];
+  }, [variants]);
+
+  const isSelectionApplicable = variants.length > 0;
+  const sku = variants[0]?.sku || (item as MockProduct).id || 'default-sku';
+
+  const isInCart = React.useMemo(() => {
+    if (isSelectionApplicable) return false;
+    return cartItems.some(cartItem => cartItem.sku === sku);
+  }, [cartItems, sku, isSelectionApplicable]);
+
   const handleAddToCart = async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    const sku = (item as IProduct).variants?.[0]?.sku || (item as MockProduct).id || 'default-sku';
+    if (isInCart) {
+      router.push("/clothing/cart");
+      return;
+    }
+    if (isSelectionApplicable) {
+      setIsSheetVisible(true);
+      return;
+    }
+
     try {
       await addItem(item, sku, 1);
       Toast.show({
@@ -102,7 +131,11 @@ export const ProductCard = ({ item }: ProductCardProps) => {
 
         {/* Add to Cart absolute button (like DealProductCard) */}
         <TouchableOpacity
-          style={[styles.addButton, (item as IProduct).totalStock <= 0 && { opacity: 0.5, backgroundColor: theme.secondaryText }]}
+          style={[
+            styles.addButton,
+            (item as IProduct).totalStock <= 0 && { opacity: 0.5, backgroundColor: theme.secondaryText },
+            isInCart && { backgroundColor: theme.primary }
+          ]}
           activeOpacity={0.8}
           disabled={(item as IProduct).totalStock <= 0}
           onPress={(e) => {
@@ -110,8 +143,24 @@ export const ProductCard = ({ item }: ProductCardProps) => {
             handleAddToCart();
           }}
         >
-          <Ionicons name={(item as IProduct).totalStock <= 0 ? "close-circle-outline" : "bag-add-outline"} size={14} color="#fff" />
-          <Text style={styles.addText}>{(item as IProduct).totalStock <= 0 ? "Out of Stock" : "Add"}</Text>
+          <Ionicons
+            name={
+              (item as IProduct).totalStock <= 0
+                ? "close-circle-outline"
+                : isInCart
+                ? "arrow-forward-outline"
+                : "bag-add-outline"
+            }
+            size={14}
+            color="#fff"
+          />
+          <Text style={styles.addText}>
+            {(item as IProduct).totalStock <= 0
+              ? "Out of Stock"
+              : isInCart
+              ? "Go to Cart"
+              : "Add"}
+          </Text>
         </TouchableOpacity>
       </View>
 
@@ -138,6 +187,15 @@ export const ProductCard = ({ item }: ProductCardProps) => {
           ) : null}
         </View>
       </View>
+
+      {isSheetVisible && (
+        <VariantSelectorBottomSheet
+          visible={isSheetVisible}
+          onClose={() => setIsSheetVisible(false)}
+          product={item}
+          theme={theme}
+        />
+      )}
     </TouchableOpacity>
   );
 };

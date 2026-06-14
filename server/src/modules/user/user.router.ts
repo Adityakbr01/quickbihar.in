@@ -6,14 +6,14 @@ import { PERMISSIONS } from "../rbac/rbac.constants";
 
 const router = Router();
 
-// ⭐ PUBLIC ROUTES (NONE)
+// ⭐ PUBLIC ROUTES
+router.patch("/fcm-token", UserController.updateFcmToken);
 
 // ⭐ PROTECTED ROUTES (Requires Login)
 router.use(verifyJWT);
 
 router.get("/profile", UserController.getProfile);
 router.patch("/profile", UserController.updateProfile);
-router.patch("/fcm-token", UserController.updateFcmToken);
 router.patch("/avatar", upload.single("avatar"), UserController.updateAvatar);
 
 // ⭐ MANAGEMENT ROUTES (Requires Admin Role) : todo send to Admin module
