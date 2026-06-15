@@ -38,6 +38,7 @@ export enum RedirectType {
   NONE = "none",
   PRODUCT = "product",
   CATEGORY = "category",
+  MALL = "mall",
   EXTERNAL = "external",
 }
 

@@ -33,6 +33,7 @@ router.get("/user", verifyJWT, NotificationController.getUserNotifications);
 // POST Endpoints
 router.post("/send", verifyJWT, isAdminOrSuperAdmin, upload.single("image"), NotificationController.sendNotification);
 router.post("/batch-delete", verifyJWT, isAdminOrSuperAdmin, NotificationController.batchDeleteNotifications);
+router.post("/test-direct-push", verifyJWT, isAdminOrSuperAdmin, NotificationController.testDirectPush);
 
 // PATCH Endpoints
 router.patch("/read-all", verifyJWT, NotificationController.markAllAsRead);

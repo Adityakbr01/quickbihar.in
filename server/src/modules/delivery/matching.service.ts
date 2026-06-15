@@ -520,72 +520,72 @@ export class MatchingService {
       );
     }
 
-    console.warn(
-      "[MatchingService] Matching diagnostics",
-      JSON.stringify(
-        {
-          reason: input.reason,
-          subOrder: {
-            _id: input.subOrder?._id?.toString?.(),
-            subOrderId: input.subOrder?.subOrderId,
-            status: input.subOrder?.status,
-            deliveryStatus: input.subOrder?.delivery?.status,
-            pickupTiming: input.subOrder?.packageDetails?.pickupTiming,
-          },
-          matching: {
-            stage: input.stage,
-            radiusKm: input.radiusMeters / 1000,
-            elapsedSeconds: Math.round(input.elapsedSeconds),
-          },
-          store: {
-            _id: input.store?._id?.toString?.(),
-            name: input.store?.name,
-            rawCoordinates: input.store?.currentLocation?.coordinates || null,
-            location: storeCoords,
-          },
-          customer: {
-            rawLatitude: input.parentOrder?.shippingAddress?.latitude,
-            rawLongitude: input.parentOrder?.shippingAddress?.longitude,
-            location:
-              customerCoords &&
-              Number.isFinite(customerCoords.latitude) &&
-              Number.isFinite(customerCoords.longitude)
-                ? customerCoords
-                : null,
-          },
-          riderSummary: {
-            approvedOnline: approvedOnlineRiders.length,
-            approvedOnlineVerified: approvedOnlineRiders.filter(
-              (rider: any) => rider.isVerified,
-            ).length,
-            approvedOnlineWithGps: riderDiagnostics.filter(
-              (rider) => rider.hasGps,
-            ).length,
-            busyWithActiveJob: riderDiagnostics.filter(
-              (rider) => rider.hasActiveJob,
-            ).length,
-            atAcceptanceCapacity: riderDiagnostics.filter(
-              (rider) => rider.atAcceptanceCapacity,
-            ).length,
-            suppressedByRejections: riderDiagnostics.filter(
-              (rider) => rider.offerSuppressedForSubOrder,
-            ).length,
-            withinRadius: riderDiagnostics.filter((rider) => rider.withinRadius)
-              .length,
-            eligibleWithinRadius: riderDiagnostics.filter(
-              (rider) =>
-                rider.withinRadius &&
-                !rider.atAcceptanceCapacity &&
-                !rider.offerSuppressedForSubOrder,
-            ).length,
-          },
-          nearestRiders: riderDiagnostics.slice(0, 5),
-          blockers,
-        },
-        null,
-        2,
-      ),
-    );
+    // console.warn(
+    //   "[MatchingService] Matching diagnostics",
+    //   JSON.stringify(
+    //     {
+    //       reason: input.reason,
+    //       subOrder: {
+    //         _id: input.subOrder?._id?.toString?.(),
+    //         subOrderId: input.subOrder?.subOrderId,
+    //         status: input.subOrder?.status,
+    //         deliveryStatus: input.subOrder?.delivery?.status,
+    //         pickupTiming: input.subOrder?.packageDetails?.pickupTiming,
+    //       },
+    //       matching: {
+    //         stage: input.stage,
+    //         radiusKm: input.radiusMeters / 1000,
+    //         elapsedSeconds: Math.round(input.elapsedSeconds),
+    //       },
+    //       store: {
+    //         _id: input.store?._id?.toString?.(),
+    //         name: input.store?.name,
+    //         rawCoordinates: input.store?.currentLocation?.coordinates || null,
+    //         location: storeCoords,
+    //       },
+    //       customer: {
+    //         rawLatitude: input.parentOrder?.shippingAddress?.latitude,
+    //         rawLongitude: input.parentOrder?.shippingAddress?.longitude,
+    //         location:
+    //           customerCoords &&
+    //           Number.isFinite(customerCoords.latitude) &&
+    //           Number.isFinite(customerCoords.longitude)
+    //             ? customerCoords
+    //             : null,
+    //       },
+    //       riderSummary: {
+    //         approvedOnline: approvedOnlineRiders.length,
+    //         approvedOnlineVerified: approvedOnlineRiders.filter(
+    //           (rider: any) => rider.isVerified,
+    //         ).length,
+    //         approvedOnlineWithGps: riderDiagnostics.filter(
+    //           (rider) => rider.hasGps,
+    //         ).length,
+    //         busyWithActiveJob: riderDiagnostics.filter(
+    //           (rider) => rider.hasActiveJob,
+    //         ).length,
+    //         atAcceptanceCapacity: riderDiagnostics.filter(
+    //           (rider) => rider.atAcceptanceCapacity,
+    //         ).length,
+    //         suppressedByRejections: riderDiagnostics.filter(
+    //           (rider) => rider.offerSuppressedForSubOrder,
+    //         ).length,
+    //         withinRadius: riderDiagnostics.filter((rider) => rider.withinRadius)
+    //           .length,
+    //         eligibleWithinRadius: riderDiagnostics.filter(
+    //           (rider) =>
+    //             rider.withinRadius &&
+    //             !rider.atAcceptanceCapacity &&
+    //             !rider.offerSuppressedForSubOrder,
+    //         ).length,
+    //       },
+    //       nearestRiders: riderDiagnostics.slice(0, 5),
+    //       blockers,
+    //     },
+    //     null,
+    //     2,
+    //   ),
+    // );
   }
 
   // Execute matching algorithm for a sub-order

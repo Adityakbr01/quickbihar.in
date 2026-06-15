@@ -1,6 +1,5 @@
-import React from "react";
-import SafeViewWrapper from "@/src/provider/SafeViewWrapper";
 import AccountMain from "@/src/features/Clothings/account/screens/AccountMain";
+import SafeViewWrapper from "@/src/provider/SafeViewWrapper";
 
 const AccountScreen = () => {
   return (

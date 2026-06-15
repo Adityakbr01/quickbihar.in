@@ -983,3 +983,17 @@ export const useNotificationAnalytics = () =>
     queryKey: ["admin-notification-analytics"],
     queryFn: adminManagementApi.getNotificationAnalytics,
   });
+
+export const useTestDirectPush = () => {
+  return useMutation({
+    mutationFn: adminManagementApi.testDirectPush,
+    onSuccess: (data) => {
+      if (data.success) {
+        toast.success("Direct test push dispatched successfully!");
+      } else {
+        toast.error("FCM/Expo API reported delivery issues (check logs)");
+      }
+    },
+    onError: (error: Error) => toast.error(error.message || "Failed to trigger direct test push"),
+  });
+};

@@ -52,7 +52,8 @@ export const usePushNotifications = () => {
               "OPEN_LINK",
               "CHECK_IT_OUT",
               "VIEW_PRODUCT",
-              "VIEW_ORDER"
+              "VIEW_ORDER",
+              "EXPLORE_MALL"
             ];
             const isPromoAction = promoActions.includes(actionIdentifier);
             if (isPromoAction || actionIdentifier === "default") {
@@ -61,6 +62,8 @@ export const usePushNotifications = () => {
                   router.push(`/product/${redirectId}` as any);
                 } else if (redirectType === "category" && redirectId) {
                   router.push(`/mall` as any);
+                } else if (redirectType === "mall" && redirectId) {
+                  router.push(`/mall/${redirectId}` as any);
                 } else if (redirectType === "external" && externalUrl) {
                   import("expo-web-browser").then((WebBrowser) => {
                     WebBrowser.openBrowserAsync(externalUrl);

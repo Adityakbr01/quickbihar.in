@@ -52,6 +52,8 @@ import {
   useResendAdminNotification,
   useNotificationAnalytics,
   useBatchDeleteNotifications,
+  useMalls,
+  useTestDirectPush,
 } from "../../hooks/useAdminManagement";
 import {
   useAdminCategories,
@@ -124,6 +126,20 @@ export function NotificationManagementPanel() {
   const [editStatus, setEditStatus] = useState("");
   const [priority, setPriority] = useState("MEDIUM");
 
+  // Push Debugger states
+  const [isDebuggerOpen, setIsDebuggerOpen] = useState(false);
+  const [debugUser, setDebugUser] = useState("");
+  const [debugToken, setDebugToken] = useState("");
+  const [debugTitle, setDebugTitle] = useState("Debug Test Notification");
+  const [debugBody, setDebugBody] = useState("This is a rich test notification with action button & image.");
+  const [debugImageUrl, setDebugImageUrl] = useState("");
+  const [debugRedirectType, setDebugRedirectType] = useState("none");
+  const [debugRedirectId, setDebugRedirectId] = useState("");
+  const [debugExternalUrl, setDebugExternalUrl] = useState("");
+  const [debugActionButtonText, setDebugActionButtonText] = useState("");
+  const [debugRedirectSearch, setDebugRedirectSearch] = useState("");
+  const [debugResult, setDebugResult] = useState<any>(null);
+
   // Reset page and selection when filters change
   useEffect(() => {
     setPage(1);
@@ -148,15 +164,18 @@ export function NotificationManagementPanel() {
   const deleteMutation = useDeleteAdminNotification();
   const resendMutation = useResendAdminNotification();
   const batchDeleteMutation = useBatchDeleteNotifications();
+  const testPushMutation = useTestDirectPush();
 
   // Autocomplete Queries
   const categoriesQuery = useAdminCategories({ page: 1, limit: 100, sortBy: "title", sortOrder: "asc" });
   const productsQuery = useAdminProducts({ page: 1, limit: 100, sortBy: "title", sortOrder: "asc" });
   const peopleQuery = useManagedPeople({ search: userSearch || undefined });
+  const mallsQuery = useMalls();
 
   const categories = categoriesQuery.data?.data || [];
   const products = productsQuery.data?.data || [];
   const candidates = peopleQuery.data || [];
+  const malls = mallsQuery.data || [];
 
   const notificationsData = notificationsQuery.data || { data: [], total: 0, page: 1, limit: 10, totalPages: 1 };
   const history = notificationsData.data || [];
@@ -299,6 +318,9 @@ export function NotificationManagementPanel() {
     } else if (notification.redirectType === "category") {
       const cat = categories.find((c: any) => c._id === notification.redirectId);
       setRedirectSearch(cat?.title || notification.redirectId || "");
+    } else if (notification.redirectType === "mall") {
+      const mall = malls.find((m: any) => m._id === notification.redirectId);
+      setRedirectSearch(mall?.name || notification.redirectId || "");
     } else {
       setRedirectSearch("");
     }
@@ -340,7 +362,7 @@ export function NotificationManagementPanel() {
       formData.append("targetUser", targetUser);
     }
 
-    if (redirectType === "product" || redirectType === "category") {
+    if (redirectType === "product" || redirectType === "category" || redirectType === "mall") {
       formData.append("redirectId", redirectId);
     } else if (redirectType === "external" && externalUrl) {
       formData.append("externalUrl", externalUrl.trim());
@@ -398,7 +420,7 @@ export function NotificationManagementPanel() {
       formData.append("targetUser", targetUser);
     }
 
-    if (redirectType === "product" || redirectType === "category") {
+    if (redirectType === "product" || redirectType === "category" || redirectType === "mall") {
       formData.append("redirectId", redirectId);
     } else if (redirectType === "external" && externalUrl) {
       formData.append("externalUrl", externalUrl.trim());
@@ -455,6 +477,55 @@ export function NotificationManagementPanel() {
     });
   };
 
+  const handleTestPushSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setDebugResult(null);
+
+    const payload = {
+      targetUser: debugUser || undefined,
+      targetToken: debugToken || undefined,
+      title: debugTitle,
+      body: debugBody,
+      imageUrl: debugImageUrl || undefined,
+      redirectType: debugRedirectType,
+      redirectId: debugRedirectId || undefined,
+      externalUrl: debugExternalUrl || undefined,
+      actionButtonText: debugActionButtonText || undefined,
+    };
+
+    testPushMutation.mutate(payload, {
+      onSuccess: (data) => {
+        setDebugResult(data);
+      },
+      onError: (err: any) => {
+        setDebugResult({
+          success: false,
+          logs: ["Request Error: " + err.message],
+          apiResponse: err.response?.data || err.message,
+        });
+      },
+    });
+  };
+
+  const filteredDebugRedirectTargets = () => {
+    if (debugRedirectType === "product") {
+      return products.filter((p: any) =>
+        p.title?.toLowerCase().includes(debugRedirectSearch.toLowerCase())
+      );
+    }
+    if (debugRedirectType === "category") {
+      return categories.filter((c: any) =>
+        c.title?.toLowerCase().includes(debugRedirectSearch.toLowerCase())
+      );
+    }
+    if (debugRedirectType === "mall") {
+      return malls.filter((m: any) =>
+        m.name?.toLowerCase().includes(debugRedirectSearch.toLowerCase())
+      );
+    }
+    return [];
+  };
+
   // Filter products or categories based on search input
   const filteredRedirectTargets = () => {
     if (redirectType === "product") {
@@ -465,6 +536,11 @@ export function NotificationManagementPanel() {
     if (redirectType === "category") {
       return categories.filter((c: any) =>
         c.title?.toLowerCase().includes(redirectSearch.toLowerCase())
+      );
+    }
+    if (redirectType === "mall") {
+      return malls.filter((m: any) =>
+        m.name?.toLowerCase().includes(redirectSearch.toLowerCase())
       );
     }
     return [];
@@ -652,6 +728,18 @@ export function NotificationManagementPanel() {
               Delete Selected ({selectedCampaigns.length})
             </Button>
           )}
+
+          <Button
+            onClick={() => {
+              setIsDebuggerOpen(true);
+              setDebugResult(null);
+            }}
+            variant="outline"
+            className="border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 h-9"
+          >
+            <ShieldAlert className="mr-2 h-4 w-4" />
+            Push Debugger
+          </Button>
 
           <Button
             onClick={openCompose}
@@ -1129,6 +1217,8 @@ export function NotificationManagementPanel() {
                         setActionButtonText("Buy Now");
                       } else if (e.target.value === "category") {
                         setActionButtonText("Shop Now");
+                      } else if (e.target.value === "mall") {
+                        setActionButtonText("Explore Mall");
                       } else if (e.target.value === "external") {
                         setActionButtonText("View Details");
                       }
@@ -1138,6 +1228,7 @@ export function NotificationManagementPanel() {
                     <option value="none">No Button / No Link</option>
                     <option value="product">"Buy Now" Button (Product Page)</option>
                     <option value="category">"Shop Now" Button (Category Page)</option>
+                    <option value="mall">"Explore Mall" Button (Mall Page)</option>
                     <option value="external">"View Details" Button (External Website)</option>
                   </select>
                 </div>
@@ -1151,7 +1242,7 @@ export function NotificationManagementPanel() {
                     />
                   )}
 
-                  {(redirectType === "product" || redirectType === "category") && (
+                  {(redirectType === "product" || redirectType === "category" || redirectType === "mall") && (
                     <div className="relative">
                       <Input
                         value={redirectSearch}
@@ -1170,11 +1261,11 @@ export function NotificationManagementPanel() {
                               type="button"
                               onClick={() => {
                                 setRedirectId(item._id);
-                                setRedirectSearch(item.title);
+                                setRedirectSearch(item.title || item.name);
                               }}
                               className="flex w-full items-center justify-between p-2 text-left text-xs text-gray-300 hover:bg-white/5 transition-colors"
                             >
-                              <span>{item.title}</span>
+                              <span>{item.title || item.name}</span>
                               <span className="text-[10px] text-gray-500">{item._id.slice(-6)}</span>
                             </button>
                           ))}
@@ -1423,17 +1514,56 @@ export function NotificationManagementPanel() {
                 </div>
 
                 {notificationType === "RICH" && (
-                  <div className="space-y-2 bg-white/5 p-3 rounded-lg border border-white/5">
-                    <span className="text-[11px] text-gray-400">Image Source (URL)</span>
-                    <Input
-                      value={imageUrl}
-                      onChange={(e) => setImageUrl(e.target.value)}
-                      placeholder="https://example.com/image.png"
-                      className={inputClass}
-                      disabled={activeNotification.status !== "PENDING"}
-                    />
+                  <div className="space-y-2.5 bg-white/5 p-3 rounded-lg border border-white/5">
+                    <div className="flex justify-between items-center">
+                      <span className="text-[11px] text-gray-400">Image Source</span>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setImageType("url")}
+                          className={`px-2 py-0.5 rounded text-[10px] font-semibold transition-colors ${
+                            imageType === "url" ? "bg-primary text-white" : "bg-white/5 text-gray-400"
+                          }`}
+                          disabled={activeNotification.status !== "PENDING"}
+                        >
+                          Image URL
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setImageType("file")}
+                          className={`px-2 py-0.5 rounded text-[10px] font-semibold transition-colors ${
+                            imageType === "file" ? "bg-primary text-white" : "bg-white/5 text-gray-400"
+                          }`}
+                          disabled={activeNotification.status !== "PENDING"}
+                        >
+                          Upload Local
+                        </button>
+                      </div>
+                    </div>
+
+                    {imageType === "url" ? (
+                      <Input
+                        value={imageUrl}
+                        onChange={(e) => setImageUrl(e.target.value)}
+                        placeholder="https://example.com/image.png"
+                        className={inputClass}
+                        disabled={activeNotification.status !== "PENDING"}
+                      />
+                    ) : (
+                      <div>
+                        <Input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleFileChange}
+                          className="border-white/10 bg-white/5 text-white file:bg-white/10 file:text-white file:border-0 file:rounded file:px-2 file:py-1 file:mr-2 text-xs h-9"
+                          disabled={activeNotification.status !== "PENDING"}
+                        />
+                      </div>
+                    )}
+
+                    {/* Image Live Preview */}
                     {imageUrl && (
-                      <div className="mt-2 border border-white/10 rounded-lg overflow-hidden max-h-[140px] flex justify-center bg-black/30">
+                      <div className="mt-2.5 border border-white/10 rounded-lg overflow-hidden max-h-[140px] flex justify-center bg-black/30">
                         <img src={imageUrl} alt="Preview" className="h-full object-contain max-h-[140px]" />
                       </div>
                     )}
@@ -1470,6 +1600,100 @@ export function NotificationManagementPanel() {
                     <option value="FCM">Push Only</option>
                   </select>
                 </div>
+              </div>
+
+              {/* Action Button & Redirection Targets */}
+              <div className="space-y-3 border-t border-white/5 pt-3">
+                <label className="text-xs text-gray-400 font-semibold">Action Button & Redirection</label>
+                <div className="grid grid-cols-3 gap-3">
+                  <div>
+                    <select
+                      value={redirectType}
+                      onChange={(e) => {
+                        setRedirectType(e.target.value);
+                        setRedirectId("");
+                        setExternalUrl("");
+                        setRedirectSearch("");
+                        if (e.target.value === "none") {
+                          setActionButtonText("");
+                        } else if (e.target.value === "product") {
+                          setActionButtonText("Buy Now");
+                        } else if (e.target.value === "category") {
+                          setActionButtonText("Shop Now");
+                        } else if (e.target.value === "mall") {
+                          setActionButtonText("Explore Mall");
+                        } else if (e.target.value === "external") {
+                          setActionButtonText("View Details");
+                        }
+                      }}
+                      className={`${selectClass} w-full`}
+                      disabled={activeNotification.status !== "PENDING"}
+                    >
+                      <option value="none">No Button / No Link</option>
+                      <option value="product">"Buy Now" Button (Product Page)</option>
+                      <option value="category">"Shop Now" Button (Category Page)</option>
+                      <option value="mall">"Explore Mall" Button (Mall Page)</option>
+                      <option value="external">"View Details" Button (External Website)</option>
+                    </select>
+                  </div>
+                  <div className="col-span-2">
+                    {redirectType === "external" && (
+                      <Input
+                        value={externalUrl}
+                        onChange={(e) => setExternalUrl(e.target.value)}
+                        placeholder="https://example.com"
+                        className={inputClass}
+                        disabled={activeNotification.status !== "PENDING"}
+                      />
+                    )}
+
+                    {(redirectType === "product" || redirectType === "category" || redirectType === "mall") && (
+                      <div className="relative">
+                        <Input
+                          value={redirectSearch}
+                          onChange={(e) => setRedirectSearch(e.target.value)}
+                          placeholder={`Search ${redirectType}...`}
+                          className={inputClass}
+                          disabled={activeNotification.status !== "PENDING"}
+                        />
+                        {redirectSearch.trim().length > 0 && !redirectId && activeNotification.status === "PENDING" && (
+                          <div className="absolute z-50 left-0 right-0 max-h-[140px] overflow-y-auto rounded border border-white/10 bg-[#121212] divide-y divide-white/5 shadow-2xl">
+                            {filteredRedirectTargets().length === 0 && (
+                              <p className="text-xs text-gray-500 p-2">No items found</p>
+                            )}
+                            {filteredRedirectTargets().map((item: any) => (
+                              <button
+                                key={item._id}
+                                type="button"
+                                onClick={() => {
+                                  setRedirectId(item._id);
+                                  setRedirectSearch(item.title || item.name);
+                                }}
+                                className="flex w-full items-center justify-between p-2 text-left text-xs text-gray-300 hover:bg-white/5 transition-colors"
+                              >
+                                <span>{item.title || item.name}</span>
+                                <span className="text-[10px] text-gray-500">{item._id.slice(-6)}</span>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {redirectType !== "none" && (
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] text-gray-500 font-semibold uppercase tracking-wider">Custom Action Button Text</label>
+                    <Input
+                      value={actionButtonText}
+                      onChange={(e) => setActionButtonText(e.target.value)}
+                      placeholder="Enter button text (e.g. Buy Now, Shop Now, Get Coupon)"
+                      className={inputClass}
+                      disabled={activeNotification.status !== "PENDING"}
+                    />
+                  </div>
+                )}
               </div>
 
               {/* Priority & Route */}
@@ -1555,7 +1779,11 @@ export function NotificationManagementPanel() {
                 </Button>
                 <Button
                   type="submit"
-                  disabled={updateMutation.isPending}
+                  disabled={
+                    updateMutation.isPending ||
+                    (targetType === "SPECIFIC" && !targetUser) ||
+                    (notificationType === "RICH" && imageType === "file" && !imageFile)
+                  }
                   className="bg-primary hover:bg-primary/95 text-white"
                 >
                   {updateMutation.isPending ? "Saving..." : "Save Changes"}
@@ -1747,6 +1975,297 @@ export function NotificationManagementPanel() {
               {batchDeleteMutation.isPending ? "Deleting..." : `Delete Selected (${selectedCampaigns.length})`}
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* End-to-End Push Diagnostics Debugger Dialog */}
+      <Dialog open={isDebuggerOpen} onOpenChange={setIsDebuggerOpen}>
+        <DialogContent className="border-white/10 bg-[#141414] text-white sm:max-w-[1000px] max-h-[90vh] overflow-y-auto shadow-2xl p-6">
+          <DialogHeader className="border-b border-white/5 pb-3">
+            <DialogTitle className="flex items-center gap-2.5 text-xl font-bold">
+              <ShieldAlert className="h-5 w-5 text-amber-400" />
+              End-to-End Push Diagnostics & Debugger
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4">
+            {/* Left Column: Form Inputs */}
+            <form onSubmit={handleTestPushSubmit} className="space-y-4">
+              <div className="bg-white/5 rounded-xl p-4 border border-white/5 space-y-4">
+                <h3 className="text-sm font-semibold text-gray-300 flex items-center gap-1.5 border-b border-white/5 pb-2">
+                  <UserIcon className="h-4 w-4 text-amber-400" />
+                  Target Device
+                </h3>
+
+                <div className="space-y-1">
+                  <label className="text-xs text-gray-400 font-semibold">User Search (Username, Email, or ID)</label>
+                  <Input
+                    value={debugUser}
+                    onChange={(e) => {
+                      setDebugUser(e.target.value);
+                      setDebugToken("");
+                    }}
+                    placeholder="e.g. aditya, user@example.com"
+                    className={inputClass}
+                  />
+                  <p className="text-[10px] text-gray-500">Searches DB for this user and retrieves their registered token.</p>
+                </div>
+
+                <div className="text-center text-xs text-gray-600 font-bold uppercase tracking-widest my-1">— OR —</div>
+
+                <div className="space-y-1">
+                  <label className="text-xs text-gray-400 font-semibold">Raw Expo or FCM Push Token</label>
+                  <Input
+                    value={debugToken}
+                    onChange={(e) => {
+                      setDebugToken(e.target.value);
+                      setDebugUser("");
+                    }}
+                    placeholder="ExponentPushToken[...] or native token"
+                    className={inputClass}
+                  />
+                </div>
+              </div>
+
+              <div className="bg-white/5 rounded-xl p-4 border border-white/5 space-y-4">
+                <h3 className="text-sm font-semibold text-gray-300 flex items-center gap-1.5 border-b border-white/5 pb-2">
+                  <Bell className="h-4 w-4 text-amber-400" />
+                  Alert Content
+                </h3>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <label className="text-xs text-gray-400 font-semibold">Alert Title</label>
+                    <Input
+                      value={debugTitle}
+                      onChange={(e) => setDebugTitle(e.target.value)}
+                      placeholder="Title"
+                      className={inputClass}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs text-gray-400 font-semibold">Image URL (Rich Banner)</label>
+                    <Input
+                      value={debugImageUrl}
+                      onChange={(e) => setDebugImageUrl(e.target.value)}
+                      placeholder="https://..."
+                      className={inputClass}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs text-gray-400 font-semibold">Alert Body</label>
+                  <textarea
+                    value={debugBody}
+                    onChange={(e) => setDebugBody(e.target.value)}
+                    className={`${textareaClass} w-full resize-none`}
+                    rows={2}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="bg-white/5 rounded-xl p-4 border border-white/5 space-y-4">
+                <h3 className="text-sm font-semibold text-gray-300 flex items-center gap-1.5 border-b border-white/5 pb-2">
+                  <LinkIcon className="h-4 w-4 text-amber-400" />
+                  Interactive Action & Deep Link
+                </h3>
+
+                <div className="grid grid-cols-3 gap-3">
+                  <div>
+                    <label className="text-xs text-gray-400 font-semibold">Redirect Type</label>
+                    <select
+                      value={debugRedirectType}
+                      onChange={(e) => {
+                        setDebugRedirectType(e.target.value);
+                        setDebugRedirectId("");
+                        setDebugExternalUrl("");
+                        setDebugRedirectSearch("");
+                        if (e.target.value === "none") {
+                          setDebugActionButtonText("");
+                        } else if (e.target.value === "product") {
+                          setDebugActionButtonText("Buy Now");
+                        } else if (e.target.value === "category") {
+                          setDebugActionButtonText("Shop Now");
+                        } else if (e.target.value === "mall") {
+                          setDebugActionButtonText("Explore Mall");
+                        } else if (e.target.value === "external") {
+                          setDebugActionButtonText("View Details");
+                        }
+                      }}
+                      className={`${selectClass} w-full`}
+                    >
+                      <option value="none">None</option>
+                      <option value="product">Product</option>
+                      <option value="category">Category</option>
+                      <option value="mall">Mall</option>
+                      <option value="external">External Link</option>
+                    </select>
+                  </div>
+                  <div className="col-span-2">
+                    <label className="text-xs text-gray-400 font-semibold">Redirection Value</label>
+                    {debugRedirectType === "external" && (
+                      <Input
+                        value={debugExternalUrl}
+                        onChange={(e) => setDebugExternalUrl(e.target.value)}
+                        placeholder="https://example.com"
+                        className={inputClass}
+                      />
+                    )}
+
+                    {(debugRedirectType === "product" || debugRedirectType === "category" || debugRedirectType === "mall") && (
+                      <div className="relative mt-0.5">
+                        <Input
+                          value={debugRedirectSearch}
+                          onChange={(e) => setDebugRedirectSearch(e.target.value)}
+                          placeholder={`Search ${debugRedirectType}...`}
+                          className={inputClass}
+                        />
+                        {debugRedirectSearch.trim().length > 0 && !debugRedirectId && (
+                          <div className="absolute z-50 left-0 right-0 max-h-[120px] overflow-y-auto rounded border border-white/10 bg-[#121212] divide-y divide-white/5 shadow-2xl">
+                            {filteredDebugRedirectTargets().length === 0 && (
+                              <p className="text-xs text-gray-500 p-2">No items found</p>
+                            )}
+                            {filteredDebugRedirectTargets().map((item: any) => (
+                              <button
+                                key={item._id}
+                                type="button"
+                                onClick={() => {
+                                  setDebugRedirectId(item._id);
+                                  setDebugRedirectSearch(item.title || item.name);
+                                }}
+                                className="flex w-full items-center justify-between p-2 text-left text-xs text-gray-300 hover:bg-white/5 transition-colors"
+                              >
+                                <span>{item.title || item.name}</span>
+                                <span className="text-[10px] text-gray-500">{item._id.slice(-6)}</span>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {debugRedirectType !== "none" && (
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] text-gray-500 font-semibold uppercase tracking-wider">Button Text (Action Category)</label>
+                    <Input
+                      value={debugActionButtonText}
+                      onChange={(e) => setDebugActionButtonText(e.target.value)}
+                      placeholder="e.g. Explore Mall, Shop Now"
+                      className={inputClass}
+                    />
+                  </div>
+                )}
+              </div>
+
+              <div className="flex justify-end gap-3 pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsDebuggerOpen(false)}
+                  className="border-white/10 bg-white/5 text-white"
+                >
+                  Close
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={testPushMutation.isPending}
+                  className="bg-amber-500 hover:bg-amber-600 text-black font-semibold"
+                >
+                  {testPushMutation.isPending ? "Testing..." : "Send Diagnostics Push"}
+                </Button>
+              </div>
+            </form>
+
+            {/* Right Column: Diagnostics Outputs */}
+            <div className="space-y-4 flex flex-col h-full min-h-[400px]">
+              <div className="bg-white/5 rounded-xl p-4 border border-white/5 flex-1 flex flex-col min-h-[300px]">
+                <h3 className="text-sm font-semibold text-gray-300 flex items-center gap-1.5 border-b border-white/5 pb-2">
+                  <Activity className="h-4 w-4 text-amber-400" />
+                  Diagnostics Results
+                </h3>
+
+                {!debugResult && !testPushMutation.isPending && (
+                  <div className="flex-1 flex flex-col items-center justify-center text-center p-6 text-gray-500">
+                    <ShieldAlert className="h-8 w-8 text-white/10 mb-2" />
+                    <p className="text-xs">Configure parameters and click "Send Diagnostics Push" to view live device routing logs and API payloads.</p>
+                  </div>
+                )}
+
+                {testPushMutation.isPending && (
+                  <div className="flex-1 flex flex-col items-center justify-center text-center p-6 text-amber-400">
+                    <RefreshCw className="h-8 w-8 animate-spin mb-2" />
+                    <p className="text-xs font-semibold">Dispatching Push & querying FCM/Expo APIs...</p>
+                  </div>
+                )}
+
+                {debugResult && (
+                  <div className="flex-1 space-y-4 mt-3 text-xs overflow-y-auto pr-1">
+                    {/* Status Badge */}
+                    <div className="flex items-center justify-between">
+                      <span className="font-semibold text-gray-400">Status:</span>
+                      <span className={`px-2 py-0.5 rounded text-[11px] font-bold ${
+                        debugResult.success ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-rose-500/10 text-rose-400 border border-rose-500/20"
+                      }`}>
+                        {debugResult.success ? "DELIVERED TO APIS" : "DELIVERY FAILURE"}
+                      </span>
+                    </div>
+
+                    {/* Routing Meta */}
+                    <div className="grid grid-cols-2 gap-2 bg-white/5 rounded-lg p-2 border border-white/5">
+                      <div>
+                        <span className="text-[10px] text-gray-500 block">Token Type</span>
+                        <span className="font-semibold text-gray-200">{debugResult.tokenType || "UNKNOWN"}</span>
+                      </div>
+                      <div>
+                        <span className="text-[10px] text-gray-500 block">Firebase SDK initialized</span>
+                        <span className={`font-semibold ${debugResult.firebaseInitialized ? "text-emerald-400" : "text-rose-400"}`}>
+                          {debugResult.firebaseInitialized ? "True" : "False"}
+                        </span>
+                      </div>
+                      <div className="col-span-2">
+                        <span className="text-[10px] text-gray-500 block">Resolved Token</span>
+                        <span className="font-mono text-[9px] break-all text-gray-300 bg-black/45 p-1 rounded block mt-0.5">
+                          {debugResult.rawToken || "None"}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Logs console */}
+                    <div className="space-y-1">
+                      <span className="font-bold text-gray-400 block uppercase tracking-wider text-[9px]">Execution Logs</span>
+                      <div className="bg-black/80 rounded-lg p-3 font-mono text-[10px] text-green-400 border border-white/5 max-h-[140px] overflow-y-auto space-y-1">
+                        {debugResult.logs?.map((log: string, idx: number) => (
+                          <div key={idx} className="break-all">{`> ${log}`}</div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Payload and API JSON Accordions */}
+                    <div className="space-y-3">
+                      <div>
+                        <span className="font-bold text-gray-400 block uppercase tracking-wider text-[9px] mb-1">Payload Sent to Provider</span>
+                        <pre className="bg-white/5 border border-white/5 rounded-lg p-3 text-[10px] overflow-x-auto text-cyan-300 max-h-[150px] font-mono">
+                          {JSON.stringify(debugResult.payloadSent, null, 2)}
+                        </pre>
+                      </div>
+
+                      <div>
+                        <span className="font-bold text-gray-400 block uppercase tracking-wider text-[9px] mb-1">API Provider Response</span>
+                        <pre className="bg-white/5 border border-white/5 rounded-lg p-3 text-[10px] overflow-x-auto text-amber-300 max-h-[150px] font-mono">
+                          {JSON.stringify(debugResult.apiResponse, null, 2)}
+                        </pre>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

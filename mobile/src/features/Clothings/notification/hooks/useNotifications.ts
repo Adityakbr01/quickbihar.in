@@ -12,7 +12,7 @@ export interface INotificationItem {
   description: string;
   imageUrl?: string;
   channel: string;
-  redirectType: "none" | "product" | "category" | "external";
+  redirectType: "none" | "product" | "category" | "mall" | "external";
   redirectId?: string;
   externalUrl?: string;
   createdAt: string;

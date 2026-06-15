@@ -1,4 +1,7 @@
 import type { Request, Response } from "express";
+import mongoose from "mongoose";
+import admin from "firebase-admin";
+import axios from "axios";
 import { asyncHandler } from "../../utils/asyncHandler";
 import { ApiError } from "../../utils/ApiError";
 import { ApiResponse } from "../../utils/ApiResponse";
@@ -19,6 +22,7 @@ import { Role } from "../rbac/rbac.model";
 import { User } from "../user/user.model";
 import { uploadToImageKit } from "../../utils/imagekit.util";
 import { socketService } from "../socket/socket.service";
+import { optimizeNotificationImageUrl } from "./notification.worker";
 
 export class NotificationController {
   /**
@@ -85,14 +89,53 @@ export class NotificationController {
       }
     }
 
-    // Handle Direct File Upload or URL
+    // Handle Direct File Upload or URL proxying via ImageKit
     let finalImageUrl = imageUrl;
     if (req.file) {
       try {
+        console.log(`[NotificationController] Uploading local file to ImageKit: ${req.file.originalname}`);
         const uploadResult = await uploadToImageKit(req.file.buffer, req.file.originalname, "notifications");
         finalImageUrl = uploadResult.url;
+        console.log(`[NotificationController] Local file uploaded successfully. Image URL: ${finalImageUrl}`);
       } catch (uploadError: any) {
+        console.error(`[NotificationController] Local file upload failed:`, uploadError);
         throw new ApiError(500, `Image upload failed: ${uploadError.message}`);
+      }
+    } else if (imageUrl && typeof imageUrl === "string" && imageUrl.trim() !== "") {
+      const trimmedUrl = imageUrl.trim();
+      if (trimmedUrl.startsWith("http") && !trimmedUrl.includes("ik.imagekit.io")) {
+        try {
+          console.log(`[NotificationController] Downloading external image URL for ImageKit upload: ${trimmedUrl}`);
+          const response = await axios.get(trimmedUrl, { responseType: "arraybuffer", timeout: 10000 });
+          const buffer = Buffer.from(response.data);
+          
+          let filename = "notification_image.png";
+          const contentType = response.headers["content-type"];
+          if (contentType) {
+            const ext = contentType.split("/")[1];
+            if (ext) filename = `notification_image.${ext}`;
+          }
+          
+          const uploadResult = await uploadToImageKit(buffer, filename, "notifications");
+          finalImageUrl = uploadResult.url;
+          console.log(`[NotificationController] External image uploaded to ImageKit: ${finalImageUrl}`);
+        } catch (downloadError: any) {
+          console.warn(`[NotificationController] Failed to proxy external image to ImageKit (using original URL): ${downloadError.message}`);
+          finalImageUrl = trimmedUrl;
+        }
+      }
+    }
+
+    // Pre-warm the ImageKit CDN cache in the background if it's an ImageKit URL
+    if (finalImageUrl && finalImageUrl.includes("ik.imagekit.io")) {
+      const optimizedUrl = optimizeNotificationImageUrl(finalImageUrl);
+      if (optimizedUrl) {
+        console.log(`[NotificationController] 🎯 Pre-warming ImageKit CDN cache in background for: ${optimizedUrl}`);
+        axios.get(optimizedUrl, { timeout: 8000 }).then(() => {
+          console.log(`[NotificationController] ✅ ImageKit CDN cache successfully pre-warmed for: ${optimizedUrl}`);
+        }).catch((err) => {
+          console.warn(`[NotificationController] ⚠️ ImageKit CDN pre-warm failed/timed-out: ${err.message}`);
+        });
       }
     }
 
@@ -140,14 +183,23 @@ export class NotificationController {
       notification.jobId = job.id;
       await notification.save();
     } else {
-      console.log(`[NotificationController] Queueing campaign ${notification._id} for immediate dispatch`);
+      // Add a 3000ms delay to rich notifications to allow CDN pre-warming / ImageKit processing to warm up
+      const isRich = nType === NotificationType.RICH || !!finalImageUrl;
+      const delay = isRich ? 3000 : 0;
+      if (delay > 0) {
+        console.log(`[NotificationController] ⏱️ Queueing rich campaign ${notification._id} with ${delay}ms CDN propagation delay`);
+      } else {
+        console.log(`[NotificationController] Queueing campaign ${notification._id} for immediate dispatch`);
+      }
+      
       const job = await notificationQueue.add(
         "dispatch-notification",
         { notificationId: notification._id.toString() },
-        { removeOnComplete: true, removeOnFail: false }
+        { delay, removeOnComplete: true, removeOnFail: false }
       );
       notification.jobId = job.id;
       await notification.save();
+      console.log(`[NotificationController] Campaign ${notification._id} successfully queued with jobId ${job.id}. Delay: ${delay}ms`);
     }
 
     // Notify admins of new pending campaign
@@ -265,14 +317,53 @@ export class NotificationController {
       actionButtonText,
     } = req.body;
 
-    // Handle Direct File Upload
+    // Handle Direct File Upload or URL proxying via ImageKit
     let finalImageUrl = imageUrl;
     if (req.file) {
       try {
+        console.log(`[NotificationController] (Update) Uploading local file to ImageKit: ${req.file.originalname}`);
         const uploadResult = await uploadToImageKit(req.file.buffer, req.file.originalname, "notifications");
         finalImageUrl = uploadResult.url;
+        console.log(`[NotificationController] (Update) Local file uploaded successfully: ${finalImageUrl}`);
       } catch (uploadError: any) {
+        console.error(`[NotificationController] (Update) Local file upload failed:`, uploadError);
         throw new ApiError(500, `Image upload failed: ${uploadError.message}`);
+      }
+    } else if (imageUrl && typeof imageUrl === "string" && imageUrl.trim() !== "") {
+      const trimmedUrl = imageUrl.trim();
+      if (trimmedUrl.startsWith("http") && !trimmedUrl.includes("ik.imagekit.io")) {
+        try {
+          console.log(`[NotificationController] (Update) Downloading external image URL for ImageKit upload: ${trimmedUrl}`);
+          const response = await axios.get(trimmedUrl, { responseType: "arraybuffer", timeout: 10000 });
+          const buffer = Buffer.from(response.data);
+          
+          let filename = "notification_image.png";
+          const contentType = response.headers["content-type"];
+          if (contentType) {
+            const ext = contentType.split("/")[1];
+            if (ext) filename = `notification_image.${ext}`;
+          }
+          
+          const uploadResult = await uploadToImageKit(buffer, filename, "notifications");
+          finalImageUrl = uploadResult.url;
+          console.log(`[NotificationController] (Update) External image uploaded to ImageKit: ${finalImageUrl}`);
+        } catch (downloadError: any) {
+          console.warn(`[NotificationController] (Update) Failed to proxy external image to ImageKit (using original URL): ${downloadError.message}`);
+          finalImageUrl = trimmedUrl;
+        }
+      }
+    }
+
+    // Pre-warm the ImageKit CDN cache in the background if it's an ImageKit URL
+    if (finalImageUrl && finalImageUrl.includes("ik.imagekit.io")) {
+      const optimizedUrl = optimizeNotificationImageUrl(finalImageUrl);
+      if (optimizedUrl) {
+        console.log(`[NotificationController] 🎯 (Update) Pre-warming ImageKit CDN cache in background for: ${optimizedUrl}`);
+        axios.get(optimizedUrl, { timeout: 8000 }).then(() => {
+          console.log(`[NotificationController] ✅ (Update) ImageKit CDN cache successfully pre-warmed for: ${optimizedUrl}`);
+        }).catch((err) => {
+          console.warn(`[NotificationController] ⚠️ (Update) ImageKit CDN pre-warm failed/timed-out: ${err.message}`);
+        });
       }
     }
 
@@ -321,6 +412,7 @@ export class NotificationController {
           // Queue new job with updated delay
           if (newScheduledTime > Date.now()) {
             const delay = newScheduledTime - Date.now();
+            console.log(`[NotificationController] Scheduling campaign ${notification._id} to run in ${delay}ms`);
             const job = await notificationQueue.add(
               "dispatch-notification",
               { notificationId: notification._id.toString() },
@@ -328,10 +420,17 @@ export class NotificationController {
             );
             notification.jobId = job.id;
           } else {
+            const isRich = notification.notificationType === NotificationType.RICH || !!notification.imageUrl;
+            const delay = isRich ? 3000 : 0;
+            if (delay > 0) {
+              console.log(`[NotificationController] ⏱️ Rescheduling rich campaign ${notification._id} with ${delay}ms CDN propagation delay`);
+            } else {
+              console.log(`[NotificationController] Rescheduling campaign ${notification._id} for immediate dispatch`);
+            }
             const job = await notificationQueue.add(
               "dispatch-notification",
               { notificationId: notification._id.toString() },
-              { removeOnComplete: true, removeOnFail: false }
+              { delay, removeOnComplete: true, removeOnFail: false }
             );
             notification.jobId = job.id;
           }
@@ -895,5 +994,276 @@ export class NotificationController {
     );
 
     res.status(200).json(new ApiResponse(200, track, "Open status logged successfully"));
+  });
+
+  /**
+   * 🔍 Admin: Diagnostic direct push debugger endpoint
+   */
+  static testDirectPush = asyncHandler(async (req: Request, res: Response) => {
+    const {
+      targetUser,
+      targetToken,
+      title,
+      body,
+      imageUrl,
+      redirectType,
+      redirectId,
+      externalUrl,
+      actionButtonText,
+    } = req.body;
+
+    if (!title || !body) {
+      throw new ApiError(400, "Title and body are required for push test");
+    }
+
+    let token = targetToken;
+    let userDetails = null;
+
+    if (targetUser) {
+      const user = await User.findOne({
+        $or: [
+          { _id: mongoose.isValidObjectId(targetUser) ? targetUser : undefined },
+          { email: targetUser },
+          { username: targetUser },
+        ].filter(Boolean),
+      });
+
+      if (!user) {
+        throw new ApiError(404, `Target user '${targetUser}' not found`);
+      }
+
+      token = user.fcmToken;
+      userDetails = {
+        _id: user._id,
+        fullName: user.fullName,
+        email: user.email,
+        username: user.username,
+        roleId: user.roleId,
+        hasToken: !!user.fcmToken,
+      };
+    }
+
+    if (!token || token.trim() === "") {
+      return res.status(200).json(
+        new ApiResponse(
+          200,
+          {
+            firebaseInitialized: admin.apps.length > 0,
+            userDetails,
+            tokenDetected: false,
+            logs: ["Failed: No push token found for user/target."],
+          },
+          "Diagnostics completed: No push token found"
+        )
+      );
+    }
+
+    const isExpo = token.startsWith("ExponentPushToken[") || token.startsWith("ExpoPushToken[");
+    let attachmentUrl = undefined;
+
+    if (imageUrl) {
+      if (imageUrl.startsWith("https://")) {
+        if (imageUrl.includes("ik.imagekit.io")) {
+          try {
+            const parsedUrl = new URL(imageUrl);
+            parsedUrl.searchParams.set("tr", "w-800,q-80,f-auto");
+            attachmentUrl = parsedUrl.toString();
+          } catch (e) {
+            attachmentUrl = imageUrl;
+          }
+        } else {
+          attachmentUrl = imageUrl;
+        }
+      }
+    }
+
+    let generatedDeepLink = "";
+    if (redirectType === "product" && redirectId) {
+      generatedDeepLink = `quickbihar://product/${redirectId}`;
+    } else if (redirectType === "category" && redirectId) {
+      generatedDeepLink = `quickbihar://category/${redirectId}`;
+    } else if (redirectType === "mall" && redirectId) {
+      generatedDeepLink = `quickbihar://mall/${redirectId}`;
+    } else if (redirectType === "external" && externalUrl) {
+      generatedDeepLink = externalUrl;
+    }
+
+    let categoryId = undefined;
+    if (actionButtonText) {
+      const normalized = actionButtonText.trim().toLowerCase();
+      if (normalized.includes("buy")) categoryId = "PROMOTION_BUY_NOW";
+      else if (normalized.includes("shop")) categoryId = "PROMOTION_SHOP_NOW";
+      else if (normalized.includes("mall") || normalized.includes("explore")) categoryId = "PROMOTION_EXPLORE_MALL";
+      else if (normalized.includes("order")) categoryId = "PROMOTION_ORDER_NOW";
+      else if (normalized.includes("claim") || normalized.includes("coupon") || normalized.includes("offer")) categoryId = "PROMOTION_CLAIM_OFFER";
+      else if (normalized.includes("product")) categoryId = "PROMOTION_VIEW_PRODUCT";
+      else if (normalized.includes("link") || normalized.includes("website") || normalized.includes("site")) categoryId = "PROMOTION_OPEN_LINK";
+      else if (normalized.includes("details") || normalized.includes("info") || normalized.includes("more")) categoryId = "PROMOTION_VIEW_DETAILS";
+      else if (normalized.includes("check")) categoryId = "PROMOTION_CHECK_IT_OUT";
+      else if (normalized.includes("learn")) categoryId = "PROMOTION_LEARN_MORE";
+      else categoryId = "PROMOTION_LEARN_MORE";
+    } else {
+      if (redirectType === "product") categoryId = "PROMOTION_BUY_NOW";
+      else if (redirectType === "category") categoryId = "PROMOTION_SHOP_NOW";
+      else if (redirectType === "mall") categoryId = "PROMOTION_EXPLORE_MALL";
+      else if (redirectType === "external") categoryId = "PROMOTION_VIEW_DETAILS";
+    }
+
+    const logs: string[] = [];
+    let payloadSent: any = null;
+    let apiResponse: any = null;
+    let success = false;
+
+    if (isExpo) {
+      logs.push(`Routing via Expo Push API to token: ${token}`);
+      const payload: any = {
+        to: token,
+        title,
+        body,
+        data: {
+          channel: "general",
+          title,
+          body,
+          imageUrl: attachmentUrl || "",
+          redirectType: redirectType || "none",
+          redirectId: redirectId || "",
+          externalUrl: externalUrl || "",
+          deepLink: generatedDeepLink,
+          priority: "HIGH",
+          deliveryType: "ALERT",
+        },
+        sound: "default",
+        channelId: "default",
+        priority: "high",
+      };
+
+      if (categoryId) {
+        payload.categoryId = categoryId;
+        payload.data.categoryId = categoryId;
+        if (actionButtonText) {
+          payload.data.actionButtonText = actionButtonText;
+        }
+      }
+
+      if (attachmentUrl) {
+        payload.image = attachmentUrl;
+        payload.mutableContent = true;
+      }
+
+      payloadSent = payload;
+
+      try {
+        const expoRes = await axios.post("https://exp.host/--/api/v2/push/send", payload, {
+          headers: {
+            Accept: "application/json",
+            "Accept-encoding": "gzip, deflate",
+            "Content-Type": "application/json",
+          },
+        });
+        apiResponse = expoRes.data;
+        logs.push("Expo API returned HTTP status 200");
+        const status = expoRes.data?.data?.[0]?.status;
+        if (status === "ok") {
+          success = true;
+          logs.push("Expo status returned 'ok'");
+        } else {
+          logs.push(`Expo status returned failure: ${expoRes.data?.data?.[0]?.message || "Unknown Expo message"}`);
+        }
+      } catch (err: any) {
+        apiResponse = err?.response?.data || err.message;
+        logs.push(`Expo HTTP Request failed: ${err.message}`);
+      }
+    } else {
+      logs.push(`Routing natively via Google FCM to token: ${token}`);
+      if (admin.apps.length === 0) {
+        logs.push("Error: Firebase Admin SDK is not initialized on the server.");
+      } else {
+        const message: any = {
+          token,
+          data: {
+            channel: "general",
+            title,
+            body,
+            imageUrl: attachmentUrl || "",
+            redirectType: redirectType || "none",
+            redirectId: redirectId || "",
+            externalUrl: externalUrl || "",
+            deepLink: generatedDeepLink,
+            priority: "HIGH",
+            deliveryType: "ALERT",
+          },
+        };
+
+        if (categoryId) {
+          message.data.categoryId = categoryId;
+          if (actionButtonText) {
+            message.data.actionButtonText = actionButtonText;
+          }
+        }
+
+        message.notification = { title, body };
+        if (attachmentUrl) {
+          message.notification.imageUrl = attachmentUrl;
+        }
+
+        message.android = {
+          priority: "high",
+          notification: {
+            sound: "default",
+            channelId: "promotions",
+            tag: "direct-push-test",
+            ...(attachmentUrl ? { imageUrl: attachmentUrl } : {}),
+          },
+        };
+
+        message.apns = {
+          payload: {
+            aps: {
+              sound: "default",
+              ...(attachmentUrl ? { "mutable-content": 1 } : {}),
+              ...(categoryId ? { category: categoryId } : {}),
+            },
+          },
+          headers: { "apns-priority": "10" },
+          ...(attachmentUrl ? { fcmOptions: { image: attachmentUrl } } : {}),
+        };
+
+        payloadSent = message;
+        console.log(`[🔥 FIREBASE_FCM] Diagnostics: Outgoing direct FCM payload:\n`, JSON.stringify(message, null, 2));
+
+        try {
+          const fcmResponse = await admin.messaging().send(message);
+          apiResponse = { messageId: fcmResponse };
+          success = true;
+          console.log(`[🔥 FIREBASE_FCM] Diagnostics: Send success! Message ID: ${fcmResponse}`);
+          logs.push(`Firebase Send success! Message ID: ${fcmResponse}`);
+        } catch (err: any) {
+          apiResponse = { error: err.message, code: err.code, details: err.errorInfo };
+          console.error(`[🔥 FIREBASE_FCM] Diagnostics: Send failed:`, err);
+          logs.push(`Firebase Send failed: ${err.message}`);
+        }
+      }
+    }
+
+    res.status(200).json(
+      new ApiResponse(
+        200,
+        {
+          success,
+          firebaseInitialized: admin.apps.length > 0,
+          userDetails,
+          tokenDetected: true,
+          tokenType: isExpo ? "EXPO" : "FCM",
+          rawToken: token,
+          attachmentUrl,
+          categoryId,
+          deepLink: generatedDeepLink,
+          payloadSent,
+          apiResponse,
+          logs,
+        },
+        success ? "Direct push dispatched successfully" : "Direct push delivery failed"
+      )
+    );
   });
 }

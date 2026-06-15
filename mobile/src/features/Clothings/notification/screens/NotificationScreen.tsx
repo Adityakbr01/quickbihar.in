@@ -65,6 +65,11 @@ const NotificationScreen = () => {
           categoryName: item.title,
         },
       });
+    } else if (item.redirectType === "mall" && item.redirectId) {
+      router.push({
+        pathname: "/mall/[id]" as any,
+        params: { id: item.redirectId },
+      });
     } else if (item.redirectType === "external" && item.externalUrl) {
       Linking.openURL(item.externalUrl).catch((err) => {
         console.error("Failed to open redirection URL:", err);

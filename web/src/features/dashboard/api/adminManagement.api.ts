@@ -1477,4 +1477,9 @@ export const adminManagementApi = {
     const response = await axiosInstance.get("/notifications/analytics");
     return response.data.data;
   },
+
+  testDirectPush: async (payload: any): Promise<any> => {
+    const response = await axiosInstance.post("/notifications/test-direct-push", payload);
+    return response.data.data;
+  },
 };

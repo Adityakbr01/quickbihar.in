@@ -74,6 +74,14 @@ export async function initializeNotificationHandler() {
     }),
   });
 
+  await Notifications.setNotificationCategoryAsync("PROMOTION_EXPLORE_MALL", [
+    {
+      identifier: "EXPLORE_MALL",
+      buttonTitle: "Explore Mall",
+      options: { opensAppToForeground: true },
+    },
+  ]);
+
   await Notifications.setNotificationCategoryAsync("PROMOTION_BUY_NOW", [
     {
       identifier: "BUY_NOW",

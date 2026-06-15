@@ -28,13 +28,24 @@ export class NotificationWorker {
       "notification-queue",
       async (job: Job) => {
         const { notificationId, isUpdate } = job.data;
-        console.log(`[NotificationWorker] Processing job ${job.id} for notification ${notificationId} (isUpdate: ${!!isUpdate})`);
+        console.log(`[NotificationWorker] 🚀 Processing job ${job.id} for notification ${notificationId} (isUpdate: ${!!isUpdate})`);
 
         const notification = await Notification.findById(notificationId);
         if (!notification) {
-          console.error(`[NotificationWorker] Notification ${notificationId} not found`);
+          console.error(`[NotificationWorker] ❌ Notification ${notificationId} not found in database`);
           return;
         }
+
+        console.log(`[NotificationWorker] Loaded Notification from DB:
+          ID: ${notification._id}
+          Title: "${notification.title}"
+          Image URL (imageUrl): "${notification.imageUrl}"
+          Rich Content Image (richContent.image): "${notification.richContent?.image}"
+          Delivery Channel: ${notification.deliveryChannel}
+          Delivery Type: ${notification.deliveryType}
+          CreatedAt: ${notification.createdAt.toISOString()}
+          UpdatedAt: ${notification.updatedAt.toISOString()}
+        `);
 
         const isUpdateCampaign = !!isUpdate;
 
@@ -122,17 +133,35 @@ export class NotificationWorker {
                 generatedDeepLink = `quickbihar://product/${notification.redirectId}`;
               } else if (notification.redirectType === "category" && notification.redirectId) {
                 generatedDeepLink = `quickbihar://category/${notification.redirectId}`;
+              } else if (notification.redirectType === "mall" && notification.redirectId) {
+                generatedDeepLink = `quickbihar://mall/${notification.redirectId}`;
               } else if (notification.redirectType === "external" && notification.externalUrl) {
                 generatedDeepLink = notification.externalUrl;
               }
             }
 
             let rawAttachmentUrl = notification.imageUrl || notification.richContent?.image;
+            console.log(`[NotificationWorker] Raw attachment URL selected: "${rawAttachmentUrl}"`);
             if (rawAttachmentUrl && !rawAttachmentUrl.startsWith("https://")) {
-              console.warn(`[NotificationWorker] Invalid image URL (must be HTTPS): ${rawAttachmentUrl}`);
+              console.warn(`[NotificationWorker] ⚠️ Invalid image URL (must be HTTPS): "${rawAttachmentUrl}"`);
               rawAttachmentUrl = undefined;
             }
             const attachmentUrl = optimizeNotificationImageUrl(rawAttachmentUrl);
+            console.log(`[NotificationWorker] Optimized attachment URL: "${attachmentUrl}"`);
+
+            // Compute action category ID once for all channels
+            let categoryId = getCategoryForButtonText(notification.actionButtonText);
+            if (!categoryId) {
+              if (notification.redirectType === "product") {
+                categoryId = "PROMOTION_BUY_NOW";
+              } else if (notification.redirectType === "category") {
+                categoryId = "PROMOTION_SHOP_NOW";
+              } else if (notification.redirectType === "mall") {
+                categoryId = "PROMOTION_EXPLORE_MALL";
+              } else if (notification.redirectType === "external") {
+                categoryId = "PROMOTION_VIEW_DETAILS";
+              }
+            }
 
             // Send via Google FCM
             if (fcmTokens.length > 0) {
@@ -162,17 +191,6 @@ export class NotificationWorker {
                     },
                   };
 
-                  let categoryId = getCategoryForButtonText(notification.actionButtonText);
-                  if (!categoryId) {
-                    if (notification.redirectType === "product") {
-                      categoryId = "PROMOTION_BUY_NOW";
-                    } else if (notification.redirectType === "category") {
-                      categoryId = "PROMOTION_SHOP_NOW";
-                    } else if (notification.redirectType === "external") {
-                      categoryId = "PROMOTION_VIEW_DETAILS";
-                    }
-                  }
-
                   if (categoryId) {
                     message.data.categoryId = categoryId;
                     if (notification.actionButtonText) {
@@ -187,7 +205,7 @@ export class NotificationWorker {
                       body: notification.description || notification.body || "",
                     };
                     if (attachmentUrl) {
-                      message.notification.image = attachmentUrl;
+                      message.notification.imageUrl = attachmentUrl;
                     }
 
                     const isHigh = notification.priority === "HIGH";
@@ -199,7 +217,7 @@ export class NotificationWorker {
                         sound: "default",
                         channelId,
                         tag: notification._id.toString(),
-                        ...(attachmentUrl ? { image: attachmentUrl } : {}),
+                        ...(attachmentUrl ? { imageUrl: attachmentUrl } : {}),
                       },
                     };
 
@@ -208,6 +226,7 @@ export class NotificationWorker {
                         aps: {
                           sound: "default",
                           ...(attachmentUrl ? { "mutable-content": 1 } : {}),
+                          ...(categoryId ? { category: categoryId } : {}),
                         },
                       },
                       headers: {
@@ -233,13 +252,14 @@ export class NotificationWorker {
                     };
                   }
 
+                  console.log(`[🔥 FIREBASE_FCM] Outgoing FCM Multicast message payload:\n`, JSON.stringify(message, null, 2));
                   console.log(`[🔥 FIREBASE_FCM] Sending native FCM chunk of ${chunk.length} tokens...`);
                   const response = await admin.messaging().sendEachForMulticast(message);
                   successCount += response.successCount;
                   failureCount += response.failureCount;
-                  console.log(`[🔥 FIREBASE_FCM] FCM Multicast Success: ${response.successCount}, Failures: ${response.failureCount}`);
+                  console.log(`[🔥 FIREBASE_FCM] FCM Multicast Response: Successes = ${response.successCount}, Failures = ${response.failureCount}`);
                   if (response.failureCount > 0) {
-                    console.log(`[🔥 FIREBASE_FCM] FCM Errors:`, response.responses.filter(r => !r.success).map(r => r.error));
+                    console.log(`[🔥 FIREBASE_FCM] FCM Errors:`, JSON.stringify(response.responses.filter(r => !r.success).map(r => r.error), null, 2));
                   }
                 } catch (fcmError) {
                   console.error("[🔥 FIREBASE_FCM] Error sending FCM chunk:", fcmError);
@@ -273,12 +293,24 @@ export class NotificationWorker {
                       },
                     };
 
+                    if (categoryId) {
+                      payload.categoryId = categoryId;
+                      payload.data.categoryId = categoryId;
+                      if (notification.actionButtonText) {
+                        payload.data.actionButtonText = notification.actionButtonText;
+                      }
+                    }
+
                     if (notification.deliveryType !== DeliveryType.SILENT) {
                       payload.title = notification.title;
                       payload.body = notification.description || notification.body || "";
                       payload.sound = "default";
                       payload.channelId = "default";
                       payload.priority = notification.priority === "HIGH" ? "high" : "default";
+                      if (attachmentUrl) {
+                        payload.image = attachmentUrl;
+                        payload.mutableContent = true;
+                      }
                     } else {
                       payload.priority = "normal";
                     }
@@ -421,6 +453,7 @@ function getCategoryForButtonText(text?: string): string | undefined {
   
   if (normalized.includes("buy")) return "PROMOTION_BUY_NOW";
   if (normalized.includes("shop")) return "PROMOTION_SHOP_NOW";
+  if (normalized.includes("mall") || normalized.includes("explore")) return "PROMOTION_EXPLORE_MALL";
   if (normalized.includes("order")) return "PROMOTION_ORDER_NOW";
   if (normalized.includes("claim") || normalized.includes("coupon") || normalized.includes("offer")) return "PROMOTION_CLAIM_OFFER";
   if (normalized.includes("product")) return "PROMOTION_VIEW_PRODUCT";
@@ -433,7 +466,7 @@ function getCategoryForButtonText(text?: string): string | undefined {
 }
 
 // Helper to optimize image URLs dynamically using ImageKit transformation parameters
-function optimizeNotificationImageUrl(url?: string): string | undefined {
+export function optimizeNotificationImageUrl(url?: string): string | undefined {
   if (!url || url.trim() === "") return undefined;
   
   // If the image is hosted on ImageKit, apply size, format, and quality optimizations
