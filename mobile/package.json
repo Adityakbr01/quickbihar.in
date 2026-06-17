@@ -80,7 +80,7 @@
     "react-native-webview": "13.16.1",
     "react-native-worklets": "0.8.3",
     "socket.io-client": "4.7.5",
-    "socket.io-parser": "4.2.4",
+    "socket.io-parser": "4.2.6",
     "sweet-sfsymbols": "^0.7.2",
     "zod": "^4.3.6",
     "zustand": "^5.0.12"
