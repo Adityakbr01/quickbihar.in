@@ -263,7 +263,7 @@ mock.module("../utils/mail.service", () => ({
   },
 }));
 
-const { AdminService } = await import("../modules/admin/admin.service");
+const AdminService = await import("../modules/admin/admin.service");
 
 describe("AdminService partner insights", () => {
   beforeEach(() => {

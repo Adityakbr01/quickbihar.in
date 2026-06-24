@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { verifyJWT, isAdmin } from "../../middlewares/auth.middleware";
 import { upload } from "../../middlewares/multer.middleware";
-import { AdminController } from "./admin.controller";
+import * as AdminController from "./admin.controller";
 
 const router = Router();
 
