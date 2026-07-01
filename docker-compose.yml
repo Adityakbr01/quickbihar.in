@@ -11,6 +11,7 @@ services:
     restart: always
 
   server:
+    image: ${DOCKER_USER:-adityakbr}/quickbihar-server:prod
     build:
       context: ./server
       dockerfile: Dockerfile
@@ -28,6 +29,7 @@ services:
     restart: always
 
   web:
+    image: ${DOCKER_USER:-adityakbr}/quickbihar-web:prod
     build:
       context: ./web
       dockerfile: Dockerfile

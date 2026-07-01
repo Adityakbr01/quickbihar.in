@@ -1,147 +1,86 @@
-name: Docker CI/CD
+name: Deploy Production
 
 on:
   push:
-    branches: [ "master" ]
-  pull_request:
-    branches: [ "master" ]
-
-env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME_SERVER: ${{ github.repository }}/server
-  IMAGE_NAME_WEB: ${{ github.repository }}/web
+    branches:
+      - master
 
 jobs:
-  test-server:
+  build-and-push:
+    name: Build & Push Docker Images
     runs-on: ubuntu-latest
+
+    env:
+      SERVER_TAG: ${{ secrets.DOCKER_USER }}/quickbihar-server:prod
+      WEB_TAG: ${{ secrets.DOCKER_USER }}/quickbihar-web:prod
+      SHA_TAG: ${{ github.sha }}
+
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: latest
-
-      - name: Install server dependencies
-        run: |
-          cd server
-          bun install --frozen-lockfile
-
-      - name: Run server build validation
-        run: |
-          cd server
-          bun run build
-
-  build-web:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 18
-          cache: 'npm'
-          cache-dependency-path: web/package-lock.json
-
-      - name: Install web dependencies
-        run: |
-          cd web
-          npm install
-
-      - name: Build Next.js app
-        env:
-          NEXT_PUBLIC_API_URL: http://localhost:8000/api/v1
-          NEXT_PUBLIC_SOCKET_URL: http://localhost:8000
-        run: |
-          cd web
-          npm run build
-
-  docker-build:
-    runs-on: ubuntu-latest
-    needs: [test-server, build-web]
-    permissions:
-      contents: read
-      packages: write
-    outputs:
-      image_tags_server: ${{ steps.meta-server.outputs.tags }}
-      image_tags_web: ${{ steps.meta-web.outputs.tags }}
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Log in to GitHub Container Registry
-        if: github.event_name != 'pull_request'
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Extract metadata (tags, labels) for Server image
-        id: meta-server
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_SERVER }}
-
-      - name: Extract metadata (tags, labels) for Web image
-        id: meta-web
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_WEB }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build and push Server Docker image
-        uses: docker/build-push-action@v5
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USER }}
+          password: ${{ secrets.DOCKER_PASS }}
+
+      # ---------------- SERVER ----------------
+      - name: Build & Push Server Image
+        uses: docker/build-push-action@v6
         with:
           context: ./server
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta-server.outputs.tags }}
-          labels: ${{ steps.meta-server.outputs.labels }}
+          file: ./server/Dockerfile
+          push: true
+          tags: |
+            ${{ env.SERVER_TAG }}
+            ${{ secrets.DOCKER_USER }}/quickbihar-server:${{ github.sha }}
 
-      - name: Build and push Web Docker image
-        uses: docker/build-push-action@v5
+      # ---------------- WEB ----------------
+      - name: Build & Push Web Image
+        uses: docker/build-push-action@v6
         with:
           context: ./web
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta-web.outputs.tags }}
-          labels: ${{ steps.meta-web.outputs.labels }}
+          file: ./web/Dockerfile
+          push: true
+          tags: |
+            ${{ env.WEB_TAG }}
+            ${{ secrets.DOCKER_USER }}/quickbihar-web:${{ github.sha }}
 
   deploy:
-    runs-on: ubuntu-latest
-    needs: docker-build
-    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+    name: Deploy to VPS
+    needs: build-and-push
+    runs-on: self-hosted
+
+    env:
+      COMPOSE_FILE: docker-compose.yml
+
     steps:
-      - name: Checkout repository
+      - name: Checkout repo on VPS
         uses: actions/checkout@v4
 
-      - name: Copy docker-compose.yml to VPS
-        uses: appleboy/scp-action@v0.1.7
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
         with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USERNAME }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          port: ${{ secrets.VPS_PORT || 22 }}
-          source: "docker-compose.yml"
-          target: ${{ secrets.VPS_DEPLOY_PATH || '~/quickbihar' }}
+          username: ${{ secrets.DOCKER_USER }}
+          password: ${{ secrets.DOCKER_PASS }}
 
-      - name: SSH Command to Pull and Restart App
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USERNAME }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          port: ${{ secrets.VPS_PORT || 22 }}
-          script: |
-            cd ${{ secrets.VPS_DEPLOY_PATH || '~/quickbihar' }}
-            # Log in to GitHub Container Registry if token is provided (required if package registry is private)
-            if [ ! -z "${{ secrets.GHCR_TOKEN }}" ]; then
-              echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-            fi
-            docker compose pull
-            docker compose up -d
-            docker image prune -f
+      - name: Pull latest images
+        run: |
+          docker compose -f ${{ env.COMPOSE_FILE }} pull
+
+      - name: Deploy with minimal downtime
+        run: |
+          docker compose -f ${{ env.COMPOSE_FILE }} up -d --remove-orphans
+
+      - name: Verify services
+        run: |
+          docker compose -f ${{ env.COMPOSE_FILE }} ps
+
+      - name: Cleanup unused Docker resources
+        run: |
+          docker image prune -f
+          docker system prune -f
