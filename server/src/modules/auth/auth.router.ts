@@ -1,18 +1,17 @@
 import { Router } from "express";
-import { AuthController } from "./auth.controller";
+import * as authController from "./auth.controller";
 import { verifyJWT } from "../../middlewares/auth.middleware";
 
 const router = Router();
 
 // ⭐ Recommended Routes
-router.route("/register").post(AuthController.register);
-router.route("/login").post(AuthController.login);
-router.route("/request-otp").post(AuthController.requestOTP);
-router.route("/verify-otp").post(AuthController.verifyOTP);
-router.route("/refresh-token").post(AuthController.refreshAccessToken);
+router.route("/register").post(authController.register);
+router.route("/login").post(authController.login);
+router.route("/request-otp").post(authController.requestOTP);
+router.route("/verify-otp").post(authController.verifyOTP);
+router.route("/refresh-token").post(authController.refreshAccessToken);
 
 // 🛡️ Protected routes
-router.route("/logout").post(verifyJWT, AuthController.logout);
-
+router.route("/logout").post(verifyJWT, authController.logout);
 
 export default router;
