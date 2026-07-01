@@ -10,6 +10,17 @@ import { redis } from "../../config/redis.config";
 import { MailService } from "../../utils/mail.service";
 import { serializeAuthUser } from "./auth.serializer";
 
+/**
+ * Registers a new user in the system.
+ * Checks for existing verified users, assigns a default security role,
+ * generates a temp unverified user record, and triggers an email verification OTP.
+ * 
+ * @param registerData - Payload containing registration details (email, password, fullName).
+ * @returns Object containing a success message and the serialized, newly-registered user.
+ * @throws {ApiError} 409 if user exists and is already verified.
+ * @throws {ApiError} 400 if payload validation fails.
+ * @throws {ApiError} 500 if database registration fails.
+ */
 export async function register(registerData: any) {
   try {
     const validatedData: RegisterBody = registerSchema.parse(registerData);
@@ -66,6 +77,16 @@ export async function register(registerData: any) {
   }
 }
 
+/**
+ * Authenticates a user using email and password.
+ * Checks verification status, issues access/refresh tokens, and updates DB.
+ * 
+ * @param loginData - Payload containing login credentials (email, password).
+ * @returns Object containing the serialized user details, accessToken, and refreshToken.
+ * @throws {ApiError} 404 if user is not found.
+ * @throws {ApiError} 403 if account is blocked.
+ * @throws {ApiError} 401 if credentials are invalid or if email is not verified (triggers a new OTP).
+ */
 export async function login(loginData: any) {
   try {
     const validatedData: AuthenticateBody = authenticateSchema.parse(loginData);
@@ -119,6 +140,16 @@ export async function login(loginData: any) {
   }
 }
 
+/**
+ * Generates and sends a numeric OTP code to a user's email address.
+ * Implements a 60-second cooldown via Redis.
+ * 
+ * @param email - Target user's email address.
+ * @returns Object with confirmation message.
+ * @throws {ApiError} 429 if the user requests an OTP within the 60s cooldown period.
+ * @throws {ApiError} 400 if the user is already verified.
+ * @throws {ApiError} 500 if the mail delivery service fails.
+ */
 export async function requestOTP(email: string) {
   const cooldownKey = `otp_cooldown:${email}`;
   const onCooldown = await redis.get(cooldownKey);
@@ -150,6 +181,16 @@ export async function requestOTP(email: string) {
   return { message: "OTP sent successfully to your email" };
 }
 
+/**
+ * Verifies the OTP code submitted by a user and logs them in.
+ * If user does not exist yet (OTP-only login), creates a verified user profile and assigns a default role.
+ * 
+ * @param email - User's email.
+ * @param otp - 6-digit numeric OTP string.
+ * @returns Object containing serialized user, tokens, and isNewUser flag.
+ * @throws {ApiError} 400 if the OTP is invalid, expired, or the user is already verified.
+ * @throws {ApiError} 403 if the user is blocked.
+ */
 export async function verifyOTPAndAuthenticate(email: string, otp: string) {
   const redisKey = `otp:${email}`;
   const storedOtp = await redis.get(redisKey);
@@ -232,12 +273,24 @@ export async function verifyOTPAndAuthenticate(email: string, otp: string) {
   };
 }
 
+/**
+ * Logs out a user by removing their persistent refresh token from the database.
+ * 
+ * @param userId - Unique MongoDB ID of the user.
+ */
 export async function logoutUser(userId: string) {
   await UserDAO.updateById(userId, {
     $set: { refreshToken: undefined }
   });
 }
 
+/**
+ * Validates the incoming refresh token and issues a new access token + refresh token pair.
+ * 
+ * @param incomingRefreshToken - Refresh token sent by client.
+ * @returns Object with serialized user and fresh tokens.
+ * @throws {ApiError} 401 if refresh token is missing, invalid, or expired.
+ */
 export async function refreshAccessToken(incomingRefreshToken: string) {
   try {
     if (!incomingRefreshToken) {
