@@ -12,6 +12,10 @@ RUN npm install
 # Copy the rest of the application files
 COPY . .
 
+# Set relative paths so frontend automatically uses the current IP/Domain
+ENV NEXT_PUBLIC_API_URL=/api/v1
+ENV NEXT_PUBLIC_SOCKET_URL=/
+
 # Build the Next.js application
 RUN npm run build
 
