@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:alpine
+    container_name: quickbihar-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    restart: always
+
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: quickbihar-server
+    ports:
+      - "8000:8000"
+    environment:
+      - PORT=8000
+      - REDIS_URL=redis://redis:6379
+      - NODE_ENV=development
+    env_file:
+      - ./server/.env
+    depends_on:
+      - redis
+    restart: always
+
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    container_name: quickbihar-web
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
+      - NEXT_PUBLIC_SOCKET_URL=http://localhost:8000
+    env_file:
+      - ./web/.env
+    depends_on:
+      - server
+    restart: always
+
+volumes:
+  redis-data:

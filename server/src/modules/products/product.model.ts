@@ -75,7 +75,7 @@ const productSchema = new Schema(
         },
 
         sizeChartId: {
-            type: Schema.Types.ObjectId, // ya ObjectId (better)
+            type: Schema.Types.ObjectId,
             ref: "SizeChart",
         },
 
@@ -121,8 +121,6 @@ const productSchema = new Schema(
             longitude: Number,
         },
 
-
-
         policyRefs: {
             returnPolicy: { type: Schema.Types.ObjectId, ref: "RefundPolicy" },
             refundPolicy: { type: Schema.Types.ObjectId, ref: "RefundPolicy" },
@@ -158,7 +156,6 @@ const productSchema = new Schema(
     }
 );
 
-// Virtual for formatted discount string (e.g., "45% OFF")
 productSchema.virtual("discountLabel").get(function () {
     if (this.discountPercentage && this.discountPercentage > 0) {
         return `${Math.round(this.discountPercentage)}% OFF`;
@@ -168,9 +165,7 @@ productSchema.virtual("discountLabel").get(function () {
 
 productSchema.index({ title: "text", description: "text", tags: "text" });
 
-// Auto calculate totalStock, validate prices, and generate SKUs before validation
 productSchema.pre("validate", async function () {
-    // Generate/override Product Base SKU if isNew or not exists
     if (this.isNew || !this.details?.sku) {
         const brandPart = (this.brand || "QB").toUpperCase().replace(/\s+/g, "").substring(0, 3);
         const catPart = (this.category || "PRD").toUpperCase().replace(/\s+/g, "").substring(0, 3);
@@ -179,7 +174,6 @@ productSchema.pre("validate", async function () {
         this.details.sku = `${brandPart}-${catPart}-${randomPart}`;
     }
 
-    // Calculate Discount Percentage
     if (this.isModified("price") || this.isModified("originalPrice")) {
         if (this.originalPrice && this.originalPrice > this.price) {
             this.discountPercentage = ((this.originalPrice - this.price) / this.originalPrice) * 100;
@@ -188,7 +182,6 @@ productSchema.pre("validate", async function () {
         }
     }
 
-    // Generate/force Variant SKUs
     if (this.isModified("variants")) {
         this.totalStock = this.variants.reduce((sum, variant) => sum + (variant.stock || 0), 0);
 

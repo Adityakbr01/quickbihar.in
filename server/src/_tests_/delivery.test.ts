@@ -110,27 +110,26 @@ mock.module("../modules/user/user.model", () => ({
 }));
 
 mock.module("../modules/appConfig/appConfig.service", () => ({
-  appConfigService: {
-    getConfig: appConfigGetConfig,
-  },
+  getConfig: appConfigGetConfig,
 }));
 
 mock.module("../modules/products/product.dao", () => ({
-  ProductDAO: {
-    findById: productFindById,
-  },
+  findById: productFindById,
 }));
 
 mock.module("../modules/coupon/coupon.service", () => ({
-  couponService: {
-    validateMultipleCouponsForCart: couponValidateMultiple,
-    incrementUsage: mock(() => Promise.resolve(undefined)),
-  },
+  validateMultipleCouponsForCart: couponValidateMultiple,
+  incrementUsage: mock(() => Promise.resolve(undefined)),
 }));
 
 mock.module("../modules/store/store.model", () => ({
   Store: {
     find: storeFind,
+  },
+  ClothingStoreConfig: {
+    findOne: mock(() => Promise.resolve(null)),
+    findOneAndUpdate: mock(() => Promise.resolve(null)),
+    create: mock(() => Promise.resolve(null)),
   },
 }));
 

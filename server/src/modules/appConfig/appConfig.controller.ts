@@ -1,15 +1,24 @@
+/**
+ * App-config HTTP controllers.
+ *
+ * Expose the public read and admin-only update endpoints for the singleton application
+ * configuration, handling validation and response shaping while delegating logic to
+ * `appConfigService`.
+ */
 import type { Request, Response } from "express";
 import { asyncHandler } from "../../utils/asyncHandler";
 import { ApiResponse } from "../../utils/ApiResponse";
-import { appConfigService } from "./appConfig.service";
+import * as appConfigService from "./appConfig.service";
 import { updateAppConfigSchema } from "./appConfig.validation";
 import { ApiError } from "../../utils/ApiError";
 
+/** GET / — public read of the current application configuration. */
 export const getAppConfig = asyncHandler(async (req: Request, res: Response) => {
     const config = await appConfigService.getConfig();
     return res.status(200).json(new ApiResponse(200, config, "App configuration fetched successfully"));
 });
 
+/** PATCH / — admin update of the configuration; rejects invalid payloads with a 400. */
 export const updateAppConfig = asyncHandler(async (req: Request, res: Response) => {
     const validation = updateAppConfigSchema.safeParse(req.body);
     if (!validation.success) {

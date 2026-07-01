@@ -1,4 +1,12 @@
-import { ProductDAO } from "./product.dao";
+/**
+ * Product Business Logic Service.
+ *
+ * Implements the core business rules for managing fashion catalog products.
+ * Handles validation, slug generation, image uploading via ImageKit, stock mutation,
+ * and category-matching guards. All persistence is delegated to ProductDAO.
+ */
+
+import * as ProductDAO from "./product.dao";
 import { createProductSchema, updateProductSchema, type CreateProductBody, type UpdateProductBody } from "./product.validation";
 import { ApiError } from "../../utils/ApiError";
 import { ZodError } from "zod";
@@ -11,25 +19,29 @@ import { SizeChart } from "../sizeChart/sizeChart.model";
 import { Store } from "../store/store.model";
 import { buildStoreSetupStatus } from "../store/store.setup";
 
+/* ── Internal helpers ── */
+
 const escapeRegex = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 const normalize = (value?: string) => (value || "").toLowerCase().trim();
-const slugify = (value: string) =>
-    value
+
+function slugify(value: string): string {
+    return value
         .toLowerCase()
         .trim()
         .replace(/[^a-z0-9]+/g, "-")
         .replace(/^-+|-+$/g, "");
+}
 
-const parseJsonValue = (value: unknown) => {
+function parseJsonValue(value: unknown) {
     if (typeof value !== "string") return value;
     try {
         return JSON.parse(value);
     } catch {
         return value;
     }
-};
+}
 
-const parseExistingImages = (value: unknown) => {
+function parseExistingImages(value: unknown) {
     const parsed = parseJsonValue(value);
     if (!Array.isArray(parsed)) return [];
     return parsed
@@ -38,361 +50,379 @@ const parseExistingImages = (value: unknown) => {
             fileId: typeof image?.fileId === "string" ? image.fileId : "",
         }))
         .filter((image) => image.url && image.fileId);
-};
+}
 
-const cleanPolicyRefs = (refs: any = {}) => {
+function cleanPolicyRefs(refs: any = {}) {
     const next: Record<string, string> = {};
     ["returnPolicy", "refundPolicy", "shippingPolicy", "termsPolicy"].forEach((key) => {
         if (typeof refs?.[key] === "string" && refs[key].trim()) next[key] = refs[key].trim();
     });
     return Object.keys(next).length ? next : undefined;
-};
+}
 
-export class ProductService {
-    private static generateSlug(title: string): string {
-        return title
-            .toLowerCase()
-            .trim()
-            .replace(/[^\w\s-]/g, "")
-            .replace(/[\s_-]+/g, "-")
-            .replace(/^-+|-+$/g, "") + "-" + Math.random().toString(36).substring(2, 7);
-    }
+function generateSlug(title: string): string {
+    return title
+        .toLowerCase()
+        .trim()
+        .replace(/[^\w\s-]/g, "")
+        .replace(/[\s_-]+/g, "-")
+        .replace(/^-+|-+$/g, "") + "-" + Math.random().toString(36).substring(2, 7);
+}
 
-    private static roleName(role: any) {
-        return role?.name || role || "";
-    }
+function roleName(role: any): string {
+    return role?.name || role || "";
+}
 
-    private static isAdminRole(role: any) {
-        const name = this.roleName(role);
-        return name === RoleEnum.ADMIN || name === RoleEnum.SUPER_ADMIN;
-    }
+function isAdminRole(role: any): boolean {
+    const name = roleName(role);
+    return name === RoleEnum.ADMIN || name === RoleEnum.SUPER_ADMIN;
+}
 
-    private static isSellerRole(role: any) {
-        const name = this.roleName(role);
-        return name === RoleEnum.SELLER || name === "seller";
-    }
+function isSellerRole(role: any): boolean {
+    const name = roleName(role);
+    return name === RoleEnum.SELLER || name === "seller";
+}
 
-    private static isApprovedForPublic(product: any) {
-        return product?.isActive && (!product.approvalStatus || product.approvalStatus === "APPROVED");
-    }
+function isApprovedForPublic(product: any): boolean {
+    return product?.isActive && (!product.approvalStatus || product.approvalStatus === "APPROVED");
+}
 
-    private static assertImageCount(total: number) {
-        if (total < 1) throw new ApiError(400, "At least one product image is required.");
-        if (total > 5) throw new ApiError(400, "A product can have a maximum of 5 images.");
-    }
+function assertImageCount(total: number) {
+    if (total < 1) throw new ApiError(400, "At least one product image is required.");
+    if (total > 5) throw new ApiError(400, "A product can have a maximum of 5 images.");
+}
 
-    private static async assertSizeChartAllowed(sizeChartId: string | undefined, _sellerId: string) {
-        if (!sizeChartId) return;
-        const chart = await SizeChart.findOne({
-            _id: sizeChartId,
+async function assertSizeChartAllowed(sizeChartId: string | undefined, _sellerId: string) {
+    if (!sizeChartId) return;
+    const chart = await SizeChart.findOne({
+        _id: sizeChartId,
+        isActive: true,
+        $or: [
+            { scope: "GLOBAL", approvalStatus: "APPROVED" },
+            { scope: "GLOBAL", approvalStatus: { $exists: false } },
+        ],
+    }).lean();
+    if (!chart) throw new ApiError(400, "Selected size chart is not available for this seller.");
+}
+
+async function assertRefundPolicyActive(refundPolicyId: string | undefined) {
+    if (!refundPolicyId) return;
+    const policy = await RefundPolicy.findOne({ _id: refundPolicyId, isActive: true }).lean();
+    if (!policy) throw new ApiError(400, "Selected refund policy is not active.");
+}
+
+async function assertPolicyRefsActive(policyRefs?: Record<string, string>) {
+    if (!policyRefs) return;
+    const expectedTypes: Record<string, string> = {
+        returnPolicy: "RETURN",
+        refundPolicy: "REFUND",
+        shippingPolicy: "SHIPPING",
+        termsPolicy: "TERMS",
+    };
+
+    await Promise.all(Object.entries(policyRefs).map(async ([key, id]) => {
+        const policy = await RefundPolicy.findOne({
+            _id: id,
             isActive: true,
             $or: [
-                { scope: "GLOBAL", approvalStatus: "APPROVED" },
-                { scope: "GLOBAL", approvalStatus: { $exists: false } },
-            ],
+                { policyType: expectedTypes[key] },
+                { policyType: { $exists: false } },
+                { policyType: "" }
+            ]
         }).lean();
-        if (!chart) throw new ApiError(400, "Selected size chart is not available for this seller.");
+        if (!policy) throw new ApiError(400, `Selected ${key} is not an active admin policy.`);
+    }));
+}
+
+async function assertCategoryAssigned(category: string, subCategory?: string) {
+    const categorySlug = slugify(category);
+    const categoryDoc = await Category.findOne({
+        isActive: true,
+        $or: [
+            { title: { $regex: new RegExp(`^${escapeRegex(category)}$`, "i") } },
+            { slug: categorySlug },
+        ],
+    }).lean();
+
+    if (!categoryDoc) {
+        throw new ApiError(400, "Product category must be active and assigned by admin before product creation.");
     }
 
-    private static async assertRefundPolicyActive(refundPolicyId: string | undefined) {
-        if (!refundPolicyId) return;
-        const policy = await RefundPolicy.findOne({ _id: refundPolicyId, isActive: true }).lean();
-        if (!policy) throw new ApiError(400, "Selected refund policy is not active.");
-    }
-
-    private static async assertPolicyRefsActive(policyRefs?: Record<string, string>) {
-        if (!policyRefs) return;
-        const expectedTypes: Record<string, string> = {
-            returnPolicy: "RETURN",
-            refundPolicy: "REFUND",
-            shippingPolicy: "SHIPPING",
-            termsPolicy: "TERMS",
-        };
-
-        await Promise.all(Object.entries(policyRefs).map(async ([key, id]) => {
-            const policy = await RefundPolicy.findOne({
-                _id: id,
-                isActive: true,
-                $or: [
-                    { policyType: expectedTypes[key] },
-                    { policyType: { $exists: false } },
-                    { policyType: "" }
-                ]
-            }).lean();
-            if (!policy) throw new ApiError(400, `Selected ${key} is not an active admin policy.`);
-        }));
-    }
-
-    private static async assertCategoryAssigned(category: string, subCategory?: string) {
-        const categorySlug = slugify(category);
-        const categoryDoc = await Category.findOne({
+    if (subCategory) {
+        const subCategorySlug = slugify(subCategory);
+        const subCategoryDoc = await Category.findOne({
             isActive: true,
+            parentId: categoryDoc._id.toString(),
             $or: [
-                { title: { $regex: new RegExp(`^${escapeRegex(category)}$`, "i") } },
-                { slug: categorySlug },
+                { title: { $regex: new RegExp(`^${escapeRegex(subCategory)}$`, "i") } },
+                { slug: subCategorySlug },
             ],
         }).lean();
 
-        if (!categoryDoc) {
-            throw new ApiError(400, "Product category must be active and assigned by admin before product creation.");
+        if (!subCategoryDoc) {
+            throw new ApiError(400, `Selected subcategory "${subCategory}" must be an active subcategory of "${categoryDoc.title}".`);
         }
-
-        if (subCategory) {
-            const subCategorySlug = slugify(subCategory);
-            const subCategoryDoc = await Category.findOne({
-                isActive: true,
-                parentId: categoryDoc._id.toString(),
-                $or: [
-                    { title: { $regex: new RegExp(`^${escapeRegex(subCategory)}$`, "i") } },
-                    { slug: subCategorySlug },
-                ],
-            }).lean();
-
-            if (!subCategoryDoc) {
-                throw new ApiError(400, `Selected subcategory "${subCategory}" must be an active subcategory of "${categoryDoc.title}".`);
-            }
-        }
-
-        return {
-            categoryDoc,
-            requestedValues: [category, subCategory, categoryDoc.title, categoryDoc.slug].filter(Boolean) as string[],
-        };
     }
 
-    private static async assertSellerProductGate(userId: string, category: string, subCategory?: string) {
-        const [seller, store] = await Promise.all([
-            Seller.findOne({ userId }).lean(),
-            Store.findOne({ sellerId: userId }).sort({ createdAt: -1 }).lean(),
+    return {
+        categoryDoc,
+        requestedValues: [category, subCategory, categoryDoc.title, categoryDoc.slug].filter(Boolean) as string[],
+    };
+}
+
+async function assertSellerProductGate(userId: string, category: string, subCategory?: string) {
+    const [seller, store] = await Promise.all([
+        Seller.findOne({ userId }).lean(),
+        Store.findOne({ sellerId: userId }).sort({ createdAt: -1 }).lean(),
+    ]);
+
+    if (!seller) throw new ApiError(404, "Seller profile not found");
+    if (seller.status !== "APPROVED" || !seller.isVerified) {
+        throw new ApiError(403, "Seller approval is required before creating products.");
+    }
+
+    if (!store) {
+        throw new ApiError(400, "Store configuration is required before creating products.");
+    }
+
+    const setup = buildStoreSetupStatus(store);
+    if (!setup.isComplete) {
+        throw new ApiError(400, "Store configuration must be completed before creating products.", setup.missingFields as any);
+    }
+
+    if (!store.isActive) {
+        throw new ApiError(400, "Store must be active before creating products.");
+    }
+
+    await assertCategoryAssigned(category, subCategory);
+
+    return { seller, store };
+}
+
+/* ── Exported service functions ── */
+
+/**
+ * Create a product by checking seller gates, validating references, and uploading images.
+ */
+export async function createProduct(data: any, files: any[], requesterId: string, role: string) {
+    try {
+        const validatedData = createProductSchema.parse(data);
+        const ownerId = isAdminRole(role) ? validatedData.sellerId : requesterId;
+
+        if (!ownerId) {
+            throw new ApiError(400, "Seller id is required when an admin creates a product.");
+        }
+
+        const { store } = await assertSellerProductGate(ownerId, validatedData.category, validatedData.subCategory);
+        assertImageCount(files.length);
+        const policyRefs = cleanPolicyRefs(validatedData.policyRefs);
+        await Promise.all([
+            assertSizeChartAllowed(validatedData.sizeChartId, ownerId),
+            assertRefundPolicyActive(validatedData.refundPolicy),
+            assertPolicyRefsActive(policyRefs),
         ]);
-
-        if (!seller) throw new ApiError(404, "Seller profile not found");
-        if (seller.status !== "APPROVED" || !seller.isVerified) {
-            throw new ApiError(403, "Seller approval is required before creating products.");
+        const slug = generateSlug(validatedData.title);
+        const { sellerId: _ignoredSellerId, ...productPayload } = validatedData;
+        if (productPayload.details) {
+            delete productPayload.details.sku;
+        }
+        productPayload.policyRefs = policyRefs;
+        if (policyRefs?.refundPolicy) {
+            productPayload.refundPolicy = policyRefs.refundPolicy;
         }
 
-        if (!store) {
-            throw new ApiError(400, "Store configuration is required before creating products.");
+        // Upload images to ImageKit
+        const imageUploadPromises = files.map(file =>
+            uploadToImageKit(file.buffer, file.originalname, "products")
+        );
+        const uploadResults = await Promise.all(imageUploadPromises);
+
+        const images = uploadResults.map(res => ({
+            url: res.url,
+            fileId: res.fileId
+        }));
+
+        const product = await ProductDAO.create({
+            ...productPayload,
+            slug,
+            images,
+            sellerId: ownerId,
+            storeId: store._id,
+            scope: isSellerRole(role) ? "SELLER" : "GLOBAL",
+        });
+
+        return product;
+    } catch (error) {
+        if (error instanceof ZodError) {
+            throw new ApiError(400, "Validation Error", error.issues as any);
         }
-
-        const setup = buildStoreSetupStatus(store);
-        if (!setup.isComplete) {
-            throw new ApiError(400, "Store configuration must be completed before creating products.", setup.missingFields as any);
-        }
-
-        if (!store.isActive) {
-            throw new ApiError(400, "Store must be active before creating products.");
-        }
-
-        await this.assertCategoryAssigned(category, subCategory);
-
-        return { seller, store };
+        throw error;
     }
+}
 
-    static async createProduct(data: any, files: any[], requesterId: string, role: string) {
-        try {
-            const validatedData = createProductSchema.parse(data);
-            const ownerId = this.isAdminRole(role) ? validatedData.sellerId : requesterId;
+/**
+ * Query products with pagination support.
+ */
+export async function getProducts(query: any = {}) {
+    const page = parseInt(query.page as string) || 1;
+    const limit = parseInt(query.limit as string) || 10;
+    const skip = (page - 1) * limit;
 
-            if (!ownerId) {
-                throw new ApiError(400, "Seller id is required when an admin creates a product.");
-            }
+    return await ProductDAO.findAll(query, { skip, limit });
+}
 
-            const { store } = await this.assertSellerProductGate(ownerId, validatedData.category, validatedData.subCategory);
-            this.assertImageCount(files.length);
-            const policyRefs = cleanPolicyRefs(validatedData.policyRefs);
-            await Promise.all([
-                this.assertSizeChartAllowed(validatedData.sizeChartId, ownerId),
-                this.assertRefundPolicyActive(validatedData.refundPolicy),
-                this.assertPolicyRefsActive(policyRefs),
-            ]);
-            const slug = this.generateSlug(validatedData.title);
-            const { sellerId: _ignoredSellerId, ...productPayload } = validatedData;
-            if (productPayload.details) {
-                delete productPayload.details.sku;
-            }
-            productPayload.policyRefs = policyRefs;
+/**
+ * Fetch top trending/selling products.
+ */
+export async function getTrendingProducts() {
+    return await ProductDAO.getTopSellingProducts(10);
+}
+
+/**
+ * Retrieve products created by a specific seller.
+ */
+export async function getSellerProducts(sellerId: string) {
+    return await ProductDAO.findBySellerId(sellerId);
+}
+
+/**
+ * Fetch a specific product by its slug (only if active/approved).
+ */
+export async function getProductBySlug(slug: string) {
+    const product = await ProductDAO.findBySlug(slug);
+    if (!product) throw new ApiError(404, "Product not found");
+    if (!isApprovedForPublic(product)) throw new ApiError(404, "Product not found");
+    return product;
+}
+
+/**
+ * Fetch a specific product by its ID (only if active/approved).
+ */
+export async function getProductById(id: string) {
+    const product = await ProductDAO.findById(id);
+    if (!product) throw new ApiError(404, "Product not found");
+    if (!isApprovedForPublic(product)) throw new ApiError(404, "Product not found");
+    return product;
+}
+
+/**
+ * Validate, process image additions/removals, and update a product.
+ */
+export async function updateProduct(id: string, data: any, sellerId: string, role: string, files: any[] = []) {
+    try {
+        const product = await ProductDAO.findById(id);
+        if (!product) throw new ApiError(404, "Product not found");
+
+        if (isSellerRole(role) && product.sellerId.toString() !== sellerId.toString()) {
+            throw new ApiError(403, "You do not have permission to edit this product");
+        }
+
+        const validatedData = updateProductSchema.parse(data);
+        if (isSellerRole(role) || validatedData.category || validatedData.subCategory) {
+            await assertSellerProductGate(
+                product.sellerId.toString(),
+                validatedData.category || product.category || "",
+                validatedData.subCategory || product.subCategory || undefined,
+            );
+        }
+        const policyRefs = cleanPolicyRefs(validatedData.policyRefs);
+        await Promise.all([
+            assertSizeChartAllowed(validatedData.sizeChartId, product.sellerId.toString()),
+            assertRefundPolicyActive(validatedData.refundPolicy),
+            assertPolicyRefsActive(policyRefs),
+        ]);
+        let updatePayload: any = { ...validatedData };
+        delete updatePayload.sellerId;
+        if (updatePayload.details) {
+            delete updatePayload.details.sku;
+        }
+        if (Object.prototype.hasOwnProperty.call(validatedData, "policyRefs")) {
+            updatePayload.policyRefs = policyRefs || {};
             if (policyRefs?.refundPolicy) {
-                productPayload.refundPolicy = policyRefs.refundPolicy;
+                updatePayload.refundPolicy = policyRefs.refundPolicy;
             }
+        }
 
-            // Upload images to ImageKit
+        if (validatedData.title) {
+            updatePayload.slug = generateSlug(validatedData.title);
+        }
+
+        const hasExistingImagesPayload = Object.prototype.hasOwnProperty.call(data, "existingImages");
+        const retainedImages = hasExistingImagesPayload
+            ? parseExistingImages(data.existingImages)
+            : (product.images || []);
+        assertImageCount(retainedImages.length + (files?.length || 0));
+
+        if (files && files.length > 0) {
             const imageUploadPromises = files.map(file =>
                 uploadToImageKit(file.buffer, file.originalname, "products")
             );
             const uploadResults = await Promise.all(imageUploadPromises);
 
-            const images = uploadResults.map(res => ({
+            const newImages = uploadResults.map(res => ({
                 url: res.url,
                 fileId: res.fileId
             }));
 
-            const product = await ProductDAO.create({
-                ...productPayload,
-                slug,
-                images,
-                sellerId: ownerId,
-                storeId: store._id,
-                scope: this.isSellerRole(role) ? "SELLER" : "GLOBAL",
-            });
-
-            return product;
-        } catch (error) {
-            if (error instanceof ZodError) {
-                throw new ApiError(400, "Validation Error", error.issues as any);
-            }
-            throw error;
-        }
-    }
-
-    static async getProducts(query: any = {}) {
-        const page = parseInt(query.page as string) || 1;
-        const limit = parseInt(query.limit as string) || 10;
-        const skip = (page - 1) * limit;
-
-        // DAO handles parsing individual filters from query object
-        return await ProductDAO.findAll(query, { skip, limit });
-    }
-
-    static async getTrendingProducts() {
-        return await ProductDAO.getTopSellingProducts(10);
-    }
-
-    static async getSellerProducts(sellerId: string) {
-        return await ProductDAO.findBySellerId(sellerId);
-    }
-
-    static async getProductBySlug(slug: string) {
-        const product = await ProductDAO.findBySlug(slug);
-        if (!product) throw new ApiError(404, "Product not found");
-        if (!this.isApprovedForPublic(product)) throw new ApiError(404, "Product not found");
-        return product;
-    }
-
-    static async getProductById(id: string) {
-        const product = await ProductDAO.findById(id);
-        if (!product) throw new ApiError(404, "Product not found");
-        if (!this.isApprovedForPublic(product)) throw new ApiError(404, "Product not found");
-        return product;
-    }
-
-    static async updateProduct(id: string, data: any, sellerId: string, role: string, files: any[] = []) {
-        try {
-            const product = await ProductDAO.findById(id);
-            if (!product) throw new ApiError(404, "Product not found");
-
-            // Permission check: Sellers can only edit their own products
-            if (this.isSellerRole(role) && product.sellerId.toString() !== sellerId.toString()) {
-                throw new ApiError(403, "You do not have permission to edit this product");
-            }
-
-            const validatedData = updateProductSchema.parse(data);
-            if (this.isSellerRole(role) || validatedData.category || validatedData.subCategory) {
-                await this.assertSellerProductGate(
-                    product.sellerId.toString(),
-                    validatedData.category || product.category || "",
-                    validatedData.subCategory || product.subCategory || undefined,
-                );
-            }
-            const policyRefs = cleanPolicyRefs(validatedData.policyRefs);
-            await Promise.all([
-                this.assertSizeChartAllowed(validatedData.sizeChartId, product.sellerId.toString()),
-                this.assertRefundPolicyActive(validatedData.refundPolicy),
-                this.assertPolicyRefsActive(policyRefs),
-            ]);
-            let updatePayload: any = { ...validatedData };
-            delete updatePayload.sellerId;
-            if (updatePayload.details) {
-                delete updatePayload.details.sku;
-            }
-            if (Object.prototype.hasOwnProperty.call(validatedData, "policyRefs")) {
-                updatePayload.policyRefs = policyRefs || {};
-                if (policyRefs?.refundPolicy) {
-                    updatePayload.refundPolicy = policyRefs.refundPolicy;
-                }
-            }
-
-            if (validatedData.title) {
-                updatePayload.slug = this.generateSlug(validatedData.title);
-            }
-
-            const hasExistingImagesPayload = Object.prototype.hasOwnProperty.call(data, "existingImages");
-            const retainedImages = hasExistingImagesPayload
-                ? parseExistingImages(data.existingImages)
-                : (product.images || []);
-            this.assertImageCount(retainedImages.length + (files?.length || 0));
-
-            // Handle Image Updates
-            if (files && files.length > 0) {
-                // 1. Upload new images
-                const imageUploadPromises = files.map(file =>
-                    uploadToImageKit(file.buffer, file.originalname, "products")
-                );
-                const uploadResults = await Promise.all(imageUploadPromises);
-
-                const newImages = uploadResults.map(res => ({
-                    url: res.url,
-                    fileId: res.fileId
-                }));
-
-                // 2. Combine retained existing images with new images
-                updatePayload.images = [...retainedImages, ...newImages];
-            } else if (hasExistingImagesPayload) {
-                updatePayload.images = retainedImages;
-            }
-
-            if (hasExistingImagesPayload) {
-                const retainedFileIds = new Set(retainedImages.map((image) => image.fileId));
-                await Promise.all(
-                    (product.images || [])
-                        .filter((image: any) => image.fileId && !retainedFileIds.has(image.fileId))
-                        .map((image: any) => deleteFromImageKit(image.fileId).catch(() => undefined)),
-                );
-            }
-
-            const updatedProduct = await ProductDAO.updateById(id, updatePayload);
-            if (!updatedProduct) throw new ApiError(404, "Product update failed");
-
-            return updatedProduct;
-        } catch (error) {
-            if (error instanceof ZodError) {
-                throw new ApiError(400, "Validation Error", error.issues as any);
-            }
-            throw error;
-        }
-    }
-
-    static async deleteProduct(id: string, sellerId: string, role: string) {
-        const product = await ProductDAO.findById(id);
-        if (!product) throw new ApiError(404, "Product not found");
-
-        if (this.isSellerRole(role) && product.sellerId.toString() !== sellerId.toString()) {
-            throw new ApiError(403, "You do not have permission to delete this product");
+            updatePayload.images = [...retainedImages, ...newImages];
+        } else if (hasExistingImagesPayload) {
+            updatePayload.images = retainedImages;
         }
 
-        // Soft delete
-        const result = await ProductDAO.softDeleteById(id);
-        if (!result) throw new ApiError(500, "Failed to delete product");
+        if (hasExistingImagesPayload) {
+            const retainedFileIds = new Set(retainedImages.map((image) => image.fileId));
+            await Promise.all(
+                (product.images || [])
+                    .filter((image: any) => image.fileId && !retainedFileIds.has(image.fileId))
+                    .map((image: any) => deleteFromImageKit(image.fileId).catch(() => undefined)),
+            );
+        }
 
-        return { success: true };
+        const updatedProduct = await ProductDAO.updateById(id, updatePayload);
+        if (!updatedProduct) throw new ApiError(404, "Product update failed");
+
+        return updatedProduct;
+    } catch (error) {
+        if (error instanceof ZodError) {
+            throw new ApiError(400, "Validation Error", error.issues as any);
+        }
+        throw error;
+    }
+}
+
+/**
+ * Soft delete a product after ensuring permission.
+ */
+export async function deleteProduct(id: string, sellerId: string, role: string) {
+    const product = await ProductDAO.findById(id);
+    if (!product) throw new ApiError(404, "Product not found");
+
+    if (isSellerRole(role) && product.sellerId.toString() !== sellerId.toString()) {
+        throw new ApiError(403, "You do not have permission to delete this product");
     }
 
-    /**
-     * Find similar products based on the source product's category, tags, and brand.
-     */
-    static async getSimilarProducts(productId: string, limit = 10) {
-        const product = await ProductDAO.findById(productId);
-        if (!product) throw new ApiError(404, "Product not found");
+    const result = await ProductDAO.softDeleteById(id);
+    if (!result) throw new ApiError(500, "Failed to delete product");
 
-        const similar = await ProductDAO.findSimilar(
-            productId,
-            {
-                category: product.category || undefined,
-                tags: product.tags,
-                brand: product.brand || undefined,
-            },
-            limit
-        );
+    return { success: true };
+}
 
-        return similar;
-    }
+/**
+ * Find similar products using source product specs.
+ */
+export async function getSimilarProducts(productId: string, limit = 10) {
+    const product = await ProductDAO.findById(productId);
+    if (!product) throw new ApiError(404, "Product not found");
+
+    const similar = await ProductDAO.findSimilar(
+        productId,
+        {
+            category: product.category || undefined,
+            tags: product.tags,
+            brand: product.brand || undefined,
+        },
+        limit
+    );
+
+    return similar;
 }

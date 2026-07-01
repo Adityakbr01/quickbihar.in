@@ -2,9 +2,9 @@ import axios from "axios";
 import { Types } from "mongoose";
 import { ENV } from "../../config/env.config";
 import { ApiError } from "../../utils/ApiError";
-import { appConfigService } from "../appConfig/appConfig.service";
-import { couponService } from "../coupon/coupon.service";
-import { ProductDAO } from "../products/product.dao";
+import * as appConfigService from "../appConfig/appConfig.service";
+import * as couponService from "../coupon/coupon.service";
+import * as ProductDAO from "../products/product.dao";
 import { Store } from "../store/store.model";
 import { calculateRiderPayout, distanceKmBetween, type RiderPayoutRules } from "./subOrder.service";
 

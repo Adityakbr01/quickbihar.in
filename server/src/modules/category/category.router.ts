@@ -1,15 +1,20 @@
+/**
+ * Category Express Routing.
+ *
+ * Exposes storefront public and administrative endpoints for category operations.
+ */
 import { Router } from "express";
-import { CategoryController } from "./category.controller";
+import * as CategoryController from "./category.controller";
 import { verifyJWT, isAdmin } from "../../middlewares/auth.middleware";
 import { upload } from "../../middlewares/multer.middleware";
 
 const router = Router();
 
-// Public routes
+/* ── Public routes ── */
 router.get("/public", CategoryController.getAllCategories);
 router.get("/:id", CategoryController.getCategoryById);
 
-// Admin routes (JWT + Admin role check)
+/* ── Admin routes ── */
 router.use(verifyJWT, isAdmin);
 
 router.get("/", CategoryController.getAllCategoriesAdmin);

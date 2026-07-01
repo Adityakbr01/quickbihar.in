@@ -15,7 +15,7 @@ import {
 import { ENV } from "../../config/env.config";
 import { riderCapacityCountsByRider } from "./riderCapacity";
 import { riderProfileMissingFields } from "./riderEligibility";
-import { appConfigService } from "../appConfig/appConfig.service";
+import * as appConfigService from "../appConfig/appConfig.service";
 
 export class MatchingService {
   private static isLoopRunning = false;

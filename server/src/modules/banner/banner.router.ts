@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { BannerController } from "./banner.controller";
+import * as BannerController from "./banner.controller";
 import { verifyJWT, isAdmin } from "../../middlewares/auth.middleware";
 import { upload } from "../../middlewares/multer.middleware";
 

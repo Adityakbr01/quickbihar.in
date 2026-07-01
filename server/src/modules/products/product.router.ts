@@ -1,18 +1,24 @@
+/**
+ * Product Express Routing.
+ *
+ * Exposes public and protected endpoints for managing fashion products.
+ */
+
 import { Router } from "express";
-import { ProductController } from "./product.controller";
+import * as ProductController from "./product.controller";
 import { verifyJWT, isSellerOrAdmin } from "../../middlewares/auth.middleware";
 import { upload } from "../../middlewares/multer.middleware";
 
 const router = Router();
 
-// Public routes
+/* ── Public routes ── */
 router.get("/public", ProductController.getPublicProducts);
 router.get("/trending", ProductController.getTrendingProducts);
 router.get("/slug/:slug", ProductController.getProductBySlug);
 router.get("/:id/similar", ProductController.getSimilarProducts);
 router.get("/:id", ProductController.getProductById);
 
-// Protected routes (Seller/Admin)
+/* ── Protected routes (Seller/Admin) ── */
 router.use(verifyJWT);
 
 // View products (Seller sees their own, Admin sees all)

@@ -1,27 +1,49 @@
-import { SizeChartDAO } from "./sizeChart.dao";
+/**
+ * SizeChart Business Logic Service.
+ *
+ * Implements logic for managing apparel measurements and size charts.
+ * Delegating all persistence concerns to the SizeChart DAO layer.
+ */
+
+import * as SizeChartDAO from "./sizeChart.dao";
 import type { CreateSizeChartBody } from "./sizeChart.validation";
 
-export class SizeChartService {
-    static async createChart(data: CreateSizeChartBody) {
-        return await SizeChartDAO.create(data);
-    }
+/* ── Exported service functions ── */
 
-    static async getAllCharts() {
-        return await SizeChartDAO.findAll({
-            isActive: true,
-            $or: [{ approvalStatus: "APPROVED" }, { approvalStatus: { $exists: false } }],
-        });
-    }
+/**
+ * Validate and create a new size chart.
+ */
+export async function createChart(data: CreateSizeChartBody) {
+    return await SizeChartDAO.create(data);
+}
 
-    static async getChartById(id: string) {
-        return await SizeChartDAO.findById(id);
-    }
+/**
+ * Fetch all active and approved size charts.
+ */
+export async function getAllCharts() {
+    return await SizeChartDAO.findAll({
+        isActive: true,
+        $or: [{ approvalStatus: "APPROVED" }, { approvalStatus: { $exists: false } }],
+    });
+}
 
-    static async updateChart(id: string, data: Partial<CreateSizeChartBody>) {
-        return await SizeChartDAO.updateById(id, data);
-    }
+/**
+ * Retrieve a specific size chart by ID.
+ */
+export async function getChartById(id: string) {
+    return await SizeChartDAO.findById(id);
+}
 
-    static async deleteChart(id: string) {
-        return await SizeChartDAO.deleteById(id);
-    }
+/**
+ * Update properties of an existing size chart.
+ */
+export async function updateChart(id: string, data: Partial<CreateSizeChartBody>) {
+    return await SizeChartDAO.updateById(id, data);
+}
+
+/**
+ * Delete a size chart.
+ */
+export async function deleteChart(id: string) {
+    return await SizeChartDAO.deleteById(id);
 }

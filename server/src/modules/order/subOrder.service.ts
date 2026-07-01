@@ -17,7 +17,7 @@ import { fulfillmentEventService } from "../fulfillment/fulfillmentEvent.service
 import { SavedAddress } from "../savedAddress/savedAddresses.model";
 import { riderCapacitySnapshot } from "../delivery/riderCapacity";
 import { assertRiderCanAcceptOffers } from "../delivery/riderEligibility";
-import { appConfigService } from "../appConfig/appConfig.service";
+import * as appConfigService from "../appConfig/appConfig.service";
 import { ENV } from "../../config/env.config";
 import { sellerSettlementService } from "../seller/sellerSettlement.service";
 

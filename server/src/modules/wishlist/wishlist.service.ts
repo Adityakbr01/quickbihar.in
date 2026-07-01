@@ -1,5 +1,5 @@
 import { wishlistDAO } from "./wishlist.dao";
-import { ProductDAO } from "../products/product.dao";
+import * as ProductDAO from "../products/product.dao";
 import { ApiError } from "../../utils/ApiError";
 
 export class WishlistService {

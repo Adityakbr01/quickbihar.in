@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
 import { asyncHandler } from "../../utils/asyncHandler";
 import { ApiResponse } from "../../utils/ApiResponse";
-import { couponService } from "./coupon.service";
+import * as couponService from "./coupon.service";
 
 export const createCoupon = asyncHandler(async (req: Request, res: Response) => {
     const coupon = await couponService.createCoupon(req.body);

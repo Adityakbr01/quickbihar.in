@@ -9,7 +9,7 @@ import { Order } from "../order/order.model";
 import { SubOrder } from "../order/subOrder.model";
 import { OrderStatus } from "../order/order.type";
 import { Product } from "../products/product.model";
-import { ProductService } from "../products/products.service";
+import * as ProductService from "../products/products.service";
 import { RefundPolicy } from "../refundPolicy/refundPolicy.model";
 import { SizeChart } from "../sizeChart/sizeChart.model";
 import { Mall } from "../mall/mall.model";

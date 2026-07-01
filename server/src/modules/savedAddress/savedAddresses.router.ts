@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { SavedAddressController } from "./savedAddresses.controller";
+import * as SavedAddressController from "./savedAddresses.controller";
 import { verifyJWT } from "../../middlewares/auth.middleware";
 
 const router = Router();

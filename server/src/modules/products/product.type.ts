@@ -83,8 +83,6 @@ export interface IProduct {
         longitude?: number;
     };
 
-
-
     policyRefs?: {
         returnPolicy?: string;
         refundPolicy?: string;

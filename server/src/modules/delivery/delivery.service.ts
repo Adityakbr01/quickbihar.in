@@ -2,7 +2,7 @@ import { Types } from "mongoose";
 import { SocketEvents } from "../../constants/socketEvents";
 import { ApiError } from "../../utils/ApiError";
 import { AdminPayout } from "../admin/admin.model";
-import { appConfigService } from "../appConfig/appConfig.service";
+import * as appConfigService from "../appConfig/appConfig.service";
 import { DeliveryBoy } from "../deliveryBoy/delivery.model";
 import { Order } from "../order/order.model";
 import { SubOrder, SubOrderStatus } from "../order/subOrder.model";

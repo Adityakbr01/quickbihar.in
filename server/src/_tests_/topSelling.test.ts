@@ -87,7 +87,7 @@ mock.module("mongoose", () => {
   };
 });
 
-import { ProductDAO } from "../modules/products/product.dao";
+import * as ProductDAO from "../modules/products/product.dao";
 
 describe("Top Selling Products API", () => {
   test("getTopSellingProducts should retrieve, aggregate and sort correctly", async () => {

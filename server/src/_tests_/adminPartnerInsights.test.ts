@@ -162,6 +162,11 @@ mock.module("../modules/store/store.model", () => ({
     findOne: storeFindOne,
     find: mock(() => chain([])),
   },
+  ClothingStoreConfig: {
+    findOne: mock(() => Promise.resolve(null)),
+    findOneAndUpdate: mock(() => Promise.resolve(null)),
+    create: mock(() => Promise.resolve(null)),
+  },
 }));
 
 mock.module("../modules/order/subOrder.model", () => ({

@@ -1,8 +1,8 @@
 import { Types } from "mongoose";
 import { ApiError } from "../../utils/ApiError";
-import { ProductDAO } from "../products/product.dao";
-import { couponService } from "../coupon/coupon.service";
-import { appConfigService } from "../appConfig/appConfig.service";
+import * as ProductDAO from "../products/product.dao";
+import * as couponService from "../coupon/coupon.service";
+import * as appConfigService from "../appConfig/appConfig.service";
 import { orderDAO } from "./order.dao";
 import { DeliveryStatus, OrderStatus } from "./order.type";
 import { Order } from "./order.model";

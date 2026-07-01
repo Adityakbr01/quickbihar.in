@@ -1,6 +1,6 @@
 import { cartDAO } from "./cart.dao";
-import { ProductDAO } from "../products/product.dao";
-import { appConfigService } from "../appConfig/appConfig.service";
+import * as ProductDAO from "../products/product.dao";
+import * as appConfigService from "../appConfig/appConfig.service";
 import { ApiError } from "../../utils/ApiError";
 import type { ICartItem } from "./cart.model";
 
