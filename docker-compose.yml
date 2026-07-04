@@ -1,11 +1,9 @@
-version: '3.8'
-
 services:
   redis:
     image: redis:alpine
     container_name: quickbihar-redis
-    ports:
-      - "6379:6379"
+    expose:
+      - "6379"
     volumes:
       - redis-data:/data
     restart: always
@@ -21,7 +19,7 @@ services:
     environment:
       - PORT=8000
       - REDIS_URL=redis://redis:6379
-      - NODE_ENV=development
+      - NODE_ENV=production
     env_file:
       - ./server/.env
     depends_on:
@@ -37,8 +35,8 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
-      - NEXT_PUBLIC_SOCKET_URL=http://localhost:8000
+      - NEXT_PUBLIC_API_URL=/api/v1
+      - NEXT_PUBLIC_SOCKET_URL=/
     env_file:
       - ./web/.env
     depends_on:

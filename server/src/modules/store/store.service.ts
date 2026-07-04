@@ -13,6 +13,7 @@ import { StoreType } from "./store.schema";
 import { Seller } from "../seller/seller.model";
 import { ApiError } from "../../utils/ApiError";
 import { buildStoreSetupStatus, mergeStoreForSetup } from "./store.setup";
+import { findServiceableStores, type ServiceabilityTarget } from "./serviceability.service";
 
 
 export const createStoreService = async (data: CreateStoreInput, sellerId: string) => {
@@ -105,6 +106,33 @@ export const verifyStoreService = async (id: string, isVerified: boolean) => {
 
 export const getNearbyStoresService = async (lng: number, lat: number, radiusKm: number, type?: StoreType, isOpen?: boolean) => {
     return getNearbyStoresDAO(lng, lat, radiusKm, type, isOpen);
+};
+
+/**
+ * Hyperlocal serviceability check: returns whether any active storefront store can
+ * deliver to the target (pincode and/or GPS), plus the matching stores sorted
+ * nearest-first. Powers the storefront's "Service Unavailable" gate.
+ */
+export const checkServiceabilityService = async (target: ServiceabilityTarget) => {
+    const matches = await findServiceableStores(target);
+    const stores = matches.map(({ store, matchedBy, distanceKm }) => {
+        const s = store as any;
+        return {
+            _id: s._id?.toString(),
+            name: s.name,
+            logoUrl: s.logoUrl,
+            type: s.type,
+            city: s.address?.city,
+            pincode: s.address?.pincode,
+            matchedBy,
+            distanceKm: distanceKm != null ? Number(distanceKm.toFixed(2)) : null,
+        };
+    });
+    return {
+        serviceable: stores.length > 0,
+        storeCount: stores.length,
+        stores,
+    };
 };
 
 export const getSellerStoresService = async (sellerId: string) => {

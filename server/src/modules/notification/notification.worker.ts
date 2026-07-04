@@ -9,7 +9,7 @@ import { User } from "../user/user.model";
 import { Role } from "../rbac/rbac.model";
 import { socketService } from "../socket/socket.service";
 import { SocketEvents } from "../../constants/socketEvents";
-import { notificationService } from "./notification.service";
+import "./notification.service"; // Side-effect import: ensures the Firebase Admin SDK is initialized on load
 
 // Dedicated connection for the Worker client
 const workerConnection = new Redis(ENV.REDIS_URL, {
@@ -20,11 +20,68 @@ workerConnection.on("error", (err) => {
   console.error("❌ BullMQ Worker Redis Connection Error:", err);
 });
 
-export class NotificationWorker {
-  private worker: Worker;
+// Utility to chunk arrays into specific sizes
+function chunkArray<T>(array: T[], size: number): T[][] {
+  const result: T[][] = [];
+  for (let i = 0; i < array.length; i += size) {
+    result.push(array.slice(i, i + size));
+  }
+  return result;
+}
 
-  constructor() {
-    this.worker = new Worker(
+// Utility to map custom admin button texts to registered client category IDs
+function getCategoryForButtonText(text?: string): string | undefined {
+  if (!text || text.trim() === "") return undefined;
+
+  const normalized = text.trim().toLowerCase();
+
+  if (normalized.includes("buy")) return "PROMOTION_BUY_NOW";
+  if (normalized.includes("shop")) return "PROMOTION_SHOP_NOW";
+  if (normalized.includes("mall") || normalized.includes("explore")) return "PROMOTION_EXPLORE_MALL";
+  if (normalized.includes("order")) return "PROMOTION_ORDER_NOW";
+  if (normalized.includes("claim") || normalized.includes("coupon") || normalized.includes("offer")) return "PROMOTION_CLAIM_OFFER";
+  if (normalized.includes("product")) return "PROMOTION_VIEW_PRODUCT";
+  if (normalized.includes("link") || normalized.includes("website") || normalized.includes("site")) return "PROMOTION_OPEN_LINK";
+  if (normalized.includes("details") || normalized.includes("info") || normalized.includes("more")) return "PROMOTION_VIEW_DETAILS";
+  if (normalized.includes("check")) return "PROMOTION_CHECK_IT_OUT";
+  if (normalized.includes("learn")) return "PROMOTION_LEARN_MORE";
+
+  return "PROMOTION_LEARN_MORE";
+}
+
+// Helper to optimize image URLs dynamically using ImageKit transformation parameters
+export function optimizeNotificationImageUrl(url?: string): string | undefined {
+  if (!url || url.trim() === "") return undefined;
+
+  // If the image is hosted on ImageKit, apply size, format, and quality optimizations
+  if (url.includes("ik.imagekit.io")) {
+    try {
+      const parsedUrl = new URL(url);
+      parsedUrl.searchParams.set("tr", "w-800,q-80,f-auto");
+      return parsedUrl.toString();
+    } catch (e) {
+      console.warn("[NotificationWorker] Failed to parse image URL for optimization:", e);
+      return url;
+    }
+  }
+
+  return url;
+}
+
+// Singleton worker instance created at startup
+let notificationWorkerInstance: Worker | null = null;
+
+/**
+ * Lazily creates and starts the BullMQ notification worker (idempotent).
+ * The worker consumes the "notification-queue", fans each campaign out over native FCM,
+ * Expo push, and live sockets, then reconciles delivery/failure counters back onto the
+ * Notification document. Subsequent calls return the already-running instance.
+ *
+ * @returns The singleton BullMQ Worker instance.
+ */
+export const startNotificationWorker = () => {
+  if (!notificationWorkerInstance) {
+    notificationWorkerInstance = new Worker(
       "notification-queue",
       async (job: Job) => {
         const { notificationId, isUpdate } = job.data;
@@ -419,68 +476,11 @@ export class NotificationWorker {
       }
     );
 
-    this.worker.on("failed", (job, err) => {
+    notificationWorkerInstance.on("failed", (job, err) => {
       console.error(`❌ Job ${job?.id} failed globally:`, err);
     });
-  }
-}
 
-// Utility to chunk arrays into specific sizes
-function chunkArray<T>(array: T[], size: number): T[][] {
-  const result: T[][] = [];
-  for (let i = 0; i < array.length; i += size) {
-    result.push(array.slice(i, i + size));
-  }
-  return result;
-}
-
-// Singleton worker instanced at startup
-let notificationWorkerInstance: NotificationWorker | null = null;
-
-export const startNotificationWorker = () => {
-  if (!notificationWorkerInstance) {
-    notificationWorkerInstance = new NotificationWorker();
     console.log("⚙️ BullMQ Notification Worker initialized and running");
   }
   return notificationWorkerInstance;
 };
-
-// Utility to map custom admin button texts to registered client category IDs
-function getCategoryForButtonText(text?: string): string | undefined {
-  if (!text || text.trim() === "") return undefined;
-  
-  const normalized = text.trim().toLowerCase();
-  
-  if (normalized.includes("buy")) return "PROMOTION_BUY_NOW";
-  if (normalized.includes("shop")) return "PROMOTION_SHOP_NOW";
-  if (normalized.includes("mall") || normalized.includes("explore")) return "PROMOTION_EXPLORE_MALL";
-  if (normalized.includes("order")) return "PROMOTION_ORDER_NOW";
-  if (normalized.includes("claim") || normalized.includes("coupon") || normalized.includes("offer")) return "PROMOTION_CLAIM_OFFER";
-  if (normalized.includes("product")) return "PROMOTION_VIEW_PRODUCT";
-  if (normalized.includes("link") || normalized.includes("website") || normalized.includes("site")) return "PROMOTION_OPEN_LINK";
-  if (normalized.includes("details") || normalized.includes("info") || normalized.includes("more")) return "PROMOTION_VIEW_DETAILS";
-  if (normalized.includes("check")) return "PROMOTION_CHECK_IT_OUT";
-  if (normalized.includes("learn")) return "PROMOTION_LEARN_MORE";
-  
-  return "PROMOTION_LEARN_MORE";
-}
-
-// Helper to optimize image URLs dynamically using ImageKit transformation parameters
-export function optimizeNotificationImageUrl(url?: string): string | undefined {
-  if (!url || url.trim() === "") return undefined;
-  
-  // If the image is hosted on ImageKit, apply size, format, and quality optimizations
-  if (url.includes("ik.imagekit.io")) {
-    try {
-      const parsedUrl = new URL(url);
-      parsedUrl.searchParams.set("tr", "w-800,q-80,f-auto");
-      return parsedUrl.toString();
-    } catch (e) {
-      console.warn("[NotificationWorker] Failed to parse image URL for optimization:", e);
-      return url;
-    }
-  }
-  
-  return url;
-}
-

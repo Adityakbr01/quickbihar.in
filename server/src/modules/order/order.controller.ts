@@ -126,7 +126,7 @@ export class OrderController {
 
     static returnSubOrder = asyncHandler(async (req, res) => {
         const { id } = req.params;
-        const { reason } = req.body;
+        const { reason, proofPhoto } = req.body;
         const userId = (req as any).user._id.toString();
 
         const ipAddress = req.ip || req.socket.remoteAddress;
@@ -136,6 +136,7 @@ export class OrderController {
             id as string,
             userId,
             reason || "No reason specified",
+            proofPhoto || undefined,
             { ipAddress, deviceInfo },
         );
 

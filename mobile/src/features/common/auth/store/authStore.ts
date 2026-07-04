@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import * as SecureStore from "expo-secure-store";
+import { authStorage } from "@/src/lib/authStorage";
 
 export enum RoleEnum {
   USER = "USER",
@@ -48,26 +48,26 @@ export const useAuthStore = create<AuthState>((set) => ({
   isInitialized: false,
 
   setAuth: async (user, token, refreshToken) => {
-    await SecureStore.setItemAsync("userToken", token);
-    await SecureStore.setItemAsync("refreshToken", refreshToken);
-    await SecureStore.setItemAsync("userData", JSON.stringify(user));
-    await SecureStore.setItemAsync("userRole", typeof user.role === "string" ? user.role : user.role?.name || "");
+    await authStorage.setItemAsync("userToken", token);
+    await authStorage.setItemAsync("refreshToken", refreshToken);
+    await authStorage.setItemAsync("userData", JSON.stringify(user));
+    await authStorage.setItemAsync("userRole", typeof user.role === "string" ? user.role : user.role?.name || "");
     set({ user, token, refreshToken, isAuthenticated: true, isInitialized: true });
   },
 
   clearAuth: async () => {
-    await SecureStore.deleteItemAsync("userToken");
-    await SecureStore.deleteItemAsync("refreshToken");
-    await SecureStore.deleteItemAsync("userData");
-    await SecureStore.deleteItemAsync("userRole");
+    await authStorage.deleteItemAsync("userToken");
+    await authStorage.deleteItemAsync("refreshToken");
+    await authStorage.deleteItemAsync("userData");
+    await authStorage.deleteItemAsync("userRole");
     set({ user: null, token: null, refreshToken: null, isAuthenticated: false, isInitialized: true });
   },
 
   initializeAuth: async () => {
     try {
-      const token = await SecureStore.getItemAsync("userToken");
-      const refreshToken = await SecureStore.getItemAsync("refreshToken");
-      const userData = await SecureStore.getItemAsync("userData");
+      const token = await authStorage.getItemAsync("userToken");
+      const refreshToken = await authStorage.getItemAsync("refreshToken");
+      const userData = await authStorage.getItemAsync("userData");
 
       if (token && userData) {
         set({

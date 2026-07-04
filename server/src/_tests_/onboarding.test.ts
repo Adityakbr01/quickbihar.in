@@ -29,10 +29,8 @@ mock.module("../utils/mail.service", () => ({
     }
 }));
 mock.module("../modules/notification/notification.service", () => ({
-    notificationService: {
-        sendPush: mock(() => Promise.resolve("mocked_id")),
-        sendToTopic: mock(() => Promise.resolve("mocked_id"))
-    }
+    sendPush: mock(() => Promise.resolve("mocked_id")),
+    sendToTopic: mock(() => Promise.resolve("mocked_id"))
 }));
 
 // 2. Mock Models

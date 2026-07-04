@@ -1,10 +1,10 @@
 import { Router } from "express";
 import { verifyJWT } from "../../middlewares/auth.middleware";
-import { FulfillmentEventController } from "./fulfillmentEvent.controller";
+import * as fulfillmentEventController from "./fulfillmentEvent.controller";
 
 const router = Router();
 
 router.use(verifyJWT);
-router.get("/", FulfillmentEventController.listMine);
+router.get("/", fulfillmentEventController.listMine);
 
 export default router;

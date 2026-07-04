@@ -12,11 +12,12 @@ import { DeliveryStatus, OrderStatus } from "./order.type";
 import { SocketEvents } from "../../constants/socketEvents";
 import { MAX_RIDER_REJECTIONS_PER_SUB_ORDER, RiderOffer } from "../fulfillment/riderOffer.model";
 import { ReturnRequest } from "../fulfillment/returnRequest.model";
+import { assertReturnWindowOpen, deliveredAtFromTimeline } from "./returnEligibility";
 import { CodSettlement } from "../fulfillment/codSettlement.model";
-import { fulfillmentEventService } from "../fulfillment/fulfillmentEvent.service";
+import * as fulfillmentEventService from "../fulfillment/fulfillmentEvent.service";
 import { SavedAddress } from "../savedAddress/savedAddresses.model";
 import { riderCapacitySnapshot } from "../delivery/riderCapacity";
-import { assertRiderCanAcceptOffers } from "../delivery/riderEligibility";
+import { assertRiderCanAcceptOffers, assertRiderCanAcceptCod } from "../delivery/riderEligibility";
 import * as appConfigService from "../appConfig/appConfig.service";
 import { ENV } from "../../config/env.config";
 import { sellerSettlementService } from "../seller/sellerSettlement.service";
@@ -499,7 +500,7 @@ export class SubOrderService {
         // Trigger matching service broadcast
         // We'll import and call it asynchronously
         import("../delivery/matching.service").then(module => {
-            module.MatchingService.initiateMatching(subOrder._id.toString());
+            module.initiateMatching(subOrder._id.toString());
         }).catch(err => {
             console.error("[SubOrderService] Failed to trigger matching service:", err);
         });
@@ -533,6 +534,12 @@ export class SubOrderService {
                 `Rider has reached the ${capacity.maxAcceptedOrders} accepted order limit for the last ${capacity.windowHours} hours. Capacity resets as older accepted orders leave the rolling window.`
             );
         }
+
+        // Block accepting a COD job that would push the rider over the COD cash-liability ceiling.
+        assertRiderCanAcceptCod(riderProfile, {
+            isCod: subOrder.packageDetails?.isCod,
+            amount: subOrder.payableAmount,
+        });
 
         const store = subOrder.storeId as any;
         const parentOrder = subOrder.parentOrderId as any;
@@ -1275,7 +1282,7 @@ export class SubOrderService {
 
         // Trigger matching service broadcast
         import("../delivery/matching.service").then(module => {
-            module.MatchingService.initiateMatching(subOrder._id.toString());
+            module.initiateMatching(subOrder._id.toString());
         }).catch(err => {
             console.error("[SubOrderService] Failed to trigger matching service:", err);
         });
@@ -1585,7 +1592,7 @@ export class SubOrderService {
         return offer;
     }
 
-    static async customerRequestReturn(subOrderId: string, userId: string, reason: string, requestInfo?: IRequestInfo) {
+    static async customerRequestReturn(subOrderId: string, userId: string, reason: string, proofPhoto?: string, requestInfo?: IRequestInfo) {
         const subOrder = await SubOrder.findOne({
             $or: [{ subOrderId }, ...(subOrderId.match(/^[0-9a-fA-F]{24}$/) ? [{ _id: subOrderId }] : [])]
         }).populate("parentOrderId");
@@ -1600,6 +1607,10 @@ export class SubOrderService {
         if (![SubOrderStatus.PICKED_UP, SubOrderStatus.IN_TRANSIT, SubOrderStatus.NEAR_CUSTOMER, SubOrderStatus.DELIVERED, SubOrderStatus.COMPLETED].includes(subOrder.status)) {
             throw new ApiError(400, "Return can only be initiated after pickup or delivery");
         }
+
+        // Once delivered, returns are only allowed inside the configured return window.
+        const deliveredAt = deliveredAtFromTimeline(subOrder.timeline as any);
+        assertReturnWindowOpen(deliveredAt, ENV.RETURN_WINDOW_DAYS, new Date());
 
         const existing = await ReturnRequest.findOne({
             subOrderObjectId: subOrder._id,

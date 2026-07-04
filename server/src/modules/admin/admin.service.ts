@@ -7,7 +7,7 @@ import { Banner } from "../banner/banner.model";
 import { Coupon } from "../coupon/coupon.model";
 import { DeliveryBoy } from "../deliveryBoy/delivery.model";
 import { Mall } from "../mall/mall.model";
-import { MallService } from "../mall/mall.service";
+import * as mallService from "../mall/mall.service";
 import { Order } from "../order/order.model";
 import { SubOrder } from "../order/subOrder.model";
 import { Product } from "../products/product.model";
@@ -1628,7 +1628,7 @@ export async function getDashboard() {
     .sort({ createdAt: -1 })
     .limit(5)
     .lean();
-  const topMalls = await MallService.getTopMalls(10);
+  const topMalls = await mallService.getTopMalls(10);
 
   return {
     stats: {

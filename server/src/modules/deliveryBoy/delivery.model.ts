@@ -1,5 +1,15 @@
 import mongoose, { Schema, Types } from "mongoose";
 
+/** Per-document verification lifecycle used across all rider KYC documents. */
+export const DOCUMENT_STATUS = ["PENDING", "APPROVED", "REJECTED"] as const;
+
+/** Reusable schema fragment for an individually reviewable document status. */
+const documentStatusField = () => ({
+    type: String,
+    enum: DOCUMENT_STATUS,
+    default: "PENDING",
+});
+
 const DeliveryProfileSchema = new Schema({
     userId: {
         type: Types.ObjectId,
@@ -67,6 +77,45 @@ const DeliveryProfileSchema = new Schema({
     vehicleNumber: String,
 
     licenseNumber: String,
+
+    /**
+     * KYC / onboarding documents. Each document carries its own review status so
+     * an admin can approve or reject them independently and the rider can be asked
+     * to re-upload only the specific document that was rejected.
+     */
+    documents: {
+        drivingLicense: {
+            number: String,
+            frontUrl: String,
+            backUrl: String,
+            expiryDate: Date,
+            status: documentStatusField(),
+            rejectionReason: String,
+        },
+        aadharCard: {
+            number: String,
+            frontUrl: String,
+            backUrl: String,
+            status: documentStatusField(),
+            rejectionReason: String,
+        },
+        panCard: {
+            number: String,
+            imageUrl: String,
+            status: documentStatusField(),
+            rejectionReason: String,
+        },
+        vehicleRC: {
+            number: String,
+            imageUrl: String,
+            status: documentStatusField(),
+            rejectionReason: String,
+        },
+        profilePhoto: {
+            imageUrl: String,
+            status: documentStatusField(),
+        },
+    },
 
     isVerified: { type: Boolean, default: false },
 

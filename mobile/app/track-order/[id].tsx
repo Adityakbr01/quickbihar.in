@@ -18,7 +18,7 @@ import { getOrderByIdRequest, cancelSubOrderRequest } from "@/src/features/Cloth
 import { Ionicons } from "@expo/vector-icons";
 import { useLocationTracking } from "@/src/features/Clothings/trackOrder/hooks/useLocationTracking";
 import { useOrderTracking } from "@/src/features/Clothings/trackOrder/hooks/useOrderTracking";
-import * as SecureStore from "expo-secure-store";
+import { authStorage } from "@/src/lib/authStorage";
 import { useSocketStore } from "@/src/store/useSocketStore";
 import { SocketEvents } from "@/src/constants/socketEvents";
 
@@ -39,7 +39,7 @@ export default function TrackOrderScreen() {
         setLoading(true);
         const [orderData, role] = await Promise.all([
           getOrderByIdRequest(orderId),
-          SecureStore.getItemAsync("userRole"),
+          authStorage.getItemAsync("userRole"),
           useSocketStore.getState().connect(),
         ]);
         const fetchedOrder = orderData?.data || orderData;

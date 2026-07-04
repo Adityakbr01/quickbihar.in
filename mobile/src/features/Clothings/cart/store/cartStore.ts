@@ -1,9 +1,9 @@
 import { create } from "zustand";
 import { persist, createJSONStorage, StateStorage } from "zustand/middleware";
-import * as SecureStore from "expo-secure-store";
 import axiosInstance from "@/src/api/axiosInstance";
 import { ICoupon } from "../../coupon/types/coupon.types";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
+import { authStorage } from "@/src/lib/authStorage";
 
 export interface CartItem {
   id?: string; // for compatibility with older mock data if needed
@@ -54,13 +54,13 @@ interface CartState {
 
 const secureStorage: StateStorage = {
   getItem: (name: string): string | null | Promise<string | null> => {
-    return SecureStore.getItemAsync(name);
+    return authStorage.getItemAsync(name);
   },
   setItem: (name: string, value: string): void | Promise<void> => {
-    return SecureStore.setItemAsync(name, value);
+    return authStorage.setItemAsync(name, value);
   },
   removeItem: (name: string): void | Promise<void> => {
-    return SecureStore.deleteItemAsync(name);
+    return authStorage.deleteItemAsync(name);
   },
 };
 

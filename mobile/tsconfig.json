@@ -4,6 +4,7 @@
     "strict": true,
     "baseUrl": ".",
     "ignoreDeprecations": "6.0",
+    "moduleSuffixes": [".native", ".web", ""],
     "paths": {
       "@/*": ["./*"]
     }

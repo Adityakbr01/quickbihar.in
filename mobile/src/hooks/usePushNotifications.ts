@@ -1,7 +1,5 @@
 import { useEffect } from "react";
-import { Linking } from "react-native";
-import * as SecureStore from "expo-secure-store";
-import * as Device from "expo-device";
+import { Linking, Platform } from "react-native";
 import Constants from "expo-constants";
 import { registerForPushNotificationsAsync, initializeNotificationHandler } from "../lib/notification";
 import { useAuthStore } from "../features/common/auth/store/authStore";
@@ -22,6 +20,7 @@ export const usePushNotifications = () => {
 
     const registerListener = async () => {
       try {
+        if (Platform.OS === "web") return;
         const Notifications = await import("expo-notifications");
         subscription = Notifications.addNotificationReceivedListener((notification) => {
           console.log("[usePushNotifications] Foreground notification received:", notification);
@@ -119,6 +118,7 @@ export const usePushNotifications = () => {
 
     const setupNotifications = async () => {
       try {
+        if (Platform.OS === "web") return;
         // 1. Initialize Handler (Lazy)
         await initializeNotificationHandler();
 

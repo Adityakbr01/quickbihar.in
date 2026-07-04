@@ -4,7 +4,7 @@ import connectDB from "./config/db";
 import { ENV } from "./config/env.config";
 import { socketService } from "./modules/socket/socket.service";
 import { seedRbac } from "./seed/seed";
-import { MatchingService } from "./modules/delivery/matching.service";
+import * as matchingService from "./modules/delivery/matching.service";
 import { startNotificationWorker } from "./modules/notification/notification.worker";
 
 const port = ENV.PORT;
@@ -24,7 +24,7 @@ connectDB()
     // await seedRbac();
 
     // Start background matching loop
-    MatchingService.start();
+    matchingService.start();
 
     // Start background notification worker
     startNotificationWorker();

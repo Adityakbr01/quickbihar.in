@@ -3,6 +3,7 @@ import { ApiResponse } from "../../utils/ApiResponse";
 import { asyncHandler } from "../../utils/asyncHandler";
 import type { StoreType } from "./store.schema";
 import {
+    checkServiceabilityService,
     createStoreService,
     getNearbyStoresService,
     getSellerStoresService,
@@ -12,6 +13,7 @@ import {
     verifyStoreService
 } from "./store.service";
 import type {
+    CheckServiceabilityInput,
     CreateStoreInput,
     SearchNearbyStoresInput,
     UpdateStoreInput
@@ -33,6 +35,21 @@ export const getNearbyStoresController = asyncHandler(async (req: Request, res: 
     const data = req.query as unknown as SearchNearbyStoresInput;
     const stores = await getNearbyStoresService(data.lng as number, data.lat as number, data.radius as number, data.type as StoreType, data.isOpen as boolean);
     res.status(200).json(new ApiResponse(200, stores, "Nearby stores fetched successfully"));
+});
+
+/**
+ * Hyperlocal serviceability check for the storefront (pincode and/or GPS).
+ * Returns whether service is available and the matching stores (nearest-first),
+ * so the client can show either the local feed or the "Service Unavailable" screen.
+ */
+export const checkServiceabilityController = asyncHandler(async (req: Request, res: Response) => {
+    const data = req.query as unknown as CheckServiceabilityInput;
+    const result = await checkServiceabilityService({
+        pincode: data.pincode,
+        latitude: data.lat ?? null,
+        longitude: data.lng ?? null,
+    });
+    res.ok(result, result.serviceable ? "Service available in your area" : "Service is not available in your area yet");
 });
 
 export const getSellerStoresController = asyncHandler(async (req: Request, res: Response) => {

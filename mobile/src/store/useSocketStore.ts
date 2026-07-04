@@ -1,8 +1,8 @@
 import { create } from "zustand";
 import { io, Socket } from "socket.io-client";
-import * as SecureStore from "expo-secure-store";
 import { Platform } from "react-native";
 import { LOCAL_URL } from "../api/axiosInstance";
+import { authStorage } from "../lib/authStorage";
 
 const BASE_URL =
   Platform.OS === "android"
@@ -24,7 +24,7 @@ export const useSocketStore = create<SocketState>((set, get) => ({
     try {
       if (get().isConnected) return;
 
-      const token = await SecureStore.getItemAsync("userToken");
+      const token = await authStorage.getItemAsync("userToken");
       if (!token) return;
 
       const socketInstance = io(BASE_URL, {

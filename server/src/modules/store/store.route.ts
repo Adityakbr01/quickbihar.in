@@ -3,6 +3,7 @@ import { isSellerOrAdmin, checkPermissions as requirePermission, verifyJWT } fro
 import { validate } from "../../middlewares/validate.middleware";
 import { PERMISSIONS } from "../rbac/rbac.constants";
 import {
+    checkServiceabilityController,
     createStoreController,
     getNearbyStoresController,
     getSellerStoresController,
@@ -12,6 +13,7 @@ import {
     verifyStoreController
 } from "./store.controller";
 import {
+    checkServiceabilitySchema,
     createStoreSchema,
     searchNearbyStoresSchema,
     toggleStoreStatusSchema,
@@ -28,7 +30,20 @@ router.get(
     getNearbyStoresController
 );
 
+router.get(
+    "/serviceability",
+    validate(checkServiceabilitySchema, "query"),
+    checkServiceabilityController
+);
+
 // 🔐 PROTECTED ROUTES (Seller/Admin)
+router.get("/:id", (req, res, next) => {
+    if (/^[0-9a-fA-F]{24}$/.test(req.params.id || "")) {
+        return getStoreController(req, res, next);
+    }
+    return next("route");
+});
+
 router.use(verifyJWT);
 router.use(isSellerOrAdmin)
 
@@ -68,6 +83,4 @@ router.get(
 );
 
 // 🟢 PUBLIC ROUTES (Must be at the bottom to avoid catching specific routes like /my-stores)
-router.get("/:id", getStoreController);
-
 export default router;

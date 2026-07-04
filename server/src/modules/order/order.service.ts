@@ -8,7 +8,7 @@ import { DeliveryStatus, OrderStatus } from "./order.type";
 import { Order } from "./order.model";
 import { razorpay, verifyRazorpaySignature } from "../../utils/razorpay.util";
 import { socketService } from "../socket/socket.service";
-import { notificationService } from "../notification/notification.service";
+import * as notificationService from "../notification/notification.service";
 import { User } from "../user/user.model";
 import { SocketEvents } from "../../constants/socketEvents";
 import { Seller } from "../seller/seller.model";
@@ -18,6 +18,7 @@ import { SubOrder, SubOrderStatus } from "./subOrder.model";
 import { TimelineHelper } from "./timeline.helper";
 import { orderPricingService } from "./orderPricing.service";
 import { sellerSettlementService } from "../seller/sellerSettlement.service";
+import { assertCartServiceable, assertCartStoresOpen } from "../store/serviceability.service";
 
 const generateDeliveryOtp = () => Math.floor(100000 + Math.random() * 900000).toString();
 
@@ -132,6 +133,15 @@ export class OrderService {
 
     async quoteOrder(userId: string, data: any) {
         const quote = await orderPricingService.buildQuote(userId, data);
+        const { shippingAddress } = data;
+
+        await assertCartStoresOpen(quote.processedItems);
+        await assertCartServiceable(quote.processedItems, {
+            pincode: shippingAddress?.pincode,
+            latitude: shippingAddress?.latitude,
+            longitude: shippingAddress?.longitude,
+        });
+
         return {
             subtotal: quote.totalAmount,
             totalAmount: quote.totalAmount,
@@ -176,6 +186,16 @@ export class OrderService {
             `[OrderService] Final Payable Amount: ${quote.payableAmount} ` +
             `(Subtotal: ${quote.totalAmount}, Coupon: ${quote.discountAmount}, Shipping: ${quote.shippingFee}, Dynamic: ${quote.dynamicDeliverySurcharge})`
         );
+
+        // Hard availability gate: block payment if any cart store is deactivated or closed early.
+        await assertCartStoresOpen(quote.processedItems);
+
+        // Hard serviceability gate: block payment if any cart store can't reach the address.
+        await assertCartServiceable(quote.processedItems, {
+            pincode: normalizedShippingAddress.pincode,
+            latitude: shippingLatitude,
+            longitude: shippingLongitude,
+        });
 
         const razorpayOrder = await razorpay.orders.create({
             amount: Math.round(quote.payableAmount * 100),

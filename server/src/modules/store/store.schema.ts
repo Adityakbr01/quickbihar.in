@@ -98,6 +98,20 @@ export const searchNearbyStoresSchema = z.object({
     isOpen: z.string().optional().default("true").transform((val) => val !== "false"),
 });
 
+/**
+ * Hyperlocal serviceability check for the storefront. Requires a pincode OR GPS
+ * coordinates so we can answer "do any active stores deliver to this address?".
+ */
+export const checkServiceabilitySchema = z
+    .object({
+        pincode: z.string().trim().regex(/^\d{6}$/, "Pincode must be a valid 6-digit code").optional(),
+        lat: z.coerce.number().min(-90).max(90).optional(),
+        lng: z.coerce.number().min(-180).max(180).optional(),
+    })
+    .refine((data) => !!data.pincode || (data.lat != null && data.lng != null), {
+        message: "Provide a pincode or GPS coordinates (lat & lng) to check serviceability",
+    });
+
 export const toggleStoreStatusSchema = z.object({
     isOpen: z.boolean(),
 });

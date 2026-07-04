@@ -18,6 +18,7 @@ import { Seller } from "../seller/seller.model";
 import { SizeChart } from "../sizeChart/sizeChart.model";
 import { Store } from "../store/store.model";
 import { buildStoreSetupStatus } from "../store/store.setup";
+import { findServiceableStores, type ServiceabilityTarget } from "../store/serviceability.service";
 
 /* ── Internal helpers ── */
 
@@ -276,6 +277,66 @@ export async function getProducts(query: any = {}) {
  */
 export async function getTrendingProducts() {
     return await ProductDAO.getTopSellingProducts(10);
+}
+
+/**
+ * Hyperlocal, local-first product discovery: returns public products only from stores
+ * that can deliver to the user's address (pincode and/or GPS), so shoppers never see
+ * items that cannot be delivered to them.
+ *
+ * Serviceable stores come back nearest-first; each product is annotated with its
+ * `storeDistanceKm`. Pass `sortBy=nearest` to order products by store proximity;
+ * otherwise the standard product sort (trending/rating/newest/price) applies.
+ *
+ * @param query - Discovery query. Must carry a `pincode` or `lat`+`lng`.
+ */
+export async function getLocalProducts(query: any = {}) {
+    const hasTarget = (query.pincode && String(query.pincode).trim())
+        || (query.lat != null && query.lng != null);
+    if (!hasTarget) {
+        throw new ApiError(400, "Provide a pincode or GPS coordinates (lat & lng) to load local products");
+    }
+
+    const target: ServiceabilityTarget = {
+        pincode: query.pincode ?? null,
+        latitude: query.lat != null ? Number(query.lat) : null,
+        longitude: query.lng != null ? Number(query.lng) : null,
+    };
+
+    const matches = await findServiceableStores(target);
+    if (matches.length === 0) {
+        return { serviceable: false, storeCount: 0, total: 0, products: [] };
+    }
+
+    const distanceByStoreId = new Map<string, number | null>();
+    const storeIds: string[] = [];
+    for (const match of matches) {
+        const id = (match.store as any)._id?.toString();
+        if (!id) continue;
+        storeIds.push(id);
+        distanceByStoreId.set(id, match.distanceKm);
+    }
+
+    const { data, total } = await getProducts({
+        ...query,
+        isActive: true,
+        publicOnly: true,
+        storeIds,
+    });
+
+    let products = (data as any[]).map((doc) => {
+        const obj = typeof doc?.toObject === "function" ? doc.toObject() : doc;
+        const storeId = obj.storeId?.toString();
+        return { ...obj, storeDistanceKm: storeId ? distanceByStoreId.get(storeId) ?? null : null };
+    });
+
+    if (query.sortBy === "nearest") {
+        products = products.sort(
+            (a, b) => (a.storeDistanceKm ?? Number.POSITIVE_INFINITY) - (b.storeDistanceKm ?? Number.POSITIVE_INFINITY),
+        );
+    }
+
+    return { serviceable: true, storeCount: storeIds.length, total, products };
 }
 
 /**

@@ -14,6 +14,7 @@ const router = Router();
 /* ── Public routes ── */
 router.get("/public", ProductController.getPublicProducts);
 router.get("/trending", ProductController.getTrendingProducts);
+router.get("/local", ProductController.getLocalProducts);
 router.get("/slug/:slug", ProductController.getProductBySlug);
 router.get("/:id/similar", ProductController.getSimilarProducts);
 router.get("/:id", ProductController.getProductById);

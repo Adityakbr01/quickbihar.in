@@ -1,6 +1,43 @@
 import { ApiError } from "../../utils/ApiError";
+import { ENV } from "../../config/env.config";
 
 const text = (value: any) => String(value || "").trim();
+
+/**
+ * Current uncollected COD cash a rider is holding (₹), defaulting to 0.
+ */
+export const riderCodLiability = (profile?: any | null): number =>
+    Number(profile?.wallet?.collectedCodLiability) || 0;
+
+/**
+ * Guards a rider from accepting a new Cash-on-Delivery job when doing so would push
+ * their outstanding cash liability over the configured ceiling
+ * ({@link ENV.RIDER_MAX_COD_LIABILITY}, default ₹5000). Non-COD jobs are always allowed;
+ * the rider must deposit cash (settled by a merchant/admin) to free up headroom.
+ *
+ * @param profile - The rider's DeliveryBoy profile (reads `wallet.collectedCodLiability`).
+ * @param job - Whether the job is COD and the cash amount to be collected.
+ */
+export function assertRiderCanAcceptCod(
+    profile: any | null | undefined,
+    job: { isCod?: boolean; amount?: number },
+): void {
+    if (!job?.isCod) return;
+
+    const maxLiability = Number(ENV.RIDER_MAX_COD_LIABILITY);
+    if (!Number.isFinite(maxLiability) || maxLiability <= 0) return;
+
+    const current = riderCodLiability(profile);
+    const projected = current + (Number(job.amount) || 0);
+    if (projected > maxLiability) {
+        throw new ApiError(
+            403,
+            `You are holding ₹${current} in undeposited COD cash. Accepting this ₹${Number(job.amount) || 0} COD order `
+            + `would exceed the ₹${maxLiability} limit. Please deposit your collected cash at a merchant/bank and get `
+            + `admin clearance before accepting more COD orders.`,
+        );
+    }
+}
 
 export const riderProfileMissingFields = (profile?: any | null) => {
     const missing: string[] = [];

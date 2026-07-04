@@ -4,16 +4,25 @@ import cookieParser from "cookie-parser";
 import { errorHandler } from "./middlewares/error.middleware";
 import { ENV } from "./config/env.config";
 import { loggerMiddleware } from "./middlewares/logger.middleware";
+import { responseExtensions } from "./middlewares/responseExtensions.middleware";
 
 const app = express();
 
 app.use(loggerMiddleware);
 
-
+const allowedCorsOrigins = Array.isArray(ENV.CORS_ORIGIN)
+  ? ENV.CORS_ORIGIN
+  : [ENV.CORS_ORIGIN];
 
 app.use(
   cors({
-    origin: ENV.CORS_ORIGIN,
+    origin: (origin, callback) => {
+      if (!origin || allowedCorsOrigins.includes("*") || allowedCorsOrigins.includes(origin)) {
+        callback(null, true);
+        return;
+      }
+      callback(new Error(`CORS origin not allowed: ${origin}`));
+    },
     credentials: true,
   })
 );
@@ -23,6 +32,9 @@ app.use(cookieParser());
 app.use(express.json({ limit: "16kb" }));
 app.use(express.urlencoded({ extended: true, limit: "16kb" }));
 app.use(express.static("public"));
+
+// Registers res.ok / res.created / res.nocontent helpers for standardized responses
+app.use(responseExtensions);
 
 // Routes Import
 import authRouter from "./modules/auth/auth.router";

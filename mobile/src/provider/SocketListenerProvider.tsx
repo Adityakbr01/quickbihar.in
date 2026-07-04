@@ -1,8 +1,9 @@
 import { SocketEvents } from "@/src/constants/socketEvents";
 import axiosInstance from "@/src/api/axiosInstance";
 import { socketClient } from "@/src/lib/socket";
-import * as SecureStore from "expo-secure-store";
+import { authStorage } from "@/src/lib/authStorage";
 import React, { useEffect } from "react";
+import { Platform } from "react-native";
 import { useCartStore } from "../features/Clothings/cart/store/cartStore";
 import { useAuthStore } from "../features/common/auth/store/authStore";
 import { useQueryClient } from "@tanstack/react-query";
@@ -19,12 +20,12 @@ export const SocketListenerProvider: React.FC<{
 
   const recoverFulfillmentEvents = async () => {
     try {
-      const after = await SecureStore.getItemAsync("lastFulfillmentEventId");
+      const after = await authStorage.getItemAsync("lastFulfillmentEventId");
       const response = await axiosInstance.get("/events", { params: after ? { after } : { limit: 20 } });
       const events = response.data?.data || [];
       const last = events[events.length - 1];
       if (last?.eventId) {
-        await SecureStore.setItemAsync("lastFulfillmentEventId", last.eventId);
+        await authStorage.setItemAsync("lastFulfillmentEventId", last.eventId);
       }
       if (events.length) {
         console.log(`[SocketListener] Recovered ${events.length} fulfillment events`);
@@ -66,7 +67,7 @@ export const SocketListenerProvider: React.FC<{
 
     socketClient.on(SocketEvents.FULFILLMENT_EVENT, async (event) => {
       if (event?.eventId) {
-        await SecureStore.setItemAsync("lastFulfillmentEventId", event.eventId);
+        await authStorage.setItemAsync("lastFulfillmentEventId", event.eventId);
       }
     });
 
@@ -86,6 +87,7 @@ export const SocketListenerProvider: React.FC<{
 
       // Trigger OS-level persistent system notification
       try {
+        if (Platform.OS === "web") return;
         const Notifications = await import("expo-notifications");
         const activeStatuses = ["PENDING", "PROCESSING", "SENT"];
         const isOngoing = activeStatuses.includes(data.status || "");

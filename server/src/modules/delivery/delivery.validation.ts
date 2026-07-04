@@ -69,6 +69,30 @@ export const deliveryPayoutRequestSchema = z.object({
     note: z.string().trim().max(500).optional(),
 });
 
+/** Individually reviewable rider KYC document keys (mirrors the DeliveryBoy `documents` schema). */
+export const RIDER_DOCUMENT_KEYS = [
+    "drivingLicense",
+    "aadharCard",
+    "panCard",
+    "vehicleRC",
+    "profilePhoto",
+] as const;
+
+/**
+ * Admin decision on a single rider document. A rejection must carry a reason so
+ * the rider can be told what to fix before re-uploading.
+ */
+export const reviewRiderDocumentSchema = z
+    .object({
+        document: z.enum(RIDER_DOCUMENT_KEYS),
+        status: z.enum(["APPROVED", "REJECTED"]),
+        rejectionReason: z.string().trim().min(3).max(300).optional(),
+    })
+    .refine((data) => data.status !== "REJECTED" || !!data.rejectionReason, {
+        message: "A rejection reason is required when rejecting a document",
+        path: ["rejectionReason"],
+    });
+
 export const deliveryProfileUpdateSchema = z.object({
     phone: z.string().trim().max(20).optional(),
     vehicleType: z.string().trim().min(1).max(40).optional(),

@@ -1,6 +1,6 @@
 import { Router, type Request, type Response, type NextFunction } from "express";
 import { verifyJWT } from "../../middlewares/auth.middleware";
-import { NotificationController } from "./notification.controller";
+import * as notificationController from "./notification.controller";
 import { RoleEnum } from "../rbac/rbac.types";
 import { ApiError } from "../../utils/ApiError";
 import { upload } from "../../middlewares/multer.middleware";
@@ -26,34 +26,34 @@ const isAdminOrSuperAdmin = (req: Request, res: Response, next: NextFunction) =>
 // 📣 Static / Specific Endpoints First
 
 // GET Endpoints
-router.get("/history", verifyJWT, isAdminOrSuperAdmin, NotificationController.getNotificationHistory);
-router.get("/analytics", verifyJWT, isAdminOrSuperAdmin, NotificationController.getNotificationAnalytics);
-router.get("/user", verifyJWT, NotificationController.getUserNotifications);
+router.get("/history", verifyJWT, isAdminOrSuperAdmin, notificationController.getNotificationHistory);
+router.get("/analytics", verifyJWT, isAdminOrSuperAdmin, notificationController.getNotificationAnalytics);
+router.get("/user", verifyJWT, notificationController.getUserNotifications);
 
 // POST Endpoints
-router.post("/send", verifyJWT, isAdminOrSuperAdmin, upload.single("image"), NotificationController.sendNotification);
-router.post("/batch-delete", verifyJWT, isAdminOrSuperAdmin, NotificationController.batchDeleteNotifications);
-router.post("/test-direct-push", verifyJWT, isAdminOrSuperAdmin, NotificationController.testDirectPush);
+router.post("/send", verifyJWT, isAdminOrSuperAdmin, upload.single("image"), notificationController.sendNotification);
+router.post("/batch-delete", verifyJWT, isAdminOrSuperAdmin, notificationController.batchDeleteNotifications);
+router.post("/test-direct-push", verifyJWT, isAdminOrSuperAdmin, notificationController.testDirectPush);
 
 // PATCH Endpoints
-router.patch("/read-all", verifyJWT, NotificationController.markAllAsRead);
+router.patch("/read-all", verifyJWT, notificationController.markAllAsRead);
 
 
 // 📣 Dynamic / Parameterized Endpoints Last (to prevent route clashing)
 
 // GET Dynamic
-router.get("/:id", verifyJWT, isAdminOrSuperAdmin, NotificationController.getNotificationDetails);
+router.get("/:id", verifyJWT, isAdminOrSuperAdmin, notificationController.getNotificationDetails);
 
 // POST Dynamic
-router.post("/:id/resend", verifyJWT, isAdminOrSuperAdmin, NotificationController.resendNotification);
+router.post("/:id/resend", verifyJWT, isAdminOrSuperAdmin, notificationController.resendNotification);
 
 // PATCH Dynamic
-router.patch("/:id/read", verifyJWT, NotificationController.markAsRead);
-router.patch("/:id/delivered", verifyJWT, NotificationController.reportDelivery);
-router.patch("/:id/opened", verifyJWT, NotificationController.reportOpen);
-router.patch("/:id", verifyJWT, isAdminOrSuperAdmin, upload.single("image"), NotificationController.updateNotification);
+router.patch("/:id/read", verifyJWT, notificationController.markAsRead);
+router.patch("/:id/delivered", verifyJWT, notificationController.reportDelivery);
+router.patch("/:id/opened", verifyJWT, notificationController.reportOpen);
+router.patch("/:id", verifyJWT, isAdminOrSuperAdmin, upload.single("image"), notificationController.updateNotification);
 
 // DELETE Dynamic
-router.delete("/:id", verifyJWT, isAdminOrSuperAdmin, NotificationController.deleteNotification);
+router.delete("/:id", verifyJWT, isAdminOrSuperAdmin, notificationController.deleteNotification);
 
 export default router;

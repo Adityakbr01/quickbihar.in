@@ -11,7 +11,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import RazorpayCheckout from "react-native-razorpay";
 import Toast from "react-native-toast-message";
 import { getAddressesRequest } from "../../address/api/address.api";
 import { useCartStore } from "../../cart/store/cartStore";
@@ -22,6 +21,7 @@ import {
 } from "../api/order.api";
 import type { OrderQuoteData } from "../api/order.api";
 import { RAZORPAY_CONFIG } from "../config/razorpay.config";
+import { openRazorpayCheckout } from "../lib/openRazorpayCheckout";
 import { createOrderStyles } from "../style/orderStyles";
 import IOSAlertDialog, {
   AlertButton,
@@ -243,7 +243,7 @@ const CheckoutScreen = () => {
         theme: { color: theme.primary },
       };
 
-      RazorpayCheckout.open(options)
+      openRazorpayCheckout(options)
         .then(async (data: any) => {
           // 3. Verify Payment
           try {

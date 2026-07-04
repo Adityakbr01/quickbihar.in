@@ -140,7 +140,7 @@ mock.module("../modules/socket/socket.service", () => ({
   },
 }));
 
-const { deliveryService } = await import("../modules/delivery/delivery.service");
+const deliveryService = await import("../modules/delivery/delivery.service");
 const { calculateRiderPayout } = await import("../modules/order/subOrder.service");
 const { orderPricingService } = await import("../modules/order/orderPricing.service");
 

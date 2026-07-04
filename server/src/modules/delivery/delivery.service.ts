@@ -1,3 +1,13 @@
+/**
+ * Delivery (rider) service.
+ *
+ * Owns the rider-facing side of fulfillment: rider profiles, dashboards, earnings and payouts,
+ * the offer accept/reject flow, and the live delivery status machine (assigned → picked up →
+ * in transit → delivered) with OTP verification, earnings crediting, and realtime socket updates.
+ * Matching itself is delegated to the matching service; persistence spans the DeliveryBoy, Order,
+ * SubOrder and payout models.
+ */
+
 import { Types } from "mongoose";
 import { SocketEvents } from "../../constants/socketEvents";
 import { ApiError } from "../../utils/ApiError";
@@ -12,7 +22,7 @@ import { socketService } from "../socket/socket.service";
 import { User } from "../user/user.model";
 import { MAX_RIDER_REJECTIONS_PER_SUB_ORDER, RiderOffer } from "../fulfillment/riderOffer.model";
 import { SubOrderService } from "../order/subOrder.service";
-import { MatchingService } from "./matching.service";
+import * as matchingService from "./matching.service";
 import { riderCapacitySnapshot } from "./riderCapacity";
 import {
     assertRiderCanAcceptOffers,
@@ -300,792 +310,962 @@ const mapSubOrderToRiderFormat = (subOrder: any) => {
     };
 };
 
-export class DeliveryService {
-    static async listAdminRiders(query: any = {}) {
-        const filter: any = { status: "APPROVED", isVerified: true };
-        if (query.available) filter.isOnline = true;
+/**
+ * Lists delivery riders for the admin console, with optional availability and text-search filters.
+ *
+ * @param query - Filters: `available` (online only) and `search` (name/email/phone).
+ * @returns Serialized rider rows for the admin riders table.
+ */
+export async function listAdminRiders(query: any = {}) {
+    const filter: any = { status: "APPROVED", isVerified: true };
+    if (query.available) filter.isOnline = true;
 
-        const profiles = await DeliveryBoy.find(filter)
-            .populate("userId", "fullName email phone roleId isBlocked isVerified")
-            .sort({ isOnline: -1, updatedAt: -1 })
-            .limit(200)
-            .lean();
+    const profiles = await DeliveryBoy.find(filter)
+        .populate("userId", "fullName email phone roleId isBlocked isVerified")
+        .sort({ isOnline: -1, updatedAt: -1 })
+        .limit(200)
+        .lean();
 
-        const search = query.search?.toLowerCase();
-        const orderLocation = finiteLocation({ latitude: query.latitude, longitude: query.longitude });
+    const search = query.search?.toLowerCase();
+    const orderLocation = finiteLocation({ latitude: query.latitude, longitude: query.longitude });
 
-        const riders = profiles
-            .filter((profile: any) => {
-                const user = profile.userId;
-                if (!user || user.isBlocked) return false;
-                if (!search) return true;
-                return [user.fullName, user.email, user.phone, profile.vehicleNumber, profile.licenseNumber]
-                    .filter(Boolean)
-                    .some((value) => String(value).toLowerCase().includes(search));
-            })
-            .map((profile: any) => {
-                const currentLocation = coordinatesFromGeoJson(profile.currentLocation);
-                const distanceKm = distanceKmBetween(orderLocation, currentLocation);
-                return {
-                    _id: profile._id?.toString(),
-                    userId: profile.userId?._id?.toString(),
-                    fullName: profile.userId?.fullName,
-                    email: profile.userId?.email,
-                    phone: profile.userId?.phone,
-                    status: profile.status,
-                    isVerified: !!profile.isVerified,
-                    isOnline: !!profile.isOnline,
-                    vehicleType: profile.vehicleType,
-                    vehicleNumber: profile.vehicleNumber,
-                    licenseNumber: profile.licenseNumber,
-                    wallet: profile.wallet || { availableBalance: 0, pendingPayoutBalance: 0, lifetimeEarnings: 0 },
-                    currentLocation,
-                    ...(distanceKm !== null ? { distanceKm: Number(distanceKm.toFixed(2)) } : {}),
-                };
-            });
+    const riders = profiles
+        .filter((profile: any) => {
+            const user = profile.userId;
+            if (!user || user.isBlocked) return false;
+            if (!search) return true;
+            return [user.fullName, user.email, user.phone, profile.vehicleNumber, profile.licenseNumber]
+                .filter(Boolean)
+                .some((value) => String(value).toLowerCase().includes(search));
+        })
+        .map((profile: any) => {
+            const currentLocation = coordinatesFromGeoJson(profile.currentLocation);
+            const distanceKm = distanceKmBetween(orderLocation, currentLocation);
+            return {
+                _id: profile._id?.toString(),
+                userId: profile.userId?._id?.toString(),
+                fullName: profile.userId?.fullName,
+                email: profile.userId?.email,
+                phone: profile.userId?.phone,
+                status: profile.status,
+                isVerified: !!profile.isVerified,
+                isOnline: !!profile.isOnline,
+                vehicleType: profile.vehicleType,
+                vehicleNumber: profile.vehicleNumber,
+                licenseNumber: profile.licenseNumber,
+                wallet: profile.wallet || { availableBalance: 0, pendingPayoutBalance: 0, lifetimeEarnings: 0 },
+                currentLocation,
+                ...(distanceKm !== null ? { distanceKm: Number(distanceKm.toFixed(2)) } : {}),
+            };
+        });
 
-        if (orderLocation) {
-            riders.sort((a: any, b: any) => {
-                const aDistance = typeof a.distanceKm === "number" ? a.distanceKm : Number.POSITIVE_INFINITY;
-                const bDistance = typeof b.distanceKm === "number" ? b.distanceKm : Number.POSITIVE_INFINITY;
-                if (aDistance !== bDistance) return aDistance - bDistance;
-                return Number(b.isOnline) - Number(a.isOnline);
-            });
-        }
-
-        return riders;
+    if (orderLocation) {
+        riders.sort((a: any, b: any) => {
+            const aDistance = typeof a.distanceKm === "number" ? a.distanceKm : Number.POSITIVE_INFINITY;
+            const bDistance = typeof b.distanceKm === "number" ? b.distanceKm : Number.POSITIVE_INFINITY;
+            if (aDistance !== bDistance) return aDistance - bDistance;
+            return Number(b.isOnline) - Number(a.isOnline);
+        });
     }
 
-    static async getMyProfile(userId: string) {
-        const profile = await DeliveryBoy.findOne({ userId }).populate("userId", "fullName email phone").lean();
-        if (!profile) {
-            const user = await User.findById(userId).select("fullName email phone").lean();
-            const emptyProfile = serializeDeliveryProfile(emptyDeliveryProfile(user));
-            return {
-                profile: emptyProfile,
-                stats: {
-                    activeOrders: 0,
-                    completedOrders: 0,
-                },
-            };
-        }
+    return riders;
+}
 
-        const activeStatuses = ["READY_FOR_PICKUP", "RIDER_ASSIGNED", "RIDER_ARRIVING", "RIDER_REACHED_STORE", "PICKED_UP", "IN_TRANSIT", "NEAR_CUSTOMER"];
-        const activeOrders = await SubOrder.countDocuments({
-            "delivery.riderId": new Types.ObjectId(userId),
-            status: { $in: activeStatuses },
-        });
-        const completedOrders = await SubOrder.countDocuments({
-            "delivery.riderId": new Types.ObjectId(userId),
-            status: "DELIVERED",
-        });
+/**
+ * Admin review of a single rider KYC document. Updates only the targeted
+ * document's status (and its rejection reason when rejected), leaving the rider's
+ * other documents and overall approval untouched, then notifies the rider in
+ * realtime so their app can prompt a re-upload of just the rejected document.
+ *
+ * @param riderProfileId - The DeliveryBoy profile id.
+ * @param adminUserId - The reviewing admin's user id (recorded on the notification for audit).
+ * @param data - The document key, decision, and optional rejection reason.
+ */
+export async function reviewRiderDocument(
+    riderProfileId: string,
+    adminUserId: string,
+    data: { document: string; status: "APPROVED" | "REJECTED"; rejectionReason?: string },
+) {
+    const profile = await DeliveryBoy.findById(riderProfileId);
+    if (!profile) throw new ApiError(404, "Rider profile not found");
 
+    const basePath = `documents.${data.document}`;
+    profile.set(`${basePath}.status`, data.status);
+    profile.set(`${basePath}.rejectionReason`, data.status === "REJECTED" ? data.rejectionReason : null);
+    await profile.save();
+
+    // Notify the rider in realtime so their app can gate re-uploads to the rejected doc only.
+    if (profile.userId) {
+        socketService.emitToUser(profile.userId.toString(), "rider_document_reviewed", {
+            document: data.document,
+            status: data.status,
+            rejectionReason: data.status === "REJECTED" ? data.rejectionReason ?? null : null,
+            reviewedBy: adminUserId,
+        });
+    }
+
+    return {
+        riderId: profile._id?.toString(),
+        document: data.document,
+        status: data.status,
+        reviewedDocument: profile.get(basePath),
+    };
+}
+
+/**
+ * Returns the authenticated rider's full delivery profile.
+ *
+ * @param userId - The rider's user id.
+ * @returns The rider's delivery profile.
+ */
+export async function getMyProfile(userId: string) {
+    const profile = await DeliveryBoy.findOne({ userId }).populate("userId", "fullName email phone").lean();
+    if (!profile) {
+        const user = await User.findById(userId).select("fullName email phone").lean();
+        const emptyProfile = serializeDeliveryProfile(emptyDeliveryProfile(user));
         return {
-            profile: serializeDeliveryProfile(profile),
+            profile: emptyProfile,
             stats: {
-                activeOrders,
-                completedOrders,
+                activeOrders: 0,
+                completedOrders: 0,
             },
         };
     }
 
-    static async getDashboard(userId: string) {
-        const profile = await DeliveryBoy.findOne({ userId }).populate("userId", "fullName email phone").lean();
-        if (!profile) {
-            const user = await User.findById(userId).select("fullName email phone").lean();
-            return {
-                profile: serializeDeliveryProfile(emptyDeliveryProfile(user)),
-                stats: {
-                    activeOrders: 0,
-                    todayDeliveries: 0,
-                    completedOrders: 0,
-                    pendingPayouts: 0,
-                    availableBalance: 0,
-                    pendingPayoutBalance: 0,
-                    lifetimeEarnings: 0,
-                },
-                activeOrders: [],
-                recentOrders: [],
-                recentPayouts: [],
-            };
-        }
+    const activeStatuses = ["READY_FOR_PICKUP", "RIDER_ASSIGNED", "RIDER_ARRIVING", "RIDER_REACHED_STORE", "PICKED_UP", "IN_TRANSIT", "NEAR_CUSTOMER"];
+    const activeOrders = await SubOrder.countDocuments({
+        "delivery.riderId": new Types.ObjectId(userId),
+        status: { $in: activeStatuses },
+    });
+    const completedOrders = await SubOrder.countDocuments({
+        "delivery.riderId": new Types.ObjectId(userId),
+        status: "DELIVERED",
+    });
 
-        const todayStart = new Date();
-        todayStart.setHours(0, 0, 0, 0);
+    return {
+        profile: serializeDeliveryProfile(profile),
+        stats: {
+            activeOrders,
+            completedOrders,
+        },
+    };
+}
 
-        const activeStatuses = ["READY_FOR_PICKUP", "RIDER_ASSIGNED", "RIDER_ARRIVING", "RIDER_REACHED_STORE", "PICKED_UP", "IN_TRANSIT", "NEAR_CUSTOMER"];
+/**
+ * Returns the rider's dashboard snapshot (availability, wallet, active work, and headline stats).
+ *
+ * @param userId - The rider's user id.
+ * @returns The dashboard summary payload.
+ */
+export async function getDashboard(userId: string) {
+    const profile = await DeliveryBoy.findOne({ userId }).populate("userId", "fullName email phone").lean();
+    if (!profile) {
+        const user = await User.findById(userId).select("fullName email phone").lean();
+        return {
+            profile: serializeDeliveryProfile(emptyDeliveryProfile(user)),
+            stats: {
+                activeOrders: 0,
+                todayDeliveries: 0,
+                completedOrders: 0,
+                pendingPayouts: 0,
+                availableBalance: 0,
+                pendingPayoutBalance: 0,
+                lifetimeEarnings: 0,
+            },
+            activeOrders: [],
+            recentOrders: [],
+            recentPayouts: [],
+        };
+    }
 
-        const [
-            activeOrdersDb,
-            recentOrdersDb,
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+
+    const activeStatuses = ["READY_FOR_PICKUP", "RIDER_ASSIGNED", "RIDER_ARRIVING", "RIDER_REACHED_STORE", "PICKED_UP", "IN_TRANSIT", "NEAR_CUSTOMER"];
+
+    const [
+        activeOrdersDb,
+        recentOrdersDb,
+        todayDeliveries,
+        completedOrders,
+        pendingPayouts,
+        recentPayouts,
+    ] = await Promise.all([
+        SubOrder.find({
+            "delivery.riderId": new Types.ObjectId(userId),
+            status: { $in: activeStatuses },
+        }).populate("parentOrderId storeId").sort({ updatedAt: -1 }).limit(8).lean(),
+        SubOrder.find({ "delivery.riderId": new Types.ObjectId(userId) }).populate("parentOrderId storeId").sort({ updatedAt: -1 }).limit(8).lean(),
+        SubOrder.countDocuments({
+            "delivery.riderId": new Types.ObjectId(userId),
+            status: "DELIVERED",
+            updatedAt: { $gte: todayStart },
+        }),
+        SubOrder.countDocuments({
+            "delivery.riderId": new Types.ObjectId(userId),
+            status: "DELIVERED",
+        }),
+        AdminPayout.countDocuments({
+            partnerId: new Types.ObjectId(userId),
+            partnerType: "DELIVERY",
+            status: { $in: ["PENDING", "PROCESSING"] },
+        }),
+        AdminPayout.find({ partnerId: new Types.ObjectId(userId), partnerType: "DELIVERY" })
+            .sort({ createdAt: -1 })
+            .limit(5)
+            .lean(),
+    ]);
+
+    const activeOrders = activeOrdersDb.map(mapSubOrderToRiderFormat).filter(Boolean);
+    const recentOrders = recentOrdersDb.map(mapSubOrderToRiderFormat).filter(Boolean);
+
+    return {
+        profile: serializeDeliveryProfile(profile),
+        stats: {
+            activeOrders: activeOrders.length,
             todayDeliveries,
             completedOrders,
             pendingPayouts,
-            recentPayouts,
-        ] = await Promise.all([
-            SubOrder.find({
-                "delivery.riderId": new Types.ObjectId(userId),
-                status: { $in: activeStatuses },
-            }).populate("parentOrderId storeId").sort({ updatedAt: -1 }).limit(8).lean(),
-            SubOrder.find({ "delivery.riderId": new Types.ObjectId(userId) }).populate("parentOrderId storeId").sort({ updatedAt: -1 }).limit(8).lean(),
-            SubOrder.countDocuments({
-                "delivery.riderId": new Types.ObjectId(userId),
-                status: "DELIVERED",
-                updatedAt: { $gte: todayStart },
-            }),
-            SubOrder.countDocuments({
-                "delivery.riderId": new Types.ObjectId(userId),
-                status: "DELIVERED",
-            }),
-            AdminPayout.countDocuments({
-                partnerId: new Types.ObjectId(userId),
-                partnerType: "DELIVERY",
-                status: { $in: ["PENDING", "PROCESSING"] },
-            }),
-            AdminPayout.find({ partnerId: new Types.ObjectId(userId), partnerType: "DELIVERY" })
-                .sort({ createdAt: -1 })
-                .limit(5)
-                .lean(),
-        ]);
-
-        const activeOrders = activeOrdersDb.map(mapSubOrderToRiderFormat).filter(Boolean);
-        const recentOrders = recentOrdersDb.map(mapSubOrderToRiderFormat).filter(Boolean);
-
-        return {
-            profile: serializeDeliveryProfile(profile),
-            stats: {
-                activeOrders: activeOrders.length,
-                todayDeliveries,
-                completedOrders,
-                pendingPayouts,
-                availableBalance: walletOf(profile).availableBalance || 0,
-                pendingPayoutBalance: walletOf(profile).pendingPayoutBalance || 0,
-                lifetimeEarnings: walletOf(profile).lifetimeEarnings || 0,
-            },
-            activeOrders,
-            recentOrders,
-            recentPayouts,
-        };
-    }
-
-    static async listHistory(userId: string, query: any = {}) {
-        const page = Math.max(Number(query.page) || 1, 1);
-        const limit = Math.min(Math.max(Number(query.limit) || 20, 1), 100);
-        const filter: any = {
-            "delivery.riderId": new Types.ObjectId(userId),
-            status: { $in: ["DELIVERED", "COMPLETED", "CANCELLED", "REJECTED", "RIDER_CANCELLED", "DELIVERY_FAILED", "CUSTOMER_UNREACHABLE", "RETURNED"] },
-        };
-
-        if (query.status) {
-            filter.status = query.status;
-        }
-
-        Object.assign(filter, deliveryHistoryDateFilter(query));
-
-        const [dataDb, total] = await Promise.all([
-            SubOrder.find(filter)
-                .populate("parentOrderId storeId")
-                .sort({ updatedAt: -1 })
-                .skip((page - 1) * limit)
-                .limit(limit)
-                .lean(),
-            SubOrder.countDocuments(filter),
-        ]);
-
-        const data = dataDb.map(mapSubOrderToRiderFormat).filter(Boolean);
-
-        return {
-            data,
-            total,
-            page,
-            limit,
-            totalPages: Math.max(1, Math.ceil(total / limit)),
-        };
-    }
-
-    static async getEarnings(userId: string, query: any = {}) {
-        const filter: any = {
-            "delivery.riderId": new Types.ObjectId(userId),
-            status: "DELIVERED",
-        };
-
-        Object.assign(filter, dateRangeFilter("updatedAt", query));
-
-        const [profile, subOrders] = await Promise.all([
-            DeliveryBoy.findOne({ userId }).lean(),
-            SubOrder.find(filter).populate("parentOrderId").sort({ updatedAt: -1 }).limit(200).lean(),
-        ]);
-
-        if (!profile) {
-            return {
-                wallet: walletOf(null),
-                totalCredited: 0,
-                ledger: [],
-            };
-        }
-
-        const ledger = subOrders.map((subOrder: any) => ({
-            _id: subOrder._id?.toString(),
-            orderId: subOrder.subOrderId,
-            amount: Number(subOrder.delivery?.payoutAmount || 0),
-            creditedAt: subOrder.updatedAt,
-            deliveredAt: subOrder.updatedAt,
-            customerName: subOrder.parentOrderId?.shippingAddress?.fullName || "Customer",
-            status: subOrder.status,
-        }));
-
-        return {
-            wallet: walletOf(profile),
-            totalCredited: ledger.reduce((sum: number, item: any) => sum + item.amount, 0),
-            ledger,
-        };
-    }
-
-    static async listPayouts(userId: string) {
-        const profile = await DeliveryBoy.findOne({ userId }).populate("userId", "fullName email phone").lean();
-        if (!profile) {
-            return {
-                wallet: walletOf(null),
-                payoutMethods: [],
-                payouts: [],
-            };
-        }
-
-        const payouts = await AdminPayout.find({ partnerId: userId, partnerType: "DELIVERY" })
-            .populate("processedBy", "fullName email")
-            .sort({ createdAt: -1 })
-            .limit(100)
-            .lean();
-
-        return {
-            wallet: walletOf(profile),
-            payoutMethods: [
-                ...serializeProfilePayoutMethods(profile),
-                ...(profile.payoutMethods || []).map(serializePayoutMethod),
-            ],
-            payouts,
-        };
-    }
-
-    static async addPayoutMethod(userId: string, data: any) {
-        const profile: any = await DeliveryBoy.findOne({ userId, status: "APPROVED", isVerified: true });
-        if (!profile) throw new ApiError(403, "Approved delivery profile required");
-
-        const hasDefault = (profile.payoutMethods || []).some((method: any) => method.isDefault);
-        profile.payoutMethods.push({
-            ...data,
-            status: "PENDING_VERIFICATION",
-            isDefault: !hasDefault,
-            createdAt: new Date(),
-        });
-        await profile.save();
-
-        const method = profile.payoutMethods[profile.payoutMethods.length - 1];
-        return serializePayoutMethod(method);
-    }
-
-    static async setDefaultPayoutMethod(userId: string, methodId: string) {
-        const profile: any = await DeliveryBoy.findOne({ userId });
-        if (!profile) throw new ApiError(404, "Delivery profile not found");
-
-        const method = profile.payoutMethods.id(methodId);
-        if (!method) throw new ApiError(404, "Payout method not found");
-        if (method.status !== "VERIFIED") {
-            throw new ApiError(400, "Only verified payout methods can be set as default");
-        }
-
-        profile.payoutMethods.forEach((item: any) => {
-            item.isDefault = item._id.toString() === methodId;
-        });
-        await profile.save();
-
-        return profile.payoutMethods.map(serializePayoutMethod);
-    }
-
-    static async createPayoutRequest(userId: string, data: any) {
-        const profile: any = await DeliveryBoy.findOne({ userId, status: "APPROVED", isVerified: true }).populate("userId", "fullName email phone");
-        if (!profile) throw new ApiError(403, "Approved delivery profile required");
-
-        const method = resolvePayoutMethod(profile, data.payoutMethodId);
-        if (!method || method.status !== "VERIFIED") {
-            throw new ApiError(400, "A verified payout method is required before requesting payout");
-        }
-
-        const wallet = walletOf(profile);
-        if ((wallet.availableBalance || 0) < data.amount) {
-            throw new ApiError(400, "Insufficient available balance for this payout request");
-        }
-
-        wallet.availableBalance -= data.amount;
-        wallet.pendingPayoutBalance = (wallet.pendingPayoutBalance || 0) + data.amount;
-        profile.wallet = wallet;
-
-        const payout = await AdminPayout.create({
-            partnerId: new Types.ObjectId(userId),
-            partnerType: "DELIVERY",
-            amount: data.amount,
-            status: "PENDING",
-            method: method.displayName || payoutMethodLabel(method),
-            ...(Types.ObjectId.isValid(method._id) ? { payoutMethodId: method._id } : {}),
-            note: data.note,
-            requestedBy: new Types.ObjectId(userId),
-        });
-
-        await profile.save();
-        return await payout.populate("partnerId", "fullName email");
-    }
-
-    static async updateProfile(userId: string, data: any) {
-        let profile: any = await DeliveryBoy.findOne({ userId }).populate("userId", "fullName email phone");
-        const user = profile?.userId || await User.findById(userId).select("fullName email phone").lean();
-        if (!profile) {
-            profile = new DeliveryBoy({
-                userId: toObjectId(userId),
-                status: "PENDING",
-                isVerified: false,
-                isOnline: false,
-            });
-        }
-
-        const beforeSnapshot = riderApprovalSnapshot({ ...(profile.toObject?.() || profile), userId: user });
-        const setData: any = {};
-        for (const key of ["vehicleType", "vehicleNumber", "licenseNumber", "address", "bankDetails"]) {
-            if (data[key] !== undefined) setData[key] = data[key];
-        }
-
-        if (data.phone !== undefined) {
-            await User.updateOne({ _id: userId }, { $set: { phone: data.phone } });
-        }
-
-        if (Object.keys(setData).length) {
-            profile.set(setData);
-        }
-
-        const afterForApproval = {
-            ...(profile.toObject?.() || profile),
-            userId: {
-                ...(user || {}),
-                phone: data.phone !== undefined ? data.phone : user?.phone,
-            },
-        };
-        const missingFields = riderProfileMissingFields(afterForApproval);
-        const sensitiveChanged = riderApprovalSnapshotChanged(beforeSnapshot, riderApprovalSnapshot(afterForApproval));
-        const wasApproved = profile.status === "APPROVED" && !!profile.isVerified;
-        if (!wasApproved || sensitiveChanged || missingFields.length) {
-            profile.status = "PENDING";
-            profile.isVerified = false;
-            profile.isOnline = false;
-        }
-
-        await profile.save();
-
-        const updated = await DeliveryBoy.findOne({ userId }).populate("userId", "fullName email phone").lean();
-        return serializeDeliveryProfile(updated);
-    }
-
-    static async updateAvailability(userId: string, data: any) {
-        const currentProfile = await DeliveryBoy.findOne({ userId }).populate("userId", "fullName email phone");
-        if (data.isOnline) {
-            assertRiderCanAcceptOffers(currentProfile);
-        }
-        if (!currentProfile) throw new ApiError(404, "Delivery profile not found");
-
-        const setData: any = { isOnline: data.isOnline };
-        if (data.location) {
-            setData.currentLocation = {
-                type: "Point",
-                coordinates: [data.location.longitude, data.location.latitude],
-            };
-        }
-
-        const profile = await DeliveryBoy.findOneAndUpdate(
-            { userId },
-            { $set: setData },
-            { returnDocument: "after" },
-        ).populate("userId", "fullName email phone");
-
-        if (!profile) throw new ApiError(404, "Delivery profile not found");
-        if (data.isOnline && data.location) {
-            MatchingService.processMatchingPool().catch((error) => {
-                console.error("[DeliveryService] Failed to refresh rider matching pool:", error);
-            });
-        }
-        return profile;
-    }
-
-    static async listMyOrders(userId: string, query: any = {}) {
-        const page = Math.max(Number(query.page) || 1, 1);
-        const limit = Math.min(Math.max(Number(query.limit) || 20, 1), 100);
-        const filter: any = { "delivery.riderId": new Types.ObjectId(userId) };
-        
-        const activeStatuses = ["READY_FOR_PICKUP", "RIDER_ASSIGNED", "RIDER_ARRIVING", "RIDER_REACHED_STORE", "PICKED_UP", "IN_TRANSIT", "NEAR_CUSTOMER"];
-        if (query.status) {
-            filter.status = query.status;
-        } else {
-            filter.status = { $in: activeStatuses };
-        }
-
-        const [dataDb, total] = await Promise.all([
-            SubOrder.find(filter)
-                .populate("parentOrderId storeId")
-                .sort({ updatedAt: -1 })
-                .skip((page - 1) * limit)
-                .limit(limit)
-                .lean(),
-            SubOrder.countDocuments(filter),
-        ]);
-
-        const data = dataDb.map(mapSubOrderToRiderFormat).filter(Boolean);
-
-        return {
-            data,
-            total,
-            page,
-            limit,
-            totalPages: Math.max(1, Math.ceil(total / limit)),
-        };
-    }
-
-    static async listOffers(userId: string) {
-        const riderObjectId = new Types.ObjectId(idString(userId));
-        const profile = await DeliveryBoy.findOne({ userId: riderObjectId })
-            .populate("userId", "fullName email phone")
-            .lean();
-
-        if (!riderCanAcceptOffers(profile) || !profile?.isOnline || !profile?.currentLocation?.coordinates?.length) {
-            await RiderOffer.updateMany(
-                { riderId: riderObjectId, status: "OPEN" },
-                {
-                    $set: {
-                        status: "CANCELLED",
-                        respondedAt: new Date(),
-                        metadata: {
-                            reason: "rider_profile_not_eligible",
-                            message: riderOfferBlockMessage(profile),
-                        },
-                    },
-                },
-            );
-            return [];
-        }
-
-        if (profile) {
-            await MatchingService.processMatchingPool().catch((error) => {
-                console.error("[DeliveryService] Failed to refresh rider offers:", error);
-            });
-        }
-
-        await RiderOffer.updateMany(
-            { riderId: riderObjectId, status: "OPEN", expiresAt: { $lte: new Date() } },
-            { $set: { status: "EXPIRED", respondedAt: new Date() } },
-        );
-
-        const capacity = await riderCapacitySnapshot(userId);
-        if (!capacity.canAccept) {
-            await RiderOffer.updateMany(
-                { riderId: riderObjectId, status: "OPEN" },
-                {
-                    $set: {
-                        status: "CANCELLED",
-                        respondedAt: new Date(),
-                        metadata: {
-                            reason: "rider_acceptance_capacity_reached",
-                            acceptedCountInWindow: capacity.acceptedCount,
-                            maxAcceptedOrders: capacity.maxAcceptedOrders,
-                            acceptanceWindowHours: capacity.windowHours,
-                        },
-                    },
-                },
-            );
-            return [];
-        }
-
-        const blockedSubOrders = await RiderOffer.aggregate([
-            {
-                $match: {
-                    riderId: riderObjectId,
-                    status: "REJECTED",
-                },
-            },
-            {
-                $group: {
-                    _id: "$subOrderObjectId",
-                    rejectionCount: { $sum: 1 },
-                },
-            },
-            {
-                $match: {
-                    rejectionCount: { $gte: MAX_RIDER_REJECTIONS_PER_SUB_ORDER },
-                },
-            },
-        ]);
-
-        if (blockedSubOrders.length) {
-            await RiderOffer.updateMany(
-                {
-                    riderId: riderObjectId,
-                    subOrderObjectId: { $in: blockedSubOrders.map((item) => item._id) },
-                    status: "OPEN",
-                },
-                {
-                    $set: {
-                        status: "CANCELLED",
-                        respondedAt: new Date(),
-                        metadata: {
-                            reason: "max_rejections_reached",
-                            maxRejections: MAX_RIDER_REJECTIONS_PER_SUB_ORDER,
-                            suppressedForSubOrder: true,
-                        },
-                    },
-                },
-            );
-        }
-
-        const offers = await RiderOffer.find({
-            riderId: riderObjectId,
-            status: "OPEN",
-            expiresAt: { $gt: new Date() },
-        })
-            .populate({
-                path: "subOrderObjectId",
-                populate: [
-                    { path: "storeId" },
-                    { path: "parentOrderId", select: "orderId shippingAddress payableAmount" },
-                ],
-            })
-            .sort({ expiresAt: 1 })
-            .limit(50)
-            .lean();
-
-        return offers.map(serializeOffer);
-    }
-
-    static async acceptOffer(userId: string, offerId: string, requestInfo?: any) {
-        const profile = await DeliveryBoy.findOne({ userId: new Types.ObjectId(idString(userId)) })
-            .populate("userId", "fullName email phone")
-            .lean();
-        assertRiderCanAcceptOffers(profile);
-        return await SubOrderService.riderAcceptOffer(idString(userId), offerId, requestInfo);
-    }
-
-    static async rejectOffer(userId: string, offerId: string, reason?: string, requestInfo?: any) {
-        return await SubOrderService.riderRejectOffer(idString(userId), offerId, reason, requestInfo);
-    }
-
-    static async getMyOrder(userId: string, id: string) {
-        const subOrder = await SubOrder.findOne({
-            $or: [
-                ...(Types.ObjectId.isValid(id) ? [{ _id: new Types.ObjectId(id) }] : []),
-                { subOrderId: id }
-            ],
-            "delivery.riderId": new Types.ObjectId(userId)
-        }).populate("parentOrderId storeId").lean();
-
-        if (!subOrder) throw new ApiError(404, "Sub-order not found for this delivery partner");
-        return mapSubOrderToRiderFormat(subOrder);
-    }
-
-    static async updateOrderStatus(userId: string, id: string, data: any) {
-        const riderUserId = idString(userId);
-        const order = await this.findOrderForDeliveryUser(userId, id);
-        const currentStatus = normalizeStatus(order);
-        const targetStatus = data.action as DeliveryStatus;
-
-        if (transitionMap[currentStatus] !== targetStatus) {
-            throw new ApiError(400, `Cannot move delivery from ${currentStatus} to ${targetStatus}`);
-        }
-
-        const location = locationPayload(data.location);
-
-        if (targetStatus === DeliveryStatus.DELIVERED) {
-            const expectedOtp = order.delivery?.otp?.code;
-            if (!expectedOtp || expectedOtp !== data.otp) {
-                throw new ApiError(400, "Valid delivery OTP is required");
-            }
-
-            await orderService.adminUpdateOrderStatus(
-                order._id.toString(),
-                OrderStatus.DELIVERED,
-                undefined,
-                { allowUnverifiedDeliveryOtp: true },
-            );
-        }
-
-        const setData: any = {
-            "delivery.status": targetStatus,
-            [timestampFieldByStatus[targetStatus] || "delivery.updatedAt"]: new Date(),
-        };
-
-        if (targetStatus === DeliveryStatus.DELIVERED) {
-            setData["delivery.otp.verifiedAt"] = new Date();
-        }
-
-        if (location) {
-            setData["delivery.currentLocation"] = location;
-            await DeliveryBoy.updateOne(
-                { userId: riderUserId },
-                { $set: { currentLocation: { type: "Point", coordinates: [location.longitude, location.latitude] } } },
-            );
-        }
-
-        const event = {
-            status: targetStatus,
-            action: targetStatus,
-            note: data.note,
-            actorId: toObjectId(userId),
-            at: new Date(),
-            location,
-        };
-
-        const updated = await populateOrder(Order.findByIdAndUpdate(
-            order._id,
-            {
-                $set: {
-                    ...setData,
-                    ...(targetStatus === DeliveryStatus.PICKED_UP || targetStatus === DeliveryStatus.OUT_FOR_DELIVERY
-                        ? { status: OrderStatus.SHIPPED }
-                        : {}),
-                },
-                $push: { "delivery.events": event },
-            },
-            { returnDocument: "after" },
-        ));
-
-        if (!updated) throw new ApiError(404, "Order not found");
-
-        if (targetStatus === DeliveryStatus.DELIVERED) {
-            await this.creditDeliveryEarnings(updated);
-        }
-
-        this.emitDeliveryUpdate(updated, targetStatus, data.note);
-        return updated;
-    }
-
-    static async updateOrderLocation(userId: string, id: string, locationData: any) {
-        const riderUserId = idString(userId);
-        const order = await this.findOrderForDeliveryUser(userId, id);
-        if (!ACTIVE_DELIVERY_STATUSES.includes(normalizeStatus(order))) {
-            throw new ApiError(400, "Location can only be updated for active delivery orders");
-        }
-
-        const location = locationPayload(locationData);
-        await DeliveryBoy.updateOne(
-            { userId: riderUserId },
-            { $set: { currentLocation: { type: "Point", coordinates: [location!.longitude, location!.latitude] } } },
-        );
-
-        const updated = await populateOrder(Order.findByIdAndUpdate(
-            order._id,
-            { $set: { "delivery.currentLocation": location } },
-            { returnDocument: "after" },
-        ));
-
-        if (!updated) throw new ApiError(404, "Order not found");
-        socketService.emitToOrderRoom(updated.orderId, SocketEvents.DELIVERY_LOCATION_UPDATED, {
-            orderId: updated.orderId,
-            latitude: location!.latitude,
-            longitude: location!.longitude,
-            heading: location!.heading || 0,
-            timestamp: new Date().toISOString(),
-        });
-        return updated;
-    }
-
-    static async assertAssignedDeliveryUser(userId: string, orderId: string) {
-        await this.findOrderForDeliveryUser(userId, orderId);
-        return true;
-    }
-
-    private static async findOrderForDeliveryUser(userId: string, id: string) {
-        const riderUserId = idString(userId);
-        let order: any = null;
-        if (Types.ObjectId.isValid(id)) {
-            order = await populateOrder(Order.findById(id));
-        }
-        if (!order) {
-            order = await populateOrder(Order.findOne({ orderId: id }));
-        }
-        if (!order) throw new ApiError(404, "Order not found");
-        const assignedUserId = idString(order.delivery?.partnerUserId);
-        if (assignedUserId === riderUserId) {
-            return order;
-        }
-
-        const possibleProfileIds = [idString(order.delivery?.partnerProfileId), assignedUserId].filter(Boolean);
-        if (possibleProfileIds.length) {
-            const riderProfile = await DeliveryBoy.findOne({
-                userId: riderUserId,
-                _id: { $in: possibleProfileIds },
-            }).lean();
-
-            if (riderProfile) {
-                await Order.updateOne(
-                    { _id: order._id },
-                    {
-                        $set: {
-                            "delivery.partnerUserId": toObjectId(riderUserId),
-                            "delivery.partnerProfileId": riderProfile._id,
-                        },
-                    },
-                );
-                order.delivery.partnerUserId = riderUserId;
-                order.delivery.partnerProfileId = riderProfile._id;
-                return order;
-            }
-        }
-
-        throw new ApiError(403, "This order is not assigned to you");
-    }
-
-    private static async creditDeliveryEarnings(order: any) {
-        if (order.delivery?.payoutCreditedAt || !order.delivery?.partnerUserId) return;
-
-        const config = await appConfigService.getConfig();
-        const configPayout = config?.delivery?.riderPayoutAmount;
-        const payoutAmount = Number(order.delivery?.payoutAmount || configPayout || order.shippingFee || 0);
-        if (payoutAmount <= 0) return;
-
-        await DeliveryBoy.updateOne(
-            { userId: idString(order.delivery.partnerUserId) },
-            {
-                $inc: {
-                    "wallet.availableBalance": payoutAmount,
-                    "wallet.lifetimeEarnings": payoutAmount,
-                },
-            },
-        );
-
-        await Order.updateOne(
-            { _id: order._id, "delivery.payoutCreditedAt": { $exists: false } },
-            {
-                $set: {
-                    "delivery.payoutAmount": payoutAmount,
-                    "delivery.payoutCreditedAt": new Date(),
-                },
-            },
-        );
-    }
-
-    private static emitDeliveryUpdate(order: any, status: DeliveryStatus, note?: string) {
-        socketService.emitToUser(order.userId?._id?.toString() || order.userId?.toString(), SocketEvents.ORDER_STATUS_UPDATE, {
-            orderId: order.orderId,
-            status: order.status,
-            deliveryStatus: status,
-            message: note || `Delivery status updated to ${status}`,
-        });
-
-        socketService.emitToUser(order.delivery?.partnerUserId?._id?.toString() || order.delivery?.partnerUserId?.toString(), SocketEvents.ORDER_STATUS_UPDATE, {
-            orderId: order.orderId,
-            status: order.status,
-            deliveryStatus: status,
-        });
-
-        socketService.emitToOrderRoom(order.orderId, SocketEvents.ORDER_STATUS_UPDATE, {
-            orderId: order.orderId,
-            status: order.status,
-            deliveryStatus: status,
-        });
-    }
+            availableBalance: walletOf(profile).availableBalance || 0,
+            pendingPayoutBalance: walletOf(profile).pendingPayoutBalance || 0,
+            lifetimeEarnings: walletOf(profile).lifetimeEarnings || 0,
+        },
+        activeOrders,
+        recentOrders,
+        recentPayouts,
+    };
 }
 
-export const deliveryService = DeliveryService;
+/**
+ * Returns the rider's completed delivery history, paginated and filtered by the query.
+ *
+ * @param userId - The rider's user id.
+ * @param query - Pagination/date filters.
+ * @returns Paginated delivery history.
+ */
+export async function listHistory(userId: string, query: any = {}) {
+    const page = Math.max(Number(query.page) || 1, 1);
+    const limit = Math.min(Math.max(Number(query.limit) || 20, 1), 100);
+    const filter: any = {
+        "delivery.riderId": new Types.ObjectId(userId),
+        status: { $in: ["DELIVERED", "COMPLETED", "CANCELLED", "REJECTED", "RIDER_CANCELLED", "DELIVERY_FAILED", "CUSTOMER_UNREACHABLE", "RETURNED"] },
+    };
+
+    if (query.status) {
+        filter.status = query.status;
+    }
+
+    Object.assign(filter, deliveryHistoryDateFilter(query));
+
+    const [dataDb, total] = await Promise.all([
+        SubOrder.find(filter)
+            .populate("parentOrderId storeId")
+            .sort({ updatedAt: -1 })
+            .skip((page - 1) * limit)
+            .limit(limit)
+            .lean(),
+        SubOrder.countDocuments(filter),
+    ]);
+
+    const data = dataDb.map(mapSubOrderToRiderFormat).filter(Boolean);
+
+    return {
+        data,
+        total,
+        page,
+        limit,
+        totalPages: Math.max(1, Math.ceil(total / limit)),
+    };
+}
+
+/**
+ * Returns the rider's earnings breakdown for the requested period.
+ *
+ * @param userId - The rider's user id.
+ * @param query - Period/range filters.
+ * @returns Earnings summary and line items.
+ */
+export async function getEarnings(userId: string, query: any = {}) {
+    const filter: any = {
+        "delivery.riderId": new Types.ObjectId(userId),
+        status: "DELIVERED",
+    };
+
+    Object.assign(filter, dateRangeFilter("updatedAt", query));
+
+    const [profile, subOrders] = await Promise.all([
+        DeliveryBoy.findOne({ userId }).lean(),
+        SubOrder.find(filter).populate("parentOrderId").sort({ updatedAt: -1 }).limit(200).lean(),
+    ]);
+
+    if (!profile) {
+        return {
+            wallet: walletOf(null),
+            totalCredited: 0,
+            ledger: [],
+        };
+    }
+
+    const ledger = subOrders.map((subOrder: any) => ({
+        _id: subOrder._id?.toString(),
+        orderId: subOrder.subOrderId,
+        amount: Number(subOrder.delivery?.payoutAmount || 0),
+        creditedAt: subOrder.updatedAt,
+        deliveredAt: subOrder.updatedAt,
+        customerName: subOrder.parentOrderId?.shippingAddress?.fullName || "Customer",
+        status: subOrder.status,
+    }));
+
+    return {
+        wallet: walletOf(profile),
+        totalCredited: ledger.reduce((sum: number, item: any) => sum + item.amount, 0),
+        ledger,
+    };
+}
+
+/**
+ * Lists the rider's payout requests and their current statuses.
+ *
+ * @param userId - The rider's user id.
+ * @returns The rider's payout requests.
+ */
+export async function listPayouts(userId: string) {
+    const profile = await DeliveryBoy.findOne({ userId }).populate("userId", "fullName email phone").lean();
+    if (!profile) {
+        return {
+            wallet: walletOf(null),
+            payoutMethods: [],
+            payouts: [],
+        };
+    }
+
+    const payouts = await AdminPayout.find({ partnerId: userId, partnerType: "DELIVERY" })
+        .populate("processedBy", "fullName email")
+        .sort({ createdAt: -1 })
+        .limit(100)
+        .lean();
+
+    return {
+        wallet: walletOf(profile),
+        payoutMethods: [
+            ...serializeProfilePayoutMethods(profile),
+            ...(profile.payoutMethods || []).map(serializePayoutMethod),
+        ],
+        payouts,
+    };
+}
+
+/**
+ * Adds a payout method (e.g. bank account / UPI) for the rider.
+ *
+ * @param userId - The rider's user id.
+ * @param data - Validated payout-method details.
+ * @returns The created payout method.
+ */
+export async function addPayoutMethod(userId: string, data: any) {
+    const profile: any = await DeliveryBoy.findOne({ userId, status: "APPROVED", isVerified: true });
+    if (!profile) throw new ApiError(403, "Approved delivery profile required");
+
+    const hasDefault = (profile.payoutMethods || []).some((method: any) => method.isDefault);
+    profile.payoutMethods.push({
+        ...data,
+        status: "PENDING_VERIFICATION",
+        isDefault: !hasDefault,
+        createdAt: new Date(),
+    });
+    await profile.save();
+
+    const method = profile.payoutMethods[profile.payoutMethods.length - 1];
+    return serializePayoutMethod(method);
+}
+
+/**
+ * Marks one of the rider's payout methods as the default.
+ *
+ * @param userId - The rider's user id.
+ * @param methodId - Id of the payout method to make default.
+ * @returns The updated payout-method set.
+ */
+export async function setDefaultPayoutMethod(userId: string, methodId: string) {
+    const profile: any = await DeliveryBoy.findOne({ userId });
+    if (!profile) throw new ApiError(404, "Delivery profile not found");
+
+    const method = profile.payoutMethods.id(methodId);
+    if (!method) throw new ApiError(404, "Payout method not found");
+    if (method.status !== "VERIFIED") {
+        throw new ApiError(400, "Only verified payout methods can be set as default");
+    }
+
+    profile.payoutMethods.forEach((item: any) => {
+        item.isDefault = item._id.toString() === methodId;
+    });
+    await profile.save();
+
+    return profile.payoutMethods.map(serializePayoutMethod);
+}
+
+/**
+ * Creates a payout (withdrawal) request against the rider's available wallet balance.
+ *
+ * @param userId - The rider's user id.
+ * @param data - Validated payout-request payload (amount, method).
+ * @returns The created payout request.
+ */
+export async function createPayoutRequest(userId: string, data: any) {
+    const profile: any = await DeliveryBoy.findOne({ userId, status: "APPROVED", isVerified: true }).populate("userId", "fullName email phone");
+    if (!profile) throw new ApiError(403, "Approved delivery profile required");
+
+    const method = resolvePayoutMethod(profile, data.payoutMethodId);
+    if (!method || method.status !== "VERIFIED") {
+        throw new ApiError(400, "A verified payout method is required before requesting payout");
+    }
+
+    const wallet = walletOf(profile);
+    if ((wallet.availableBalance || 0) < data.amount) {
+        throw new ApiError(400, "Insufficient available balance for this payout request");
+    }
+
+    wallet.availableBalance -= data.amount;
+    wallet.pendingPayoutBalance = (wallet.pendingPayoutBalance || 0) + data.amount;
+    profile.wallet = wallet;
+
+    const payout = await AdminPayout.create({
+        partnerId: new Types.ObjectId(userId),
+        partnerType: "DELIVERY",
+        amount: data.amount,
+        status: "PENDING",
+        method: method.displayName || payoutMethodLabel(method),
+        ...(Types.ObjectId.isValid(method._id) ? { payoutMethodId: method._id } : {}),
+        note: data.note,
+        requestedBy: new Types.ObjectId(userId),
+    });
+
+    await profile.save();
+    return await payout.populate("partnerId", "fullName email");
+}
+
+/**
+ * Updates the rider's editable profile fields.
+ *
+ * @param userId - The rider's user id.
+ * @param data - Validated profile fields to update.
+ * @returns The updated rider profile.
+ */
+export async function updateProfile(userId: string, data: any) {
+    let profile: any = await DeliveryBoy.findOne({ userId }).populate("userId", "fullName email phone");
+    const user = profile?.userId || await User.findById(userId).select("fullName email phone").lean();
+    if (!profile) {
+        profile = new DeliveryBoy({
+            userId: toObjectId(userId),
+            status: "PENDING",
+            isVerified: false,
+            isOnline: false,
+        });
+    }
+
+    const beforeSnapshot = riderApprovalSnapshot({ ...(profile.toObject?.() || profile), userId: user });
+    const setData: any = {};
+    for (const key of ["vehicleType", "vehicleNumber", "licenseNumber", "address", "bankDetails"]) {
+        if (data[key] !== undefined) setData[key] = data[key];
+    }
+
+    if (data.phone !== undefined) {
+        await User.updateOne({ _id: userId }, { $set: { phone: data.phone } });
+    }
+
+    if (Object.keys(setData).length) {
+        profile.set(setData);
+    }
+
+    const afterForApproval = {
+        ...(profile.toObject?.() || profile),
+        userId: {
+            ...(user || {}),
+            phone: data.phone !== undefined ? data.phone : user?.phone,
+        },
+    };
+    const missingFields = riderProfileMissingFields(afterForApproval);
+    const sensitiveChanged = riderApprovalSnapshotChanged(beforeSnapshot, riderApprovalSnapshot(afterForApproval));
+    const wasApproved = profile.status === "APPROVED" && !!profile.isVerified;
+    if (!wasApproved || sensitiveChanged || missingFields.length) {
+        profile.status = "PENDING";
+        profile.isVerified = false;
+        profile.isOnline = false;
+    }
+
+    await profile.save();
+
+    const updated = await DeliveryBoy.findOne({ userId }).populate("userId", "fullName email phone").lean();
+    return serializeDeliveryProfile(updated);
+}
+
+/**
+ * Updates the rider's online/availability state.
+ *
+ * @param userId - The rider's user id.
+ * @param data - Validated availability payload.
+ * @returns The updated rider profile.
+ */
+export async function updateAvailability(userId: string, data: any) {
+    const currentProfile = await DeliveryBoy.findOne({ userId }).populate("userId", "fullName email phone");
+    if (data.isOnline) {
+        assertRiderCanAcceptOffers(currentProfile);
+    }
+    if (!currentProfile) throw new ApiError(404, "Delivery profile not found");
+
+    const setData: any = { isOnline: data.isOnline };
+    if (data.location) {
+        setData.currentLocation = {
+            type: "Point",
+            coordinates: [data.location.longitude, data.location.latitude],
+        };
+    }
+
+    const profile = await DeliveryBoy.findOneAndUpdate(
+        { userId },
+        { $set: setData },
+        { returnDocument: "after" },
+    ).populate("userId", "fullName email phone");
+
+    if (!profile) throw new ApiError(404, "Delivery profile not found");
+    if (data.isOnline && data.location) {
+        matchingService.processMatchingPool().catch((error) => {
+            console.error("[DeliveryService] Failed to refresh rider matching pool:", error);
+        });
+    }
+    return profile;
+}
+
+/**
+ * Lists the rider's assigned and active delivery orders, filtered by the query.
+ *
+ * @param userId - The rider's user id.
+ * @param query - List filters (status, pagination).
+ * @returns The rider's delivery orders.
+ */
+export async function listMyOrders(userId: string, query: any = {}) {
+    const page = Math.max(Number(query.page) || 1, 1);
+    const limit = Math.min(Math.max(Number(query.limit) || 20, 1), 100);
+    const filter: any = { "delivery.riderId": new Types.ObjectId(userId) };
+
+    const activeStatuses = ["READY_FOR_PICKUP", "RIDER_ASSIGNED", "RIDER_ARRIVING", "RIDER_REACHED_STORE", "PICKED_UP", "IN_TRANSIT", "NEAR_CUSTOMER"];
+    if (query.status) {
+        filter.status = query.status;
+    } else {
+        filter.status = { $in: activeStatuses };
+    }
+
+    const [dataDb, total] = await Promise.all([
+        SubOrder.find(filter)
+            .populate("parentOrderId storeId")
+            .sort({ updatedAt: -1 })
+            .skip((page - 1) * limit)
+            .limit(limit)
+            .lean(),
+        SubOrder.countDocuments(filter),
+    ]);
+
+    const data = dataDb.map(mapSubOrderToRiderFormat).filter(Boolean);
+
+    return {
+        data,
+        total,
+        page,
+        limit,
+        totalPages: Math.max(1, Math.ceil(total / limit)),
+    };
+}
+
+/**
+ * Lists the open rider offers currently available to the rider.
+ *
+ * @param userId - The rider's user id.
+ * @returns Serialized open offers.
+ */
+export async function listOffers(userId: string) {
+    const riderObjectId = new Types.ObjectId(idString(userId));
+    const profile = await DeliveryBoy.findOne({ userId: riderObjectId })
+        .populate("userId", "fullName email phone")
+        .lean();
+
+    if (!riderCanAcceptOffers(profile) || !profile?.isOnline || !profile?.currentLocation?.coordinates?.length) {
+        await RiderOffer.updateMany(
+            { riderId: riderObjectId, status: "OPEN" },
+            {
+                $set: {
+                    status: "CANCELLED",
+                    respondedAt: new Date(),
+                    metadata: {
+                        reason: "rider_profile_not_eligible",
+                        message: riderOfferBlockMessage(profile),
+                    },
+                },
+            },
+        );
+        return [];
+    }
+
+    if (profile) {
+        await matchingService.processMatchingPool().catch((error) => {
+            console.error("[DeliveryService] Failed to refresh rider offers:", error);
+        });
+    }
+
+    await RiderOffer.updateMany(
+        { riderId: riderObjectId, status: "OPEN", expiresAt: { $lte: new Date() } },
+        { $set: { status: "EXPIRED", respondedAt: new Date() } },
+    );
+
+    const capacity = await riderCapacitySnapshot(userId);
+    if (!capacity.canAccept) {
+        await RiderOffer.updateMany(
+            { riderId: riderObjectId, status: "OPEN" },
+            {
+                $set: {
+                    status: "CANCELLED",
+                    respondedAt: new Date(),
+                    metadata: {
+                        reason: "rider_acceptance_capacity_reached",
+                        acceptedCountInWindow: capacity.acceptedCount,
+                        maxAcceptedOrders: capacity.maxAcceptedOrders,
+                        acceptanceWindowHours: capacity.windowHours,
+                    },
+                },
+            },
+        );
+        return [];
+    }
+
+    const blockedSubOrders = await RiderOffer.aggregate([
+        {
+            $match: {
+                riderId: riderObjectId,
+                status: "REJECTED",
+            },
+        },
+        {
+            $group: {
+                _id: "$subOrderObjectId",
+                rejectionCount: { $sum: 1 },
+            },
+        },
+        {
+            $match: {
+                rejectionCount: { $gte: MAX_RIDER_REJECTIONS_PER_SUB_ORDER },
+            },
+        },
+    ]);
+
+    if (blockedSubOrders.length) {
+        await RiderOffer.updateMany(
+            {
+                riderId: riderObjectId,
+                subOrderObjectId: { $in: blockedSubOrders.map((item) => item._id) },
+                status: "OPEN",
+            },
+            {
+                $set: {
+                    status: "CANCELLED",
+                    respondedAt: new Date(),
+                    metadata: {
+                        reason: "max_rejections_reached",
+                        maxRejections: MAX_RIDER_REJECTIONS_PER_SUB_ORDER,
+                        suppressedForSubOrder: true,
+                    },
+                },
+            },
+        );
+    }
+
+    const offers = await RiderOffer.find({
+        riderId: riderObjectId,
+        status: "OPEN",
+        expiresAt: { $gt: new Date() },
+    })
+        .populate({
+            path: "subOrderObjectId",
+            populate: [
+                { path: "storeId" },
+                { path: "parentOrderId", select: "orderId shippingAddress payableAmount" },
+            ],
+        })
+        .sort({ expiresAt: 1 })
+        .limit(50)
+        .lean();
+
+    return offers.map(serializeOffer);
+}
+
+/**
+ * Accepts an open rider offer after verifying the rider is eligible to take work.
+ *
+ * @param userId - The rider's user id.
+ * @param offerId - Id of the offer to accept.
+ * @param requestInfo - Optional request metadata (IP, device) for auditing.
+ * @returns The accepted-offer result.
+ */
+export async function acceptOffer(userId: string, offerId: string, requestInfo?: any) {
+    const profile = await DeliveryBoy.findOne({ userId: new Types.ObjectId(idString(userId)) })
+        .populate("userId", "fullName email phone")
+        .lean();
+    assertRiderCanAcceptOffers(profile);
+    return await SubOrderService.riderAcceptOffer(idString(userId), offerId, requestInfo);
+}
+
+/**
+ * Rejects an open rider offer, recording the reason for matching decisions.
+ *
+ * @param userId - The rider's user id.
+ * @param offerId - Id of the offer to reject.
+ * @param reason - Optional rejection reason.
+ * @param requestInfo - Optional request metadata (IP, device) for auditing.
+ * @returns The rejected-offer result.
+ */
+export async function rejectOffer(userId: string, offerId: string, reason?: string, requestInfo?: any) {
+    return await SubOrderService.riderRejectOffer(idString(userId), offerId, reason, requestInfo);
+}
+
+/**
+ * Returns a single delivery order (by ObjectId or order code) assigned to the rider.
+ *
+ * @param userId - The rider's user id.
+ * @param id - Order ObjectId or order code.
+ * @returns The rider-formatted delivery order.
+ */
+export async function getMyOrder(userId: string, id: string) {
+    const subOrder = await SubOrder.findOne({
+        $or: [
+            ...(Types.ObjectId.isValid(id) ? [{ _id: new Types.ObjectId(id) }] : []),
+            { subOrderId: id }
+        ],
+        "delivery.riderId": new Types.ObjectId(userId)
+    }).populate("parentOrderId storeId").lean();
+
+    if (!subOrder) throw new ApiError(404, "Sub-order not found for this delivery partner");
+    return mapSubOrderToRiderFormat(subOrder);
+}
+
+/**
+ * Advances a delivery through its status machine: validates the transition, enforces the delivery OTP on completion, credits rider earnings on delivery, and emits realtime updates.
+ *
+ * @param userId - The rider's user id.
+ * @param id - Order ObjectId or order code.
+ * @param data - Transition payload (`action`, optional `otp`, `note`, `location`).
+ * @returns The updated, populated order.
+ */
+export async function updateOrderStatus(userId: string, id: string, data: any) {
+    const riderUserId = idString(userId);
+    const order = await findOrderForDeliveryUser(userId, id);
+    const currentStatus = normalizeStatus(order);
+    const targetStatus = data.action as DeliveryStatus;
+
+    if (transitionMap[currentStatus] !== targetStatus) {
+        throw new ApiError(400, `Cannot move delivery from ${currentStatus} to ${targetStatus}`);
+    }
+
+    const location = locationPayload(data.location);
+
+    if (targetStatus === DeliveryStatus.DELIVERED) {
+        const expectedOtp = order.delivery?.otp?.code;
+        if (!expectedOtp || expectedOtp !== data.otp) {
+            throw new ApiError(400, "Valid delivery OTP is required");
+        }
+
+        await orderService.adminUpdateOrderStatus(
+            order._id.toString(),
+            OrderStatus.DELIVERED,
+            undefined,
+            { allowUnverifiedDeliveryOtp: true },
+        );
+    }
+
+    const setData: any = {
+        "delivery.status": targetStatus,
+        [timestampFieldByStatus[targetStatus] || "delivery.updatedAt"]: new Date(),
+    };
+
+    if (targetStatus === DeliveryStatus.DELIVERED) {
+        setData["delivery.otp.verifiedAt"] = new Date();
+    }
+
+    if (location) {
+        setData["delivery.currentLocation"] = location;
+        await DeliveryBoy.updateOne(
+            { userId: riderUserId },
+            { $set: { currentLocation: { type: "Point", coordinates: [location.longitude, location.latitude] } } },
+        );
+    }
+
+    const event = {
+        status: targetStatus,
+        action: targetStatus,
+        note: data.note,
+        actorId: toObjectId(userId),
+        at: new Date(),
+        location,
+    };
+
+    const updated = await populateOrder(Order.findByIdAndUpdate(
+        order._id,
+        {
+            $set: {
+                ...setData,
+                ...(targetStatus === DeliveryStatus.PICKED_UP || targetStatus === DeliveryStatus.OUT_FOR_DELIVERY
+                    ? { status: OrderStatus.SHIPPED }
+                    : {}),
+            },
+            $push: { "delivery.events": event },
+        },
+        { returnDocument: "after" },
+    ));
+
+    if (!updated) throw new ApiError(404, "Order not found");
+
+    if (targetStatus === DeliveryStatus.DELIVERED) {
+        await creditDeliveryEarnings(updated);
+    }
+
+    emitDeliveryUpdate(updated, targetStatus, data.note);
+    return updated;
+}
+
+/**
+ * Updates the rider's live location for an active delivery and broadcasts it to the order room.
+ *
+ * @param userId - The rider's user id.
+ * @param id - Order ObjectId or order code.
+ * @param locationData - Latitude/longitude (and optional heading).
+ * @returns The updated, populated order.
+ */
+export async function updateOrderLocation(userId: string, id: string, locationData: any) {
+    const riderUserId = idString(userId);
+    const order = await findOrderForDeliveryUser(userId, id);
+    if (!ACTIVE_DELIVERY_STATUSES.includes(normalizeStatus(order))) {
+        throw new ApiError(400, "Location can only be updated for active delivery orders");
+    }
+
+    const location = locationPayload(locationData);
+    await DeliveryBoy.updateOne(
+        { userId: riderUserId },
+        { $set: { currentLocation: { type: "Point", coordinates: [location!.longitude, location!.latitude] } } },
+    );
+
+    const updated = await populateOrder(Order.findByIdAndUpdate(
+        order._id,
+        { $set: { "delivery.currentLocation": location } },
+        { returnDocument: "after" },
+    ));
+
+    if (!updated) throw new ApiError(404, "Order not found");
+    socketService.emitToOrderRoom(updated.orderId, SocketEvents.DELIVERY_LOCATION_UPDATED, {
+        orderId: updated.orderId,
+        latitude: location!.latitude,
+        longitude: location!.longitude,
+        heading: location!.heading || 0,
+        timestamp: new Date().toISOString(),
+    });
+    return updated;
+}
+
+/**
+ * Asserts the user is the assigned rider for the given order, throwing if not.
+ *
+ * @param userId - The rider's user id.
+ * @param orderId - Order ObjectId or order code.
+ * @returns `true` when the rider is assigned to the order.
+ */
+export async function assertAssignedDeliveryUser(userId: string, orderId: string) {
+    await findOrderForDeliveryUser(userId, orderId);
+    return true;
+}
+
+async function findOrderForDeliveryUser(userId: string, id: string) {
+    const riderUserId = idString(userId);
+    let order: any = null;
+    if (Types.ObjectId.isValid(id)) {
+        order = await populateOrder(Order.findById(id));
+    }
+    if (!order) {
+        order = await populateOrder(Order.findOne({ orderId: id }));
+    }
+    if (!order) throw new ApiError(404, "Order not found");
+    const assignedUserId = idString(order.delivery?.partnerUserId);
+    if (assignedUserId === riderUserId) {
+        return order;
+    }
+
+    const possibleProfileIds = [idString(order.delivery?.partnerProfileId), assignedUserId].filter(Boolean);
+    if (possibleProfileIds.length) {
+        const riderProfile = await DeliveryBoy.findOne({
+            userId: riderUserId,
+            _id: { $in: possibleProfileIds },
+        }).lean();
+
+        if (riderProfile) {
+            await Order.updateOne(
+                { _id: order._id },
+                {
+                    $set: {
+                        "delivery.partnerUserId": toObjectId(riderUserId),
+                        "delivery.partnerProfileId": riderProfile._id,
+                    },
+                },
+            );
+            order.delivery.partnerUserId = riderUserId;
+            order.delivery.partnerProfileId = riderProfile._id;
+            return order;
+        }
+    }
+
+    throw new ApiError(403, "This order is not assigned to you");
+}
+
+async function creditDeliveryEarnings(order: any) {
+    if (order.delivery?.payoutCreditedAt || !order.delivery?.partnerUserId) return;
+
+    const config = await appConfigService.getConfig();
+    const configPayout = config?.delivery?.riderPayoutAmount;
+    const payoutAmount = Number(order.delivery?.payoutAmount || configPayout || order.shippingFee || 0);
+    if (payoutAmount <= 0) return;
+
+    await DeliveryBoy.updateOne(
+        { userId: idString(order.delivery.partnerUserId) },
+        {
+            $inc: {
+                "wallet.availableBalance": payoutAmount,
+                "wallet.lifetimeEarnings": payoutAmount,
+            },
+        },
+    );
+
+    await Order.updateOne(
+        { _id: order._id, "delivery.payoutCreditedAt": { $exists: false } },
+        {
+            $set: {
+                "delivery.payoutAmount": payoutAmount,
+                "delivery.payoutCreditedAt": new Date(),
+            },
+        },
+    );
+}
+
+function emitDeliveryUpdate(order: any, status: DeliveryStatus, note?: string) {
+    socketService.emitToUser(order.userId?._id?.toString() || order.userId?.toString(), SocketEvents.ORDER_STATUS_UPDATE, {
+        orderId: order.orderId,
+        status: order.status,
+        deliveryStatus: status,
+        message: note || `Delivery status updated to ${status}`,
+    });
+
+    socketService.emitToUser(order.delivery?.partnerUserId?._id?.toString() || order.delivery?.partnerUserId?.toString(), SocketEvents.ORDER_STATUS_UPDATE, {
+        orderId: order.orderId,
+        status: order.status,
+        deliveryStatus: status,
+    });
+
+    socketService.emitToOrderRoom(order.orderId, SocketEvents.ORDER_STATUS_UPDATE, {
+        orderId: order.orderId,
+        status: order.status,
+        deliveryStatus: status,
+    });
+}

@@ -1,18 +1,18 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import * as SecureStore from "expo-secure-store";
 import { getMyWishlistRequest, syncWishlistRequest, toggleWishlistRequest } from "../api/wishlist.api";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
+import { authStorage } from "@/src/lib/authStorage";
 
 const secureStorage = {
   getItem: async (name: string): Promise<string | null> => {
-    return await SecureStore.getItemAsync(name);
+    return await authStorage.getItemAsync(name);
   },
   setItem: async (name: string, value: string): Promise<void> => {
-    await SecureStore.setItemAsync(name, value);
+    await authStorage.setItemAsync(name, value);
   },
   removeItem: async (name: string): Promise<void> => {
-    await SecureStore.deleteItemAsync(name);
+    await authStorage.deleteItemAsync(name);
   },
 };
 

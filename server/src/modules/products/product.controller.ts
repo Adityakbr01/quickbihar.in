@@ -73,6 +73,19 @@ export const getTrendingProducts = asyncHandler(async (req: Request, res: Respon
 });
 
 /**
+ * Handle GET /local - Hyperlocal, local-first product feed restricted to stores
+ * that can deliver to the caller's address (pincode and/or GPS). Requires a
+ * `pincode` or `lat`+`lng` query param.
+ */
+export const getLocalProducts = asyncHandler(async (req: Request, res: Response) => {
+    const result = await ProductService.getLocalProducts(req.query);
+    res.ok(
+        result,
+        result.serviceable ? "Local products fetched successfully" : "Service is not available in your area yet",
+    );
+});
+
+/**
  * Handle GET /slug/:slug - Fetch a specific product by slug.
  */
 export const getProductBySlug = asyncHandler(async (req: Request, res: Response) => {

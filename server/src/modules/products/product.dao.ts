@@ -53,6 +53,11 @@ export async function findAll(query: any = {}, options: { skip?: number; limit?:
         finalQuery.storeId = query.storeId;
     }
 
+    // Restrict to a set of stores (e.g. the stores serviceable to the user's address).
+    if (!query.storeId && Array.isArray(query.storeIds) && query.storeIds.length) {
+        finalQuery.storeId = { $in: query.storeIds };
+    }
+
     if (query.category) {
         finalQuery.category = query.category;
     }

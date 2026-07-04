@@ -4,12 +4,14 @@ import {
     createStoreSchema,
     updateStoreSchema,
     searchNearbyStoresSchema,
+    checkServiceabilitySchema,
     StoreType
 } from "./store.schema";
 
 export type CreateStoreInput = z.infer<typeof createStoreSchema>;
 export type UpdateStoreInput = z.infer<typeof updateStoreSchema>;
 export type SearchNearbyStoresInput = z.infer<typeof searchNearbyStoresSchema>;
+export type CheckServiceabilityInput = z.infer<typeof checkServiceabilitySchema>;
 
 
 

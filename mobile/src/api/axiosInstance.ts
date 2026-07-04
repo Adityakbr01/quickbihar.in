@@ -1,14 +1,24 @@
 import axios from "axios";
-import * as SecureStore from "expo-secure-store";
 import { useAuthStore } from "../features/common/auth/store/authStore";
+import { authStorage } from "../lib/authStorage";
 
-// For Real Devices: Use your machine's local IP address.
-// Current IP:  10.97.142.27
-// For Android emulator: 10.0.2.2
-// For iOS Simulator/Web: localhost
-export const LOCAL_URL = "http://10.97.142.27:8000";
-const PROD_URL = "https://quickbihar-server.onrender.com/api/v1";
-const BASE_URL = __DEV__ ? LOCAL_URL + "/api/v1" : PROD_URL;
+const trimTrailingSlash = (value: string) => value.replace(/\/+$/, "");
+
+// Configure these in Expo/EAS with EXPO_PUBLIC_API_URL and EXPO_PUBLIC_SOCKET_URL.
+export const API_ORIGIN = trimTrailingSlash(
+  process.env.EXPO_PUBLIC_API_ORIGIN ||
+  process.env.EXPO_PUBLIC_SOCKET_URL ||
+  (__DEV__ ? "http://10.0.2.2:8000" : "https://quickbihar.in"),
+);
+
+export const API_URL = trimTrailingSlash(
+  process.env.EXPO_PUBLIC_API_URL ||
+  `${API_ORIGIN}/api/v1`,
+);
+
+// Kept for existing socket imports. This is the API/socket origin, not the /api/v1 URL.
+export const LOCAL_URL = API_ORIGIN;
+const BASE_URL = API_URL;
 
 const axiosInstance = axios.create({
   baseURL: BASE_URL,
@@ -38,7 +48,7 @@ const processQueue = (error: any, token: string | null = null) => {
 axiosInstance.interceptors.request.use(
   async (config) => {
     try {
-      const token = await SecureStore.getItemAsync("userToken");
+      const token = await authStorage.getItemAsync("userToken");
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }
@@ -93,7 +103,7 @@ axiosInstance.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        const refreshToken = await SecureStore.getItemAsync("refreshToken");
+        const refreshToken = await authStorage.getItemAsync("refreshToken");
 
         if (!refreshToken) {
           throw new Error("No refresh token available");
@@ -109,7 +119,7 @@ axiosInstance.interceptors.response.use(
           user,
         } = response.data.data;
 
-        // Update Store and SecureStore
+        // Update auth store and persisted session data.
         await useAuthStore
           .getState()
           .setAuth(user, accessToken, newRefreshToken);
