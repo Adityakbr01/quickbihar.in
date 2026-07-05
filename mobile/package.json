@@ -82,6 +82,7 @@
     "socket.io-client": "4.7.5",
     "socket.io-parser": "4.2.4",
     "sweet-sfsymbols": "^0.7.2",
+    "web-haptics": "^0.0.6",
     "zod": "^4.3.6",
     "zustand": "^5.0.12"
   },

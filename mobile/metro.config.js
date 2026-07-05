@@ -1,3 +1,4 @@
+const path = require('path');
 const { getDefaultConfig } = require('expo/metro-config');
 
 /** @type {import('expo/metro-config').MetroConfig} */
@@ -8,5 +9,16 @@ config.resolver.unstable_enablePackageExports = true;
 
 // Add webm and lottie to asset extensions
 config.resolver.assetExts.push('webm', 'lottie');
+
+// Redirect expo-haptics to our web shim on the web platform
+config.resolver.resolveRequest = (context, moduleName, platform) => {
+  if (platform === 'web' && moduleName === 'expo-haptics') {
+    return {
+      type: 'sourceFile',
+      filePath: path.resolve(__dirname, 'src/shims/expo-haptics.web.ts'),
+    };
+  }
+  return context.resolveRequest(context, moduleName, platform);
+};
 
 module.exports = config;
