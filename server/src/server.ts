@@ -29,8 +29,8 @@ connectDB()
     // Start background notification worker
     startNotificationWorker();
 
-    httpServer.listen(port, () => {
-      console.log(`🚀 Server and Sockets are running at port : ${port}`);
+    httpServer.listen(port, "0.0.0.0", () => {
+      console.log(`🚀 Server and Sockets are running at http://0.0.0.0:${port}`);
     });
   })
   .catch((err) => {
