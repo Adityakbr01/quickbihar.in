@@ -13,6 +13,7 @@ jobs:
     env:
       SERVER_TAG: ${{ secrets.DOCKER_USER }}/quickbihar-server:prod
       WEB_TAG: ${{ secrets.DOCKER_USER }}/quickbihar-web:prod
+      MOBILE_WEB_TAG: ${{ secrets.DOCKER_USER }}/quickbihar-mobile-web:prod
       SHA_TAG: ${{ github.sha }}
 
     steps:
@@ -49,6 +50,17 @@ jobs:
           tags: |
             ${{ env.WEB_TAG }}
             ${{ secrets.DOCKER_USER }}/quickbihar-web:${{ github.sha }}
+
+      # ---------------- MOBILE WEB ----------------
+      - name: Build & Push Mobile Web Image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./mobile
+          file: ./mobile/Dockerfile
+          push: true
+          tags: |
+            ${{ env.MOBILE_WEB_TAG }}
+            ${{ secrets.DOCKER_USER }}/quickbihar-mobile-web:${{ github.sha }}
 
   deploy:
     name: Deploy to VPS
