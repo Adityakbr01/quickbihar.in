@@ -144,8 +144,13 @@ const LivingPixelOcean: React.FC = () => {
     let animationFrameId: number;
 
     const resize = (): void => {
-      width = canvas.width = window.innerWidth;
-      height = canvas.height = window.innerHeight;
+      if (canvas && canvas.parentElement) {
+        width = canvas.width = canvas.parentElement.clientWidth;
+        height = canvas.height = canvas.parentElement.clientHeight;
+      } else {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+      }
     };
 
     window.addEventListener("resize", resize);
@@ -230,11 +235,11 @@ const LivingPixelOcean: React.FC = () => {
   const canvasStyles: React.CSSProperties = {
     display: "block",
     touchAction: "none",
-    position: "fixed",
+    position: "absolute",
     top: 0,
     left: 0,
-    width: "100vw",
-    height: "100vh",
+    width: "100%",
+    height: "100%",
     background: "#000",
     zIndex: -1,
   };

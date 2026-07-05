@@ -1,5 +1,5 @@
 import { spacing } from "@/src/theme/spacing";
-import { StyleSheet } from "react-native";
+import { StyleSheet, Platform } from "react-native";
 import { Theme } from "@/src/theme/colors";
 
 export const createAuthStyles = (theme: Theme) => StyleSheet.create({
@@ -14,6 +14,11 @@ export const createAuthStyles = (theme: Theme) => StyleSheet.create({
     flex: 1,
     paddingHorizontal: spacing.lg,
     justifyContent: "center",
+    ...(Platform.OS === "web" && {
+      maxWidth: 450,
+      width: "100%",
+      alignSelf: "center",
+    }),
   },
   header: {
     marginBottom: spacing.lg,
