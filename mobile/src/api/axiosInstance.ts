@@ -8,7 +8,7 @@ const trimTrailingSlash = (value: string) => value.replace(/\/+$/, "");
 export const API_ORIGIN = trimTrailingSlash(
   process.env.EXPO_PUBLIC_API_ORIGIN ||
   process.env.EXPO_PUBLIC_SOCKET_URL ||
-  (__DEV__ ? "http://10.0.2.2:8000" : "https://quickbihar.in"),
+  (__DEV__ ? "http://10.0.2.2:8000" : "http://80.225.194.37"),
 );
 
 export const API_URL = trimTrailingSlash(
