@@ -94,6 +94,10 @@ jobs:
         run: |
           docker compose -f ${{ env.COMPOSE_FILE }} up -d --remove-orphans
 
+      - name: Reload Nginx Proxy (fixes 502 Bad Gateway)
+        run: |
+          docker exec quickbihar-proxy nginx -s reload
+
       - name: Verify services
         run: |
           docker compose -f ${{ env.COMPOSE_FILE }} ps
