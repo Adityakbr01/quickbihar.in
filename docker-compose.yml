@@ -43,5 +43,26 @@ services:
       - server
     restart: always
 
+  mobile-web:
+    image: ${DOCKER_USER:-adityakbr}/quickbihar-mobile-web:prod
+    build:
+      context: ./mobile
+      dockerfile: Dockerfile
+    container_name: quickbihar-mobile-web
+    restart: always
+
+  proxy:
+    image: nginx:alpine
+    container_name: quickbihar-proxy
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - web
+      - server
+      - mobile-web
+    restart: always
+
 volumes:
   redis-data:
