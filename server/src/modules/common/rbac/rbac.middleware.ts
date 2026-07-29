@@ -23,15 +23,17 @@ export const validatePermission = (permissionId: string) => {
   };
 };
 
-// ⭐ Middleware to validate if user has a specific role
-export const validateRole = (roleId: string) => {
+// ⭐ Middleware to validate if user has one of the given roles
+export const validateRole = (...roleIds: string[]) => {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
       const user = (req as any).user;
       if (!user?.roleId) throw new ApiError(403, "Access denied: User has no role assigned");
 
       const role = user.roleId;
-      const hasRole = role._id.toString() === roleId || role.name === roleId;
+      const hasRole = roleIds.some(
+        (roleId) => role._id.toString() === roleId || role.name === roleId,
+      );
 
       if (!hasRole) {
         throw new ApiError(403, "Access denied: Insufficient Role");

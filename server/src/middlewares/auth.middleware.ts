@@ -46,7 +46,7 @@ export const verifyJWT = asyncHandler(
 /**
  * 🛡️ Legacy/Shortcut Middlewares (Migrated to RBAC)
  */
-export const isAdmin = validateRole(RoleEnum.ADMIN);
+export const isAdmin = validateRole(RoleEnum.ADMIN, RoleEnum.SUPER_ADMIN);
 export const isSuperAdmin = validateRole(RoleEnum.SUPER_ADMIN);
 export const isSeller = validateRole(RoleEnum.SELLER);
 export const isDelivery = validateRole(RoleEnum.DELIVERY);
