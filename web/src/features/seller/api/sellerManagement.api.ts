@@ -1,3 +1,4 @@
+// CONTAINS CLOTHING-SPECIFIC endpoints (product variants, size charts) — see multi-vertical milestone (docs/WIRE-FLOW-AUDIT-TODO.md)
 import axiosInstance from "@/lib/axios";
 import type {
   SellerMallCreatePayload,

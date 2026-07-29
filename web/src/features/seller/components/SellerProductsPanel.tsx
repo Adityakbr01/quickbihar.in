@@ -1,5 +1,7 @@
 "use client";
 
+// CLOTHING-SPECIFIC — see multi-vertical milestone (docs/WIRE-FLOW-AUDIT-TODO.md)
+
 import React, { type FormEvent, type ReactNode, useEffect, useState, useMemo } from "react";
 import { Plus, Edit, Send, Trash2, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";

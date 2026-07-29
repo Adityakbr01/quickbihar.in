@@ -1,3 +1,4 @@
+// CLOTHING-SPECIFIC — see multi-vertical milestone (docs/WIRE-FLOW-AUDIT-TODO.md)
 import axiosInstance from "@/lib/axios";
 import type { DeliveryLocation, DeliveryPartner, DeliveryStatus } from "@/features/delivery/api/delivery.api";
 

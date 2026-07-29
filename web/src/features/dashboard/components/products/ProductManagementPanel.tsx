@@ -1,3 +1,4 @@
+// CLOTHING-SPECIFIC — see multi-vertical milestone (docs/WIRE-FLOW-AUDIT-TODO.md)
 import React, { useState, useMemo, FormEvent } from "react";
 import { Plus, Edit, Trash2, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";

@@ -146,6 +146,7 @@ export default function PartnerRegisterForm({ mode }: { mode: PartnerMode }) {
             documents,
             details: {
               businessName: text(form, "businessName"),
+              // CLOTHING-SPECIFIC: hardcoded vertical — generalize in multi-vertical milestone
               sellerType: "CLOTHING" as const,
               gstNumber: optionalText(form, "gstNumber"),
               ...(address ? { address } : {}),
