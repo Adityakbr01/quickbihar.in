@@ -1,9 +1,9 @@
 import mongoose from "mongoose";
 import { ENV } from "../config/env.config";
-import { PERMISSIONS, ROLES } from "../modules/rbac/rbac.constants";
-import { ROLE_PERMISSION_MAP } from "../modules/rbac/ROLE_PERMISSION_MAP";
-import { Permission, Role, RolePermission } from "../modules/rbac/rbac.model";
-import { RoleDescriptions, RoleEnum } from "../modules/rbac/rbac.types";
+import { PERMISSIONS, ROLES } from "../modules/common/rbac/rbac.constants";
+import { ROLE_PERMISSION_MAP } from "../modules/common/rbac/ROLE_PERMISSION_MAP";
+import { Permission, Role, RolePermission } from "../modules/common/rbac/rbac.model";
+import { RoleDescriptions, RoleEnum } from "../modules/common/rbac/rbac.types";
 
 async function seedRBAC() {
   console.log("🚀 Starting RBAC Seed Process...");

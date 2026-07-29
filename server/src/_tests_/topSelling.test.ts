@@ -49,7 +49,7 @@ const mockProducts = [
   }
 ];
 
-mock.module("../modules/products/product.model", () => ({
+mock.module("../modules/clothing/products/product.model", () => ({
   Product: {
     find: mock((query: any) => {
       let result = [...mockProducts];
@@ -87,7 +87,7 @@ mock.module("mongoose", () => {
   };
 });
 
-import * as ProductDAO from "../modules/products/product.dao";
+import * as ProductDAO from "../modules/clothing/products/product.dao";
 
 describe("Top Selling Products API", () => {
   test("getTopSellingProducts should retrieve, aggregate and sort correctly", async () => {

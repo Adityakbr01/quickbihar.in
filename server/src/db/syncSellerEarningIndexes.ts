@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import { ENV } from "../config/env.config";
-import { SellerEarning } from "../modules/seller/sellerPanel.model";
+import { SellerEarning } from "../modules/common/seller/sellerPanel.model";
 
 async function syncSellerEarningIndexes() {
   await mongoose.connect(ENV.MONGODB_URI);

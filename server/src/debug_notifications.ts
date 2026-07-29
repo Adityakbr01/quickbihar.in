@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import connectDB from "./config/db";
-import { Notification } from "./modules/notification/notification.model";
-import { User } from "./modules/user/user.model";
+import { Notification } from "./modules/common/notification/notification.model";
+import { User } from "./modules/common/user/user.model";
 
 async function run() {
   console.log("Connecting to database...");

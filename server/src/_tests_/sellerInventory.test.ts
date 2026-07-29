@@ -16,13 +16,13 @@ const productFindOne = mock(() => Promise.resolve(productDoc));
 const movementCreate = mock((payload: any) => Promise.resolve({ _id: new Types.ObjectId(), ...payload }));
 const notificationCreate = mock((payload: any) => Promise.resolve({ _id: new Types.ObjectId(), ...payload }));
 
-mock.module("../modules/products/product.model", () => ({
+mock.module("../modules/clothing/products/product.model", () => ({
   Product: {
     findOne: productFindOne,
   },
 }));
 
-mock.module("../modules/seller/sellerPanel.model", () => ({
+mock.module("../modules/common/seller/sellerPanel.model", () => ({
   InventoryMovement: {
     create: movementCreate,
   },
@@ -33,8 +33,8 @@ mock.module("../modules/seller/sellerPanel.model", () => ({
   SellerEarning: {},
 }));
 
-const { SellerService } = await import("../modules/seller/seller.service");
-const { sellerStockUpdateSchema } = await import("../modules/seller/seller.validation");
+const { SellerService } = await import("../modules/common/seller/seller.service");
+const { sellerStockUpdateSchema } = await import("../modules/common/seller/seller.validation");
 
 const stockProduct = (stock = 3) => ({
   _id: new Types.ObjectId(PRODUCT_ID),

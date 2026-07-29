@@ -2,10 +2,10 @@ import { createServer } from "http";
 import { app } from "./app";
 import connectDB from "./config/db";
 import { ENV } from "./config/env.config";
-import { socketService } from "./modules/socket/socket.service";
+import { socketService } from "./modules/common/socket/socket.service";
 import { seedRbac } from "./seed/seed";
-import * as matchingService from "./modules/delivery/matching.service";
-import { startNotificationWorker } from "./modules/notification/notification.worker";
+import * as matchingService from "./modules/common/delivery/matching.service";
+import { startNotificationWorker } from "./modules/common/notification/notification.worker";
 
 const port = ENV.PORT;
 const httpServer = createServer(app);

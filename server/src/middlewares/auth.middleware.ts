@@ -2,14 +2,14 @@ import type { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import { ApiError } from "../utils/ApiError";
 import { asyncHandler } from "../utils/asyncHandler";
-import { UserDAO } from "../modules/user/user.dao";
+import { UserDAO } from "../modules/common/user/user.dao";
 import { ENV } from "../config/env.config";
-import { RoleEnum } from "../modules/rbac/rbac.types";
+import { RoleEnum } from "../modules/common/rbac/rbac.types";
 import {
   validateRole,
   validatePermission,
   checkPermissions,
-} from "../modules/rbac/rbac.middleware";
+} from "../modules/common/rbac/rbac.middleware";
 
 /**
  * 🛡️ Verify JWT and attach user to request

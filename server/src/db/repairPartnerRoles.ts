@@ -1,10 +1,10 @@
 import mongoose from "mongoose";
 import { ENV } from "../config/env.config";
-import { DeliveryBoy } from "../modules/deliveryBoy/delivery.model";
-import { Role } from "../modules/rbac/rbac.model";
-import { RoleEnum } from "../modules/rbac/rbac.types";
-import { Seller } from "../modules/seller/seller.model";
-import { User } from "../modules/user/user.model";
+import { DeliveryBoy } from "../modules/common/deliveryBoy/delivery.model";
+import { Role } from "../modules/common/rbac/rbac.model";
+import { RoleEnum } from "../modules/common/rbac/rbac.types";
+import { Seller } from "../modules/common/seller/seller.model";
+import { User } from "../modules/common/user/user.model";
 
 async function roleId(name: RoleEnum) {
   const role = await Role.findOne({ name }).lean();

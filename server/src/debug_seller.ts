@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
-import { Product } from "./modules/products/product.model";
-import { User } from "./modules/user/user.model";
-import { Role } from "./modules/rbac/rbac.model";
+import { Product } from "./modules/clothing/products/product.model";
+import { User } from "./modules/common/user/user.model";
+import { Role } from "./modules/common/rbac/rbac.model";
 import { ENV } from "./config/env.config";
 
 async function main() {

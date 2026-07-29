@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import { ENV } from "../config/env.config";
-import { SubOrder } from "../modules/order/subOrder.model";
-import { sellerSettlementService } from "../modules/seller/sellerSettlement.service";
+import { SubOrder } from "../modules/common/order/subOrder.model";
+import { sellerSettlementService } from "../modules/common/seller/sellerSettlement.service";
 
 const args = process.argv.slice(2);
 const apply = args.includes("--apply");

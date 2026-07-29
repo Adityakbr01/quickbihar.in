@@ -18,8 +18,8 @@ mock.module("../middlewares/auth.middleware", () => ({
   isDelivery: pass,
 }));
 
-const { default: orderRouter } = await import("../modules/order/order.router");
-const { default: deliveryRouter } = await import("../modules/delivery/delivery.router");
+const { default: orderRouter } = await import("../modules/common/order/order.router");
+const { default: deliveryRouter } = await import("../modules/common/delivery/delivery.router");
 
 const app = express();
 app.use(express.json());

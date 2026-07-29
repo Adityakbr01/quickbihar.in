@@ -5,7 +5,7 @@ process.env.REFRESH_TOKEN_SECRET = "test_refresh_secret_long_enough";
 
 import { beforeEach, describe, expect, mock, test } from "bun:test";
 import { Types } from "mongoose";
-import { DeliveryStatus, OrderStatus } from "../modules/order/order.type";
+import { DeliveryStatus, OrderStatus } from "../modules/common/order/order.type";
 
 const USER_ID = "645a2c2b8f8f2b1a2c3d4e5f";
 const ORDER_ID = "645a2c2b8f8f2b1a2c3d4e6f";
@@ -64,13 +64,13 @@ const storeFind = mock(() => ({
   lean: mock(() => Promise.resolve(storeRows)),
 }));
 
-mock.module("../modules/order/order.service", () => ({
+mock.module("../modules/common/order/order.service", () => ({
   orderService: {
     adminUpdateOrderStatus,
   },
 }));
 
-mock.module("../modules/order/order.model", () => ({
+mock.module("../modules/common/order/order.model", () => ({
   Order: {
     findById: mock(() => queryMock(currentOrder)),
     findOne: mock(() => queryMock(null)),
@@ -80,14 +80,14 @@ mock.module("../modules/order/order.model", () => ({
   },
 }));
 
-mock.module("../modules/deliveryBoy/delivery.model", () => ({
+mock.module("../modules/common/deliveryBoy/delivery.model", () => ({
   DeliveryBoy: {
     findOne: deliveryFindOne,
     updateOne: deliveryUpdateOne,
   },
 }));
 
-mock.module("../modules/order/subOrder.model", () => ({
+mock.module("../modules/common/order/subOrder.model", () => ({
   SubOrder: {
     find: subOrderFind,
     countDocuments: subOrderCountDocuments,
@@ -95,7 +95,7 @@ mock.module("../modules/order/subOrder.model", () => ({
   SubOrderStatus,
 }));
 
-mock.module("../modules/admin/admin.model", () => ({
+mock.module("../modules/common/admin/admin.model", () => ({
   AdminPayout: {
     create: payoutCreate,
     find: mock(() => ({ populate: () => ({ sort: () => ({ limit: () => ({ lean: () => Promise.resolve([]) }) }) }) })),
@@ -103,26 +103,26 @@ mock.module("../modules/admin/admin.model", () => ({
   },
 }));
 
-mock.module("../modules/user/user.model", () => ({
+mock.module("../modules/common/user/user.model", () => ({
   User: {
     updateOne: mock(() => Promise.resolve({ modifiedCount: 1 })),
   },
 }));
 
-mock.module("../modules/appConfig/appConfig.service", () => ({
+mock.module("../modules/common/appConfig/appConfig.service", () => ({
   getConfig: appConfigGetConfig,
 }));
 
-mock.module("../modules/products/product.dao", () => ({
+mock.module("../modules/clothing/products/product.dao", () => ({
   findById: productFindById,
 }));
 
-mock.module("../modules/coupon/coupon.service", () => ({
+mock.module("../modules/common/coupon/coupon.service", () => ({
   validateMultipleCouponsForCart: couponValidateMultiple,
   incrementUsage: mock(() => Promise.resolve(undefined)),
 }));
 
-mock.module("../modules/store/store.model", () => ({
+mock.module("../modules/common/store/store.model", () => ({
   Store: {
     find: storeFind,
   },
@@ -133,16 +133,16 @@ mock.module("../modules/store/store.model", () => ({
   },
 }));
 
-mock.module("../modules/socket/socket.service", () => ({
+mock.module("../modules/common/socket/socket.service", () => ({
   socketService: {
     emitToUser: mock(() => undefined),
     emitToOrderRoom: mock(() => undefined),
   },
 }));
 
-const deliveryService = await import("../modules/delivery/delivery.service");
-const { calculateRiderPayout } = await import("../modules/order/subOrder.service");
-const { orderPricingService } = await import("../modules/order/orderPricing.service");
+const deliveryService = await import("../modules/common/delivery/delivery.service");
+const { calculateRiderPayout } = await import("../modules/common/order/subOrder.service");
+const { orderPricingService } = await import("../modules/common/order/orderPricing.service");
 
 const productForQuote = (overrides: any = {}) => ({
   _id: new Types.ObjectId("645a2c2b8f8f2b1a2c3d4e81"),

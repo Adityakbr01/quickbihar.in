@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { RefundPolicy } from "../modules/refundPolicy/refundPolicy.model";
+import { RefundPolicy } from "../modules/common/refundPolicy/refundPolicy.model";
 import dotenv from "dotenv";
 dotenv.config();
 

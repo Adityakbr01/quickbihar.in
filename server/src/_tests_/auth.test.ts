@@ -57,7 +57,7 @@ mock.module("../config/db", () => ({ default: mock(() => Promise.resolve()) }));
 mock.module("../config/imagekit.config", () => ({ imagekit: {} }));
 
 // 2. Mock UserDAO & User Model behavior
-mock.module("../modules/user/user.dao", () => ({
+mock.module("../modules/common/user/user.dao", () => ({
     UserDAO: {
         findByUsernameOrEmail: mock((username, email) => {
             if (email === "approvedrider@test.com") {
@@ -110,20 +110,20 @@ mock.module("../modules/user/user.dao", () => ({
 }));
 
 // 3. Mock RBAC Service
-mock.module("../modules/rbac/rbac.service", () => ({
+mock.module("../modules/common/rbac/rbac.service", () => ({
     getRoleByName,
     getRole: mock(() => Promise.resolve({ _id: VALID_ID, name: "USER" })),
     assignUserToRole,
     getRolesByUser: mock(() => Promise.resolve([]))
 }));
 
-mock.module("../modules/seller/seller.model", () => ({
+mock.module("../modules/common/seller/seller.model", () => ({
     Seller: {
         findOne: mock(() => profileQuery(null)),
     }
 }));
 
-mock.module("../modules/deliveryBoy/delivery.model", () => ({
+mock.module("../modules/common/deliveryBoy/delivery.model", () => ({
     DeliveryBoy: {
         findOne: mock((query) => profileQuery(query.userId?.toString?.() === RIDER_ID ? { _id: "delivery-profile" } : null)),
     }

@@ -128,7 +128,7 @@ const makeMutableUser = (overrides: any = {}) => {
   return user;
 };
 
-mock.module("../modules/user/user.model", () => ({
+mock.module("../modules/common/user/user.model", () => ({
   User: {
     findById: userFindById,
     findOne: userFindOne,
@@ -139,7 +139,7 @@ mock.module("../modules/user/user.model", () => ({
   },
 }));
 
-mock.module("../modules/seller/seller.model", () => ({
+mock.module("../modules/common/seller/seller.model", () => ({
   Seller: {
     findOne: sellerFindOne,
     findOneAndUpdate: sellerFindOneAndUpdate,
@@ -148,7 +148,7 @@ mock.module("../modules/seller/seller.model", () => ({
   },
 }));
 
-mock.module("../modules/deliveryBoy/delivery.model", () => ({
+mock.module("../modules/common/deliveryBoy/delivery.model", () => ({
   DeliveryBoy: {
     findOne: riderFindOne,
     findOneAndUpdate: riderFindOneAndUpdate,
@@ -157,7 +157,7 @@ mock.module("../modules/deliveryBoy/delivery.model", () => ({
   },
 }));
 
-mock.module("../modules/store/store.model", () => ({
+mock.module("../modules/common/store/store.model", () => ({
   Store: {
     findOne: storeFindOne,
     find: mock(() => chain([])),
@@ -169,7 +169,7 @@ mock.module("../modules/store/store.model", () => ({
   },
 }));
 
-mock.module("../modules/order/subOrder.model", () => ({
+mock.module("../modules/common/order/subOrder.model", () => ({
   SubOrder: {
     aggregate: subOrderAggregate,
     find: subOrderFind,
@@ -182,7 +182,7 @@ mock.module("../modules/order/subOrder.model", () => ({
   },
 }));
 
-mock.module("../modules/products/product.model", () => ({
+mock.module("../modules/clothing/products/product.model", () => ({
   Product: {
     aggregate: productAggregate,
     countDocuments: mock(() => Promise.resolve(0)),
@@ -190,7 +190,7 @@ mock.module("../modules/products/product.model", () => ({
   },
 }));
 
-mock.module("../modules/admin/admin.model", () => ({
+mock.module("../modules/common/admin/admin.model", () => ({
   AdminPayout: {
     find: payoutFind,
     create: mock(() => Promise.resolve({})),
@@ -210,7 +210,7 @@ const adminFullModel = {
   aggregate: mock(() => Promise.resolve([])),
 };
 
-mock.module("../modules/admin/adminFull.model", () => ({
+mock.module("../modules/common/admin/adminFull.model", () => ({
   ActivityLog: { ...adminFullModel, create: activityLogCreate },
   AdminSystemConfig: adminFullModel,
   Announcement: adminFullModel,
@@ -224,7 +224,7 @@ mock.module("../modules/admin/adminFull.model", () => ({
   Warehouse: adminFullModel,
 }));
 
-mock.module("../modules/seller/sellerPanel.model", () => ({
+mock.module("../modules/common/seller/sellerPanel.model", () => ({
   InventoryMovement: {
     find: mock(() => chain([])),
     create: mock(() => Promise.resolve({})),
@@ -241,14 +241,14 @@ mock.module("../modules/seller/sellerPanel.model", () => ({
   },
 }));
 
-mock.module("../modules/fulfillment/codSettlement.model", () => ({
+mock.module("../modules/common/fulfillment/codSettlement.model", () => ({
   CodSettlement: {
     find: codSettlementFind,
     create: mock(() => Promise.resolve({})),
   },
 }));
 
-mock.module("../modules/rbac/rbac.model", () => ({
+mock.module("../modules/common/rbac/rbac.model", () => ({
   Role: {
     findOne: mock((filter: any) => chain({ _id: roleIds[filter?.name || "USER"], name: filter?.name || "USER" })),
   },
@@ -256,7 +256,7 @@ mock.module("../modules/rbac/rbac.model", () => ({
 
 const getRoleByName = mock((name: string) => Promise.resolve({ _id: roleIds[name], name }));
 
-mock.module("../modules/rbac/rbac.service", () => ({
+mock.module("../modules/common/rbac/rbac.service", () => ({
   getRoleByName,
   assignUserToRole: mock(() => Promise.resolve(undefined)),
 }));
@@ -268,7 +268,7 @@ mock.module("../utils/mail.service", () => ({
   },
 }));
 
-const AdminService = await import("../modules/admin/admin.service");
+const AdminService = await import("../modules/common/admin/admin.service");
 
 describe("AdminService partner insights", () => {
   beforeEach(() => {

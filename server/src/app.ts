@@ -37,30 +37,30 @@ app.use(express.static("public"));
 app.use(responseExtensions);
 
 // Routes Import
-import authRouter from "./modules/auth/auth.router";
-import bannerRouter from "./modules/banner/banner.router";
-import categoryRouter from "./modules/category/category.router";
-import productRouter from "./modules/products/product.router";
-import sizeChartRouter from "./modules/sizeChart/sizeChart.router";
-import couponRouter from "./modules/coupon/coupon.router";
-import orderRouter from "./modules/order/order.router";
-import labelRouter from "./modules/label/label.router";
-import userRouter from "./modules/user/user.router";
-import addressRouter from "./modules/savedAddress/savedAddresses.router";
-import paymentMethodRouter from "./modules/paymentMethod/paymentMethod.router";
-import cartRouter from "./modules/cart/cart.router";
-import wishlistRouter from "./modules/wishlist/wishlist.router";
-import appConfigRouter from "./modules/appConfig/appConfig.router";
-import refundPolicyRouter from "./modules/refundPolicy/refundPolicy.router";
-import { rbacRoutes as rbacRouter } from "./modules/rbac/rbac.routes";
-import onboardingRouter from "./modules/onboarding/onboarding.router";
-import storeRouter from "./modules/store/store.route";
-import adminRouter from "./modules/admin/admin.router";
-import sellerRouter from "./modules/seller/seller.router";
-import mallRouter from "./modules/mall/mall.router";
-import deliveryRouter from "./modules/delivery/delivery.router";
-import fulfillmentEventRouter from "./modules/fulfillment/fulfillmentEvent.router";
-import notificationRouter from "./modules/notification/notification.router";
+import authRouter from "./modules/common/auth/auth.router";
+import bannerRouter from "./modules/common/banner/banner.router";
+import categoryRouter from "./modules/common/category/category.router";
+import productRouter from "./modules/clothing/products/product.router";
+import sizeChartRouter from "./modules/clothing/sizeChart/sizeChart.router";
+import couponRouter from "./modules/common/coupon/coupon.router";
+import orderRouter from "./modules/common/order/order.router";
+import labelRouter from "./modules/common/label/label.router";
+import userRouter from "./modules/common/user/user.router";
+import addressRouter from "./modules/common/savedAddress/savedAddresses.router";
+import paymentMethodRouter from "./modules/common/paymentMethod/paymentMethod.router";
+import cartRouter from "./modules/common/cart/cart.router";
+import wishlistRouter from "./modules/common/wishlist/wishlist.router";
+import appConfigRouter from "./modules/common/appConfig/appConfig.router";
+import refundPolicyRouter from "./modules/common/refundPolicy/refundPolicy.router";
+import { rbacRoutes as rbacRouter } from "./modules/common/rbac/rbac.routes";
+import onboardingRouter from "./modules/common/onboarding/onboarding.router";
+import storeRouter from "./modules/common/store/store.route";
+import adminRouter from "./modules/common/admin/admin.router";
+import sellerRouter from "./modules/common/seller/seller.router";
+import mallRouter from "./modules/common/mall/mall.router";
+import deliveryRouter from "./modules/common/delivery/delivery.router";
+import fulfillmentEventRouter from "./modules/common/fulfillment/fulfillmentEvent.router";
+import notificationRouter from "./modules/common/notification/notification.router";
 
 // Routes Declaration
 app.use("/api/v1/auth", authRouter); // working
@@ -87,7 +87,6 @@ app.use("/api/v1/addresses", addressRouter);
 // not tested
 app.use("/api/v1/orders", orderRouter);
 app.use("/api/v1/labels", labelRouter);
-app.use("/api/v1/users", userRouter);
 app.use("/api/v1/payment-methods", paymentMethodRouter);
 app.use("/api/v1/cart", cartRouter);
 app.use("/api/v1/wishlist", wishlistRouter);

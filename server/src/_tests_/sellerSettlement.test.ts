@@ -48,13 +48,13 @@ const earningCreate = mock((payload: any) => {
 const earningFind = mock(() => listQueryMock(earningRows));
 const subOrderFind = mock(() => listQueryMock(subOrderRows));
 
-mock.module("../modules/order/order.model", () => ({
+mock.module("../modules/common/order/order.model", () => ({
   Order: {
     findById: orderFindById,
   },
 }));
 
-mock.module("../modules/order/subOrder.model", () => ({
+mock.module("../modules/common/order/subOrder.model", () => ({
   SubOrderStatus: {
     DELIVERED: "DELIVERED",
     DELIVERY_CONFIRMED: "DELIVERY_CONFIRMED",
@@ -65,13 +65,13 @@ mock.module("../modules/order/subOrder.model", () => ({
   },
 }));
 
-mock.module("../modules/seller/seller.model", () => ({
+mock.module("../modules/common/seller/seller.model", () => ({
   Seller: {
     updateOne: sellerUpdateOne,
   },
 }));
 
-mock.module("../modules/seller/sellerPanel.model", () => ({
+mock.module("../modules/common/seller/sellerPanel.model", () => ({
   SellerEarning: {
     findOne: earningFindOne,
     create: earningCreate,
@@ -79,7 +79,7 @@ mock.module("../modules/seller/sellerPanel.model", () => ({
   },
 }));
 
-const { sellerSettlementService } = await import("../modules/seller/sellerSettlement.service");
+const { sellerSettlementService } = await import("../modules/common/seller/sellerSettlement.service");
 
 const deliveredSubOrder = (overrides: any = {}) => ({
   _id: SUB_ORDER_ID,

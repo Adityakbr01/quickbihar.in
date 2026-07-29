@@ -17,7 +17,7 @@ mock.module("jsonwebtoken", () => ({
     }
 }));
 
-mock.module("../modules/user/user.dao", () => ({
+mock.module("../modules/common/user/user.dao", () => ({
     UserDAO: {
         findById: mock(() => Promise.resolve({
             _id: VALID_USER_ID,
@@ -46,7 +46,7 @@ mock.module("../middlewares/auth.middleware", () => {
 });
 
 // Mock Seller Model for createStore validation
-mock.module("../modules/seller/seller.model", () => ({
+mock.module("../modules/common/seller/seller.model", () => ({
     Seller: {
         findOne: mock((query: any) => {
             if (query.userId === VALID_USER_ID) {
@@ -63,7 +63,7 @@ mock.module("../modules/seller/seller.model", () => ({
 }));
 
 // 2. Mock Store DAO
-mock.module("../modules/store/store.dao", () => ({
+mock.module("../modules/common/store/store.dao", () => ({
     createStoreDAO: mock((data) => Promise.resolve({
         _id: VALID_STORE_ID,
         ...data

@@ -28,13 +28,13 @@ mock.module("../utils/mail.service", () => ({
         sendApplicationStatus: mock(() => Promise.resolve(true))
     }
 }));
-mock.module("../modules/notification/notification.service", () => ({
+mock.module("../modules/common/notification/notification.service", () => ({
     sendPush: mock(() => Promise.resolve("mocked_id")),
     sendToTopic: mock(() => Promise.resolve("mocked_id"))
 }));
 
 // 2. Mock Models
-mock.module("../modules/user/onboarding.model", () => {
+mock.module("../modules/common/user/onboarding.model", () => {
     const mockApplication = {
         _id: APP_ID,
         userId: { _id: USER_ID, email: "test@test.com" },
@@ -63,26 +63,26 @@ mock.module("../modules/user/onboarding.model", () => {
     };
 });
 
-mock.module("../modules/seller/seller.model", () => ({
+mock.module("../modules/common/seller/seller.model", () => ({
     Seller: {
         create: mock(() => Promise.resolve({}))
     }
 }));
 
-mock.module("../modules/deliveryBoy/delivery.model", () => ({
+mock.module("../modules/common/deliveryBoy/delivery.model", () => ({
     DeliveryBoy: {
         create: mock(() => Promise.resolve({}))
     }
 }));
 
-mock.module("../modules/user/user.model", () => ({
+mock.module("../modules/common/user/user.model", () => ({
     User: {
         findById: mock(() => Promise.resolve({ _id: USER_ID }))
     }
 }));
 
 // 3. Mock RBAC Service
-mock.module("../modules/rbac/rbac.service", () => ({
+mock.module("../modules/common/rbac/rbac.service", () => ({
     getRoleByName: mock(() => Promise.resolve({ _id: "role_id", name: "SELLER" })),
     assignUserToRole: mock(() => Promise.resolve()),
     getRolesByUser: mock((userId) => {

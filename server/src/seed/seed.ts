@@ -1,9 +1,9 @@
-import { User } from "../modules/user/user.model";
-import { SizeChart } from "../modules/sizeChart/sizeChart.model";
+import { User } from "../modules/common/user/user.model";
+import { SizeChart } from "../modules/clothing/sizeChart/sizeChart.model";
 import { ENV } from "../config/env.config";
-import { RefundPolicy } from "../modules/refundPolicy/refundPolicy.model";
-import { AppConfig } from "../modules/appConfig/appConfig.model";
-import { DeliveryBoy } from "../modules/deliveryBoy/delivery.model";
+import { RefundPolicy } from "../modules/common/refundPolicy/refundPolicy.model";
+import { AppConfig } from "../modules/common/appConfig/appConfig.model";
+import { DeliveryBoy } from "../modules/common/deliveryBoy/delivery.model";
 
 export const seedAppConfig = async () => {
     try {
@@ -639,9 +639,9 @@ export const seedRefundPolicies = async () => {
 };
 
 
-import { Role, Permission, RolePermission } from "../modules/rbac/rbac.model";
-import { PERMISSIONS, ROLES } from "../modules/rbac/rbac.constants";
-import { ROLE_PERMISSION_MAP } from "../modules/rbac/ROLE_PERMISSION_MAP";
+import { Role, Permission, RolePermission } from "../modules/common/rbac/rbac.model";
+import { PERMISSIONS, ROLES } from "../modules/common/rbac/rbac.constants";
+import { ROLE_PERMISSION_MAP } from "../modules/common/rbac/ROLE_PERMISSION_MAP";
 
 export const seedRbac = async () => {
     try {

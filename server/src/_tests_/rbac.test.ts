@@ -43,14 +43,14 @@ mock.module("../middlewares/auth.middleware", () => ({
   checkPermissions: () => (req: any, res: any, next: any) => next(),
 }));
 
-mock.module("../modules/rbac/rbac.middleware", () => ({
+mock.module("../modules/common/rbac/rbac.middleware", () => ({
   validateRole: () => (req: any, res: any, next: any) => next(),
   validatePermission: () => (req: any, res: any, next: any) => next(),
   checkPermissions: () => (req: any, res: any, next: any) => next(),
 }));
 
 const VALID_ID = "645a2c2b8f8f2b1a2c3d4e5f";
-mock.module("../modules/rbac/rbac.model", () => ({
+mock.module("../modules/common/rbac/rbac.model", () => ({
   Permission: {
     create: mock((data) => Promise.resolve({ _id: VALID_ID, ...data })),
     findOne: mock(() => Promise.resolve(null)),
@@ -87,7 +87,7 @@ mock.module("../modules/rbac/rbac.model", () => ({
 // ⭐ Delayed imports to ensure env vars are set
 import request from "supertest";
 const { app } = await import("../app");
-const rbacService = await import("../modules/rbac/rbac.service");
+const rbacService = await import("../modules/common/rbac/rbac.service");
 
 describe("RBAC Service Logic", () => {
   test("should create a permission via service", async () => {
