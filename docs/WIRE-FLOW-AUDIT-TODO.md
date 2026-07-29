@@ -50,14 +50,14 @@
 
 ## 🔴 CRITICAL — breaks a core flow in production
 
-- [ ] **C1. nginx does not proxy `/socket.io/` → all realtime breaks behind the proxy.**
+- [x] **C1. nginx does not proxy `/socket.io/` → all realtime breaks behind the proxy.** ✅ FIXED (`4e05e01`) — added `/socket.io/` proxy block with Upgrade/Connection headers.
   Server serves Socket.io on default `/socket.io/` (`server/src/modules/socket/socket.service.ts:55`), but `nginx/default.conf` only proxies `/api/`, `/web/`, `/_next/`. Socket handshakes fall through to the static `mobile-web` container. **Fix:** add a `location /socket.io/ { proxy_pass http://server:8000; }` block with `Upgrade`/`Connection` headers. Without this, live order tracking, rider job offers, and notifications all silently fail in prod.
 
-- [ ] **C2. Post-purchase navigation is broken (dead route).**
+- [x] **C2. Post-purchase navigation is broken (dead route).** ✅ FIXED (`4e05e01`) — both back-handler and "Continue Shopping" now target `/(tabs)/clothing/home`.
   `OrderSuccessScreen.tsx:38` (back handler) and `:187` ("Continue Shopping") both `router.replace("/(tabs)/home")`, which doesn't exist. Correct route is `/(tabs)/clothing/home`. Every paid order dead-ends. **Fix:** point both to the real home route.
 
-- [ ] **C3. SUPER_ADMIN is locked out of the entire admin API.**
-  `isAdmin = validateRole(RoleEnum.ADMIN)` matches only `"ADMIN"` (`server/src/middlewares/auth.middleware.ts:49`), so SUPER_ADMIN users get 403 on every `/api/v1/admin` route. **Fix:** `isAdmin` should accept `[ADMIN, SUPER_ADMIN]` (as `isSellerOrAdmin` already does).
+- [x] **C3. SUPER_ADMIN is locked out of the entire admin API.** ✅ FIXED (`4e05e01`) — `validateRole` made rest-param (`...roleIds`) and `isAdmin = validateRole(RoleEnum.ADMIN, RoleEnum.SUPER_ADMIN)`.
+  `isAdmin = validateRole(RoleEnum.ADMIN)` matched only `"ADMIN"` (`server/src/middlewares/auth.middleware.ts:49`), so SUPER_ADMIN users got 403 on every `/api/v1/admin` route.
 
 ---
 
