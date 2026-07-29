@@ -4,24 +4,18 @@ import { authStorage } from "../lib/authStorage";
 
 const trimTrailingSlash = (value: string) => value.replace(/\/+$/, "");
 
-// Configure these in Expo/EAS with EXPO_PUBLIC_API_URL and EXPO_PUBLIC_SOCKET_URL.
+// Single source of truth for server URLs
 export const API_ORIGIN = trimTrailingSlash(
-  process.env.EXPO_PUBLIC_API_ORIGIN ||
-  process.env.EXPO_PUBLIC_SOCKET_URL ||
-  (__DEV__ ? "http://10.0.2.2:8000" : "http://80.225.194.37"),
+  process.env.EXPO_PUBLIC_API_ORIGIN || "",
 );
+console.log("[API Configuration] API_ORIGIN:", API_ORIGIN);
+export const API_URL = `${API_ORIGIN}/api/v1`;
 
-export const API_URL = trimTrailingSlash(
-  process.env.EXPO_PUBLIC_API_URL ||
-  `${API_ORIGIN}/api/v1`,
-);
-
-// Kept for existing socket imports. This is the API/socket origin, not the /api/v1 URL.
-export const LOCAL_URL = API_ORIGIN;
-const BASE_URL = API_URL;
+console.log("[API Configuration] API_ORIGIN:", API_ORIGIN);
+console.log("[API Configuration] API_URL:", API_URL);
 
 const axiosInstance = axios.create({
-  baseURL: BASE_URL,
+  baseURL: API_URL,
   timeout: 10000,
   headers: {
     "Content-Type": "application/json",
@@ -72,7 +66,7 @@ axiosInstance.interceptors.response.use(
     if (error.code === "ERR_NETWORK") {
       return Promise.reject(
         new Error(
-          `Network Error: Could not reach server at ${BASE_URL}. Ensure your phone is on the same Wi-Fi as your PC.`,
+          `Network Error: Could not reach server at ${API_URL}. Ensure your phone is on the same Wi-Fi as your PC.`,
         ),
       );
     }
@@ -109,7 +103,7 @@ axiosInstance.interceptors.response.use(
           throw new Error("No refresh token available");
         }
 
-        const response = await axios.post(`${BASE_URL}/auth/refresh-token`, {
+        const response = await axios.post(`${API_URL}/auth/refresh-token`, {
           refreshToken: refreshToken,
         });
 

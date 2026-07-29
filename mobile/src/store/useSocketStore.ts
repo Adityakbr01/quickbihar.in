@@ -1,13 +1,7 @@
 import { create } from "zustand";
 import { io, Socket } from "socket.io-client";
-import { Platform } from "react-native";
-import { LOCAL_URL } from "../api/axiosInstance";
+import { API_ORIGIN } from "../api/axiosInstance";
 import { authStorage } from "../lib/authStorage";
-
-const BASE_URL =
-  Platform.OS === "android"
-    ? LOCAL_URL
-    : LOCAL_URL;
 
 interface SocketState {
   socket: Socket | null;
@@ -27,7 +21,7 @@ export const useSocketStore = create<SocketState>((set, get) => ({
       const token = await authStorage.getItemAsync("userToken");
       if (!token) return;
 
-      const socketInstance = io(BASE_URL, {
+      const socketInstance = io(API_ORIGIN, {
         auth: { token },
         transports: ["websocket"],
       });

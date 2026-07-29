@@ -1,150 +1,47 @@
-import { useTheme } from "@/src/theme/Provider/ThemeProvider";
-import { Ionicons } from "@expo/vector-icons";
-import * as Haptics from "expo-haptics";
+import React, { useRef } from "react";
+import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import { useRouter } from "expo-router";
 import LottieView from "lottie-react-native";
-import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Keyboard, Platform, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
-import Animated, {
-  SharedValue,
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-} from "react-native-reanimated";
+import * as Haptics from "expo-haptics";
+import { SharedValue } from "react-native-reanimated";
+
+import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { homeStyles as styles } from "../style/homeStyles";
-import AnimatedBurger from "./AnimatedBurger";
 import { useNotifications } from "@/src/features/Clothings/notification/hooks/useNotifications";
+import { ModuleSwitcherButton } from "@/src/components/common/ModuleSwitcherButton";
 
 const bellLottie = require("@/assets/lottie/Notification Bell.json");
 
-const SEARCH_COLLAPSED = 38;
-
 interface HomeHeaderProps {
-  menuOpen: SharedValue<number>;
-  toggleMenu: () => void;
+  menuOpen?: SharedValue<number>;
+  toggleMenu?: () => void;
 }
 
-const HomeHeader = ({ menuOpen, toggleMenu }: HomeHeaderProps) => {
+const HomeHeader: React.FC<HomeHeaderProps> = () => {
   const isWeb = Platform.OS === "web";
-  const expandedWidth = isWeb ? 220 : 210;
   const theme = useTheme();
   const router = useRouter();
-  const searchWidth = useSharedValue(SEARCH_COLLAPSED);
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [searchText, setSearchText] = useState("");
-  const isSearchOpenRef = useRef(false);
-  const inputRef = useRef<TextInput>(null);
 
   const { data: notifications = [] } = useNotifications();
   const hasUnread = notifications.some((n) => !n.isRead);
   const lottieRef = useRef<LottieView>(null);
 
-  const openSearch = useCallback(() => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    searchWidth.value = withTiming(expandedWidth, { duration: 300 });
-    setIsSearchOpen(true);
-    isSearchOpenRef.current = true;
-    setTimeout(() => inputRef.current?.focus(), 200);
-  }, [searchWidth, expandedWidth]);
-
-  const collapseSearch = useCallback(() => {
-    searchWidth.value = withTiming(SEARCH_COLLAPSED, { duration: 300 });
-    setIsSearchOpen(false);
-    isSearchOpenRef.current = false;
-    setSearchText(""); // Clear search on collapse
-  }, [searchWidth]);
-
-  const handleSearchSubmit = useCallback(() => {
-    if (searchText.trim()) {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      router.push({
-        pathname: "/(tabs)/clothing/search" as any,
-        params: { query: searchText.trim() }
-      });
-      collapseSearch();
-      Keyboard.dismiss();
-    }
-  }, [searchText, router, collapseSearch]);
-
-  const handleBurgerPress = useCallback(() => {
-    Haptics.selectionAsync();
-    toggleMenu();
-  }, [toggleMenu]);
-
-  // Collapse when keyboard hides (user tapped outside)
-  useEffect(() => {
-    const sub = Keyboard.addListener("keyboardDidHide", () => {
-      if (isSearchOpenRef.current) {
-        collapseSearch();
-      }
-    });
-    return () => sub.remove();
-  }, [collapseSearch]);
-
-  const handleOutsidePress = useCallback(() => {
-    if (isSearchOpenRef.current) {
-      Keyboard.dismiss();
-      collapseSearch();
-    }
-  }, [collapseSearch]);
-
-  const searchAnimStyle = useAnimatedStyle(() => ({
-    width: searchWidth.value,
-  }));
-
   const webPressableStyle = isWeb ? ({ cursor: "pointer" } as any) : {};
 
   return (
     <View style={styles.header}>
-      <View style={styles.headerLeft}>
-        {/* <AnimatedBurger
-          isOpen={menuOpen}
-          onPress={handleBurgerPress}
-          color={theme.text}
-          size={20}
-        /> */}
-
+      <View style={localStyles.headerLeftContainer}>
         <Text style={[localStyles.brandText, { color: theme.text }]}>
           Quick Bihar
         </Text>
       </View>
 
       <View style={styles.headerRight}>
-        <Animated.View
-          style={[
-            styles.searchBtn,
-            { backgroundColor: theme.tertiaryBackground },
-            searchAnimStyle,
-          ]}
-        >
-          <Pressable
-            onPress={isSearchOpen ? collapseSearch : openSearch}
-            style={[styles.searchTouchable, webPressableStyle]}
-          >
-            <Ionicons name="search-outline" size={20} color={theme.text} />
-          </Pressable>
-          {isSearchOpen && (
-            <TextInput
-              ref={inputRef}
-              style={[
-                styles.expandedInput,
-                { color: theme.text },
-                isWeb && ({ outline: "none", backgroundColor: "transparent" } as any)
-              ]}
-              placeholder="Search..."
-              placeholderTextColor={theme.tertiaryText}
-              returnKeyType="search"
-              value={searchText}
-              onChangeText={setSearchText}
-              onSubmitEditing={handleSearchSubmit}
-            />
-          )}
-        </Animated.View>
+        <ModuleSwitcherButton />
 
         <Pressable
           onPress={() => {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-            handleOutsidePress();
             router.push("/account/notifications");
           }}
           style={[
@@ -186,12 +83,16 @@ const HomeHeader = ({ menuOpen, toggleMenu }: HomeHeaderProps) => {
 };
 
 const localStyles = StyleSheet.create({
+  headerLeftContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
   bellLottie: {
     width: 48,
     height: 48,
   },
   brandText: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: "900",
     letterSpacing: -0.5,
     fontFamily: Platform.OS === 'ios' ? 'System' : 'sans-serif-condensed',

@@ -1,15 +1,13 @@
 import { io, Socket } from "socket.io-client";
 import { API_ORIGIN } from "../api/axiosInstance";
 
-const SOCKET_URL = process.env.EXPO_PUBLIC_SOCKET_URL || API_ORIGIN;
-
 class SocketClient {
   private socket: Socket | null = null;
 
   connect(token: string) {
     if (this.socket?.connected) return;
 
-    this.socket = io(SOCKET_URL, {
+    this.socket = io(API_ORIGIN, {
       auth: { token },
       transports: ["websocket"],
       reconnectionAttempts: 5,
