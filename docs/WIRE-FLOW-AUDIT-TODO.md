@@ -19,26 +19,30 @@
 
 ---
 
-## ⭐ TASK 1 (DO FIRST) — Restructure modules into `common` + `clothing` (multi-vertical foundation)
+## ⭐ TASK 1 (DO FIRST) — Restructure modules into `common` + `clothing` (multi-vertical foundation) — ✅ DONE
 
 > **Goal:** stop clothing from being hardwired everywhere. Extract everything shared across verticals into a `common` module, and isolate clothing-specific code into its own `clothing` module. Food & jewelery are **NOT implemented now** — this refactor just creates the structure so they can be dropped in later without rewrites.
 > **This is a pure restructure — no behavior change.** Do it before the multi-vertical roadmap (§ below); that roadmap depends on this split.
+> **Status:** completed in 3 commits — mobile `6d04bec`, server `a95070f`, web `2d95a8f`. Each verified against a clean-master baseline (typecheck parity + build).
 
 **Guiding rule for the split:**
 - **`common`** = anything a food or jewelery vertical would reuse unchanged: auth, user/profile, address, cart, order/checkout/payment, coupon, notification, banner, category, delivery/rider, admin, RBAC, socket, settlements.
 - **`clothing`** = anything apparel-specific: products with `size`/`color` variants, size charts, apparel attributes (fit/pattern/material/collar/sleeve), clothing store config, clothing home/product-listing UI.
 
-- [ ] **T1.1 — Mobile:** split `mobile/src/features/Clothings/*`.
-  - Move shared features → `mobile/src/features/common/` (account, address, profileInfo, notification, cart, order, coupon).
-  - Keep apparel features → `mobile/src/features/clothing/` (home, product, mall, banner, category, size charts). Rename `Clothings` → `clothing`.
-  - Fix imports; activate the vestigial `rootSlug` prop (`HomeScreen.tsx:24`) as the vertical key so the tree is vertical-parameterized.
-- [ ] **T1.2 — Server:** reorganize `server/src/modules/*`.
-  - `modules/common/` (or keep flat but clearly grouped): auth, user, rbac, order, cart, coupon, notification, banner, category, delivery, deliveryBoy, fulfillment, admin, socket, savedAddress, paymentMethod.
-  - `modules/clothing/`: products (variant/size/color), sizeChart, clothing store config.
-  - Keep route paths stable (`/api/v1/...`) to avoid breaking clients during the move.
-- [ ] **T1.3 — Web:** mirror the split in `web/src/features/*` — shared dashboard panels vs clothing-specific product form/attributes.
-- [ ] **T1.4 — Leave FOOD/JEWELERY as empty placeholders only** (folders/enums stubbed, no logic) — user will implement later.
-- [ ] **T1.5 — Regression pass:** typecheck + run the app for all 4 roles after the move; no functional change expected.
+- [x] **T1.1 — Mobile:** split `mobile/src/features/Clothings/*` (committed `6d04bec`, 176 renames).
+  - → `features/common/` (13): account, address, admin, banner, cart, category, coupon, notification, order, profileInfo, refundPolicy, trackOrder, wishlist. (`auth` was already in common.)
+  - → `features/clothing/` (4, renamed from `Clothings`): home, product, search, sizeChart.
+  - Boundary-crossing relative imports rewritten to `@/src/features/{common,clothing}/…` aliases; Food/Jewelery placeholder screens repointed to `@/src/features/clothing/home/…`. tsc parity confirmed (96→96 errors, 0 new TS2307).
+  - ↩ Deferred: activating the vestigial `rootSlug` prop as the vertical key (`HomeScreen.tsx:24`) — belongs to the multi-vertical milestone, not this pure move.
+- [x] **T1.2 — Server:** reorganize `server/src/modules/*` (committed `a95070f`, 168 renames).
+  - Added `@/* → src/*` tsconfig path alias (Bun resolves natively — zero new deps); converted all cross-module + `src/`-level relative imports to depth-independent `@/` aliases.
+  - `modules/clothing/`: products (variant/size/color), sizeChart.
+  - `modules/common/` (24): admin, appConfig, auth, banner, cart, category, coupon, delivery, deliveryBoy, fulfillment, label, mall, notification, onboarding, order, paymentMethod, rbac, refundPolicy, savedAddress, seller, socket, store, user, wishlist.
+  - Route mount paths (`/api/v1/…`) unchanged. Dropped the duplicate `userRouter` mount (L1). Verified: tsc = 0, `bun build` bundles 159 modules, test pass/fail identical to master (13/10 — the 10 are pre-existing env/DB failures).
+  - ↩ Deferred tech debt: extract a `StoreType` vertical registry and the common→clothing back-edges (products imported by cart/wishlist/order/coupon/seller/admin/mall). `store`/`seller` currently sit whole in `common/` with clothing bits referenced via alias.
+- [x] **T1.3 — Web:** light pass (committed `2d95a8f`). Deleted the dead dashboard mock cluster and added `CLOTHING-SPECIFIC` markers to the coupled surface (2 inline on hardcoded `sellerType`, 6 file headers). Real feature-folder separation deferred — the coupling is embedded inside shared admin/seller panels and can't be cleanly extracted until the food/jewelery conditional logic exists. Verified: tsc = 0, `next build` green (all 12 routes).
+- [x] **T1.4 — FOOD/JEWELERY left as empty placeholders** — mobile keeps its `Food`/`Jewelery` placeholder screens (repointed to clothing home header); server/web add nothing until the vertical is built. Structure is now ready to drop them in.
+- [x] **T1.5 — Regression pass:** typecheck + build verified on all three layers against clean-master baselines (no functional change). Full 4-role runtime smoke test remains a manual pre-merge step for the user.
 
 > ⚠️ Note: this is a big mechanical refactor touching many imports. Recommend doing it on its own branch, in one focused pass, with a full typecheck before merge. The 3 CRITICAL fixes below are independent and can go before or after — but if the app is live, do C1–C3 first since they're tiny and unblock production.
 
@@ -95,9 +99,9 @@ The platform is **clothing-only at the schema level**. Food & jewelery cannot be
 
 ## 🟢 LOW — cleanup, polish, hygiene
 
-- [ ] **L1.** Duplicate `userRouter` mount (`server/src/app.ts:76,90`) — remove the dead second mount.
+- [x] **L1.** ~~Duplicate `userRouter` mount (`server/src/app.ts:76,90`)~~ — dead second mount removed (Task 1, `a95070f`).
 - [ ] **L2.** Dead controller fns `updateOrderStatus`/`updateOrderLocation` never routed (`delivery.controller.ts:252,264`).
-- [ ] **L3.** Dead web mock module `web/src/features/dashboard/api/dashboard.api.ts` (+ `useDashboard`, `AdminProductTable`, `ProductFormDialog`) — not imported by any route; delete to avoid accidental reuse.
+- [x] **L3.** ~~Dead web mock module `web/src/features/dashboard/api/dashboard.api.ts` (+ `useDashboard`, `AdminProductTable`, `ProductFormDialog`)~~ — deleted (Task 1, `2d95a8f`).
 - [ ] **L4.** Orphaned duplicate mobile route `app/account/track-orders/[id].tsx` (live route is `/track-order/[id]`).
 - [ ] **L5.** Rename misleading mobile `*MockData.ts` files — they now hold real UI/filter config, not mock products.
 - [ ] **L6.** Socket.io CORS hardcoded `origin:"*"` (`socket.service.ts:57`) — tighten for prod.
@@ -135,9 +139,9 @@ This is the largest requirement and needs its own track. Suggested order:
 ---
 
 ### Suggested execution order
-1. **TASK 1** — module restructure into `common` + `clothing` (foundation for everything vertical).
-2. C1, C2, C3 (unblock prod: realtime, checkout, super-admin) — tiny, can be done before Task 1 if app is live.
+1. ✅ **TASK 1** — module restructure into `common` + `clothing` (foundation for everything vertical). **DONE** (`6d04bec`, `a95070f`, `2d95a8f`). Also cleared L1, L3.
+2. **NEXT → C1, C2, C3** (unblock prod: realtime, checkout, super-admin) — tiny, independent.
 3. H6, H7, H8, H9, H10 + M1 (fix broken role flows + payment safety).
 4. M3–M11 (resilience/security/UX).
 5. Multi-vertical roadmap as a dedicated milestone (depends on Task 1).
-6. L-series cleanup alongside.
+6. Remaining L-series cleanup alongside.
