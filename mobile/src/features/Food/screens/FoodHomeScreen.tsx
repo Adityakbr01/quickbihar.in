@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { ScrollView, StyleSheet, Text, View, InteractionManager, ActivityIndicator } from "react-native";
 import SafeViewWrapper from "@/src/provider/SafeViewWrapper";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
-import HomeHeader from "@/src/features/Clothings/home/components/HomeHeader";
+import HomeHeader from "@/src/features/clothing/home/components/HomeHeader";
 import { Ionicons } from "@expo/vector-icons";
 
 const MOCK_FOOD_ITEMS = [

@@ -1,4 +1,4 @@
-import CategoryAdminScreen from "@/src/features/Clothings/category/screen/CategoryAdminScreen";
+import CategoryAdminScreen from "@/src/features/common/category/screen/CategoryAdminScreen";
 
 export default function CategoriesPage() {
   return <CategoryAdminScreen />;

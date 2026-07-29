@@ -3,7 +3,7 @@ import { Linking, Platform } from "react-native";
 import Constants from "expo-constants";
 import { registerForPushNotificationsAsync, initializeNotificationHandler } from "../lib/notification";
 import { useAuthStore } from "../features/common/auth/store/authStore";
-import { updateFcmTokenRequest } from "../features/Clothings/profileInfo/api/profile.api";
+import { updateFcmTokenRequest } from "../features/common/profileInfo/api/profile.api";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 

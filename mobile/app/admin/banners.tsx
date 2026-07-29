@@ -1,4 +1,4 @@
-import BannerAdminScreen from "@/src/features/Clothings/banner/screen/BannerAdminScreen";
+import BannerAdminScreen from "@/src/features/common/banner/screen/BannerAdminScreen";
 
 export default function BannersPage() {
   return <BannerAdminScreen />;

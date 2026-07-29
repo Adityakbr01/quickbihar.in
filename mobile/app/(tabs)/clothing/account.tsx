@@ -1,4 +1,4 @@
-import AccountMain from "@/src/features/Clothings/account/screens/AccountMain";
+import AccountMain from "@/src/features/common/account/screens/AccountMain";
 import SafeViewWrapper from "@/src/provider/SafeViewWrapper";
 
 const AccountScreen = () => {

@@ -1,5 +1,5 @@
 
-import HomeScreen from "@/src/features/Clothings/home/screens/HomeScreen";
+import HomeScreen from "@/src/features/clothing/home/screens/HomeScreen";
 import React from "react";
 
 const Home = () => {

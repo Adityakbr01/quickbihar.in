@@ -1,5 +1,5 @@
 import React from "react";
-import OrderSuccessScreen from "@/src/features/Clothings/order/screen/OrderSuccessScreen";
+import OrderSuccessScreen from "@/src/features/common/order/screen/OrderSuccessScreen";
 import SafeViewWrapper from "@/src/provider/SafeViewWrapper";
 
 const OrderSuccessRoute = () => {

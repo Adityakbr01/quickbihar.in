@@ -1,4 +1,4 @@
-import AppSettingsScreen from "@/src/features/Clothings/admin/screens/AppSettingsScreen";
+import AppSettingsScreen from "@/src/features/common/admin/screens/AppSettingsScreen";
 
 export default function AppSettingsPage() {
   return <AppSettingsScreen />;

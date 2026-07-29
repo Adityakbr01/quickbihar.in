@@ -1,6 +1,6 @@
 import React from "react";
 import SafeViewWrapper from "@/src/provider/SafeViewWrapper";
-import AddressFormScreen from "@/src/features/Clothings/address/screen/AddressFormScreen";
+import AddressFormScreen from "@/src/features/common/address/screen/AddressFormScreen";
 
 const AddressFormRoute = () => {
   return (

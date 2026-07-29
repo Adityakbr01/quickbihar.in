@@ -4,7 +4,7 @@ import { socketClient } from "@/src/lib/socket";
 import { authStorage } from "@/src/lib/authStorage";
 import React, { useEffect } from "react";
 import { Platform } from "react-native";
-import { useCartStore } from "../features/Clothings/cart/store/cartStore";
+import { useCartStore } from "../features/common/cart/store/cartStore";
 import { useAuthStore } from "../features/common/auth/store/authStore";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";

@@ -1,4 +1,4 @@
-import RefundPolicyAdminScreen from "@/src/features/Clothings/refundPolicy/screen/RefundPolicyAdminScreen";
+import RefundPolicyAdminScreen from "@/src/features/common/refundPolicy/screen/RefundPolicyAdminScreen";
 
 export default function RefundPoliciesRoute() {
   return <RefundPolicyAdminScreen />;

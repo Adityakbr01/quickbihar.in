@@ -7,16 +7,16 @@ import SafeViewWrapper from "@/src/provider/SafeViewWrapper";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import FilterBar, {
   SortOption,
-} from "@/src/features/Clothings/search/components/FilterBar";
+} from "@/src/features/clothing/search/components/FilterBar";
 import {
   SearchFilters,
   useSearchProducts,
-} from "@/src/features/Clothings/search/hooks/useSearchProducts";
-import { categoriesData } from "@/src/features/Clothings/home/lib/data";
-import SearchHeader from "@/src/features/Clothings/search/components/SearchHeader";
-import RecentSearches from "@/src/features/Clothings/search/components/RecentSearches";
-import TrendingSection from "@/src/features/Clothings/search/components/TrendingSection";
-import SearchResults from "@/src/features/Clothings/search/components/SearchResults";
+} from "@/src/features/clothing/search/hooks/useSearchProducts";
+import { categoriesData } from "@/src/features/clothing/home/lib/data";
+import SearchHeader from "@/src/features/clothing/search/components/SearchHeader";
+import RecentSearches from "@/src/features/clothing/search/components/RecentSearches";
+import TrendingSection from "@/src/features/clothing/search/components/TrendingSection";
+import SearchResults from "@/src/features/clothing/search/components/SearchResults";
 
 const TRENDING_ITEMS = categoriesData.map((c) => c.title);
 

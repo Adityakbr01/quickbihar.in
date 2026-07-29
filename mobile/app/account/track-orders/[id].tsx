@@ -17,10 +17,10 @@ import { useSocketStore } from "@/src/store/useSocketStore";
 import {
   getOrderByIdRequest,
   cancelSubOrderRequest,
-} from "@/src/features/Clothings/order/api/order.api";
-import { useOrderTracking } from "@/src/features/Clothings/trackOrder/hooks/useOrderTracking";
-import { LeafletMapComponent } from "@/src/features/Clothings/trackOrder/components/LeafletMapComponent";
-import { TrackingInfoCard } from "@/src/features/Clothings/trackOrder/components/TrackingInfoCard";
+} from "@/src/features/common/order/api/order.api";
+import { useOrderTracking } from "@/src/features/common/trackOrder/hooks/useOrderTracking";
+import { LeafletMapComponent } from "@/src/features/common/trackOrder/components/LeafletMapComponent";
+import { TrackingInfoCard } from "@/src/features/common/trackOrder/components/TrackingInfoCard";
 
 export default function TrackOrderScreen() {
   const { id } = useLocalSearchParams();

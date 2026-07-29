@@ -15,9 +15,9 @@ import {
   RoleEnum,
   useAuthStore,
 } from "@/src/features/common/auth/store/authStore";
-import AdminHeader from "@/src/features/Clothings/admin/components/AdminHeader";
-import { ADMIN_CARDS } from "@/src/features/Clothings/admin/lib/adminData";
-import AdminStatCard from "@/src/features/Clothings/admin/components/AdminStatCard";
+import AdminHeader from "@/src/features/common/admin/components/AdminHeader";
+import { ADMIN_CARDS } from "@/src/features/common/admin/lib/adminData";
+import AdminStatCard from "@/src/features/common/admin/components/AdminStatCard";
 
 export default function AdminScreen() {
   const theme = useTheme();

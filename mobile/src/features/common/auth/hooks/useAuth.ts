@@ -8,7 +8,7 @@ import {
 } from "../api/auth.api";
 import { useAuthStore } from "../store/authStore";
 import { useRouter } from "expo-router";
-import { useCartStore } from "@/src/features/Clothings/cart/store/cartStore";
+import { useCartStore } from "@/src/features/common/cart/store/cartStore";
 
 /**
  * Hook for logging in with email + password
