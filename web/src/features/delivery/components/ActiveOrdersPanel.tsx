@@ -38,9 +38,11 @@ export function ActiveOrdersPanel({
   onStatusFilterChange: (status: any | "ALL") => void;
   selectedOrderId: string | null;
 }) {
-  // Filter active rider jobs
+  // Filter active rider jobs. Orders expose the canonical `delivery.status`
+  // (DeliveryStatus) — compare against the shared canonical active set, not the
+  // internal SubOrderStatus (`RIDER_*`) strings the server stores on `status`.
   const activeOrders = orders.filter((o) =>
-    ["READY_FOR_PICKUP", "RIDER_ASSIGNED", "RIDER_ARRIVING", "RIDER_REACHED_STORE", "PICKED_UP", "IN_TRANSIT", "NEAR_CUSTOMER"].includes(o.delivery?.status || o.status)
+    activeStatuses.includes(o.delivery?.status || o.status)
   );
 
   const selectedActiveOrder = activeOrders.find((order) => order._id === selectedOrderId) || activeOrders[0] || null;
@@ -62,6 +64,8 @@ export function ActiveOrdersPanel({
                 onChange={(event) => onStatusFilterChange(event.target.value)}
                 className="bg-black/40 border border-white/10 rounded-lg px-2.5 py-1 text-xs text-white outline-none focus:border-cyan-500"
               >
+                {/* Values are sent to the server as `?status=` and matched against
+                    SubOrder.status (SubOrderStatus), so they stay in the RIDER_* vocabulary. */}
                 <option value="ALL">All Active Jobs</option>
                 <option value="RIDER_ASSIGNED">Assigned</option>
                 <option value="RIDER_ARRIVING">Arriving</option>
@@ -274,7 +278,7 @@ function JobExecutionCard({ order }: { order: any }) {
             </div>
 
             {/* Step 1: Assigned -> Arriving */}
-            {currentStatus === "RIDER_ASSIGNED" && (
+            {currentStatus === "ASSIGNED" && (
               <div className="space-y-3">
                 <p className="text-xs text-gray-400">Step 1: Signal to the seller you are on the way to pick up the package.</p>
                 <Button className="w-full bg-cyan-600 hover:bg-cyan-700" onClick={() => handleAction("ARRIVING")} disabled={isMutating}>
@@ -284,7 +288,7 @@ function JobExecutionCard({ order }: { order: any }) {
             )}
 
             {/* Step 2: Arriving -> Reached Store */}
-            {currentStatus === "RIDER_ARRIVING" && (
+            {currentStatus === "ARRIVING_AT_STORE" && (
               <div className="space-y-3">
                 <p className="text-xs text-gray-400">Step 2: Check-in at store. The app verifies your GPS coordinate is within 100 meters boundary.</p>
                 <Button className="w-full bg-[#8A2BE2] hover:bg-[#7A1FA2]" onClick={() => handleAction("REACHED_STORE")} disabled={isMutating}>
@@ -294,7 +298,7 @@ function JobExecutionCard({ order }: { order: any }) {
             )}
 
             {/* Step 3: Reached Store -> Picked Up (OTP & Photo required) */}
-            {currentStatus === "RIDER_REACHED_STORE" && (
+            {currentStatus === "REACHED_STORE" && (
               <div className="space-y-4">
                 <div className="space-y-1">
                   <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Step 3: Verification OTP & Package Photo</h4>
@@ -425,7 +429,7 @@ function JobExecutionCard({ order }: { order: any }) {
             )}
 
             {/* Cancel trigger */}
-            {["RIDER_ASSIGNED", "RIDER_ARRIVING", "RIDER_REACHED_STORE"].includes(currentStatus) && (
+            {["ASSIGNED", "ARRIVING_AT_STORE", "REACHED_STORE"].includes(currentStatus) && (
               <div className="pt-2 border-t border-white/5 flex justify-end">
                 <Button type="button" variant="ghost" size="sm" className="text-red-400 hover:bg-red-500/10 hover:text-red-500" onClick={() => setIsCancelMode(true)}>
                   Decline Job
