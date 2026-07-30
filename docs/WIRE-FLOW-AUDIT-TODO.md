@@ -101,16 +101,16 @@ The platform is **clothing-only at the schema level**. Food & jewelery cannot be
 ## 🟢 LOW — cleanup, polish, hygiene
 
 - [x] **L1.** ~~Duplicate `userRouter` mount (`server/src/app.ts:76,90`)~~ — dead second mount removed (Task 1, `a95070f`).
-- [ ] **L2.** Dead controller fns `updateOrderStatus`/`updateOrderLocation` never routed (`delivery.controller.ts:252,264`).
+- [x] **L2.** ~~Dead controller fns `updateOrderStatus`/`updateOrderLocation` never routed (`delivery.controller.ts:252,264`).~~ — removed (`0d18552`).
 - [x] **L3.** ~~Dead web mock module `web/src/features/dashboard/api/dashboard.api.ts` (+ `useDashboard`, `AdminProductTable`, `ProductFormDialog`)~~ — deleted (Task 1, `2d95a8f`).
-- [ ] **L4.** Orphaned duplicate mobile route `app/account/track-orders/[id].tsx` (live route is `/track-order/[id]`).
-- [ ] **L5.** Rename misleading mobile `*MockData.ts` files — they now hold real UI/filter config, not mock products.
-- [ ] **L6.** Socket.io CORS hardcoded `origin:"*"` (`socket.service.ts:57`) — tighten for prod.
-- [ ] **L7.** Copy-pasted socket-event literals not in the shared constant files (`notification_updated`, `notification_status_update`) — drift risk; add to all three `socketEvents.ts`. `SUBORDER_STATUS_UPDATE` + `riders_matching` room are dead.
-- [ ] **L8.** Debug logs: raw OTP (`auth.service.ts:169`) and user email on every `isSellerOrAdmin` (`auth.middleware.ts:62`) — remove.
-- [ ] **L9.** `"RIDER"` magic-string fallback not in `RoleEnum`; mobile rider tab cross-imports a route file (`rider.tsx:3,9`). Add `RIDER`/tidy import.
-- [ ] **L10.** Razorpay placeholder logo `https://your-logo-url.png` (`CheckoutScreen.tsx:233`).
-- [ ] **L11.** Verify announcement `audience` plural forms (`ALL/USERS/SELLERS/DELIVERY`, `adminManagement.api.ts:604`) are accepted server-side.
+- [x] **L4.** ~~Orphaned duplicate mobile route `app/account/track-orders/[id].tsx` (live route is `/track-order/[id]`).~~ — deleted (`0d18552`).
+- [x] **L5.** ~~Rename misleading mobile `*MockData.ts` files — they now hold real UI/filter config, not mock products.~~ — renamed to `dealsConfig.ts` / `cartData.ts` (`0d18552`).
+- [x] **L6.** ~~Socket.io CORS hardcoded `origin:"*"` (`socket.service.ts:57`) — tighten for prod.~~ — now mirrors the `ENV.CORS_ORIGIN` allowlist (`0d18552`).
+- [x] **L7.** ~~Copy-pasted socket-event literals not in the shared constant files (`notification_updated`, `notification_status_update`) — drift risk; add to all three `socketEvents.ts`. `SUBORDER_STATUS_UPDATE` + `riders_matching` room are dead.~~ — consolidated behind `SocketEvents` across server/mobile/web; dead constant + room removed (`0d18552`).
+- [x] **L8.** ~~Debug logs: raw OTP (`auth.service.ts:169`) and user email on every `isSellerOrAdmin` (`auth.middleware.ts:62`) — remove.~~ — removed (`0d18552`).
+- [x] **L9.** ~~`"RIDER"` magic-string fallback not in `RoleEnum`; mobile rider tab cross-imports a route file (`rider.tsx:3,9`). Add `RIDER`/tidy import.~~ — added `RIDER_ROLE_ALIAS` const (server + mobile; deliberately **not** a `RoleEnum` member, so `rbacSeed.ts` won't upsert a phantom permission-less role) and dropped the route-to-route cross-import (`0d18552`).
+- [x] **L10.** ~~Razorpay placeholder logo `https://your-logo-url.png` (`CheckoutScreen.tsx:233`).~~ — broken placeholder removed; `image` omitted until a hosted brand logo exists (`0d18552`).
+- [x] **L11.** ~~Verify announcement `audience` plural forms (`ALL/USERS/SELLERS/DELIVERY`, `adminManagement.api.ts:604`) are accepted server-side.~~ — verified consistent across server validation + model and web (mobile has none); no code change needed (`0d18552`).
 
 ---
 
