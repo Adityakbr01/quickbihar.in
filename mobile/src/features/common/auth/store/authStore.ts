@@ -9,6 +9,14 @@ export enum RoleEnum {
   SUPER_ADMIN = "SUPER_ADMIN",
 }
 
+/**
+ * Legacy/client alias for the DELIVERY role name — some tokens/records carry
+ * "RIDER" for what is canonically the DELIVERY role. Use this in role-name
+ * comparisons instead of a bare "RIDER" literal. Mirrors the server's
+ * RIDER_ROLE_ALIAS (rbac.types.ts).
+ */
+export const RIDER_ROLE_ALIAS = "RIDER";
+
 interface Role {
   _id: string;
   name: string;
@@ -29,7 +37,7 @@ export const getRoleLandingRoute = (
 ): "/(tabs)/clothing/home" | "/(tabs)/clothing/admin" | "/(tabs)/clothing/rider" => {
   const roleName = typeof role === "string" ? role : role?.name;
   if (roleName === RoleEnum.ADMIN) return "/(tabs)/clothing/admin";
-  if (roleName === RoleEnum.DELIVERY || roleName === "RIDER") return "/(tabs)/clothing/rider";
+  if (roleName === RoleEnum.DELIVERY || roleName === RIDER_ROLE_ALIAS) return "/(tabs)/clothing/rider";
   return "/(tabs)/clothing/home";
 };
 

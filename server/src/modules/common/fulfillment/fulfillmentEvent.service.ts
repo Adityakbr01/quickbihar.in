@@ -13,6 +13,7 @@ import * as notificationService from "@/modules/common/notification/notification
 import { User } from "@/modules/common/user/user.model";
 import { socketService } from "@/modules/common/socket/socket.service";
 import { FulfillmentEvent, type FulfillmentActor } from "./fulfillmentEvent.model";
+import { RIDER_ROLE_ALIAS } from "@/modules/common/rbac/rbac.types";
 import { NotificationOutbox } from "./notificationOutbox.model";
 
 type EventRecipient = {
@@ -59,7 +60,7 @@ const roleRoomsFor = (user: any) => {
   const roleName = user.roleId?.name || user.role?.name || user.role;
   const rooms = [`user:${userId}`, `user_${userId}`];
   if (roleName === "SELLER") rooms.push(`seller:${userId}`, `seller_${userId}`);
-  if (roleName === "DELIVERY" || roleName === "RIDER") rooms.push(`rider:${userId}`, `rider_${userId}`);
+  if (roleName === "DELIVERY" || roleName === RIDER_ROLE_ALIAS) rooms.push(`rider:${userId}`, `rider_${userId}`);
   if (roleName === "ADMIN" || roleName === "SUPER_ADMIN") rooms.push("admin", "admins");
   return rooms;
 };

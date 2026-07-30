@@ -22,6 +22,7 @@ import { Role } from "@/modules/common/rbac/rbac.model";
 import { User } from "@/modules/common/user/user.model";
 import { uploadToImageKit } from "@/utils/imagekit.util";
 import { socketService } from "@/modules/common/socket/socket.service";
+import { SocketEvents } from "@/constants/socketEvents";
 import { optimizeNotificationImageUrl } from "./notification.worker";
 
 /**
@@ -204,7 +205,7 @@ export const sendNotification = asyncHandler(async (req: Request, res: Response)
   }
 
   // Notify admins of new pending campaign
-  socketService.emitToAdmins("notification_status_update", {
+  socketService.emitToAdmins(SocketEvents.NOTIFICATION_STATUS_UPDATE, {
     notificationId: notification._id.toString(),
     status: NotificationStatus.PENDING,
   });
@@ -471,11 +472,11 @@ export const updateNotification = asyncHandler(async (req: Request, res: Respons
       };
 
       if (notification.targetType === TargetType.ALL) {
-        socketService.emitToAll("notification_updated", socketPayload);
+        socketService.emitToAll(SocketEvents.NOTIFICATION_UPDATED, socketPayload);
       } else if (notification.targetType === TargetType.ROLE && notification.targetRole) {
-        socketService.emitToRoom(`role_${notification.targetRole.toLowerCase()}`, "notification_updated", socketPayload);
+        socketService.emitToRoom(`role_${notification.targetRole.toLowerCase()}`, SocketEvents.NOTIFICATION_UPDATED, socketPayload);
       } else if (notification.targetUser) {
-        socketService.emitToUser(notification.targetUser.toString(), "notification_updated", socketPayload);
+        socketService.emitToUser(notification.targetUser.toString(), SocketEvents.NOTIFICATION_UPDATED, socketPayload);
       }
 
       // Queue background push notification updates for Live Activities to update system lock screens
@@ -490,7 +491,7 @@ export const updateNotification = asyncHandler(async (req: Request, res: Respons
   }
 
   // Broadcast status change to admins
-  socketService.emitToAdmins("notification_status_update", {
+  socketService.emitToAdmins(SocketEvents.NOTIFICATION_STATUS_UPDATE, {
     notificationId: notification._id.toString(),
     status: notification.status,
     title: notification.title,
@@ -598,7 +599,7 @@ export const resendNotification = asyncHandler(async (req: Request, res: Respons
   await notification.save();
 
   // Broadcast status to admin
-  socketService.emitToAdmins("notification_status_update", {
+  socketService.emitToAdmins(SocketEvents.NOTIFICATION_STATUS_UPDATE, {
     notificationId: notification._id.toString(),
     status: NotificationStatus.PENDING,
     sentCount: 0,
@@ -779,7 +780,7 @@ export const markAsRead = asyncHandler(async (req: Request, res: Response) => {
     );
 
     if (updated) {
-      socketService.emitToAdmins("notification_status_update", {
+      socketService.emitToAdmins(SocketEvents.NOTIFICATION_STATUS_UPDATE, {
         notificationId,
         deliveryCount: updated.deliveryCount,
         openCount: updated.openCount,
@@ -797,7 +798,7 @@ export const markAsRead = asyncHandler(async (req: Request, res: Response) => {
     );
 
     if (updated) {
-      socketService.emitToAdmins("notification_status_update", {
+      socketService.emitToAdmins(SocketEvents.NOTIFICATION_STATUS_UPDATE, {
         notificationId,
         deliveryCount: updated.deliveryCount,
         openCount: updated.openCount,
@@ -878,7 +879,7 @@ export const markAllAsRead = asyncHandler(async (req: Request, res: Response) =>
           { new: true }
         );
         if (updated) {
-          socketService.emitToAdmins("notification_status_update", {
+          socketService.emitToAdmins(SocketEvents.NOTIFICATION_STATUS_UPDATE, {
             notificationId: nId.toString(),
             deliveryCount: updated.deliveryCount,
             openCount: updated.openCount,
@@ -894,7 +895,7 @@ export const markAllAsRead = asyncHandler(async (req: Request, res: Response) =>
           { new: true }
         );
         if (updated) {
-          socketService.emitToAdmins("notification_status_update", {
+          socketService.emitToAdmins(SocketEvents.NOTIFICATION_STATUS_UPDATE, {
             notificationId: nId.toString(),
             deliveryCount: updated.deliveryCount,
             openCount: updated.openCount,
@@ -940,7 +941,7 @@ export const reportDelivery = asyncHandler(async (req: Request, res: Response) =
     );
 
     if (updated) {
-      socketService.emitToAdmins("notification_status_update", {
+      socketService.emitToAdmins(SocketEvents.NOTIFICATION_STATUS_UPDATE, {
         notificationId: id,
         deliveryCount: updated.deliveryCount,
         openCount: updated.openCount,
@@ -985,7 +986,7 @@ export const reportOpen = asyncHandler(async (req: Request, res: Response) => {
     );
 
     if (updated) {
-      socketService.emitToAdmins("notification_status_update", {
+      socketService.emitToAdmins(SocketEvents.NOTIFICATION_STATUS_UPDATE, {
         notificationId: id,
         deliveryCount: updated.deliveryCount,
         openCount: updated.openCount,
@@ -1003,7 +1004,7 @@ export const reportOpen = asyncHandler(async (req: Request, res: Response) => {
     );
 
     if (updated) {
-      socketService.emitToAdmins("notification_status_update", {
+      socketService.emitToAdmins(SocketEvents.NOTIFICATION_STATUS_UPDATE, {
         notificationId: id,
         deliveryCount: updated.deliveryCount,
         openCount: updated.openCount,

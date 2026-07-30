@@ -242,7 +242,9 @@ const CheckoutScreen = () => {
       // 2. Open Razorpay Checkout
       const options = {
         description: "Payment for Order " + order.orderId,
-        image: "https://your-logo-url.png", // Optional: replace with app logo
+        // Razorpay `image` (checkout logo) is optional; omitted rather than
+        // shipping a broken placeholder URL. Wire to appConfig.logoUrl when a
+        // hosted brand logo is available.
         currency: razorpayOrder.currency,
         key: RAZORPAY_CONFIG.KEY_ID,
         amount: razorpayOrder.amount,

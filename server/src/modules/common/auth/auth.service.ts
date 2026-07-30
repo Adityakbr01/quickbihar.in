@@ -166,7 +166,6 @@ export async function requestOTP(email: string) {
 
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
   const redisKey = `otp:${email}`;
-  console.log(otp);
 
   // Store OTP in Redis for 10 minutes
   await redis.set(redisKey, otp, "EX", 600);

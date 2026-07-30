@@ -7,6 +7,7 @@ import { SocketEvents } from "@/constants/socketEvents";
 import { DeliveryBoy } from "@/modules/common/deliveryBoy/delivery.model";
 import { Order } from "@/modules/common/order/order.model";
 import { SubOrder } from "@/modules/common/order/subOrder.model";
+import { RIDER_ROLE_ALIAS } from "@/modules/common/rbac/rbac.types";
 
 export class SocketService {
   private io: Server | null = null;
@@ -53,10 +54,23 @@ export class SocketService {
   }
 
   init(server: HttpServer) {
+    // Mirror the Express CORS allowlist (ENV.CORS_ORIGIN) so the socket server is not
+    // wide open in production. "*" is honoured only if explicitly configured.
+    const allowedOrigins = Array.isArray(ENV.CORS_ORIGIN)
+      ? ENV.CORS_ORIGIN
+      : [ENV.CORS_ORIGIN];
+
     this.io = new Server(server, {
       cors: {
-        origin: "*", // Adjust in production
+        origin: (origin, callback) => {
+          if (!origin || allowedOrigins.includes("*") || allowedOrigins.includes(origin)) {
+            callback(null, true);
+            return;
+          }
+          callback(new Error(`CORS origin not allowed: ${origin}`));
+        },
         methods: ["GET", "POST"],
+        credentials: true,
       },
     });
 
@@ -121,20 +135,10 @@ export class SocketService {
         console.log(`[SocketService] Seller ${userId} joined room: seller_${userId}`);
       }
 
-      if (roleName === "DELIVERY" || roleName === "RIDER") {
+      if (roleName === "DELIVERY" || roleName === RIDER_ROLE_ALIAS) {
         socket.join(`rider_${userId}`);
         socket.join(`rider:${userId}`);
         console.log(`[SocketService] Rider ${userId} joined room: rider_${userId}`);
-        
-        // Join matching room if active and online
-        DeliveryBoy.findOne({ userId: user._id }).then(profile => {
-          if (profile && profile.status === "APPROVED" && profile.isOnline) {
-            socket.join("riders_matching");
-            console.log(`[SocketService] Active Rider ${userId} joined room: riders_matching`);
-          }
-        }).catch(err => {
-          console.error("[SocketService] Error checking rider online status:", err);
-        });
       }
 
       // Order Tracking Rooms (Parent Orders)

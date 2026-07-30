@@ -1,16 +1,20 @@
-import { RoleEnum, useAuthStore } from "@/src/features/common/auth/store/authStore";
+import {
+  RIDER_ROLE_ALIAS,
+  RoleEnum,
+  useAuthStore,
+} from "@/src/features/common/auth/store/authStore";
 import { Redirect } from "expo-router";
-import RiderWorkflowScreen from "../../rider";
+import RiderWorkspaceScreen from "@/src/features/Delivery/screens/RiderWorkspaceScreen";
 import React from "react";
 
 export default function RiderTabScreen() {
   const { user } = useAuthStore();
   const roleName = typeof user?.role === "string" ? user.role : user?.role?.name;
-  const isRider = roleName === RoleEnum.DELIVERY || roleName === "RIDER";
+  const isRider = roleName === RoleEnum.DELIVERY || roleName === RIDER_ROLE_ALIAS;
 
   if (!isRider) {
     return <Redirect href="/(tabs)/clothing/home" />;
   }
 
-  return <RiderWorkflowScreen />;
+  return <RiderWorkspaceScreen />;
 }

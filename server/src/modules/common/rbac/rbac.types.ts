@@ -9,6 +9,17 @@ export enum RoleEnum {
   SUPER_ADMIN = "SUPER_ADMIN",
 }
 
+/**
+ * Legacy/client alias for the DELIVERY role name. Some mobile clients and older
+ * tokens carry "RIDER" for what is canonically the DELIVERY role. Use this in
+ * role-name comparisons instead of a bare "RIDER" literal.
+ *
+ * Intentionally NOT a member of RoleEnum: RoleEnum drives RBAC role seeding
+ * (see db/rbacSeed.ts, which upserts one Role per Object.values(RoleEnum)), so it
+ * must map 1:1 to real, permission-mapped roles. "RIDER" is an alias, not a role.
+ */
+export const RIDER_ROLE_ALIAS = "RIDER";
+
 export enum ModuleEnum {
   PRODUCT = "PRODUCT",
   CATEGORY = "CATEGORY",

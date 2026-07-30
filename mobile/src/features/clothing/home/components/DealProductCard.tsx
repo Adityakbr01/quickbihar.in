@@ -10,7 +10,7 @@ import { Image, Text, TouchableOpacity, View } from "react-native";
 import Toast from "react-native-toast-message";
 import { useCartStore } from "@/src/features/common/cart/store/cartStore";
 import { useWishlistStore } from "@/src/features/common/wishlist/store/wishlistStore";
-import { DealProduct as MockProduct } from "../lib/dealsMockData";
+import { DealProduct as MockProduct } from "../lib/dealsConfig";
 import { createDealProductCardStyles } from "../style/DealProductCard.style";
 import { VariantSelectorBottomSheet } from "../../product/components/modals/VariantSelectorBottomSheet";
 

@@ -24,7 +24,7 @@ import {
   CATEGORY_OPTIONS,
   FILTERS,
   GENDER_OPTIONS,
-} from "../lib/dealsMockData";
+} from "../lib/dealsConfig";
 import { createMoreDealsSectionStyles } from "../style/MoreDealsSection.style";
 
 const getSpeechRecognitionModule = () => {

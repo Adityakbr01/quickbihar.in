@@ -59,7 +59,6 @@ export const isSellerOrAdmin = asyncHandler(
     const user = (req as any).user;
     if (!user) throw new ApiError(401, "Authentication required");
 
-    console.log("Checking access for user:", user.email);
     const roles = [RoleEnum.SELLER, RoleEnum.ADMIN, RoleEnum.SUPER_ADMIN];
 
     // Check primary roleId name

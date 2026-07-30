@@ -115,7 +115,7 @@ export const startNotificationWorker = () => {
             await notification.save();
 
             // Emit status update to admin
-            socketService.emitToAdmins("notification_status_update", {
+            socketService.emitToAdmins(SocketEvents.NOTIFICATION_STATUS_UPDATE, {
               notificationId: notification._id.toString(),
               status: NotificationStatus.FAILED,
               error: notification.error,
@@ -128,7 +128,7 @@ export const startNotificationWorker = () => {
           await notification.save();
 
           // Emit status update to admin
-          socketService.emitToAdmins("notification_status_update", {
+          socketService.emitToAdmins(SocketEvents.NOTIFICATION_STATUS_UPDATE, {
             notificationId: notification._id.toString(),
             status: NotificationStatus.PROCESSING,
           });
@@ -447,7 +447,7 @@ export const startNotificationWorker = () => {
             }
 
             // Emit status update to admin
-            socketService.emitToAdmins("notification_status_update", {
+            socketService.emitToAdmins(SocketEvents.NOTIFICATION_STATUS_UPDATE, {
               notificationId: notification._id.toString(),
               status: NotificationStatus.SENT,
               sentCount: notification.sentCount,
@@ -463,7 +463,7 @@ export const startNotificationWorker = () => {
           await notification.save();
 
           // Emit status update to admin
-          socketService.emitToAdmins("notification_status_update", {
+          socketService.emitToAdmins(SocketEvents.NOTIFICATION_STATUS_UPDATE, {
             notificationId: notification._id.toString(),
             status: NotificationStatus.FAILED,
             error: notification.error,

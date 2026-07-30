@@ -12,7 +12,9 @@ export const SocketEvents = {
   FULFILLMENT_EVENT: "fulfillment_event",
   RIDER_JOB_OFFER: "rider_job_offer",
   RIDER_OFFER_CLOSED: "rider_offer_closed",
-  SUBORDER_STATUS_UPDATE: "suborder_status_update",
+  NEW_NOTIFICATION: "new_notification",
+  NOTIFICATION_UPDATED: "notification_updated",
+  NOTIFICATION_STATUS_UPDATE: "notification_status_update",
 } as const;
 
 export type SocketEventName = (typeof SocketEvents)[keyof typeof SocketEvents];

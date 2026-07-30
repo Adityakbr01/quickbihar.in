@@ -8,7 +8,7 @@ import {
   View,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { CAMPAIGNS } from "../lib/dealsMockData";
+import { CAMPAIGNS } from "../lib/dealsConfig";
 
 export const MoreDealsHeader = ({ theme }: any) => {
   const [activeId, setActiveId] = React.useState(CAMPAIGNS[0]?.id);

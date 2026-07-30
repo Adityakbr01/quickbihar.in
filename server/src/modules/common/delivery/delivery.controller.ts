@@ -1,5 +1,4 @@
 import { asyncHandler } from "@/utils/asyncHandler";
-import { deliveryLocationSchema, updateDeliveryStatusSchema } from "@/modules/common/order/order.validator";
 import * as deliveryService from "./delivery.service";
 import { SubOrderService } from "@/modules/common/order/subOrder.service";
 import { ApiError } from "@/utils/ApiError";
@@ -241,30 +240,6 @@ export const rejectOffer = asyncHandler(async (req, res) => {
 export const orderById = asyncHandler(async (req, res) => {
     const order = await deliveryService.getMyOrder((req as any).user._id, req.params.id as string);
     res.ok(order, "Delivery order fetched successfully");
-});
-
-/**
- * Legacy: updates a parent-order delivery status (superseded by the sub-order flow).
- *
- * @route (legacy — no active route; superseded by the sub-order flow)
- * @access Protected (delivery rider)
- */
-export const updateOrderStatus = asyncHandler(async (req, res) => {
-    const body = updateDeliveryStatusSchema.parse(req.body);
-    const order = await deliveryService.updateOrderStatus((req as any).user._id, req.params.id as string, body);
-    res.ok(order, "Delivery status updated successfully");
-});
-
-/**
- * Legacy: updates a parent-order delivery location (superseded by the sub-order flow).
- *
- * @route (legacy — no active route; superseded by the sub-order flow)
- * @access Protected (delivery rider)
- */
-export const updateOrderLocation = asyncHandler(async (req, res) => {
-    const body = deliveryLocationSchema.parse(req.body);
-    const order = await deliveryService.updateOrderLocation((req as any).user._id, req.params.id as string, body);
-    res.ok(order, "Delivery location updated successfully");
 });
 
 /**

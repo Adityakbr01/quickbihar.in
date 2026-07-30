@@ -71,6 +71,7 @@ import {
   formatDate,
 } from "../../utils";
 import { getWebSocket } from "@/lib/socket";
+import { SocketEvents } from "@/constants/socketEvents";
 
 export function NotificationManagementPanel() {
   const [search, setSearch] = useState("");
@@ -232,12 +233,12 @@ export function NotificationManagementPanel() {
       analyticsQuery.refetch();
     };
 
-    socket.on("notification_status_update", handleStatusUpdate);
-    socket.on("notification_updated", handleNotificationUpdated);
+    socket.on(SocketEvents.NOTIFICATION_STATUS_UPDATE, handleStatusUpdate);
+    socket.on(SocketEvents.NOTIFICATION_UPDATED, handleNotificationUpdated);
 
     return () => {
-      socket.off("notification_status_update", handleStatusUpdate);
-      socket.off("notification_updated", handleNotificationUpdated);
+      socket.off(SocketEvents.NOTIFICATION_STATUS_UPDATE, handleStatusUpdate);
+      socket.off(SocketEvents.NOTIFICATION_UPDATED, handleNotificationUpdated);
     };
   }, [notificationsQuery, analyticsQuery]);
 

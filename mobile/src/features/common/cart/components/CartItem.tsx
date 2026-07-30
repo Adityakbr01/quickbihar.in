@@ -4,7 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { createCartStyles } from "../styles/cartStyles";
-import { CartItem as CartItemType } from "../lib/cartMockData";
+import { CartItem as CartItemType } from "../lib/cartData";
 
 interface CartItemProps {
   item: CartItemType;
