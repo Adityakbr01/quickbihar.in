@@ -22,6 +22,11 @@ import { assertCartServiceable, assertCartStoresOpen } from "@/modules/common/st
 
 const generateDeliveryOtp = () => Math.floor(100000 + Math.random() * 900000).toString();
 
+// Sentinel stored in `paymentInfo.razorpayOrderId` for Cash-on-Delivery orders, which
+// have no real Razorpay order. Sub-order creation reads this to flag `packageDetails.isCod`,
+// which drives the whole COD subsystem (rider cash-liability ceiling + admin settle-COD).
+const COD_SENTINEL = "COD";
+
 const deliveryEvent = (status: DeliveryStatus, action: string, actorId?: string, note?: string) => ({
     status,
     action,
@@ -163,6 +168,7 @@ export class OrderService {
 
     async createOrder(userId: string, data: any) {
         const { shippingAddress } = data;
+        const isCod = data.paymentMethod === "COD";
         const shippingLatitude = Number(shippingAddress?.latitude);
         const shippingLongitude = Number(shippingAddress?.longitude);
 
@@ -180,7 +186,7 @@ export class OrderService {
             longitude: shippingLongitude,
         };
 
-        console.log(`[OrderService] Initiating order for user: ${userId}`);
+        console.log(`[OrderService] Initiating ${isCod ? "COD" : "online"} order for user: ${userId}`);
         const quote = await orderPricingService.buildQuote(userId, data);
         console.log(
             `[OrderService] Final Payable Amount: ${quote.payableAmount} ` +
@@ -197,11 +203,14 @@ export class OrderService {
             longitude: shippingLongitude,
         });
 
-        const razorpayOrder = await razorpay.orders.create({
-            amount: Math.round(quote.payableAmount * 100),
-            currency: "INR",
-            receipt: `receipt_${Date.now()}`,
-        });
+        // COD orders have no Razorpay order; a real one is created only for online payment.
+        const razorpayOrder = isCod
+            ? null
+            : await razorpay.orders.create({
+                amount: Math.round(quote.payableAmount * 100),
+                currency: "INR",
+                receipt: `receipt_${Date.now()}`,
+            });
 
         const order = await orderDAO.create({
             userId: new Types.ObjectId(userId) as any,
@@ -223,9 +232,9 @@ export class OrderService {
             couponCode: quote.couponCodes[0] || "",
             couponCodes: quote.couponCodes,
             couponDiscounts: quote.appliedCouponsInfo,
-            status: OrderStatus.PENDING_PAYMENT,
+            status: isCod ? OrderStatus.CONFIRMED : OrderStatus.PENDING_PAYMENT,
             paymentInfo: {
-                razorpayOrderId: razorpayOrder.id,
+                razorpayOrderId: isCod ? COD_SENTINEL : razorpayOrder!.id,
             },
         });
 
@@ -237,12 +246,19 @@ export class OrderService {
             createdAt: order.createdAt
         });
 
+        // COD skips Razorpay: run the same post-confirmation pipeline online orders run
+        // in verifyPayment (stock deduction, coupon usage, sub-order split, emissions).
+        if (isCod) {
+            const confirmedOrder = await this.finalizeConfirmedOrder(order);
+            return { order: confirmedOrder, razorpayOrder: null };
+        }
+
         return {
             order,
             razorpayOrder: {
-                id: razorpayOrder.id,
-                amount: razorpayOrder.amount,
-                currency: razorpayOrder.currency,
+                id: razorpayOrder!.id,
+                amount: razorpayOrder!.amount,
+                currency: razorpayOrder!.currency,
             },
         };
     }
@@ -274,7 +290,18 @@ export class OrderService {
             razorpaySignature
         );
 
-        // 4. Atomic Stock Deduction
+        // 4. Run the shared post-confirmation pipeline (stock, coupons, sub-orders, emissions).
+        await this.finalizeConfirmedOrder(order);
+
+        return updatedOrder;
+    }
+
+    // Shared post-confirmation pipeline used by both online (verifyPayment) and COD (createOrder)
+    // once an order reaches CONFIRMED: deduct stock, mark coupon usage, split into sub-orders, emit.
+    private async finalizeConfirmedOrder(order: any) {
+        const isCod = order.paymentInfo?.razorpayOrderId === COD_SENTINEL;
+
+        // 1. Atomic Stock Deduction
         for (const item of order.items) {
             const updatedProduct = await ProductDAO.deductStock(
                 item.productId.toString(),
@@ -297,7 +324,7 @@ export class OrderService {
             });
         }
 
-        // 5. Update Coupon Usage if applicable
+        // 2. Update Coupon Usage if applicable
         if (order.couponCodes && order.couponCodes.length > 0) {
             for (const code of order.couponCodes) {
                 await couponService.incrementUsage(code);
@@ -306,7 +333,7 @@ export class OrderService {
             await couponService.incrementUsage(order.couponCode);
         }
 
-        // 6. Split Order into SubOrders (Multi-Vendor Independence)
+        // 3. Split Order into SubOrders (Multi-Vendor Independence)
         const uniqueSellerIds = Array.from(new Set(order.items.map((item: any) => item.sellerId?.toString()).filter(Boolean)));
         const pricingBreakdowns = ((order as any).pricingSnapshot?.sellerBreakdowns || []) as any[];
         const splitAmount = (amount: number, count: number, index: number) => {
@@ -316,13 +343,13 @@ export class OrderService {
             const remainder = paise % count;
             return Math.round(((base + (index < remainder ? 1 : 0)) / 100) * 100) / 100;
         };
-        
+
         for (let idx = 0; idx < uniqueSellerIds.length; idx++) {
             const sellerId = uniqueSellerIds[idx] as string;
             const sellerItems = order.items.filter((item: any) => item.sellerId?.toString() === sellerId);
-            
-            const subtotal = sellerItems.reduce((sum, item) => sum + (item.price || 0) * item.quantity, 0);
-            const tax = sellerItems.reduce((sum, item) => sum + (item.taxAmount || 0) * item.quantity, 0);
+
+            const subtotal = sellerItems.reduce((sum: number, item: any) => sum + (item.price || 0) * item.quantity, 0);
+            const tax = sellerItems.reduce((sum: number, item: any) => sum + (item.taxAmount || 0) * item.quantity, 0);
             const pricingBreakdown = pricingBreakdowns.find((breakdown) => breakdown.sellerId?.toString() === sellerId);
             const shippingFeePerSeller = Number(
                 pricingBreakdown?.customerDeliveryFeeShare
@@ -334,7 +361,7 @@ export class OrderService {
             const riderPayoutEstimate = Number(pricingBreakdown?.riderPayoutEstimate || 0);
             const riderBonuses = pricingBreakdown?.riderBonuses || { rain: 0, peak: 0, festival: 0, night: 0 };
             const appNetAfterRider = Number(pricingBreakdown?.appNetAfterRider || 0);
-            
+
             const sellerCoupon = order.couponDiscounts?.find((cd: any) => cd.sellerId?.toString() === sellerId);
             const sellerCouponDiscount = sellerCoupon ? sellerCoupon.discountAmount : 0;
             const sellerNet = Number(sellerNetFromSnapshot ?? Math.max(0, subtotal - sellerCouponDiscount - platformCommission));
@@ -379,7 +406,7 @@ export class OrderService {
                     weight: 0,
                     packageCount: 1,
                     isFragile: false,
-                    isCod: order.payableAmount > 0 && order.paymentInfo?.razorpayOrderId === "COD",
+                    isCod: isCod && payableAmount > 0,
                     otpRequired: true,
                 },
                 delivery: {
@@ -396,7 +423,7 @@ export class OrderService {
                         "SYSTEM",
                         undefined,
                         undefined,
-                        { message: "Order payment verified and sub-order created" }
+                        { message: isCod ? "COD order placed and sub-order created" : "Order payment verified and sub-order created" }
                     )
                 ]
             });
@@ -411,16 +438,24 @@ export class OrderService {
         }
 
         // Emission of events
-        socketService.emitToAdmins(SocketEvents.ORDER_CONFIRMED, { orderId: updatedOrder?.orderId });
+        socketService.emitToAdmins(SocketEvents.ORDER_CONFIRMED, { orderId: order.orderId });
         socketService.emitToUser(order.userId.toString(), SocketEvents.ORDER_STATUS_UPDATE, {
-            orderId: updatedOrder?.orderId,
+            orderId: order.orderId,
             status: OrderStatus.CONFIRMED,
-            message: "Your payment has been verified and order is confirmed!"
+            message: isCod
+                ? "Your Cash on Delivery order is confirmed!"
+                : "Your payment has been verified and order is confirmed!"
         });
 
-        await this.notifyOrderSellers(order, OrderStatus.CONFIRMED, `A new paid order ${order.orderId} is ready for fulfillment.`);
+        await this.notifyOrderSellers(
+            order,
+            OrderStatus.CONFIRMED,
+            isCod
+                ? `A new COD order ${order.orderId} is ready for fulfillment.`
+                : `A new paid order ${order.orderId} is ready for fulfillment.`,
+        );
 
-        return updatedOrder;
+        return order;
     }
 
     async getMyOrders(userId: string) {

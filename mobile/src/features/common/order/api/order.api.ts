@@ -19,6 +19,7 @@ export interface CreateOrderData {
   };
   couponCode?: string;
   couponCodes?: string[];
+  paymentMethod?: "ONLINE" | "COD";
 }
 
 export interface VerifyPaymentData {

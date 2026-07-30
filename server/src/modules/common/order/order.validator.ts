@@ -30,6 +30,8 @@ export const createOrderSchema = z.object({
     shippingAddress: shippingAddressSchema,
     couponCode: z.string().optional(),
     couponCodes: z.array(z.string()).optional(),
+    // ONLINE → Razorpay checkout (default). COD → confirm immediately, collect cash on delivery.
+    paymentMethod: z.enum(["ONLINE", "COD"]).optional().default("ONLINE"),
 });
 
 export const quoteOrderSchema = createOrderSchema;

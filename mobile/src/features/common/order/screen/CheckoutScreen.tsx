@@ -57,6 +57,7 @@ const CheckoutScreen = () => {
   const [quote, setQuote] = useState<OrderQuoteData | null>(null);
   const [isQuoteLoading, setIsQuoteLoading] = useState(false);
   const [quoteError, setQuoteError] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState<"ONLINE" | "COD">("ONLINE");
 
   // Alert Configuration
   const [alertConfig, setAlertConfig] = useState<{
@@ -132,6 +133,7 @@ const CheckoutScreen = () => {
     },
     couponCode: appliedCoupon?.code,
     couponCodes: (appliedCoupons || []).map((c) => c.code),
+    paymentMethod,
   });
 
   useEffect(() => {
@@ -225,6 +227,17 @@ const CheckoutScreen = () => {
       // 1. Create Order on Backend
       const orderResponse = await createOrderRequest(orderData);
       const { razorpayOrder, order } = orderResponse.data;
+
+      // Cash on Delivery: the server confirms the order immediately (no gateway
+      // step and no razorpayOrder), so go straight to the success screen.
+      if (paymentMethod === "COD" || !razorpayOrder) {
+        clearCart();
+        router.replace({
+          pathname: "/order-success",
+          params: { orderId: order.orderId },
+        });
+        return;
+      }
 
       // 2. Open Razorpay Checkout
       const options = {
@@ -445,6 +458,54 @@ const CheckoutScreen = () => {
           })()}
         </View>
 
+        {/* Payment Method */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { marginBottom: 16 }]}>
+            Payment Method
+          </Text>
+          {([
+            { key: "ONLINE", label: "Pay Online", desc: "UPI, Cards, Netbanking & Wallets", icon: "credit-card-outline" },
+            { key: "COD", label: "Cash on Delivery", desc: "Pay in cash when your order arrives", icon: "cash" },
+          ] as const).map((option) => {
+            const isSelected = paymentMethod === option.key;
+            return (
+              <TouchableOpacity
+                key={option.key}
+                onPress={() => setPaymentMethod(option.key)}
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  padding: 14,
+                  marginBottom: 10,
+                  borderRadius: 12,
+                  borderWidth: 1.5,
+                  borderColor: isSelected ? theme.primary : theme.border,
+                  backgroundColor: isSelected ? `${theme.primary}12` : "transparent",
+                }}
+              >
+                <MaterialCommunityIcons
+                  name={option.icon}
+                  size={24}
+                  color={isSelected ? theme.primary : theme.secondaryText}
+                />
+                <View style={{ flex: 1, marginLeft: 12 }}>
+                  <Text style={{ fontSize: 15, fontWeight: "700", color: theme.text }}>
+                    {option.label}
+                  </Text>
+                  <Text style={{ fontSize: 12, color: theme.secondaryText, marginTop: 2 }}>
+                    {option.desc}
+                  </Text>
+                </View>
+                <Ionicons
+                  name={isSelected ? "radio-button-on" : "radio-button-off"}
+                  size={22}
+                  color={isSelected ? theme.primary : theme.secondaryText}
+                />
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+
         {/* Bill Details */}
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { marginBottom: 16 }]}>
@@ -589,7 +650,9 @@ const CheckoutScreen = () => {
                 ₹{totalPayable.toLocaleString()}
               </Text>
               <View style={styles.payButtonDivider} />
-              <Text style={styles.payButtonText}>Place Order</Text>
+              <Text style={styles.payButtonText}>
+                {paymentMethod === "COD" ? "Place COD Order" : "Pay & Place Order"}
+              </Text>
             </View>
           )}
         </TouchableOpacity>
