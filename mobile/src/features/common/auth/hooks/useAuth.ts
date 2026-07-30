@@ -6,7 +6,7 @@ import {
   verifyOTPRequest,
   logoutRequest,
 } from "../api/auth.api";
-import { useAuthStore } from "../store/authStore";
+import { useAuthStore, getRoleLandingRoute } from "../store/authStore";
 import { useRouter } from "expo-router";
 import { useCartStore } from "@/src/features/common/cart/store/cartStore";
 
@@ -37,7 +37,9 @@ export const useLogin = () => {
         console.error("Failed to sync cart after login:", error);
       }
 
-      router.replace("/(tabs)/clothing/home");
+      // Land each role on its own home so admins/riders don't have to hunt
+      // for their hidden tab (falls back to the shopping home for USER/SELLER).
+      router.replace(getRoleLandingRoute(user.role));
     },
   });
 };
@@ -89,7 +91,9 @@ export const useVerifyOTP = () => {
         console.error("Failed to sync cart after OTP login:", error);
       }
 
-      router.replace("/(tabs)/clothing/home");
+      // Land each role on its own home so admins/riders don't have to hunt
+      // for their hidden tab (falls back to the shopping home for USER/SELLER).
+      router.replace(getRoleLandingRoute(user.role));
     },
   });
 };

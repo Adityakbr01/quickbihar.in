@@ -18,6 +18,21 @@ interface Role {
   updatedAt: string;
 }
 
+/**
+ * Resolves the post-login landing route from a user's role. The predicates mirror
+ * the tab guards in app/(tabs)/clothing/{admin,rider}.tsx and _layout.tsx, so a user
+ * always lands on a screen their role can actually render (no guard-redirect bounce).
+ * USER/SELLER and unknown roles land on the shopping home.
+ */
+export const getRoleLandingRoute = (
+  role?: Role | string | null
+): "/(tabs)/clothing/home" | "/(tabs)/clothing/admin" | "/(tabs)/clothing/rider" => {
+  const roleName = typeof role === "string" ? role : role?.name;
+  if (roleName === RoleEnum.ADMIN) return "/(tabs)/clothing/admin";
+  if (roleName === RoleEnum.DELIVERY || roleName === "RIDER") return "/(tabs)/clothing/rider";
+  return "/(tabs)/clothing/home";
+};
+
 interface User {
   _id: string;
   username: string;
