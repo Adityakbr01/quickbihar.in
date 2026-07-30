@@ -1,6 +1,7 @@
 import { asyncHandler } from "@/utils/asyncHandler";
 import * as deliveryService from "./delivery.service";
 import { SubOrderService } from "@/modules/common/order/subOrder.service";
+import { returnPickupSchema } from "@/modules/common/order/order.validator";
 import { ApiError } from "@/utils/ApiError";
 import { Types } from "mongoose";
 import { SubOrder } from "@/modules/common/order/subOrder.model";
@@ -423,4 +424,48 @@ export const sync = asyncHandler(async (req, res) => {
             currentLocation: profile.currentLocation
         } : null
     }, "Delivery sync state fetched successfully");
+});
+
+/**
+ * Lists approved returns available for any eligible rider to claim (pull model).
+ *
+ * @route GET /api/v1/delivery/return-tasks
+ * @access Protected (delivery rider)
+ */
+export const returnTasks = asyncHandler(async (req, res) => {
+    const tasks = await SubOrderService.listClaimableReturns((req as any).user._id.toString());
+    res.ok(tasks, "Claimable return tasks fetched successfully");
+});
+
+/**
+ * Rider claims an approved return pickup (race-safe; first rider wins).
+ *
+ * @route POST /api/v1/delivery/sub-orders/:id/return-claim
+ * @access Protected (delivery rider)
+ */
+export const claimReturn = asyncHandler(async (req, res) => {
+    const riderUserId = (req as any).user._id.toString();
+    const subOrderId = req.params.id as string;
+    const ipAddress = req.ip || req.socket.remoteAddress;
+    const deviceInfo = req.headers["user-agent"] || "Unknown";
+
+    const result = await SubOrderService.riderClaimReturn(subOrderId, riderUserId, { ipAddress, deviceInfo });
+    res.ok(result, "Return pickup claimed successfully");
+});
+
+/**
+ * Rider verifies return pickup from the customer (OTP + photo proof).
+ *
+ * @route POST /api/v1/delivery/sub-orders/:id/return-pickup
+ * @access Protected (delivery rider)
+ */
+export const returnPickup = asyncHandler(async (req, res) => {
+    const riderUserId = (req as any).user._id.toString();
+    const subOrderId = req.params.id as string;
+    const { returnOtp, proofPhoto } = returnPickupSchema.parse(req.body);
+    const ipAddress = req.ip || req.socket.remoteAddress;
+    const deviceInfo = req.headers["user-agent"] || "Unknown";
+
+    const result = await SubOrderService.riderReturnPickup(subOrderId, riderUserId, returnOtp, proofPhoto, { ipAddress, deviceInfo });
+    res.ok(result, "Return pickup verified successfully");
 });

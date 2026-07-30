@@ -2,6 +2,7 @@ import { ApiResponse } from "@/utils/ApiResponse";
 import { asyncHandler } from "@/utils/asyncHandler";
 import { SellerService } from "./seller.service";
 import { SubOrderService } from "@/modules/common/order/subOrder.service";
+import { returnReviewSchema, returnReceiptSchema } from "@/modules/common/order/order.validator";
 import { ApiError } from "@/utils/ApiError";
 import { normalizeMallPayload, uploadMallMediaFiles } from "@/modules/common/mall/mall.media";
 import {
@@ -409,5 +410,31 @@ export class SellerController {
 
         const result = await SubOrderService.sellerApproveCancellation(subOrderId, sellerId, !!approve, { ipAddress, deviceInfo });
         return res.status(200).json(new ApiResponse(200, result, approve ? "Cancellation approved" : "Cancellation rejected"));
+    });
+
+    // M2 — seller approves/rejects a return request (RETURN_INITIATED → RETURN_APPROVED | DELIVERED).
+    static reviewReturn = asyncHandler(async (req, res) => {
+        const sellerId = (req as any).user._id.toString();
+        const subOrderId = req.params.id as string;
+        const { approve, note } = returnReviewSchema.parse(req.body);
+
+        const ipAddress = req.ip || req.socket.remoteAddress;
+        const deviceInfo = req.headers["user-agent"] || "Unknown";
+
+        const result = await SubOrderService.sellerReviewReturn(subOrderId, sellerId, approve, note, { ipAddress, deviceInfo });
+        return res.status(200).json(new ApiResponse(200, result, approve ? "Return approved" : "Return rejected"));
+    });
+
+    // M2 — seller confirms QC on returned goods (RETURN_PICKED_UP → RETURNED+refund | DISPUTED).
+    static confirmReturnReceipt = asyncHandler(async (req, res) => {
+        const sellerId = (req as any).user._id.toString();
+        const subOrderId = req.params.id as string;
+        const { accept, note } = returnReceiptSchema.parse(req.body);
+
+        const ipAddress = req.ip || req.socket.remoteAddress;
+        const deviceInfo = req.headers["user-agent"] || "Unknown";
+
+        const result = await SubOrderService.sellerConfirmReturnReceipt(subOrderId, sellerId, accept, note, { ipAddress, deviceInfo });
+        return res.status(200).json(new ApiResponse(200, result, accept ? "Return receipt confirmed; refund issued" : "Return flagged for dispute"));
     });
 }

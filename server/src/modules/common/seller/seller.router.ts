@@ -37,6 +37,8 @@ router.get("/sub-orders", SellerController.listSubOrders);
 router.get("/sub-orders/:id", SellerController.subOrderDetails);
 router.patch("/sub-orders/:id/status", SellerController.updateSubOrderStatus);
 router.post("/sub-orders/:id/cancellation-approval", SellerController.approveSubOrderCancellation);
+router.post("/sub-orders/:id/return-review", SellerController.reviewReturn);
+router.post("/sub-orders/:id/return-receipt", SellerController.confirmReturnReceipt);
 
 router.get("/coupons", SellerController.coupons);
 router.post("/coupons", SellerController.createCoupon);

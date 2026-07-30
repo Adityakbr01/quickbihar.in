@@ -17,6 +17,7 @@
     "test:onboarding": "bun test src/_tests_/onboarding.test.ts",
     "test:rbac": "bun test src/_tests_/rbac.test.ts",
     "test:settlements": "bun test src/_tests_/sellerSettlement.test.ts",
+    "test:return": "bun test src/_tests_/return.test.ts",
     "test:all": "bun test src/_tests_/auth.test.ts src/_tests_/onboarding.test.ts src/_tests_/rbac.test.ts src/_tests_/sellerSettlement.test.ts"
   },
   "devDependencies": {

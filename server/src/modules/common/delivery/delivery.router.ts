@@ -40,4 +40,9 @@ router.patch("/sub-orders/:id/near-customer", isDelivery, deliveryController.sub
 router.post("/sub-orders/:id/deliver", isDelivery, deliveryController.subOrderDeliver);
 router.post("/sub-orders/:id/cancel", isDelivery, deliveryController.subOrderCancel);
 
+// Return pickups (pull model: any eligible rider can claim an approved return)
+router.get("/return-tasks", isDelivery, deliveryController.returnTasks);
+router.post("/sub-orders/:id/return-claim", isDelivery, deliveryController.claimReturn);
+router.post("/sub-orders/:id/return-pickup", isDelivery, deliveryController.returnPickup);
+
 export default router;

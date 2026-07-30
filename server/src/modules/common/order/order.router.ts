@@ -15,6 +15,7 @@ router.delete("/admin/:id/delivery-assignment", isAdmin, legacyParentDeliveryGon
 router.get("/admin/sub-orders", isAdmin, OrderController.getAdminSubOrders);
 router.post("/admin/sub-orders/:id/assign", isAdmin, OrderController.adminAssignRider);
 router.post("/admin/sub-orders/:id/cod-settle", isAdmin, OrderController.adminSettleCod);
+router.post("/admin/sub-orders/:id/return-resolve", isAdmin, OrderController.adminResolveReturn);
 
 // User Routes
 router.post("/quote", OrderController.quoteOrder);

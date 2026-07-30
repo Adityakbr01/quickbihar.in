@@ -69,3 +69,23 @@ export const updateDeliveryStatusSchema = z.object({
     note: z.string().trim().max(500).optional(),
     location: deliveryLocationSchema.optional(),
 });
+
+// M2 — return lifecycle request bodies.
+export const returnReviewSchema = z.object({
+    approve: z.boolean(),
+    note: z.string().trim().max(500).optional(),
+});
+
+export const returnReceiptSchema = z.object({
+    accept: z.boolean(),
+    note: z.string().trim().max(500).optional(),
+});
+
+export const resolveReturnSchema = z.object({
+    resolution: z.enum(["refund", "close"]),
+});
+
+export const returnPickupSchema = z.object({
+    returnOtp: z.string().trim().min(4).max(8),
+    proofPhoto: z.string().trim().min(1, "Photo proof is required at the return pickup checkpoint"),
+});

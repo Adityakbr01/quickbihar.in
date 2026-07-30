@@ -182,6 +182,70 @@ export class SellerSettlementService {
         }
     }
 
+    /**
+     * Reverses a prior seller settlement when a delivered sub-order is returned/refunded (M2).
+     * Flips the AVAILABLE earning to REVERSED and claws the net amount back out of the seller
+     * wallet. If the earning was already PAID out, it still flips to REVERSED and decrements
+     * lifetimeEarnings, but leaves availableBalance untouched (that cash already left the wallet)
+     * and logs loudly so an admin can recover it. A missing or already-REVERSED earning is a
+     * no-op, so calling this twice for the same return never double-claws. The status-guarded
+     * updateOne makes concurrent reversals race-safe.
+     */
+    async reverseSubOrderSettlement(subOrder: any, options: SettlementOptions = {}) {
+        const idempotencyKey = this.idempotencyKeyForSubOrder(subOrder);
+        const existing = await SellerEarning.findOne({ idempotencyKey }).lean();
+
+        if (!existing || existing.status === "REVERSED") {
+            return {
+                reversed: false,
+                alreadyReversed: existing?.status === "REVERSED",
+                reason: existing ? "ALREADY_REVERSED" : "EARNING_NOT_FOUND",
+                amount: 0,
+            };
+        }
+
+        const netAmount = roundMoney(Number(existing.netAmount || 0));
+        const wasPaid = existing.status === "PAID";
+
+        const updated = await SellerEarning.updateOne(
+            { idempotencyKey, status: existing.status },
+            {
+                $set: {
+                    status: "REVERSED",
+                    "metadata.reversedAt": new Date(),
+                    "metadata.reversedFromStatus": existing.status,
+                    "metadata.reversedReason": options.note || options.source || "RETURN_REFUND",
+                },
+            },
+        );
+
+        // Lost the race — another reversal already flipped it. Do not touch the wallet again.
+        if (!updated.modifiedCount) {
+            return { reversed: false, alreadyReversed: true, reason: "ALREADY_REVERSED", amount: 0 };
+        }
+
+        await Seller.updateOne(
+            { userId: objectIdOf(subOrder.sellerId, "Seller id") },
+            {
+                $inc: {
+                    // PAID funds already left availableBalance, so only claw those back from
+                    // lifetimeEarnings; AVAILABLE funds are still withdrawable and come off both.
+                    ...(wasPaid ? {} : { "wallet.availableBalance": -netAmount }),
+                    "wallet.lifetimeEarnings": -netAmount,
+                },
+            },
+        );
+
+        if (wasPaid) {
+            console.error(
+                "[SellerSettlementService] CRITICAL: reversed an already-PAID earning for sub-order "
+                + `${subOrder.subOrderId} (net ₹${netAmount}). Payout was already sent — needs admin claw-back.`,
+            );
+        }
+
+        return { reversed: true, alreadyReversed: false, amount: netAmount, wasPaid };
+    }
+
     async settleDeliveredSubOrdersForOrder(parentOrderId: string | Types.ObjectId, options: SettlementOptions = {}) {
         const subOrders = await SubOrder.find({
             parentOrderId: objectIdOf(parentOrderId, "Parent order id"),

@@ -1,7 +1,7 @@
 import { ApiResponse } from "@/utils/ApiResponse";
 import { asyncHandler } from "@/utils/asyncHandler";
 import { orderService } from "./order.service";
-import { adminOrderStatusSchema, assignDeliverySchema, createOrderSchema, quoteOrderSchema, verifyPaymentSchema } from "./order.validator";
+import { adminOrderStatusSchema, assignDeliverySchema, createOrderSchema, quoteOrderSchema, resolveReturnSchema, verifyPaymentSchema } from "./order.validator";
 import { SubOrderService } from "./subOrder.service";
 import { ApiError } from "@/utils/ApiError";
 
@@ -186,6 +186,27 @@ export class OrderController {
 
         return res.status(200).json(
             new ApiResponse(200, result, "COD liability settled successfully")
+        );
+    });
+
+    // M2 — admin resolves a disputed return: "refund" issues the refund, "close" denies it.
+    static adminResolveReturn = asyncHandler(async (req, res) => {
+        const { id } = req.params;
+        const adminUserId = (req as any).user._id.toString();
+        const { resolution } = resolveReturnSchema.parse(req.body);
+
+        const ipAddress = req.ip || req.socket.remoteAddress;
+        const deviceInfo = req.headers["user-agent"] || "Unknown";
+
+        const result = await SubOrderService.adminResolveReturnDispute(
+            id as string,
+            resolution,
+            adminUserId,
+            { ipAddress, deviceInfo }
+        );
+
+        return res.status(200).json(
+            new ApiResponse(200, result, `Return dispute resolved (${resolution})`)
         );
     });
 }

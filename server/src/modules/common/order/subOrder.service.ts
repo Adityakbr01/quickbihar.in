@@ -21,6 +21,8 @@ import { assertRiderCanAcceptOffers, assertRiderCanAcceptCod } from "@/modules/c
 import * as appConfigService from "@/modules/common/appConfig/appConfig.service";
 import { ENV } from "@/config/env.config";
 import { sellerSettlementService } from "@/modules/common/seller/sellerSettlement.service";
+import { razorpay } from "@/utils/razorpay.util";
+import * as ProductDAO from "@/modules/clothing/products/product.dao";
 
 // GPS distance calculation utility
 const finiteLocation = (location?: any) => {
@@ -260,6 +262,18 @@ export class SubOrderService {
             SubOrderStatus.DELIVERY_CONFIRMED,
             SubOrderStatus.COMPLETED,
         ];
+        // Return states are all post-delivery: the parent order was already delivered, so a
+        // return in progress must NOT roll the parent back to CONFIRMED/PROCESSING. We treat
+        // them as delivered-like until the money actually goes back (REFUNDED, handled below).
+        const returnInProgressStatuses = [
+            SubOrderStatus.RETURN_INITIATED,
+            SubOrderStatus.RETURN_REQUESTED,
+            SubOrderStatus.RETURN_APPROVED,
+            SubOrderStatus.RETURN_PICKUP_SCHEDULED,
+            SubOrderStatus.RETURN_PICKED_UP,
+            SubOrderStatus.RETURNED,
+        ];
+        const deliveredLikeStatuses = [...deliveredStatuses, ...returnInProgressStatuses];
         const cancelledStatuses = [
             SubOrderStatus.CANCELLED,
             SubOrderStatus.REJECTED,
@@ -274,29 +288,41 @@ export class SubOrderService {
             SubOrderStatus.DISPUTED,
         ];
 
-        const allDelivered = allStatuses.every(s => deliveredStatuses.includes(s));
+        const allDelivered = allStatuses.every(s => deliveredLikeStatuses.includes(s));
         const allCancelled = allStatuses.every(s => cancelledStatuses.includes(s));
-        const allCompletedOrCancelled = allStatuses.every(s => 
-            deliveredStatuses.includes(s) ||
+        // Every sub-order is refunded (or cancelled), and at least one was actually refunded ⇒
+        // the whole order has been unwound. OrderStatus has no RETURNED, so REFUNDED is terminal.
+        const allRefundedOrCancelled = allStatuses.every(
+            s => s === SubOrderStatus.REFUNDED || cancelledStatuses.includes(s)
+        );
+        const anyRefunded = allStatuses.some(s => s === SubOrderStatus.REFUNDED);
+        const allCompletedOrCancelled = allStatuses.every(s =>
+            deliveredLikeStatuses.includes(s) ||
             cancelledStatuses.includes(s) ||
             failedStatuses.includes(s)
         );
 
-        if (allDelivered) {
+        if (allRefundedOrCancelled && anyRefunded) {
+            newParentStatus = OrderStatus.REFUNDED;
+        } else if (allDelivered) {
             newParentStatus = OrderStatus.DELIVERED;
         } else if (allCancelled) {
             newParentStatus = OrderStatus.CANCELLED;
         } else if (failedStatuses.some((status) => allStatuses.includes(status))) {
             newParentStatus = OrderStatus.FAILED;
         } else if (allCompletedOrCancelled) {
-            newParentStatus = OrderStatus.DELIVERED; // Partially delivered or completed
+            newParentStatus = OrderStatus.DELIVERED; // Partially delivered/returned or completed
         } else if (allStatuses.some(s => s === SubOrderStatus.PICKED_UP || s === SubOrderStatus.IN_TRANSIT || s === SubOrderStatus.NEAR_CUSTOMER)) {
             newParentStatus = OrderStatus.SHIPPED;
         } else if (allStatuses.some(s => s === SubOrderStatus.PROCESSING || s === SubOrderStatus.PACKED || s === SubOrderStatus.READY_FOR_PICKUP || s === SubOrderStatus.RIDER_ASSIGNMENT_OPEN || s === SubOrderStatus.RIDER_ASSIGNED || s === SubOrderStatus.RIDER_ACCEPTED)) {
             newParentStatus = OrderStatus.PROCESSING;
         }
 
-        await Order.findByIdAndUpdate(parentOrderId, { status: newParentStatus });
+        const parentUpdate: Record<string, any> = { status: newParentStatus };
+        if (newParentStatus === OrderStatus.REFUNDED) {
+            parentUpdate.refundedAt = new Date();
+        }
+        await Order.findByIdAndUpdate(parentOrderId, parentUpdate);
 
         // Notify user
         const order = await Order.findById(parentOrderId);
@@ -1660,5 +1686,437 @@ export class SubOrderService {
         });
 
         return returnRequest;
+    }
+
+    // ============================================================================
+    // M2: Return lifecycle — seller approve → rider claim/pickup → seller receipt →
+    // auto-refund, plus admin dispute resolution. Every transition mirrors the
+    // canonical pattern (validate → mutate subOrder+ReturnRequest → save → sync
+    // parent → publish → socket) used throughout this service.
+    // ============================================================================
+
+    // Best-effort recovery of the status a sub-order held before the return flow began,
+    // used when a seller rejects a return (the goods stay with the customer, so the order
+    // reverts to its delivered state rather than being wrongly "returned").
+    private static preReturnStatus(subOrder: any): SubOrderStatus {
+        const deliveredLike = [
+            SubOrderStatus.DELIVERED,
+            SubOrderStatus.COMPLETED,
+            SubOrderStatus.DELIVERY_CONFIRMED,
+        ];
+        for (let i = subOrder.timeline.length - 1; i >= 0; i--) {
+            const status = subOrder.timeline[i]?.status;
+            if (deliveredLike.includes(status)) return status;
+        }
+        return SubOrderStatus.DELIVERED;
+    }
+
+    // RETURN_INITIATED --[SELLER approve]--> RETURN_APPROVED (claimable by riders)
+    //                  --[SELLER reject]---> reverts to DELIVERED (RR: RETURN_REJECTED)
+    static async sellerReviewReturn(
+        subOrderId: string,
+        sellerId: string,
+        approve: boolean,
+        note?: string,
+        requestInfo?: IRequestInfo,
+    ) {
+        const subOrder = await this.getSellerSubOrder(sellerId, subOrderId);
+
+        if (subOrder.status !== SubOrderStatus.RETURN_INITIATED) {
+            throw new ApiError(400, `Cannot review return in status ${subOrder.status}`);
+        }
+
+        const returnRequest = await ReturnRequest.findOne({
+            subOrderObjectId: subOrder._id,
+            status: "RETURN_REQUESTED",
+        });
+        if (!returnRequest) {
+            throw new ApiError(404, "Active return request not found for this sub-order");
+        }
+
+        if (approve) {
+            subOrder.status = SubOrderStatus.RETURN_APPROVED;
+            returnRequest.status = "RETURN_APPROVED";
+        } else {
+            subOrder.status = this.preReturnStatus(subOrder);
+            returnRequest.status = "RETURN_REJECTED";
+        }
+        if (note) returnRequest.notes = note;
+
+        const message = approve
+            ? `Seller approved the return for sub-order ${subOrder.subOrderId}. Awaiting rider pickup.`
+            : `Seller rejected the return for sub-order ${subOrder.subOrderId}.${note ? ` Reason: ${note}` : ""}`;
+
+        subOrder.timeline.push(TimelineHelper.createEvent(subOrder.status, "SELLER", sellerId, requestInfo, { message, note }));
+        returnRequest.timeline.push(TimelineHelper.createEvent(returnRequest.status, "SELLER", sellerId, requestInfo, { message, note }));
+
+        await subOrder.save();
+        await returnRequest.save();
+        await this.syncParentOrderStatus(subOrder.parentOrderId, requestInfo);
+        await this.publishUpdate(subOrder, {
+            type: approve ? "return_approved" : "return_rejected",
+            actor: "SELLER",
+            actorId: sellerId,
+            message,
+            metadata: { returnId: returnRequest.returnId, note },
+        });
+
+        const parentOrder = await this.parentOrderOf(subOrder);
+        socketService.emitToUser(this.idString(parentOrder?.userId), SocketEvents.ORDER_STATUS_UPDATE, {
+            subOrderId: subOrder.subOrderId,
+            status: subOrder.status,
+            message,
+        });
+
+        return { subOrder, returnRequest, approved: approve };
+    }
+
+    // Rider "return tasks" feed: approved returns not yet claimed by any rider (pull model).
+    static async listClaimableReturns(riderUserId: string) {
+        const riderProfile = await DeliveryBoy.findOne({ userId: new Types.ObjectId(riderUserId) }).populate("userId");
+        assertRiderCanAcceptOffers(riderProfile);
+
+        const claimable = await ReturnRequest.find({
+            status: "RETURN_APPROVED",
+            riderId: { $exists: false },
+        }).sort({ updatedAt: 1 }).limit(50).lean();
+
+        if (!claimable.length) return [];
+
+        const subOrders = await SubOrder.find({
+            _id: { $in: claimable.map((r) => r.subOrderObjectId) },
+            status: SubOrderStatus.RETURN_APPROVED,
+        }).populate("storeId parentOrderId").lean();
+        const subOrderById = new Map(subOrders.map((s) => [this.idString(s._id), s]));
+
+        return claimable
+            .map((r) => {
+                const so = subOrderById.get(this.idString(r.subOrderObjectId));
+                if (!so) return null;
+                return {
+                    returnId: r.returnId,
+                    subOrderId: r.subOrderId,
+                    subOrderObjectId: this.idString(r.subOrderObjectId),
+                    reason: r.reason,
+                    requestedAt: r.createdAt,
+                    store: so.storeId,
+                    shippingAddress: (so.parentOrderId as any)?.shippingAddress,
+                    items: so.items,
+                    payableAmount: so.payableAmount,
+                };
+            })
+            .filter(Boolean);
+    }
+
+    // RETURN_APPROVED --[RIDER claim]--> RETURN_PICKUP_SCHEDULED (race-safe: first rider wins)
+    static async riderClaimReturn(subOrderId: string, riderUserId: string, requestInfo?: IRequestInfo) {
+        const riderProfile = await DeliveryBoy.findOne({ userId: new Types.ObjectId(riderUserId) }).populate("userId");
+        assertRiderCanAcceptOffers(riderProfile);
+
+        const subOrder = await this.getSubOrderById(subOrderId);
+        if (subOrder.status !== SubOrderStatus.RETURN_APPROVED) {
+            throw new ApiError(409, "This return is not open for pickup or was already claimed");
+        }
+
+        const riderObjectId = new Types.ObjectId(riderUserId);
+        // Atomic claim — only the first rider to flip the un-claimed request wins the race.
+        const returnRequest = await ReturnRequest.findOneAndUpdate(
+            { subOrderObjectId: subOrder._id, status: "RETURN_APPROVED", riderId: { $exists: false } },
+            { $set: { riderId: riderObjectId, status: "RETURN_PICKUP_SCHEDULED" } },
+            { new: true },
+        );
+        if (!returnRequest) {
+            throw new ApiError(409, "This return pickup was already claimed by another rider");
+        }
+
+        subOrder.status = SubOrderStatus.RETURN_PICKUP_SCHEDULED;
+        subOrder.delivery.riderId = riderObjectId;
+        subOrder.delivery.riderProfileId = riderProfile._id;
+        subOrder.delivery.status = DeliveryStatus.RETURNING;
+
+        const message = `A rider is scheduled to pick up the return for sub-order ${subOrder.subOrderId}.`;
+        subOrder.timeline.push(TimelineHelper.createEvent(SubOrderStatus.RETURN_PICKUP_SCHEDULED, "RIDER", riderUserId, requestInfo, { message }));
+        returnRequest.timeline.push(TimelineHelper.createEvent("RETURN_PICKUP_SCHEDULED", "RIDER", riderUserId, requestInfo, { message }));
+
+        await subOrder.save();
+        await returnRequest.save();
+        await this.publishUpdate(subOrder, {
+            type: "return_pickup_scheduled",
+            actor: "RIDER",
+            actorId: riderUserId,
+            message,
+            metadata: { returnId: returnRequest.returnId },
+        });
+
+        const parentOrder = await this.parentOrderOf(subOrder);
+        socketService.emitToUser(this.idString(parentOrder?.userId), SocketEvents.ORDER_STATUS_UPDATE, {
+            subOrderId: subOrder.subOrderId,
+            status: subOrder.status,
+            message,
+        });
+
+        return { subOrder, returnRequest };
+    }
+
+    // RETURN_PICKUP_SCHEDULED --[RIDER pickup: OTP + photo]--> RETURN_PICKED_UP
+    static async riderReturnPickup(
+        subOrderId: string,
+        riderUserId: string,
+        returnOtp: string,
+        proofPhoto: string,
+        requestInfo?: IRequestInfo,
+    ) {
+        const subOrder = await this.getSubOrderById(subOrderId);
+
+        if (this.idString(subOrder.delivery.riderId) !== riderUserId) {
+            throw new ApiError(403, "You are not the assigned return rider for this sub-order");
+        }
+        if (subOrder.status !== SubOrderStatus.RETURN_PICKUP_SCHEDULED) {
+            throw new ApiError(400, `Cannot pick up return in status ${subOrder.status}`);
+        }
+
+        const returnRequest = await ReturnRequest.findOne({
+            subOrderObjectId: subOrder._id,
+            status: "RETURN_PICKUP_SCHEDULED",
+        });
+        if (!returnRequest) {
+            throw new ApiError(404, "Scheduled return request not found for this sub-order");
+        }
+        if (this.idString(returnRequest.riderId) !== riderUserId) {
+            throw new ApiError(403, "This return pickup was claimed by a different rider");
+        }
+        if (!returnRequest.pickupOtp || returnRequest.pickupOtp !== returnOtp) {
+            throw new ApiError(400, "Invalid return pickup OTP code");
+        }
+        if (!proofPhoto) {
+            throw new ApiError(400, "Photo proof is required at the return pickup checkpoint");
+        }
+
+        subOrder.status = SubOrderStatus.RETURN_PICKED_UP;
+        subOrder.delivery.status = DeliveryStatus.RETURNING;
+        returnRequest.status = "RETURN_PICKED_UP";
+        returnRequest.proofPhoto = proofPhoto;
+
+        const message = `Return for sub-order ${subOrder.subOrderId} was picked up from the customer.`;
+        subOrder.timeline.push(TimelineHelper.createEvent(SubOrderStatus.RETURN_PICKED_UP, "RIDER", riderUserId, requestInfo, { message, proofPhoto }));
+        returnRequest.timeline.push(TimelineHelper.createEvent("RETURN_PICKED_UP", "RIDER", riderUserId, requestInfo, { message, proofPhoto }));
+
+        await subOrder.save();
+        await returnRequest.save();
+        await this.publishUpdate(subOrder, {
+            type: "return_picked_up",
+            actor: "RIDER",
+            actorId: riderUserId,
+            message,
+            metadata: { returnId: returnRequest.returnId, proofPhoto },
+        });
+
+        socketService.emitToUser(this.idString(subOrder.sellerId), SocketEvents.ORDER_STATUS_UPDATE, {
+            subOrderId: subOrder.subOrderId,
+            status: subOrder.status,
+            message: `Returned goods for sub-order ${subOrder.subOrderId} are on the way back to you.`,
+        });
+
+        return { subOrder, returnRequest };
+    }
+
+    // RETURN_PICKED_UP --[SELLER receipt: QC pass]--> RETURNED --auto refund--> REFUNDED
+    //                  --[SELLER receipt: QC fail]--> DISPUTED (admin resolves)
+    static async sellerConfirmReturnReceipt(
+        subOrderId: string,
+        sellerId: string,
+        accept: boolean,
+        note?: string,
+        requestInfo?: IRequestInfo,
+    ) {
+        const subOrder = await this.getSellerSubOrder(sellerId, subOrderId);
+        if (subOrder.status !== SubOrderStatus.RETURN_PICKED_UP) {
+            throw new ApiError(400, `Cannot confirm return receipt in status ${subOrder.status}`);
+        }
+
+        const returnRequest = await ReturnRequest.findOne({
+            subOrderObjectId: subOrder._id,
+            status: "RETURN_PICKED_UP",
+        });
+        if (!returnRequest) {
+            throw new ApiError(404, "Picked-up return request not found for this sub-order");
+        }
+
+        if (!accept) {
+            // QC failed — returned goods are damaged/wrong. Park in DISPUTED for an admin;
+            // no refund fires automatically (adminResolveReturnDispute decides the outcome).
+            subOrder.status = SubOrderStatus.DISPUTED;
+            returnRequest.status = "DISPUTED";
+            if (note) returnRequest.notes = note;
+
+            const failMsg = `Seller flagged a problem with the returned goods for sub-order ${subOrder.subOrderId}.${note ? ` Note: ${note}` : ""}`;
+            subOrder.timeline.push(TimelineHelper.createEvent(SubOrderStatus.DISPUTED, "SELLER", sellerId, requestInfo, { message: failMsg, note }));
+            returnRequest.timeline.push(TimelineHelper.createEvent("DISPUTED", "SELLER", sellerId, requestInfo, { message: failMsg, note }));
+
+            await subOrder.save();
+            await returnRequest.save();
+            await this.syncParentOrderStatus(subOrder.parentOrderId, requestInfo);
+            await this.publishUpdate(subOrder, {
+                type: "return_disputed",
+                actor: "SELLER",
+                actorId: sellerId,
+                message: failMsg,
+                metadata: { returnId: returnRequest.returnId, note },
+            });
+
+            return { subOrder, returnRequest, refund: null, disputed: true };
+        }
+
+        // QC passed — the seller has the goods back. Mark RETURNED, then refund immediately.
+        subOrder.status = SubOrderStatus.RETURNED;
+        subOrder.delivery.status = DeliveryStatus.RETURNED;
+        returnRequest.status = "RETURNED";
+        if (note) returnRequest.notes = note;
+
+        const okMsg = `Seller confirmed receipt of the returned goods for sub-order ${subOrder.subOrderId}.`;
+        subOrder.timeline.push(TimelineHelper.createEvent(SubOrderStatus.RETURNED, "SELLER", sellerId, requestInfo, { message: okMsg, note }));
+        returnRequest.timeline.push(TimelineHelper.createEvent("RETURNED", "SELLER", sellerId, requestInfo, { message: okMsg, note }));
+
+        await subOrder.save();
+        await returnRequest.save();
+
+        const refund = await this.issueReturnRefund(subOrder, returnRequest, sellerId, requestInfo);
+        return { subOrder, returnRequest, refund, disputed: false };
+    }
+
+    // Finalises a RETURNED sub-order: restores stock, reverses the seller settlement, and
+    // issues the customer refund (Razorpay for prepaid, manual-cash marker for COD). A Razorpay
+    // failure never throws — it leaves the sub-order RETURNED and flags manual reconciliation,
+    // mirroring OrderService.refundAndFailOrder so a broken payout can't crash the receipt flow.
+    private static async issueReturnRefund(
+        subOrder: any,
+        returnRequest: any,
+        actorId: string,
+        requestInfo?: IRequestInfo,
+    ) {
+        // 1. Put the returned units back on the shelf (best-effort; a failed SKU is logged, not fatal).
+        for (const item of subOrder.items || []) {
+            try {
+                await ProductDAO.restoreStock(this.idString(item.productId), item.sku, Number(item.quantity || 0));
+            } catch (stockErr) {
+                console.error(`[SubOrderService] Failed to restore stock for SKU ${item.sku} on return ${returnRequest.returnId}:`, stockErr);
+            }
+        }
+
+        // 2. Claw the seller's earning back out of their wallet.
+        await sellerSettlementService.reverseSubOrderSettlement(subOrder, {
+            note: `Return refund for sub-order ${subOrder.subOrderId}`,
+        });
+
+        // 3. Refund the customer.
+        const parentOrder = await this.parentOrderOf(subOrder);
+        const razorpayPaymentId = parentOrder?.paymentInfo?.razorpayPaymentId;
+        const refundAmount = Math.round(Number(subOrder.payableAmount || 0) * 100);
+
+        let outcome: { status: SubOrderStatus; refundMethod: string; refunded: boolean; note?: string };
+
+        if (razorpayPaymentId) {
+            try {
+                await razorpay.payments.refund(razorpayPaymentId, {
+                    amount: refundAmount,
+                    notes: { returnId: returnRequest.returnId, subOrderId: subOrder.subOrderId, reason: "Customer return" },
+                });
+                outcome = { status: SubOrderStatus.REFUNDED, refundMethod: "RAZORPAY", refunded: true };
+            } catch (refundErr) {
+                console.error(
+                    `[SubOrderService] CRITICAL: Razorpay refund FAILED for return ${returnRequest.returnId} `
+                    + `(sub-order ${subOrder.subOrderId}, payment ${razorpayPaymentId}). Sub-order stays RETURNED for manual reconciliation.`,
+                    refundErr,
+                );
+                outcome = { status: SubOrderStatus.RETURNED, refundMethod: "MANUAL_RECONCILE", refunded: false, note: "Razorpay refund failed — needs manual reconciliation" };
+            }
+        } else {
+            // COD order: nothing was charged online, so the refund is settled as a manual cash return.
+            outcome = { status: SubOrderStatus.REFUNDED, refundMethod: "MANUAL_CASH", refunded: true };
+        }
+
+        const amount = refundAmount / 100;
+        const message = outcome.refunded
+            ? `Refund of ₹${amount.toFixed(2)} issued for sub-order ${subOrder.subOrderId} (${outcome.refundMethod}).`
+            : `Refund for sub-order ${subOrder.subOrderId} could not be completed automatically and needs manual reconciliation.`;
+
+        subOrder.status = outcome.status;
+        returnRequest.status = outcome.status === SubOrderStatus.REFUNDED ? "REFUNDED" : "RETURNED";
+        if (outcome.note) returnRequest.notes = outcome.note;
+        subOrder.timeline.push(TimelineHelper.createEvent(outcome.status, "SYSTEM", actorId, requestInfo, { message, refundMethod: outcome.refundMethod, amount }));
+        returnRequest.timeline.push(TimelineHelper.createEvent(returnRequest.status, "SYSTEM", actorId, requestInfo, { message, refundMethod: outcome.refundMethod, amount }));
+
+        await subOrder.save();
+        await returnRequest.save();
+        await this.syncParentOrderStatus(subOrder.parentOrderId, requestInfo);
+        await this.publishUpdate(subOrder, {
+            type: outcome.refunded ? "return_refunded" : "return_refund_failed",
+            actor: "SYSTEM",
+            actorId,
+            message,
+            metadata: { returnId: returnRequest.returnId, refundMethod: outcome.refundMethod, amount },
+        });
+
+        const parent = await this.parentOrderOf(subOrder);
+        socketService.emitToUser(this.idString(parent?.userId), SocketEvents.ORDER_STATUS_UPDATE, {
+            subOrderId: subOrder.subOrderId,
+            status: subOrder.status,
+            message,
+        });
+
+        return { refunded: outcome.refunded, refundMethod: outcome.refundMethod, amount, status: subOrder.status };
+    }
+
+    // DISPUTED --[ADMIN resolve]--> "refund" (side customer, runs refund) | "close" (side seller, no refund)
+    static async adminResolveReturnDispute(
+        subOrderId: string,
+        resolution: "refund" | "close",
+        adminId: string,
+        requestInfo?: IRequestInfo,
+    ) {
+        const subOrder = await this.getSubOrderById(subOrderId);
+        if (subOrder.status !== SubOrderStatus.DISPUTED) {
+            throw new ApiError(400, `Cannot resolve dispute in status ${subOrder.status}`);
+        }
+
+        const returnRequest = await ReturnRequest.findOne({
+            subOrderObjectId: subOrder._id,
+            status: "DISPUTED",
+        });
+        if (!returnRequest) {
+            throw new ApiError(404, "Disputed return request not found for this sub-order");
+        }
+
+        if (resolution === "refund") {
+            // Side with the customer: treat the goods as returned and run the standard refund.
+            subOrder.status = SubOrderStatus.RETURNED;
+            returnRequest.status = "RETURNED";
+            const msg = `Admin resolved the dispute for sub-order ${subOrder.subOrderId} in the customer's favour; issuing refund.`;
+            subOrder.timeline.push(TimelineHelper.createEvent(SubOrderStatus.RETURNED, "ADMIN", adminId, requestInfo, { message: msg }));
+            returnRequest.timeline.push(TimelineHelper.createEvent("RETURNED", "ADMIN", adminId, requestInfo, { message: msg }));
+            await subOrder.save();
+            await returnRequest.save();
+            const refund = await this.issueReturnRefund(subOrder, returnRequest, adminId, requestInfo);
+            return { subOrder, returnRequest, refund, resolution };
+        }
+
+        // Close without a refund: side with the seller. Goods are back with the seller but no
+        // money returns to the customer; the return request is closed as rejected (terminal).
+        subOrder.status = SubOrderStatus.RETURNED;
+        returnRequest.status = "RETURN_REJECTED";
+        const closeMsg = `Admin closed the dispute for sub-order ${subOrder.subOrderId} without a refund.`;
+        subOrder.timeline.push(TimelineHelper.createEvent(SubOrderStatus.RETURNED, "ADMIN", adminId, requestInfo, { message: closeMsg }));
+        returnRequest.timeline.push(TimelineHelper.createEvent("RETURN_REJECTED", "ADMIN", adminId, requestInfo, { message: closeMsg }));
+        await subOrder.save();
+        await returnRequest.save();
+        await this.syncParentOrderStatus(subOrder.parentOrderId, requestInfo);
+        await this.publishUpdate(subOrder, {
+            type: "return_dispute_closed",
+            actor: "ADMIN",
+            actorId: adminId,
+            message: closeMsg,
+            metadata: { returnId: returnRequest.returnId },
+        });
+        return { subOrder, returnRequest, refund: null, resolution };
     }
 }

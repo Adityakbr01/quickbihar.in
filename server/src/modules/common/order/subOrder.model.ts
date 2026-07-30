@@ -1,6 +1,27 @@
 import mongoose, { Schema, Document, Types } from "mongoose";
 import { DeliveryStatus, OrderStatus } from "./order.type";
 
+/**
+ * Sub-order lifecycle statuses.
+ *
+ * Forward flow (assigned by SubOrderService transitions): CONFIRMED → PROCESSING → PACKED →
+ * READY_FOR_PICKUP → RIDER_ASSIGNMENT_OPEN/RIDER_ASSIGNED/RIDER_ACCEPTED → RIDER_ARRIVING →
+ * RIDER_REACHED_STORE → PICKED_UP → IN_TRANSIT → NEAR_CUSTOMER → DELIVERED → COMPLETED, with
+ * CANCELLED/REJECTED/SELLER_CANCELLED/CUSTOMER_CANCELLED/RIDER_CANCELLED as terminal exits.
+ *
+ * Return flow (M2 — wired by sellerReviewReturn → riderClaimReturn → riderReturnPickup →
+ * sellerConfirmReturnReceipt → issueReturnRefund, plus adminResolveReturnDispute):
+ *   RETURN_INITIATED → RETURN_APPROVED → RETURN_PICKUP_SCHEDULED → RETURN_PICKED_UP → RETURNED
+ *   → REFUNDED, with DISPUTED as the admin-resolved branch.
+ *
+ * Reserved / not yet produced — declared for forward-compat and referenced by some roll-up
+ * sets, but NO transition currently assigns them (grep-verified). Do not delete: persisted
+ * documents and dashboards may still reference the strings.
+ *   PAYMENT_VERIFIED, SELLER_ACCEPTED, RIDER_REJECTED, PICKUP_VERIFICATION_PENDING,
+ *   RIDER_NO_SHOW, STORE_CLOSED, PICKUP_FAILED, DELIVERY_FAILED, CUSTOMER_UNREACHABLE,
+ *   DELIVERY_CONFIRMED, PARTIAL_DELIVERY, PARTIAL_REFUND, and RETURN_REQUESTED (a sub-order
+ *   alias of RETURN_INITIATED — the ReturnRequest model owns the "RETURN_REQUESTED" status).
+ */
 export enum SubOrderStatus {
   PAYMENT_VERIFIED = "PAYMENT_VERIFIED",
   CONFIRMED = "CONFIRMED",
