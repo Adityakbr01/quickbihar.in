@@ -21,8 +21,13 @@ const AdminStatCard = ({ card }: AdminStatCardProps) => {
 
   return (
     <TouchableOpacity
-      style={[styles.card, { backgroundColor: theme.background, borderColor: theme.border }]}
-      activeOpacity={0.7}
+      style={[
+        styles.card,
+        { backgroundColor: theme.background, borderColor: theme.border },
+        card.comingSoon && styles.cardDisabled,
+      ]}
+      activeOpacity={card.comingSoon ? 1 : 0.7}
+      disabled={card.comingSoon}
       onPress={handlePress}
     >
       <View style={[styles.iconContainer, { backgroundColor: card.color + "15" }]}>
@@ -32,6 +37,13 @@ const AdminStatCard = ({ card }: AdminStatCardProps) => {
       <Text style={[styles.cardDescription, { color: theme.secondaryText }]}>
         {card.description}
       </Text>
+      {card.comingSoon && (
+        <View style={[styles.badge, { backgroundColor: theme.border }]}>
+          <Text style={[styles.badgeText, { color: theme.secondaryText }]}>
+            Coming soon
+          </Text>
+        </View>
+      )}
     </TouchableOpacity>
   );
 };
@@ -45,6 +57,9 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     marginBottom: 16,
     borderWidth: 1,
+  },
+  cardDisabled: {
+    opacity: 0.5,
   },
   iconContainer: {
     width: 48,
@@ -62,5 +77,18 @@ const styles = StyleSheet.create({
   cardDescription: {
     fontSize: 12,
     lineHeight: 16,
+  },
+  badge: {
+    alignSelf: "flex-start",
+    marginTop: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  badgeText: {
+    fontSize: 10,
+    fontWeight: "700",
+    textTransform: "uppercase",
+    letterSpacing: 0.4,
   },
 });

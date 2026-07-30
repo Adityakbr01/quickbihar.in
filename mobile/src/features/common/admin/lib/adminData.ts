@@ -13,6 +13,8 @@ export interface AdminCardItem {
   icon: any;
   color: string;
   route?: string;
+  /** Feature has no screen yet: render as a non-interactive "Coming soon" card. */
+  comingSoon?: boolean;
 }
 
 export const ADMIN_CARDS: AdminCardItem[] = [
@@ -64,14 +66,16 @@ export const ADMIN_CARDS: AdminCardItem[] = [
     description: "Control user roles and permissions",
     icon: User03Icon,
     color: "#10B981",
-    route: "/admin/users",
+    // No screen yet — route /admin/users does not exist. Disabled until built.
+    comingSoon: true,
   },
   {
     title: "Security & Logs",
     description: "Monitor system health and security",
     icon: Shield01Icon,
     color: "#EF4444",
-    route: "/admin/security",
+    // No screen yet — route /admin/security does not exist. Disabled until built.
+    comingSoon: true,
   },
   {
     title: "Refund Policies CRUD",
