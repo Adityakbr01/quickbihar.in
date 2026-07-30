@@ -232,7 +232,9 @@ export class OrderService {
             couponCode: quote.couponCodes[0] || "",
             couponCodes: quote.couponCodes,
             couponDiscounts: quote.appliedCouponsInfo,
-            status: isCod ? OrderStatus.CONFIRMED : OrderStatus.PENDING_PAYMENT,
+            // Persist PENDING_PAYMENT for both paths; COD is promoted to CONFIRMED below only
+            // after stock is secured, so the DB never holds a confirmed order without inventory.
+            status: OrderStatus.PENDING_PAYMENT,
             paymentInfo: {
                 razorpayOrderId: isCod ? COD_SENTINEL : razorpayOrder!.id,
             },
@@ -246,10 +248,18 @@ export class OrderService {
             createdAt: order.createdAt
         });
 
-        // COD skips Razorpay: run the same post-confirmation pipeline online orders run
-        // in verifyPayment (stock deduction, coupon usage, sub-order split, emissions).
+        // COD skips Razorpay. Secure inventory first (all-or-nothing); only then confirm and
+        // run the same post-confirmation pipeline online orders run in verifyPayment. There is
+        // no payment to refund, so an out-of-stock COD order is simply marked FAILED.
         if (isCod) {
-            const confirmedOrder = await this.finalizeConfirmedOrder(order);
+            try {
+                await this.deductOrderStock(order);
+            } catch (stockError) {
+                await orderDAO.updateStatus(order._id.toString(), OrderStatus.FAILED).catch(() => {});
+                throw stockError;
+            }
+            const confirmedOrder = await orderDAO.updateStatus(order._id.toString(), OrderStatus.CONFIRMED);
+            await this.finalizeConfirmedOrder(order);
             return { order: confirmedOrder, razorpayOrder: null };
         }
 
@@ -282,7 +292,17 @@ export class OrderService {
             throw new ApiError(400, `Order is already ${order.status}`);
         }
 
-        // 3. Update Order Status
+        // 3. Secure inventory BEFORE confirming. If anything is out of stock we must not
+        //    leave a CONFIRMED order with captured payment and no fulfillable items (M1),
+        //    so we auto-refund the payment and fail the order instead.
+        try {
+            await this.deductOrderStock(order);
+        } catch (stockError) {
+            await this.refundAndFailOrder(order, razorpayPaymentId);
+            throw stockError;
+        }
+
+        // 4. Stock secured — mark the order CONFIRMED.
         const updatedOrder = await orderDAO.updateStatus(
             order._id.toString(),
             OrderStatus.CONFIRMED,
@@ -290,18 +310,44 @@ export class OrderService {
             razorpaySignature
         );
 
-        // 4. Run the shared post-confirmation pipeline (stock, coupons, sub-orders, emissions).
+        // 5. Run the shared post-confirmation pipeline (coupons, sub-orders, emissions).
         await this.finalizeConfirmedOrder(order);
 
         return updatedOrder;
     }
 
-    // Shared post-confirmation pipeline used by both online (verifyPayment) and COD (createOrder)
-    // once an order reaches CONFIRMED: deduct stock, mark coupon usage, split into sub-orders, emit.
-    private async finalizeConfirmedOrder(order: any) {
-        const isCod = order.paymentInfo?.razorpayOrderId === COD_SENTINEL;
+    // Compensation for a captured online payment we can no longer fulfil (M1): refund the
+    // payment and mark the order REFUNDED. If the refund call itself fails, leave the order
+    // FAILED and log loudly so it can be reconciled manually — never silently confirm.
+    private async refundAndFailOrder(order: any, razorpayPaymentId?: string) {
+        try {
+            if (razorpayPaymentId) {
+                await razorpay.payments.refund(razorpayPaymentId, {
+                    amount: Math.round(Number(order.payableAmount || 0) * 100),
+                    notes: { reason: "Out of stock at payment verification", orderId: order.orderId },
+                });
+            }
+            await orderDAO.update(order._id.toString(), {
+                status: OrderStatus.REFUNDED,
+                refundedAt: new Date(),
+            } as any);
+            console.error(`[OrderService] Order ${order.orderId} auto-refunded (out of stock after payment).`);
+        } catch (refundError) {
+            await orderDAO.updateStatus(order._id.toString(), OrderStatus.FAILED).catch(() => {});
+            console.error(`[OrderService] CRITICAL: refund FAILED for order ${order.orderId}, payment ${razorpayPaymentId}. Needs manual reconciliation.`, refundError);
+        }
+    }
 
-        // 1. Atomic Stock Deduction
+    // Atomically deduct stock for every item in an order, all-or-nothing.
+    // Each SKU deduction is atomic (deductStock enforces stock >= qty); if ANY item is
+    // out of stock we roll back every prior deduction and throw, so we never leave an
+    // order half-reserved. STOCK_UPDATE is emitted only after the whole order succeeds,
+    // so a rolled-back partial never broadcasts phantom stock numbers. Callers MUST run
+    // this and let it succeed BEFORE marking the order CONFIRMED (M1: no confirmed order
+    // may exist without its inventory secured).
+    private async deductOrderStock(order: any) {
+        const deducted: { productId: string; sku: string; quantity: number; product: any }[] = [];
+
         for (const item of order.items) {
             const updatedProduct = await ProductDAO.deductStock(
                 item.productId.toString(),
@@ -310,21 +356,42 @@ export class OrderService {
             );
 
             if (!updatedProduct) {
-                console.error(`[OrderService] Race condition: Stock ran out during payment for product ${item.productId}`);
-                // In a production environment, you would trigger a refund here.
-                throw new ApiError(409, `One or more items in your order (SKU: ${item.sku}) ran out of stock just now. Please contact support for a refund.`);
+                // Roll back everything deducted so far, then fail the whole order.
+                for (const d of deducted) {
+                    try {
+                        await ProductDAO.restoreStock(d.productId, d.sku, d.quantity);
+                    } catch (restoreErr) {
+                        console.error(`[OrderService] Failed to roll back stock for SKU ${d.sku}:`, restoreErr);
+                    }
+                }
+                console.error(`[OrderService] Out of stock during checkout for product ${item.productId} (SKU: ${item.sku})`);
+                throw new ApiError(409, `One or more items in your order (SKU: ${item.sku}) just went out of stock.`);
             }
 
-            // Emit Real-Time Stock Update to all users
-            const updatedVariant = updatedProduct.variants.find(v => v.sku === item.sku);
-            socketService.emitToAll(SocketEvents.STOCK_UPDATE, {
-                productId: updatedProduct._id,
-                sku: item.sku,
-                newStock: updatedVariant?.stock || 0
-            });
+            deducted.push({ productId: item.productId.toString(), sku: item.sku, quantity: item.quantity, product: updatedProduct });
         }
 
-        // 2. Update Coupon Usage if applicable
+        // Whole order reserved successfully — now broadcast the new stock levels.
+        for (const d of deducted) {
+            const updatedVariant = d.product.variants.find((v: any) => v.sku === d.sku);
+            socketService.emitToAll(SocketEvents.STOCK_UPDATE, {
+                productId: d.product._id,
+                sku: d.sku,
+                newStock: updatedVariant?.stock || 0,
+            });
+        }
+    }
+
+    // Shared post-confirmation pipeline used by both online (verifyPayment) and COD (createOrder)
+    // once an order reaches CONFIRMED: mark coupon usage, split into sub-orders, emit.
+    // Stock is already secured by deductOrderStock (called before confirmation).
+    private async finalizeConfirmedOrder(order: any) {
+        const isCod = order.paymentInfo?.razorpayOrderId === COD_SENTINEL;
+
+        // Stock is deducted all-or-nothing (with rollback) by deductOrderStock BEFORE the
+        // order is confirmed, so inventory is already secured by the time we get here.
+
+        // 1. Update Coupon Usage if applicable
         if (order.couponCodes && order.couponCodes.length > 0) {
             for (const code of order.couponCodes) {
                 await couponService.incrementUsage(code);
@@ -333,7 +400,7 @@ export class OrderService {
             await couponService.incrementUsage(order.couponCode);
         }
 
-        // 3. Split Order into SubOrders (Multi-Vendor Independence)
+        // 2. Split Order into SubOrders (Multi-Vendor Independence)
         const uniqueSellerIds = Array.from(new Set(order.items.map((item: any) => item.sellerId?.toString()).filter(Boolean)));
         const pricingBreakdowns = ((order as any).pricingSnapshot?.sellerBreakdowns || []) as any[];
         const splitAmount = (amount: number, count: number, index: number) => {
