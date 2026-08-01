@@ -3,6 +3,7 @@ import * as deliveryService from "./delivery.service";
 import { SubOrderService } from "@/modules/common/order/subOrder.service";
 import { returnPickupSchema } from "@/modules/common/order/order.validator";
 import { ApiError } from "@/utils/ApiError";
+import { uploadToImageKit } from "@/utils/imagekit.util";
 import { Types } from "mongoose";
 import { SubOrder } from "@/modules/common/order/subOrder.model";
 import { DeliveryBoy } from "@/modules/common/deliveryBoy/delivery.model";
@@ -468,4 +469,31 @@ export const returnPickup = asyncHandler(async (req, res) => {
 
     const result = await SubOrderService.riderReturnPickup(subOrderId, riderUserId, returnOtp, proofPhoto, { ipAddress, deviceInfo });
     res.ok(result, "Return pickup verified successfully");
+});
+
+/**
+ * Uploads a rider proof-of-fulfillment image (pickup / delivery / signature) to
+ * ImageKit and returns the hosted URL. The rider clients call this first, then
+ * submit the returned URL with the pickup/deliver step — so proofs are real
+ * hosted images instead of hand-typed URLs.
+ *
+ * @route POST /api/v1/delivery/proof-upload
+ * @access Protected (delivery rider)
+ */
+export const uploadProof = asyncHandler(async (req, res) => {
+    if (!req.file) {
+        throw new ApiError(400, "A proof image file is required");
+    }
+
+    const riderUserId = (req as any).user._id.toString();
+    const kind = typeof req.body?.kind === "string" ? req.body.kind : "proof";
+    const safeKind = ["pickup", "delivery", "signature"].includes(kind) ? kind : "proof";
+
+    const uploadResult = await uploadToImageKit(
+        req.file.buffer,
+        `${safeKind}_${riderUserId}_${req.file.originalname}`,
+        "delivery-proofs",
+    );
+
+    res.ok(uploadResult, "Proof uploaded successfully");
 });

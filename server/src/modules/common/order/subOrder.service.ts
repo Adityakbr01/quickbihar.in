@@ -642,10 +642,28 @@ export class SubOrderService {
             { subOrderObjectId: subOrder._id, riderId: new Types.ObjectId(riderUserId), status: "OPEN" },
             { $set: { status: "ACCEPTED", respondedAt: new Date() } },
         ).catch(() => undefined);
+
+        // Close every competing OPEN offer for this sub-order and tell those riders
+        // to dismiss their (now-stale) job-offer modal. Without the RIDER_OFFER_CLOSED
+        // emit, losing riders keep a live offer they can no longer accept.
+        const losingOffers = await RiderOffer.find(
+            { subOrderObjectId: subOrder._id, riderId: { $ne: new Types.ObjectId(riderUserId) }, status: "OPEN" },
+            { offerId: 1, riderId: 1 },
+        ).lean().catch(() => [] as any[]);
+
         await RiderOffer.updateMany(
             { subOrderObjectId: subOrder._id, riderId: { $ne: new Types.ObjectId(riderUserId) }, status: "OPEN" },
             { $set: { status: "EXPIRED", respondedAt: new Date() } },
         ).catch(() => undefined);
+
+        for (const lost of losingOffers) {
+            socketService.emitToUser(this.idString(lost.riderId), SocketEvents.RIDER_OFFER_CLOSED, {
+                offerId: lost.offerId,
+                subOrderId: updatedSubOrder.subOrderId,
+                reason: "TAKEN",
+                message: "This delivery was accepted by another rider.",
+            });
+        }
 
         await this.publishUpdate(updatedSubOrder, {
             type: "rider_assigned",

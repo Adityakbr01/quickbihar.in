@@ -18,16 +18,13 @@ import { Input } from "@/components/ui/input";
 import { useDeliveryLogin } from "../hooks/useAuth";
 import { loginSchema, LoginValues } from "../schemas/auth.schema";
 
-const DELIVERY_DEMO_EMAIL = "delivery@example.com";
-const DELIVERY_DEMO_PASSWORD = "password123";
-
 export default function DeliveryLoginForm() {
   const { mutate: login, isPending } = useDeliveryLogin();
   const form = useForm<LoginValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: DELIVERY_DEMO_EMAIL,
-      password: DELIVERY_DEMO_PASSWORD,
+      email: "",
+      password: "",
     },
   });
 
@@ -55,7 +52,7 @@ export default function DeliveryLoginForm() {
                   <FormControl>
                     <Input
                       {...field}
-                      placeholder={DELIVERY_DEMO_EMAIL}
+                      placeholder="delivery@example.com"
                       className="border-white/10 bg-white/5 text-white placeholder:text-gray-500 focus:border-cyan-500"
                     />
                   </FormControl>
@@ -73,7 +70,7 @@ export default function DeliveryLoginForm() {
                     <Input
                       {...field}
                       type="password"
-                      placeholder={DELIVERY_DEMO_PASSWORD}
+                      placeholder="••••••••"
                       className="border-white/10 bg-white/5 text-white placeholder:text-gray-500 focus:border-cyan-500"
                     />
                   </FormControl>

@@ -29,7 +29,6 @@ import { riderProfileMissingFields } from "./riderEligibility";
 import * as appConfigService from "@/modules/common/appConfig/appConfig.service";
 
 let isLoopRunning = false;
-const lastDiagnosticLogAt = new Map<string, number>();
 const activeRiderStatuses = [
   SubOrderStatus.RIDER_ASSIGNED,
   SubOrderStatus.RIDER_ARRIVING,
@@ -117,10 +116,32 @@ export function start() {
  * sub-order. Invoked on each polling tick and by callers that want an immediate sweep.
  */
 export async function processMatchingPool() {
+  // Capture offers about to time out so we can notify their riders to dismiss
+  // the now-stale offer prompt, then flip them to EXPIRED in one write.
+  const expiringOffers = await RiderOffer.find(
+    { status: "OPEN", expiresAt: { $lte: new Date() } },
+    { offerId: 1, riderId: 1, subOrderId: 1 },
+  )
+    .lean()
+    .catch(() => [] as any[]);
+
   await RiderOffer.updateMany(
     { status: "OPEN", expiresAt: { $lte: new Date() } },
     { $set: { status: "EXPIRED", respondedAt: new Date() } },
   );
+
+  for (const offer of expiringOffers) {
+    socketService.emitToUser(
+      idString(offer.riderId),
+      SocketEvents.RIDER_OFFER_CLOSED,
+      {
+        offerId: offer.offerId,
+        subOrderId: offer.subOrderId,
+        reason: "EXPIRED",
+        message: "This delivery offer has expired.",
+      },
+    );
+  }
 
   const activeMatches = await SubOrder.find({
     status: SubOrderStatus.READY_FOR_PICKUP,
@@ -410,220 +431,6 @@ export async function diagnostics(subOrderId: string) {
   };
 }
 
-function validCoordsFromGeoJson(currentLocation?: any) {
-  const longitude = Number(currentLocation?.coordinates?.[0]);
-  const latitude = Number(currentLocation?.coordinates?.[1]);
-  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
-  return { latitude, longitude };
-}
-
-async function logNoQualifiedRiders(input: {
-  subOrder: any;
-  store: any;
-  parentOrder: any;
-  radiusMeters: number;
-  stage: number;
-  elapsedSeconds: number;
-  reason: string;
-}) {
-  const key =
-    input.subOrder?._id?.toString?.() ||
-    input.subOrder?.subOrderId ||
-    "unknown";
-  const now = Date.now();
-  const last = lastDiagnosticLogAt.get(key) || 0;
-  if (now - last < 30000) return;
-  lastDiagnosticLogAt.set(key, now);
-
-  const storeCoords = validCoordsFromGeoJson(
-    input.store?.currentLocation,
-  );
-  const customerCoords = input.parentOrder?.shippingAddress
-    ? {
-        latitude: Number(input.parentOrder.shippingAddress.latitude),
-        longitude: Number(input.parentOrder.shippingAddress.longitude),
-      }
-    : null;
-
-  const busyRiderIds = await busyRiderUserIds();
-  const busyRiderSet = new Set(busyRiderIds.map((id) => idString(id)));
-  const capacitySummary = await riderCapacityCountsByRider();
-  const capacityBlockedSet = new Set(
-    capacitySummary.atCapacityIds.map((id) => idString(id)),
-  );
-  const rejectionSummary = await rejectionCountsForSubOrder(
-    input.subOrder._id,
-  );
-  const rejectionBlockedSet = new Set(
-    rejectionSummary.blockedIds.map((id) => idString(id)),
-  );
-
-  const approvedOnlineRiders = await DeliveryBoy.find({
-    status: "APPROVED",
-    isOnline: true,
-  })
-    .populate("userId", "fullName email phone")
-    .lean();
-
-  const riderDiagnostics = approvedOnlineRiders
-    .map((rider: any) => {
-      const riderUserId = idString(rider.userId?._id || rider.userId);
-      const rejectionCount =
-        rejectionSummary.countByRiderId.get(riderUserId) || 0;
-      const acceptedCountInWindow =
-        capacitySummary.countByRiderId.get(riderUserId) || 0;
-      const riderCoords = validCoordsFromGeoJson(rider.currentLocation);
-      const distanceKm =
-        riderCoords && storeCoords
-          ? distanceKmBetween(riderCoords, storeCoords)
-          : null;
-      return {
-        profileId: rider._id?.toString(),
-        userId: riderUserId,
-        email: rider.userId?.email,
-        phone: rider.userId?.phone,
-        isVerified: !!rider.isVerified,
-        hasActiveJob: busyRiderSet.has(riderUserId),
-        acceptedCountInWindow,
-        maxAcceptedOrders: capacitySummary.maxAcceptedOrders,
-        acceptanceWindowHours: capacitySummary.windowHours,
-        atAcceptanceCapacity: capacityBlockedSet.has(riderUserId),
-        rejectionCount,
-        offerSuppressedForSubOrder: rejectionBlockedSet.has(riderUserId),
-        hasGps: !!riderCoords,
-        rawCoordinates: rider.currentLocation?.coordinates || null,
-        location: riderCoords,
-        distanceKm:
-          distanceKm === null ? null : Number(distanceKm.toFixed(3)),
-        withinRadius:
-          distanceKm === null
-            ? false
-            : distanceKm * 1000 <= input.radiusMeters,
-      };
-    })
-    .sort(
-      (a, b) =>
-        (a.distanceKm ?? Number.POSITIVE_INFINITY) -
-        (b.distanceKm ?? Number.POSITIVE_INFINITY),
-    );
-
-  const blockers: string[] = [];
-  if (!storeCoords) blockers.push("Store pickup GPS is missing/invalid.");
-  if (!approvedOnlineRiders.length)
-    blockers.push("No approved online rider profiles found.");
-  if (
-    approvedOnlineRiders.length &&
-    !riderDiagnostics.some((rider) => rider.hasGps)
-  ) {
-    blockers.push(
-      "Approved online riders exist, but none have GPS coordinates saved.",
-    );
-  }
-  if (
-    storeCoords &&
-    riderDiagnostics.some((rider) => rider.hasGps) &&
-    !riderDiagnostics.some((rider) => rider.withinRadius)
-  ) {
-    blockers.push(
-      `Approved online riders with GPS exist, but none are within ${input.radiusMeters / 1000} km of the store.`,
-    );
-  }
-  if (
-    storeCoords &&
-    riderDiagnostics.some((rider) => rider.withinRadius) &&
-    !riderDiagnostics.some(
-      (rider) => rider.withinRadius && !rider.atAcceptanceCapacity,
-    )
-  ) {
-    blockers.push(
-      `Approved online riders are within radius, but all are at the ${capacitySummary.maxAcceptedOrders} accepted order limit for ${capacitySummary.windowHours} hours.`,
-    );
-  }
-  if (
-    storeCoords &&
-    riderDiagnostics.some(
-      (rider) => rider.withinRadius && !rider.atAcceptanceCapacity,
-    ) &&
-    !riderDiagnostics.some(
-      (rider) =>
-        rider.withinRadius &&
-        !rider.atAcceptanceCapacity &&
-        !rider.offerSuppressedForSubOrder,
-    )
-  ) {
-    blockers.push(
-      `Approved online riders are within radius, but all nearby available riders have already rejected this sub-order ${MAX_RIDER_REJECTIONS_PER_SUB_ORDER} times.`,
-    );
-  }
-
-  // console.warn(
-  //   "[MatchingService] Matching diagnostics",
-  //   JSON.stringify(
-  //     {
-  //       reason: input.reason,
-  //       subOrder: {
-  //         _id: input.subOrder?._id?.toString?.(),
-  //         subOrderId: input.subOrder?.subOrderId,
-  //         status: input.subOrder?.status,
-  //         deliveryStatus: input.subOrder?.delivery?.status,
-  //         pickupTiming: input.subOrder?.packageDetails?.pickupTiming,
-  //       },
-  //       matching: {
-  //         stage: input.stage,
-  //         radiusKm: input.radiusMeters / 1000,
-  //         elapsedSeconds: Math.round(input.elapsedSeconds),
-  //       },
-  //       store: {
-  //         _id: input.store?._id?.toString?.(),
-  //         name: input.store?.name,
-  //         rawCoordinates: input.store?.currentLocation?.coordinates || null,
-  //         location: storeCoords,
-  //       },
-  //       customer: {
-  //         rawLatitude: input.parentOrder?.shippingAddress?.latitude,
-  //         rawLongitude: input.parentOrder?.shippingAddress?.longitude,
-  //         location:
-  //           customerCoords &&
-  //           Number.isFinite(customerCoords.latitude) &&
-  //           Number.isFinite(customerCoords.longitude)
-  //             ? customerCoords
-  //             : null,
-  //       },
-  //       riderSummary: {
-  //         approvedOnline: approvedOnlineRiders.length,
-  //         approvedOnlineVerified: approvedOnlineRiders.filter(
-  //           (rider: any) => rider.isVerified,
-  //         ).length,
-  //         approvedOnlineWithGps: riderDiagnostics.filter(
-  //           (rider) => rider.hasGps,
-  //         ).length,
-  //         busyWithActiveJob: riderDiagnostics.filter(
-  //           (rider) => rider.hasActiveJob,
-  //         ).length,
-  //         atAcceptanceCapacity: riderDiagnostics.filter(
-  //           (rider) => rider.atAcceptanceCapacity,
-  //         ).length,
-  //         suppressedByRejections: riderDiagnostics.filter(
-  //           (rider) => rider.offerSuppressedForSubOrder,
-  //         ).length,
-  //         withinRadius: riderDiagnostics.filter((rider) => rider.withinRadius)
-  //           .length,
-  //         eligibleWithinRadius: riderDiagnostics.filter(
-  //           (rider) =>
-  //             rider.withinRadius &&
-  //             !rider.atAcceptanceCapacity &&
-  //             !rider.offerSuppressedForSubOrder,
-  //         ).length,
-  //       },
-  //       nearestRiders: riderDiagnostics.slice(0, 5),
-  //       blockers,
-  //     },
-  //     null,
-  //     2,
-  //   ),
-  // );
-}
-
 // Execute matching algorithm for a sub-order
 async function matchSubOrder(subOrder: any) {
   const stageDetails = matchingStage(subOrder);
@@ -647,15 +454,6 @@ async function matchSubOrder(subOrder: any) {
     console.error(
       `[MatchingService] Store location coordinates missing for sub-order ${subOrder.subOrderId}`,
     );
-    await logNoQualifiedRiders({
-      subOrder,
-      store,
-      parentOrder,
-      radiusMeters,
-      stage,
-      elapsedSeconds,
-      reason: "Store location coordinates missing",
-    });
     return;
   }
 
@@ -696,15 +494,6 @@ async function matchSubOrder(subOrder: any) {
     console.log(
       `[MatchingService] No riders found within ${radiusMeters / 1000} KM radius for sub-order ${subOrder.subOrderId}`,
     );
-    await logNoQualifiedRiders({
-      subOrder,
-      store,
-      parentOrder,
-      radiusMeters,
-      stage,
-      elapsedSeconds,
-      reason: "No qualified riders matched geospatial radius query",
-    });
     return;
   }
 
@@ -739,21 +528,13 @@ async function matchSubOrder(subOrder: any) {
         ) || 0;
     }
 
-    // Priority Score logic
-    const rating = 4.5; // default fallback
-    const acceptanceRate = 0.9; // default fallback
-    const completionRate = 0.95; // default fallback
-    const onlineHours = 4.0; // default fallback
-
-    // Priority score equation:
-    // Score = distanceWeight + acceptanceRateWeight + completionRateWeight + ratingWeight + onlineTimeWeight
-    const distanceScore = Math.max(0, 10 - riderDistanceToStore); // Closer is higher score
-    const score =
-      distanceScore * 0.4 +
-      rating * 2.0 +
-      acceptanceRate * 10 +
-      completionRate * 10 +
-      onlineHours * 0.1;
+    // Priority score = proximity only. The rider model tracks none of the
+    // reputation signals (rating / acceptanceRate / completionRate /
+    // onlineHours) the old formula referenced, so those terms were fixed
+    // constants that shifted every rider's score by the same amount and never
+    // affected the ranking. Score by distance-to-store alone (closer = higher)
+    // until those signals actually exist to weight in.
+    const score = Math.max(0, 10 - riderDistanceToStore);
 
     return {
       rider,

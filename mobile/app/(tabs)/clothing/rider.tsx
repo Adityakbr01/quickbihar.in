@@ -1,4 +1,5 @@
 import {
+  getRoleName,
   RIDER_ROLE_ALIAS,
   RoleEnum,
   useAuthStore,
@@ -9,7 +10,7 @@ import React from "react";
 
 export default function RiderTabScreen() {
   const { user } = useAuthStore();
-  const roleName = typeof user?.role === "string" ? user.role : user?.role?.name;
+  const roleName = getRoleName(user?.role);
   const isRider = roleName === RoleEnum.DELIVERY || roleName === RIDER_ROLE_ALIAS;
 
   if (!isRider) {

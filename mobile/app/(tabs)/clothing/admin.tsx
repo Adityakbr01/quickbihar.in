@@ -12,6 +12,7 @@ import {
   View,
 } from "react-native";
 import {
+  getRoleName,
   RoleEnum,
   useAuthStore,
 } from "@/src/features/common/auth/store/authStore";
@@ -22,7 +23,7 @@ import AdminStatCard from "@/src/features/common/admin/components/AdminStatCard"
 export default function AdminScreen() {
   const theme = useTheme();
   const { user } = useAuthStore();
-  const isAdmin = user?.role?.name === RoleEnum.ADMIN;
+  const isAdmin = getRoleName(user?.role) === RoleEnum.ADMIN;
 
   console.log("[AdminScreen] Rendered. Role:", user?.role, "isAdmin:", isAdmin);
 

@@ -317,4 +317,24 @@ export const deliveryApi = {
     const response = await axiosInstance.post(`/delivery/sub-orders/${subOrderId}/cancel`, { reason });
     return response.data.data;
   },
+
+  // Uploads a captured proof photo (a local file:// URI from the camera) to the
+  // server, which stores it on ImageKit and returns the hosted URL. Riders must
+  // upload the real image here first; the hosted URL — not the device-local
+  // path — is what gets submitted with the pickup/deliver step.
+  uploadProof: async (
+    uri: string,
+    kind: "pickup" | "delivery" | "signature",
+  ): Promise<{ url: string; fileId: string }> => {
+    const ext = (uri.split(".").pop() || "jpg").split("?")[0].toLowerCase();
+    const type = ext === "png" ? "image/png" : ext === "webp" ? "image/webp" : "image/jpeg";
+    const form = new FormData();
+    form.append("file", { uri, name: `${kind}.${ext}`, type } as any);
+    form.append("kind", kind);
+    const response = await axiosInstance.post("/delivery/proof-upload", form, {
+      headers: { "Content-Type": "multipart/form-data" },
+      timeout: 30000,
+    });
+    return response.data.data;
+  },
 };

@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { verifyJWT, isAdmin, isDelivery } from "@/middlewares/auth.middleware";
+import { upload } from "@/middlewares/multer.middleware";
 import * as deliveryController from "./delivery.controller";
 import { legacyParentDeliveryGone } from "./legacyDeliveryGone";
 
@@ -41,6 +42,8 @@ router.post("/sub-orders/:id/deliver", isDelivery, deliveryController.subOrderDe
 router.post("/sub-orders/:id/cancel", isDelivery, deliveryController.subOrderCancel);
 
 // Return pickups (pull model: any eligible rider can claim an approved return)
+router.post("/proof-upload", isDelivery, upload.single("file"), deliveryController.uploadProof);
+
 router.get("/return-tasks", isDelivery, deliveryController.returnTasks);
 router.post("/sub-orders/:id/return-claim", isDelivery, deliveryController.claimReturn);
 router.post("/sub-orders/:id/return-pickup", isDelivery, deliveryController.returnPickup);

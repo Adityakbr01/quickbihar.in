@@ -204,7 +204,7 @@ function SelectedJobCard({
             placeholderTextColor={theme.secondaryText}
             keyboardType="number-pad"
           />
-          <TouchableOpacity style={styles.secondaryButton} onPress={async () => updateProof(jobId, { pickupPhoto: await pickProofPhoto(showDialog) })}>
+          <TouchableOpacity style={styles.secondaryButton} onPress={async () => updateProof(jobId, { pickupPhoto: await pickProofPhoto(showDialog, "pickup") })}>
             <Ionicons name="camera-outline" size={16} color={theme.text} />
             <Text style={styles.secondaryText}>{proof.pickupPhoto ? "Pickup Photo Added" : "Add Pickup Photo"}</Text>
           </TouchableOpacity>
@@ -221,7 +221,7 @@ function SelectedJobCard({
             placeholderTextColor={theme.secondaryText}
             keyboardType="number-pad"
           />
-          <TouchableOpacity style={styles.secondaryButton} onPress={async () => updateProof(jobId, { deliveryPhoto: await pickProofPhoto(showDialog) })}>
+          <TouchableOpacity style={styles.secondaryButton} onPress={async () => updateProof(jobId, { deliveryPhoto: await pickProofPhoto(showDialog, "delivery") })}>
             <Ionicons name="camera-outline" size={16} color={theme.text} />
             <Text style={styles.secondaryText}>{proof.deliveryPhoto ? "Delivery Photo Added" : "Add Delivery Photo"}</Text>
           </TouchableOpacity>

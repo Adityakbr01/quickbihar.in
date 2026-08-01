@@ -344,4 +344,22 @@ export const deliveryApi = {
     const response = await axiosInstance.post(`/delivery/sub-orders/${subOrderId}/cancel`, { reason });
     return response.data.data;
   },
+
+  // Uploads a real proof image (pickup / delivery / signature) to the server,
+  // which stores it on ImageKit and returns the hosted URL to submit with the
+  // pickup/deliver step. `kind` tags the file in storage.
+  uploadProof: async (
+    file: File | Blob,
+    kind: "pickup" | "delivery" | "signature",
+    fileName?: string,
+  ): Promise<{ url: string; fileId: string }> => {
+    const form = new FormData();
+    form.append("file", file, fileName || (file instanceof File ? file.name : `${kind}.png`));
+    form.append("kind", kind);
+    const response = await axiosInstance.post("/delivery/proof-upload", form, {
+      headers: { "Content-Type": "multipart/form-data" },
+      timeout: 30000,
+    });
+    return response.data.data;
+  },
 };

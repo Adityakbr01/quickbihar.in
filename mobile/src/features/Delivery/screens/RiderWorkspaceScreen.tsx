@@ -157,12 +157,34 @@ export default function RiderWorkspaceScreen() {
     const onRefresh = () => {
       refreshAll(false).catch(() => undefined);
     };
+    // Another rider took (or the offer expired) this job: drop it from the list
+    // and dismiss the offer prompt if it's still open, so we don't try to accept
+    // a job that's no longer available.
+    const onOfferClosed = (payload: any) => {
+      const closedOfferId = payload?.offerId;
+      const closedSubOrderId = payload?.subOrderId;
+      setOffers((current) =>
+        current.filter((item) => {
+          const sameOffer = closedOfferId && item.offerId === closedOfferId;
+          const sameSubOrder =
+            closedSubOrderId && subOrderIdOf(item) === closedSubOrderId;
+          return !sameOffer && !sameSubOrder;
+        }),
+      );
+      if (closedOfferId) notifiedOfferIds.current.delete(closedOfferId);
+      // Close the "New Delivery Offer" alert if it's the one that just went stale.
+      setDialog((current) =>
+        current?.title === "New Delivery Offer" ? null : current,
+      );
+    };
 
     socketClient.on(SocketEvents.RIDER_JOB_OFFER, onOffer);
+    socketClient.on(SocketEvents.RIDER_OFFER_CLOSED, onOfferClosed);
     socketClient.on(SocketEvents.FULFILLMENT_EVENT, onRefresh);
     socketClient.on(SocketEvents.ORDER_STATUS_UPDATE, onRefresh);
     return () => {
       socketClient.off(SocketEvents.RIDER_JOB_OFFER, onOffer);
+      socketClient.off(SocketEvents.RIDER_OFFER_CLOSED, onOfferClosed);
       socketClient.off(SocketEvents.FULFILLMENT_EVENT, onRefresh);
       socketClient.off(SocketEvents.ORDER_STATUS_UPDATE, onRefresh);
     };

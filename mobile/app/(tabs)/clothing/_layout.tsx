@@ -1,4 +1,4 @@
-import { RoleEnum, useAuthStore } from "@/src/features/common/auth/store/authStore";
+import { getRoleName, RIDER_ROLE_ALIAS, RoleEnum, useAuthStore } from "@/src/features/common/auth/store/authStore";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import {
   DashboardCircleSettingsIcon,
@@ -41,9 +41,9 @@ export default function TabsLayout() {
   const theme = useTheme();
   const { user, isAuthenticated } = useAuthStore();
   const router = useRouter();
-  const roleName = typeof user?.role === "string" ? user.role : user?.role?.name;
+  const roleName = getRoleName(user?.role);
   const isAdmin = roleName === RoleEnum.ADMIN;
-  const isRider = roleName === RoleEnum.DELIVERY || roleName === "RIDER";
+  const isRider = roleName === RoleEnum.DELIVERY || roleName === RIDER_ROLE_ALIAS;
 
   const isWeb = Platform.OS === "web";
 

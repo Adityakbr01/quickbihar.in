@@ -23,6 +23,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuthStore } from "@/features/auth/store/authStore";
 import { webSocketClient } from "@/lib/socket";
+import { SocketEvents } from "@/constants/socketEvents";
 import { useFulfillmentRealtime } from "@/hooks/useFulfillmentRealtime";
 import { toast } from "sonner";
 import {
@@ -129,9 +130,25 @@ export default function DeliveryDashboardPage() {
       setActiveJobOffer(offer);
     };
 
-    webSocketClient.on("rider_job_offer", handleJobOffer);
+    // Another rider accepted (or the offer expired): drop our now-stale modal
+    // if it points at the same sub-order.
+    const handleOfferClosed = (payload: any) => {
+      setActiveJobOffer((current: any) => {
+        if (!current) return current;
+        const sameOffer =
+          (payload?.offerId && current.offerId === payload.offerId) ||
+          (payload?.subOrderId && current.subOrderId === payload.subOrderId);
+        if (!sameOffer) return current;
+        toast.info(payload?.message || "This delivery is no longer available.");
+        return null;
+      });
+    };
+
+    webSocketClient.on(SocketEvents.RIDER_JOB_OFFER, handleJobOffer);
+    webSocketClient.on(SocketEvents.RIDER_OFFER_CLOSED, handleOfferClosed);
     return () => {
-      webSocketClient.off("rider_job_offer", handleJobOffer);
+      webSocketClient.off(SocketEvents.RIDER_JOB_OFFER, handleJobOffer);
+      webSocketClient.off(SocketEvents.RIDER_OFFER_CLOSED, handleOfferClosed);
     };
   }, [token]);
 

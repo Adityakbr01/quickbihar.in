@@ -18,16 +18,13 @@ import { Input } from "@/components/ui/input";
 import { useSellerLogin } from "../hooks/useAuth";
 import { loginSchema, LoginValues } from "../schemas/auth.schema";
 
-const SELLER_DEMO_EMAIL = "seller@gmail.app";
-const SELLER_DEMO_PASSWORD = "seller@gmail.app";
-
 export default function SellerLoginForm() {
   const { mutate: login, isPending } = useSellerLogin();
   const form = useForm<LoginValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: SELLER_DEMO_EMAIL,
-      password: SELLER_DEMO_PASSWORD,
+      email: "",
+      password: "",
     },
   });
 
@@ -55,7 +52,7 @@ export default function SellerLoginForm() {
                   <FormControl>
                     <Input
                       {...field}
-                      placeholder={SELLER_DEMO_EMAIL}
+                      placeholder="seller@example.com"
                       className="border-white/10 bg-white/5 text-white placeholder:text-gray-500 focus:border-emerald-500"
                     />
                   </FormControl>
@@ -73,7 +70,7 @@ export default function SellerLoginForm() {
                     <Input
                       {...field}
                       type="password"
-                      placeholder={SELLER_DEMO_PASSWORD}
+                      placeholder="••••••••"
                       className="border-white/10 bg-white/5 text-white placeholder:text-gray-500 focus:border-emerald-500"
                     />
                   </FormControl>

@@ -1,6 +1,6 @@
 import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
-import type { DeliveryLocationPayload, RiderOffer } from "../api/delivery.api";
+import { deliveryApi, type DeliveryLocationPayload, type RiderOffer } from "../api/delivery.api";
 import { money, storeNameOf } from "../theme/riderTheme";
 import type { ShowDialog } from "../types/rider.types";
 
@@ -15,7 +15,7 @@ export async function currentLocation(): Promise<DeliveryLocationPayload | undef
   };
 }
 
-export async function pickProofPhoto(showDialog: ShowDialog) {
+export async function pickProofPhoto(showDialog: ShowDialog, kind: "pickup" | "delivery" = "pickup") {
   const { status } = await ImagePicker.requestCameraPermissionsAsync();
   if (status !== "granted") {
     showDialog("Camera Permission Required", "Photo proof is required for pickup and delivery.");
@@ -26,7 +26,19 @@ export async function pickProofPhoto(showDialog: ShowDialog) {
     allowsEditing: false,
   });
   if (result.canceled) return "";
-  return result.assets[0]?.uri || "";
+  const localUri = result.assets[0]?.uri;
+  if (!localUri) return "";
+
+  // Upload the captured image to the server so we submit a hosted URL the whole
+  // platform can render — not the device-local file:// path, which is a stub
+  // that only exists on this phone.
+  try {
+    const { url } = await deliveryApi.uploadProof(localUri, kind);
+    return url;
+  } catch (error: any) {
+    showDialog("Upload Failed", error?.message || "Could not upload the proof photo. Please try again.");
+    return "";
+  }
 }
 
 export async function notifyLocalOffer(offer: RiderOffer) {

@@ -1,10 +1,11 @@
-import { ReactNode, useState } from "react";
-import { Truck, MapPin, Navigation, Phone, ShieldCheck, Camera, PenTool, CheckCircle2, AlertTriangle, Coins } from "lucide-react";
+import { ReactNode, useState, useRef, useEffect } from "react";
+import { Truck, MapPin, Navigation, Phone, ShieldCheck, Camera, PenTool, CheckCircle2, AlertTriangle, Coins, Loader2, Check, Eraser } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { deliveryApi } from "../api/delivery.api";
 import {
   useSubOrderArriving,
   useSubOrderReachedStore,
@@ -150,7 +151,9 @@ function JobExecutionCard({ order }: { order: any }) {
   const mDeliver = useSubOrderDeliver();
   const mCancel = useSubOrderCancel();
 
-  // Verification state inputs
+  // Verification state inputs. Photo/signature values are hosted ImageKit URLs
+  // returned by the proof-upload endpoint (set by the capture widgets below),
+  // not hand-typed strings.
   const [pickupOtp, setPickupOtp] = useState("");
   const [pickupPhoto, setPickupPhoto] = useState("");
   const [deliveryOtp, setDeliveryOtp] = useState("");
@@ -185,11 +188,15 @@ function JobExecutionCard({ order }: { order: any }) {
           toast.error("Valid Pickup OTP code is required");
           return;
         }
+        if (!pickupPhoto) {
+          toast.error("Capture a proof-of-pickup photo before confirming");
+          return;
+        }
         mPickup.mutate({
           subOrderId,
           payload: {
             pickupOtp,
-            pickupPhoto: pickupPhoto || "https://ik.imagekit.io/k2n57ywshu/products/proof_pickup.jpg",
+            pickupPhoto,
           },
         });
       } else if (action === "TRANSIT") {
@@ -202,12 +209,16 @@ function JobExecutionCard({ order }: { order: any }) {
           toast.error("Valid Delivery OTP code is required");
           return;
         }
+        if (!deliveryPhoto) {
+          toast.error("Capture a proof-of-delivery photo before completing");
+          return;
+        }
         mDeliver.mutate({
           subOrderId,
           payload: {
             deliveryOtp,
-            deliveryPhoto: deliveryPhoto || "https://ik.imagekit.io/k2n57ywshu/products/proof_delivery.jpg",
-            deliverySignature: signature || "Customer Signed (Touchscreen verified)",
+            deliveryPhoto,
+            ...(signature ? { deliverySignature: signature } : {}),
           },
         });
       }
@@ -316,24 +327,13 @@ function JobExecutionCard({ order }: { order: any }) {
                       className="bg-black/30 border-white/10 text-white font-mono tracking-widest text-center"
                     />
                   </div>
-                  <div>
-                    <label className="block text-xs text-gray-400 mb-1 flex items-center justify-between">
-                      <span>Proof of Pickup Photo (Optional for simulator)</span>
-                      <span className="text-[10px] text-gray-500">Mock photo auto-injected</span>
-                    </label>
-                    <div className="flex gap-2">
-                      <Input
-                        type="text"
-                        value={pickupPhoto}
-                        onChange={(e) => setPickupPhoto(e.target.value)}
-                        placeholder="Image URL"
-                        className="bg-black/30 border-white/10 text-xs text-white"
-                      />
-                      <Button variant="outline" size="icon" className="border-white/10 shrink-0" onClick={() => setPickupPhoto("https://ik.imagekit.io/k2n57ywshu/products/proof_pickup.jpg")}>
-                        <Camera className="h-4 w-4 text-cyan-400" />
-                      </Button>
-                    </div>
-                  </div>
+                  <ProofPhotoInput
+                    kind="pickup"
+                    label="Proof of Pickup Photo"
+                    hint="Take/upload a photo of the packed items."
+                    value={pickupPhoto}
+                    onChange={setPickupPhoto}
+                  />
                 </div>
                 <Button className="w-full bg-emerald-600 hover:bg-emerald-700" onClick={() => handleAction("PICKUP")} disabled={isMutating}>
                   <ShieldCheck className="h-4 w-4 mr-2" /> Confirm Store Pickup
@@ -389,38 +389,18 @@ function JobExecutionCard({ order }: { order: any }) {
                       className="bg-black/30 border-white/10 text-white font-mono tracking-widest text-center"
                     />
                   </div>
-                  <div>
-                    <label className="block text-xs text-gray-400 mb-1 flex items-center justify-between">
-                      <span>Proof of Delivery Photo (Optional for simulator)</span>
-                    </label>
-                    <div className="flex gap-2">
-                      <Input
-                        type="text"
-                        value={deliveryPhoto}
-                        onChange={(e) => setDeliveryPhoto(e.target.value)}
-                        placeholder="Photo URL"
-                        className="bg-black/30 border-white/10 text-xs text-white"
-                      />
-                      <Button variant="outline" size="icon" className="border-white/10 shrink-0" onClick={() => setDeliveryPhoto("https://ik.imagekit.io/k2n57ywshu/products/proof_delivery.jpg")}>
-                        <Camera className="h-4 w-4 text-cyan-400" />
-                      </Button>
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-xs text-gray-400 mb-1">Customer Hand Signature Name</label>
-                    <div className="flex gap-2">
-                      <Input
-                        type="text"
-                        value={signature}
-                        onChange={(e) => setSignature(e.target.value)}
-                        placeholder="Customer Name or Initials"
-                        className="bg-black/30 border-white/10 text-xs text-white"
-                      />
-                      <Button variant="outline" size="icon" className="border-white/10 shrink-0" onClick={() => setSignature(`${order.shippingAddress?.fullName} (Signed)`)}>
-                        <PenTool className="h-4 w-4 text-cyan-400" />
-                      </Button>
-                    </div>
-                  </div>
+                  <ProofPhotoInput
+                    kind="delivery"
+                    label="Proof of Delivery Photo"
+                    hint="Photo of the handed-over package at the doorstep."
+                    value={deliveryPhoto}
+                    onChange={setDeliveryPhoto}
+                  />
+                  <SignaturePad
+                    value={signature}
+                    onChange={setSignature}
+                    customerName={order.shippingAddress?.fullName}
+                  />
                 </div>
                 <Button className="w-full bg-emerald-600 hover:bg-emerald-700" onClick={() => handleAction("DELIVER")} disabled={isMutating}>
                   <CheckCircle2 className="h-4 w-4 mr-2" /> Complete Delivery & Handover
@@ -516,5 +496,211 @@ function OrderDetailPanel({ order }: { order: any | null }) {
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+// Captures a proof photo: pick/shoot a file, upload it to ImageKit via the
+// server, and surface the hosted URL (plus a thumbnail) to the parent. Replaces
+// the old "paste an image URL / auto-inject a mock" stub.
+function ProofPhotoInput({
+  kind,
+  label,
+  hint,
+  value,
+  onChange,
+}: {
+  kind: "pickup" | "delivery";
+  label: string;
+  hint: string;
+  value: string;
+  onChange: (url: string) => void;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+
+  const handleFile = async (file: File | undefined) => {
+    if (!file) return;
+    setUploading(true);
+    try {
+      const { url } = await deliveryApi.uploadProof(file, kind, file.name);
+      onChange(url);
+      toast.success(`${label} uploaded`);
+    } catch (err: any) {
+      toast.error(err?.message || "Upload failed. Try again.");
+    } finally {
+      setUploading(false);
+      if (inputRef.current) inputRef.current.value = "";
+    }
+  };
+
+  return (
+    <div>
+      <label className="block text-xs text-gray-400 mb-1">{label}</label>
+      <p className="text-[11px] text-gray-500 mb-1.5">{hint}</p>
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        className="hidden"
+        onChange={(e) => handleFile(e.target.files?.[0])}
+      />
+      <div className="flex items-center gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="border-white/10 gap-2"
+          onClick={() => inputRef.current?.click()}
+          disabled={uploading}
+        >
+          {uploading ? <Loader2 className="h-4 w-4 animate-spin text-cyan-400" /> : <Camera className="h-4 w-4 text-cyan-400" />}
+          {value ? "Retake / Replace" : "Take / Upload Photo"}
+        </Button>
+        {value && (
+          <span className="inline-flex items-center gap-1 text-[11px] text-emerald-400">
+            <Check className="h-3.5 w-3.5" /> Captured
+          </span>
+        )}
+      </div>
+      {value && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={value} alt={`${label} preview`} className="mt-2 h-24 w-24 rounded-md object-cover border border-white/10" />
+      )}
+    </div>
+  );
+}
+
+// Draws a customer signature on a canvas, exports it as a PNG, uploads it via
+// the proof endpoint, and hands the hosted URL to the parent. Replaces the old
+// free-text "type the customer's name" signature stub. Optional — delivery can
+// complete on OTP + photo alone.
+function SignaturePad({
+  value,
+  onChange,
+  customerName,
+}: {
+  value: string;
+  onChange: (url: string) => void;
+  customerName?: string;
+}) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const drawing = useRef(false);
+  const hasStrokes = useRef(false);
+  const [uploading, setUploading] = useState(false);
+  const [dirty, setDirty] = useState(false);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    ctx.fillStyle = "#0a0a0a";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.strokeStyle = "#e5e7eb";
+    ctx.lineWidth = 2;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+  }, []);
+
+  const pointFromEvent = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current!;
+    const rect = canvas.getBoundingClientRect();
+    return {
+      x: ((e.clientX - rect.left) / rect.width) * canvas.width,
+      y: ((e.clientY - rect.top) / rect.height) * canvas.height,
+    };
+  };
+
+  const startDraw = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    const ctx = canvasRef.current?.getContext("2d");
+    if (!ctx) return;
+    drawing.current = true;
+    const { x, y } = pointFromEvent(e);
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    canvasRef.current?.setPointerCapture(e.pointerId);
+  };
+
+  const moveDraw = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    if (!drawing.current) return;
+    const ctx = canvasRef.current?.getContext("2d");
+    if (!ctx) return;
+    const { x, y } = pointFromEvent(e);
+    ctx.lineTo(x, y);
+    ctx.stroke();
+    hasStrokes.current = true;
+    if (!dirty) setDirty(true);
+  };
+
+  const endDraw = () => {
+    drawing.current = false;
+  };
+
+  const clear = () => {
+    const canvas = canvasRef.current;
+    const ctx = canvas?.getContext("2d");
+    if (!canvas || !ctx) return;
+    ctx.fillStyle = "#0a0a0a";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    hasStrokes.current = false;
+    setDirty(false);
+    onChange("");
+  };
+
+  const save = async () => {
+    const canvas = canvasRef.current;
+    if (!canvas || !hasStrokes.current) {
+      toast.error("Please capture the customer's signature first");
+      return;
+    }
+    setUploading(true);
+    try {
+      const blob: Blob | null = await new Promise((resolve) =>
+        canvas.toBlob((b) => resolve(b), "image/png"),
+      );
+      if (!blob) throw new Error("Could not read the signature");
+      const fileName = `signature_${(customerName || "customer").replace(/\s+/g, "_")}.png`;
+      const { url } = await deliveryApi.uploadProof(blob, "signature", fileName);
+      onChange(url);
+      setDirty(false);
+      toast.success("Signature captured");
+    } catch (err: any) {
+      toast.error(err?.message || "Signature upload failed. Try again.");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  return (
+    <div>
+      <label className="block text-xs text-gray-400 mb-1 flex items-center justify-between">
+        <span>Customer Signature (optional)</span>
+        {value && !dirty && (
+          <span className="inline-flex items-center gap-1 text-[11px] text-emerald-400">
+            <Check className="h-3.5 w-3.5" /> Saved
+          </span>
+        )}
+      </label>
+      <canvas
+        ref={canvasRef}
+        width={320}
+        height={120}
+        className="w-full h-[120px] rounded-md border border-white/10 bg-[#0a0a0a] touch-none cursor-crosshair"
+        onPointerDown={startDraw}
+        onPointerMove={moveDraw}
+        onPointerUp={endDraw}
+        onPointerLeave={endDraw}
+      />
+      <div className="mt-2 flex gap-2">
+        <Button type="button" variant="outline" size="sm" className="border-white/10 gap-2" onClick={save} disabled={uploading}>
+          {uploading ? <Loader2 className="h-4 w-4 animate-spin text-cyan-400" /> : <PenTool className="h-4 w-4 text-cyan-400" />}
+          Save Signature
+        </Button>
+        <Button type="button" variant="ghost" size="sm" className="text-gray-400 gap-2" onClick={clear} disabled={uploading}>
+          <Eraser className="h-4 w-4" /> Clear
+        </Button>
+      </div>
+    </div>
   );
 }

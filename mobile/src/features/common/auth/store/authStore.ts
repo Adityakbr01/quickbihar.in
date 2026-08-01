@@ -27,6 +27,17 @@ interface Role {
 }
 
 /**
+ * Normalizes a user's role to its name string. Tokens/records carry the role
+ * either as a populated Role object or as a bare name string; this collapses
+ * both forms (and null) into a single comparable value. Use this everywhere a
+ * role guard is evaluated instead of reaching into `user.role.name` directly,
+ * which silently fails when the role arrives as a string.
+ */
+export const getRoleName = (
+  role?: Role | string | null
+): string | undefined => (typeof role === "string" ? role : role?.name);
+
+/**
  * Resolves the post-login landing route from a user's role. The predicates mirror
  * the tab guards in app/(tabs)/clothing/{admin,rider}.tsx and _layout.tsx, so a user
  * always lands on a screen their role can actually render (no guard-redirect bounce).
@@ -35,7 +46,7 @@ interface Role {
 export const getRoleLandingRoute = (
   role?: Role | string | null
 ): "/(tabs)/clothing/home" | "/(tabs)/clothing/admin" | "/(tabs)/clothing/rider" => {
-  const roleName = typeof role === "string" ? role : role?.name;
+  const roleName = getRoleName(role);
   if (roleName === RoleEnum.ADMIN) return "/(tabs)/clothing/admin";
   if (roleName === RoleEnum.DELIVERY || roleName === RIDER_ROLE_ALIAS) return "/(tabs)/clothing/rider";
   return "/(tabs)/clothing/home";
@@ -74,7 +85,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     await authStorage.setItemAsync("userToken", token);
     await authStorage.setItemAsync("refreshToken", refreshToken);
     await authStorage.setItemAsync("userData", JSON.stringify(user));
-    await authStorage.setItemAsync("userRole", typeof user.role === "string" ? user.role : user.role?.name || "");
+    await authStorage.setItemAsync("userRole", getRoleName(user.role) || "");
     set({ user, token, refreshToken, isAuthenticated: true, isInitialized: true });
   },
 
