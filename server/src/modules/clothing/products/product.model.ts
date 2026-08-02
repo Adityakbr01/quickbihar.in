@@ -2,8 +2,8 @@ import mongoose, { Schema } from "mongoose";
 
 const variantSchema = new Schema(
     {
-        size: { type: String, required: true },
-        color: { type: String, required: true },
+        size: { type: String, required: false },
+        color: { type: String, required: false },
         price: { type: Number },
         stock: { type: Number, required: true },
         sku: { type: String },
@@ -79,6 +79,13 @@ const productSchema = new Schema(
             ref: "SizeChart",
         },
 
+        vertical: {
+            type: String,
+            enum: ["CLOTHING", "FOOD", "JEWELERY"],
+            default: "CLOTHING",
+            index: true,
+        },
+
         details: {
             fit: String,
             pattern: String,
@@ -87,6 +94,22 @@ const productSchema = new Schema(
             sleeve: String,
             washCare: String,
             sku: String,
+        },
+
+        foodDetails: {
+            vegNonVeg: { type: String, enum: ["VEG", "NON_VEG", "EGG"] },
+            shelfLife: String,
+            ingredients: [String],
+            servingSize: String,
+            calories: Number,
+        },
+
+        jeweleryDetails: {
+            metalType: String,
+            purity: String,
+            hallmark: Boolean,
+            gemstone: String,
+            weightGrams: Number,
         },
 
         tags: [String],
@@ -185,10 +208,11 @@ productSchema.pre("validate", async function () {
     if (this.isModified("variants")) {
         this.totalStock = this.variants.reduce((sum, variant) => sum + (variant.stock || 0), 0);
 
-        this.variants.forEach(variant => {
-            const size = variant.size.toUpperCase().replace(/\s+/g, "");
-            const color = variant.color.toUpperCase().replace(/\s+/g, "");
-            const expectedSku = `${this.details?.sku}-${size}-${color}`;
+        this.variants.forEach((variant, index) => {
+            const size = (variant.size || "").toUpperCase().replace(/\s+/g, "");
+            const color = (variant.color || "").toUpperCase().replace(/\s+/g, "");
+            const suffix = [size, color].filter(Boolean).join("-") || `V${index + 1}`;
+            const expectedSku = `${this.details?.sku}-${suffix}`;
             if (!variant.sku || variant.sku !== expectedSku) {
                 variant.sku = expectedSku;
             }

@@ -54,6 +54,12 @@ const categorySchema = new Schema<ICategory>(
             type: Boolean,
             default: false,
         },
+        vertical: {
+            type: String,
+            enum: ["CLOTHING", "FOOD", "JEWELERY", "GLOBAL"],
+            default: "CLOTHING",
+            index: true,
+        },
         seo: {
             metaTitle: String,
             metaDescription: String,

@@ -138,7 +138,7 @@ const SellerProfileSchema = new Schema({
 
     sellerType: {
         type: String,
-        enum: [StoreType.CLOTHING],
+        enum: Object.values(StoreType),
     },
 
     isVerified: { type: Boolean, default: false },

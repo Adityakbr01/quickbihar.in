@@ -13,6 +13,7 @@ export interface ICategory extends Document {
     sortOrder?: number;
     isActive: boolean;
     isFeatured: boolean;
+    vertical?: "CLOTHING" | "FOOD" | "JEWELERY" | "GLOBAL";
     seo?: {
         metaTitle?: string;
         metaDescription?: string;

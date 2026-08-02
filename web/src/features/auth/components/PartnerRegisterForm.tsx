@@ -146,8 +146,7 @@ export default function PartnerRegisterForm({ mode }: { mode: PartnerMode }) {
             documents,
             details: {
               businessName: text(form, "businessName"),
-              // CLOTHING-SPECIFIC: hardcoded vertical — generalize in multi-vertical milestone
-              sellerType: "CLOTHING" as const,
+              sellerType: (text(form, "sellerType") as "CLOTHING" | "FOOD" | "JEWELERY") || "CLOTHING",
               gstNumber: optionalText(form, "gstNumber"),
               ...(address ? { address } : {}),
               ...(bankDetails ? { bankDetails } : {}),
@@ -236,8 +235,13 @@ export default function PartnerRegisterForm({ mode }: { mode: PartnerMode }) {
 
 function SellerFields() {
   return (
-    <div className="grid gap-3 md:grid-cols-2">
+    <div className="grid gap-3 md:grid-cols-3">
       <Input name="businessName" placeholder="Business name" required className={inputClass} />
+      <select name="sellerType" required className={selectClass} defaultValue="CLOTHING">
+        <option value="CLOTHING">Clothing & Apparel</option>
+        <option value="FOOD">Food & Grocery</option>
+        <option value="JEWELERY">Jewelry & Luxury</option>
+      </select>
       <Input name="gstNumber" placeholder="GST number (optional)" className={inputClass} />
     </div>
   );

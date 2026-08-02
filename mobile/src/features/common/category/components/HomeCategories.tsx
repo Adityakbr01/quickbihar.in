@@ -15,7 +15,7 @@ import CategorySkeleton from "./CategorySkeleton";
 import { useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
 
-const HomeCategories = () => {
+const HomeCategories = ({ rootSlug }: { rootSlug?: string }) => {
   const theme = useTheme();
   const router = useRouter();
   const { data: categories, isLoading, error } = useCategories();

@@ -31,8 +31,7 @@ export interface SellerApplicationPayload {
   documents: OnboardingDocument[];
   details: {
     businessName: string;
-    // CLOTHING-SPECIFIC: hardcoded vertical — generalize in multi-vertical milestone
-    sellerType: "CLOTHING";
+    sellerType: "CLOTHING" | "FOOD" | "JEWELERY";
     gstNumber?: string;
     bankDetails?: {
       accountNumber: string;

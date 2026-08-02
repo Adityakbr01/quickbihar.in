@@ -43,8 +43,8 @@ export const applyOnboardingSchema = z.object({
             documents: z.array(documentSchema).min(1, "At least one document is required"),
             details: z.object({
                 businessName: z.string().min(1, "Business name is required"),
-                sellerType: z.literal(DomainEnum.CLOTHING, {
-                    message: "Invalid seller type (must be CLOTHING)",
+                sellerType: z.enum([DomainEnum.CLOTHING, DomainEnum.FOOD, DomainEnum.JEWELERY] as const, {
+                    message: "Invalid seller type (must be CLOTHING, FOOD, or JEWELERY)",
                 }),
                 gstNumber: z.string().optional(),
                 bankDetails: bankDetailsSchema.optional(),

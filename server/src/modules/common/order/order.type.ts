@@ -88,8 +88,8 @@ export interface IOrderItem {
     productId: Types.ObjectId;
     title: string;
     sku: string;
-    size: string;
-    color: string;
+    size?: string;
+    color?: string;
     quantity: number;
     price: number; // Snapshot of price at purchase
     sellerId?: Types.ObjectId;

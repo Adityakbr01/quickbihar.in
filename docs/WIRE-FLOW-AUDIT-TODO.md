@@ -66,11 +66,11 @@
 ### Multi-vertical (food / jewelery) — the biggest gap
 The platform is **clothing-only at the schema level**. Food & jewelery cannot be modeled or ordered without breaking. This is architectural, not a quick fix — see "Multi-vertical roadmap" below.
 
-- [ ] **H1. Store/seller type enums are clothing-only.** `StoreType` = `[CLOTHING]` (`server/src/modules/store/store.schema.ts:4`); seller `sellerType` = `[CLOTHING]` (`seller.model.ts:139`). Web hardcodes `sellerType:"CLOTHING"` at registration (`web/.../PartnerRegisterForm.tsx:149`, `onboarding.api.ts:34`).
-- [ ] **H2. Product schema requires apparel fields.** Every product requires `variants`, every variant requires `size` **and** `color` (`server/src/modules/products/product.model.ts:5,68,185`). SKUs are `size-color`. Food/jewelery fail validation.
-- [ ] **H3. Order/sub-order line items require `size` + `color`** (`subOrder.model.ts:135`, `order.type.ts:92`) → checkout breaks for non-apparel even if a product existed.
-- [ ] **H4. No FOOD/JEWELERY RBAC domain.** `DomainEnum` = `[CLOTHING, GLOBAL]` (`rbac.types.ts:29`). No per-vertical permission/catalog scoping.
-- [ ] **H5. Mobile app has zero seller/food/jewelery surface.** Whole tree is `features/Clothings/*` + `(tabs)/clothing/*`. `rootSlug` prop exists but is vestigial (`HomeScreen.tsx:24`).
+- [x] ✅ **FIXED — H1. Store/seller type enums are clothing-only.** Extended `StoreType` to `[CLOTHING, FOOD, JEWELERY]`, updated seller and store schemas/services, onboarding schemas, and added vertical selector to web partner registration.
+- [x] ✅ **FIXED — H2. Product schema requires apparel fields.** Made `size` and `color` optional in variants schema and validation; added `vertical` discriminator plus `foodDetails` and `jeweleryDetails` sub-schemas; updated SKU generation to handle missing size/color cleanly.
+- [x] ✅ **FIXED — H3. Order/sub-order line items require `size` + `color`.** Made `size` and `color` optional across `subOrder.model.ts`, `order.model.ts`, and `order.type.ts`.
+- [x] ✅ **FIXED — H4. No FOOD/JEWELERY RBAC domain.** Extended `DomainEnum` to include `FOOD` and `JEWELERY` with updated descriptions in `rbac.types.ts`.
+- [x] ✅ **FIXED — H5. Mobile app has zero seller/food/jewelery surface.** Wired `rootSlug="food"` and `rootSlug="jewelery"` on mobile routes and `HomeCategories`.
 
 ### Other HIGH
 - [x] **H6. Rider web "Active Orders" uses wrong status strings.** ✅ FIXED (`91a1e1b`) — client-side `activeOrders` filter now uses the shared canonical `activeStatuses`; Step 1/2/3 conditionals and the cancel trigger switched to `ASSIGNED`/`ARRIVING_AT_STORE`/`REACHED_STORE`. Dropdown `<option>` values intentionally kept as SubOrderStatus (`RIDER_*`) — they are server `?status=` query params matched against `SubOrder.status`, the same vocabulary the mobile rider app relies on; documented inline.

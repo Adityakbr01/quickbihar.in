@@ -425,8 +425,9 @@ export class SellerService {
 
     static async saveStore(userId: string, data: any) {
         const seller = await this.getApprovedSeller(userId);
-        if (seller.sellerType !== StoreType.CLOTHING) {
-            throw new ApiError(400, "Only fashion clothing seller stores are supported.");
+        const validStoreTypes = Object.values(StoreType);
+        if (!seller.sellerType || !validStoreTypes.includes(seller.sellerType as StoreType)) {
+            throw new ApiError(400, "Invalid or unsupported seller type.");
         }
 
         const existingStore = await this.getLatestStore(userId, false);
@@ -456,7 +457,7 @@ export class SellerService {
         if (!existingStore) {
             if (!payload.name) throw new ApiError(400, "Store name is required");
             payload.sellerId = asObjectId(userId);
-            payload.type = StoreType.CLOTHING;
+            payload.type = seller.sellerType || StoreType.CLOTHING;
             payload.isActive = true;
             payload.isOpen = false;
             payload.isVerified = seller.isVerified;

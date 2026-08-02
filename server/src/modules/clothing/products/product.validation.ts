@@ -17,12 +17,14 @@ export const createProductObjectSchema = z.object({
      isGstApplicable: z.preprocess((val) => val === "true" || val === true, z.boolean()).default(false),
      gstPercentage: z.coerce.number().default(0),
      
+     vertical: z.enum(["CLOTHING", "FOOD", "JEWELERY"]).optional().default("CLOTHING"),
+     
      // Support for both JSON string (multipart) and object
     variants: z.preprocess(
         (val) => typeof val === "string" ? JSON.parse(val) : val,
         z.array(z.object({
-            size: z.string().min(1, "Size is required"),
-            color: z.string().min(1, "Color is required"),
+            size: z.string().optional(),
+            color: z.string().optional(),
             price: z.coerce.number().min(0, "Variant price must be positive").optional(),
             stock: z.coerce.number().int().min(0, "Stock cannot be negative"),
             sku: z.string().optional()
@@ -43,6 +45,28 @@ export const createProductObjectSchema = z.object({
              sku: z.string().optional(),
          })
      ).optional(),
+
+    foodDetails: z.preprocess(
+        (val) => typeof val === "string" ? JSON.parse(val) : val,
+        z.object({
+            vegNonVeg: z.enum(["VEG", "NON_VEG", "EGG"]).optional(),
+            shelfLife: z.string().optional(),
+            ingredients: z.array(z.string()).optional(),
+            servingSize: z.string().optional(),
+            calories: z.coerce.number().optional(),
+        })
+    ).optional(),
+
+    jeweleryDetails: z.preprocess(
+        (val) => typeof val === "string" ? JSON.parse(val) : val,
+        z.object({
+            metalType: z.string().optional(),
+            purity: z.string().optional(),
+            hallmark: z.boolean().optional(),
+            gemstone: z.string().optional(),
+            weightGrams: z.coerce.number().optional(),
+        })
+    ).optional(),
  
      tags: z.preprocess(
          (val) => typeof val === "string" ? JSON.parse(val) : val,

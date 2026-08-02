@@ -3,6 +3,8 @@ import { z } from "zod";
 
 export enum StoreType {
     CLOTHING = "CLOTHING",
+    FOOD = "FOOD",
+    JEWELERY = "JEWELERY",
 }
 
 const optionalText = z.string().trim().optional();

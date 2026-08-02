@@ -78,7 +78,7 @@ const HomeScreen = ({ rootSlug }: { rootSlug?: string }) => {
               <TopHomeCarousel />
             </View>
             {/* He is Done */}
-            <HomeCategories />
+            <HomeCategories rootSlug={rootSlug} />
             {/* Not Started */}
             <TopMallSection />
             <TopSellingSection />
