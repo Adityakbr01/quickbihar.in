@@ -3,7 +3,7 @@ import { persist, createJSONStorage, StateStorage } from "zustand/middleware";
 import axiosInstance from "@/src/api/axiosInstance";
 import { ICoupon } from "../../coupon/types/coupon.types";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
-import { authStorage } from "@/src/lib/authStorage";
+import { secureZustandStorage } from "@/src/lib/secureZustandStorage";
 
 export interface CartItem {
   id?: string; // for compatibility with older mock data if needed
@@ -52,17 +52,7 @@ interface CartState {
   handleStockUpdate: (data: { productId: string; sku: string; newStock: number }) => void;
 }
 
-const secureStorage: StateStorage = {
-  getItem: (name: string): string | null | Promise<string | null> => {
-    return authStorage.getItemAsync(name);
-  },
-  setItem: (name: string, value: string): void | Promise<void> => {
-    return authStorage.setItemAsync(name, value);
-  },
-  removeItem: (name: string): void | Promise<void> => {
-    return authStorage.deleteItemAsync(name);
-  },
-};
+
 
 export const useCartStore = create<CartState>()(
   persist(
@@ -452,7 +442,7 @@ export const useCartStore = create<CartState>()(
     }),
     {
       name: "cart-storage",
-      storage: createJSONStorage(() => secureStorage),
+      storage: createJSONStorage(() => secureZustandStorage),
       partialize: (state) => ({
         items: state.items,
         subtotal: state.subtotal,

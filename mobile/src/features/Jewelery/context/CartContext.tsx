@@ -37,8 +37,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     const load = async () => {
       try {
         const [cartData, wishlistData] = await Promise.all([
-          AsyncStorage.getItem("quickbihar_cart"),
-          AsyncStorage.getItem("quickbihar_wishlist"),
+          // ponytail: mock cart keys — prefixed to avoid collision with common/cart cartStore
+          AsyncStorage.getItem("jewelery_cart"),
+          AsyncStorage.getItem("jewelery_wishlist"),
         ]);
         if (cartData) setCartItems(JSON.parse(cartData));
         if (wishlistData) setWishlist(JSON.parse(wishlistData));
@@ -49,13 +50,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const saveCart = useCallback(async (items: CartItem[]) => {
     try {
-      await AsyncStorage.setItem("quickbihar_cart", JSON.stringify(items));
+      await AsyncStorage.setItem("jewelery_cart", JSON.stringify(items));
     } catch {}
   }, []);
 
   const saveWishlist = useCallback(async (items: string[]) => {
     try {
-      await AsyncStorage.setItem("quickbihar_wishlist", JSON.stringify(items));
+      await AsyncStorage.setItem("jewelery_wishlist", JSON.stringify(items));
     } catch {}
   }, []);
 

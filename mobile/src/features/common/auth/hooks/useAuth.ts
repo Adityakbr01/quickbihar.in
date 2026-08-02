@@ -116,5 +116,4 @@ export const useLogout = () => {
   });
 };
 
-// Legacy alias
-export const useAuthenticate = useLogin;
+

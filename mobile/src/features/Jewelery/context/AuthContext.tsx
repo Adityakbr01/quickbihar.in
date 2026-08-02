@@ -1,11 +1,11 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import React, {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
+import React from "react";
+import { useAuthStore } from "@/src/features/common/auth/store/authStore";
+import {
+  loginRequest,
+  registerRequest,
+  requestOTPRequest,
+  verifyOTPRequest,
+} from "@/src/features/common/auth/api/auth.api";
 
 export interface User {
   name: string;
@@ -14,186 +14,110 @@ export interface User {
   joinedAt: string;
 }
 
-interface AuthContextType {
-  user: User | null;
-  isLoading: boolean;
-  signIn: (
-    phone: string,
-    password: string,
-  ) => Promise<{ success: boolean; error?: string }>;
-  signUp: (
-    name: string,
-    phone: string,
-    password: string,
-    email?: string,
-  ) => Promise<{ success: boolean; error?: string }>;
-  signOut: () => void;
-  updateUser: (updates: Partial<User>) => void;
-  sendOtp: (phone: string) => Promise<string>;
-  verifyOtp: (phone: string, otp: string, expectedOtp: string) => boolean;
-  resetPassword: (phone: string, newPassword: string) => Promise<boolean>;
+/**
+ * Jewelery auth bridge — connects Jewelery components directly to
+ * the single global Zustand auth store (`useAuthStore` in `common/auth`)
+ * and backend authentication API.
+ */
+export function useAuth() {
+  const { user, setAuth, clearAuth, isInitialized } = useAuthStore();
+
+  return {
+    user: user
+      ? {
+          name: user.fullName || user.username || "User",
+          phone: user.phone || "",
+          email: user.email,
+          joinedAt: (user as any).createdAt || new Date().toISOString(),
+        }
+      : null,
+    isLoading: !isInitialized,
+
+    signIn: async (phoneOrEmail: string, password: string) => {
+      try {
+        const response = await loginRequest({ email: phoneOrEmail, password });
+        const data = response?.data;
+        if (data?.user && data?.accessToken) {
+          await setAuth(data.user, data.accessToken, data.refreshToken || "");
+          return { success: true };
+        }
+        return { success: false, error: response?.message || "Invalid credentials" };
+      } catch (err: any) {
+        const errorMsg =
+          err?.response?.data?.message || err?.message || "Sign in failed";
+        return { success: false, error: errorMsg };
+      }
+    },
+
+    signUp: async (name: string, phoneOrEmail: string, password: string) => {
+      try {
+        const response = await registerRequest({
+          email: phoneOrEmail,
+          password,
+          fullName: name,
+        });
+        return { success: true, data: response?.data };
+      } catch (err: any) {
+        const errorMsg =
+          err?.response?.data?.message || err?.message || "Registration failed";
+        return { success: false, error: errorMsg };
+      }
+    },
+
+    sendOtp: async (emailOrPhone: string): Promise<{ success: boolean; error?: string }> => {
+      try {
+        const res = await requestOTPRequest(emailOrPhone);
+        if (res?.statusCode === 200 || res?.message) {
+          return { success: true };
+        }
+        return { success: false, error: res?.message || "Failed to send OTP" };
+      } catch (err: any) {
+        const errorMsg =
+          err?.response?.data?.message || err?.message || "Failed to send OTP";
+        return { success: false, error: errorMsg };
+      }
+    },
+
+    verifyOtp: async (emailOrPhone: string, otp: string): Promise<{ success: boolean; error?: string }> => {
+      try {
+        const response = await verifyOTPRequest({ email: emailOrPhone, otp });
+        const data = response?.data;
+        if (data?.user && data?.accessToken) {
+          await setAuth(data.user, data.accessToken, data.refreshToken || "");
+          return { success: true };
+        }
+        return { success: false, error: response?.message || "Invalid OTP" };
+      } catch (err: any) {
+        const errorMsg =
+          err?.response?.data?.message || err?.message || "Invalid or expired OTP";
+        return { success: false, error: errorMsg };
+      }
+    },
+
+    signOut: async () => {
+      await clearAuth();
+    },
+
+    resetPassword: async (phoneOrEmail: string, newPassword: string): Promise<boolean> => {
+      try {
+        const response = await registerRequest({
+          email: phoneOrEmail,
+          password: newPassword,
+          fullName: "",
+        });
+        const data = response?.data;
+        if (data?.user && data?.accessToken) {
+          await setAuth(data.user, data.accessToken, data.refreshToken || "");
+        }
+        return true;
+      } catch {
+        return false;
+      }
+    },
+  };
 }
-
-const AuthContext = createContext<AuthContextType | null>(null);
-
-const STORAGE_KEY = "quickbihar_user";
-const ACCOUNTS_KEY = "quickbihar_accounts";
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    AsyncStorage.getItem(STORAGE_KEY)
-      .then((data) => {
-        if (data) setUser(JSON.parse(data));
-      })
-      .finally(() => setIsLoading(false));
-  }, []);
-
-  const saveUser = useCallback(async (u: User) => {
-    setUser(u);
-    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(u));
-  }, []);
-
-  const getAccounts = async (): Promise<Record<string, string>> => {
-    const data = await AsyncStorage.getItem(ACCOUNTS_KEY);
-    return data ? JSON.parse(data) : {};
-  };
-
-  const saveAccounts = async (accounts: Record<string, string>) => {
-    await AsyncStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts));
-  };
-
-  const sendOtp = useCallback(async (_phone: string): Promise<string> => {
-    await new Promise((r) => setTimeout(r, 800));
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
-    return code;
-  }, []);
-
-  const verifyOtp = useCallback(
-    (_phone: string, otp: string, expectedOtp: string): boolean => {
-      return otp === expectedOtp;
-    },
-    [],
-  );
-
-  const signIn = useCallback(
-    async (phone: string, password: string) => {
-      await new Promise((r) => setTimeout(r, 700));
-      const accounts = await getAccounts();
-      const stored = accounts[phone];
-      if (!stored) {
-        return { success: false, error: "No account found for this number." };
-      }
-      const parsed = JSON.parse(stored);
-      if (parsed.password !== password) {
-        return {
-          success: false,
-          error: "Incorrect password. Please try again.",
-        };
-      }
-      const u: User = {
-        name: parsed.name,
-        phone,
-        email: parsed.email,
-        joinedAt: parsed.joinedAt,
-      };
-      await saveUser(u);
-      return { success: true };
-    },
-    [saveUser],
-  );
-
-  const signUp = useCallback(
-    async (name: string, phone: string, password: string, email?: string) => {
-      await new Promise((r) => setTimeout(r, 700));
-      const accounts = await getAccounts();
-      if (accounts[phone]) {
-        return {
-          success: false,
-          error: "An account with this number already exists.",
-        };
-      }
-      const record = JSON.stringify({
-        name,
-        password,
-        email,
-        joinedAt: new Date().toISOString(),
-      });
-      accounts[phone] = record;
-      await saveAccounts(accounts);
-      const u: User = {
-        name,
-        phone,
-        email,
-        joinedAt: new Date().toISOString(),
-      };
-      await saveUser(u);
-      return { success: true };
-    },
-    [saveUser],
-  );
-
-  const signOut = useCallback(async () => {
-    setUser(null);
-    await AsyncStorage.removeItem(STORAGE_KEY);
-  }, []);
-
-  const updateUser = useCallback(
-    async (updates: Partial<User>) => {
-      if (!user) return;
-      const updated = { ...user, ...updates };
-      await saveUser(updated);
-    },
-    [user, saveUser],
-  );
-
-  const resetPassword = useCallback(
-    async (phone: string, newPassword: string) => {
-      const accounts = await getAccounts();
-      if (!accounts[phone]) return false;
-      const parsed = JSON.parse(accounts[phone]);
-      parsed.password = newPassword;
-      accounts[phone] = JSON.stringify(parsed);
-      await saveAccounts(accounts);
-      return true;
-    },
-    [],
-  );
-
-  return (
-    <AuthContext.Provider
-      value={{
-        user,
-        isLoading,
-        signIn,
-        signUp,
-        signOut,
-        updateUser,
-        sendOtp,
-        verifyOtp,
-        resetPassword,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
-  );
+  return <>{children}</>;
 }
 
-const defaultAuthContext: AuthContextType = {
-  user: null,
-  isLoading: false,
-  signIn: async () => ({ success: false, error: "Not implemented" }),
-  signUp: async () => ({ success: false, error: "Not implemented" }),
-  signOut: () => {},
-  updateUser: () => {},
-  sendOtp: async () => "",
-  verifyOtp: () => false,
-  resetPassword: async () => false,
-};
-
-export function useAuth() {
-  const ctx = useContext(AuthContext);
-  return ctx ?? defaultAuthContext;
-}

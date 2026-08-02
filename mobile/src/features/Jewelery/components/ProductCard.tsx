@@ -57,7 +57,7 @@ export function ProductCard({ product, style }: ProductCardProps) {
   };
 
   const handlePress = () => {
-    router.push(`/product/${product.id}`);
+    router.push(`/jewelery/product/${product.id}` as any);
   };
 
   return (

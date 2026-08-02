@@ -251,7 +251,7 @@ export class SubOrderService {
     }
 
     // Helper to update parent order status
-    private static async syncParentOrderStatus(parentOrderId: string | Types.ObjectId, requestInfo?: IRequestInfo) {
+    public static async syncParentOrderStatus(parentOrderId: string | Types.ObjectId, requestInfo?: IRequestInfo) {
         const subOrders = await SubOrder.find({ parentOrderId });
         const allStatuses = subOrders.map(so => so.status);
 

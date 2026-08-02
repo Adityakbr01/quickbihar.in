@@ -11,10 +11,13 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  useColorScheme,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { ModuleSwitcherButton } from "@/src/components/common/ModuleSwitcherButton";
+import { useTopPad } from "@/src/hooks/useTopPad";
 import {
   APP_CURRENCY,
   APP_NAME,
@@ -63,15 +66,24 @@ const testimonials = [
 
 function AnnouncementBar() {
   const colors = useColors();
+  const scheme = useColorScheme();
+  const isDark = scheme === "dark";
+
+  // High-contrast emerald & gold luxury palette pairing
+  const bg = isDark ? "#122A20" : colors.emerald;
+  const textColor = isDark ? "#EAD7B5" : colors.champagne;
+
   return (
-    <View style={[styles.announcementBar, { backgroundColor: colors.emerald }]}>
+    <View style={[styles.announcementBar, { backgroundColor: bg }]}>
       <Text
         style={[
           styles.announcementText,
-          { color: colors.champagne, fontFamily: "DMSans_400Regular" },
+          { color: textColor, fontFamily: "DMSans_400Regular" },
         ]}
       >
-        Free shipping above {APP_CURRENCY}{JEWELERY_MODULE_CONFIG.freeShippingThreshold.toLocaleString("en-IN")} · Hallmarked gold · Try at home available
+        Free shipping above {APP_CURRENCY}
+        {JEWELERY_MODULE_CONFIG.freeShippingThreshold.toLocaleString("en-IN")} ·
+        Hallmarked gold · Try at home available
       </Text>
     </View>
   );
@@ -79,9 +91,8 @@ function AnnouncementBar() {
 
 function Header() {
   const colors = useColors();
-  const insets = useSafeAreaInsets();
   const { cartCount } = useCart();
-  const topPad = Platform.OS === "web" ? 67 : insets.top;
+  const topPad = useTopPad();
 
   return (
     <View
@@ -94,9 +105,12 @@ function Header() {
         },
       ]}
     >
-      <Pressable onPress={() => router.push("/jewelery/search")} hitSlop={8}>
-        <Feather name="search" size={20} color={colors.ink} />
-      </Pressable>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+        <ModuleSwitcherButton />
+        <Pressable onPress={() => router.push("/jewelery/search")} hitSlop={8}>
+          <Feather name="search" size={20} color={colors.ink} />
+        </Pressable>
+      </View>
       <Text
         style={[
           styles.logoText,

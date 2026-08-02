@@ -21,6 +21,7 @@ import {
   MOCK_ORDERS,
 } from "@/src/features/Jewelery/data/mockUserData";
 import { useColors } from "@/src/features/Jewelery/hooks/useColors";
+import { useTopPad } from "@/src/hooks/useTopPad";
 
 const guestMenuItems = [
   {
@@ -109,9 +110,9 @@ function MenuItem({
 export default function JeweleryAccountScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { user, signOut } = useAuth();
-  const topPad = Platform.OS === "web" ? 67 : insets.top;
+  const topPad = useTopPad();
   const bottomPad = Platform.OS === "web" ? 34 : 0;
+  const { user, signOut } = useAuth();
 
   const activeOrders = MOCK_ORDERS.filter(
     (o) => o.status !== "Delivered" && o.status !== "Cancelled",
@@ -134,7 +135,7 @@ export default function JeweleryAccountScreen() {
   const initials = user?.name
     ? user.name
         .split(" ")
-        .map((w) => w[0])
+        .map((w: string) => w[0])
         .join("")
         .toUpperCase()
         .slice(0, 2)
@@ -393,7 +394,7 @@ export default function JeweleryAccountScreen() {
                 sub={JEWELERY_MODULE_CONFIG.whatsappPhone}
                 onPress={() =>
                   Linking.openURL(
-                    `https://wa.me/${JEWELERY_MODULE_CONFIG.whatsappPhone.replace(/[^0-9]/g, "")}`
+                    `https://wa.me/${JEWELERY_MODULE_CONFIG.whatsappPhone.replace(/[^0-9]/g, "")}`,
                   )
                 }
               />
@@ -476,7 +477,7 @@ export default function JeweleryAccountScreen() {
                       backgroundColor: pressed ? colors.goldLight : colors.gold,
                     },
                   ]}
-                  onPress={() => router.push("/auth/sign-in" as any)}
+                  onPress={() => router.push("/jewelery/auth/sign-in" as any)}
                 >
                   <Text
                     style={[
@@ -497,7 +498,7 @@ export default function JeweleryAccountScreen() {
                         : "transparent",
                     },
                   ]}
-                  onPress={() => router.push("/auth/sign-up" as any)}
+                  onPress={() => router.push("/jewelery/auth/sign-up" as any)}
                 >
                   <Text
                     style={[
@@ -553,7 +554,7 @@ export default function JeweleryAccountScreen() {
                   <Text
                     style={[
                       styles.perkText,
-                      { color: colors.ink, fontFamily: "DMSans_400Regular" },
+                      { fontFamily: "DMSans_400Regular" },
                     ]}
                   >
                     {p.text}

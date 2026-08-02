@@ -2,19 +2,9 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { getMyWishlistRequest, syncWishlistRequest, toggleWishlistRequest } from "../api/wishlist.api";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
-import { authStorage } from "@/src/lib/authStorage";
+import { secureZustandStorage } from "@/src/lib/secureZustandStorage";
 
-const secureStorage = {
-  getItem: async (name: string): Promise<string | null> => {
-    return await authStorage.getItemAsync(name);
-  },
-  setItem: async (name: string, value: string): Promise<void> => {
-    await authStorage.setItemAsync(name, value);
-  },
-  removeItem: async (name: string): Promise<void> => {
-    await authStorage.deleteItemAsync(name);
-  },
-};
+
 
 interface WishlistState {
   items: string[]; // Array of product IDs
@@ -91,7 +81,7 @@ export const useWishlistStore = create<WishlistState>()(
     }),
     {
       name: "wishlist-storage",
-      storage: createJSONStorage(() => secureStorage),
+      storage: createJSONStorage(() => secureZustandStorage),
     }
   )
 );

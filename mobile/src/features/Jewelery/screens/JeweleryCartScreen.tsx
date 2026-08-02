@@ -17,21 +17,27 @@ import {
   APP_CURRENCY,
   JEWELERY_MODULE_CONFIG,
 } from "@/src/constants";
+import { useTopPad } from "@/src/hooks/useTopPad";
 import { useCart } from "@/src/features/Jewelery/context/CartContext";
 import { useColors } from "@/src/features/Jewelery/hooks/useColors";
+import Toast from "react-native-toast-message";
 
 export default function JeweleryCartScreen() {
   const colors = useColors();
-  const insets = useSafeAreaInsets();
-  const { cartItems, removeFromCart, updateQuantity, cartTotal, clearCart } =
+  const topPad = useTopPad();
+  const { cartItems, cartCount, removeFromCart, updateQuantity, cartTotal, clearCart } =
     useCart();
-  const topPad = Platform.OS === "web" ? 67 : insets.top;
+  const insets = useSafeAreaInsets();
   const bottomPad = Platform.OS === "web" ? 34 : insets.bottom;
 
   const handleCheckout = () => {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     clearCart();
-    alert("Order placed! Your jewellery is on its way.");
+    Toast.show({
+      type: "success",
+      text1: "Order placed!",
+      text2: "Your jewellery is on its way.",
+    });
   };
 
   return (
@@ -63,8 +69,7 @@ export default function JeweleryCartScreen() {
             { color: colors.warmGray, fontFamily: "DMSans_400Regular" },
           ]}
         >
-          {cartItems.reduce((s, i) => s + i.quantity, 0)} item
-          {cartItems.reduce((s, i) => s + i.quantity, 0) !== 1 ? "s" : ""}
+          {cartCount} item{cartCount !== 1 ? "s" : ""}
         </Text>
       </View>
 

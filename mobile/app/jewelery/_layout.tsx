@@ -1,15 +1,16 @@
 import { Stack } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 import React from "react";
+import { useColorScheme } from "react-native";
 
-import { AuthProvider } from "@/src/features/Jewelery/context/AuthContext";
 import { CartProvider } from "@/src/features/Jewelery/context/CartContext";
 
 export default function JeweleryLayout() {
+  const scheme = useColorScheme();
   return (
-    <AuthProvider>
-      <CartProvider>
-        <Stack screenOptions={{ headerShown: false }} />
-      </CartProvider>
-    </AuthProvider>
+    <CartProvider>
+      <StatusBar style={scheme === "dark" ? "light" : "dark"} />
+      <Stack screenOptions={{ headerShown: false }} />
+    </CartProvider>
   );
 }

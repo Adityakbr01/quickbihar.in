@@ -97,7 +97,7 @@ export class UserController {
         await DeviceToken.findOneAndUpdate(
             { fcmToken },
             { userId: userId || null },
-            { upsert: true, new: true }
+            { upsert: true, returnDocument: "after" }
         );
 
         return res.status(200).json(new ApiResponse(200, {}, "FCM Token updated successfully"));

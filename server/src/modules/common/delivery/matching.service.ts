@@ -17,7 +17,9 @@ import { socketService } from "@/modules/common/socket/socket.service";
 import {
   distanceKmBetween,
   lockedOrCalculatedRiderPayout,
+  SubOrderService,
 } from "@/modules/common/order/subOrder.service";
+import { DeliveryStatus } from "@/modules/common/order/order.type";
 import { SocketEvents } from "@/constants/socketEvents";
 import {
   MAX_RIDER_REJECTIONS_PER_SUB_ORDER,
@@ -190,35 +192,53 @@ export function matchingStage(subOrder: any) {
   const elapsedMs = Date.now() - new Date(pickupTime).getTime();
   const elapsedSeconds = Math.max(0, elapsedMs / 1000);
 
-  if (elapsedSeconds > 120) {
+  // 30 Minutes (1800 seconds) Timeout Check (Zomato/Swiggy style auto-cancellation)
+  if (elapsedSeconds >= 1800) {
+    return {
+      elapsedSeconds,
+      stage: 5,
+      radiusMeters: 15000,
+      expiresInSeconds: 0,
+      isTimedOut: true,
+    };
+  }
+  if (elapsedSeconds > 300) {
+    // 5-30 minutes: Expand to 15 KM (Stage 4)
     return {
       elapsedSeconds,
       stage: 4,
-      radiusMeters: ENV.MATCHING_STAGE4_RADIUS_KM * 1000,
+      radiusMeters: Math.max((ENV.MATCHING_STAGE4_RADIUS_KM || 15) * 1000, 15000),
       expiresInSeconds: 60,
+      isTimedOut: false,
     };
   }
-  if (elapsedSeconds > 60) {
+  if (elapsedSeconds > 120) {
+    // 2-5 minutes: Expand to 10 KM (Stage 3)
     return {
       elapsedSeconds,
       stage: 3,
-      radiusMeters: 8000,
+      radiusMeters: 10000,
       expiresInSeconds: 60,
+      isTimedOut: false,
     };
   }
-  if (elapsedSeconds > 30) {
+  if (elapsedSeconds > 60) {
+    // 1-2 minutes: Expand to 6 KM (Stage 2)
     return {
       elapsedSeconds,
       stage: 2,
-      radiusMeters: 5000,
-      expiresInSeconds: 30,
+      radiusMeters: 6000,
+      expiresInSeconds: 45,
+      isTimedOut: false,
     };
   }
+  // 0-1 minute: Initial 3 KM search radius (Stage 1)
   return {
     elapsedSeconds,
     stage: 1,
     radiusMeters: 3000,
     expiresInSeconds: 30,
+    isTimedOut: false,
   };
 }
 
@@ -438,6 +458,54 @@ async function matchSubOrder(subOrder: any) {
   const radiusMeters = stageDetails.radiusMeters;
   const stage = stageDetails.stage;
   const expiresInSeconds = stageDetails.expiresInSeconds;
+
+  // 30 Minutes Dispatch Timeout Auto-Cancellation (Zomato/Swiggy standard)
+  if (stageDetails.isTimedOut) {
+    const cancelReason = `AUTOMATIC_CANCELLATION: No delivery partner available within ${(radiusMeters / 1000).toFixed(0)} KM radius after 30 minutes. Full refund initiated.`;
+
+    console.log(`🚨 [MatchingService] Auto-cancelling sub-order ${subOrder.subOrderId} after 30 minutes matching timeout.`);
+
+    subOrder.status = SubOrderStatus.CANCELLED;
+    subOrder.delivery.status = DeliveryStatus.CANCELLED;
+    if (!subOrder.timeline) subOrder.timeline = [];
+    subOrder.timeline.push({
+      status: SubOrderStatus.CANCELLED,
+      actor: "SYSTEM",
+      timestamp: new Date(),
+      metadata: {
+        reason: cancelReason,
+        cancelledBy: "SYSTEM_MATCHING_ENGINE",
+        elapsedMinutes: Math.round(elapsedSeconds / 60),
+      },
+    });
+
+    await subOrder.save();
+
+    // Expire open offers
+    await RiderOffer.updateMany(
+      { subOrderObjectId: subOrder._id, status: "OPEN" },
+      { $set: { status: "EXPIRED", respondedAt: new Date() } }
+    );
+
+    // Sync parent order status & trigger cancellation unwinding
+    if (subOrder.parentOrderId) {
+      await SubOrderService.syncParentOrderStatus(subOrder.parentOrderId);
+    }
+
+    // Broadcast socket notification to customer & seller rooms
+    socketService.emitToSubOrderRoom(
+      subOrder.subOrderId,
+      SocketEvents.ORDER_STATUS_UPDATE,
+      {
+        subOrderId: subOrder.subOrderId,
+        status: SubOrderStatus.CANCELLED,
+        reason: cancelReason,
+      },
+    );
+
+    return;
+  }
+
   if (stage === 4) {
     // Stage 4: Escalate to admin, but keep broadcasting so late-online riders can still accept.
     socketService.emitToAdmins("admin_unassigned_escalation", {

@@ -12,6 +12,7 @@ import * as Haptics from "expo-haptics";
 import Toast from "react-native-toast-message";
 import WishlistHeart from "@/src/components/common/WishlistHeart";
 import { VariantSelectorBottomSheet } from "../../product/components/modals/VariantSelectorBottomSheet";
+import { formatPrice } from "@/src/utils/formatPrice";
 
 interface ProductCardProps {
   item: IProduct | MockProduct;
@@ -21,31 +22,26 @@ export const ProductCard = ({ item }: ProductCardProps) => {
   const theme = useTheme() as any;
   const styles = React.useMemo(() => createProductCardStyles(theme), [theme]);
   const router = useRouter();
-  const addItem = useCartStore(state => state.addItem);
-  const cartItems = useCartStore(state => state.items);
-
+  const addItem = useCartStore((state) => state.addItem);
   const id = (item as IProduct)._id || 'mock';
-  const isWishlisted = useWishlistStore(state => state.items.includes(id));
-  const toggleWishlist = useWishlistStore(state => state.toggleItem);
+  const isWishlisted = useWishlistStore((state) => state.items.includes(id));
+  const toggleWishlist = useWishlistStore((state) => state.toggleItem);
 
   const [isSheetVisible, setIsSheetVisible] = React.useState(false);
 
   const variants = (item as IProduct).variants || [];
-  const uniqueColors = React.useMemo(() => {
-    return Array.from(new Set(variants.map(v => v.color?.trim()).filter(Boolean))) as string[];
-  }, [variants]);
-  
-  const uniqueSizes = React.useMemo(() => {
-    return Array.from(new Set(variants.map(v => v.size?.trim()).filter(Boolean))) as string[];
-  }, [variants]);
-
   const isSelectionApplicable = variants.length > 0;
   const sku = variants[0]?.sku || (item as MockProduct).id || 'default-sku';
 
-  const isInCart = React.useMemo(() => {
-    if (isSelectionApplicable) return false;
-    return cartItems.some(cartItem => cartItem.sku === sku);
-  }, [cartItems, sku, isSelectionApplicable]);
+  const isInCart = useCartStore(
+    React.useCallback(
+      (state) => {
+        if (isSelectionApplicable) return false;
+        return state.items.some((cartItem) => cartItem.sku === sku);
+      },
+      [sku, isSelectionApplicable]
+    )
+  );
 
   const handleAddToCart = async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -77,15 +73,15 @@ export const ProductCard = ({ item }: ProductCardProps) => {
   };
 
   // Helper to handle both Mock and Real Data mapping
-  const productData = {
+  const productData = React.useMemo(() => ({
     name: (item as IProduct).title || (item as MockProduct).name,
     image: (item as IProduct).images?.[0]?.url || (item as MockProduct).image,
-    price: typeof item.price === 'number' ? `₹${item.price.toLocaleString()}` : item.price,
-    originalPrice: typeof item.originalPrice === 'number' ? `₹${item.originalPrice.toLocaleString()}` : item.originalPrice,
+    price: typeof item.price === 'number' ? formatPrice(item.price) : item.price,
+    originalPrice: typeof item.originalPrice === 'number' ? formatPrice(item.originalPrice) : item.originalPrice,
     discount: (item as IProduct).discountLabel || (item as MockProduct).discount,
     rating: (item as IProduct).ratings?.average || (item as MockProduct).rating,
     reviews: (item as IProduct).ratings?.count || (item as MockProduct).reviews,
-  };
+  }), [item]);
 
   return (
     <TouchableOpacity

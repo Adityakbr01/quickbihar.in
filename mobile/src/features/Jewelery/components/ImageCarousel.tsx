@@ -97,38 +97,37 @@ export function ImageCarousel({ images }: ImageCarouselProps) {
         <View
           style={[
             styles.counterBadge,
-            { backgroundColor: "rgba(26,22,20,0.55)" },
+            { backgroundColor: `${colors.ink}8C` },
           ]}
         >
-          <Feather name="image" size={10} color="#F7F3EC" style={{ marginRight: 4 }} />
+          <Feather name="image" size={10} color={colors.ivory} style={{ marginRight: 4 }} />
           <View style={{ width: 0 }} />
-          {/* using text via separate import since we don't import Text here, let's just use a view */}
         </View>
 
         {/* Left / right arrows */}
         {activeIndex > 0 && (
           <Pressable
-            style={[styles.arrow, styles.arrowLeft, { backgroundColor: "rgba(247,243,236,0.85)" }]}
+            style={[styles.arrow, styles.arrowLeft, { backgroundColor: `${colors.pearl}D9` }]}
             onPress={() => handleThumbPress(activeIndex - 1)}
             hitSlop={8}
           >
-            <Feather name="chevron-left" size={18} color="#1A1614" />
+            <Feather name="chevron-left" size={18} color={colors.ink} />
           </Pressable>
         )}
         {activeIndex < images.length - 1 && (
           <Pressable
-            style={[styles.arrow, styles.arrowRight, { backgroundColor: "rgba(247,243,236,0.85)" }]}
+            style={[styles.arrow, styles.arrowRight, { backgroundColor: `${colors.pearl}D9` }]}
             onPress={() => handleThumbPress(activeIndex + 1)}
             hitSlop={8}
           >
-            <Feather name="chevron-right" size={18} color="#1A1614" />
+            <Feather name="chevron-right" size={18} color={colors.ink} />
           </Pressable>
         )}
       </View>
 
       {/* Thumbnail strip */}
       {images.length > 1 && (
-        <View style={[styles.thumbStrip, { backgroundColor: "#EDE8DF" }]}>
+        <View style={[styles.thumbStrip, { backgroundColor: colors.pearl }]}>
           <FlatList
             ref={thumbListRef}
             data={images}
@@ -148,7 +147,7 @@ export function ImageCarousel({ images }: ImageCarouselProps) {
                   styles.thumb,
                   {
                     borderColor:
-                      index === activeIndex ? "#B8924A" : "transparent",
+                      index === activeIndex ? colors.gold : "transparent",
                     borderWidth: index === activeIndex ? 2 : 1,
                     opacity: index === activeIndex ? 1 : 0.6,
                   },

@@ -13,6 +13,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { APP_CURRENCY } from "@/src/constants";
 import { ImageCarousel } from "@/src/features/Jewelery/components/ImageCarousel";
 import { ProductCard } from "@/src/features/Jewelery/components/ProductCard";
 import { getProductById, products, Product as JeweleryProduct } from "@/src/features/Jewelery/data/products";
@@ -169,7 +170,7 @@ export default function JeweleryProductDetailScreen() {
                 { color: colors.ink, fontFamily: "DMSans_500Medium" },
               ]}
             >
-              ₹{product.price.toLocaleString("en-IN")}
+              {APP_CURRENCY}{product.price.toLocaleString("en-IN")}
             </Text>
             {product.originalPrice && (
               <Text
@@ -181,7 +182,7 @@ export default function JeweleryProductDetailScreen() {
                   },
                 ]}
               >
-                ₹{product.originalPrice.toLocaleString("en-IN")}
+                {APP_CURRENCY}{product.originalPrice.toLocaleString("en-IN")}
               </Text>
             )}
           </View>
@@ -191,7 +192,7 @@ export default function JeweleryProductDetailScreen() {
               { color: colors.warmGray, fontFamily: "DMSans_400Regular" },
             ]}
           >
-            ₹{Math.round(product.price / 12).toLocaleString("en-IN")}/month with
+            {APP_CURRENCY}{Math.round(product.price / 12).toLocaleString("en-IN")}/month with
             no-cost EMI
           </Text>
 
