@@ -15,7 +15,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import {
   APP_CURRENCY,
-  APP_FREE_SHIPPING_THRESHOLD,
+  JEWELERY_MODULE_CONFIG,
 } from "@/src/constants";
 import { useCart } from "@/src/features/Jewelery/context/CartContext";
 import { useColors } from "@/src/features/Jewelery/hooks/useColors";
@@ -297,7 +297,7 @@ export default function JeweleryCartScreen() {
                     { color: colors.gold, fontFamily: "DMSans_400Regular" },
                   ]}
                 >
-                  {cartTotal >= APP_FREE_SHIPPING_THRESHOLD ? "Free" : `${APP_CURRENCY}199`}
+                  {cartTotal >= JEWELERY_MODULE_CONFIG.freeShippingThreshold ? "Free" : `${APP_CURRENCY}199`}
                 </Text>
               </View>
               <View
@@ -318,9 +318,9 @@ export default function JeweleryCartScreen() {
                     { color: colors.ink, fontFamily: "CormorantGaramond_600SemiBold" },
                   ]}
                 >
-                  ₹
+                  {APP_CURRENCY}
                   {(
-                    cartTotal + (cartTotal >= 5000 ? 0 : 199)
+                    cartTotal + (cartTotal >= JEWELERY_MODULE_CONFIG.freeShippingThreshold ? 0 : 199)
                   ).toLocaleString("en-IN")}
                 </Text>
               </View>
@@ -333,9 +333,9 @@ export default function JeweleryCartScreen() {
                   },
                 ]}
               >
-                EMI available from ₹
+                EMI available from {APP_CURRENCY}
                 {Math.round(
-                  (cartTotal + (cartTotal >= 5000 ? 0 : 199)) / 12
+                  (cartTotal + (cartTotal >= JEWELERY_MODULE_CONFIG.freeShippingThreshold ? 0 : 199)) / 12
                 ).toLocaleString("en-IN")}
                 /month
               </Text>

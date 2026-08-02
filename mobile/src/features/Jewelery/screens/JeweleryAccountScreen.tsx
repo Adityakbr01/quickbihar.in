@@ -14,6 +14,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { JEWELERY_MODULE_CONFIG } from "@/src/constants";
 import { useAuth } from "@/src/features/Jewelery/context/AuthContext";
 import {
   MOCK_CREDITS,
@@ -389,8 +390,12 @@ export default function JeweleryAccountScreen() {
               <MenuItem
                 icon="message-circle"
                 label="WhatsApp Assist"
-                sub="+91 98765 00000"
-                onPress={() => Linking.openURL("https://wa.me/919876500000")}
+                sub={JEWELERY_MODULE_CONFIG.whatsappPhone}
+                onPress={() =>
+                  Linking.openURL(
+                    `https://wa.me/${JEWELERY_MODULE_CONFIG.whatsappPhone.replace(/[^0-9]/g, "")}`
+                  )
+                }
               />
               <MenuItem
                 icon="info"

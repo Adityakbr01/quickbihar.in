@@ -17,8 +17,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import {
   APP_CURRENCY,
-  APP_FREE_SHIPPING_THRESHOLD,
   APP_NAME,
+  JEWELERY_MODULE_CONFIG,
 } from "@/src/constants";
 import { CollectionCard } from "@/src/features/Jewelery/components/CollectionCard";
 import { HeroCarousel } from "@/src/features/Jewelery/components/HeroCarousel";
@@ -71,7 +71,7 @@ function AnnouncementBar() {
           { color: colors.champagne, fontFamily: "DMSans_400Regular" },
         ]}
       >
-        Free shipping above {APP_CURRENCY}{APP_FREE_SHIPPING_THRESHOLD.toLocaleString("en-IN")} · Hallmarked gold · Try at home available
+        Free shipping above {APP_CURRENCY}{JEWELERY_MODULE_CONFIG.freeShippingThreshold.toLocaleString("en-IN")} · Hallmarked gold · Try at home available
       </Text>
     </View>
   );
