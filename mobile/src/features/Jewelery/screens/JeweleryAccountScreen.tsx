@@ -373,6 +373,12 @@ export default function JeweleryAccountScreen() {
                 route="/account/size-profile"
               />
               <MenuItem
+                icon="key"
+                label="Password & Email Setup"
+                sub="Update password or link email address for password login"
+                route="/jewelery/auth/reset-password?flow=forgot"
+              />
+              <MenuItem
                 icon="bell"
                 label="Notifications"
                 sub="Drops, restocks, offers"

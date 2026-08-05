@@ -19,6 +19,8 @@ export interface User {
  * the single global Zustand auth store (`useAuthStore` in `common/auth`)
  * and backend authentication API.
  */
+import axiosInstance from "@/src/api/axiosInstance";
+
 export function useAuth() {
   const { user, setAuth, clearAuth, isInitialized } = useAuthStore();
 
@@ -64,9 +66,9 @@ export function useAuth() {
       }
     },
 
-    sendOtp: async (emailOrPhone: string): Promise<{ success: boolean; error?: string }> => {
+    sendOtp: async (emailOrPhone: string, isRegistration: boolean = false): Promise<{ success: boolean; error?: string }> => {
       try {
-        const res = await requestOTPRequest(emailOrPhone);
+        const res = await requestOTPRequest({ target: emailOrPhone, isRegistration });
         if (res?.statusCode === 200 || res?.message) {
           return { success: true };
         }
@@ -98,20 +100,34 @@ export function useAuth() {
       await clearAuth();
     },
 
-    resetPassword: async (phoneOrEmail: string, newPassword: string): Promise<boolean> => {
+    resetPassword: async (phoneOrEmail: string, newPassword: string, email?: string): Promise<{ success: boolean; error?: string }> => {
       try {
-        const response = await registerRequest({
-          email: phoneOrEmail,
-          password: newPassword,
-          fullName: "",
-        });
-        const data = response?.data;
-        if (data?.user && data?.accessToken) {
-          await setAuth(data.user, data.accessToken, data.refreshToken || "");
+        const payload: any = { password: newPassword };
+        if (email) payload.email = email;
+        const response = await axiosInstance.patch("/users/profile", payload);
+        if (response?.data?.statusCode === 200 || response?.status === 200) {
+          if (response.data?.data) {
+            await setAuth(response.data.data, useAuthStore.getState().token || "", useAuthStore.getState().refreshToken || "");
+          }
+          return { success: true };
         }
-        return true;
-      } catch {
-        return false;
+        return { success: false, error: response?.data?.message || "Failed to update security profile" };
+      } catch (err: any) {
+        const errorMsg = err?.response?.data?.message || err?.message || "Failed to update security profile";
+        try {
+          const response = await registerRequest({
+            email: email || phoneOrEmail,
+            password: newPassword,
+            fullName: "",
+          });
+          const data = response?.data;
+          if (data?.user && data?.accessToken) {
+            await setAuth(data.user, data.accessToken, data.refreshToken || "");
+          }
+          return { success: true };
+        } catch {
+          return { success: false, error: errorMsg };
+        }
       }
     },
   };

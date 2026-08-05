@@ -40,6 +40,9 @@ const AccountMain = () => {
     } else if (label === "Notifications") {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       router.push("/account/notifications");
+    } else if (label === "PasswordSetup" || label === "Security") {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      router.push("/account/reset-password?flow=forgot" as any);
     } else {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }

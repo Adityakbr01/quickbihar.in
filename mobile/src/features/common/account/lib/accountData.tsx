@@ -100,6 +100,11 @@ export const ACCOUNT_SECTIONS: AccountSection[] = [
             icon: CreditCardPosIcon,
             onPressLabel: "Payments",
           },
+          {
+            label: "Password & Email Setup",
+            icon: Shield01Icon,
+            onPressLabel: "PasswordSetup",
+          },
         ],
       },
       {

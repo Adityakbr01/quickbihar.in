@@ -5,11 +5,26 @@ export class UserDAO {
     return await User.create(userData);
   }
 
-  static async findByUsernameOrEmail(username?: string, email?: string) {
-    if (!username && !email) return null;
-    return await User.findOne({
-      $or: [{ username }, { email }],
-    }).populate("roleId");
+  static async findByUsernameOrEmail(username?: string, emailOrPhone?: string) {
+    if (!username && !emailOrPhone) return null;
+    const conditions: any[] = [];
+    if (username) conditions.push({ username: username.toLowerCase() });
+    if (emailOrPhone) {
+      const val = emailOrPhone.trim();
+      const rawPhone = val.replace(/\D/g, "");
+      const cleanPhone = rawPhone.slice(-10);
+
+      conditions.push({ email: val.toLowerCase() });
+      conditions.push({ username: val.toLowerCase() });
+      if (cleanPhone.length === 10) {
+        conditions.push({ phone: cleanPhone });
+        conditions.push({ phone: `+91${cleanPhone}` });
+        conditions.push({ phone: `+91 ${cleanPhone}` });
+      } else {
+        conditions.push({ phone: val });
+      }
+    }
+    return await User.findOne({ $or: conditions }).populate("roleId");
   }
 
   static async findById(id: string) {

@@ -17,12 +17,15 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useAuth } from "@/src/features/Jewelery/context/AuthContext";
 import { useColors } from "@/src/features/Jewelery/hooks/useColors";
+import { JEWELERY_MODULE_CONFIG } from "@/src/constants/app.constants";
 export default function SignInScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { signIn } = useAuth();
+  const { signIn, sendOtp } = useAuth();
 
+  const [authTab, setAuthTab] = useState<"otp" | "password">("otp");
   const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -34,14 +37,46 @@ export default function SignInScreen() {
   const topPad = Platform.OS === "web" ? 67 : insets.top;
   const bottomPad = Platform.OS === "web" ? 34 : insets.bottom;
 
-  const handleSignIn = async () => {
+  const handleSendOtp = async () => {
     setError("");
-    if (!phone.trim()) { setError("Please enter your mobile number."); return; }
-    if (!password.trim()) { setError("Please enter your password."); return; }
+    const cleanedPhone = phone.trim();
+    if (cleanedPhone.length !== 10) {
+      setError("Please enter a valid 10-digit mobile number.");
+      return;
+    }
 
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setLoading(true);
-    const result = await signIn(phone.trim(), password);
+    const result = await sendOtp(cleanedPhone);
+    setLoading(false);
+
+    if (result.success) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      router.push({
+        pathname: "/jewelery/auth/otp" as any,
+        params: { target: cleanedPhone, phone: cleanedPhone, flow: "login" },
+      });
+    } else {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      setError(result.error ?? "Failed to send OTP.");
+    }
+  };
+
+  const handlePasswordSignIn = async () => {
+    setError("");
+    const identifier = email.trim();
+    if (!identifier) {
+      setError("Please enter your email address.");
+      return;
+    }
+    if (!password.trim()) {
+      setError("Please enter your password.");
+      return;
+    }
+
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    setLoading(true);
+    const result = await signIn(identifier, password);
     setLoading(false);
 
     if (result.success) {
@@ -73,7 +108,7 @@ export default function SignInScreen() {
         >
           {/* Brand mark */}
           <Text style={[styles.brand, { color: colors.gold, fontFamily: "CormorantGaramond_600SemiBold" }]}>
-            AABHUSHAN
+            {JEWELERY_MODULE_CONFIG.brandName}
           </Text>
 
           <Text style={[styles.headline, { color: colors.ink, fontFamily: "CormorantGaramond_400Regular_Italic" }]}>
@@ -83,75 +118,150 @@ export default function SignInScreen() {
             Sign in to access your wishlist, orders and exclusive drops.
           </Text>
 
+          {/* Mode Switcher Tabs */}
+          <View style={[styles.tabBar, { borderColor: colors.midGray, backgroundColor: colors.pearl }]}>
+            <Pressable
+              style={[
+                styles.tabItem,
+                authTab === "otp" && { backgroundColor: colors.gold },
+              ]}
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                setAuthTab("otp");
+                setError("");
+              }}
+            >
+              <Text
+                style={[
+                  styles.tabText,
+                  { color: authTab === "otp" ? colors.ivory : colors.warmGray, fontFamily: "DMSans_500Medium" },
+                ]}
+              >
+                Mobile OTP
+              </Text>
+            </Pressable>
+
+            <Pressable
+              style={[
+                styles.tabItem,
+                authTab === "password" && { backgroundColor: colors.gold },
+              ]}
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                setAuthTab("password");
+                setError("");
+              }}
+            >
+              <Text
+                style={[
+                  styles.tabText,
+                  { color: authTab === "password" ? colors.ivory : colors.warmGray, fontFamily: "DMSans_500Medium" },
+                ]}
+              >
+                Email & Password
+              </Text>
+            </Pressable>
+          </View>
+
           {/* Divider */}
           <View style={[styles.divider, { backgroundColor: colors.midGray }]} />
 
-          {/* Phone */}
-          <View style={styles.fieldGroup}>
-            <Text style={[styles.fieldLabel, { color: colors.warmGray, fontFamily: "DMSans_400Regular" }]}>
-              MOBILE NUMBER
-            </Text>
-            <View style={[
-              styles.inputRow,
-              { borderBottomColor: focusedField === "phone" ? colors.gold : colors.midGray },
-            ]}>
-              <Text style={[styles.countryCode, { color: colors.ink, fontFamily: "DMSans_400Regular" }]}>+91</Text>
-              <View style={[styles.inputSep, { backgroundColor: colors.midGray }]} />
-              <TextInput
-                style={[styles.input, { color: colors.ink, fontFamily: "DMSans_400Regular" }]}
-                placeholder="Enter your number"
-                placeholderTextColor={colors.warmGray}
-                keyboardType="phone-pad"
-                value={phone}
-                onChangeText={setPhone}
-                onFocus={() => setFocusedField("phone")}
-                onBlur={() => setFocusedField(null)}
-                returnKeyType="next"
-                onSubmitEditing={() => passwordRef.current?.focus()}
-                maxLength={10}
-              />
+          {/* Tab 1: Phone OTP */}
+          {authTab === "otp" ? (
+            <View style={styles.fieldGroup}>
+              <Text style={[styles.fieldLabel, { color: colors.warmGray, fontFamily: "DMSans_400Regular" }]}>
+                MOBILE NUMBER
+              </Text>
+              <View style={[
+                styles.inputRow,
+                { borderBottomColor: focusedField === "phone" ? colors.gold : colors.midGray },
+              ]}>
+                <Text style={[styles.countryCode, { color: colors.ink, fontFamily: "DMSans_400Regular" }]}>+91</Text>
+                <View style={[styles.inputSep, { backgroundColor: colors.midGray }]} />
+                <TextInput
+                  style={[styles.input, { color: colors.ink, fontFamily: "DMSans_400Regular" }]}
+                  placeholder="Enter 10-digit mobile number"
+                  placeholderTextColor={colors.warmGray}
+                  keyboardType="phone-pad"
+                  value={phone}
+                  onChangeText={setPhone}
+                  onFocus={() => setFocusedField("phone")}
+                  onBlur={() => setFocusedField(null)}
+                  returnKeyType="done"
+                  onSubmitEditing={handleSendOtp}
+                  maxLength={10}
+                />
+              </View>
             </View>
-          </View>
+          ) : (
+            /* Tab 2: Email & Password */
+            <>
+              {/* Email */}
+              <View style={styles.fieldGroup}>
+                <Text style={[styles.fieldLabel, { color: colors.warmGray, fontFamily: "DMSans_400Regular" }]}>
+                  EMAIL ADDRESS
+                </Text>
+                <View style={[
+                  styles.inputRow,
+                  { borderBottomColor: focusedField === "email" ? colors.gold : colors.midGray },
+                ]}>
+                  <TextInput
+                    style={[styles.input, { color: colors.ink, fontFamily: "DMSans_400Regular", flex: 1 }]}
+                    placeholder="Enter your email"
+                    placeholderTextColor={colors.warmGray}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    value={email}
+                    onChangeText={setEmail}
+                    onFocus={() => setFocusedField("email")}
+                    onBlur={() => setFocusedField(null)}
+                    returnKeyType="next"
+                    onSubmitEditing={() => passwordRef.current?.focus()}
+                  />
+                </View>
+              </View>
 
-          {/* Password */}
-          <View style={styles.fieldGroup}>
-            <Text style={[styles.fieldLabel, { color: colors.warmGray, fontFamily: "DMSans_400Regular" }]}>
-              PASSWORD
-            </Text>
-            <View style={[
-              styles.inputRow,
-              { borderBottomColor: focusedField === "password" ? colors.gold : colors.midGray },
-            ]}>
-              <TextInput
-                ref={passwordRef}
-                style={[styles.input, { color: colors.ink, fontFamily: "DMSans_400Regular", flex: 1 }]}
-                placeholder="Enter your password"
-                placeholderTextColor={colors.warmGray}
-                secureTextEntry={!showPassword}
-                value={password}
-                onChangeText={setPassword}
-                onFocus={() => setFocusedField("password")}
-                onBlur={() => setFocusedField(null)}
-                returnKeyType="done"
-                onSubmitEditing={handleSignIn}
-              />
-              <Pressable onPress={() => setShowPassword(!showPassword)} hitSlop={8}>
-                <Feather name={showPassword ? "eye-off" : "eye"} size={16} color={colors.warmGray} />
+              {/* Password */}
+              <View style={styles.fieldGroup}>
+                <Text style={[styles.fieldLabel, { color: colors.warmGray, fontFamily: "DMSans_400Regular" }]}>
+                  PASSWORD
+                </Text>
+                <View style={[
+                  styles.inputRow,
+                  { borderBottomColor: focusedField === "password" ? colors.gold : colors.midGray },
+                ]}>
+                  <TextInput
+                    ref={passwordRef}
+                    style={[styles.input, { color: colors.ink, fontFamily: "DMSans_400Regular", flex: 1 }]}
+                    placeholder="Enter your password"
+                    placeholderTextColor={colors.warmGray}
+                    secureTextEntry={!showPassword}
+                    value={password}
+                    onChangeText={setPassword}
+                    onFocus={() => setFocusedField("password")}
+                    onBlur={() => setFocusedField(null)}
+                    returnKeyType="done"
+                    onSubmitEditing={handlePasswordSignIn}
+                  />
+                  <Pressable onPress={() => setShowPassword(!showPassword)} hitSlop={8}>
+                    <Feather name={showPassword ? "eye-off" : "eye"} size={16} color={colors.warmGray} />
+                  </Pressable>
+                </View>
+              </View>
+
+              {/* Forgot password */}
+              <Pressable
+                style={styles.forgotRow}
+                onPress={() => router.push("/jewelery/auth/forgot-password" as any)}
+              >
+                <Text style={[styles.forgotText, { color: colors.gold, fontFamily: "DMSans_400Regular" }]}>
+                  Forgot password?
+                </Text>
               </Pressable>
-            </View>
-          </View>
+            </>
+          )}
 
-          {/* Forgot password */}
-          <Pressable
-            style={styles.forgotRow}
-            onPress={() => router.push("/jewelery/auth/forgot-password" as any)}
-          >
-            <Text style={[styles.forgotText, { color: colors.gold, fontFamily: "DMSans_400Regular" }]}>
-              Forgot password?
-            </Text>
-          </Pressable>
-
-          {/* Error */}
+          {/* Error Banner */}
           {!!error && (
             <View style={[styles.errorBox, { backgroundColor: "#fdf0f0", borderColor: colors.maroon }]}>
               <Feather name="alert-circle" size={13} color={colors.maroon} />
@@ -161,20 +271,20 @@ export default function SignInScreen() {
             </View>
           )}
 
-          {/* Sign In button */}
+          {/* Primary Action Button */}
           <Pressable
             style={({ pressed }) => [
               styles.primaryBtn,
               { backgroundColor: pressed ? colors.goldLight : colors.gold, opacity: loading ? 0.7 : 1 },
             ]}
-            onPress={handleSignIn}
+            onPress={authTab === "otp" ? handleSendOtp : handlePasswordSignIn}
             disabled={loading}
           >
             {loading ? (
               <ActivityIndicator color={colors.ivory} size="small" />
             ) : (
               <Text style={[styles.primaryBtnText, { color: colors.ivory, fontFamily: "DMSans_500Medium" }]}>
-                Sign In
+                {authTab === "otp" ? "Get OTP →" : "Sign In"}
               </Text>
             )}
           </Pressable>
@@ -234,9 +344,27 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     marginBottom: 28,
   },
+  tabBar: {
+    flexDirection: "row",
+    borderRadius: 8,
+    borderWidth: 1,
+    padding: 3,
+    marginBottom: 20,
+  },
+  tabItem: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 6,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  tabText: {
+    fontSize: 12,
+    letterSpacing: 0.5,
+  },
   divider: {
     height: 0.5,
-    marginBottom: 32,
+    marginBottom: 24,
   },
   fieldGroup: {
     marginBottom: 24,

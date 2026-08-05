@@ -4,28 +4,45 @@ import { DeviceToken } from "@/modules/common/notification/deviceToken.model";
 import { ApiResponse } from "@/utils/ApiResponse";
 import { asyncHandler } from "@/utils/asyncHandler";
 import { ApiError } from "@/utils/ApiError";
+import { User } from "./user.model";
 import { UserDAO } from "./user.dao";
+import { serializeAuthUser } from "@/modules/common/auth/auth.serializer";
 import { uploadToImageKit, deleteFromImageKit } from "@/utils/imagekit.util";
 
 export class UserController {
     /**
-     * Update basic profile info (fullName, phone)
+     * Update basic profile info, email, and password using authenticated JWT session
      */
     static updateProfile = asyncHandler(async (req, res) => {
         const userId = (req as any).user._id;
-        const { fullName, phone } = req.body;
-        console.log(`[SERVER_DEBUG] Profile update request for user ${userId}:`, req.body);
+        const { fullName, phone, email, password } = req.body;
+        console.log(`[SERVER] Profile & Security update request for user ${userId}`);
 
-        const updateData: any = {};
-        if (fullName) updateData.fullName = fullName;
-        if (phone) updateData.phone = phone;
+        const user = await User.findById(userId);
+        if (!user) throw new ApiError(404, "User not found");
 
-        if (Object.keys(updateData).length === 0) {
-            throw new ApiError(400, "No data provided for update");
+        if (fullName) user.fullName = fullName.trim();
+        if (phone) user.phone = phone.trim();
+
+        if (email) {
+            const cleanEmail = email.trim().toLowerCase();
+            const emailOccupied = await User.findOne({ email: cleanEmail, _id: { $ne: userId } });
+            if (emailOccupied) {
+                throw new ApiError(400, "This email address is already linked to another account.");
+            }
+            user.email = cleanEmail;
         }
 
-        const updatedUser = await UserDAO.updateById(userId, updateData);
-        return res.status(200).json(new ApiResponse(200, updatedUser, "Profile updated successfully"));
+        if (password) {
+            if (password.length < 6) {
+                throw new ApiError(400, "Password must be at least 6 characters long.");
+            }
+            user.password = password;
+        }
+
+        await user.save();
+        const serialized = await serializeAuthUser(user);
+        return res.status(200).json(new ApiResponse(200, serialized, "Profile and security settings updated successfully"));
     });
 
     /**

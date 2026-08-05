@@ -17,6 +17,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useAuth } from "@/src/features/Jewelery/context/AuthContext";
 import { useColors } from "@/src/features/Jewelery/hooks/useColors";
+import { JEWELERY_MODULE_CONFIG } from "@/src/constants/app.constants";
 
 export default function ResetPasswordScreen() {
   const colors = useColors();
@@ -30,6 +31,8 @@ export default function ResetPasswordScreen() {
     email?: string;
   }>();
 
+  const [fullName, setFullName] = useState(params.name || "");
+  const [email, setEmail] = useState(params.email || "");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -44,6 +47,16 @@ export default function ResetPasswordScreen() {
   const bottomPad = Platform.OS === "web" ? 34 : insets.bottom;
 
   const validate = () => {
+    if (params.flow === "signup") {
+      if (!fullName.trim()) {
+        setError("Please enter your full name.");
+        return false;
+      }
+      if (!email.trim() || !email.includes("@")) {
+        setError("Please enter a valid email address (e.g. name@example.com) for password login.");
+        return false;
+      }
+    }
     if (password.length < 6) {
       setError("Password must be at least 6 characters.");
       return false;
@@ -84,10 +97,9 @@ export default function ResetPasswordScreen() {
     setLoading(true);
 
     if (params.flow === "signup") {
-      const targetEmail = params.email || params.phone;
       const result = await signUp(
-        params.name ?? "",
-        targetEmail,
+        fullName.trim(),
+        email.trim().toLowerCase(),
         password,
       );
       setLoading(false);
@@ -99,14 +111,14 @@ export default function ResetPasswordScreen() {
         setError(result.error ?? "Registration failed.");
       }
     } else {
-      const ok = await resetPassword(params.phone, password);
+      const res = await resetPassword(params.phone || "", password, email.trim() || undefined);
       setLoading(false);
-      if (ok) {
+      if (res.success) {
         setSuccess(true);
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        setTimeout(() => router.replace("/jewelery/auth/sign-in" as any), 1800);
+        setTimeout(() => router.replace("/jewelery/(tabs)/profile" as any), 1800);
       } else {
-        setError("Could not reset password. Account not found.");
+        setError(res.error || "Could not update password/email. Please try again.");
       }
     }
   };
@@ -140,7 +152,7 @@ export default function ResetPasswordScreen() {
           ]}
         >
           {params.flow === "signup"
-            ? "Welcome to Aabhushan."
+            ? `Welcome to ${JEWELERY_MODULE_CONFIG.brandName}.`
             : "Password reset."}
         </Text>
         <Text
@@ -186,7 +198,7 @@ export default function ResetPasswordScreen() {
               },
             ]}
           >
-            AABHUSHAN
+            {JEWELERY_MODULE_CONFIG.brandName}
           </Text>
 
           <Text
@@ -200,7 +212,7 @@ export default function ResetPasswordScreen() {
           >
             {params.flow === "signup"
               ? "Set your\npassword."
-              : "New\npassword."}
+              : "Password &\nEmail Setup."}
           </Text>
           <Text
             style={[
@@ -209,11 +221,84 @@ export default function ResetPasswordScreen() {
             ]}
           >
             {params.flow === "signup"
-              ? "Choose a secure password for your Aabhushan account."
-              : "Create a new password for your account."}
+              ? `Choose a secure password and link your email address for your ${JEWELERY_MODULE_CONFIG.brandName} account.`
+              : "Update your password or link your email address for password login."}
           </Text>
 
-          <View style={[styles.divider, { backgroundColor: colors.midGray }]} />
+          {/* Full Name (For Sign Up) */}
+          {params.flow === "signup" && (
+            <View style={styles.fieldGroup}>
+              <Text
+                style={[
+                  styles.fieldLabel,
+                  { color: colors.warmGray, fontFamily: "DMSans_400Regular" },
+                ]}
+              >
+                FULL NAME
+              </Text>
+              <View
+                style={[
+                  styles.inputRow,
+                  {
+                    borderBottomColor:
+                      focusedField === "name" ? colors.gold : colors.midGray,
+                  },
+                ]}
+              >
+                <TextInput
+                  style={[
+                    styles.input,
+                    { color: colors.ink, fontFamily: "DMSans_400Regular" },
+                  ]}
+                  placeholder="Your Full Name"
+                  placeholderTextColor={colors.warmGray}
+                  value={fullName}
+                  onChangeText={setFullName}
+                  onFocus={() => setFocusedField("name")}
+                  onBlur={() => setFocusedField(null)}
+                  returnKeyType="next"
+                  autoCapitalize="words"
+                />
+              </View>
+            </View>
+          )}
+
+          {/* Email Address (For Password Login) */}
+          <View style={styles.fieldGroup}>
+            <Text
+              style={[
+                styles.fieldLabel,
+                { color: colors.warmGray, fontFamily: "DMSans_400Regular" },
+              ]}
+            >
+              EMAIL ADDRESS (FOR PASSWORD LOGIN)
+            </Text>
+            <View
+              style={[
+                styles.inputRow,
+                {
+                  borderBottomColor:
+                    focusedField === "email" ? colors.gold : colors.midGray,
+                },
+              ]}
+            >
+              <TextInput
+                style={[
+                  styles.input,
+                  { color: colors.ink, fontFamily: "DMSans_400Regular" },
+                ]}
+                placeholder="name@example.com"
+                placeholderTextColor={colors.warmGray}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                value={email}
+                onChangeText={setEmail}
+                onFocus={() => setFocusedField("email")}
+                onBlur={() => setFocusedField(null)}
+                returnKeyType="next"
+              />
+            </View>
+          </View>
 
           {/* Password */}
           <View style={styles.fieldGroup}>

@@ -17,6 +17,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useAuth } from "@/src/features/Jewelery/context/AuthContext";
 import { useColors } from "@/src/features/Jewelery/hooks/useColors";
+import { JEWELERY_MODULE_CONFIG } from "@/src/constants/app.constants";
 
 export default function SignUpScreen() {
   const colors = useColors();
@@ -38,28 +39,25 @@ export default function SignUpScreen() {
 
   const handleSendOtp = async () => {
     setError("");
-    if (!name.trim()) {
-      setError("Please enter your full name.");
-      return;
-    }
-    const targetEmail = email.trim() || phone.trim();
-    if (!targetEmail) {
-      setError("Please enter your email or phone number.");
+    const cleanedPhone = phone.trim();
+    if (cleanedPhone.length !== 10) {
+      setError("Please enter a valid 10-digit mobile number.");
       return;
     }
 
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setLoading(true);
-    const result = await sendOtp(targetEmail);
+    const result = await sendOtp(cleanedPhone, true);
     setLoading(false);
 
     if (result.success) {
       router.push({
         pathname: "/jewelery/auth/otp" as any,
         params: {
-          phone: phone.trim(),
+          target: cleanedPhone,
+          phone: cleanedPhone,
           name: name.trim(),
-          email: targetEmail,
+          email: email.trim(),
           flow: "signup",
         },
       });
@@ -100,7 +98,7 @@ export default function SignUpScreen() {
               },
             ]}
           >
-            AABHUSHAN
+            {JEWELERY_MODULE_CONFIG.brandName}
           </Text>
 
           <Text
@@ -262,7 +260,7 @@ export default function SignUpScreen() {
                 <Text
                   style={[
                     styles.benefitText,
-                    { color: colors.ink, fontFamily: "DMSans_400Regular" },
+                    { fontFamily: "DMSans_400Regular" },
                   ]}
                 >
                   {b}

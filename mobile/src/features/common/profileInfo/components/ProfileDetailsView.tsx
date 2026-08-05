@@ -1,5 +1,6 @@
 import React from "react";
 import { View, TouchableOpacity, Text } from "react-native";
+import { router } from "expo-router";
 import { 
   Mail01Icon, 
   CallIcon, 
@@ -65,6 +66,13 @@ const ProfileDetailsView: React.FC<ProfileDetailsViewProps> = ({
       <TouchableOpacity style={styles.editButton} onPress={onEdit}>
         <HugeiconsIcon icon={Edit02Icon} size={20} color="#fff" />
         <Text style={styles.editButtonText}>Edit Personal Details</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={[styles.editButton, { marginTop: 10, backgroundColor: "#1e293b" }]}
+        onPress={() => router.push("/account/reset-password?flow=forgot" as any)}
+      >
+        <Text style={styles.editButtonText}>🔐 Password & Email Setup</Text>
       </TouchableOpacity>
     </View>
   );

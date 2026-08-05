@@ -10,6 +10,7 @@ export const APP_GENERAL_SUPPORT_PHONE = "+91 98765 43210";
 export interface ModuleVerticalConfig {
   id: "clothing" | "jewelery" | "food";
   name: string;
+  brandName: string;
   slogan: string;
   tagline: string;
   supportEmail: string;
@@ -27,6 +28,7 @@ export const MODULE_CONFIGS: Record<
   clothing: {
     id: "clothing",
     name: "Clothing & Fashion",
+    brandName: "QUICKBIHAR FASHION",
     slogan: "Express Your Unique Style",
     tagline: "Trending apparel & authentic traditional wear",
     supportEmail: "clothing-support@quickbihar.in",
@@ -38,6 +40,7 @@ export const MODULE_CONFIGS: Record<
   jewelery: {
     id: "jewelery",
     name: "Jewelry",
+    brandName: "QUICKBIHAR",
     slogan: "Handcrafted Fine Jewellery",
     tagline: "Sacred heirloom, Hallmarked gold & silver craftsmanship",
     supportEmail: "jewelery-support@quickbihar.in",
@@ -49,6 +52,7 @@ export const MODULE_CONFIGS: Record<
   food: {
     id: "food",
     name: "Food & Delicacies",
+    brandName: "QUICKBIHAR EATS",
     slogan: "Fresh & Local Flavors Delivered",
     tagline: "Authentic local delicacies and fresh food from top sellers",
     supportEmail: "food-support@quickbihar.in",

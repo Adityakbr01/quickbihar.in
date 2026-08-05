@@ -63,8 +63,9 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
  * @access Public
  */
 export const requestOTP = asyncHandler(async (req: Request, res: Response) => {
-  const { email } = req.body;
-  const result = await authService.requestOTP(email);
+  const target = req.body.email || req.body.phone || req.body.target;
+  const isRegistration = req.body.isRegistration || req.body.flow === "signup";
+  const result = await authService.requestOTP(target, isRegistration);
   return res.status(200).json(new ApiResponse(200, result, "OTP sent successfully"));
 });
 

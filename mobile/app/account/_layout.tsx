@@ -41,6 +41,12 @@ export default function AccountLayout() {
           headerTitle: "Notification Center",
         }}
       />
+      <Stack.Screen
+        name="reset-password"
+        options={{
+          headerShown: false,
+        }}
+      />
     </Stack>
   );
 }

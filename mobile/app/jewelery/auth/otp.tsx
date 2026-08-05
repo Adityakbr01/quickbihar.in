@@ -18,6 +18,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "@/src/features/Jewelery/context/AuthContext";
 import { useColors } from "@/src/features/Jewelery/hooks/useColors";
+import { JEWELERY_MODULE_CONFIG } from "@/src/constants/app.constants";
 const OTP_LENGTH = 6;
 
 export default function OtpScreen() {
@@ -26,11 +27,16 @@ export default function OtpScreen() {
   const { signUp, verifyOtp, sendOtp } = useAuth();
 
   const params = useLocalSearchParams<{
-    phone: string;
-    flow: "signup" | "forgot";
-    name?: string;
+    target?: string;
+    phone?: string;
     email?: string;
+    flow: "signup" | "forgot" | "login" | "setPassword";
+    name?: string;
+    password?: string;
   }>();
+
+  // Active OTP target key: params.target -> params.phone -> params.email
+  const activeTarget = (params.target || params.phone || params.email || "").trim();
 
   const [digits, setDigits] = useState<string[]>(Array(OTP_LENGTH).fill(""));
   const [loading, setLoading] = useState(false);
@@ -84,8 +90,7 @@ export default function OtpScreen() {
     }
 
     setLoading(true);
-    const target = params.email || params.phone;
-    const result = await verifyOtp(target, code);
+    const result = await verifyOtp(activeTarget, code);
     setLoading(false);
 
     if (!result.success) {
@@ -98,29 +103,38 @@ export default function OtpScreen() {
 
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
-    if (params.flow === "signup") {
+    if (params.password) {
+      try {
+        await signUp(params.name ?? "", activeTarget, params.password);
+      } catch {
+        // Ignored as verifyOtp has already authenticated user
+      }
+    }
+
+    if (params.flow === "forgot") {
+      router.push({
+        pathname: "/jewelery/auth/reset-password" as any,
+        params: { phone: activeTarget, flow: "forgot" },
+      });
+    } else if (params.flow === "signup") {
       router.push({
         pathname: "/jewelery/auth/reset-password" as any,
         params: {
-          phone: params.phone,
+          phone: activeTarget,
           name: params.name,
-          email: target,
+          email: params.email,
           flow: "signup",
         },
       });
     } else {
-      router.push({
-        pathname: "/jewelery/auth/reset-password" as any,
-        params: { phone: params.phone, flow: "forgot" },
-      });
+      router.replace("/jewelery/(tabs)/profile" as any);
     }
   };
 
   const handleResend = async () => {
     if (countdown > 0) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    const target = params.email || params.phone;
-    const result = await sendOtp(target);
+    const result = await sendOtp(activeTarget);
     if (result.success) {
       setCountdown(30);
       setDigits(Array(OTP_LENGTH).fill(""));
@@ -131,7 +145,10 @@ export default function OtpScreen() {
     }
   };
 
-  const maskedPhone = `+91 ×××××${params.phone?.slice(-5) ?? ""}`;
+  const isPhone = !activeTarget.includes("@");
+  const maskedTarget = isPhone
+    ? `+91 ×××××${activeTarget.slice(-5)}`
+    : activeTarget;
 
   return (
     <View style={[styles.root, { backgroundColor: colors.ivory }]}>
@@ -155,7 +172,7 @@ export default function OtpScreen() {
               },
             ]}
           >
-            AABHUSHAN
+            {JEWELERY_MODULE_CONFIG.brandName}
           </Text>
 
           <Text
@@ -177,7 +194,7 @@ export default function OtpScreen() {
           >
             We've sent a 6-digit code to{"\n"}
             <Text style={{ color: colors.ink, fontFamily: "DMSans_500Medium" }}>
-              {maskedPhone}
+              {maskedTarget}
             </Text>
           </Text>
 

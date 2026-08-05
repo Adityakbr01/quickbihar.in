@@ -53,6 +53,8 @@ const userSchema = new Schema<IUser>(
     phone: {
       type: String,
       trim: true,
+      index: true,
+      sparse: true,
     },
     avatar: {
       url: String,

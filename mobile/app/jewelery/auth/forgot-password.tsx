@@ -1,5 +1,6 @@
 import { useAuth } from "@/src/features/Jewelery/context/AuthContext";
 import { useColors } from "@/src/features/Jewelery/hooks/useColors";
+import { JEWELERY_MODULE_CONFIG } from "@/src/constants/app.constants";
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
@@ -72,7 +73,7 @@ export default function ForgotPasswordScreen() {
           showsVerticalScrollIndicator={false}
         >
           <Text style={[styles.brand, { color: colors.gold, fontFamily: "CormorantGaramond_600SemiBold" }]}>
-            AABHUSHAN
+            {JEWELERY_MODULE_CONFIG.brandName}
           </Text>
 
           <Text style={[styles.headline, { color: colors.ink, fontFamily: "CormorantGaramond_400Regular_Italic" }]}>

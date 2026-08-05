@@ -12,9 +12,11 @@ export const registerRequest = async (data: { email: string; password: string; f
   return response.data;
 };
 
-// ─── REQUEST OTP ─────────────────────────────────────────
-export const requestOTPRequest = async (email: string) => {
-  const response = await axiosInstance.post("/auth/request-otp", { email });
+export const requestOTPRequest = async (
+  payload: string | { email?: string; phone?: string; target?: string; isRegistration?: boolean; flow?: string }
+) => {
+  const data = typeof payload === "string" ? { email: payload } : payload;
+  const response = await axiosInstance.post("/auth/request-otp", data);
   return response.data;
 };
 
