@@ -1,4 +1,18 @@
 services:
+  redis:
+    image: redis:alpine
+    container_name: quickbihar-redis
+    restart: unless-stopped
+    volumes:
+      - quickbihar-redis-data:/data
+    networks:
+      - quickbihar-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
   server:
     image: ${DOCKER_USER:-adityakbr}/quickbihar-server:prod
     build:
@@ -11,9 +25,13 @@ services:
     environment:
       - PORT=8000
       - NODE_ENV=production
+      - REDIS_URL=redis://redis:6379
     env_file:
       - path: ./server/.env
         required: false
+    depends_on:
+      redis:
+        condition: service_healthy
     networks:
       - quickbihar-network
     healthcheck:
@@ -74,6 +92,10 @@ services:
       timeout: 5s
       retries: 3
       start_period: 10s
+
+volumes:
+  quickbihar-redis-data:
+    name: quickbihar-redis-data
 
 networks:
   quickbihar-network:
