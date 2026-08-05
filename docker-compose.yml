@@ -1,3 +1,5 @@
+name: quickbihar
+
 services:
   redis:
     image: redis:alpine
