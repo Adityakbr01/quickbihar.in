@@ -4,7 +4,7 @@ import type { NextRequest } from "next/server";
 /**
  * Server-side route guard (Next.js 16 "proxy", formerly middleware).
  *
- * The app is served single-origin behind nginx (`/api/` and `/web/` share a
+ * The app is served single-origin behind nginx (`/api/`, `/admin/`, `/seller/`, `/delivery/` share a
  * host), so the httpOnly `accessToken` cookie the API sets on login is visible
  * here. We use it only as a *presence* signal:
  *
