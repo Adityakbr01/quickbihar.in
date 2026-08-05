@@ -12,7 +12,8 @@ services:
       - PORT=8000
       - NODE_ENV=production
     env_file:
-      - ./server/.env
+      - path: ./server/.env
+        required: false
     networks:
       - quickbihar-network
     healthcheck:
@@ -38,7 +39,8 @@ services:
       - NEXT_PUBLIC_API_URL=/api/v1
       - NEXT_PUBLIC_SOCKET_URL=/
     env_file:
-      - ./web/.env
+      - path: ./web/.env
+        required: false
     depends_on:
       - server
     networks:
@@ -60,7 +62,8 @@ services:
     ports:
       - "127.0.0.1:7001:80"
     env_file:
-      - ./mobile/.env
+      - path: ./mobile/.env
+        required: false
     depends_on:
       - server
     networks:

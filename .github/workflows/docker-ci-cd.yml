@@ -79,6 +79,7 @@ jobs:
       - name: Inject Environment Files
         run: |
           mkdir -p server web mobile
+          touch server/.env web/.env mobile/.env
           if [ -n "${{ secrets.SERVER_ENV }}" ]; then
             echo "${{ secrets.SERVER_ENV }}" > server/.env
           fi
