@@ -103,6 +103,8 @@ jobs:
       - name: Deploy containers with zero-downtime recreation
         run: |
           cd ${{ env.APP_DIR }}
+          docker rm -f quickbihar-server quickbihar-web quickbihar-mobile-web quickbihar-redis 2>/dev/null || true
+          docker network rm quickbihar-network 2>/dev/null || true
           docker compose -f ${{ env.COMPOSE_FILE }} up -d --remove-orphans
 
       - name: Verify running services
