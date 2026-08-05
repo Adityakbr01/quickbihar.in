@@ -118,13 +118,13 @@ export const seedAdmin = async () => {
         const adminEmail = ENV.ADMIN_EMAIL;
         const adminPassword = ENV.ADMIN_PASSWORD;
 
+        const adminRole = await Role.findOne({ name: "ADMIN" });
+        if (!adminRole) throw new Error("ADMIN role not found. Seed RBAC before users.");
+
         const existingAdmin = await User.findOne({ email: adminEmail });
 
         if (!existingAdmin) {
             console.log("🌱 Seeding Admin User...");
-
-            const adminRole = await Role.findOne({ name: "ADMIN" });
-            if (!adminRole) throw new Error("ADMIN role not found. Seed RBAC before users.");
 
             await User.create({
                 username: "admin",
@@ -137,7 +137,11 @@ export const seedAdmin = async () => {
 
             console.log("✅ Admin User seeded successfully!");
         } else {
-            console.log("ℹ️ Admin User already exists, skipping seed.");
+            console.log("ℹ️ Admin User exists, ensuring ADMIN role assignment...");
+            existingAdmin.roleId = adminRole._id as any;
+            existingAdmin.isVerified = true;
+            await existingAdmin.save();
+            console.log("✅ Admin User updated with ADMIN role successfully!");
         }
     } catch (error) {
         console.error("❌ Failed to seed Admin User:", error);
