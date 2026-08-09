@@ -61,6 +61,7 @@ import mallRouter from "./modules/common/mall/mall.router";
 import deliveryRouter from "./modules/common/delivery/delivery.router";
 import fulfillmentEventRouter from "./modules/common/fulfillment/fulfillmentEvent.router";
 import notificationRouter from "./modules/common/notification/notification.router";
+import { ApiResponse } from "./utils/ApiResponse";
 
 // Routes Declaration
 app.use("/api/v1/auth", authRouter); // working
@@ -93,6 +94,18 @@ app.use("/api/v1/wishlist", wishlistRouter);
 app.use("/api/v1/app-config", appConfigRouter);
 app.use("/api/v1/refund-policies", refundPolicyRouter);
 
+
+
+
+app.get("/", (req, res) => {
+  const ip = req.headers["x-forwarded-for"]?.toString() || req.ip || "Unknown";
+  const publicIp = ip.replace("::ffff:", "");
+  return res.status(200).json(new ApiResponse(200, { ip: publicIp }, "Server is running"));
+});
+
+app.get("/health", (req, res) => {
+  return res.status(200).json(new ApiResponse(200, {}, "Server is running"));
+});
 
 // Global Error Handler
 app.use(errorHandler);
