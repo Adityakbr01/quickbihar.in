@@ -8,13 +8,24 @@ on:
 
 jobs:
   build-and-push:
-    name: Build & Push Docker Images
+    name: Build & Push (${{ matrix.service.name }})
     runs-on: ubuntu-latest
-
-    env:
-      SERVER_TAG: ${{ secrets.DOCKER_USER }}/quickbihar-server:prod
-      WEB_TAG: ${{ secrets.DOCKER_USER }}/quickbihar-web:prod
-      MOBILE_WEB_TAG: ${{ secrets.DOCKER_USER }}/quickbihar-mobile-web:prod
+    strategy:
+      fail-fast: false
+      matrix:
+        service:
+          - name: server
+            context: ./server
+            file: ./server/Dockerfile
+            image: quickbihar-server
+          - name: web
+            context: ./web
+            file: ./web/Dockerfile
+            image: quickbihar-web
+          - name: mobile
+            context: ./mobile
+            file: ./mobile/Dockerfile
+            image: quickbihar-mobile-web
 
     steps:
       - name: Checkout code
@@ -29,38 +40,17 @@ jobs:
           username: ${{ secrets.DOCKER_USER }}
           password: ${{ secrets.DOCKER_PASS }}
 
-      # ---------------- SERVER ----------------
-      - name: Build & Push Server Image
+      - name: Build & Push Image (${{ matrix.service.name }})
         uses: docker/build-push-action@v6
         with:
-          context: ./server
-          file: ./server/Dockerfile
+          context: ${{ matrix.service.context }}
+          file: ${{ matrix.service.file }}
           push: true
           tags: |
-            ${{ env.SERVER_TAG }}
-            ${{ secrets.DOCKER_USER }}/quickbihar-server:${{ github.sha }}
-
-      # ---------------- WEB ----------------
-      - name: Build & Push Web Image
-        uses: docker/build-push-action@v6
-        with:
-          context: ./web
-          file: ./web/Dockerfile
-          push: true
-          tags: |
-            ${{ env.WEB_TAG }}
-            ${{ secrets.DOCKER_USER }}/quickbihar-web:${{ github.sha }}
-
-      # ---------------- MOBILE WEB ----------------
-      - name: Build & Push Mobile Web Image
-        uses: docker/build-push-action@v6
-        with:
-          context: ./mobile
-          file: ./mobile/Dockerfile
-          push: true
-          tags: |
-            ${{ env.MOBILE_WEB_TAG }}
-            ${{ secrets.DOCKER_USER }}/quickbihar-mobile-web:${{ github.sha }}
+            ${{ secrets.DOCKER_USER }}/${{ matrix.service.image }}:prod
+            ${{ secrets.DOCKER_USER }}/${{ matrix.service.image }}:${{ github.sha }}
+          cache-from: type=gha,scope=${{ matrix.service.name }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.service.name }}
 
   deploy:
     name: Deploy to VPS (Self-Hosted Runner)
@@ -80,10 +70,10 @@ jobs:
       - name: Sync codebase to ~/apps/quickbihar
         run: |
           mkdir -p ${{ env.APP_DIR }}
-          # Sync files to ~/apps/quickbihar while strictly preserving any existing .env files
+          # Sync files to ~/apps/quickbihar while strictly preserving existing .env files
           rsync -av --exclude='.git' --exclude='*.env' ./ ${{ env.APP_DIR }}/
 
-      - name: Ensure Environment Files Exist in ~/apps/quickbihar
+      - name: Ensure Environment Files Exist
         run: |
           cd ${{ env.APP_DIR }}
           mkdir -p server web mobile
@@ -103,8 +93,6 @@ jobs:
       - name: Deploy containers with zero-downtime recreation
         run: |
           cd ${{ env.APP_DIR }}
-          docker rm -f quickbihar-server quickbihar-web quickbihar-mobile-web quickbihar-redis 2>/dev/null || true
-          docker network rm quickbihar-network 2>/dev/null || true
           docker compose -f ${{ env.COMPOSE_FILE }} up -d --remove-orphans
 
       - name: Verify running services
