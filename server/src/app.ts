@@ -97,14 +97,14 @@ app.use("/api/v1/refund-policies", refundPolicyRouter);
 
 
 
-app.get("/", (req, res) => {
+app.get(["/", "/api", "/api/", "/api/v1", "/api/v1/"], (req, res) => {
   const ip = req.headers["x-forwarded-for"]?.toString() || req.ip || "Unknown";
   const publicIp = ip.replace("::ffff:", "");
-  return res.status(200).json(new ApiResponse(200, { ip: publicIp }, "Server is running"));
+  return res.status(200).json(new ApiResponse(200, { ip: publicIp, status: "healthy", version: "v1" }, "QuickBihar API Server is running"));
 });
 
-app.get("/health", (req, res) => {
-  return res.status(200).json(new ApiResponse(200, {}, "Server is running"));
+app.get(["/health", "/api/health", "/api/v1/health"], (req, res) => {
+  return res.status(200).json(new ApiResponse(200, { status: "healthy" }, "Server is running"));
 });
 
 // Global Error Handler
