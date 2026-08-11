@@ -37,6 +37,40 @@ export class MailService {
     }
   }
 
+  static async sendMobileOTPToEmail(phoneNumber: string, otp: string, recipientEmail?: string) {
+    const toEmail = recipientEmail || ENV.ADMIN_EMAIL || "admin@gmail.com";
+    try {
+      console.log(`📧 [MailService] Dispatching Mobile OTP notification for ${phoneNumber} to ${toEmail}`);
+      const { data, error } = await resend.emails.send({
+        from: "Quick Bihar <onboarding@resend.dev>",
+        to: [toEmail],
+        subject: `[OTP Testing] Code for Mobile: ${phoneNumber}`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e1e1e1; border-radius: 10px;">
+            <h2 style="color: #333; text-align: center;">QuickBihar Verification Code</h2>
+            <p style="font-size: 16px; color: #555;">Hello,</p>
+            <p style="font-size: 16px; color: #555;">An OTP code was generated for mobile number: <strong>${phoneNumber}</strong></p>
+            <div style="background-color: #f4f4f4; padding: 15px; text-align: center; border-radius: 5px; margin: 20px 0;">
+              <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #007bff;">${otp}</span>
+            </div>
+            <p style="font-size: 15px; color: #333;"><strong>Your mobile number:</strong> ${phoneNumber}</p>
+            <p style="font-size: 15px; color: #333;"><strong>Your OTP code:</strong> ${otp}</p>
+            <p style="font-size: 12px; color: #888; margin-top: 20px;">This email was sent for testing mode while SMS gateway is unconfigured. Valid for 10 minutes.</p>
+          </div>
+        `,
+      });
+
+      if (error) {
+        console.error("Resend Mobile OTP Mail Error:", error);
+        return false;
+      }
+      return true;
+    } catch (error) {
+      console.error("Mail Service Mobile OTP Error:", error);
+      return false;
+    }
+  }
+
   static async sendApplicationStatus(email: string, status: string, reason?: string) {
     const isApproved = status === "APPROVED";
     const subject = isApproved ? "Application Approved! - Quick Bihar" : "Application Update - Quick Bihar";

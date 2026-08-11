@@ -48,7 +48,7 @@ export const OTPForm: React.FC<OTPFormProps & { verifyOTP: any }> = ({
     setApiError(null);
     setApiSuccess(null);
     verifyOTP(
-      { email: otpEmail, otp: otpValue },
+      { target: otpEmail, phone: otpEmail, email: otpEmail, otp: otpValue },
       {
         onSuccess: () => {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -67,10 +67,10 @@ export const OTPForm: React.FC<OTPFormProps & { verifyOTP: any }> = ({
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setApiError(null);
     setApiSuccess(null);
-    requestOTP(otpEmail, {
+    requestOTP({ target: otpEmail, phone: otpEmail, email: otpEmail }, {
       onSuccess: () => {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        setApiSuccess("A new OTP has been sent to your email.");
+        setApiSuccess("A new OTP has been sent.");
         setCooldown(60); // Start 60s cooldown
       },
       onError: (error: any) => {

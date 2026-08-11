@@ -64,6 +64,13 @@ const envSchema = z.object({
 
   // EMAIL
   RESEND_API_KEY: z.string().optional(),
+
+  // SMS CONFIGURATION
+  SMS_PROVIDER: z.string().default("smslocal"),
+  SMSLOCAL_API_KEY: z.string().optional(),
+  SMSLOCAL_SENDER_ID: z.string().optional(),
+  SMSLOCAL_TEMPLATE_ID: z.string().optional(),
+  SMSLOCAL_ROUTE: z.string().default("2"),
 });
 
 const parsed = envSchema.safeParse(process.env);

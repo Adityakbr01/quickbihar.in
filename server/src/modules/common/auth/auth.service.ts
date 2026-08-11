@@ -13,6 +13,7 @@ import * as rbacService from "@/modules/common/rbac/rbac.service";
 import { RoleEnum } from "@/modules/common/rbac/rbac.types";
 import { redis } from "@/config/redis.config";
 import { MailService } from "@/utils/mail.service";
+import { SmsService } from "@/services/sms/sms.service";
 import { serializeAuthUser } from "./auth.serializer";
 
 import { User } from "@/modules/common/user/user.model";
@@ -235,8 +236,8 @@ export async function requestOTP(
   // Set cooldown for 60 seconds
   await redis.set(cooldownKey, "true", "EX", 10);
 
-  // 🔑 LOG OTP ONLY IN BACKEND CONSOLE (FOR DEV / DEMO)
-  console.log(`🔑 [SERVER OTP LOG] Target Key: ${target} | CODE: ${otp}`);
+  // 🔑 LOG OTP IN BACKEND CONSOLE (FOR DEV / TESTING MODE)
+  console.log(`📱 [SERVER OTP LOG] Target Key: "${target}" | MOBILE OTP CODE: "${otp}"`);
   console.log(`======================================================\n`);
 
   if (rawTarget.includes("@")) {
@@ -247,9 +248,18 @@ export async function requestOTP(
       );
     }
   } else {
-    console.log(
-      `[Server] Mobile SMS OTP generated for target ${target}. See OTP code logged in console above.`,
-    );
+    // 1. Attempt delivery via configured SMS Service
+    const smsResult = await SmsService.sendOtp(target, otp);
+    if (!smsResult.success) {
+      console.warn(
+        `[Server] SmsService failed to deliver OTP to mobile ${target}: ${smsResult.errorMessage}`,
+      );
+    }
+
+    // 2. Dispatch Mobile OTP to Email (Testing Fallback: Sends "Mobile: {target}, OTP: {otp}" to Admin / Registered Email)
+    const existingUser = await UserDAO.findByUsernameOrEmail(undefined, target);
+    const recipientEmail = existingUser?.email && !existingUser.email.includes("@quickbihar.local") ? existingUser.email : undefined;
+    await MailService.sendMobileOTPToEmail(target, otp, recipientEmail);
   }
 
   return {

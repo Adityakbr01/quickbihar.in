@@ -15,13 +15,13 @@ export const registerRequest = async (data: { email: string; password: string; f
 export const requestOTPRequest = async (
   payload: string | { email?: string; phone?: string; target?: string; isRegistration?: boolean; flow?: string }
 ) => {
-  const data = typeof payload === "string" ? { email: payload } : payload;
+  const data = typeof payload === "string" ? { target: payload, phone: payload, email: payload } : payload;
   const response = await axiosInstance.post("/auth/request-otp", data);
   return response.data;
 };
 
 // ─── VERIFY OTP ──────────────────────────────────────────
-export const verifyOTPRequest = async (data: { email: string; otp: string }) => {
+export const verifyOTPRequest = async (data: { email?: string; phone?: string; target?: string; identifier?: string; otp: string }) => {
   const response = await axiosInstance.post("/auth/verify-otp", data);
   return response.data;
 };

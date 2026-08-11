@@ -77,8 +77,9 @@ export const requestOTP = asyncHandler(async (req: Request, res: Response) => {
  * @access Public
  */
 export const verifyOTP = asyncHandler(async (req: Request, res: Response) => {
-  const { email, otp } = req.body;
-  const { user, accessToken, refreshToken } = await authService.verifyOTPAndAuthenticate(email, otp);
+  const target = req.body.phone || req.body.email || req.body.target || req.body.identifier;
+  const { otp } = req.body;
+  const { user, accessToken, refreshToken } = await authService.verifyOTPAndAuthenticate(target, otp);
 
   const options = {
     httpOnly: true,
@@ -93,7 +94,7 @@ export const verifyOTP = asyncHandler(async (req: Request, res: Response) => {
       new ApiResponse(
         200,
         { user, accessToken, refreshToken },
-        "Email verified and logged in successfully"
+        "Verified and logged in successfully"
       )
     );
 });
