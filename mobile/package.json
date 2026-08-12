@@ -18,6 +18,8 @@
     "build:android:prod": "eas build --platform android --profile production",
     "build:android:local": "eas build --platform android --profile preview --local",
     "build:local": "npx expo prebuild && cd android && ./gradlew assembleRelease --info",
+    "build:apk": "npx expo prebuild && cd android && gradlew assembleDebug",
+    "build:apk:release": "npx expo prebuild && cd android && gradlew assembleRelease",
     "build": "bun expo run:android --variant release"
   },
   "dependencies": {

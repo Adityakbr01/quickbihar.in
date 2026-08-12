@@ -74,7 +74,7 @@ export const useVerifyOTP = () => {
 
   return useMutation({
     mutationFn: verifyOTPRequest,
-    onSuccess: async (response) => {
+    onSuccess: async (response, variables) => {
       const data = response?.data;
 
       if (!data || !data.user || !data.accessToken) {
@@ -82,7 +82,7 @@ export const useVerifyOTP = () => {
         throw new Error("Invalid response format from server");
       }
 
-      const { user, accessToken, refreshToken } = data;
+      const { user, accessToken, refreshToken, isNewUser } = data;
       await setAuth(user, accessToken, refreshToken);
 
       try {
@@ -91,9 +91,15 @@ export const useVerifyOTP = () => {
         console.error("Failed to sync cart after OTP login:", error);
       }
 
-      // Land each role on its own home so admins/riders don't have to hunt
-      // for their hidden tab (falls back to the shopping home for USER/SELLER).
-      router.replace(getRoleLandingRoute(user.role));
+      // If they registered via mobile verification, direct them to complete their profile & credentials
+      if (isNewUser) {
+        const phoneVal = variables?.phone || variables?.target || variables?.email || "";
+        router.replace(`/account/reset-password?flow=signup&phone=${encodeURIComponent(phoneVal)}` as any);
+      } else {
+        // Land each role on its own home so admins/riders don't have to hunt
+        // for their hidden tab (falls back to the shopping home for USER/SELLER).
+        router.replace(getRoleLandingRoute(user.role));
+      }
     },
   });
 };

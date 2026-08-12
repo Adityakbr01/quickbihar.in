@@ -94,7 +94,7 @@ QuickBihar is a full-featured, multi-vendor e-commerce platform designed for Bih
    - Dev fallback `123456` is disabled when `NODE_ENV=production`, causing mobile auth to fail for end-users.
 
 2. **Email Domain Verification**:
-   - `mail.service.ts` sends from `no-reply@edulaunch.shop` or `onboarding@resend.dev`.
+   - `mail.service.ts` sends from `noreply@voiceact.techp` or `noreply@voiceact.tech`.
    - Domain `quickbihar.in` DNS records (SPF/DKIM/DMARC) not verified on Resend.
 
 3. **Road Routing vs Aerial Distance**:

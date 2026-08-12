@@ -42,7 +42,7 @@ export class MailService {
     try {
       console.log(`📧 [MailService] Dispatching Mobile OTP notification for ${phoneNumber} to ${toEmail}`);
       const { data, error } = await resend.emails.send({
-        from: "Quick Bihar <onboarding@resend.dev>",
+        from: "noreply@voiceact.tech",
         to: [toEmail],
         subject: `[OTP Testing] Code for Mobile: ${phoneNumber}`,
         html: `
@@ -77,7 +77,7 @@ export class MailService {
 
     try {
       await resend.emails.send({
-        from: "Quick Bihar <onboarding@resend.dev>",
+        from: "noreply@voiceact.tech",
         to: [email],
         subject,
         html: `
@@ -97,7 +97,7 @@ export class MailService {
   static async sendAdminInvite(email: string, role: string, inviteUrl: string, fullName?: string, message?: string) {
     try {
       const { error } = await resend.emails.send({
-        from: "Quick Bihar <onboarding@resend.dev>",
+        from: "noreply@voiceact.tech",
         to: [email],
         subject: `You're invited to Quick Bihar as ${role}`,
         html: `

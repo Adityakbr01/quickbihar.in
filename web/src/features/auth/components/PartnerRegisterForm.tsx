@@ -1,31 +1,35 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
-import { Bike, CheckCircle2, FileUp, Loader2, MapPin, Store } from "lucide-react";
+import { Bike, CheckCircle2, FileUp, Loader2, MapPin, Store, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { registerRequest, verifyOtpRequest } from "../api/auth.api";
+import { requestOtpRequest, verifyOtpRequest, updateProfileRequest } from "../api/auth.api";
 import { useAuthStore } from "../store/authStore";
 import { onboardingApi, OnboardingApplication } from "@/features/onboarding/api/onboarding.api";
 
 type PartnerMode = "SELLER" | "RIDER";
-type Phase = "account" | "otp" | "application" | "submitted";
+type Phase = "account" | "otp" | "credentials" | "application" | "submitted";
 type RiderLocation = { latitude: number; longitude: number };
 
-const inputClass = "border-white/10 bg-white/5 text-white placeholder:text-gray-500";
-const selectClass = "h-10 rounded-lg border border-white/10 bg-[#181818] px-3 text-sm text-white outline-none";
-const textareaClass = "min-h-24 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none placeholder:text-gray-500";
+const inputClass = "border-white/10 bg-white/5 text-white placeholder:text-gray-500 focus:border-white/20";
+const selectClass = "h-10 rounded-lg border border-white/10 bg-[#181818] px-3 text-sm text-white outline-none focus:border-white/20";
+const textareaClass = "min-h-24 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none placeholder:text-gray-500 focus:border-white/20";
 
 export default function PartnerRegisterForm({ mode }: { mode: PartnerMode }) {
   const isRider = mode === "RIDER";
   const { user, token, isAuthenticated, setAuth } = useAuthStore();
+  
+  // Decide which phase to start in based on authentication
   const [phase, setPhase] = useState<Phase>(isAuthenticated ? "application" : "account");
-  const [email, setEmail] = useState(user?.email || "");
-  const [password, setPassword] = useState("");
+  
+  const [phone, setPhone] = useState(user?.phone || "");
   const [fullName, setFullName] = useState(user?.fullName || "");
   const [otp, setOtp] = useState("");
+  const [email, setEmail] = useState(user?.email || "");
+  const [password, setPassword] = useState("");
   const [files, setFiles] = useState<File[]>([]);
   const [status, setStatus] = useState<OnboardingApplication | null>(null);
   const [isBusy, setIsBusy] = useState(false);
@@ -34,7 +38,7 @@ export default function PartnerRegisterForm({ mode }: { mode: PartnerMode }) {
 
   const title = isRider ? "Delivery Registration" : "Seller Registration";
   const Icon = isRider ? Bike : Store;
-  const iconClass = isRider ? "bg-cyan-400/10 text-cyan-300" : "bg-emerald-400/10 text-emerald-300";
+  const activeColorClass = isRider ? "bg-cyan-600 hover:bg-cyan-700" : "bg-emerald-600 hover:bg-emerald-700";
 
   useEffect(() => {
     if (!isAuthenticated || !token) return;
@@ -42,41 +46,97 @@ export default function PartnerRegisterForm({ mode }: { mode: PartnerMode }) {
       .then((data) => {
         const app = (isRider ? data.latestRiderApplication : data.latestSellerApplication) || null;
         setStatus(app);
-        if (app?.status === "PENDING" || app?.status === "APPROVED") setPhase("submitted");
-        else setPhase("application");
+        if (app?.status === "PENDING" || app?.status === "APPROVED") {
+          setPhase("submitted");
+        } else {
+          // If logged in but email setup is not completed, we can direct them to credentials or application
+          const isTempEmail = user?.email && user.email.endsWith("@quickbihar.local");
+          if (isTempEmail) {
+            setPhase("credentials");
+          } else {
+            setPhase("application");
+          }
+        }
       })
       .catch(() => undefined);
-  }, [isAuthenticated, isRider, token]);
+  }, [isAuthenticated, isRider, token, user]);
 
   const canSubmitApplication = useMemo(
     () => files.length > 0 && isAuthenticated && (!isRider || Boolean(riderLocation)),
     [files.length, isAuthenticated, isRider, riderLocation],
   );
 
+  // Phase 1: Request Mobile OTP
   const submitAccount = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    const cleanPhone = phone.trim().replace(/\D/g, "");
+    if (cleanPhone.length !== 10) {
+      toast.error("Please enter a valid 10-digit mobile number.");
+      return;
+    }
+    if (fullName.trim().length < 2) {
+      toast.error("Please enter a valid name (minimum 2 characters).");
+      return;
+    }
+    
     setIsBusy(true);
     try {
-      await registerRequest({ email, password, fullName });
-      toast.success("OTP sent to your email");
+      await requestOtpRequest({ target: cleanPhone, isRegistration: true });
+      toast.success("OTP sent to your mobile number");
       setPhase("otp");
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Registration failed");
+      toast.error(error instanceof Error ? error.message : "Failed to send OTP");
     } finally {
       setIsBusy(false);
     }
   };
 
+  // Phase 2: Verify Mobile OTP
   const submitOtp = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setIsBusy(true);
+    const cleanPhone = phone.trim().replace(/\D/g, "");
     try {
-      const response = await verifyOtpRequest({ email, otp });
-      setAuth(response.data.user, response.data.accessToken);
-      toast.success("Email verified");
-      setPhase("application");
+      const response = await verifyOtpRequest({ target: cleanPhone, phone: cleanPhone, otp });
+      const { user: authedUser, accessToken, isNewUser } = response.data;
+      
+      setAuth(authedUser, accessToken);
+      toast.success("Mobile number verified successfully!");
+      
+      if (isNewUser || (authedUser.email && authedUser.email.endsWith("@quickbihar.local"))) {
+        setPhase("credentials");
+      } else {
+        setPhase("application");
+      }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "OTP verification failed");
+    } finally {
+      setIsBusy(false);
+    }
+  };
+
+  // Phase 3: Setup Email & Password Credentials
+  const submitCredentials = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!email.trim() || !email.includes("@")) {
+      toast.error("Please enter a valid email address.");
+      return;
+    }
+    if (password.length < 6) {
+      toast.error("Password must be at least 6 characters.");
+      return;
+    }
+    
+    setIsBusy(true);
+    try {
+      const res = await updateProfileRequest({ email: email.trim(), password, fullName: fullName.trim() });
+      if (res?.data) {
+        setAuth(res.data, token || "");
+      }
+      toast.success("Email and password credentials configured successfully!");
+      setPhase("application");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Credential setup failed");
     } finally {
       setIsBusy(false);
     }
@@ -106,6 +166,7 @@ export default function PartnerRegisterForm({ mode }: { mode: PartnerMode }) {
     );
   };
 
+  // Phase 4: Submit Onboarding details
   const submitApplication = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!isAuthenticated) {
@@ -175,33 +236,104 @@ export default function PartnerRegisterForm({ mode }: { mode: PartnerMode }) {
       <CardContent>
         {phase === "account" && (
           <form onSubmit={submitAccount} className="grid gap-4">
-            <Input value={fullName} onChange={(event) => setFullName(event.target.value)} placeholder="Full name" required className={inputClass} />
-            <Input value={email} onChange={(event) => setEmail(event.target.value)} placeholder="Email" type="email" required className={inputClass} />
-            <Input value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Password" type="password" minLength={6} required className={inputClass} />
-            <Button type="submit" disabled={isBusy} className={isRider ? "bg-cyan-600 hover:bg-cyan-700" : "bg-emerald-600 hover:bg-emerald-700"}>
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-gray-300">Full Name</label>
+              <Input
+                value={fullName}
+                onChange={(event) => setFullName(event.target.value)}
+                placeholder="Enter your full name"
+                required
+                className={inputClass}
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-gray-300">Mobile Number (Primary Identity)</label>
+              <Input
+                value={phone}
+                onChange={(event) => setPhone(event.target.value.replace(/\D/g, ""))}
+                placeholder="Enter 10-digit number"
+                type="tel"
+                maxLength={10}
+                required
+                className={inputClass}
+              />
+            </div>
+            <Button type="submit" disabled={isBusy} className={`${activeColorClass} font-semibold py-6`}>
               {isBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-              Send OTP
+              Send Verification OTP
             </Button>
           </form>
         )}
 
         {phase === "otp" && (
           <form onSubmit={submitOtp} className="grid gap-4">
-            <Input value={otp} onChange={(event) => setOtp(event.target.value)} placeholder="6 digit OTP" maxLength={6} required className={inputClass} />
-            <Button type="submit" disabled={isBusy || otp.length !== 6} className={isRider ? "bg-cyan-600 hover:bg-cyan-700" : "bg-emerald-600 hover:bg-emerald-700"}>
+            <div className="flex justify-between items-center">
+              <label className="text-sm font-medium text-gray-300">Verification Code</label>
+              <button
+                type="button"
+                onClick={() => setPhase("account")}
+                className="text-xs text-gray-400 hover:text-white flex items-center gap-1"
+              >
+                <ArrowLeft className="h-3 w-3" /> Change details
+              </button>
+            </div>
+            <Input
+              value={otp}
+              onChange={(event) => setOtp(event.target.value.replace(/\D/g, ""))}
+              placeholder="6-digit OTP code"
+              maxLength={6}
+              required
+              className="text-center tracking-widest text-lg font-bold bg-white/5 border-white/10 text-white"
+            />
+            <Button type="submit" disabled={isBusy || otp.length !== 6} className={`${activeColorClass} font-semibold py-6`}>
               {isBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-              Verify Email
+              Verify Mobile OTP
+            </Button>
+          </form>
+        )}
+
+        {phase === "credentials" && (
+          <form onSubmit={submitCredentials} className="grid gap-4">
+            <p className="text-sm text-gray-400 text-center mb-2">
+              Setup an email and password to log in without needing OTP verification in the future.
+            </p>
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-gray-300">Email Address</label>
+              <Input
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                placeholder="name@example.com"
+                type="email"
+                required
+                className={inputClass}
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-gray-300">Password</label>
+              <Input
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                placeholder="Create a strong password (minimum 6 characters)"
+                type="password"
+                minLength={6}
+                required
+                className={inputClass}
+              />
+            </div>
+            <Button type="submit" disabled={isBusy} className={`${activeColorClass} font-semibold py-6`}>
+              {isBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+              Complete Account Setup
             </Button>
           </form>
         )}
 
         {phase === "application" && (
-          <form onSubmit={submitApplication} className="grid gap-4">
+          <form onSubmit={submitApplication} className="grid gap-4 animate-in fade-in-50">
             {isRider
               ? <RiderFields location={riderLocation} isLocating={isLocating} onCaptureLocation={captureLocation} />
               : <SellerFields />}
             <CommonApplicationFields onFiles={setFiles} />
-            <Button type="submit" disabled={isBusy || !canSubmitApplication} className={isRider ? "bg-cyan-600 hover:bg-cyan-700" : "bg-emerald-600 hover:bg-emerald-700"}>
+            <Button type="submit" disabled={isBusy || !canSubmitApplication} className={`${activeColorClass} font-semibold py-6`}>
               {isBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileUp className="h-4 w-4" />}
               Submit For Approval
             </Button>
@@ -209,12 +341,12 @@ export default function PartnerRegisterForm({ mode }: { mode: PartnerMode }) {
         )}
 
         {phase === "submitted" && (
-          <div className="grid gap-4 text-center">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-lg bg-emerald-400/10 text-emerald-300">
-              <CheckCircle2 className="h-6 w-6" />
+          <div className="grid gap-4 text-center py-6 animate-in zoom-in-95">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-400/10 text-emerald-400">
+              <CheckCircle2 className="h-8 w-8" />
             </div>
-            <div className="text-lg font-semibold text-white">{status?.status || "Application received"}</div>
-            <p className="text-sm text-gray-400">
+            <div className="text-xl font-bold text-white">{status?.status || "Application received"}</div>
+            <p className="text-sm text-gray-400 max-w-md mx-auto">
               {status?.status === "APPROVED"
                 ? "Your application is approved. You can log in to the partner panel."
                 : status?.status === "REJECTED"
@@ -289,20 +421,23 @@ function CommonApplicationFields({ onFiles }: { onFiles: (files: File[]) => void
   return (
     <>
       <div className="grid gap-3 md:grid-cols-4">
-        <Input name="city" placeholder="City" className={inputClass} />
-        <Input name="state" placeholder="State" className={inputClass} />
-        <Input name="pincode" placeholder="Pincode" className={inputClass} />
+        <Input name="city" placeholder="City" className={inputClass} required />
+        <Input name="state" placeholder="State" className={inputClass} required />
+        <Input name="pincode" placeholder="Pincode" className={inputClass} required />
         <Input name="upi" placeholder="UPI (optional)" className={inputClass} />
       </div>
-      <textarea name="address" placeholder="Full address" className={textareaClass} />
+      <textarea name="address" placeholder="Full address" className={textareaClass} required />
       <div className="grid gap-3 md:grid-cols-4">
-        <Input name="accountNumber" placeholder="Account number" className={inputClass} />
-        <Input name="ifsc" placeholder="IFSC" className={inputClass} />
-        <Input name="bankName" placeholder="Bank name" className={inputClass} />
-        <Input name="pan" placeholder="PAN" className={inputClass} />
+        <Input name="accountNumber" placeholder="Account number" className={inputClass} required />
+        <Input name="ifsc" placeholder="IFSC" className={inputClass} required />
+        <Input name="bankName" placeholder="Bank name" className={inputClass} required />
+        <Input name="pan" placeholder="PAN" className={inputClass} required />
       </div>
-      <Input name="aadhar" placeholder="Aadhar" className={inputClass} />
-      <Input type="file" multiple required onChange={(event) => onFiles(Array.from(event.target.files || []))} className={inputClass} />
+      <Input name="aadhar" placeholder="Aadhar" className={inputClass} required />
+      <div className="space-y-1">
+        <label className="text-sm font-medium text-gray-300">Upload Supporting Documents</label>
+        <Input type="file" multiple required onChange={(event) => onFiles(Array.from(event.target.files || []))} className={inputClass} />
+      </div>
     </>
   );
 }
@@ -311,9 +446,10 @@ function phaseLabel(phase: Phase, status: OnboardingApplication | null) {
   if (status?.status === "PENDING") return "Your application is waiting for admin approval";
   if (status?.status === "APPROVED") return "Your partner account is approved";
   if (status?.status === "REJECTED") return "Your previous application needs attention";
-  if (phase === "otp") return "Verify your email before submitting application details";
+  if (phase === "otp") return "Verify your phone number before setting up credentials";
+  if (phase === "credentials") return "Configure email and password details for your account";
   if (phase === "application") return "Submit partner details and documents for admin approval";
-  return "Create your account to start partner onboarding";
+  return "Verify your mobile number to start onboarding";
 }
 
 function text(form: FormData, key: string) {

@@ -82,11 +82,11 @@ Detailed list of all technical defects, missing components, security risks, and 
 - **Affected Component**: Mail Service
 - **Location/File**: [mail.service.ts](file:///c:/Users/ADITYA/Desktop/quickbihar.in/server/src/utils/mail.service.ts#L10)
 - **How to Reproduce**: Trigger email OTP or partner status notification.
-- **Expected Behavior**: Sender email is `noreply@quickbihar.in`.
-- **Actual Behavior**: Sender is `no-reply@edulaunch.shop` or `onboarding@resend.dev`.
+- **Expected Behavior**: Sender email is `noreply@voiceact.tech`.
+- **Actual Behavior**: Sender is `no-reply@edulaunch.shop` or `noreply@voiceact.tech`.
 - **Root Cause**: Third-party domain `edulaunch.shop` hardcoded in code.
 - **Impact**: Email delivery failure, bouncing, or landing in user SPAM folder.
-- **Recommended Fix**: Update Resend DNS records for `quickbihar.in` and set sender to `noreply@quickbihar.in`.
+- **Recommended Fix**: Update Resend DNS records for `quickbihar.in` and set sender to `noreply@voiceact.tech`.
 - **Fix Status**: PENDING CONFIGURATION.
 
 ---

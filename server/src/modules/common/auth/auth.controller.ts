@@ -94,7 +94,7 @@ export const verifyOTP = asyncHandler(async (req: Request, res: Response) => {
       new ApiResponse(
         200,
         { user, accessToken, refreshToken },
-        "Verified and logged in successfully"
+        "User verified and logged in successfully"
       )
     );
 });

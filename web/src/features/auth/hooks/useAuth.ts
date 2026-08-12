@@ -1,7 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { loginRequest } from "../api/auth.api";
+import { loginRequest, verifyOtpRequest, requestOtpRequest, updateProfileRequest } from "../api/auth.api";
 import { useAuthStore } from "../store/authStore";
 import type { AuthUser } from "../schemas/auth.schema";
 import { onboardingApi, type ApplicationType } from "@/features/onboarding/api/onboarding.api";
@@ -89,3 +89,79 @@ export const useDeliveryLogin = () =>
     redirectTo: "/delivery/dashboard",
     accessDeniedMessage: "Access denied. Delivery partner account required.",
   });
+
+export const useVerifyOTP = ({
+  allowedRoles,
+  redirectTo,
+  accessDeniedMessage,
+}: {
+  allowedRoles: RoleName[];
+  redirectTo: string;
+  accessDeniedMessage: string;
+}) => {
+  const router = useRouter();
+  const setAuth = useAuthStore((state) => state.setAuth);
+
+  return useMutation({
+    mutationFn: verifyOtpRequest,
+    onSuccess: async (response) => {
+      const { user, accessToken } = response.data;
+      const roleName = getRoleName(user);
+
+      if (!allowedRoles.includes(roleName as RoleName)) {
+        const partnerType = allowedRoles.includes("DELIVERY") ? "RIDER" : allowedRoles.includes("SELLER") ? "SELLER" : null;
+        if (roleName === "USER" && partnerType) {
+          setAuth(user, accessToken);
+          try {
+            const status = await onboardingApi.status();
+            const application = latestApplication(status.applications, partnerType);
+            if (application?.status === "PENDING") {
+              toast.info(`Your ${partnerType === "RIDER" ? "delivery" : "seller"} application is pending admin approval.`);
+            } else if (application?.status === "REJECTED") {
+              toast.error(application.rejectionReason || `Your ${partnerType.toLowerCase()} application was rejected.`);
+            } else {
+              toast.info(`Verified! Please complete ${partnerType === "RIDER" ? "delivery" : "seller"} registration details.`);
+            }
+          } catch {
+            toast.info(`Verified! Please complete ${partnerType === "RIDER" ? "delivery" : "seller"} registration details.`);
+          }
+          router.replace(partnerType === "RIDER" ? "/delivery/register" : "/seller/register");
+          return;
+        }
+
+        toast.error(accessDeniedMessage);
+        return;
+      }
+
+      setAuth(user, accessToken);
+      toast.success(`Welcome back, ${user.fullName}!`);
+      router.replace(redirectTo);
+    },
+    onError: (err: Error) => {
+      const errorMessage = err.message || "OTP verification failed. Please try again.";
+      toast.error(errorMessage);
+    },
+  });
+};
+
+export const useAdminVerifyOTP = () =>
+  useVerifyOTP({
+    allowedRoles: ["ADMIN", "SUPER_ADMIN"],
+    redirectTo: "/admin/dashboard",
+    accessDeniedMessage: "Access denied. Admin account required.",
+  });
+
+export const useSellerVerifyOTP = () =>
+  useVerifyOTP({
+    allowedRoles: ["SELLER"],
+    redirectTo: "/seller/dashboard",
+    accessDeniedMessage: "Access denied. Seller account required.",
+  });
+
+export const useDeliveryVerifyOTP = () =>
+  useVerifyOTP({
+    allowedRoles: ["DELIVERY"],
+    redirectTo: "/delivery/dashboard",
+    accessDeniedMessage: "Access denied. Delivery partner account required.",
+  });
+
