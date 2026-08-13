@@ -34,7 +34,7 @@ export function SellerStoreSetupPanel() {
   const refundPoliciesQuery = useSellerPolicies();
 
   const store = storeQuery.data?.store;
-  const missingFields = storeQuery.data?.setup.missingFields || [];
+  const missingFields = storeQuery.data?.setup?.missingFields || [];
   const refundPolicies = refundPoliciesQuery.data || [];
 
   const [returnPolicyId, setReturnPolicyId] = useState("");

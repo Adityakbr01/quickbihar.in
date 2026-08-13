@@ -22,6 +22,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuthStore } from "@/features/auth/store/authStore";
+import { logoutRequest } from "@/features/auth/api/auth.api";
 import { webSocketClient } from "@/lib/socket";
 import { SocketEvents } from "@/constants/socketEvents";
 import { useFulfillmentRealtime } from "@/hooks/useFulfillmentRealtime";
@@ -330,7 +331,8 @@ export default function DeliveryDashboardPage() {
               </Button>
               <Button
                 variant="ghost"
-                onClick={() => {
+                onClick={async () => {
+                  await logoutRequest();
                   clearAuth();
                   webSocketClient.disconnect();
                   router.replace("/delivery/login");

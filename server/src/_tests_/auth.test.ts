@@ -47,19 +47,43 @@ mock.module("../config/redis.config", () => ({
         del: mock(() => Promise.resolve())
     }
 }));
-mock.module("../utils/mail.service", () => ({
+const mockMailService = {
     MailService: {
         sendOTP: mock(() => Promise.resolve(true)),
-        sendApplicationStatus: mock(() => Promise.resolve(true))
+        sendMobileOTPToEmail: mock(() => Promise.resolve(true)),
+        sendApplicationStatus: mock(() => Promise.resolve(true)),
+        sendAdminInvite: mock(() => Promise.resolve(true)),
+        sendPayoutNotice: mock(() => Promise.resolve(true))
     }
-}));
+};
+mock.module("../utils/mail.service", () => mockMailService);
+mock.module("@/utils/mail.service", () => mockMailService);
 mock.module("../config/db", () => ({ default: mock(() => Promise.resolve()) }));
 mock.module("../config/imagekit.config", () => ({ imagekit: {} }));
+
+mock.module("../modules/common/user/user.model", () => ({
+    User: {
+        findOne: mock(() => Promise.resolve(null)),
+    }
+}));
 
 // 2. Mock UserDAO & User Model behavior
 mock.module("../modules/common/user/user.dao", () => ({
     UserDAO: {
         findByUsernameOrEmail: mock((username, email) => {
+            if (email === "unverified@test.com") {
+                return Promise.resolve({
+                    _id: VALID_ID,
+                    email,
+                    username: "unverified",
+                    fullName: "Unverified User",
+                    isVerified: false,
+                    isPasswordCorrect: mock(() => Promise.resolve(true)),
+                    generateAccessToken: () => "valid_access_token",
+                    generateRefreshToken: () => "valid_refresh_token",
+                    save: mock(() => Promise.resolve())
+                });
+            }
             if (email === "approvedrider@test.com") {
                 return Promise.resolve({
                     _id: RIDER_ID,
@@ -74,12 +98,13 @@ mock.module("../modules/common/user/user.dao", () => ({
                     save: mock(() => Promise.resolve())
                 });
             }
-            if (email === "existing@test.com" || email === "otpuser@test.com") {
+            if (email === "existing@test.com" || email === "otpuser@test.com" || email === "cooldown@test.com") {
                 return Promise.resolve({
                     _id: VALID_ID,
                     email,
                     username: "existing",
                     fullName: "Existing User",
+                    isVerified: true,
                     isPasswordCorrect: mock(() => Promise.resolve(true)),
                     generateAccessToken: () => "valid_access_token",
                     generateRefreshToken: () => "valid_refresh_token",
@@ -134,10 +159,11 @@ const { app } = await import("../app");
 
 describe("Authentication Routes", () => {
 
-    test("POST /api/v1/auth/register (Success - Verification Needed)", async () => {
+    test("POST /api/v1/auth/register (Success)", async () => {
         const res = await request(app)
             .post("/api/v1/auth/register")
             .send({
+                phone: "9876543210",
                 email: "newuser@test.com",
                 password: "password123",
                 fullName: "New User"
@@ -145,8 +171,7 @@ describe("Authentication Routes", () => {
 
         expect(res.status).toBe(201);
         expect(res.body.success).toBe(true);
-        expect(res.body.data.message).toContain("verify your email");
-        expect(res.body.data.accessToken).toBeUndefined();
+        expect(res.body.data.accessToken).toBeDefined();
     });
 
     test("POST /api/v1/auth/request-otp (Success)", async () => {
@@ -170,10 +195,10 @@ describe("Authentication Routes", () => {
     test("POST /api/v1/auth/login (Unverified Failure - Triggers OTP)", async () => {
         const res = await request(app)
             .post("/api/v1/auth/login")
-            .send({ email: "otpuser@test.com", password: "password123" });
+            .send({ email: "unverified@test.com", password: "password123" });
 
         expect(res.status).toBe(401);
-        expect(res.body.message).toContain("Email not verified");
+        expect(res.body.message).toContain("Account not verified");
     });
 
     test("POST /api/v1/auth/login self-heals approved delivery role", async () => {

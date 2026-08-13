@@ -1,13 +1,12 @@
-import { Resend } from "resend";
+import { resend, RESEND_FROM } from "../config/resend.config";
 import { ENV } from "../config/env.config";
-
-const resend = new Resend(ENV.RESEND_API_KEY);
 
 export class MailService {
   static async sendOTP(email: string, otp: string) {
     try {
+      console.log(`📧 [MailService] Sending OTP to ${email} using sender: ${RESEND_FROM}`);
       const { data, error } = await resend.emails.send({
-        from: "no-reply@edulaunch.shop", // Replace with your verified domain
+        from: RESEND_FROM,
         to: [email],
         subject: "Your Quick Bihar Verification Code",
         html: `
@@ -26,23 +25,24 @@ export class MailService {
       });
 
       if (error) {
-        console.error("Resend Error:", error);
+        console.error("❌ Resend Error:", JSON.stringify(error, null, 2));
         return false;
       }
 
+      console.log(`✅ [MailService] OTP email successfully sent to ${email}. ID: ${data?.id}`);
       return true;
     } catch (error) {
-      console.error("Mail Service Error:", error);
+      console.error("❌ Mail Service Error:", error);
       return false;
     }
   }
 
   static async sendMobileOTPToEmail(phoneNumber: string, otp: string, recipientEmail?: string) {
-    const toEmail = recipientEmail || ENV.ADMIN_EMAIL || "admin@gmail.com";
+    const toEmail = recipientEmail || ENV.OTP_TEST_EMAIL || ENV.ADMIN_EMAIL || "adityakbr01@gmail.com";
     try {
       console.log(`📧 [MailService] Dispatching Mobile OTP notification for ${phoneNumber} to ${toEmail}`);
       const { data, error } = await resend.emails.send({
-        from: "noreply@voiceact.tech",
+        from: RESEND_FROM,
         to: [toEmail],
         subject: `[OTP Testing] Code for Mobile: ${phoneNumber}`,
         html: `
@@ -61,12 +61,13 @@ export class MailService {
       });
 
       if (error) {
-        console.error("Resend Mobile OTP Mail Error:", error);
+        console.error("❌ Resend Mobile OTP Mail Error:", JSON.stringify(error, null, 2));
         return false;
       }
+      console.log(`✅ [MailService] Mobile OTP email dispatched to ${toEmail}. ID: ${data?.id}`);
       return true;
     } catch (error) {
-      console.error("Mail Service Mobile OTP Error:", error);
+      console.error("❌ Mail Service Mobile OTP Error:", error);
       return false;
     }
   }
@@ -76,8 +77,8 @@ export class MailService {
     const subject = isApproved ? "Application Approved! - Quick Bihar" : "Application Update - Quick Bihar";
 
     try {
-      await resend.emails.send({
-        from: "noreply@voiceact.tech",
+      const { data, error } = await resend.emails.send({
+        from: RESEND_FROM,
         to: [email],
         subject,
         html: `
@@ -87,17 +88,20 @@ export class MailService {
             ${reason ? `<p><strong>Reason:</strong> ${reason}</p>` : ""}
             ${isApproved ? `<p>You can now log in and access your partner dashboard.</p>` : "<p>If you have any questions, please contact support.</p>"}
           </div>
-        `
+        `,
       });
+      if (error) {
+        console.error("❌ Resend Application Status Mail Error:", JSON.stringify(error, null, 2));
+      }
     } catch (error) {
-      console.error("Mail Service Status Error:", error);
+      console.error("❌ Mail Service Status Error:", error);
     }
   }
 
   static async sendAdminInvite(email: string, role: string, inviteUrl: string, fullName?: string, message?: string) {
     try {
-      const { error } = await resend.emails.send({
-        from: "noreply@voiceact.tech",
+      const { data, error } = await resend.emails.send({
+        from: RESEND_FROM,
         to: [email],
         subject: `You're invited to Quick Bihar as ${role}`,
         html: `
@@ -112,21 +116,21 @@ export class MailService {
       });
 
       if (error) {
-        console.error("Invite Mail Error:", error);
+        console.error("❌ Invite Mail Error:", JSON.stringify(error, null, 2));
         return false;
       }
 
       return true;
     } catch (error) {
-      console.error("Invite Mail Service Error:", error);
+      console.error("❌ Invite Mail Service Error:", error);
       return false;
     }
   }
 
   static async sendPayoutNotice(email: string, amount: number, status: string, referenceId?: string) {
     try {
-      await resend.emails.send({
-        from: "Quick Bihar <payments@resend.dev>",
+      const { data, error } = await resend.emails.send({
+        from: RESEND_FROM,
         to: [email],
         subject: `Payout ${status} - Quick Bihar`,
         html: `
@@ -137,8 +141,11 @@ export class MailService {
           </div>
         `,
       });
+      if (error) {
+        console.error("❌ Payout Mail Error:", JSON.stringify(error, null, 2));
+      }
     } catch (error) {
-      console.error("Payout Mail Service Error:", error);
+      console.error("❌ Payout Mail Service Error:", error);
     }
   }
 }

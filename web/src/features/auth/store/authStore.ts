@@ -23,6 +23,13 @@ export const useAuthStore = create<AuthState>()(
 
       clearAuth: () => {
         set({ user: null, token: null, isAuthenticated: false });
+        if (typeof window !== "undefined") {
+          try {
+            localStorage.removeItem("admin-auth-storage");
+            document.cookie = "accessToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            document.cookie = "refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+          } catch {}
+        }
       },
     }),
     {

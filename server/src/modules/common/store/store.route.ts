@@ -1,4 +1,5 @@
 import express from "express";
+import { ApiError } from "@/utils/ApiError";
 import { isSellerOrAdmin, checkPermissions as requirePermission, verifyJWT } from "@/middlewares/auth.middleware";
 import { validate } from "@/middlewares/validate.middleware";
 import { PERMISSIONS } from "@/modules/common/rbac/rbac.constants";
@@ -41,7 +42,7 @@ router.get("/:id", (req, res, next) => {
     if (/^[0-9a-fA-F]{24}$/.test(req.params.id || "")) {
         return getStoreController(req, res, next);
     }
-    return next("route");
+    throw new ApiError(404, "Store not found");
 });
 
 router.use(verifyJWT);

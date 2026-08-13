@@ -64,6 +64,8 @@ const envSchema = z.object({
 
   // EMAIL
   RESEND_API_KEY: z.string().optional(),
+  RESEND_FROM_EMAIL: z.string().default("Quick Bihar <noreply@voiceact.tech>"),
+  OTP_TEST_EMAIL: z.string().email().optional(),
 
   // SMS CONFIGURATION
   SMS_PROVIDER: z.string().default("smslocal"),

@@ -18,6 +18,7 @@ import { Store } from "@/modules/common/store/store.model";
 import { StoreType } from "@/modules/common/store/store.schema";
 import { buildStoreSetupStatus, mergeStoreForSetup } from "@/modules/common/store/store.setup";
 import { User } from "@/modules/common/user/user.model";
+import { OnboardingApplication } from "@/modules/common/onboarding/onboarding.model";
 import { Seller } from "./seller.model";
 import {
     InventoryMovement,
@@ -232,7 +233,96 @@ export class SellerService {
             Store.find({ sellerId: userId }).sort({ createdAt: -1 }).lean(),
         ]);
 
-        if (!seller) throw new ApiError(404, "Seller profile not found");
+        if (!seller) {
+            const latestApp = await OnboardingApplication.findOne({ userId, type: "SELLER" })
+                .sort({ createdAt: -1 })
+                .lean();
+
+            if (latestApp && latestApp.status === "APPROVED") {
+                const details = latestApp.details instanceof Map ? Object.fromEntries(latestApp.details) : (latestApp.details || {});
+                const userDoc = await User.findById(userId).lean();
+
+                await Seller.create({
+                    userId,
+                    businessName: (details as any).businessName || (userDoc as any)?.fullName || "My Store",
+                    sellerType: (details as any).sellerType || "CLOTHING",
+                    bankDetails: (details as any).bankDetails,
+                    address: (details as any).address,
+                    status: "APPROVED",
+                    isVerified: true,
+                    currentLocation: {
+                        type: "Point",
+                        coordinates: [85.1376, 25.5941],
+                    },
+                });
+
+                return this.getSetupStatus(userId);
+            }
+
+            return {
+                seller: null,
+                onboardingStatus: latestApp ? latestApp.status : "NOT_APPLIED",
+                latestApplication: latestApp || null,
+                canAccessDashboard: false,
+                storeSetup: { isComplete: false, missingFields: ["seller.profile"] },
+                storeActive: false,
+                hasVerifiedPayoutMethod: false,
+                needsApproval: latestApp?.status !== "APPROVED",
+                message: latestApp?.status === "PENDING"
+                    ? "Your seller onboarding application is under admin review."
+                    : latestApp?.status === "REJECTED"
+                    ? `Application rejected: ${latestApp.rejectionReason || "Please update your application"}`
+                    : "No seller application submitted yet.",
+            };
+        }
+
+        if (seller && stores.length === 0 && seller.status === "APPROVED") {
+            const latestApp = await OnboardingApplication.findOne({ userId, type: "SELLER" })
+                .sort({ createdAt: -1 })
+                .lean();
+            const details = latestApp?.details instanceof Map ? Object.fromEntries(latestApp.details) : (latestApp?.details || {});
+            const userDoc = await User.findById(userId).lean();
+            const addr = (details as any).address || {};
+
+            await Store.create({
+                sellerId: userId,
+                name: (details as any).businessName || seller.businessName || (userDoc as any)?.fullName || "My Store",
+                type: (details as any).sellerType || seller.sellerType || "CLOTHING",
+                address: {
+                    line1: addr.address || addr.line1 || "Main Street",
+                    city: addr.city || "Patna",
+                    state: addr.state || "Bihar",
+                    pincode: addr.pincode || addr.postalCode || "800001",
+                    postalCode: addr.pincode || addr.postalCode || "800001",
+                    country: "India",
+                },
+                contact: {
+                    email: (userDoc as any)?.email,
+                    phone: (userDoc as any)?.phone,
+                },
+                currentLocation: {
+                    type: "Point",
+                    coordinates: [85.1376, 25.5941],
+                },
+                deliveryConfig: {
+                    shippingFee: 0,
+                    freeShippingThreshold: 0,
+                    deliveryAreas: [addr.city || "Local Area"],
+                },
+                seo: {
+                    storeTitle: (details as any).businessName || seller.businessName || "My Store",
+                    metaTitle: (details as any).businessName || seller.businessName || "My Store",
+                    metaDescription: `Welcome to ${(details as any).businessName || seller.businessName || "My Store"}`,
+                },
+                isOpen: true,
+                isActive: true,
+                isVerified: true,
+                isSetupComplete: true,
+                setupCompletedAt: new Date(),
+            });
+
+            return this.getSetupStatus(userId);
+        }
 
         const store = stores[0] || null;
         const storeSetup = store

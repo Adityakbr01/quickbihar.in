@@ -42,3 +42,16 @@ export function coordinatesFromGeoJson(geo?: { coordinates?: number[] | null } |
     if (!Array.isArray(coords) || coords.length < 2) return null;
     return finiteLocation({ longitude: coords[0], latitude: coords[1] });
 }
+
+/** Default coordinates for Patna, Bihar [lng, lat] */
+export const DEFAULT_GEO_COORDINATES: [number, number] = [85.1376, 25.5941];
+
+/** Formats GeoJSON Point object with safe fallback coordinates */
+export function formatGeoJsonPoint(location?: { lng?: unknown; lat?: unknown; longitude?: unknown; latitude?: unknown } | null) {
+    const lng = Number(location?.lng ?? location?.longitude);
+    const lat = Number(location?.lat ?? location?.latitude);
+    if (Number.isFinite(lng) && Number.isFinite(lat)) {
+        return { type: "Point" as const, coordinates: [lng, lat] };
+    }
+    return { type: "Point" as const, coordinates: DEFAULT_GEO_COORDINATES };
+}

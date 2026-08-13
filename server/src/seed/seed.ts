@@ -228,6 +228,10 @@ export const seedUsers = async () => {
 
 export const seedSizeCharts = async () => {
     try {
+        const existingCount = await SizeChart.countDocuments();
+        if (existingCount > 0) {
+            return;
+        }
         console.log("🌱 Seeding Size Charts (Production Safe)...");
 
         const commonCharts = [
@@ -465,6 +469,10 @@ export const seedSizeCharts = async () => {
 
 export const seedRefundPolicies = async () => {
     try {
+        const existingCount = await RefundPolicy.countDocuments();
+        if (existingCount > 0) {
+            return;
+        }
         console.log("🌱 Seeding Refund Policies (Pro Level)...");
 
         const commonRefundPolicies = [
@@ -649,6 +657,10 @@ import { ROLE_PERMISSION_MAP } from "../modules/common/rbac/ROLE_PERMISSION_MAP"
 
 export const seedRbac = async () => {
     try {
+        const existingCount = await RolePermission.countDocuments();
+        if (existingCount > 0) {
+            return;
+        }
         console.log("🌱 Seeding RBAC Configuration (Non-destructive)...");
 
         // 1. Sync Roles

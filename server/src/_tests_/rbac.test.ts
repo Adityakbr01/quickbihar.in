@@ -28,7 +28,7 @@ mock.module("../config/redis.config", () => ({
   }
 }));
 
-mock.module("../middlewares/auth.middleware", () => ({
+const mockAuthMiddleware = () => ({
   verifyJWT: (req: any, res: any, next: any) => {
     req.user = { _id: "645a2c2b8f8f2b1a2c3d4e5f" };
     next();
@@ -41,7 +41,9 @@ mock.module("../middlewares/auth.middleware", () => ({
   validateRole: () => (req: any, res: any, next: any) => next(),
   validatePermission: () => (req: any, res: any, next: any) => next(),
   checkPermissions: () => (req: any, res: any, next: any) => next(),
-}));
+});
+mock.module("../middlewares/auth.middleware", mockAuthMiddleware);
+mock.module("@/middlewares/auth.middleware", mockAuthMiddleware);
 
 mock.module("../modules/common/rbac/rbac.middleware", () => ({
   validateRole: () => (req: any, res: any, next: any) => next(),
@@ -81,6 +83,18 @@ mock.module("../modules/common/rbac/rbac.model", () => ({
     })),
     deleteOne: mock(() => Promise.resolve({ deletedCount: 1 })),
     findByUser: mock(() => Promise.resolve([])),
+  }
+}));
+
+mock.module("../modules/common/user/user.model", () => ({
+  User: {
+    findByIdAndUpdate: mock(() => ({ lean: mock(() => Promise.resolve({ _id: VALID_ID })) })),
+    findOneAndUpdate: mock(() => ({ lean: mock(() => Promise.resolve({ _id: VALID_ID })) })),
+    findById: mock(() => ({
+      populate: mock(() => ({ lean: mock(() => Promise.resolve({ _id: VALID_ID, roleId: { _id: VALID_ID, name: "USER" } })) })),
+      lean: mock(() => Promise.resolve({ _id: VALID_ID, roleId: { _id: VALID_ID, name: "USER" } })),
+    })),
+    findOne: mock(() => Promise.resolve(null)),
   }
 }));
 

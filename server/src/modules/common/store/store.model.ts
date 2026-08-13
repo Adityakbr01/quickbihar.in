@@ -76,7 +76,7 @@ const StoreSchema = new Schema<IStore>({
         },
         coordinates: {
             type: [Number],
-            required: false,
+            default: [85.1376, 25.5941],
             index: "2dsphere",
         },
     },

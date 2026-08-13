@@ -34,7 +34,7 @@ mock.module("../modules/common/notification/notification.service", () => ({
 }));
 
 // 2. Mock Models
-mock.module("../modules/common/user/onboarding.model", () => {
+const mockOnboardingModule = () => {
     const mockApplication = {
         _id: APP_ID,
         userId: { _id: USER_ID, email: "test@test.com" },
@@ -51,27 +51,56 @@ mock.module("../modules/common/user/onboarding.model", () => {
         return query;
     };
 
+    const appMock = {
+        create: mock((data) => Promise.resolve({ _id: APP_ID, ...data })),
+        findOne: mock(() => Promise.resolve(null)),
+        find: mock(() => createQueryMock([mockApplication])),
+        findById: mock(() => createQueryMock(mockApplication))
+    };
+
     return {
-        Application: {
-            create: mock((data) => Promise.resolve({ _id: APP_ID, ...data })),
-            findOne: mock(() => Promise.resolve(null)),
-            find: mock(() => createQueryMock([mockApplication])),
-            findById: mock(() => createQueryMock(mockApplication))
-        },
+        Application: appMock,
+        OnboardingApplication: appMock,
         ApplicationType: { SELLER: "SELLER", RIDER: "RIDER" },
         ApplicationStatus: { PENDING: "PENDING", APPROVED: "APPROVED", REJECTED: "REJECTED" }
     };
-});
+};
+
+mock.module("../modules/common/onboarding/onboarding.model", mockOnboardingModule);
+mock.module("@/modules/common/onboarding/onboarding.model", mockOnboardingModule);
 
 mock.module("../modules/common/seller/seller.model", () => ({
     Seller: {
-        create: mock(() => Promise.resolve({}))
+        create: mock(() => Promise.resolve({})),
+        findOne: mock(() => Promise.resolve(null))
     }
 }));
 
 mock.module("../modules/common/deliveryBoy/delivery.model", () => ({
     DeliveryBoy: {
-        create: mock(() => Promise.resolve({}))
+        create: mock(() => Promise.resolve({})),
+        findOne: mock(() => Promise.resolve(null))
+    }
+}));
+
+mock.module("../modules/common/store/store.model", () => ({
+    Store: {
+        create: mock(() => Promise.resolve({})),
+        findOne: mock(() => Promise.resolve(null))
+    },
+    ClothingStoreConfig: {
+        create: mock(() => Promise.resolve({})),
+        findOne: mock(() => Promise.resolve(null))
+    }
+}));
+mock.module("@/modules/common/store/store.model", () => ({
+    Store: {
+        create: mock(() => Promise.resolve({})),
+        findOne: mock(() => Promise.resolve(null))
+    },
+    ClothingStoreConfig: {
+        create: mock(() => Promise.resolve({})),
+        findOne: mock(() => Promise.resolve(null))
     }
 }));
 
@@ -93,7 +122,7 @@ mock.module("../modules/common/rbac/rbac.service", () => ({
 }));
 
 // 4. Mock Auth Middleware
-mock.module("../middlewares/auth.middleware", () => ({
+const mockAuth = () => ({
     verifyJWT: (req: any, res: any, next: any) => {
         req.user = { _id: req.headers.isadmin === "true" ? ADMIN_ID : USER_ID };
         next();
@@ -109,7 +138,9 @@ mock.module("../middlewares/auth.middleware", () => ({
     validateRole: () => (req: any, res: any, next: any) => next(),
     validatePermission: () => (req: any, res: any, next: any) => next(),
     checkPermissions: () => (req: any, res: any, next: any) => next(),
-}));
+});
+mock.module("../middlewares/auth.middleware", mockAuth);
+mock.module("@/middlewares/auth.middleware", mockAuth);
 
 const { app } = await import("../app");
 
@@ -121,7 +152,7 @@ describe("Onboarding Module Tests", () => {
             .send({
                 type: "SELLER",
                 details: { businessName: "My Shop", sellerType: "CLOTHING" },
-                documents: [{ name: "PAN", url: "http://pan.jpg", fileId: "123" }]
+                documents: [{ name: "PAN", url: "https://example.com/pan.jpg", fileId: "123" }]
             });
 
         expect(res.status).toBe(201);

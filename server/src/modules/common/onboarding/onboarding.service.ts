@@ -10,10 +10,12 @@
 import { ApiError } from "@/utils/ApiError";
 import { uploadToImageKit } from "@/utils/imagekit.util";
 import { MailService } from "@/utils/mail.service";
+import { formatGeoJsonPoint } from "@/utils/geo.util";
 import * as rbacService from "@/modules/common/rbac/rbac.service";
 import { RoleEnum } from "@/modules/common/rbac/rbac.types";
 import * as OnboardingDAO from "./onboarding.dao";
 import { ApplicationStatus, ApplicationType } from "./onboarding.model";
+import { Store } from "@/modules/common/store/store.model";
 
 /**
  * Submits a new onboarding application for a user.
@@ -182,12 +184,7 @@ export async function reviewApplication(applicationId: string, adminId: string, 
       ...otherDetails
     };
 
-    if (location) {
-      profileData.currentLocation = {
-        type: "Point",
-        coordinates: [location.lng, location.lat]
-      };
-    }
+    profileData.currentLocation = formatGeoJsonPoint(location);
 
     if (mallRequest?.mallId) {
       profileData.mallRequest = {
@@ -203,6 +200,47 @@ export async function reviewApplication(applicationId: string, adminId: string, 
         businessName: otherDetails.businessName || user.fullName,
         sellerType: otherDetails.sellerType,
       });
+
+      const existingStore = await Store.findOne({ sellerId: user._id });
+      if (!existingStore) {
+        const addr = otherDetails.address || {};
+        await Store.create({
+          sellerId: user._id,
+          name: otherDetails.businessName || user.fullName || "My Store",
+          type: otherDetails.sellerType || "CLOTHING",
+          address: {
+            line1: addr.address || addr.line1 || "Main Street",
+            city: addr.city || "Patna",
+            state: addr.state || "Bihar",
+            pincode: addr.pincode || addr.postalCode || "800001",
+            postalCode: addr.pincode || addr.postalCode || "800001",
+            country: "India",
+          },
+          contact: {
+            email: user.email,
+            phone: user.phone,
+          },
+          currentLocation: profileData.currentLocation || {
+            type: "Point",
+            coordinates: [85.1376, 25.5941],
+          },
+          deliveryConfig: {
+            shippingFee: 0,
+            freeShippingThreshold: 0,
+            deliveryAreas: [addr.city || "Local Area"],
+          },
+          seo: {
+            storeTitle: otherDetails.businessName || user.fullName,
+            metaTitle: otherDetails.businessName || user.fullName,
+            metaDescription: `Welcome to ${otherDetails.businessName || user.fullName}`,
+          },
+          isOpen: true,
+          isActive: true,
+          isVerified: true,
+          isSetupComplete: true,
+          setupCompletedAt: new Date(),
+        });
+      }
     } else if (application.type === ApplicationType.RIDER) {
       await OnboardingDAO.createRiderProfile(profileData);
     }

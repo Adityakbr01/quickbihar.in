@@ -16,6 +16,7 @@ export function AdminSidebar({
     malls: number;
     payouts: number;
     mallRequests: number;
+    pendingReviews?: number;
   };
   onSectionChange: (section: AdminSection) => void;
 }) {
@@ -24,18 +25,19 @@ export function AdminSidebar({
     "seller-directory": counts.sellers,
     "rider-directory": counts.riders,
     "seller-mall": counts.malls + counts.mallRequests,
+    "seller-submissions": counts.pendingReviews,
     payouts: counts.payouts,
   };
 
   return (
     <aside className="shrink-0 border-b border-white/10 bg-[#181818] lg:flex lg:h-screen lg:w-72 lg:flex-col lg:overflow-hidden lg:border-b-0 lg:border-r">
       <div className="flex items-center gap-3 border-b border-white/10 px-4 py-4">
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white text-sm font-bold text-black">
+        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-500 text-sm font-bold text-black shadow-md shadow-emerald-500/20">
           QB
         </div>
         <div>
           <div className="text-sm font-semibold text-white">QuickBihar</div>
-          <div className="text-xs text-gray-500">Fashion Admin</div>
+          <div className="text-xs text-emerald-400 font-medium">Admin Portal</div>
         </div>
       </div>
       <nav className="scrollbar-none flex overflow-x-auto px-3 py-3 lg:min-h-0 lg:flex-1 lg:flex-col lg:overflow-x-hidden lg:overflow-y-auto lg:space-y-4">
@@ -44,7 +46,7 @@ export function AdminSidebar({
             key={group.title}
             className="flex shrink-0 lg:flex-col lg:space-y-1"
           >
-            <div className="hidden px-2 pb-1 text-[11px] font-medium uppercase tracking-wider text-gray-100 lg:block">
+            <div className="hidden px-2 pb-1 text-[11px] font-bold uppercase tracking-wider text-emerald-500/80 lg:block">
               {group.title}
             </div>
             {group.items.map((section) => (

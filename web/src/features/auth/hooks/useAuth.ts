@@ -1,7 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { loginRequest, verifyOtpRequest, requestOtpRequest, updateProfileRequest } from "../api/auth.api";
+import { loginRequest, verifyOtpRequest, requestOtpRequest, updateProfileRequest, logoutRequest } from "../api/auth.api";
 import { useAuthStore } from "../store/authStore";
 import type { AuthUser } from "../schemas/auth.schema";
 import { onboardingApi, type ApplicationType } from "@/features/onboarding/api/onboarding.api";
@@ -164,4 +164,17 @@ export const useDeliveryVerifyOTP = () =>
     redirectTo: "/delivery/dashboard",
     accessDeniedMessage: "Access denied. Delivery partner account required.",
   });
+
+export const useLogout = () => {
+  const router = useRouter();
+  const clearAuth = useAuthStore((state) => state.clearAuth);
+
+  return async (redirectTo = "/") => {
+    try {
+      await logoutRequest();
+    } catch {}
+    clearAuth();
+    router.replace(redirectTo);
+  };
+};
 

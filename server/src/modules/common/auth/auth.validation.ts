@@ -14,17 +14,23 @@ export const authenticateSchema = z.object({
 });
 
 export const registerSchema = z.object({
-  email: emailOrPhoneSchema,
-  password: z.string().min(6, "Password must be at least 6 characters"),
-  fullName: z.string().min(2, "Full name must be at least 2 characters"),
+  email: emailOrPhoneSchema.optional(),
+  phone: z.string().optional(),
+  target: z.string().optional(),
+  password: z.string().min(6, "Password must be at least 6 characters").optional(),
+  fullName: z.string().min(2, "Full name must be at least 2 characters").optional(),
 });
 
 export const requestOTPSchema = z.object({
-  email: emailOrPhoneSchema,
+  email: emailOrPhoneSchema.optional(),
+  phone: z.string().optional(),
+  target: z.string().optional(),
 });
 
 export const verifyOTPSchema = z.object({
-  email: emailOrPhoneSchema,
+  email: emailOrPhoneSchema.optional(),
+  phone: z.string().optional(),
+  target: z.string().optional(),
   otp: z.string().length(6, "OTP must be 6 digits"),
 });
 

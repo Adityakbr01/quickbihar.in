@@ -36,46 +36,39 @@ const mallRequestSchema = z.object({
     message: z.string().trim().max(500).optional(),
 });
 
-export const applyOnboardingSchema = z.object({
-    body: z.discriminatedUnion("type", [
-        z.object({
-            type: z.literal(ApplicationType.SELLER),
-            documents: z.array(documentSchema).min(1, "At least one document is required"),
-            details: z.object({
-                businessName: z.string().min(1, "Business name is required"),
-                sellerType: z.enum([DomainEnum.CLOTHING, DomainEnum.FOOD, DomainEnum.JEWELERY] as const, {
-                    message: "Invalid seller type (must be CLOTHING, FOOD, or JEWELERY)",
-                }),
-                gstNumber: z.string().optional(),
-                bankDetails: bankDetailsSchema.optional(),
-                address: addressSchema.optional(),
-                location: locationSchema.optional(),
-                mallRequest: mallRequestSchema.optional(),
+export const applyOnboardingSchema = z.discriminatedUnion("type", [
+    z.object({
+        type: z.literal(ApplicationType.SELLER),
+        documents: z.array(documentSchema).min(1, "At least one document is required"),
+        details: z.object({
+            businessName: z.string().min(1, "Business name is required"),
+            sellerType: z.enum([DomainEnum.CLOTHING, DomainEnum.FOOD, DomainEnum.JEWELERY] as const, {
+                message: "Invalid seller type (must be CLOTHING, FOOD, or JEWELERY)",
             }),
+            gstNumber: z.string().optional(),
+            bankDetails: bankDetailsSchema.optional(),
+            address: addressSchema.optional(),
+            location: locationSchema.optional(),
+            mallRequest: mallRequestSchema.optional(),
         }),
-        z.object({
-            type: z.literal(ApplicationType.RIDER),
-            documents: z.array(documentSchema).min(1, "At least one document is required"),
-            details: z.object({
-                vehicleType: z.string().min(1, "Vehicle type is required"),
-                vehicleNumber: z.string().min(1, "Vehicle number is required"),
-                licenseNumber: z.string().min(1, "License number is required"),
-                bankDetails: bankDetailsSchema.optional(),
-                address: addressSchema.optional(),
-                location: locationSchema.optional(),
-            }),
+    }),
+    z.object({
+        type: z.literal(ApplicationType.RIDER),
+        documents: z.array(documentSchema).min(1, "At least one document is required"),
+        details: z.object({
+            vehicleType: z.string().min(1, "Vehicle type is required"),
+            vehicleNumber: z.string().min(1, "Vehicle number is required"),
+            licenseNumber: z.string().min(1, "License number is required"),
+            bankDetails: bankDetailsSchema.optional(),
+            address: addressSchema.optional(),
+            location: locationSchema.optional(),
         }),
-    ]),
-});
+    }),
+]);
 
 export const reviewApplicationSchema = z.object({
-    params: z.object({
-        applicationId: z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid Application ID"),
+    status: z.enum([ApplicationStatus.APPROVED, ApplicationStatus.REJECTED], {
+        message: "Invalid status for review",
     }),
-    body: z.object({
-        status: z.enum([ApplicationStatus.APPROVED, ApplicationStatus.REJECTED], {
-            message: "Invalid status for review",
-        }),
-        reason: z.string().optional(),
-    }),
+    reason: z.string().optional(),
 });

@@ -5,10 +5,12 @@ import { SellerController } from "./seller.controller";
 
 const router = Router();
 
+// ⭐ Setup Status (Accessible to logged in users to check seller onboarding/setup status)
+router.get("/setup-status", verifyJWT, SellerController.setupStatus);
+
 router.use(verifyJWT, isSeller);
 
 router.get("/dashboard", SellerController.dashboard);
-router.get("/setup-status", SellerController.setupStatus);
 
 router.get("/store", SellerController.getStore);
 router.put("/store", SellerController.saveStore);

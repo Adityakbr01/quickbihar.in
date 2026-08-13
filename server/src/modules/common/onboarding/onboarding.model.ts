@@ -69,3 +69,4 @@ const applicationSchema = new Schema<IApplication>(
 );
 
 export const Application = mongoose.model<IApplication>("Application", applicationSchema);
+export const OnboardingApplication = Application;

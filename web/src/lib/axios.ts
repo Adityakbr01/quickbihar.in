@@ -50,6 +50,10 @@ const writePersistedToken = (token: string) => {
 const clearPersistedAuth = () => {
   if (typeof window === "undefined") return;
   window.localStorage.removeItem(AUTH_STORAGE_KEY);
+  try {
+    document.cookie = "accessToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    document.cookie = "refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+  } catch {}
 };
 
 axiosInstance.interceptors.request.use(

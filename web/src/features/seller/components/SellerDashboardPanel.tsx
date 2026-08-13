@@ -46,15 +46,18 @@ export function SellerDashboardPanel({
   onNavigate?: (section: SellerSection, intent?: SellerSectionIntent) => void;
 }) {
   const dashboardQuery = useSellerDashboard();
+
+  if (dashboardQuery.isLoading) return <LoadingState label="Loading dashboard..." />;
+
   const dashboard = dashboardQuery.data;
-  const setup = dashboard?.setup.setup;
-  const wallet = dashboard?.setup.seller.wallet;
+  const setup = dashboard?.setup?.setup;
+  const wallet = dashboard?.setup?.seller?.wallet;
   const dailyRevenue = dashboard?.dailyRevenue || [];
   const productPerformance = dashboard?.productPerformance || [];
-  const orderStatusRows = Object.entries(dashboard?.stats.orders || {}).map(([status, value]) => ({
+  const orderStatusRows = Object.entries(dashboard?.stats?.orders || {}).map(([status, value]) => ({
     status,
-    count: value.count,
-    revenue: value.revenue,
+    count: (value as any)?.count || 0,
+    revenue: (value as any)?.revenue || 0,
   }));
   const grossSales = dailyRevenue.reduce((sum, row) => sum + Number(row.revenue || 0), 0);
   const sellerNet = dailyRevenue.reduce(
@@ -83,8 +86,6 @@ export function SellerDashboardPanel({
         { label: "Mall optional", done: setup.mallOptional },
       ]
     : [];
-
-  if (dashboardQuery.isLoading) return <LoadingState label="Loading dashboard..." />;
 
   return (
     <div className="grid gap-3 sm:gap-4">
@@ -115,25 +116,25 @@ export function SellerDashboardPanel({
         />
         <Metric
           title="Products"
-          value={dashboard?.stats.products.total || 0}
+          value={dashboard?.stats?.products?.total || 0}
           icon={<Package className="h-4 w-4" />}
           onClick={() => onNavigate?.("products")}
         />
         <Metric
           title="Low Stock"
-          value={dashboard?.stats.lowStockCount || 0}
+          value={dashboard?.stats?.lowStockCount || 0}
           icon={<Warehouse className="h-4 w-4" />}
           onClick={() => onNavigate?.("inventory", { inventoryStatus: "low" })}
         />
         <Metric
           title="Pending Reviews"
-          value={dashboard?.stats.pendingReviews || 0}
+          value={dashboard?.stats?.pendingReviews || 0}
           icon={<Send className="h-4 w-4" />}
           onClick={() => onNavigate?.("products", { productApprovalStatus: "PENDING_REVIEW" })}
         />
         <Metric
           title="Notifications"
-          value={dashboard?.stats.unreadNotifications || 0}
+          value={dashboard?.stats?.unreadNotifications || 0}
           icon={<Bell className="h-4 w-4" />}
           onClick={() => onNavigate?.("notifications")}
         />

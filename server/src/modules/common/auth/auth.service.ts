@@ -200,9 +200,10 @@ export async function requestOTP(
     );
   }
 
+  const existingUser = await UserDAO.findByUsernameOrEmail(undefined, target);
+
   // Check if mobile number or email is already registered before sending OTP for registration
   if (isRegistration) {
-    const existingUser = await UserDAO.findByUsernameOrEmail(undefined, target);
     if (existingUser && existingUser.isVerified) {
       const isPhone = !rawTarget.includes("@");
       console.log(
@@ -213,6 +214,20 @@ export async function requestOTP(
         isPhone
           ? "This mobile number is already registered. Please sign in instead."
           : "This email address is already registered. Please sign in instead.",
+      );
+    }
+  } else {
+    // LOGIN MODE: Prevent sending OTP if account does not exist
+    if (!existingUser) {
+      const isPhone = !rawTarget.includes("@");
+      console.log(
+        `❌ [LOGIN REJECTED] ${isPhone ? "Phone" : "Email"} ${target} is not registered in DB.`,
+      );
+      throw new ApiError(
+        404,
+        isPhone
+          ? "No account found with this mobile number. Please register first."
+          : "No account found with this email address. Please register first.",
       );
     }
   }
@@ -237,30 +252,41 @@ export async function requestOTP(
   await redis.set(cooldownKey, "true", "EX", 10);
 
   // 🔑 LOG OTP IN BACKEND CONSOLE (FOR DEV / TESTING MODE)
-  console.log(`📱 [SERVER OTP LOG] Target Key: "${target}" | MOBILE OTP CODE: "${otp}"`);
-  console.log(`======================================================\n`);
+  console.log(`\n======================================================`);
+  console.log(`🔑 [OTP REQUEST RECEIVED] Target: "${target}" | Raw Input: "${rawTarget}"`);
+  console.log(`📱 [GENERATED OTP CODE] => *** ${otp} ***`);
+  console.log(`======================================================`);
 
   if (rawTarget.includes("@")) {
+    console.log(`📧 [OTP ROUTE] Target is Email (${target}). Dispatching via Resend MailService...`);
     const emailSent = await MailService.sendOTP(target, otp);
     if (!emailSent) {
       console.warn(
-        `[Server] MailService unconfigured or failed to deliver email to ${target}. See OTP code logged in console above.`,
+        `⚠️ [OTP WARNING] MailService failed to deliver email to ${target}. Code: ${otp}`,
       );
     }
   } else {
     // 1. Attempt delivery via configured SMS Service
+    console.log(`📱 [OTP ROUTE] Target is Mobile (${target}). Attempting SMS Service...`);
     const smsResult = await SmsService.sendOtp(target, otp);
     if (!smsResult.success) {
       console.warn(
-        `[Server] SmsService failed to deliver OTP to mobile ${target}: ${smsResult.errorMessage}`,
+        `⚠️ [SMS NOTICE] SmsService unconfigured/failed for ${target}: ${smsResult.errorMessage}. Falling back to Email dispatch...`,
       );
     }
 
     // 2. Dispatch Mobile OTP to Email (Testing Fallback: Sends "Mobile: {target}, OTP: {otp}" to Admin / Registered Email)
     const existingUser = await UserDAO.findByUsernameOrEmail(undefined, target);
     const recipientEmail = existingUser?.email && !existingUser.email.includes("@quickbihar.local") ? existingUser.email : undefined;
-    await MailService.sendMobileOTPToEmail(target, otp, recipientEmail);
+    console.log(`📧 [OTP TESTING FALLBACK] Dispatching Mobile OTP (${target}) to test email...`);
+    const mailSent = await MailService.sendMobileOTPToEmail(target, otp, recipientEmail);
+    if (mailSent) {
+      console.log(`✅ [OTP DISPATCH SUCCESS] Mobile OTP (${otp}) sent via email to test recipient.`);
+    } else {
+      console.error(`❌ [OTP DISPATCH ERROR] Failed to send Mobile OTP email for ${target}. Check Resend API Key/Domain.`);
+    }
   }
+  console.log(`======================================================\n`);
 
   return {
     message: "OTP sent successfully",

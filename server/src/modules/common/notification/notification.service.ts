@@ -21,11 +21,16 @@ let isInitialized = false;
 function init() {
   try {
     if (admin.apps.length === 0) {
+      const rawKey = ENV.FIREBASE_PRIVATE_KEY || "";
+      if (!rawKey.includes("BEGIN PRIVATE KEY")) {
+        console.warn("[NotificationService] Firebase private key not configured or invalid, skipping SDK initialization");
+        return;
+      }
       admin.initializeApp({
         credential: admin.credential.cert({
           projectId: ENV.FIREBASE_PROJECT_ID,
           clientEmail: ENV.FIREBASE_CLIENT_EMAIL,
-          privateKey: ENV.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n"),
+          privateKey: rawKey.replace(/\\n/g, "\n"),
         }),
       });
       isInitialized = true;

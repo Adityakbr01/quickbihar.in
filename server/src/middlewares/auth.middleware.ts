@@ -54,26 +54,10 @@ export const isDelivery = validateRole(RoleEnum.DELIVERY);
 /**
  * 🛡️ Composite Middlewares
  */
-export const isSellerOrAdmin = asyncHandler(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const user = (req as any).user;
-    if (!user) throw new ApiError(401, "Authentication required");
-
-    const roles = [RoleEnum.SELLER, RoleEnum.ADMIN, RoleEnum.SUPER_ADMIN];
-
-    // Check primary roleId name
-    const primaryRoleName = user.roleId?.name;
-    const hasAccess = roles.includes(primaryRoleName as RoleEnum);
-
-    if (!hasAccess) {
-      throw new ApiError(
-        403,
-        "Access denied. Seller or Admin level access required.",
-      );
-    }
-
-    next();
-  },
+export const isSellerOrAdmin = validateRole(
+  RoleEnum.SELLER,
+  RoleEnum.ADMIN,
+  RoleEnum.SUPER_ADMIN,
 );
 
 // Re-export RBAC tools for convenience

@@ -27,7 +27,7 @@ mock.module("../modules/common/user/user.dao", () => ({
 }));
 
 // Mock RBAC to bypass requirePermission and other auth middlewares
-mock.module("../middlewares/auth.middleware", () => {
+const mockAuthMiddleware = () => {
     const pass = (req: any, res: any, next: any) => next();
     return {
         verifyJWT: async (req: any, res: any, next: any) => {
@@ -43,7 +43,9 @@ mock.module("../middlewares/auth.middleware", () => {
         isDelivery: pass,
         isSellerOrAdmin: pass
     };
-});
+};
+mock.module("../middlewares/auth.middleware", mockAuthMiddleware);
+mock.module("@/middlewares/auth.middleware", mockAuthMiddleware);
 
 // Mock Seller Model for createStore validation
 mock.module("../modules/common/seller/seller.model", () => ({

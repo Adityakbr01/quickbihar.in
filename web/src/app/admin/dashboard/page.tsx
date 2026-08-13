@@ -6,6 +6,7 @@ import { LogOut, RefreshCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuthStore } from "@/features/auth/store/authStore";
+import { logoutRequest } from "@/features/auth/api/auth.api";
 import {
   ContentManagementPanel,
   InventoryLogisticsPanel,
@@ -197,6 +198,9 @@ export default function AdminDashboardPage() {
             mallRequests:
               (stats?.pendingMallRequests || 0) +
               (stats?.pendingMallCreations || mallCreationRequests.length),
+            pendingReviews:
+              (stats?.pendingPartners || 0) +
+              (stats?.pendingReviews || 0),
           }}
         />
 
@@ -221,7 +225,8 @@ export default function AdminDashboardPage() {
               </Button>
               <Button
                 variant="ghost"
-                onClick={() => {
+                onClick={async () => {
+                  await logoutRequest();
                   clearAuth();
                   router.replace("/admin/login");
                 }}

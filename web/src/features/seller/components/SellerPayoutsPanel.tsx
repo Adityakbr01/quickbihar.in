@@ -31,8 +31,8 @@ export function SellerPayoutsPanel({ setup }: { setup?: SellerSetupStatus }) {
   const payoutsQuery = useSellerPayouts();
   const payoutMutations = useSellerPayoutMutations();
   const currentSetup = setup || setupQuery.data;
-  const wallet = currentSetup?.seller.wallet;
-  const rawMethods = currentSetup?.seller.payoutMethods;
+  const wallet = currentSetup?.seller?.wallet;
+  const rawMethods = currentSetup?.seller?.payoutMethods;
   const methods = useMemo(() => rawMethods || [], [rawMethods]);
   const verifiedMethods = useMemo(
     () => methods.filter((method) => method.status === "VERIFIED"),

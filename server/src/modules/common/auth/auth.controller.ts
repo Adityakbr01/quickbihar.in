@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import { asyncHandler } from "@/utils/asyncHandler";
 import { ApiResponse } from "@/utils/ApiResponse";
+import { getCookieOptions, getClearCookieOptions } from "@/utils/cookie.util";
 import * as authService from "./auth.service";
 
 /**
@@ -31,13 +32,18 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
  * @route POST /api/v1/auth/login
  * @access Public
  */
+
+
+/**
+ * Handles user authentication (login) using email/password.
+ * Sets secure cookies on the response containing tokens.
+ * 
+ * @route POST /api/v1/auth/login
+ * @access Public
+ */
 export const login = asyncHandler(async (req: Request, res: Response) => {
   const { user, accessToken, refreshToken } = await authService.login(req.body);
-
-  const options = {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-  };
+  const options = getCookieOptions();
 
   return res
     .status(200)
@@ -80,11 +86,7 @@ export const verifyOTP = asyncHandler(async (req: Request, res: Response) => {
   const target = req.body.phone || req.body.email || req.body.target || req.body.identifier;
   const { otp } = req.body;
   const { user, accessToken, refreshToken } = await authService.verifyOTPAndAuthenticate(target, otp);
-
-  const options = {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-  };
+  const options = getCookieOptions();
 
   return res
     .status(200)
@@ -104,20 +106,22 @@ export const verifyOTP = asyncHandler(async (req: Request, res: Response) => {
  * Destroys token storage on database and clears the client response cookies.
  * 
  * @route POST /api/v1/auth/logout
- * @access Protected
+ * @access Public / Protected
  */
 export const logout = asyncHandler(async (req: Request, res: Response) => {
-  await authService.logoutUser((req as any).user._id);
+  const userId = (req as any).user?._id;
+  if (userId) {
+    await authService.logoutUser(userId).catch(() => undefined);
+  }
 
-  const options = {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-  };
+  const clearOptions = getClearCookieOptions();
 
   return res
     .status(200)
-    .clearCookie("accessToken", options)
-    .clearCookie("refreshToken", options)
+    .clearCookie("accessToken", clearOptions)
+    .clearCookie("refreshToken", clearOptions)
+    .cookie("accessToken", "", clearOptions)
+    .cookie("refreshToken", "", clearOptions)
     .json(new ApiResponse(200, {}, "User logged out successfully"));
 });
 
@@ -129,14 +133,10 @@ export const logout = asyncHandler(async (req: Request, res: Response) => {
  * @access Public
  */
 export const refreshAccessToken = asyncHandler(async (req: Request, res: Response) => {
-  const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken;
+  const incomingRefreshToken = req.cookies?.refreshToken || req.body?.refreshToken;
 
   const { user, accessToken, refreshToken } = await authService.refreshAccessToken(incomingRefreshToken);
-
-  const options = {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-  };
+  const options = getCookieOptions();
 
   return res
     .status(200)

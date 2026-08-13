@@ -82,20 +82,20 @@ export const sectionLabels: Record<AdminSection, string> = {
   coupons: "Coupon & Discount Management",
   "store-configuration": "Store Configuration",
   "content-management": "Content Management",
-  "marketing-promotions": "Marketing & Promotions",
+  "marketing-promotions": "Marketing & Campaigns",
   "inventory-logistics": "Inventory & Logistics",
   "reports-analytics": "Reports & Analytics",
   "system-settings": "System Settings",
-  people: "User Management",
-  "seller-directory": "Sellers",
-  "rider-directory": "Riders",
-  "seller-mall": "Malls & Seller Requests",
-  "seller-submissions": "Seller Review Queue",
-  payouts: "Payouts",
-  invites: "Invites",
+  people: "User Directory",
+  "seller-directory": "Seller Directory",
+  "rider-directory": "Rider Directory",
+  "seller-mall": "Malls & Mall Requests",
+  "seller-submissions": "Partner Applications & Review Queue",
+  payouts: "Payouts & Wallets",
+  invites: "Admin Invites Console",
   policies: "Global Policies",
   "size-charts": "Size Charts",
-  banners: "Banners",
+  banners: "Banners Management",
   notifications: "Notification Center",
 };
 
@@ -223,6 +223,21 @@ export const navigationGroups: Array<{
     ],
   },
   {
+    title: "Approvals & Queue",
+    items: [
+      {
+        id: "seller-submissions",
+        label: "Partner Applications",
+        icon: <ShieldCheck className="h-4 w-4" />,
+      },
+      {
+        id: "seller-mall",
+        label: "Malls & Requests",
+        icon: <Building2 className="h-4 w-4" />,
+      },
+    ],
+  },
+  {
     title: "Catalog & Sales",
     items: [
       {
@@ -241,9 +256,39 @@ export const navigationGroups: Array<{
         icon: <Tags className="h-4 w-4" />,
       },
       {
+        id: "size-charts",
+        label: "Size Charts",
+        icon: <Ruler className="h-4 w-4" />,
+      },
+      {
         id: "inventory-logistics",
         label: "Inventory Center",
         icon: <Truck className="h-4 w-4" />,
+      },
+    ],
+  },
+  {
+    title: "Partners & Users",
+    items: [
+      {
+        id: "seller-directory",
+        label: "Seller Directory",
+        icon: <Store className="h-4 w-4" />,
+      },
+      {
+        id: "rider-directory",
+        label: "Rider Directory",
+        icon: <Truck className="h-4 w-4" />,
+      },
+      {
+        id: "people",
+        label: "User Directory",
+        icon: <Users className="h-4 w-4" />,
+      },
+      {
+        id: "payouts",
+        label: "Payouts & Wallets",
+        icon: <WalletCards className="h-4 w-4" />,
       },
     ],
   },
@@ -266,54 +311,19 @@ export const navigationGroups: Array<{
         icon: <Megaphone className="h-4 w-4" />,
       },
       {
-        id: "content-management",
-        label: "Content Center",
-        icon: <FileText className="h-4 w-4" />,
-      },
-      {
         id: "notifications",
         label: "Notification Center",
         icon: <Bell className="h-4 w-4" />,
       },
-    ],
-  },
-  {
-    title: "Users & Malls",
-    items: [
       {
-        id: "people",
-        label: "User Directory",
-        icon: <Users className="h-4 w-4" />,
-      },
-      {
-        id: "seller-directory",
-        label: "Sellers",
-        icon: <Store className="h-4 w-4" />,
-      },
-      {
-        id: "rider-directory",
-        label: "Riders",
-        icon: <Truck className="h-4 w-4" />,
-      },
-      {
-        id: "seller-mall",
-        label: "Malls & Requests",
-        icon: <Building2 className="h-4 w-4" />,
-      },
-      {
-        id: "seller-submissions",
-        label: "Sellers Review Queue",
-        icon: <ShieldCheck className="h-4 w-4" />,
-      },
-      {
-        id: "payouts",
-        label: "Payouts & Wallets",
-        icon: <WalletCards className="h-4 w-4" />,
+        id: "content-management",
+        label: "Content Center",
+        icon: <FileText className="h-4 w-4" />,
       },
     ],
   },
   {
-    title: "Store Config & System",
+    title: "Settings & System",
     items: [
       {
         id: "store-configuration",
@@ -326,18 +336,13 @@ export const navigationGroups: Array<{
         icon: <FileText className="h-4 w-4" />,
       },
       {
-        id: "size-charts",
-        label: "Size Charts",
-        icon: <Ruler className="h-4 w-4" />,
-      },
-      {
         id: "system-settings",
         label: "System Core",
         icon: <Database className="h-4 w-4" />,
       },
       {
         id: "invites",
-        label: "Invites Console",
+        label: "Admin Invites",
         icon: <MailPlus className="h-4 w-4" />,
       },
     ],

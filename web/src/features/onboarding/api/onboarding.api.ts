@@ -97,4 +97,19 @@ export const onboardingApi = {
     const response = await axiosInstance.post("/onboarding/apply", payload);
     return response.data.data;
   },
+
+  adminGetApplications: async (type?: string, status?: string): Promise<any[]> => {
+    const response = await axiosInstance.get("/onboarding/admin/applications", {
+      params: { ...(type ? { type } : {}), ...(status ? { status } : {}) },
+    });
+    return response.data.data;
+  },
+
+  adminReviewApplication: async (id: string, status: "APPROVED" | "REJECTED", reason?: string): Promise<any> => {
+    const response = await axiosInstance.patch(`/onboarding/admin/applications/${id}/review`, {
+      status,
+      reason,
+    });
+    return response.data.data;
+  },
 };

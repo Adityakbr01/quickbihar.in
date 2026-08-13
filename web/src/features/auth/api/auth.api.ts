@@ -26,3 +26,12 @@ export const updateProfileRequest = async (values: { email?: string; password?: 
   return response.data;
 };
 
+export const logoutRequest = async (): Promise<any> => {
+  try {
+    const response = await axiosInstance.post("/auth/logout");
+    return response.data;
+  } catch {
+    return null;
+  }
+};
+
