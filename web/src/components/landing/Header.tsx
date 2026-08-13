@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Menu, X, ChevronDown, Store, ShieldCheck, Bike, LayoutDashboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuthStore } from "@/features/auth/store/authStore";
+import { getUserRoles } from "@/lib/rbac";
 
 const navLinks = [
   { label: "Home", href: "#" },
@@ -20,16 +21,16 @@ const loginOptions = [
 ];
 
 const roleDashboard: Record<string, string> = {
-  ADMIN: "/admin/dashboard",
   SUPER_ADMIN: "/admin/dashboard",
+  ADMIN: "/admin/dashboard",
   SELLER: "/seller/dashboard",
   DELIVERY: "/delivery/dashboard",
+  USER: "/",
 };
 
-function getRole(user: any): string {
-  if (!user?.role) return "";
-  if (typeof user.role === "string") return user.role;
-  return user.role.name || "";
+function getRole(user: any) {
+  const roles = getUserRoles(user);
+  return roles[0] || "";
 }
 
 export default function Header() {

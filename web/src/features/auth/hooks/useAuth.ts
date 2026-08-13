@@ -6,9 +6,9 @@ import { useAuthStore } from "../store/authStore";
 import type { AuthUser } from "../schemas/auth.schema";
 import { onboardingApi, type ApplicationType } from "@/features/onboarding/api/onboarding.api";
 
-type RoleName = Exclude<AuthUser["role"], object | null>;
+import { getUserRoles, hasRole } from "@/lib/rbac";
 
-const getRoleName = (user: AuthUser) => (typeof user.role === "string" ? user.role : user.role?.name || null);
+type RoleName = string;
 
 const useRoleLogin = ({
   allowedRoles,
@@ -26,11 +26,12 @@ const useRoleLogin = ({
     mutationFn: loginRequest,
     onSuccess: async (response) => {
       const { user, accessToken } = response.data;
-      const roleName = getRoleName(user);
+      const userRoles = getUserRoles(user);
+      const isAllowed = hasRole(user, ...allowedRoles);
 
-      if (!allowedRoles.includes(roleName as RoleName)) {
+      if (!isAllowed) {
         const partnerType = allowedRoles.includes("DELIVERY") ? "RIDER" : allowedRoles.includes("SELLER") ? "SELLER" : null;
-        if (roleName === "USER" && partnerType) {
+        if (userRoles.includes("USER") && partnerType) {
           setAuth(user, accessToken);
           try {
             const status = await onboardingApi.status();
@@ -106,11 +107,12 @@ export const useVerifyOTP = ({
     mutationFn: verifyOtpRequest,
     onSuccess: async (response) => {
       const { user, accessToken } = response.data;
-      const roleName = getRoleName(user);
+      const userRoles = getUserRoles(user);
+      const isAllowed = hasRole(user, ...allowedRoles);
 
-      if (!allowedRoles.includes(roleName as RoleName)) {
+      if (!isAllowed) {
         const partnerType = allowedRoles.includes("DELIVERY") ? "RIDER" : allowedRoles.includes("SELLER") ? "SELLER" : null;
-        if (roleName === "USER" && partnerType) {
+        if (userRoles.includes("USER") && partnerType) {
           setAuth(user, accessToken);
           try {
             const status = await onboardingApi.status();

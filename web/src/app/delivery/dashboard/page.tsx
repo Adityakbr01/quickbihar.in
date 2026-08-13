@@ -23,6 +23,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuthStore } from "@/features/auth/store/authStore";
 import { logoutRequest } from "@/features/auth/api/auth.api";
+import { isRider } from "@/lib/rbac";
 import { webSocketClient } from "@/lib/socket";
 import { SocketEvents } from "@/constants/socketEvents";
 import { useFulfillmentRealtime } from "@/hooks/useFulfillmentRealtime";
@@ -97,8 +98,7 @@ export default function DeliveryDashboardPage() {
   // Real-time job offer state
   const [activeJobOffer, setActiveJobOffer] = useState<any | null>(null);
 
-  const roleName = typeof user?.role === "string" ? user.role : user?.role?.name;
-  const isDeliveryUser = roleName === "DELIVERY";
+  const isDeliveryUser = isRider(user);
 
   useEffect(() => {
     const persistApi = useAuthStore.persist;

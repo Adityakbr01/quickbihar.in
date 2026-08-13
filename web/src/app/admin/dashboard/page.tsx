@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuthStore } from "@/features/auth/store/authStore";
 import { logoutRequest } from "@/features/auth/api/auth.api";
+import { isAdmin } from "@/lib/rbac";
 import {
   ContentManagementPanel,
   InventoryLogisticsPanel,
@@ -69,9 +70,7 @@ export default function AdminDashboardPage() {
     "all" | "active" | "blocked" | "verified" | "unverified" | "deleted"
   >("all");
 
-  const roleName =
-    typeof user?.role === "string" ? user.role : user?.role?.name;
-  const isAdminUser = ["ADMIN", "SUPER_ADMIN"].includes(roleName || "");
+  const isAdminUser = isAdmin(user);
   const activeSection = adminSectionFromPathname(pathname);
 
   useEffect(() => {
