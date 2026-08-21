@@ -3,7 +3,7 @@ import { z } from "zod";
 export const createCategorySchema = z.object({
     title: z.string().trim().min(1, "Title is required"),
     image: z.string().url("Invalid image URL"),
-    imagePublicId: z.string().min(1, "Public ID is required"),
+    imagePublicId: z.string().optional().default("url_provided"),
     banner: z.string().url("Invalid banner URL").optional().or(z.literal("")),
     bannerPublicId: z.string().optional(),
     description: z.string().optional(),

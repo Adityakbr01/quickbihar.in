@@ -1,7 +1,7 @@
 "use client";
 
 import React, { type FormEvent, type ReactNode, useState } from "react";
-import { Plus, Save, Send } from "lucide-react";
+import { Plus, Save, Send, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -20,6 +20,8 @@ import type {
 import {
   useSellerBanners,
   useSellerBannerMutations,
+  useSellerCategories,
+  useSellerProducts,
 } from "../hooks/useSellerManagement";
 import {
   ModuleCard,
@@ -54,7 +56,10 @@ export function SellerBannersPanel() {
               Create
             </Button>
           }
-          onSubmit={(payload, image) => mutations.create.mutate({ payload, image })}
+          isPending={mutations.create.isPending}
+          onSubmit={(payload, image, onSuccess) =>
+            mutations.create.mutate({ payload, image }, { onSuccess })
+          }
         />
       }
       filters={<ListFilters params={params} onChange={setParams} approval />}
@@ -85,8 +90,9 @@ export function SellerBannersPanel() {
                   Edit
                 </Button>
               }
-              onSubmit={(payload, image) =>
-                mutations.update.mutate({ bannerId: banner._id, payload, image })
+              isPending={mutations.update.isPending}
+              onSubmit={(payload, image, onSuccess) =>
+                mutations.update.mutate({ bannerId: banner._id, payload, image }, { onSuccess })
               }
             />
             <Button
@@ -109,33 +115,57 @@ export function SellerBannersPanel() {
 function BannerDialog({
   banner,
   trigger,
+  isPending = false,
   onSubmit,
 }: {
   banner?: SellerBanner;
   trigger: ReactNode;
-  onSubmit: (payload: SellerBannerPayload, image?: File) => void;
+  isPending?: boolean;
+  onSubmit: (payload: SellerBannerPayload, image: File | undefined, onSuccess: () => void) => void;
 }) {
   const [open, setOpen] = useState(false);
+  const [redirectType, setRedirectType] = useState<"external" | "product" | "category" | "collection">(
+    banner?.redirectType || "external"
+  );
+  const [redirectId, setRedirectId] = useState(banner?.redirectId || "");
+  const [externalUrl, setExternalUrl] = useState(banner?.externalUrl || "");
+
+  const categoriesQuery = useSellerCategories();
+  const productsQuery = useSellerProducts({ page: 1, limit: 100 });
+
+  const categories = categoriesQuery.data?.available || [];
+  const products = productsQuery.data?.data || [];
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (isPending) return;
+    setOpen(nextOpen);
+    if (nextOpen) {
+      setRedirectType(banner?.redirectType || "external");
+      setRedirectId(banner?.redirectId || "");
+      setExternalUrl(banner?.externalUrl || "");
+    }
+  };
 
   const submit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
-    onSubmit(
-      {
-        title: text(form, "title"),
-        subtitle: text(form, "subtitle"),
-        redirectType: text(form, "redirectType") as "product" | "category" | "collection" | "external",
-        externalUrl: text(form, "externalUrl"),
-        placement: text(form, "placement") as "home_top" | "home_middle" | "category",
-        priority: numberValue(form, "priority"),
-      },
-      files(form, "image")[0]
-    );
-    setOpen(false);
+    const payload: SellerBannerPayload = {
+      title: text(form, "title"),
+      subtitle: text(form, "subtitle"),
+      redirectType,
+      redirectId: redirectType !== "external" ? redirectId || undefined : undefined,
+      externalUrl: redirectType === "external" ? externalUrl || text(form, "externalUrl") : undefined,
+      placement: text(form, "placement") as "home_top" | "home_middle" | "category",
+      priority: numberValue(form, "priority") || 0,
+    };
+
+    onSubmit(payload, files(form, "image")[0], () => {
+      setOpen(false);
+    });
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger render={trigger as never} />
       <DialogContent className="border-white/10 bg-[#1c1c1c] text-white sm:max-w-2xl">
         <DialogHeader>
@@ -146,20 +176,24 @@ function BannerDialog({
             <Field name="title" label="Title" defaultValue={banner?.title} />
             <Field name="subtitle" label="Subtitle" defaultValue={banner?.subtitle} />
             <label className={labelClass}>
-              Redirect
+              Redirect Type
               <select
                 name="redirectType"
-                defaultValue={banner?.redirectType || "external"}
+                value={redirectType}
+                onChange={(e) => {
+                  setRedirectType(e.target.value as any);
+                  setRedirectId("");
+                }}
                 className={selectClass}
               >
-                <option value="external">External</option>
+                <option value="external">External Link</option>
                 <option value="product">Product</option>
                 <option value="category">Category</option>
                 <option value="collection">Collection</option>
               </select>
             </label>
             <label className={labelClass}>
-              Placement
+              Placement Slot
               <select
                 name="placement"
                 defaultValue={banner?.placement || "home_top"}
@@ -170,26 +204,109 @@ function BannerDialog({
                 <option value="category">Category</option>
               </select>
             </label>
-            <Field name="externalUrl" label="External URL" defaultValue={banner?.externalUrl} />
-            <Field name="priority" label="Priority" type="number" defaultValue={banner?.priority || 0} />
           </div>
-          <label className={labelClass}>
-            Image
-            <Input
-              name="image"
-              type="file"
-              accept="image/*"
-              className={inputClass}
-              required={!banner}
-            />
-          </label>
+
+          {/* Conditional Redirect Options */}
+          {redirectType === "external" && (
+            <div className="grid gap-1">
+              <span className="text-xs font-medium uppercase text-gray-500">External URL</span>
+              <Input
+                name="externalUrl"
+                value={externalUrl}
+                onChange={(e) => setExternalUrl(e.target.value)}
+                placeholder="https://example.com"
+                className={inputClass}
+                required
+              />
+            </div>
+          )}
+
+          {redirectType === "product" && (
+            <div className="grid gap-1">
+              <span className="text-xs font-medium uppercase text-gray-500">Select Product</span>
+              <select
+                value={redirectId}
+                onChange={(e) => setRedirectId(e.target.value)}
+                className={selectClass}
+                required
+              >
+                <option value="">Choose a product...</option>
+                {products.map((p) => (
+                  <option key={p._id} value={p._id}>
+                    {p.title} (Rs. {p.price})
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {redirectType === "category" && (
+            <div className="grid gap-1">
+              <span className="text-xs font-medium uppercase text-gray-500">Select Category</span>
+              <select
+                value={redirectId}
+                onChange={(e) => setRedirectId(e.target.value)}
+                className={selectClass}
+                required
+              >
+                <option value="">Choose a category...</option>
+                {categories.map((c) => (
+                  <option key={c._id} value={c._id}>
+                    {c.title}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {redirectType === "collection" && (
+            <div className="grid gap-1">
+              <span className="text-xs font-medium uppercase text-gray-500">Collection ID / Name</span>
+              <Input
+                value={redirectId}
+                onChange={(e) => setRedirectId(e.target.value)}
+                placeholder="e.g. summer-collection"
+                className={inputClass}
+                required
+              />
+            </div>
+          )}
+
+          <div className="grid gap-3 md:grid-cols-2">
+            <Field name="priority" label="Priority Number" type="number" defaultValue={banner?.priority || 0} />
+            <label className={labelClass}>
+              Image Asset
+              <Input
+                name="image"
+                type="file"
+                accept="image/*"
+                className={inputClass}
+                required={!banner}
+              />
+            </label>
+          </div>
+
           <DialogFooter className="border-white/10 bg-white/[0.03] gap-2">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setOpen(false)}
+              disabled={isPending}
+            >
               Cancel
             </Button>
-            <Button type="submit">
-              <Save className="h-4 w-4" />
-              Save Draft
+            <Button type="submit" disabled={isPending}>
+              {isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="h-4 w-4" />
+                  {banner ? "Save Changes" : "Save Draft"}
+                </>
+              )}
             </Button>
           </DialogFooter>
         </form>

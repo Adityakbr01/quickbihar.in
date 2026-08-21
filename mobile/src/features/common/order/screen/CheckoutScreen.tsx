@@ -592,14 +592,38 @@ const CheckoutScreen = () => {
           )}
 
           {isQuoteLoading && (
-            <Text style={{ marginBottom: 12, color: theme.secondaryText, fontSize: 12 }}>
-              Updating delivery quote...
-            </Text>
+            <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 12, gap: 6 }}>
+              <ActivityIndicator size="small" color={theme.secondaryText} />
+              <Text style={{ color: theme.secondaryText, fontSize: 12 }}>
+                Checking delivery availability...
+              </Text>
+            </View>
           )}
           {quoteError ? (
-            <Text style={{ marginBottom: 12, color: "#dc2626", fontSize: 12 }}>
-              {quoteError}
-            </Text>
+            <View
+              style={{
+                marginBottom: 12,
+                padding: 12,
+                borderRadius: 10,
+                borderWidth: 1.5,
+                borderColor: "#dc2626",
+                backgroundColor: "#fef2f2",
+                gap: 6,
+              }}
+            >
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                <Ionicons name="alert-circle" size={16} color="#dc2626" />
+                <Text style={{ fontSize: 13, fontWeight: "700", color: "#dc2626" }}>
+                  Cannot Deliver to This Address
+                </Text>
+              </View>
+              <Text style={{ fontSize: 12, color: "#7f1d1d", lineHeight: 18 }}>
+                {quoteError}
+              </Text>
+              <Text style={{ fontSize: 11, color: "#991b1b", marginTop: 2 }}>
+                💡 Try changing your delivery address or contact the seller.
+              </Text>
+            </View>
           ) : null}
 
           {appliedCoupons.map((coupon) => (
@@ -638,9 +662,9 @@ const CheckoutScreen = () => {
       {/* Footer */}
       <View style={styles.footer}>
         <TouchableOpacity
-          style={[styles.payButton, { opacity: isProcessingPayment || isQuoteLoading ? 0.7 : 1 }]}
+          style={[styles.payButton, { opacity: isProcessingPayment || isQuoteLoading || Boolean(quoteError) ? 0.5 : 1 }]}
           onPress={handlePlaceOrder}
-          disabled={isProcessingPayment || isQuoteLoading}
+          disabled={isProcessingPayment || isQuoteLoading || Boolean(quoteError)}
         >
           {isProcessingPayment ? (
             <View style={styles.payButtonContent}>

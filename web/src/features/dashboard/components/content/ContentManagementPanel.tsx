@@ -1,7 +1,7 @@
 "use client";
 
 import { type FormEvent, useState } from "react";
-import { Megaphone, Edit, Trash2, Save } from "lucide-react";
+import { Megaphone, Edit, Trash2, Save, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { DateTimePicker } from "@/components/ui/date-time-picker";
@@ -93,6 +93,16 @@ export function ContentManagementPanel() {
   const createAnnouncement = useCreateAnnouncement();
   const updateAnnouncement = useUpdateAnnouncement();
   const deleteAnnouncement = useDeleteAnnouncement();
+
+  const isPending =
+    createCMS.isPending ||
+    updateCMS.isPending ||
+    createFAQ.isPending ||
+    updateFAQ.isPending ||
+    createBlog.isPending ||
+    updateBlog.isPending ||
+    createAnnouncement.isPending ||
+    updateAnnouncement.isPending;
 
   const currentQuery =
     kind === "cms"
@@ -299,9 +309,22 @@ export function ContentManagementPanel() {
                 setDraft((current) => ({ ...current, [key]: value }))
               }
             />
-            <Button type="submit" className="bg-white text-black hover:bg-gray-200">
-              <Save className="h-4 w-4" />
-              Save
+            <Button
+              type="submit"
+              disabled={isPending}
+              className="bg-white text-black hover:bg-gray-200"
+            >
+              {isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="h-4 w-4" />
+                  Save
+                </>
+              )}
             </Button>
           </form>
         </DialogContent>

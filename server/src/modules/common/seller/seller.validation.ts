@@ -42,7 +42,7 @@ const optionalCleanText = (max = 300) =>
 
 export const sellerListQuerySchema = z.object({
     page: z.coerce.number().int().min(1).optional(),
-    limit: z.coerce.number().int().min(1).max(100).optional(),
+    limit: z.coerce.number().int().min(1).max(1000).optional(),
     search: z.string().trim().optional(),
     status: z.string().trim().optional(),
     approvalStatus: z.enum(["DRAFT", "PENDING_REVIEW", "APPROVED", "REJECTED", "ALL"]).optional(),
@@ -56,46 +56,48 @@ export const sellerStoreSchema = z.object({
     name: z.string().trim().min(2, "Store name is required").optional(),
     description: optionalText,
     logoUrl: optionalUrl,
+    logoImagePublicId: z.string().trim().optional(),
     bannerUrl: optionalUrl,
+    bannerImagePublicId: z.string().trim().optional(),
     storeImages: stringArraySchema,
     storeVideo: optionalUrl,
-    address: z.object({
+    address: z.preprocess(parseJson, z.object({
         line1: optionalText,
         city: optionalText,
         state: optionalText,
         pincode: optionalText,
         country: optionalText,
         postalCode: optionalText,
-    }).optional(),
-    contact: z.object({
+    }).optional()),
+    contact: z.preprocess(parseJson, z.object({
         email: z.string().trim().email().optional().or(z.literal("")),
         phone: optionalText,
-    }).optional(),
-    categoryConfig: z.object({
+    }).optional()),
+    categoryConfig: z.preprocess(parseJson, z.object({
         primaryCategory: optionalText,
         subcategories: stringArraySchema,
-    }).optional(),
-    deliveryConfig: z.object({
+    }).optional()),
+    deliveryConfig: z.preprocess(parseJson, z.object({
         deliveryAreas: stringArraySchema,
         shippingFee: z.coerce.number().min(0).optional(),
         freeShippingThreshold: z.coerce.number().min(0).optional(),
-    }).optional(),
-    seo: z.object({
+    }).optional()),
+    seo: z.preprocess(parseJson, z.object({
         storeTitle: optionalText,
         metaTitle: optionalText,
         metaDescription: optionalText,
-    }).optional(),
+    }).optional()),
 
-    policyRefs: z.object({
+    policyRefs: z.preprocess(parseJson, z.object({
         returnPolicy: mongoIdSchema.optional().nullable(),
         refundPolicy: mongoIdSchema.optional().nullable(),
         shippingPolicy: mongoIdSchema.optional().nullable(),
         termsPolicy: mongoIdSchema.optional().nullable(),
-    }).optional(),
-    currentLocation: z.object({
+    }).optional()),
+    currentLocation: z.preprocess(parseJson, z.object({
         lat: z.coerce.number().min(-90).max(90),
         lng: z.coerce.number().min(-180).max(180),
-    }).optional(),
+    }).optional()),
     timings: z.preprocess(parseJson, z.array(z.object({
         day: z.coerce.number().min(0).max(6),
         openTime: z.string(),

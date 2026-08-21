@@ -3,7 +3,7 @@
 // CLOTHING-SPECIFIC — see multi-vertical milestone (docs/WIRE-FLOW-AUDIT-TODO.md)
 
 import React, { type FormEvent, type ReactNode, useEffect, useState, useMemo } from "react";
-import { Plus, Edit, Send, Trash2, Save } from "lucide-react";
+import { Plus, Edit, Send, Trash2, Save, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -104,7 +104,10 @@ export function SellerProductsPanel({
               Create
             </Button>
           }
-          onSubmit={(payload, images) => mutations.create.mutate({ payload, images })}
+          isPending={mutations.create.isPending}
+          onSubmit={(payload, images, onSuccess) =>
+            mutations.create.mutate({ payload, images }, { onSuccess })
+          }
         />
       }
       filters={<ListFilters params={params} onChange={setParams} approval />}
@@ -145,8 +148,9 @@ export function SellerProductsPanel({
                   Edit
                 </Button>
               }
-              onSubmit={(payload, images) =>
-                mutations.update.mutate({ productId: product._id, payload, images })
+              isPending={mutations.update.isPending}
+              onSubmit={(payload, images, onSuccess) =>
+                mutations.update.mutate({ productId: product._id, payload, images }, { onSuccess })
               }
             />
             <Button
@@ -174,6 +178,7 @@ function ProductDialog({
   sizeCharts,
   refundPolicies,
   trigger,
+  isPending = false,
   onSubmit,
 }: {
   product?: SellerProduct;
@@ -183,7 +188,8 @@ function ProductDialog({
   sizeCharts: SellerSizeChart[];
   refundPolicies: SellerPolicy[];
   trigger: ReactNode;
-  onSubmit: (payload: SellerProductPayload, images: File[]) => void;
+  isPending?: boolean;
+  onSubmit: (payload: SellerProductPayload, images: File[], onSuccess: () => void) => void;
 }) {
   const [open, setOpen] = useState(false);
   const [existingImages, setExistingImages] = useState(product?.images || []);
@@ -387,9 +393,9 @@ function ProductDialog({
         refundPolicy: refundPolicyId || undefined,
         existingImages,
       },
-      newImages
+      newImages,
+      () => changeOpen(false)
     );
-    changeOpen(false);
   };
 
   return (
@@ -824,12 +830,26 @@ function ProductDialog({
             </div>
           </section>
           <DialogFooter className="border-white/10 bg-white/[0.03] gap-2">
-            <Button type="button" variant="outline" onClick={() => changeOpen(false)}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => changeOpen(false)}
+              disabled={isPending}
+            >
               Cancel
             </Button>
-            <Button type="submit" disabled={categoryBlocked}>
-              <Save className="h-4 w-4" />
-              Save Draft
+            <Button type="submit" disabled={categoryBlocked || isPending}>
+              {isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="h-4 w-4" />
+                  {product ? "Save Changes" : "Save Draft"}
+                </>
+              )}
             </Button>
           </DialogFooter>
         </form>

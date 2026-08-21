@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import {
   sellerManagementApi,
   type SellerQueryParams,
+  type SellerStorePayload,
 } from "../api/sellerManagement.api";
 
 const sellerKeys = {
@@ -43,7 +44,12 @@ export const useSellerAppConfig = () =>
 export const useSaveSellerStore = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: sellerManagementApi.saveStore,
+    mutationFn: (variables: { payload: SellerStorePayload; logoFile?: File; bannerFile?: File } | SellerStorePayload) => {
+      if ("payload" in variables) {
+        return sellerManagementApi.saveStore(variables.payload, { logo: variables.logoFile, banner: variables.bannerFile });
+      }
+      return sellerManagementApi.saveStore(variables);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: sellerKeys.all });
       toast.success("Store saved");

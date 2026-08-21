@@ -1,5 +1,5 @@
 import React, { useState, useMemo, FormEvent } from "react";
-import { Plus, Edit, Trash2, Save } from "lucide-react";
+import { Plus, Edit, Trash2, Save, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -129,7 +129,7 @@ export function CategoryManagementPanel() {
             isPending={createCategory.isPending}
             onCancel={() => setIsCreateOpen(false)}
             onSubmit={(payload, image) => {
-              if (image)
+              if (image || payload.image)
                 createCategory.mutate(
                   { payload, image },
                   { onSuccess: () => setIsCreateOpen(false) },
@@ -289,6 +289,7 @@ function CategoryForm({
   const [seoKeywords, setSeoKeywords] = useState(
     (category?.seo?.keywords || []).join(", "),
   );
+  const [imageUrl, setImageUrl] = useState(category?.image || "");
   const [image, setImage] = useState<File | undefined>();
 
   const submit = (event: FormEvent) => {
@@ -300,6 +301,7 @@ function CategoryForm({
         parentId: optionalValue(parentId),
         priority: numericOrUndefined(priority),
         sortOrder: numericOrUndefined(sortOrder),
+        image: optionalValue(imageUrl),
         banner: optionalValue(banner),
         isActive,
         isFeatured,
@@ -351,9 +353,14 @@ function CategoryForm({
         className={inputClass}
       />
       <Input
+        value={imageUrl}
+        onChange={(event) => setImageUrl(event.target.value)}
+        placeholder="Category Image URL (or upload file)"
+        className={inputClass}
+      />
+      <Input
         type="file"
         accept="image/*"
-        required={!category}
         onChange={(event) => setImage(event.target.files?.[0])}
         className={inputClass}
       />
@@ -402,15 +409,25 @@ function CategoryForm({
         />
       </div>
       <div className="flex gap-2 md:col-span-4 mt-2">
-        <Button type="submit" disabled={isPending || (!category && !image)}>
-          <Save className="h-4 w-4" />
-          {category ? "Save Category" : "Create Category"}
+        <Button type="submit" disabled={isPending || (!category && !image && !imageUrl.trim())}>
+          {isPending ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Saving...
+            </>
+          ) : (
+            <>
+              <Save className="h-4 w-4" />
+              {category ? "Save Category" : "Create Category"}
+            </>
+          )}
         </Button>
         <Button
           type="button"
           variant="outline"
           className="border-white/10 bg-white/5 text-white hover:bg-white/10"
           onClick={onCancel}
+          disabled={isPending}
         >
           Cancel
         </Button>

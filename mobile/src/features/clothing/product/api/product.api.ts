@@ -35,8 +35,8 @@ export const getPublicProductsRequest = async (params: {
 /**
  * Fetch trending products (Top Selling)
  */
-export const getTrendingProductsRequest = async (): Promise<{ data: IProduct[]; total: number }> => {
-  const response = await axiosInstance.get("/products/trending");
+export const getTrendingProductsRequest = async (params?: { category?: string; limit?: number }): Promise<{ data: IProduct[]; total: number }> => {
+  const response = await axiosInstance.get("/products/trending", { params });
   return response.data.data;
 };
 

@@ -224,7 +224,7 @@ export class SellerService {
         });
     }
 
-    static async getSetupStatus(userId: string) {
+    static async getSetupStatus(userId: string): Promise<any> {
         const [seller, stores] = await Promise.all([
             Seller.findOne({ userId })
                 .populate("mallId")

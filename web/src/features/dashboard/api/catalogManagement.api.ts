@@ -392,6 +392,7 @@ export interface CategoryPayload {
   sortOrder?: number;
   isActive?: boolean;
   isFeatured?: boolean;
+  image?: string;
   banner?: string;
   seo?: {
     metaTitle?: string;
@@ -462,6 +463,7 @@ const categoryFormData = (payload: CategoryPayload, image?: File) => {
   appendOptional(formData, "sortOrder", payload.sortOrder);
   appendOptional(formData, "isActive", payload.isActive);
   appendOptional(formData, "isFeatured", payload.isFeatured);
+  appendOptional(formData, "image", payload.image);
   appendOptional(formData, "banner", payload.banner);
   appendOptional(formData, "seo", payload.seo);
   if (image) formData.append("image", image);
@@ -566,7 +568,7 @@ export const catalogManagementApi = {
     return normalizePaginated<AdminCategory>(response.data.data, params.page, params.limit);
   },
 
-  createCategory: async ({ payload, image }: { payload: CategoryPayload; image: File }): Promise<AdminCategory> => {
+  createCategory: async ({ payload, image }: { payload: CategoryPayload; image?: File }): Promise<AdminCategory> => {
     const response = await axiosInstance.post("/categories", categoryFormData(payload, image), {
       headers: { "Content-Type": "multipart/form-data" },
     });

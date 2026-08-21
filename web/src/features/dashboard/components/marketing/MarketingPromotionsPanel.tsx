@@ -1,7 +1,7 @@
 "use client";
 
 import { type FormEvent, useState } from "react";
-import { Megaphone, Edit, Trash2, Save, CheckCircle2 } from "lucide-react";
+import { Megaphone, Edit, Trash2, Save, CheckCircle2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -385,9 +385,22 @@ export function MarketingPromotionsPanel() {
                 <option value="false">Inactive</option>
               </select>
             </div>
-            <Button type="submit" className="bg-white text-black hover:bg-gray-200">
-              <Save className="h-4 w-4" />
-              Save
+            <Button
+              type="submit"
+              disabled={createFlashSale.isPending || updateFlashSale.isPending}
+              className="bg-white text-black hover:bg-gray-200"
+            >
+              {createFlashSale.isPending || updateFlashSale.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="h-4 w-4" />
+                  Save
+                </>
+              )}
             </Button>
           </form>
         </DialogContent>

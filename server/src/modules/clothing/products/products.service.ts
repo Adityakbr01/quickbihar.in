@@ -275,8 +275,10 @@ export async function getProducts(query: any = {}) {
 /**
  * Fetch top trending/selling products.
  */
-export async function getTrendingProducts() {
-    return await ProductDAO.getTopSellingProducts(10);
+export async function getTrendingProducts(query: any = {}) {
+    const limit = Number(query.limit) || 10;
+    const category = typeof query.category === "string" ? query.category : undefined;
+    return await ProductDAO.getTopSellingProducts(limit, category);
 }
 
 /**

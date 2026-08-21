@@ -254,7 +254,7 @@ export async function restoreStock(productId: string, sku: string, quantity: num
  * Retrieve top selling products, aggregating orders database entries and falling back
  * to rated/trending products if the list has fewer than the requested limit.
  */
-export async function getTopSellingProducts(limit = 10) {
+export async function getTopSellingProducts(limit = 10, category?: string) {
     let Order: any;
     try {
         const mongoose = require("mongoose");
@@ -301,21 +301,34 @@ export async function getTopSellingProducts(limit = 10) {
         }
     }
 
-    const productsWithSales = await Product.find({
-        _id: { $in: productIds },
+    const baseFilter: any = {
         isActive: true,
         isDeleted: false,
         $or: [{ approvalStatus: "APPROVED" }, { approvalStatus: { $exists: false } }]
+    };
+
+    if (category && typeof category === "string" && category.trim()) {
+        baseFilter.$and = [
+            {
+                $or: [
+                    { category: { $regex: new RegExp(`^${category.trim()}$`, "i") } },
+                    { subCategory: { $regex: new RegExp(`^${category.trim()}$`, "i") } },
+                ]
+            }
+        ];
+    }
+
+    const productsWithSales = await Product.find({
+        ...baseFilter,
+        _id: { $in: productIds },
     });
 
     const fallbackLimit = limit - productsWithSales.length;
     let fallbackProducts: any[] = [];
     if (fallbackLimit > 0) {
         fallbackProducts = await Product.find({
+            ...baseFilter,
             _id: { $nin: productIds },
-            isActive: true,
-            isDeleted: false,
-            $or: [{ approvalStatus: "APPROVED" }, { approvalStatus: { $exists: false } }]
         })
         .sort({
             "ratings.average": -1,

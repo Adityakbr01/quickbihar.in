@@ -422,6 +422,7 @@ export interface SellerBanner {
   image: string;
   imagePublicId: string;
   redirectType: "product" | "category" | "collection" | "external";
+  redirectId?: string;
   externalUrl?: string;
   placement: "home_top" | "home_middle" | "category";
   priority?: number;
@@ -434,6 +435,7 @@ export interface SellerBannerPayload {
   title?: string;
   subtitle?: string;
   redirectType: "product" | "category" | "collection" | "external";
+  redirectId?: string;
   externalUrl?: string;
   placement?: "home_top" | "home_middle" | "category";
   priority?: number;
@@ -667,11 +669,22 @@ const bannerFormData = (payload: Partial<SellerBannerPayload>, image?: File) => 
   appendOptional(formData, "title", payload.title);
   appendOptional(formData, "subtitle", payload.subtitle);
   appendOptional(formData, "redirectType", payload.redirectType);
+  appendOptional(formData, "redirectId", payload.redirectId);
   appendOptional(formData, "externalUrl", payload.externalUrl);
   appendOptional(formData, "placement", payload.placement);
   appendOptional(formData, "priority", payload.priority);
   appendOptional(formData, "isActive", payload.isActive);
   if (image) formData.append("image", image);
+  return formData;
+};
+
+const storeFormData = (payload: Partial<SellerStorePayload>, files?: { logo?: File; banner?: File }) => {
+  const formData = new FormData();
+  Object.entries(payload).forEach(([key, value]) => {
+    appendOptional(formData, key, value);
+  });
+  if (files?.logo) formData.append("logo", files.logo);
+  if (files?.banner) formData.append("banner", files.banner);
   return formData;
 };
 
@@ -696,7 +709,13 @@ export const sellerManagementApi = {
     return response.data.data;
   },
 
-  saveStore: async (payload: SellerStorePayload): Promise<SellerStoreResponse> => {
+  saveStore: async (payload: SellerStorePayload, files?: { logo?: File; banner?: File }): Promise<SellerStoreResponse> => {
+    if (files?.logo || files?.banner) {
+      const response = await axiosInstance.put("/sellers/store", storeFormData(payload, files), {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      return response.data.data;
+    }
     const response = await axiosInstance.put("/sellers/store", payload);
     return response.data.data;
   },

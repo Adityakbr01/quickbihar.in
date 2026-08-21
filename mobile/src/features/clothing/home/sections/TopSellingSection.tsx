@@ -20,7 +20,7 @@ const arrowLottie = require("@/assets/lottie/arrow.json");
 const CARD_WIDTH = 240;
 const GAP = 12;
 const ITEM_WIDTH = CARD_WIDTH + GAP;
-const TopSellingSection = () => {
+const TopSellingSection = ({ category }: { category?: string } = {}) => {
   const theme = useTheme() as any;
   const scrollRef = useRef<ScrollView>(null);
   const styles = React.useMemo(
@@ -29,8 +29,8 @@ const TopSellingSection = () => {
   );
 
   const { data: trendingProducts, isLoading } = useQuery({
-    queryKey: ["trendingProducts"],
-    queryFn: getTrendingProductsRequest,
+    queryKey: ["trendingProducts", category],
+    queryFn: () => getTrendingProductsRequest(category ? { category } : undefined),
   });
 
   const products = (trendingProducts?.data || []).slice(0, 10);

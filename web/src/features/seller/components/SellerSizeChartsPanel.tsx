@@ -3,7 +3,7 @@
 // CLOTHING-SPECIFIC — see multi-vertical milestone (docs/WIRE-FLOW-AUDIT-TODO.md)
 
 import React, { useState } from "react";
-import { Save } from "lucide-react";
+import { Save, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -63,8 +63,9 @@ export function SellerSizeChartsPanel() {
             <AssignSizeChartDialog
               chart={chart}
               products={productsQuery.data?.data || []}
-              onAssign={(productIds) =>
-                mutations.assign.mutate({ chartId: chart._id, productIds })
+              isPending={mutations.assign.isPending}
+              onAssign={(productIds, onSuccess) =>
+                mutations.assign.mutate({ chartId: chart._id, productIds }, { onSuccess })
               }
             />
           </RowActions>,
@@ -78,14 +79,24 @@ export function SellerSizeChartsPanel() {
 function AssignSizeChartDialog({
   chart,
   products,
+  isPending = false,
   onAssign,
 }: {
   chart: SellerSizeChart;
   products: SellerProduct[];
-  onAssign: (productIds: string[]) => void;
+  isPending?: boolean;
+  onAssign: (productIds: string[], onSuccess: () => void) => void;
 }) {
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState<string[]>(chart.productIds || []);
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (isPending) return;
+    setOpen(nextOpen);
+    if (nextOpen) {
+      setSelected(chart.productIds || []);
+    }
+  };
 
   const toggleProduct = (productId: string, checked: boolean) => {
     setSelected((prev) =>
@@ -94,7 +105,7 @@ function AssignSizeChartDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger
         render={
           <Button
@@ -130,17 +141,26 @@ function AssignSizeChartDialog({
           )}
         </div>
         <DialogFooter className="border-white/10 bg-white/[0.03] gap-2">
-          <Button variant="outline" onClick={() => setOpen(false)}>
+          <Button variant="outline" onClick={() => setOpen(false)} disabled={isPending}>
             Cancel
           </Button>
           <Button
+            disabled={isPending}
             onClick={() => {
-              onAssign(selected);
-              setOpen(false);
+              onAssign(selected, () => setOpen(false));
             }}
           >
-            <Save className="h-4 w-4" />
-            Save Assignment
+            {isPending ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <Save className="h-4 w-4" />
+                Save Assignment
+              </>
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>

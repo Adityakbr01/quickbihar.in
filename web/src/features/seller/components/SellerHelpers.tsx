@@ -66,13 +66,15 @@ export function StatusTile({
   title,
   label,
   active,
+  onClick,
 }: {
   title: string;
   label: string;
   active: boolean;
+  onClick?: () => void;
 }) {
-  return (
-    <div className="rounded-lg border border-white/10 bg-white/[0.03] p-3">
+  const content = (
+    <>
       <div className="text-xs font-medium uppercase text-gray-500">{title}</div>
       <div className="mt-2 flex items-center justify-between gap-3">
         <div className="text-sm font-medium text-white">{label}</div>
@@ -82,6 +84,24 @@ export function StatusTile({
           <XCircle className="h-4 w-4 text-red-300" />
         )}
       </div>
+    </>
+  );
+
+  if (onClick) {
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        className="w-full rounded-lg border border-white/10 bg-white/[0.03] p-3 text-left transition hover:border-emerald-400/30 hover:bg-white/[0.05] focus:outline-none focus:ring-2 focus:ring-emerald-400/40"
+      >
+        {content}
+      </button>
+    );
+  }
+
+  return (
+    <div className="rounded-lg border border-white/10 bg-white/[0.03] p-3">
+      {content}
     </div>
   );
 }

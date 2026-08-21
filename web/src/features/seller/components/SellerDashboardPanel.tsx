@@ -59,33 +59,34 @@ export function SellerDashboardPanel({
     count: (value as any)?.count || 0,
     revenue: (value as any)?.revenue || 0,
   }));
-  const grossSales = dailyRevenue.reduce((sum, row) => sum + Number(row.revenue || 0), 0);
+  const grossSales = dailyRevenue.reduce((sum: number, row: any) => sum + Number(row.revenue || 0), 0);
   const sellerNet = dailyRevenue.reduce(
-    (sum, row) => sum + Number(row.sellerNet || Math.max(0, Number(row.revenue || 0) - Number(row.platformCommission || 0))),
+    (sum: number, row: any) => sum + Number(row.sellerNet || Math.max(0, Number(row.revenue || 0) - Number(row.platformCommission || 0))),
     0,
   );
-  const platformFees = dailyRevenue.reduce((sum, row) => sum + Number(row.platformCommission || 0), 0);
-  const orderCount = dailyRevenue.reduce((sum, row) => sum + Number(row.orders || 0), 0);
+  const platformFees = dailyRevenue.reduce((sum: number, row: any) => sum + Number(row.platformCommission || 0), 0);
+  const orderCount = dailyRevenue.reduce((sum: number, row: any) => sum + Number(row.orders || 0), 0);
   const salesTrendRows = dailyRevenue.length
     ? dailyRevenue
     : [{ _id: "No data", revenue: 0, sellerNet: 0, platformCommission: 0, orders: 0 }];
   const topProductRows = productPerformance.length
-    ? productPerformance.map((item) => ({ ...item, title: item.title || item.sku || "Product" }))
+    ? productPerformance.map((item: any) => ({ ...item, title: item.title || item.sku || "Product" }))
     : [{ _id: "empty", title: "No sales", revenue: 0, quantity: 0 }];
   const orderChartRows = orderStatusRows.length
     ? orderStatusRows
     : [{ status: "No orders", count: 0, revenue: 0 }];
-  const checklist = setup
+  const checklist: Array<{ label: string; done: boolean; section?: SellerSection }> = setup
     ? [
         { label: "Seller approval", done: setup.sellerApproved },
-        { label: "Store created", done: setup.storeExists },
-        { label: "Store configured", done: setup.storeConfigured },
-        { label: "Store active", done: setup.storeActive },
-        { label: "Payout verified", done: setup.hasVerifiedPayoutMethod },
-        { label: "Products unlocked", done: setup.productsUnlocked },
-        { label: "Mall optional", done: setup.mallOptional },
+        { label: "Store created", done: setup.storeExists, section: "store" },
+        { label: "Store configured", done: setup.storeConfigured, section: "store" },
+        { label: "Store active", done: setup.storeActive, section: "store" },
+        { label: "Payout verified", done: setup.hasVerifiedPayoutMethod, section: "payouts" },
+        { label: "Products unlocked", done: setup.productsUnlocked, section: "products" },
+        { label: "Mall optional", done: setup.mallOptional, section: "mall" },
       ]
     : [];
+  const isSetupComplete = checklist.length > 0 && checklist.every((item) => item.done);
 
   return (
     <div className="grid gap-3 sm:gap-4">
@@ -260,21 +261,24 @@ export function SellerDashboardPanel({
         </div>
       </section>
 
-      <Card className="border-white/10 bg-[#1c1c1c]">
-        <CardHeader className="border-b border-white/10">
-          <CardTitle className="text-base text-white">Setup Checklist</CardTitle>
-        </CardHeader>
-        <CardContent className="grid grid-cols-2 gap-3 pt-4 md:grid-cols-2 xl:grid-cols-4">
-          {checklist.map((item) => (
-            <StatusTile
-              key={item.label}
-              title={item.label}
-              label={item.done ? "Ready" : "Pending"}
-              active={item.done}
-            />
-          ))}
-        </CardContent>
-      </Card>
+      {!isSetupComplete && checklist.length > 0 && (
+        <Card className="border-white/10 bg-[#1c1c1c]">
+          <CardHeader className="border-b border-white/10">
+            <CardTitle className="text-base text-white">Setup Checklist</CardTitle>
+          </CardHeader>
+          <CardContent className="grid grid-cols-2 gap-3 pt-4 md:grid-cols-2 xl:grid-cols-4">
+            {checklist.map((item) => (
+              <StatusTile
+                key={item.label}
+                title={item.label}
+                label={item.done ? "Ready" : "Pending"}
+                active={item.done}
+                onClick={item.section ? () => onNavigate?.(item.section!) : undefined}
+              />
+            ))}
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid gap-4 xl:grid-cols-2">
         <Card className="border-white/10 bg-[#1c1c1c]">
@@ -285,7 +289,7 @@ export function SellerDashboardPanel({
             <SimpleTable
               empty="No orders yet."
               columns={["Order", "Customer", "Status", "Amount"]}
-              rows={(dashboard?.recentOrders || []).map((order) => [
+              rows={(dashboard?.recentOrders || []).map((order: any) => [
                 <button
                   key={`${order._id}-order-link`}
                   type="button"
@@ -308,7 +312,7 @@ export function SellerDashboardPanel({
           </CardHeader>
           <CardContent className="grid gap-2 pt-4">
             {(dashboard?.recentNotifications || []).length ? (
-              dashboard?.recentNotifications.map((item) => (
+              dashboard?.recentNotifications.map((item: any) => (
                 <button
                   key={item._id}
                   type="button"

@@ -1,5 +1,6 @@
 import { ApiResponse } from "@/utils/ApiResponse";
 import { asyncHandler } from "@/utils/asyncHandler";
+import { uploadToImageKit } from "@/utils/imagekit.util";
 import { SellerService } from "./seller.service";
 import { SubOrderService } from "@/modules/common/order/subOrder.service";
 import { returnReviewSchema, returnReceiptSchema } from "@/modules/common/order/order.validator";
@@ -40,7 +41,24 @@ export class SellerController {
     });
 
     static saveStore = asyncHandler(async (req, res) => {
-        const body = sellerStoreSchema.parse(req.body);
+        const files = req.files as { [fieldname: string]: Express.Multer.File[] } | undefined;
+        const rawBody: any = { ...req.body };
+
+        if (files?.logo?.[0]) {
+            const logoFile = files.logo[0];
+            const upload = await uploadToImageKit(logoFile.buffer, logoFile.originalname, "seller-logos");
+            rawBody.logoUrl = upload.url;
+            rawBody.logoImagePublicId = upload.fileId;
+        }
+
+        if (files?.banner?.[0]) {
+            const bannerFile = files.banner[0];
+            const upload = await uploadToImageKit(bannerFile.buffer, bannerFile.originalname, "seller-banners");
+            rawBody.bannerUrl = upload.url;
+            rawBody.bannerImagePublicId = upload.fileId;
+        }
+
+        const body = sellerStoreSchema.parse(rawBody);
         const store = await SellerService.saveStore((req as any).user._id, body);
         return res.status(200).json(new ApiResponse(200, store, "Seller store saved successfully"));
     });

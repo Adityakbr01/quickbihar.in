@@ -13,7 +13,14 @@ router.use(verifyJWT, isSeller);
 router.get("/dashboard", SellerController.dashboard);
 
 router.get("/store", SellerController.getStore);
-router.put("/store", SellerController.saveStore);
+router.put(
+    "/store",
+    upload.fields([
+        { name: "logo", maxCount: 1 },
+        { name: "banner", maxCount: 1 },
+    ]),
+    SellerController.saveStore,
+);
 router.patch("/store/open", SellerController.toggleStoreOpen);
 
 router.get("/products", SellerController.listProducts);

@@ -66,7 +66,7 @@ export const getPublicProducts = asyncHandler(async (req: Request, res: Response
  * Handle GET /trending - Retrieve trending products.
  */
 export const getTrendingProducts = asyncHandler(async (req: Request, res: Response) => {
-    const products = await ProductService.getTrendingProducts();
+    const products = await ProductService.getTrendingProducts(req.query);
     return res
         .status(200)
         .json(new ApiResponse(200, products, "Trending products fetched successfully"));

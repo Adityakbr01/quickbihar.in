@@ -20,18 +20,25 @@ export const getAllCategories = asyncHandler(async (req: Request, res: Response)
         .json(new ApiResponse(200, categories, "Categories fetched successfully"));
 });
 
-/** POST / — create a category from a multipart body plus a required image. */
+/** POST / — create a category from a multipart body plus an image file or direct image URL. */
 export const createCategory = asyncHandler(async (req: Request, res: Response) => {
-    if (!req.file) {
-        throw new ApiError(400, "Category image is required");
+    let imageUrl = req.body.image;
+    let imagePublicId = req.body.imagePublicId || "";
+
+    if (req.file) {
+        const uploadResult = await uploadToImageKit(req.file.buffer, req.file.originalname, "categories");
+        imageUrl = uploadResult.url;
+        imagePublicId = uploadResult.fileId;
     }
 
-    const uploadResult = await uploadToImageKit(req.file.buffer, req.file.originalname, "categories");
+    if (!imageUrl) {
+        throw new ApiError(400, "Category image file or image URL is required");
+    }
 
     const categoryData = {
         ...req.body,
-        image: uploadResult.url,
-        imagePublicId: uploadResult.fileId
+        image: imageUrl,
+        imagePublicId: imagePublicId || "url_provided",
     };
 
     const category = await CategoryService.createCategory(categoryData);
@@ -66,11 +73,14 @@ export const updateCategory = asyncHandler(async (req: Request, res: Response) =
         const uploadResult = await uploadToImageKit(req.file.buffer, req.file.originalname, "categories");
         categoryData.image = uploadResult.url;
         categoryData.imagePublicId = uploadResult.fileId;
+    } else if (req.body.image) {
+        categoryData.image = req.body.image;
+        categoryData.imagePublicId = req.body.imagePublicId || "url_provided";
     }
 
     const category = await CategoryService.updateCategory(req.params.id as unknown as string, categoryData);
 
-    if (req.file && oldCategory.imagePublicId) {
+    if (req.file && oldCategory.imagePublicId && oldCategory.imagePublicId !== "url_provided") {
         await deleteFromImageKit(oldCategory.imagePublicId);
     }
 

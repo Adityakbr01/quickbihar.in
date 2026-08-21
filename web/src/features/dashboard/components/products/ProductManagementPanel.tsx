@@ -1,6 +1,6 @@
 // CLOTHING-SPECIFIC — see multi-vertical milestone (docs/WIRE-FLOW-AUDIT-TODO.md)
 import React, { useState, useMemo, FormEvent } from "react";
-import { Plus, Edit, Trash2, Save } from "lucide-react";
+import { Plus, Edit, Trash2, Save, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -1229,14 +1229,24 @@ function ProductForm({
       </div>
       <div className="flex gap-2">
         <Button type="submit" disabled={isPending || Boolean(submitBlockReason)}>
-          <Save className="h-4 w-4" />
-          {product ? "Save Product" : "Create Product"}
+          {isPending ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Saving...
+            </>
+          ) : (
+            <>
+              <Save className="h-4 w-4" />
+              {product ? "Save Product" : "Create Product"}
+            </>
+          )}
         </Button>
         <Button
           type="button"
           variant="outline"
           className="border-white/10 bg-white/5 text-white hover:bg-white/10"
           onClick={onCancel}
+          disabled={isPending}
         >
           Cancel
         </Button>

@@ -1,7 +1,7 @@
 "use client";
 
 import { type FormEvent, useState } from "react";
-import { Boxes, Edit, Trash2, Save } from "lucide-react";
+import { Boxes, Edit, Trash2, Save, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -336,9 +336,22 @@ export function InventoryLogisticsPanel() {
                 }
               />
             </div>
-            <Button type="submit" className="bg-white text-black hover:bg-gray-200">
-              <Save className="h-4 w-4" />
-              Save
+            <Button
+              type="submit"
+              disabled={createWarehouse.isPending || updateWarehouse.isPending}
+              className="bg-white text-black hover:bg-gray-200"
+            >
+              {createWarehouse.isPending || updateWarehouse.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="h-4 w-4" />
+                  Save
+                </>
+              )}
             </Button>
           </form>
         </DialogContent>
@@ -391,6 +404,84 @@ export function InventoryLogisticsPanel() {
               ))}
             </select>
             <Input
+              required
+              className={inputClass}
+              placeholder="Tracking URL template"
+              value={shippingDraft.trackingUrlTemplate || ""}
+              onChange={(event) =>
+                setDraftField(
+                  setShippingDraft,
+                  "trackingUrlTemplate",
+                  event.target.value
+                )
+              }
+            />
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Input
+                className={inputClass}
+                placeholder="Base rate"
+                type="number"
+                min={0}
+                value={shippingDraft.baseRate || ""}
+                onChange={(event) =>
+                  setDraftField(setShippingDraft, "baseRate", event.target.value)
+                }
+              />
+              <Input
+                className={inputClass}
+                placeholder="Per kg rate"
+                type="number"
+                min={0}
+                value={shippingDraft.perKgRate || ""}
+                onChange={(event) =>
+                  setDraftField(setShippingDraft, "perKgRate", event.target.value)
+                }
+              />
+              <Input
+                className={inputClass}
+                placeholder="Estimated days"
+                type="number"
+                min={1}
+                value={shippingDraft.estimatedDays || ""}
+                onChange={(event) =>
+                  setDraftField(
+                    setShippingDraft,
+                    "estimatedDays",
+                    event.target.value
+                  )
+                }
+              />
+              <Input
+                className={inputClass}
+                placeholder="Contact email"
+                type="email"
+                value={shippingDraft.email || ""}
+                onChange={(event) =>
+                  setDraftField(setShippingDraft, "email", event.target.value)
+                }
+              />
+              <Input
+                className={inputClass}
+                placeholder="Contact phone"
+                value={shippingDraft.phone || ""}
+                onChange={(event) =>
+                  setDraftField(setShippingDraft, "phone", event.target.value)
+                }
+              />
+              <Input
+                className={inputClass}
+                placeholder="Service type"
+                value={shippingDraft.serviceType || ""}
+                onChange={(event) =>
+                  setDraftField(
+                    setShippingDraft,
+                    "serviceType",
+                    event.target.value
+                  )
+                }
+              />
+            </div>
+            <Input
               className={inputClass}
               placeholder="Service areas"
               value={shippingDraft.serviceAreas || ""}
@@ -398,9 +489,22 @@ export function InventoryLogisticsPanel() {
                 setDraftField(setShippingDraft, "serviceAreas", event.target.value)
               }
             />
-            <Button type="submit" className="bg-white text-black hover:bg-gray-200">
-              <Save className="h-4 w-4" />
-              Save
+            <Button
+              type="submit"
+              disabled={createProvider.isPending || updateProvider.isPending}
+              className="bg-white text-black hover:bg-gray-200"
+            >
+              {createProvider.isPending || updateProvider.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="h-4 w-4" />
+                  Save
+                </>
+              )}
             </Button>
           </form>
         </DialogContent>
@@ -438,9 +542,22 @@ export function InventoryLogisticsPanel() {
                   )
                 }
               />
-              <Button type="submit" className="bg-white text-black hover:bg-gray-200">
-                <Save className="h-4 w-4" />
-                Update Stock
+              <Button
+                type="submit"
+                disabled={updateStock.isPending}
+                className="bg-white text-black hover:bg-gray-200"
+              >
+                {updateStock.isPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Updating...
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4" />
+                    Update Stock
+                  </>
+                )}
               </Button>
             </form>
           )}

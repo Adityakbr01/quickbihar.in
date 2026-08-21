@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -19,13 +20,33 @@ import { Loader2, ArrowLeft } from "lucide-react";
 import { loginSchema, LoginValues } from "../schemas/auth.schema";
 import { useLogin, useAdminVerifyOTP } from "../hooks/useAuth";
 import { requestOtpRequest } from "../api/auth.api";
+import { useAuthStore } from "../store/authStore";
+import { isAdmin } from "@/lib/rbac";
 
 export default function AdminLoginForm() {
+  const router = useRouter();
+  const { user, isAuthenticated } = useAuthStore();
+  const [hasHydrated, setHasHydrated] = useState(false);
   const [tab, setTab] = useState<"otp" | "password">("otp");
   const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
   const [otpSent, setOtpSent] = useState(false);
   const [otpSending, setOtpSending] = useState(false);
+
+  useEffect(() => {
+    const persistApi = useAuthStore.persist;
+    if (!persistApi || persistApi.hasHydrated()) {
+      setHasHydrated(true);
+      return;
+    }
+    return persistApi.onFinishHydration(() => setHasHydrated(true));
+  }, []);
+
+  useEffect(() => {
+    if (hasHydrated && isAuthenticated && isAdmin(user)) {
+      router.replace("/admin/dashboard");
+    }
+  }, [hasHydrated, isAuthenticated, user, router]);
 
   const { mutate: login, isPending: isLoggingIn } = useLogin();
   const { mutate: verifyOtp, isPending: isVerifying } = useAdminVerifyOTP();

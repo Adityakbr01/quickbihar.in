@@ -2,7 +2,7 @@
 
 import React, { type FormEvent, useState } from "react";
 import { toast } from "sonner";
-import { Plus, Edit, Trash2, Save, ExternalLink } from "lucide-react";
+import { Plus, Edit, Trash2, Save, ExternalLink, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -464,8 +464,17 @@ function BannerForm({
           Cancel
         </Button>
         <Button type="submit" disabled={isPending}>
-          <Save className="h-4 w-4" />
-          Save Banner
+          {isPending ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Saving...
+            </>
+          ) : (
+            <>
+              <Save className="h-4 w-4" />
+              Save Banner
+            </>
+          )}
         </Button>
       </DialogFooter>
     </form>

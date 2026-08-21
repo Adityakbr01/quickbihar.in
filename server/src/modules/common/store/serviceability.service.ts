@@ -93,10 +93,21 @@ export function assertStoreServiceable(
     const result = checkStoreServiceability(store, target);
     if (!result.serviceable) {
         const what = itemLabel ? `Item '${itemLabel}'` : `Store '${store.name ?? "selected store"}'`;
-        throw new ApiError(400, `${what} cannot be delivered to your selected address.`);
+        const areas = (store.deliveryConfig?.deliveryAreas ?? []).filter(Boolean);
+        const hasRadius = Number(store.deliveryRadiusKm) > 0;
+        let reason = "the store does not deliver to your area yet.";
+        if (areas.length === 0 && !hasRadius) {
+            reason = "the seller has not configured delivery areas yet.";
+        } else if (areas.length > 0 && target.pincode) {
+            reason = `your pincode (${target.pincode}) is not in the seller's delivery list.`;
+        } else if (hasRadius && result.distanceKm != null) {
+            reason = `your address is ${result.distanceKm.toFixed(1)} km away, outside the store's ${store.deliveryRadiusKm} km delivery radius.`;
+        }
+        throw new ApiError(400, `${what} cannot be delivered to your selected address — ${reason}`);
     }
     return result;
 }
+
 
 /** A cart line item, only the fields needed to gate serviceability. */
 export interface ServiceabilityCartItem {

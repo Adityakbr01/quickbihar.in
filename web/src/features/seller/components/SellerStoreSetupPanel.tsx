@@ -1,7 +1,7 @@
 "use client";
 
 import React, { type FormEvent, useState, useEffect } from "react";
-import { LocateFixed, MapPin, Save } from "lucide-react";
+import { LocateFixed, MapPin, Save, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -44,6 +44,8 @@ export function SellerStoreSetupPanel() {
   const [storeLat, setStoreLat] = useState("");
   const [storeLng, setStoreLng] = useState("");
   const [isLocatingStore, setIsLocatingStore] = useState(false);
+  const [logoFile, setLogoFile] = useState<File | undefined>();
+  const [bannerFile, setBannerFile] = useState<File | undefined>();
 
   useEffect(() => {
     if (store?.policyRefs) {
@@ -86,39 +88,44 @@ export function SellerStoreSetupPanel() {
     const lng = Number(storeLng);
 
     saveStore.mutate({
-      name: text(form, "name"),
-      description: text(form, "description"),
-      logoUrl: text(form, "logoUrl"),
-      bannerUrl: text(form, "bannerUrl"),
-      address: {
-        line1: text(form, "line1"),
-        city: text(form, "city"),
-        state: text(form, "state"),
-        pincode: text(form, "pincode"),
-        country: text(form, "country") || "India",
-        postalCode: text(form, "postalCode"),
+      payload: {
+        name: text(form, "name"),
+        description: text(form, "description"),
+        logoUrl: text(form, "logoUrl"),
+        bannerUrl: text(form, "bannerUrl"),
+        address: {
+          line1: text(form, "line1"),
+          city: text(form, "city"),
+          state: text(form, "state"),
+          pincode: text(form, "pincode"),
+          country: text(form, "country") || "India",
+          postalCode: text(form, "postalCode"),
+        },
+        contact: {
+          email: text(form, "email"),
+          phone: text(form, "phone"),
+        },
+        deliveryConfig: {
+          deliveryAreas: list(text(form, "deliveryAreas")),
+          shippingFee: numberValue(form, "shippingFee"),
+          freeShippingThreshold: numberValue(form, "freeShippingThreshold"),
+        },
+        deliveryRadiusKm: numberValue(form, "deliveryRadiusKm"),
+        seo: {
+          storeTitle: text(form, "storeTitle"),
+          metaTitle: text(form, "metaTitle"),
+          metaDescription: text(form, "metaDescription"),
+        },
+        policyRefs: {
+          returnPolicy: returnPolicyId || undefined,
+          refundPolicy: refundPolicyId || undefined,
+          shippingPolicy: shippingPolicyId || undefined,
+          termsPolicy: termsPolicyId || undefined,
+        },
+        currentLocation: Number.isFinite(lat) && Number.isFinite(lng) ? { lat, lng } : undefined,
       },
-      contact: {
-        email: text(form, "email"),
-        phone: text(form, "phone"),
-      },
-      deliveryConfig: {
-        deliveryAreas: list(text(form, "deliveryAreas")),
-        shippingFee: numberValue(form, "shippingFee"),
-        freeShippingThreshold: numberValue(form, "freeShippingThreshold"),
-      },
-      seo: {
-        storeTitle: text(form, "storeTitle"),
-        metaTitle: text(form, "metaTitle"),
-        metaDescription: text(form, "metaDescription"),
-      },
-      policyRefs: {
-        returnPolicy: returnPolicyId || undefined,
-        refundPolicy: refundPolicyId || undefined,
-        shippingPolicy: shippingPolicyId || undefined,
-        termsPolicy: termsPolicyId || undefined,
-      },
-      currentLocation: Number.isFinite(lat) && Number.isFinite(lng) ? { lat, lng } : undefined,
+      logoFile,
+      bannerFile,
     });
   };
 
@@ -166,13 +173,32 @@ export function SellerStoreSetupPanel() {
               <Field name="name" label="Store Name" defaultValue={store?.name} required />
               <Field name="email" label="Email" defaultValue={store?.contact?.email} />
               <Field name="phone" label="Phone" defaultValue={store?.contact?.phone} />
-              <Field name="deliveryAreas" label="Delivery Areas" defaultValue={(store?.deliveryConfig?.deliveryAreas || []).join(", ")} />
+              <Field name="deliveryAreas" label="Delivery Pincodes (comma separated)" defaultValue={(store?.deliveryConfig?.deliveryAreas || []).join(", ")} />
+              <Field name="deliveryRadiusKm" label="Delivery Radius (km)" type="number" defaultValue={(store as any)?.deliveryRadiusKm} />
               <Field name="shippingFee" label="Shipping Fee" type="number" defaultValue={store?.deliveryConfig?.shippingFee} />
               <Field name="freeShippingThreshold" label="Free Shipping Above" type="number" defaultValue={store?.deliveryConfig?.freeShippingThreshold} />
             </div>
             <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
               <Field name="logoUrl" label="Logo URL" defaultValue={store?.logoUrl} />
+              <label className={labelClass}>
+                Logo Upload (Optional)
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setLogoFile(e.target.files?.[0])}
+                  className={inputClass}
+                />
+              </label>
               <Field name="bannerUrl" label="Banner URL" defaultValue={store?.bannerUrl} />
+              <label className={labelClass}>
+                Banner Upload (Optional)
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setBannerFile(e.target.files?.[0])}
+                  className={inputClass}
+                />
+              </label>
               <Field name="line1" label="Address" defaultValue={store?.address?.line1} />
               <Field name="city" label="City" defaultValue={store?.address?.city} />
               <Field name="state" label="State" defaultValue={store?.address?.state} />
@@ -330,8 +356,17 @@ export function SellerStoreSetupPanel() {
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <Button type="submit" disabled={saveStore.isPending}>
-                <Save className="h-4 w-4" />
-                Save Store
+                {saveStore.isPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Saving Store...
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4" />
+                    Save Store
+                  </>
+                )}
               </Button>
               {missingFields.map((field) => (
                 <Badge key={field} variant="outline" className="border-amber-400/30 text-amber-300">

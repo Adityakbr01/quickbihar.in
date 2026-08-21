@@ -1,5 +1,5 @@
 import React, { useState, FormEvent } from "react";
-import { Plus, Edit, Trash2, Save } from "lucide-react";
+import { Plus, Edit, Trash2, Save, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -461,14 +461,24 @@ function CouponForm({
       </div>
       <div className="flex gap-2 md:col-span-4">
         <Button type="submit" disabled={isPending}>
-          <Save className="h-4 w-4" />
-          {coupon ? "Save Coupon" : "Create Coupon"}
+          {isPending ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Saving...
+            </>
+          ) : (
+            <>
+              <Save className="h-4 w-4" />
+              {coupon ? "Save Coupon" : "Create Coupon"}
+            </>
+          )}
         </Button>
         <Button
           type="button"
           variant="outline"
           className="border-white/10 bg-white/5 text-white hover:bg-white/10"
           onClick={onCancel}
+          disabled={isPending}
         >
           Cancel
         </Button>

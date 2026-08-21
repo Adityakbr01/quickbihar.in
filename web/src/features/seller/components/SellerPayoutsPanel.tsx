@@ -1,7 +1,7 @@
 "use client";
 
 import React, { type FormEvent, useMemo } from "react";
-import { WalletCards } from "lucide-react";
+import { WalletCards, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { SellerSetupStatus } from "@/features/seller/api/sellerPanel.api";
@@ -140,9 +140,18 @@ export function SellerPayoutsPanel({ setup }: { setup?: SellerSetupStatus }) {
             <Field name="accountNumber" label="Account Number" />
             <Field name="ifsc" label="IFSC" />
             <Field name="bankName" label="Bank Name" />
-            <Button type="submit">
-              <WalletCards className="h-4 w-4" />
-              Submit Method
+            <Button type="submit" disabled={payoutMutations.addMethod.isPending}>
+              {payoutMutations.addMethod.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Submitting...
+                </>
+              ) : (
+                <>
+                  <WalletCards className="h-4 w-4" />
+                  Submit Method
+                </>
+              )}
             </Button>
           </form>
         </CardContent>
@@ -167,9 +176,21 @@ export function SellerPayoutsPanel({ setup }: { setup?: SellerSetupStatus }) {
             </label>
             <Field name="amount" label="Amount" type="number" required />
             <Field name="note" label="Note" />
-            <Button type="submit" disabled={!verifiedMethods.length}>
-              <WalletCards className="h-4 w-4" />
-              Request Payout
+            <Button
+              type="submit"
+              disabled={!verifiedMethods.length || payoutMutations.request.isPending}
+            >
+              {payoutMutations.request.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Requesting...
+                </>
+              ) : (
+                <>
+                  <WalletCards className="h-4 w-4" />
+                  Request Payout
+                </>
+              )}
             </Button>
           </form>
           <SimpleTable

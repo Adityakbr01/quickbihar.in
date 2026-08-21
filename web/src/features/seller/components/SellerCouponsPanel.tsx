@@ -1,7 +1,7 @@
 "use client";
 
 import React, { type FormEvent, type ReactNode, useState } from "react";
-import { Plus, Save } from "lucide-react";
+import { Plus, Save, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DatePicker } from "@/components/ui/date-picker";
 import {
@@ -57,7 +57,8 @@ export function SellerCouponsPanel() {
               Create
             </Button>
           }
-          onSubmit={(payload) => mutations.create.mutate(payload)}
+          isPending={mutations.create.isPending}
+          onSubmit={(payload, onSuccess) => mutations.create.mutate(payload, { onSuccess })}
         />
       }
       filters={<ListFilters params={params} onChange={setParams} approval />}
@@ -90,7 +91,10 @@ export function SellerCouponsPanel() {
                   Edit
                 </Button>
               }
-              onSubmit={(payload) => mutations.update.mutate({ couponId: coupon._id, payload })}
+              isPending={mutations.update.isPending}
+              onSubmit={(payload, onSuccess) =>
+                mutations.update.mutate({ couponId: coupon._id, payload }, { onSuccess })
+              }
             />
             <Button
               size="sm"
@@ -112,11 +116,13 @@ export function SellerCouponsPanel() {
 function CouponDialog({
   coupon,
   trigger,
+  isPending = false,
   onSubmit,
 }: {
   coupon?: SellerCoupon;
   trigger: ReactNode;
-  onSubmit: (payload: SellerCouponPayload) => void;
+  isPending?: boolean;
+  onSubmit: (payload: SellerCouponPayload, onSuccess: () => void) => void;
 }) {
   const [open, setOpen] = useState(false);
   const [startDate, setStartDate] = useState(dateInput(coupon?.startDate));
@@ -125,7 +131,7 @@ function CouponDialog({
   const [appliesTo, setAppliesTo] = useState<"ALL" | "SPECIFIC">(coupon?.appliesTo || "ALL");
   const [selectedProductIds, setSelectedProductIds] = useState<string[]>(coupon?.productIds || []);
 
-  const productsQuery = useSellerProducts({ page: 1, limit: 1000 });
+  const productsQuery = useSellerProducts({ page: 1, limit: 100 });
   const products = productsQuery.data?.data || [];
 
   const changeOpen = (nextOpen: boolean) => {
@@ -151,21 +157,23 @@ function CouponDialog({
       return;
     }
 
-    onSubmit({
-      code: text(form, "code"),
-      description: text(form, "description"),
-      discountType: text(form, "discountType") as "PERCENTAGE" | "FIXED",
-      discountValue: numberValue(form, "discountValue") || 0,
-      minOrderValue: numberValue(form, "minOrderValue"),
-      maxDiscountAmount: numberValue(form, "maxDiscountAmount"),
-      usageLimit: numberValue(form, "usageLimit"),
-      usageLimitPerUser: numberValue(form, "usageLimitPerUser"),
-      startDate,
-      endDate,
-      appliesTo,
-      productIds: appliesTo === "SPECIFIC" ? selectedProductIds : [],
-    });
-    changeOpen(false);
+    onSubmit(
+      {
+        code: text(form, "code"),
+        description: text(form, "description"),
+        discountType: text(form, "discountType") as "PERCENTAGE" | "FIXED",
+        discountValue: numberValue(form, "discountValue") || 0,
+        minOrderValue: numberValue(form, "minOrderValue"),
+        maxDiscountAmount: numberValue(form, "maxDiscountAmount"),
+        usageLimit: numberValue(form, "usageLimit"),
+        usageLimitPerUser: numberValue(form, "usageLimitPerUser"),
+        startDate,
+        endDate,
+        appliesTo,
+        productIds: appliesTo === "SPECIFIC" ? selectedProductIds : [],
+      },
+      () => changeOpen(false)
+    );
   };
 
   return (
@@ -297,12 +305,26 @@ function CouponDialog({
             {dateError && <div className="text-xs text-red-300 md:col-span-2">{dateError}</div>}
           </div>
           <DialogFooter className="border-white/10 bg-white/[0.03] gap-2">
-            <Button type="button" variant="outline" onClick={() => changeOpen(false)}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => changeOpen(false)}
+              disabled={isPending}
+            >
               Cancel
             </Button>
-            <Button type="submit">
-              <Save className="h-4 w-4" />
-              Save Draft
+            <Button type="submit" disabled={isPending}>
+              {isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="h-4 w-4" />
+                  {coupon ? "Save Changes" : "Save Draft"}
+                </>
+              )}
             </Button>
           </DialogFooter>
         </form>

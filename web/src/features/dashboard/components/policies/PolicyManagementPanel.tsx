@@ -1,7 +1,7 @@
 "use client";
 
 import React, { type FormEvent, useState } from "react";
-import { Plus, Edit, Trash2, Save } from "lucide-react";
+import { Plus, Edit, Trash2, Save, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -266,8 +266,17 @@ function PolicyForm({
           Cancel
         </Button>
         <Button type="submit" disabled={isPending}>
-          <Save className="h-4 w-4" />
-          Save Policy
+          {isPending ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Saving...
+            </>
+          ) : (
+            <>
+              <Save className="h-4 w-4" />
+              Save Policy
+            </>
+          )}
         </Button>
       </DialogFooter>
     </form>
