@@ -22,6 +22,7 @@ export interface QueryParams {
   discountType?: string;
   isActive?: string;
   deliveryStatus?: string;
+  vertical?: string;
 }
 
 export type OrderStatus =

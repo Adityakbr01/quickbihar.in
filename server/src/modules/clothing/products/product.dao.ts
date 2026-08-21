@@ -264,7 +264,7 @@ export async function restoreStock(productId: string, sku: string, quantity: num
  * Retrieve top selling products, aggregating orders database entries and falling back
  * to rated/trending products if the list has fewer than the requested limit.
  */
-export async function getTopSellingProducts(limit = 10, category?: string) {
+export async function getTopSellingProducts(limit = 10, category?: string, vertical: string = "CLOTHING") {
     let Order: any;
     try {
         const mongoose = require("mongoose");
@@ -314,10 +314,13 @@ export async function getTopSellingProducts(limit = 10, category?: string) {
     const baseFilter: any = {
         isActive: true,
         isDeleted: false,
-        vertical: "CLOTHING",
-        category: { $not: /jewel|necklace|ring|earring|pendant|bangle|food|grocery|beverage|snack/i },
+        vertical: vertical || "CLOTHING",
         $or: [{ approvalStatus: "APPROVED" }, { approvalStatus: { $exists: false } }]
     };
+
+    if (baseFilter.vertical === "CLOTHING") {
+        baseFilter.category = { $not: /jewel|necklace|ring|earring|pendant|bangle|food|grocery|beverage|snack/i };
+    }
 
     if (category && typeof category === "string" && category.trim()) {
         baseFilter.$and = [

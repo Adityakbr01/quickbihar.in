@@ -33,16 +33,7 @@ const TopSellingSection = ({ category }: { category?: string } = {}) => {
     queryFn: () => getTrendingProductsRequest(category ? { category } : undefined),
   });
 
-  const products = (trendingProducts?.data || [])
-    .filter(
-      (p) =>
-        p.vertical !== "JEWELERY" &&
-        p.vertical !== "FOOD" &&
-        !/jewel|necklace|ring|earring|pendant|bangle|food|grocery/i.test(
-          `${p.category || ""} ${p.subCategory || ""}`
-        )
-    )
-    .slice(0, 10);
+  const products = (trendingProducts?.data || []).slice(0, 10);
 
   if (isLoading) {
     return (

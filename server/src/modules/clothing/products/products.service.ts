@@ -289,7 +289,8 @@ export async function getProducts(query: any = {}) {
 export async function getTrendingProducts(query: any = {}) {
     const limit = Number(query.limit) || 10;
     const category = typeof query.category === "string" ? query.category : undefined;
-    return await ProductDAO.getTopSellingProducts(limit, category);
+    const vertical = typeof query.vertical === "string" ? query.vertical : "CLOTHING";
+    return await ProductDAO.getTopSellingProducts(limit, category, vertical);
 }
 
 /**

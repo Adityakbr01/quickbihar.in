@@ -172,18 +172,7 @@ export const useMoreDealsLogic = () => {
   });
 
   const allProducts = React.useMemo(() => {
-    return (
-      productData?.pages
-        .flatMap((page) => page?.data || [])
-        .filter(
-          (p) =>
-            p.vertical !== "JEWELERY" &&
-            p.vertical !== "FOOD" &&
-            !/jewel|necklace|ring|earring|pendant|bangle|food|grocery/i.test(
-              `${p.category || ""} ${p.subCategory || ""}`
-            )
-        ) || []
-    );
+    return productData?.pages.flatMap((page) => page?.data || []) || [];
   }, [productData]);
 
   const handleApply = (selected: string[]) => {

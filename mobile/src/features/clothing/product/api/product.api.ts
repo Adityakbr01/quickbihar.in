@@ -14,6 +14,7 @@ export const getAllProductsAdminRequest = async (): Promise<{ data: IProduct[]; 
  * Fetch public products with pagination and filters
  */
 export const getPublicProductsRequest = async (params: {
+  vertical?: string;
   page?: number;
   limit?: number;
   search?: string;
@@ -28,15 +29,23 @@ export const getPublicProductsRequest = async (params: {
   isFeatured?: boolean;
   isNewArrival?: boolean;
 }): Promise<{ data: IProduct[]; total: number }> => {
-  const response = await axiosInstance.get("/products/public", { params });
+  const response = await axiosInstance.get("/products/public", {
+    params: { vertical: "CLOTHING", ...params },
+  });
   return response.data.data;
 };
 
 /**
  * Fetch trending products (Top Selling)
  */
-export const getTrendingProductsRequest = async (params?: { category?: string; limit?: number }): Promise<{ data: IProduct[]; total: number }> => {
-  const response = await axiosInstance.get("/products/trending", { params });
+export const getTrendingProductsRequest = async (params?: {
+  vertical?: string;
+  category?: string;
+  limit?: number;
+}): Promise<{ data: IProduct[]; total: number }> => {
+  const response = await axiosInstance.get("/products/trending", {
+    params: { vertical: "CLOTHING", ...params },
+  });
   return response.data.data;
 };
 
