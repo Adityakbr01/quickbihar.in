@@ -25,8 +25,16 @@ export async function findAll(query: any = {}, options: { skip?: number; limit?:
     const finalQuery: any = { isDeleted: false };
 
     // 1. Handle Text Search
-    if (query.search) {
-        finalQuery.$text = { $search: query.search };
+    if (query.search && typeof query.search === "string" && query.search.trim()) {
+        const searchPattern = new RegExp(query.search.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), "i");
+        finalQuery.$or = [
+            ...(finalQuery.$or || []),
+            { title: searchPattern },
+            { category: searchPattern },
+            { subCategory: searchPattern },
+            { brand: searchPattern },
+            { tags: searchPattern },
+        ];
     }
 
     // 2. Handle Filters
@@ -64,14 +72,21 @@ export async function findAll(query: any = {}, options: { skip?: number; limit?:
         finalQuery.storeId = { $in: query.storeIds };
     }
 
-    if (query.category) {
-        finalQuery.category = query.category;
+    if (query.category && query.subCategory) {
+        finalQuery.category = { $regex: new RegExp(`^${query.category.trim()}$`, "i") };
+        finalQuery.subCategory = { $regex: new RegExp(`^${query.subCategory.trim()}$`, "i") };
+    } else if (query.category) {
+        const catRegex = new RegExp(`^${query.category.trim()}$`, "i");
+        if (!finalQuery.$or) {
+            finalQuery.$or = [
+                { category: catRegex },
+                { subCategory: catRegex },
+            ];
+        }
+    } else if (query.subCategory) {
+        finalQuery.subCategory = { $regex: new RegExp(`^${query.subCategory.trim()}$`, "i") };
     } else if (finalQuery.vertical === "CLOTHING") {
         finalQuery.category = { $not: /jewel|necklace|ring|earring|pendant|bangle|food|grocery|beverage|snack/i };
-    }
-
-    if (query.subCategory) {
-        finalQuery.subCategory = query.subCategory;
     }
 
     if (query.gender) {
@@ -99,9 +114,7 @@ export async function findAll(query: any = {}, options: { skip?: number; limit?:
 
     // 3. Handle Sorting
     let sortOption: any = { createdAt: -1 };
-    if (query.search) {
-        sortOption = { score: { $meta: "textScore" } };
-    } else if (query.sortBy) {
+    if (query.sortBy) {
         switch (query.sortBy) {
             case "price_low": sortOption = { price: 1 }; break;
             case "price_high": sortOption = { price: -1 }; break;
@@ -109,14 +122,18 @@ export async function findAll(query: any = {}, options: { skip?: number; limit?:
             case "newest": sortOption = { createdAt: -1 }; break;
             case "oldest": sortOption = { createdAt: 1 }; break;
         }
+    } else if (query.search) {
+        sortOption = { isTrending: -1, "ratings.average": -1, createdAt: -1 };
     }
 
-    const data = await Product.find(finalQuery)
-        .sort(sortOption)
-        .skip(skip)
-        .limit(limit);
-
-    const total = await Product.countDocuments(finalQuery);
+    const [data, total] = await Promise.all([
+        Product.find(finalQuery)
+            .sort(sortOption)
+            .skip(skip)
+            .limit(limit)
+            .lean({ virtuals: true }),
+        Product.countDocuments(finalQuery),
+    ]);
 
     return { data, total };
 }
@@ -125,7 +142,7 @@ export async function findAll(query: any = {}, options: { skip?: number; limit?:
  * Fetch all active products for a specific seller, sorted by creation date.
  */
 export async function findBySellerId(sellerId: string) {
-    return await Product.find({ sellerId, isDeleted: false }).sort({ createdAt: -1 });
+    return await Product.find({ sellerId, isDeleted: false }).sort({ createdAt: -1 }).lean({ virtuals: true });
 }
 
 /**
@@ -138,7 +155,8 @@ export async function findById(id: string) {
         .populate("policyRefs.refundPolicy")
         .populate("policyRefs.shippingPolicy")
         .populate("policyRefs.termsPolicy")
-        .populate("sizeChartId");
+        .populate("sizeChartId")
+        .lean({ virtuals: true });
 }
 
 /**
@@ -151,7 +169,8 @@ export async function findBySlug(slug: string) {
         .populate("policyRefs.refundPolicy")
         .populate("policyRefs.shippingPolicy")
         .populate("policyRefs.termsPolicy")
-        .populate("sizeChartId");
+        .populate("sizeChartId")
+        .lean({ virtuals: true });
 }
 
 /**
@@ -208,7 +227,8 @@ export async function findSimilar(
         $or: orConditions,
     })
         .sort({ isTrending: -1, createdAt: -1 })
-        .limit(limit);
+        .limit(limit)
+        .lean({ virtuals: true });
 }
 
 /**
@@ -336,7 +356,7 @@ export async function getTopSellingProducts(limit = 10, category?: string, verti
     const productsWithSales = await Product.find({
         ...baseFilter,
         _id: { $in: productIds },
-    });
+    }).lean({ virtuals: true });
 
     const fallbackLimit = limit - productsWithSales.length;
     let fallbackProducts: any[] = [];
@@ -352,7 +372,8 @@ export async function getTopSellingProducts(limit = 10, category?: string, verti
             isFeatured: -1,
             createdAt: -1
         })
-        .limit(fallbackLimit);
+        .limit(fallbackLimit)
+        .lean({ virtuals: true });
     }
 
     const allProducts = [...productsWithSales, ...fallbackProducts];

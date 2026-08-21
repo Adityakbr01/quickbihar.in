@@ -27,18 +27,26 @@ const SearchScreen = () => {
     query: initialQuery,
     categoryId,
     categoryName,
+    subCategory,
   } = useLocalSearchParams<{
-    query: string;
-    categoryId: string;
-    categoryName: string;
+    query?: string;
+    categoryId?: string;
+    categoryName?: string;
+    subCategory?: string;
   }>();
 
-  const [query, setQuery] = useState(categoryName || initialQuery || "");
-  const [debouncedQuery, setDebouncedQuery] = useState(query);
+  const activeInitial = categoryName || subCategory || initialQuery || "";
+  const [query, setQuery] = useState(activeInitial);
+  const [debouncedQuery, setDebouncedQuery] = useState(activeInitial);
   const [history, setHistory] = useState(["Summer Dress", "Jeans", "Sarees"]);
   const [selectedSort, setSelectedSort] = useState<SortOption>("relevance");
   const [filters, setFilters] = useState<SearchFilters>(
-    categoryId ? { category: categoryId } : {},
+    categoryName || subCategory || categoryId
+      ? {
+          category: categoryName || (categoryId ? categoryId : undefined),
+          subCategory: subCategory || undefined,
+        }
+      : {},
   );
 
   // Debounce query to optimize API calls
@@ -74,11 +82,18 @@ const SearchScreen = () => {
   );
 
   useEffect(() => {
-    if (initialQuery || categoryId) {
-      setQuery(categoryName || initialQuery || "");
-      onSearchTrigger(categoryName || initialQuery || "");
+    if (initialQuery || categoryId || categoryName || subCategory) {
+      const active = categoryName || subCategory || initialQuery || "";
+      setQuery(active);
+      setDebouncedQuery(active);
+      setFilters((prev) => ({
+        ...prev,
+        category: categoryName || (categoryId ? categoryId : undefined),
+        subCategory: subCategory || undefined,
+      }));
+      onSearchTrigger(active);
     }
-  }, [initialQuery, categoryId, categoryName, onSearchTrigger]);
+  }, [initialQuery, categoryId, categoryName, subCategory, onSearchTrigger]);
 
   const handleSortChange = (sort: SortOption) => {
     setSelectedSort(sort);

@@ -186,7 +186,17 @@ productSchema.virtual("discountLabel").get(function () {
     return null;
 });
 
-productSchema.index({ title: "text", description: "text", tags: "text" });
+productSchema.index({ vertical: 1, isActive: 1, isDeleted: 1, approvalStatus: 1, createdAt: -1 });
+productSchema.index({ vertical: 1, category: 1, subCategory: 1, isActive: 1, isDeleted: 1 });
+productSchema.index({ vertical: 1, subCategory: 1, isActive: 1, isDeleted: 1 });
+productSchema.index({ vertical: 1, isTrending: 1, isActive: 1, isDeleted: 1 });
+productSchema.index({ vertical: 1, isFeatured: 1, isActive: 1, isDeleted: 1 });
+productSchema.index({ storeId: 1, isDeleted: 1, isActive: 1 });
+productSchema.index({ sellerId: 1, isDeleted: 1, createdAt: -1 });
+productSchema.index(
+    { title: "text", description: "text", category: "text", subCategory: "text", brand: "text", tags: "text" },
+    { weights: { title: 10, category: 5, subCategory: 5, brand: 3, tags: 2, description: 1 } }
+);
 
 productSchema.pre("validate", async function () {
     if (this.isNew || !this.details?.sku) {

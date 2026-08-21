@@ -14,6 +14,7 @@ export type SortOption = "relevance" | "price_low" | "price_high" | "rating" | "
 
 export interface SearchFilters {
   category?: string;
+  subCategory?: string;
   minPrice?: number;
   maxPrice?: number;
   brand?: string;

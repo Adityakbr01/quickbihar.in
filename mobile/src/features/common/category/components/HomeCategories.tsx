@@ -15,7 +15,7 @@ import CategorySkeleton from "./CategorySkeleton";
 import { useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
 
-const HomeCategories = ({ rootSlug }: { rootSlug?: string }) => {
+const HomeCategories = ({ rootSlug = "clothing" }: { rootSlug?: string }) => {
   const theme = useTheme();
   const router = useRouter();
   const { data: categories, isLoading, error } = useCategories();
@@ -28,7 +28,12 @@ const HomeCategories = ({ rootSlug }: { rootSlug?: string }) => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
         router.push({
           pathname: "/(tabs)/clothing/search",
-          params: { query: item.title },
+          params: {
+            query: item.title,
+            categoryName: item.title,
+            subCategory: item.title,
+            categoryId: item._id,
+          },
         });
       }}
     >
@@ -46,12 +51,38 @@ const HomeCategories = ({ rootSlug }: { rootSlug?: string }) => {
     </TouchableOpacity>
   );
 
-  const featuredCategories = React.useMemo(() => {
-    if (!categories) return [];
+  const displayedCategories = React.useMemo(() => {
+    if (!categories || categories.length === 0) return [];
+    
+    // Find the root category (e.g. "clothing")
+    const targetSlug = (rootSlug || "clothing").toLowerCase();
+    const rootCat = categories.find(
+      (cat) =>
+        cat.slug?.toLowerCase() === targetSlug ||
+        cat.title?.toLowerCase() === targetSlug
+    );
+
+    if (rootCat) {
+      const childCategories = categories.filter((cat) => {
+        const pId = typeof cat.parentId === "object" ? (cat.parentId as any)?._id : cat.parentId;
+        return pId && pId.toString() === rootCat._id.toString();
+      });
+      if (childCategories.length > 0) {
+        return childCategories;
+      }
+    }
+
+    // Fallback: all subcategories (having a parentId) or non-root categories
+    const subCategories = categories.filter((cat) => Boolean(cat.parentId));
+    if (subCategories.length > 0) {
+      return subCategories;
+    }
+
     const featured = categories.filter((cat) => cat.isFeatured || cat.isFeature);
     if (featured.length > 0) return featured;
-    return categories.filter((cat) => !cat.parentId); // fallback to root categories
-  }, [categories]);
+
+    return categories;
+  }, [categories, rootSlug]);
 
   if (isLoading) {
     return (
@@ -75,7 +106,7 @@ const HomeCategories = ({ rootSlug }: { rootSlug?: string }) => {
   return (
     <View style={styles.container}>
       <FlashList
-        data={featuredCategories}
+        data={displayedCategories}
         renderItem={renderItem}
         keyExtractor={(item) => item._id}
         horizontal
