@@ -1,4 +1,5 @@
 import { User } from "../modules/common/user/user.model";
+import { Product } from "../modules/clothing/products/product.model";
 import { SizeChart } from "../modules/clothing/sizeChart/sizeChart.model";
 import { ENV } from "../config/env.config";
 import { RefundPolicy } from "../modules/common/refundPolicy/refundPolicy.model";
@@ -705,5 +706,36 @@ export const seedRbac = async () => {
         console.log("🎉 RBAC Seeded Successfully!");
     } catch (error) {
         console.error("❌ Failed to seed RBAC:", error);
+    }
+};
+
+export const syncProductVerticals = async () => {
+    try {
+        console.log("🌱 Synchronizing Product Verticals (CLOTHING, JEWELERY, FOOD)...");
+        // Update all jewellery products in database so vertical is set to JEWELERY
+        await Product.updateMany(
+            {
+                $or: [
+                    { category: { $regex: /jewel|necklace|ring|earring|pendant|bangle/i } },
+                    { subCategory: { $regex: /jewel|necklace|ring|earring|pendant|bangle/i } },
+                ],
+            },
+            { $set: { vertical: "JEWELERY" } }
+        );
+
+        // Update all food products in database so vertical is set to FOOD
+        await Product.updateMany(
+            {
+                $or: [
+                    { category: { $regex: /food|grocery|beverage|snack|sweet/i } },
+                    { subCategory: { $regex: /food|grocery|beverage|snack|sweet/i } },
+                ],
+            },
+            { $set: { vertical: "FOOD" } }
+        );
+
+        console.log("✔️ Product verticals synchronized.");
+    } catch (error) {
+        console.error("❌ Failed to sync product verticals:", error);
     }
 };

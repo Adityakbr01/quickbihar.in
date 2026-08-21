@@ -446,6 +446,7 @@ const productFormData = (payload: ProductPayload, images?: File[]) => {
   appendOptional(formData, "compliance", payload.compliance);
   appendOptional(formData, "logistics", payload.logistics);
   appendOptional(formData, "gender", payload.gender);
+  appendOptional(formData, "policyRefs", payload.policyRefs);
   appendOptional(formData, "refundPolicy", payload.refundPolicy);
   appendOptional(formData, "existingImages", payload.existingImages);
   appendOptional(formData, "isFeatured", payload.isFeatured);

@@ -30,6 +30,12 @@ export async function findAll(query: any = {}, options: { skip?: number; limit?:
     }
 
     // 2. Handle Filters
+    if (query.vertical) {
+        finalQuery.vertical = query.vertical;
+    } else {
+        finalQuery.vertical = "CLOTHING";
+    }
+
     if (query.isActive !== undefined) {
         finalQuery.isActive = query.isActive === "true" || query.isActive === true;
     }
@@ -60,6 +66,8 @@ export async function findAll(query: any = {}, options: { skip?: number; limit?:
 
     if (query.category) {
         finalQuery.category = query.category;
+    } else if (finalQuery.vertical === "CLOTHING") {
+        finalQuery.category = { $not: /jewel|necklace|ring|earring|pendant|bangle|food|grocery|beverage|snack/i };
     }
 
     if (query.subCategory) {
@@ -192,6 +200,8 @@ export async function findSimilar(
         _id: { $ne: productId },
         isDeleted: false,
         isActive: true,
+        vertical: "CLOTHING",
+        category: { $not: /jewel|necklace|ring|earring|pendant|bangle|food|grocery|beverage|snack/i },
         $and: [
             { $or: [{ approvalStatus: "APPROVED" }, { approvalStatus: { $exists: false } }] },
         ],
@@ -304,6 +314,8 @@ export async function getTopSellingProducts(limit = 10, category?: string) {
     const baseFilter: any = {
         isActive: true,
         isDeleted: false,
+        vertical: "CLOTHING",
+        category: { $not: /jewel|necklace|ring|earring|pendant|bangle|food|grocery|beverage|snack/i },
         $or: [{ approvalStatus: "APPROVED" }, { approvalStatus: { $exists: false } }]
     };
 

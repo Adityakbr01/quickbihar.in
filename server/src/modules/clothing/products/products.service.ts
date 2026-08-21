@@ -88,6 +88,14 @@ function isApprovedForPublic(product: any): boolean {
     return product?.isActive && (!product.approvalStatus || product.approvalStatus === "APPROVED");
 }
 
+function inferVertical(category?: string, subCategory?: string, vertical?: string): "CLOTHING" | "FOOD" | "JEWELERY" {
+    if (vertical && ["CLOTHING", "FOOD", "JEWELERY"].includes(vertical)) return vertical as any;
+    const text = `${category || ""} ${subCategory || ""}`.toLowerCase();
+    if (/jewel|necklace|ring|earring|pendant|bangle/i.test(text)) return "JEWELERY";
+    if (/food|grocery|beverage|snack|sweet/i.test(text)) return "FOOD";
+    return "CLOTHING";
+}
+
 function assertImageCount(total: number) {
     if (total < 1) throw new ApiError(400, "At least one product image is required.");
     if (total > 5) throw new ApiError(400, "A product can have a maximum of 5 images.");
@@ -243,8 +251,11 @@ export async function createProduct(data: any, files: any[], requesterId: string
             fileId: res.fileId
         }));
 
+        const vertical = inferVertical(productPayload.category, productPayload.subCategory, productPayload.vertical);
+
         const product = await ProductDAO.create({
             ...productPayload,
+            vertical,
             slug,
             images,
             sellerId: ownerId,
@@ -408,6 +419,14 @@ export async function updateProduct(id: string, data: any, sellerId: string, rol
 
         if (validatedData.title) {
             updatePayload.slug = generateSlug(validatedData.title);
+        }
+
+        if (validatedData.category || validatedData.subCategory || validatedData.vertical) {
+            updatePayload.vertical = inferVertical(
+                (validatedData.category || product.category) as string,
+                ((validatedData.subCategory || product.subCategory) ?? undefined) as string | undefined,
+                ((validatedData.vertical || product.vertical) ?? undefined) as string | undefined,
+            );
         }
 
         const hasExistingImagesPayload = Object.prototype.hasOwnProperty.call(data, "existingImages");
