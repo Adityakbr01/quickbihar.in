@@ -254,12 +254,12 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     gap: 6,
   },
-  reviewerImg: { width: 20, height: 20, borderRadius: 10 },
-  reviewerName: { fontSize: 12, fontWeight: "500" },
+  reviewerImg: { width: 26, height: 26, borderRadius: 13 },
+  reviewerName: { fontSize: 13, fontWeight: "600" },
   reviewDot: { fontSize: 8 },
   reviewerDate: { fontSize: 11 },
-  helpfulBtn: { flexDirection: "row", alignItems: "center", gap: 4 },
-  helpfulText: { fontSize: 12, fontWeight: "500" },
+  helpfulBtn: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 4, borderWidth: StyleSheet.hairlineWidth },
+  helpfulText: { fontSize: 12, fontWeight: "600" },
   viewAllBtn: {
     flexDirection: "row",
     alignItems: "center",
@@ -271,6 +271,120 @@ export const styles = StyleSheet.create({
     gap: 4,
   },
   viewAllText: { fontSize: 13, fontWeight: "700", letterSpacing: 0.3 },
+
+  // Write Review Button
+  writeReviewRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 12,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    marginTop: 8,
+    marginBottom: 12,
+  },
+  writeReviewBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 6,
+    borderWidth: 1,
+    gap: 6,
+  },
+  writeReviewBtnText: {
+    fontSize: 12,
+    fontWeight: "700",
+  },
+  verifiedBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 3,
+    backgroundColor: "#E8F5E9",
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  verifiedBadgeText: {
+    color: "#2E7D32",
+    fontSize: 10,
+    fontWeight: "700",
+  },
+  avatarFallback: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  avatarFallbackText: {
+    color: "#fff",
+    fontSize: 11,
+    fontWeight: "800",
+  },
+  emptyReviewsWrap: {
+    alignItems: "center",
+    paddingVertical: 24,
+    gap: 8,
+  },
+  emptyReviewsTitle: {
+    fontSize: 15,
+    fontWeight: "700",
+  },
+  emptyReviewsSub: {
+    fontSize: 12,
+    textAlign: "center",
+    lineHeight: 18,
+    paddingHorizontal: 20,
+  },
+
+  // Store Card
+  storeCard: {
+    padding: 14,
+    borderRadius: 10,
+    borderWidth: 1,
+    marginTop: 16,
+    gap: 6,
+  },
+  storeCardHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  storeName: {
+    fontSize: 14,
+    fontWeight: "700",
+  },
+  storeBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    gap: 3,
+  },
+  storeBadgeText: {
+    fontSize: 10,
+    fontWeight: "700",
+  },
+  storeLocation: {
+    fontSize: 12,
+  },
+
+  // Policy & Compliance
+  nonReturnableBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 12,
+    borderRadius: 8,
+    gap: 10,
+    marginBottom: 10,
+  },
+  nonReturnableText: {
+    fontSize: 12,
+    fontWeight: "600",
+    flex: 1,
+    lineHeight: 17,
+  },
 
   // Bottom Bar
   bottomBar: {

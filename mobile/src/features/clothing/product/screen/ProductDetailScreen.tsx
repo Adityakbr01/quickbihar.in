@@ -7,13 +7,17 @@ import {
   ActivityIndicator,
   Image,
   Platform,
-  LayoutAnimation,
-  UIManager,
   Share,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
-import { useProductById, useSimilarProducts } from "../hooks/useProducts";
+import {
+  useProductById,
+  useSimilarProducts,
+  useProductReviews,
+  useCreateProductReview,
+  useVoteHelpfulReview,
+} from "../hooks/useProducts";
 import { useQueryClient } from "@tanstack/react-query";
 import { socketClient } from "@/src/lib/socket";
 import { SocketEvents } from "@/src/constants/socketEvents";
@@ -21,19 +25,19 @@ import { useRouter } from "expo-router";
 import { IProduct } from "../types/product.types";
 import Animated, {
   FadeIn,
-  FadeInDown,
   FadeInUp,
 } from "react-native-reanimated";
 import Carousel from "react-native-reanimated-carousel";
 
 // --- Imports from modular structure ---
 import { styles as s, SCREEN_WIDTH } from "./ProductDetail/styles";
-import { MOCK_PRODUCT, MOCK_REVIEWS, TRUST_POLICIES } from "./ProductDetail/constants";
+import { MOCK_PRODUCT, MOCK_REVIEWS } from "./ProductDetail/constants";
 import { SectionDivider } from "./ProductDetail/components/SectionDivider";
 import { ExpandableSection } from "./ProductDetail/components/ExpandableSection";
 import { RatingBar } from "./ProductDetail/components/RatingBar";
 import { SimilarProducts } from "./ProductDetail/components/SimilarProducts";
 import SizeChartModal from "../components/modals/SizeChartModal";
+import { WriteReviewModal } from "../components/modals/WriteReviewModal";
 import SafeViewWrapper from "@/src/provider/SafeViewWrapper";
 import { useWishlistStore } from "@/src/features/common/wishlist/store/wishlistStore";
 import { useCartStore } from "@/src/features/common/cart/store/cartStore";
@@ -41,21 +45,28 @@ import * as Haptics from "expo-haptics";
 import Toast from "react-native-toast-message";
 import WishlistHeart from "@/src/components/common/WishlistHeart";
 
-
+import { useSizeChart, useSizeCharts } from "@/src/features/clothing/sizeChart/hooks/useSizeCharts";
 
 interface ProductDetailProps {
   id: string;
 }
+
+const AVATAR_COLORS = ["#3B82F6", "#10B981", "#8B5CF6", "#F59E0B", "#EC4899", "#6366F1"];
 
 const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
   const router = useRouter();
   const theme = useTheme() as any;
   const { data: product, isLoading } = useProductById(id);
   const { data: similarProducts } = useSimilarProducts(id);
+  const { data: reviewsData } = useProductReviews(id);
+
+  const createReviewMutation = useCreateProductReview(id);
+  const voteHelpfulMutation = useVoteHelpfulReview(id);
 
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [showSizeChart, setShowSizeChart] = useState(false);
+  const [showReviewModal, setShowReviewModal] = useState(false);
   const [carouselIndex, setCarouselIndex] = useState(0);
 
   const wishlistItems = useWishlistStore(state => state.items);
@@ -63,6 +74,37 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
   const isWishlisted = wishlistItems.includes(id);
 
   const queryClient = useQueryClient();
+
+  const isMock = id === "mock" || !product;
+  const dp: Partial<IProduct> = isMock ? MOCK_PRODUCT : product;
+
+  // ── Backend Size Chart Resolution ──
+  const sizeChartIdString = typeof dp.sizeChartId === "string" ? dp.sizeChartId : undefined;
+  const { data: fetchedSizeChart } = useSizeChart(sizeChartIdString || "");
+  const { data: allBackendSizeCharts } = useSizeCharts();
+
+  const activeSizeChart = useMemo(() => {
+    // 1. Populated size chart object on product directly from backend
+    if (dp.sizeChartId && typeof dp.sizeChartId === "object" && (dp.sizeChartId as any).data) {
+      return dp.sizeChartId as any;
+    }
+    // 2. Fetched by ID from backend /api/v1/size-charts/:id
+    if (fetchedSizeChart && fetchedSizeChart.data) {
+      return fetchedSizeChart;
+    }
+    // 3. Matched from backend charts by category / subCategory
+    if (allBackendSizeCharts && allBackendSizeCharts.length > 0) {
+      const categoryMatch = allBackendSizeCharts.find((c: any) =>
+        c.category?.toLowerCase() === dp.subCategory?.toLowerCase() ||
+        c.category?.toLowerCase() === dp.category?.toLowerCase() ||
+        c.name?.toLowerCase().includes(dp.category?.toLowerCase() || "")
+      );
+      if (categoryMatch) return categoryMatch;
+      const globalChart = allBackendSizeCharts.find((c: any) => c.category?.toLowerCase() === "clothing" || c.scope === "GLOBAL");
+      if (globalChart) return globalChart;
+    }
+    return null;
+  }, [dp.sizeChartId, fetchedSizeChart, allBackendSizeCharts, dp.category, dp.subCategory]);
 
   useEffect(() => {
     // Listen for stock updates for this specific product
@@ -94,13 +136,10 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
     };
   }, [id, queryClient]);
 
-  const isMock = id === "mock" || !product;
-  const dp: Partial<IProduct> = isMock ? MOCK_PRODUCT : product;
-
   // ── Derived State ──
   const uniqueColors = useMemo(() => {
     if (!dp.variants) return [];
-    return Array.from(new Set(dp.variants.map((v) => v.color.trim())));
+    return Array.from(new Set(dp.variants.map((v) => (v?.color ? String(v.color).trim() : "")).filter(Boolean)));
   }, [dp.variants]);
 
   useMemo(() => {
@@ -110,15 +149,16 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
 
   const sizesForColor = useMemo(() => {
     if (!dp.variants || !selectedColor) return [];
-    return dp.variants.filter((v) => v.color.trim() === selectedColor);
+    return dp.variants.filter((v) => (v?.color ? String(v.color).trim() : "") === selectedColor);
   }, [dp.variants, selectedColor]);
 
   const images = dp.images || [];
   const discount =
-    dp.discountPercentage ||
-    (dp.originalPrice && dp.price
-      ? Math.floor((1 - dp.price / dp.originalPrice) * 100)
-      : 0);
+    dp.discountPercentage
+      ? Math.round(Number(dp.discountPercentage))
+      : (dp.originalPrice && dp.price
+        ? Math.round((1 - dp.price / dp.originalPrice) * 100)
+        : 0);
 
   const handleShare = useCallback(async () => {
     try {
@@ -135,8 +175,8 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
   const selectedVariant = useMemo(() => {
     return dp.variants?.find(
       (v) =>
-        (!selectedColor || v.color.trim() === selectedColor) &&
-        (!selectedSize || v.size === selectedSize)
+        (!selectedColor || (v?.color ? String(v.color).trim() : "") === selectedColor) &&
+        (!selectedSize || String(v?.size || "") === String(selectedSize))
     );
   }, [dp.variants, selectedColor, selectedSize]);
 
@@ -189,6 +229,54 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
     }
   };
 
+  const handleHelpfulVote = async (reviewId: string) => {
+    try {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      await voteHelpfulMutation.mutateAsync(reviewId);
+    } catch (error: any) {
+      Toast.show({
+        type: "error",
+        text1: "Vote Failed",
+        text2: error?.response?.data?.message || "Please login to vote",
+      });
+    }
+  };
+
+  // ── Ratings & Reviews Derived State ──
+  const totalReviews = reviewsData?.stats?.totalReviews ?? (dp.ratings?.count || 0);
+  const averageRating = reviewsData?.stats?.averageRating ?? (dp.ratings?.average || 0);
+  const distribution = reviewsData?.stats?.distribution || {
+    5: 0,
+    4: 0,
+    3: 0,
+    2: 0,
+    1: 0,
+  };
+
+  const starDist = [
+    { stars: 5, count: distribution[5] || 0 },
+    { stars: 4, count: distribution[4] || 0 },
+    { stars: 3, count: distribution[3] || 0 },
+    { stars: 2, count: distribution[2] || 0 },
+    { stars: 1, count: distribution[1] || 0 },
+  ];
+
+  const reviewsList = reviewsData?.reviews || [];
+
+  // ── Return Policy Derived State ──
+  const refundPolicyObj = (dp.policyRefs?.returnPolicy || dp.refundPolicy) as any;
+  const isReturnable = typeof refundPolicyObj === "object"
+    ? (refundPolicyObj?.isReturnable ?? true)
+    : !dp.deliveryInfo?.returnPolicy?.toLowerCase()?.includes("non-returnable");
+
+  const returnDays = typeof refundPolicyObj === "object" && refundPolicyObj?.returnWindowDays
+    ? refundPolicyObj.returnWindowDays
+    : (dp.deliveryInfo?.returnPolicy?.includes("10") ? 10 : 7);
+
+  // ── Store / Seller Info ──
+  const storeObj = typeof dp.storeId === "object" ? dp.storeId : null;
+  const sellerObj = typeof dp.sellerId === "object" ? dp.sellerId : null;
+
   // ── Loading State ──
   if (isLoading && !isMock) {
     return (
@@ -200,16 +288,6 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
       </View>
     );
   }
-
-  // Mock star distribution for rating bars
-  const totalReviews = dp.ratings?.count || 0;
-  const starDist = [
-    { stars: 5, count: Math.round(totalReviews * 0.58) },
-    { stars: 4, count: Math.round(totalReviews * 0.22) },
-    { stars: 3, count: Math.round(totalReviews * 0.12) },
-    { stars: 2, count: Math.round(totalReviews * 0.05) },
-    { stars: 1, count: Math.round(totalReviews * 0.03) },
-  ];
 
   return (
     <SafeViewWrapper>
@@ -337,15 +415,15 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
           </Animated.Text>
 
           {/* Rating Chip */}
-          {dp.ratings && dp.ratings.count > 0 && (
+          {totalReviews > 0 && (
             <Animated.View entering={FadeIn.delay(200)} style={s.ratingChip}>
               <View style={s.ratingChipInner}>
-                <Text style={s.ratingChipScore}>{dp.ratings.average}</Text>
+                <Text style={s.ratingChipScore}>{averageRating}</Text>
                 <Ionicons name="star" size={11} color="#fff" />
               </View>
               <View style={s.ratingDividerLine} />
               <Text style={[s.ratingChipCount, { color: theme.secondaryText }]}>
-                {dp.ratings.count} Ratings
+                {totalReviews} Ratings
               </Text>
             </Animated.View>
           )}
@@ -440,7 +518,11 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
               </Text>
               <TouchableOpacity
                 style={s.sizeGuideBtn}
-                onPress={() => setShowSizeChart(true)}
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  setShowSizeChart(true);
+                }}
+                activeOpacity={0.7}
               >
                 <Ionicons
                   name="resize-outline"
@@ -492,7 +574,6 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
                     >
                       {v.size}
                     </Text>
-                    {/* OOS diagonal line */}
                     {oos && (
                       <View
                         style={[
@@ -558,7 +639,7 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
                   })}
                 </Text>
                 <Text style={[s.deliveryCardSub, { color: theme.secondaryText }]}>
-                  Free delivery on orders above ₹499
+                  Express hyperlocal delivery by QuickBihar
                 </Text>
               </View>
             </View>
@@ -575,10 +656,10 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
                 <Ionicons name="flash-outline" size={22} color="#F59E0B" />
                 <View style={s.deliveryCardText}>
                   <Text style={[s.deliveryCardTitle, { color: theme.text }]}>
-                    Express Delivery Available
+                    Express Fast-Track Dispatch
                   </Text>
                   <Text style={[s.deliveryCardSub, { color: theme.secondaryText }]}>
-                    Get it within 24 hours
+                    Get it within 24–48 hours
                   </Text>
                 </View>
               </View>
@@ -589,9 +670,7 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
             {[
               {
                 icon: "refresh-outline",
-                label: (typeof dp.refundPolicy !== 'string' && dp.refundPolicy?.returnWindowDays)
-                  ? `${dp.refundPolicy.returnWindowDays} Day\nReturns`
-                  : (dp.deliveryInfo?.returnPolicy?.includes('7') ? "7 Day\nReturns" : "Easy\nReturns")
+                label: isReturnable ? `${returnDays} Day\nReturns` : "Non\nReturnable",
               },
               {
                 icon: dp.deliveryInfo?.isCodAvailable ? "cash-outline" : "card-outline",
@@ -599,7 +678,11 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
               },
               {
                 icon: "shield-checkmark-outline",
-                label: "Genuine\nProduct"
+                label: "100% Genuine\nProduct"
+              },
+              {
+                icon: "storefront-outline",
+                label: "Verified\nLocal Store"
               },
             ].map((p, i) => (
               <View key={i} style={s.policyItem}>
@@ -622,7 +705,7 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
         <SectionDivider theme={theme} />
 
         {/* ═══════════════════════════════════════════
-            PRODUCT DETAILS (Expandable Sections)
+            1. PRODUCT DETAILS (Expandable Section)
         ═══════════════════════════════════════════ */}
         <View
           style={[
@@ -631,110 +714,227 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
           ]}
         >
           <ExpandableSection
-            title="Product Details"
+            title="Product Details & Specifications"
             theme={theme}
             defaultOpen={true}
           >
-            <Text style={[s.descriptionText, { color: theme.secondaryText }]}>
-              {dp.description}
-            </Text>
-            {dp.details && (
-              <View style={s.specsTable}>
+            {dp.description ? (
+              <Text style={[s.descriptionText, { color: theme.secondaryText }]}>
+                {dp.description}
+              </Text>
+            ) : null}
+
+            {/* Complete Dynamic Specifications Table */}
+            <View style={s.specsTable}>
+              {[
+                { k: "Brand", v: dp.brand },
+                { k: "Category", v: dp.category },
+                { k: "Sub-Category", v: dp.subCategory },
+                { k: "Gender", v: dp.gender },
+                { k: "Material / Fabric", v: dp.details?.material },
+                { k: "Fit", v: dp.details?.fit },
+                { k: "Pattern", v: dp.details?.pattern },
+                { k: "Sleeve Length", v: dp.details?.sleeve },
+                { k: "Collar / Neckline", v: dp.details?.collar },
+                { k: "Wash & Care", v: dp.details?.washCare },
+                { k: "Occasion", v: dp.details?.occasion },
+                { k: "Fabric Care", v: dp.details?.fabricCare },
+                { k: "Style / SKU Code", v: selectedVariant?.sku || dp.details?.sku || dp.variants?.[0]?.sku },
+                { k: "Tags", v: dp.tags?.join(", ") },
+              ]
+                .filter((x) => Boolean(x.v))
+                .map((spec, i) => (
+                  <View
+                    key={i}
+                    style={[
+                      s.specTableRow,
+                      { borderBottomColor: theme.border },
+                    ]}
+                  >
+                    <Text style={[s.specKey, { color: theme.secondaryText }]}>
+                      {spec.k}
+                    </Text>
+                    <Text style={[s.specVal, { color: theme.text }]}>
+                      {spec.v}
+                    </Text>
+                  </View>
+                ))}
+            </View>
+
+            {/* Food Specifications if present */}
+            {dp.foodDetails && (
+              <View style={[s.specsTable, { marginTop: 10 }]}>
                 {[
-                  { k: "Fit", v: dp.details.fit },
-                  { k: "Pattern", v: dp.details.pattern },
-                  { k: "Sleeve", v: dp.details.sleeve },
-                  { k: "Wash Care", v: dp.details.washCare },
+                  { k: "Food Type", v: dp.foodDetails.vegNonVeg },
+                  { k: "Shelf Life", v: dp.foodDetails.shelfLife },
+                  { k: "Serving Size", v: dp.foodDetails.servingSize },
+                  { k: "Calories", v: dp.foodDetails.calories ? `${dp.foodDetails.calories} kcal` : undefined },
+                  { k: "Ingredients", v: dp.foodDetails.ingredients?.join(", ") },
                 ]
-                  .filter((x) => x.v)
+                  .filter((x) => Boolean(x.v))
                   .map((spec, i) => (
-                    <View
-                      key={i}
-                      style={[
-                        s.specTableRow,
-                        { borderBottomColor: theme.border },
-                      ]}
-                    >
-                      <Text style={[s.specKey, { color: theme.secondaryText }]}>
-                        {spec.k}
-                      </Text>
-                      <Text style={[s.specVal, { color: theme.text }]}>
-                        {spec.v}
-                      </Text>
+                    <View key={i} style={[s.specTableRow, { borderBottomColor: theme.border }]}>
+                      <Text style={[s.specKey, { color: theme.secondaryText }]}>{spec.k}</Text>
+                      <Text style={[s.specVal, { color: theme.text }]}>{spec.v}</Text>
                     </View>
                   ))}
-                {dp.details?.material && (
-                  <View style={[s.specTableRow, { borderBottomColor: theme.border }]}>
-                    <Text style={[s.specKey, { color: theme.secondaryText }]}>Material</Text>
-                    <Text style={[s.specVal, { color: theme.text }]}>{dp.details.material}</Text>
-                  </View>
-                )}
               </View>
             )}
-          </ExpandableSection>
 
-          <ExpandableSection title="Return & Exchange Policy" theme={theme}>
-            <View style={s.returnPolicyContent}>
-              {dp.refundPolicy && typeof dp.refundPolicy !== 'string' ? (
-                <>
-                  <View style={s.returnRow}>
-                    <Ionicons name="calendar-outline" size={18} color={theme.primary} />
-                    <Text style={[s.returnText, { color: theme.secondaryText, fontWeight: "700" }]}>
-                      {dp.refundPolicy.returnWindowDays} Day {dp.refundPolicy.isReturnable ? "Return" : "Policy"} Window
-                    </Text>
-                  </View>
-                  {dp.refundPolicy.description && (
-                    <Text style={{ fontSize: 13, color: theme.tertiaryText, marginBottom: 8 }}>
-                      {dp.refundPolicy.description}
-                    </Text>
-                  )}
-                  {dp.refundPolicy.conditions && dp.refundPolicy.conditions.length > 0 && (
-                    <View style={{ marginTop: 4 }}>
-                      <Text style={{ fontSize: 12, fontWeight: "700", color: theme.text, marginBottom: 6 }}>POLICY CONDITIONS:</Text>
-                      {dp.refundPolicy.conditions.map((c, i) => (
-                        <View key={i} style={{ flexDirection: "row", marginBottom: 4, gap: 8 }}>
-                          <Ionicons name="checkmark-done" size={14} color={theme.success} />
-                          <Text style={{ fontSize: 12, color: theme.secondaryText }}>{c}</Text>
-                        </View>
-                      ))}
+            {/* Jewelry Specifications if present */}
+            {dp.jeweleryDetails && (
+              <View style={[s.specsTable, { marginTop: 10 }]}>
+                {[
+                  { k: "Metal Type", v: dp.jeweleryDetails.metalType },
+                  { k: "Purity", v: dp.jeweleryDetails.purity },
+                  { k: "BIS Hallmark", v: dp.jeweleryDetails.hallmark ? "Certified Hallmark" : undefined },
+                  { k: "Gemstone", v: dp.jeweleryDetails.gemstone },
+                  { k: "Weight", v: dp.jeweleryDetails.weightGrams ? `${dp.jeweleryDetails.weightGrams} gm` : undefined },
+                ]
+                  .filter((x) => Boolean(x.v))
+                  .map((spec, i) => (
+                    <View key={i} style={[s.specTableRow, { borderBottomColor: theme.border }]}>
+                      <Text style={[s.specKey, { color: theme.secondaryText }]}>{spec.k}</Text>
+                      <Text style={[s.specVal, { color: theme.text }]}>{spec.v}</Text>
                     </View>
-                  )}
-                </>
-              ) : (
-                <View style={s.returnRow}>
-                  <Ionicons name="checkmark-circle" size={18} color={theme.success} />
-                  <Text style={[s.returnText, { color: theme.secondaryText }]}>
-                    {dp.deliveryInfo?.returnPolicy || "Standard return policy applies"}
+                  ))}
+              </View>
+            )}
+
+            {/* Verified Seller & Store Source */}
+            <View style={[s.storeCard, { backgroundColor: theme.tertiaryBackground, borderColor: theme.border }]}>
+              <View style={s.storeCardHeader}>
+                <View style={{ flex: 1 }}>
+                  <Text style={[s.storeName, { color: theme.text }]}>
+                    {storeObj?.name || (typeof sellerObj === "object" && sellerObj?.businessName) || "QuickBihar Verified Partner Store"}
+                  </Text>
+                  <Text style={[s.storeLocation, { color: theme.secondaryText }]}>
+                    {storeObj?.city ? `${storeObj.city}, ${storeObj.state || 'Bihar'}` : "Bihar, India"}
                   </Text>
                 </View>
+                <View style={[s.storeBadge, { backgroundColor: "#E8F5E9" }]}>
+                  <Ionicons name="checkmark-circle" size={14} color="#2E7D32" />
+                  <Text style={[s.storeBadgeText, { color: "#2E7D32" }]}>
+                    {storeObj?.rating ? `${storeObj.rating} ★ Verified` : "Verified Partner"}
+                  </Text>
+                </View>
+              </View>
+            </View>
+          </ExpandableSection>
+
+          {/* ═══════════════════════════════════════════
+              2. RETURN & EXCHANGE POLICY
+          ═══════════════════════════════════════════ */}
+          <ExpandableSection title="Return & Exchange Policy" theme={theme} defaultOpen={false}>
+            <View style={s.returnPolicyContent}>
+              {!isReturnable ? (
+                <View style={[s.nonReturnableBanner, { backgroundColor: "#FFEBEE" }]}>
+                  <Ionicons name="alert-circle" size={20} color="#D32F2F" />
+                  <Text style={[s.nonReturnableText, { color: "#C62828" }]}>
+                    Non-Returnable: Due to hygiene, safety, or perishable standards, this item cannot be returned once delivered.
+                  </Text>
+                </View>
+              ) : (
+                <>
+                  <View style={s.returnRow}>
+                    <Ionicons name="calendar-outline" size={20} color={theme.primary} />
+                    <Text style={[s.returnText, { color: theme.text, fontWeight: "700" }]}>
+                      {returnDays} Days Easy Return & Exchange
+                    </Text>
+                  </View>
+
+                  <View style={s.returnRow}>
+                    <Ionicons name="cube-outline" size={20} color={theme.success || "#34C759"} />
+                    <Text style={[s.returnText, { color: theme.secondaryText }]}>
+                      Free doorstep return pickup by QuickBihar rider
+                    </Text>
+                  </View>
+
+                  <View style={s.returnRow}>
+                    <Ionicons name="card-outline" size={20} color={theme.primary} />
+                    <Text style={[s.returnText, { color: theme.secondaryText }]}>
+                      100% instant refund directly credited to your original payment source (UPI / Bank / Card) upon return pickup
+                    </Text>
+                  </View>
+
+                  {/* Conditions Checklist */}
+                  <View style={{ marginTop: 8, padding: 12, borderRadius: 8, backgroundColor: theme.tertiaryBackground }}>
+                    <Text style={{ fontSize: 12, fontWeight: "700", color: theme.text, marginBottom: 8 }}>
+                      RETURN & EXCHANGE CONDITIONS:
+                    </Text>
+                    {[
+                      "Item must be unused, unwashed, and in its original undamaged condition",
+                      "All brand tags, price tags, and barcodes must be attached and intact",
+                      "Item must be returned in its original brand box/packaging",
+                      "Doorstep quality check (QC) is verified instantly by the delivery partner",
+                    ].map((condition, idx) => (
+                      <View key={idx} style={{ flexDirection: "row", marginBottom: 6, gap: 8 }}>
+                        <Ionicons name="checkmark-circle" size={15} color={theme.success || "#34C759"} />
+                        <Text style={{ fontSize: 12, color: theme.secondaryText, flex: 1, lineHeight: 16 }}>
+                          {condition}
+                        </Text>
+                      </View>
+                    ))}
+                  </View>
+                </>
               )}
             </View>
           </ExpandableSection>
 
-          <ExpandableSection title="Compliance & Manufacturing" theme={theme}>
+          {/* ═══════════════════════════════════════════
+              3. COMPLIANCE AND MANUFACTURING
+          ═══════════════════════════════════════════ */}
+          <ExpandableSection title="Compliance & Manufacturing" theme={theme} defaultOpen={false}>
             <View style={s.specsTable}>
               <View style={[s.specTableRow, { borderBottomColor: theme.border }]}>
                 <Text style={[s.specKey, { color: theme.secondaryText }]}>Country of Origin</Text>
-                <Text style={[s.specVal, { color: theme.text }]}>{dp.compliance?.countryOfOrigin || "India"}</Text>
+                <Text style={[s.specVal, { color: theme.text }]}>{dp.compliance?.countryOfOrigin || "India 🇮🇳"}</Text>
               </View>
-              {dp.compliance?.manufacturerDetail && (
+              <View style={[s.specTableRow, { borderBottomColor: theme.border }]}>
+                <Text style={[s.specKey, { color: theme.secondaryText }]}>Manufacturer</Text>
+                <Text style={[s.specVal, { color: theme.text }]}>
+                  {dp.compliance?.manufacturerDetail || (storeObj?.name ? `${storeObj.name}, ${storeObj.city || ''} ${storeObj.state || 'Bihar'}` : "QuickBihar Verified Partner, Bihar")}
+                </Text>
+              </View>
+              <View style={[s.specTableRow, { borderBottomColor: theme.border }]}>
+                <Text style={[s.specKey, { color: theme.secondaryText }]}>Packer</Text>
+                <Text style={[s.specVal, { color: theme.text }]}>
+                  {dp.compliance?.packerDetail || dp.compliance?.manufacturerDetail || "QuickBihar Logistics Hub, Bihar"}
+                </Text>
+              </View>
+              {dp.compliance?.importerDetail && (
                 <View style={[s.specTableRow, { borderBottomColor: theme.border }]}>
-                  <Text style={[s.specKey, { color: theme.secondaryText }]}>Manufacturer</Text>
-                  <Text style={[s.specVal, { color: theme.text }]}>{dp.compliance.manufacturerDetail}</Text>
+                  <Text style={[s.specKey, { color: theme.secondaryText }]}>Importer</Text>
+                  <Text style={[s.specVal, { color: theme.text }]}>{dp.compliance.importerDetail}</Text>
                 </View>
               )}
-              {dp.compliance?.packerDetail && (
-                <View style={[s.specTableRow, { borderBottomColor: theme.border }]}>
-                  <Text style={[s.specKey, { color: theme.secondaryText }]}>Packer</Text>
-                  <Text style={[s.specVal, { color: theme.text }]}>{dp.compliance.packerDetail}</Text>
-                </View>
-              )}
-              {dp.logistics?.warehouseName && (
-                <View style={[s.specTableRow, { borderBottomColor: theme.border }]}>
-                  <Text style={[s.specKey, { color: theme.secondaryText }]}>Dispatched From</Text>
-                  <Text style={[s.specVal, { color: theme.text }]}>{dp.logistics.warehouseName}</Text>
-                </View>
-              )}
+              <View style={[s.specTableRow, { borderBottomColor: theme.border }]}>
+                <Text style={[s.specKey, { color: theme.secondaryText }]}>Generic / Commodity Name</Text>
+                <Text style={[s.specVal, { color: theme.text }]}>{dp.compliance?.genericName || dp.subCategory || dp.category || "Apparel / Consumer Goods"}</Text>
+              </View>
+              <View style={[s.specTableRow, { borderBottomColor: theme.border }]}>
+                <Text style={[s.specKey, { color: theme.secondaryText }]}>Dispatched From</Text>
+                <Text style={[s.specVal, { color: theme.text }]}>{dp.logistics?.warehouseName || storeObj?.name || "QuickBihar Express Hub, Bihar"}</Text>
+              </View>
+              <View style={[s.specTableRow, { borderBottomColor: theme.border }]}>
+                <Text style={[s.specKey, { color: theme.secondaryText }]}>Tax Transparency</Text>
+                <Text style={[s.specVal, { color: theme.text }]}>
+                  {dp.isGstApplicable ? `Includes ${dp.gstPercentage}% GST (Tax invoice included with shipment)` : "Price inclusive of all taxes"}
+                </Text>
+              </View>
+            </View>
+
+            {/* Consumer Grievance & Customer Care */}
+            <View style={{ marginTop: 12, padding: 12, borderRadius: 8, backgroundColor: theme.tertiaryBackground, gap: 4 }}>
+              <Text style={{ fontSize: 12, fontWeight: "700", color: theme.text }}>
+                CUSTOMER CARE & GRIEVANCE REDRESSAL:
+              </Text>
+              <Text style={{ fontSize: 12, color: theme.secondaryText }}>
+                Email: <Text style={{ color: theme.primary, fontWeight: "600" }}>support@quickbihar.com</Text>
+              </Text>
+              <Text style={{ fontSize: 12, color: theme.secondaryText }}>
+                Helpline: <Text style={{ color: theme.text, fontWeight: "600" }}>+91 95077 12255</Text> (Mon-Sun, 8 AM - 10 PM)
+              </Text>
             </View>
           </ExpandableSection>
         </View>
@@ -742,7 +942,7 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
         <SectionDivider theme={theme} />
 
         {/* ═══════════════════════════════════════════
-            RATINGS & REVIEWS (Expandable)
+            4. RATINGS & REVIEWS (Expandable & Interactive)
         ═══════════════════════════════════════════ */}
         <View
           style={[
@@ -753,22 +953,22 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
           <ExpandableSection
             title={`Ratings & Reviews (${totalReviews})`}
             theme={theme}
-            defaultOpen={false}
+            defaultOpen={true}
           >
             {/* Rating Overview */}
             <View style={s.ratingOverview}>
               <View style={s.ratingLeft}>
                 <Text style={[s.bigRating, { color: theme.text }]}>
-                  {dp.ratings?.average || 0}
+                  {averageRating > 0 ? averageRating : "0.0"}
                 </Text>
                 <View style={s.starsRow}>
                   {[1, 2, 3, 4, 5].map((star) => (
                     <Ionicons
                       key={star}
                       name={
-                        star <= Math.floor(dp.ratings?.average || 0)
+                        star <= Math.floor(averageRating)
                           ? "star"
-                          : star - 0.5 <= (dp.ratings?.average || 0)
+                          : star - 0.5 <= averageRating
                             ? "star-half"
                             : "star-outline"
                       }
@@ -778,7 +978,7 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
                   ))}
                 </View>
                 <Text style={[s.totalRatings, { color: theme.tertiaryText }]}>
-                  {totalReviews} verified
+                  {totalReviews} verified ratings
                 </Text>
               </View>
               <View style={s.ratingRight}>
@@ -787,111 +987,165 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
                     key={d.stars}
                     stars={d.stars}
                     count={d.count}
-                    total={totalReviews}
+                    total={totalReviews || 1}
                     theme={theme}
                   />
                 ))}
               </View>
             </View>
 
-            {/* Review Cards */}
-            <View style={s.reviewsList}>
-              {MOCK_REVIEWS.map((review, idx) => (
-                <View
-                  key={review.id}
-                  style={[s.reviewCard, { borderBottomColor: theme.border }]}
-                >
-                  {/* Star + Title row */}
-                  <View style={s.reviewTopRow}>
-                    <View
-                      style={[
-                        s.miniRatingPill,
-                        {
-                          backgroundColor:
-                            review.rating >= 4
-                              ? "#34C759"
-                              : review.rating >= 3
-                                ? "#F59E0B"
-                                : "#FF3B30",
-                        },
-                      ]}
-                    >
-                      <Text style={s.miniRatingText}>{review.rating}</Text>
-                      <Ionicons name="star" size={10} color="#fff" />
-                    </View>
-                    <Text
-                      style={[s.reviewTitle, { color: theme.text }]}
-                      numberOfLines={1}
-                    >
-                      {review.title}
-                    </Text>
-                  </View>
-
-                  {/* Comment */}
-                  <Text style={[s.reviewBody, { color: theme.secondaryText }]}>
-                    {review.comment}
-                  </Text>
-
-                  {/* Review Images */}
-                  {review.images.length > 0 && (
-                    <ScrollView
-                      horizontal
-                      showsHorizontalScrollIndicator={false}
-                      style={s.reviewImagesRow}
-                    >
-                      {review.images.map((img, i) => (
-                        <Image
-                          key={i}
-                          source={{ uri: img }}
-                          style={[s.reviewThumb, { borderColor: theme.border }]}
-                        />
-                      ))}
-                    </ScrollView>
-                  )}
-
-                  {/* Reviewer Info */}
-                  <View style={s.reviewerRow}>
-                    <Image
-                      source={{ uri: review.avatar }}
-                      style={s.reviewerImg}
-                    />
-                    <Text
-                      style={[s.reviewerName, { color: theme.tertiaryText }]}
-                    >
-                      {review.user}
-                    </Text>
-                    <Text style={[s.reviewDot, { color: theme.border }]}>
-                      •
-                    </Text>
-                    <Text
-                      style={[s.reviewerDate, { color: theme.tertiaryText }]}
-                    >
-                      {review.date}
-                    </Text>
-                    <View style={{ flex: 1 }} />
-                    <TouchableOpacity style={s.helpfulBtn}>
-                      <Ionicons
-                        name="thumbs-up-outline"
-                        size={14}
-                        color={theme.secondaryText}
-                      />
-                      <Text
-                        style={[s.helpfulText, { color: theme.secondaryText }]}
-                      >
-                        {review.helpful}
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              ))}
+            {/* Write Review Action Row */}
+            <View style={[s.writeReviewRow, { borderTopColor: theme.border }]}>
+              <Text style={{ fontSize: 13, fontWeight: "600", color: theme.text }}>
+                Have you used this product?
+              </Text>
+              <TouchableOpacity
+                style={[s.writeReviewBtn, { borderColor: theme.primary, backgroundColor: theme.primary + "10" }]}
+                onPress={() => setShowReviewModal(true)}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="star" size={14} color={theme.primary} />
+                <Text style={[s.writeReviewBtnText, { color: theme.primary }]}>
+                  Rate & Review
+                </Text>
+              </TouchableOpacity>
             </View>
 
-            <TouchableOpacity style={[s.viewAllBtn, { borderColor: theme.border }]}>
-              <Text style={[s.viewAllText, { color: theme.primary }]}>
-                View All {totalReviews} Reviews
-              </Text>
-              <Ionicons name="chevron-forward" size={16} color={theme.primary} />
-            </TouchableOpacity>
+            {/* Review Cards List */}
+            {reviewsList.length === 0 ? (
+              <View style={s.emptyReviewsWrap}>
+                <Ionicons name="chatbox-ellipses-outline" size={38} color={theme.tertiaryText} />
+                <Text style={[s.emptyReviewsTitle, { color: theme.text }]}>No Reviews Yet</Text>
+                <Text style={[s.emptyReviewsSub, { color: theme.secondaryText }]}>
+                  Be the first to share your thoughts and help other shoppers make the right choice!
+                </Text>
+              </View>
+            ) : (
+              <View style={s.reviewsList}>
+                {reviewsList.map((review: any, idx: number) => {
+                  const userName = review.user?.fullName || review.user || "Customer";
+                  const initial = userName.charAt(0).toUpperCase();
+                  const avatarColor = AVATAR_COLORS[idx % AVATAR_COLORS.length];
+                  const formattedDate = review.createdAt
+                    ? new Date(review.createdAt).toLocaleDateString("en-IN", {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                      })
+                    : review.date || "Verified Purchase";
+
+                  return (
+                    <View
+                      key={review._id || review.id || idx}
+                      style={[s.reviewCard, { borderBottomColor: theme.border }]}
+                    >
+                      {/* Star + Title row */}
+                      <View style={s.reviewTopRow}>
+                        <View
+                          style={[
+                            s.miniRatingPill,
+                            {
+                              backgroundColor:
+                                review.rating >= 4
+                                  ? "#34C759"
+                                  : review.rating >= 3
+                                    ? "#F59E0B"
+                                    : "#FF3B30",
+                            },
+                          ]}
+                        >
+                          <Text style={s.miniRatingText}>{review.rating}</Text>
+                          <Ionicons name="star" size={10} color="#fff" />
+                        </View>
+                        <Text
+                          style={[s.reviewTitle, { color: theme.text }]}
+                          numberOfLines={1}
+                        >
+                          {review.title || "Customer Review"}
+                        </Text>
+                      </View>
+
+                      {/* Comment */}
+                      <Text style={[s.reviewBody, { color: theme.secondaryText }]}>
+                        {review.comment}
+                      </Text>
+
+                      {/* Review Images */}
+                      {review.images && review.images.length > 0 && (
+                        <ScrollView
+                          horizontal
+                          showsHorizontalScrollIndicator={false}
+                          style={s.reviewImagesRow}
+                        >
+                          {review.images.map((img: any, i: number) => {
+                            const imgUrl = typeof img === "string" ? img : img.url;
+                            return (
+                              <Image
+                                key={i}
+                                source={{ uri: imgUrl }}
+                                style={[s.reviewThumb, { borderColor: theme.border }]}
+                              />
+                            );
+                          })}
+                        </ScrollView>
+                      )}
+
+                      {/* Reviewer Info */}
+                      <View style={s.reviewerRow}>
+                        <View style={[s.avatarFallback, { backgroundColor: avatarColor }]}>
+                          <Text style={s.avatarFallbackText}>{initial}</Text>
+                        </View>
+                        <Text
+                          style={[s.reviewerName, { color: theme.text }]}
+                        >
+                          {userName}
+                        </Text>
+                        {(review.isVerifiedBuyer || isMock) && (
+                          <View style={s.verifiedBadge}>
+                            <Ionicons name="checkmark" size={11} color="#2E7D32" />
+                            <Text style={s.verifiedBadgeText}>Verified</Text>
+                          </View>
+                        )}
+                        <Text style={[s.reviewDot, { color: theme.tertiaryText }]}>
+                          •
+                        </Text>
+                        <Text
+                          style={[s.reviewerDate, { color: theme.tertiaryText }]}
+                        >
+                          {formattedDate}
+                        </Text>
+                        <View style={{ flex: 1 }} />
+                        <TouchableOpacity
+                          style={[
+                            s.helpfulBtn,
+                            {
+                              borderColor: review.hasVotedHelpful ? theme.primary : theme.border,
+                              backgroundColor: review.hasVotedHelpful ? theme.primary + "15" : "transparent",
+                            },
+                          ]}
+                          onPress={() => review._id && handleHelpfulVote(review._id)}
+                          activeOpacity={0.7}
+                        >
+                          <Ionicons
+                            name={review.hasVotedHelpful ? "thumbs-up" : "thumbs-up-outline"}
+                            size={13}
+                            color={review.hasVotedHelpful ? theme.primary : theme.secondaryText}
+                          />
+                          <Text
+                            style={[
+                              s.helpfulText,
+                              { color: review.hasVotedHelpful ? theme.primary : theme.secondaryText },
+                            ]}
+                          >
+                            {review.helpfulCount ?? review.helpful ?? 0}
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  );
+                })}
+              </View>
+            )}
           </ExpandableSection>
         </View>
 
@@ -1003,10 +1257,23 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
         })()}
       </Animated.View>
 
+      {/* Modals */}
       <SizeChartModal
         visible={showSizeChart}
         onClose={() => setShowSizeChart(false)}
-        sizeChart={dp.sizeChartId && typeof dp.sizeChartId !== 'string' ? (dp.sizeChartId as any) : null}
+        sizeChart={activeSizeChart}
+        selectedSize={selectedSize}
+        category={dp.category || dp.subCategory}
+        theme={theme}
+      />
+
+      <WriteReviewModal
+        visible={showReviewModal}
+        onClose={() => setShowReviewModal(false)}
+        onSubmit={async (reviewData) => {
+          await createReviewMutation.mutateAsync(reviewData);
+        }}
+        productTitle={dp.title}
         theme={theme}
       />
     </SafeViewWrapper>

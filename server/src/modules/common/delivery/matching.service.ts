@@ -463,23 +463,7 @@ async function matchSubOrder(subOrder: any) {
   if (stageDetails.isTimedOut) {
     const cancelReason = `AUTOMATIC_CANCELLATION: No delivery partner available within ${(radiusMeters / 1000).toFixed(0)} KM radius after 30 minutes. Full refund initiated.`;
 
-    console.log(`🚨 [MatchingService] Auto-cancelling sub-order ${subOrder.subOrderId} after 30 minutes matching timeout.`);
-
-    subOrder.status = SubOrderStatus.CANCELLED;
-    subOrder.delivery.status = DeliveryStatus.CANCELLED;
-    if (!subOrder.timeline) subOrder.timeline = [];
-    subOrder.timeline.push({
-      status: SubOrderStatus.CANCELLED,
-      actor: "SYSTEM",
-      timestamp: new Date(),
-      metadata: {
-        reason: cancelReason,
-        cancelledBy: "SYSTEM_MATCHING_ENGINE",
-        elapsedMinutes: Math.round(elapsedSeconds / 60),
-      },
-    });
-
-    await subOrder.save();
+    console.log(`🚨 [MatchingService] Auto-cancelling and refunding sub-order ${subOrder.subOrderId} after 30 minutes matching timeout.`);
 
     // Expire open offers
     await RiderOffer.updateMany(
@@ -487,10 +471,13 @@ async function matchSubOrder(subOrder: any) {
       { $set: { status: "EXPIRED", respondedAt: new Date() } }
     );
 
-    // Sync parent order status & trigger cancellation unwinding
-    if (subOrder.parentOrderId) {
-      await SubOrderService.syncParentOrderStatus(subOrder.parentOrderId);
-    }
+    // Auto-refund via Razorpay, restore stock, reverse settlement & update status/timeline
+    await SubOrderService.processCancellationRefund(
+      subOrder,
+      cancelReason,
+      "SYSTEM",
+      "SYSTEM"
+    );
 
     // Broadcast socket notification to customer & seller rooms
     socketService.emitToSubOrderRoom(
@@ -498,7 +485,7 @@ async function matchSubOrder(subOrder: any) {
       SocketEvents.ORDER_STATUS_UPDATE,
       {
         subOrderId: subOrder.subOrderId,
-        status: SubOrderStatus.CANCELLED,
+        status: subOrder.status,
         reason: cancelReason,
       },
     );

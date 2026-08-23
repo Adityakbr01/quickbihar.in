@@ -209,7 +209,7 @@ productSchema.pre("validate", async function () {
 
     if (this.isModified("price") || this.isModified("originalPrice")) {
         if (this.originalPrice && this.originalPrice > this.price) {
-            this.discountPercentage = ((this.originalPrice - this.price) / this.originalPrice) * 100;
+            this.discountPercentage = Math.round(((this.originalPrice - this.price) / this.originalPrice) * 100);
         } else {
             this.discountPercentage = 0;
         }

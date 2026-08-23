@@ -18,7 +18,7 @@ export class TimelineHelper {
     return {
       status,
       actor,
-      actorId: actorId ? new Types.ObjectId(actorId.toString()) : undefined,
+      actorId: actorId && Types.ObjectId.isValid(actorId.toString()) ? new Types.ObjectId(actorId.toString()) : undefined,
       timestamp: new Date(),
       ipAddress: requestInfo?.ipAddress || "0.0.0.0",
       deviceInfo: requestInfo?.deviceInfo || "Unknown Device",

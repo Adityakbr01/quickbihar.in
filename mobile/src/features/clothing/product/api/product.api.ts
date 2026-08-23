@@ -95,4 +95,51 @@ export const getSimilarProductsRequest = async (id: string, limit = 10): Promise
   return response.data.data;
 };
 
+/**
+ * Fetch real product reviews and rating distribution stats
+ */
+export const getProductReviewsRequest = async (
+  id: string,
+  params?: { page?: number; limit?: number }
+): Promise<{
+  reviews: any[];
+  stats: {
+    averageRating: number;
+    totalReviews: number;
+    distribution: { [key: number]: number };
+    positivePercentage: number;
+  };
+  pagination: {
+    page: number;
+    limit: number;
+    totalCount: number;
+    totalPages: number;
+  };
+}> => {
+  const response = await axiosInstance.get(`/products/${id}/reviews`, { params });
+  return response.data.data;
+};
+
+/**
+ * Submit a customer rating and review
+ */
+export const createProductReviewRequest = async (
+  id: string,
+  data: { rating: number; title?: string; comment: string; images?: { url: string; fileId?: string }[] }
+): Promise<any> => {
+  const response = await axiosInstance.post(`/products/${id}/reviews`, data);
+  return response.data.data;
+};
+
+/**
+ * Vote a review as helpful (toggle)
+ */
+export const voteHelpfulReviewRequest = async (
+  productId: string,
+  reviewId: string
+): Promise<{ helpfulCount: number; hasVoted: boolean }> => {
+  const response = await axiosInstance.post(`/products/${productId}/reviews/${reviewId}/helpful`);
+  return response.data.data;
+};
+
 

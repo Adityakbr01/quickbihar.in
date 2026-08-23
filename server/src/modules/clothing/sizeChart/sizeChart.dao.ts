@@ -32,6 +32,19 @@ export async function findById(id: string) {
 }
 
 /**
+ * Retrieve a size chart by category or name.
+ */
+export async function findByCategory(category: string) {
+    return await SizeChart.findOne({
+        $or: [
+            { category: { $regex: new RegExp(`^${category.trim()}$`, "i") } },
+            { name: { $regex: new RegExp(category.trim(), "i") } },
+        ],
+        isActive: true,
+    });
+}
+
+/**
  * Hard delete a size chart by its database ID.
  */
 export async function deleteById(id: string) {
@@ -44,3 +57,4 @@ export async function deleteById(id: string) {
 export async function updateById(id: string, data: Partial<CreateSizeChartBody>) {
     return await SizeChart.findByIdAndUpdate(id, data, { returnDocument: "after" });
 }
+

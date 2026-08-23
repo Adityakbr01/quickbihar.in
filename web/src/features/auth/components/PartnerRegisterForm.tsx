@@ -79,7 +79,7 @@ export default function PartnerRegisterForm({ mode }: { mode: PartnerMode }) {
         const app = (isRider ? data.latestRiderApplication : data.latestSellerApplication) || null;
         setStatus(app);
         if (app?.status === "APPROVED") {
-          router.replace(isRider ? "/rider/dashboard" : "/seller/dashboard");
+          router.replace(isRider ? "/delivery/dashboard" : "/seller/dashboard");
         } else if (app?.status === "PENDING") {
           setPhase("submitted");
         } else {
@@ -513,7 +513,7 @@ export default function PartnerRegisterForm({ mode }: { mode: PartnerMode }) {
               <Button
                 type="button"
                 className={`${activeColorClass} text-white font-semibold py-6 text-base shadow-lg`}
-                onClick={() => router.push(isRider ? "/rider/dashboard" : "/seller/dashboard")}
+                onClick={() => router.push(isRider ? "/delivery/dashboard" : "/seller/dashboard")}
               >
                 Go to {isRider ? "Rider" : "Seller"} Dashboard →
               </Button>

@@ -14,7 +14,7 @@ import { ApiError } from "@/utils/ApiError";
 
 /** GET /public — active storefront categories. */
 export const getAllCategories = asyncHandler(async (req: Request, res: Response) => {
-    const categories = await CategoryService.getAllCategories(false);
+    const categories = await CategoryService.getAllCategories(false, req.query);
     return res
         .status(200)
         .json(new ApiResponse(200, categories, "Categories fetched successfully"));

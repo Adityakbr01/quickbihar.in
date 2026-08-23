@@ -64,6 +64,7 @@ export const useMoreDealsLogic = () => {
   );
 
   const [activeFilter, setActiveFilter] = useState(FILTERS[0]);
+  const [activeCampaign, setActiveCampaign] = useState("1");
   const [dropdownVisible, setDropdownVisible] = useState(false);
   const [activeDropdownType, setActiveDropdownType] = useState<
     "Gender" | "Categories" | null
@@ -80,19 +81,35 @@ export const useMoreDealsLogic = () => {
   const normalizedSearchQuery = searchQuery.trim();
   const debouncedSearchQuery = useDebouncedValue(normalizedSearchQuery, 500);
 
-
-
   // Real-world search strategy:
   // - debounce user input
   // - wait for at least 2 characters before sending search param
   const effectiveSearchQuery =
     debouncedSearchQuery.length >= 2 ? debouncedSearchQuery : "";
 
-  // 1. Fetch Real Categories
-  const { data: categories } = useQuery({
-    queryKey: ["categories", "public"],
-    queryFn: () => getPublicCategoriesRequest(),
+  // 1. Fetch Real Categories (CLOTHING only)
+  const { data: rawCategories } = useQuery({
+    queryKey: ["categories", "public", "CLOTHING"],
+    queryFn: () => getPublicCategoriesRequest({ vertical: "CLOTHING" }),
   });
+
+  const categories = React.useMemo(() => {
+    if (!rawCategories) return [];
+    return rawCategories.filter((cat) => {
+      if (cat.vertical && cat.vertical !== "CLOTHING") return false;
+      const lower = cat.title.toLowerCase();
+      return (
+        !lower.includes("jewel") &&
+        !lower.includes("necklace") &&
+        !lower.includes("jhumka") &&
+        !lower.includes("bangle") &&
+        !lower.includes("earring") &&
+        !lower.includes("ring") &&
+        !lower.includes("food") &&
+        !lower.includes("grocery")
+      );
+    });
+  }, [rawCategories]);
 
   // Map categories for the BottomSheet options fallback to CATEGORY_OPTIONS
   const categoryOptions = React.useMemo(() => {
@@ -104,7 +121,7 @@ export const useMoreDealsLogic = () => {
     }));
   }, [categories]);
 
-  // 2. Fetch Paginated Products
+  // 2. Fetch Paginated Products connected with Real Campaign & Filter API
   const {
     data: productData,
     fetchNextPage,
@@ -114,6 +131,7 @@ export const useMoreDealsLogic = () => {
   } = useInfiniteQuery({
     queryKey: [
       "paginatedProducts",
+      activeCampaign,
       selectedCategoryOptions,
       selectedGenderOptions,
       effectiveSearchQuery,
@@ -156,10 +174,46 @@ export const useMoreDealsLogic = () => {
         search: effectiveSearchQuery || undefined,
       };
 
-      // Map UI filters to Server params
-      if (activeFilter.title === "Trending") params.isTrending = true;
-      if (activeFilter.title === "New Arrival") params.isNewArrival = true;
-      if (activeFilter.title === "Most Popular") params.isFeatured = true;
+      // ── Map Campaign (MoreDealsHeader) to Server params ──
+      if (activeCampaign === "2") {
+        // What's New
+        params.isNewArrival = true;
+        params.sortBy = "newest";
+      } else if (activeCampaign === "3") {
+        // Deal of the Day
+        params.dealOfDay = true;
+        params.sortBy = "discount";
+      } else if (activeCampaign === "4") {
+        // Express Delivery
+        params.isExpressAvailable = true;
+      } else if (activeCampaign === "5") {
+        // Top Rated / Notify
+        params.minRating = 4;
+        params.sortBy = "rating";
+      }
+
+      // ── Map UI filters to Server params ──
+      if (activeFilter.title === "Trending" || activeFilter.title === "Rising Star") {
+        params.isTrending = true;
+      } else if (activeFilter.title === "New Arrival") {
+        params.isNewArrival = true;
+        params.sortBy = "newest";
+      } else if (activeFilter.title === "Most Popular" || activeFilter.title === "Top Brand") {
+        params.isFeatured = true;
+      } else if (activeFilter.title === "Top Rated") {
+        params.minRating = 4;
+        params.sortBy = "rating";
+      } else if (activeFilter.title === "₹1000 and above") {
+        params.minPrice = 1000;
+      } else if (activeFilter.title === "₹500 - ₹999") {
+        params.minPrice = 500;
+        params.maxPrice = 999;
+      } else if (activeFilter.title === "₹200 - ₹499") {
+        params.minPrice = 200;
+        params.maxPrice = 499;
+      } else if (activeFilter.title === "Under ₹199") {
+        params.maxPrice = 199;
+      }
 
       return getPublicProductsRequest(params);
     },
@@ -193,6 +247,8 @@ export const useMoreDealsLogic = () => {
     theme,
     width,
     styles,
+    activeCampaign,
+    setActiveCampaign,
     activeFilter,
     setActiveFilter,
     dropdownVisible,
@@ -481,9 +537,11 @@ export const MoreDealsFilters = ({
             >
               {filter.icon && (
                 <HugeiconsIcon
-                  icon={filter.icon as any}
-                  size={14}
-                  color={isActive ? "#fff" : theme.iconColor}
+                  {...({
+                    icon: filter.icon as any,
+                    size: 14,
+                    color: isActive ? "#fff" : theme.iconColor,
+                  } as any)}
                 />
               )}
               <Text

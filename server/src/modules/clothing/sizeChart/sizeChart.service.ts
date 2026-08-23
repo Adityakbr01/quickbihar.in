@@ -18,13 +18,19 @@ export async function createChart(data: CreateSizeChartBody) {
 }
 
 /**
- * Fetch all active and approved size charts.
+ * Fetch all active and approved size charts with optional category or query filter.
  */
-export async function getAllCharts() {
-    return await SizeChartDAO.findAll({
+export async function getAllCharts(query: any = {}) {
+    const filter: any = {
         isActive: true,
         $or: [{ approvalStatus: "APPROVED" }, { approvalStatus: { $exists: false } }],
-    });
+    };
+
+    if (query.category) {
+        filter.category = { $regex: new RegExp(`^${query.category.trim()}$`, "i") };
+    }
+
+    return await SizeChartDAO.findAll(filter);
 }
 
 /**
@@ -32,6 +38,13 @@ export async function getAllCharts() {
  */
 export async function getChartById(id: string) {
     return await SizeChartDAO.findById(id);
+}
+
+/**
+ * Retrieve a size chart by category.
+ */
+export async function getChartByCategory(category: string) {
+    return await SizeChartDAO.findByCategory(category);
 }
 
 /**

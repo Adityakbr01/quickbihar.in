@@ -78,9 +78,26 @@ export const ProductCard = ({ item }: ProductCardProps) => {
     image: (item as IProduct).images?.[0]?.url || (item as MockProduct).image,
     price: typeof item.price === 'number' ? formatPrice(item.price) : item.price,
     originalPrice: typeof item.originalPrice === 'number' ? formatPrice(item.originalPrice) : item.originalPrice,
-    discount: (item as IProduct).discountLabel || (item as MockProduct).discount,
-    rating: (item as IProduct).ratings?.average || (item as MockProduct).rating,
-    reviews: (item as IProduct).ratings?.count || (item as MockProduct).reviews,
+    discount: (() => {
+      const p = item as IProduct;
+      if (p.discountPercentage && Number(p.discountPercentage) > 0) {
+        return `${Math.round(Number(p.discountPercentage))}% OFF`;
+      }
+      if (typeof p.originalPrice === 'number' && typeof p.price === 'number' && p.originalPrice > p.price) {
+        const pct = Math.round(((p.originalPrice - p.price) / p.originalPrice) * 100);
+        if (pct > 0) return `${pct}% OFF`;
+      }
+      if (p.discountLabel) {
+        const num = parseFloat(p.discountLabel);
+        if (!isNaN(num) && num > 0 && !p.discountLabel.includes("%")) {
+          return `${Math.round(num)}% OFF`;
+        }
+        return p.discountLabel;
+      }
+      return (item as MockProduct).discount || null;
+    })(),
+    rating: Number((item as IProduct).ratings?.average) || 0,
+    reviews: Number((item as IProduct).ratings?.count) || 0,
   }), [item]);
 
   return (
@@ -115,15 +132,17 @@ export const ProductCard = ({ item }: ProductCardProps) => {
           style={styles.favoriteBtn}
         />
 
-        <View style={styles.ratingContainer}>
-          <Ionicons name="star" size={12} color="#f59e0b" />
-          <Text style={[styles.rating, { color: theme.text }]}>
-            {productData.rating}{" "}
-            <Text style={{ color: theme.secondaryText }}>
-              | {productData.reviews ? productData.reviews : "No reviews"}
+        {productData.reviews > 0 && productData.rating > 0 ? (
+          <View style={styles.ratingContainer}>
+            <Ionicons name="star" size={12} color="#f59e0b" />
+            <Text style={[styles.rating, { color: theme.text }]}>
+              {productData.rating.toFixed(1)}{" "}
+              <Text style={{ color: theme.secondaryText, fontSize: 10 }}>
+                | {productData.reviews}
+              </Text>
             </Text>
-          </Text>
-        </View>
+          </View>
+        ) : null}
 
         {/* Add to Cart absolute button (like DealProductCard) */}
         <TouchableOpacity

@@ -65,8 +65,12 @@ export async function findAll(query: any = {}) {
 }
 
 /** Public-facing categories: active only, ordered by priority then title. */
-export async function findActive() {
-    return await Category.find({ isActive: true }).sort({ priority: -1, title: 1 });
+export async function findActive(query: any = {}) {
+    const filter: any = { isActive: true };
+    if (query.vertical) {
+        filter.vertical = query.vertical;
+    }
+    return await Category.find(filter).sort({ priority: -1, title: 1 });
 }
 
 /** Fetch a single category by id. */

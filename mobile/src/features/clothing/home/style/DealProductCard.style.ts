@@ -17,6 +17,22 @@ export const createDealProductCardStyles = (theme: any) =>
       height: "100%",
       resizeMode: "cover",
     },
+    discountBadge: {
+      position: "absolute",
+      top: 8,
+      left: 8,
+      backgroundColor: "#ef4444",
+      paddingHorizontal: 6,
+      paddingVertical: 3,
+      borderRadius: 6,
+      zIndex: 10,
+    },
+    discountBadgeText: {
+      color: "#ffffff",
+      fontSize: 10,
+      fontWeight: "800",
+      letterSpacing: 0.2,
+    },
     tagBadge: {
       position: "absolute",
       top: 8,
@@ -25,6 +41,7 @@ export const createDealProductCardStyles = (theme: any) =>
       paddingHorizontal: 6,
       paddingVertical: 4,
       borderRadius: 6,
+      zIndex: 9,
     },
     tagText: {
       color: "#fff",

@@ -90,18 +90,41 @@ export const DealProductCard = ({ product, width }: DealProductCardProps) => {
   };
 
   // Helper to handle both Mock and Real Data mapping
+  const computedDiscount = React.useMemo(() => {
+    const p = product as IProduct;
+    if (p.discountPercentage && Number(p.discountPercentage) > 0) {
+      return `${Math.round(Number(p.discountPercentage))}% OFF`;
+    }
+    if (typeof p.originalPrice === 'number' && typeof p.price === 'number' && p.originalPrice > p.price) {
+      const pct = Math.round(((p.originalPrice - p.price) / p.originalPrice) * 100);
+      if (pct > 0) return `${pct}% OFF`;
+    }
+    if (p.discountLabel) {
+      const num = parseFloat(p.discountLabel);
+      if (!isNaN(num) && num > 0 && !p.discountLabel.includes("%")) {
+        return `${Math.round(num)}% OFF`;
+      }
+      return p.discountLabel;
+    }
+    return (product as MockProduct).discount || null;
+  }, [product]);
+
+  const p = product as IProduct;
   const productData = {
-    title: (product as IProduct).title || (product as MockProduct).title,
-    image: (product as IProduct).images?.[0]?.url || (product as MockProduct).image,
+    title: p.title || (product as MockProduct).title || "",
+    image: p.images?.[0]?.url || (product as MockProduct).image || "",
     price: typeof product.price === 'number' ? `₹${product.price.toLocaleString()}` : product.price,
     originalPrice: typeof product.originalPrice === 'number' ? `₹${product.originalPrice.toLocaleString()}` : product.originalPrice,
-    discount: (product as IProduct).discountLabel || (product as MockProduct).discount,
-    rating: (product as IProduct).ratings?.average || (product as MockProduct).rating,
-    reviews: (product as IProduct).ratings?.count || (product as MockProduct).reviews,
-    // Real world app additions
-    benefits: (product as MockProduct).benefits || "Free Shipping",
-    tag: (product as MockProduct).tag || ((product as IProduct).isTrending ? "Trending" : null),
-    delivery: (product as MockProduct).delivery || ((product as IProduct).deliveryInfo?.isExpressAvailable ? "Express Delivery" : "Standard Delivery"),
+    discount: computedDiscount,
+    rating: Number(p.ratings?.average) || 0,
+    reviews: Number(p.ratings?.count) || 0,
+    subtitle: p.brand ? `${p.brand}${p.category ? ` • ${p.category}` : ""}` : p.category || "",
+    tag: p.isTrending ? "Trending" : p.isNewArrival ? "New" : null,
+    delivery: p.deliveryInfo?.isExpressAvailable
+      ? "Express Delivery"
+      : p.deliveryInfo?.estimatedDays
+      ? `${p.deliveryInfo.estimatedDays} Days Delivery`
+      : null,
   };
 
   return (
@@ -124,13 +147,23 @@ export const DealProductCard = ({ product, width }: DealProductCardProps) => {
       <View style={styles.productImageContainer}>
         <Image source={{ uri: productData.image }} style={styles.productImage} />
 
-        {productData.tag ? (
-          <View style={styles.tagBadge}>
-            <Text style={styles.tagText}>{productData.tag}</Text>
+        {/* Top-Left Discount Badge */}
+        {productData.discount ? (
+          <View style={styles.discountBadge}>
+            <Text style={styles.discountBadgeText}>{productData.discount}</Text>
           </View>
         ) : null}
 
-
+        {productData.tag ? (
+          <View
+            style={[
+              styles.tagBadge,
+              productData.discount ? { top: 34 } : null,
+            ]}
+          >
+            <Text style={styles.tagText}>{productData.tag}</Text>
+          </View>
+        ) : null}
 
         {/* Favorite absolute button */}
         <WishlistHeart
@@ -147,15 +180,18 @@ export const DealProductCard = ({ product, width }: DealProductCardProps) => {
           }}
         />
 
-        <View style={styles.ratingPill}>
-          <Ionicons name="star" size={12} color="#f59e0b" />
-          <Text style={[styles.ratingText, { color: theme.secondaryText }]}>
-            {productData.rating ? productData.rating : 3.5}{" "}
-            <Text style={{ color: theme.secondaryText }}>
-              | {productData.reviews ? productData.reviews : 123}
+        {/* Real Rating Pill (Only shown if product has real ratings) */}
+        {productData.reviews > 0 && productData.rating > 0 ? (
+          <View style={styles.ratingPill}>
+            <Ionicons name="star" size={12} color="#f59e0b" />
+            <Text style={[styles.ratingText, { color: theme.text }]}>
+              {productData.rating.toFixed(1)}{" "}
+              <Text style={{ color: theme.secondaryText, fontSize: 10 }}>
+                | {productData.reviews}
+              </Text>
             </Text>
-          </Text>
-        </View>
+          </View>
+        ) : null}
 
         {/* Add to Cart absolute button */}
         {(product as IProduct).totalStock > 0 &&
@@ -198,21 +234,24 @@ export const DealProductCard = ({ product, width }: DealProductCardProps) => {
           {productData.title}
         </Text>
 
-        <Text
-          style={[styles.benefitsText, { color: theme.secondaryText }]}
-          numberOfLines={1}
-        >
-          {productData.benefits}
-        </Text>
+        {productData.subtitle ? (
+          <Text
+            style={[styles.benefitsText, { color: theme.secondaryText }]}
+            numberOfLines={1}
+          >
+            {productData.subtitle}
+          </Text>
+        ) : null}
 
         <View style={styles.priceRow}>
           <Text style={[styles.dealPrice, { color: theme.text }]}>
             {productData.price}
           </Text>
-          <Text style={[styles.originalPrice, { color: theme.secondaryText }]}>
-            {productData.originalPrice}
-          </Text>
-          <Text style={styles.discountText}>{productData.discount}</Text>
+          {productData.originalPrice && productData.originalPrice !== productData.price ? (
+            <Text style={[styles.originalPrice, { color: theme.secondaryText }]}>
+              {productData.originalPrice}
+            </Text>
+          ) : null}
         </View>
 
         {productData.delivery ? (

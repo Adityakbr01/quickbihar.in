@@ -27,10 +27,23 @@ export const createChart = asyncHandler(async (req: Request, res: Response) => {
  * Handle GET /my - Retrieve all active and approved size charts.
  */
 export const getMyCharts = asyncHandler(async (req: Request, res: Response) => {
-    const charts = await SizeChartService.getAllCharts();
+    const charts = await SizeChartService.getAllCharts(req.query);
     return res
         .status(200)
         .json(new ApiResponse(200, charts, "Size charts fetched successfully"));
+});
+
+/**
+ * Handle GET /by-category/:category - Retrieve size chart by category name.
+ */
+export const getChartByCategory = asyncHandler(async (req: Request, res: Response) => {
+    const chart = await SizeChartService.getChartByCategory(req.params.category as string);
+    if (!chart) {
+        throw new ApiError(404, "Size chart not found for this category");
+    }
+    return res
+        .status(200)
+        .json(new ApiResponse(200, chart, "Size chart fetched successfully"));
 });
 
 /**

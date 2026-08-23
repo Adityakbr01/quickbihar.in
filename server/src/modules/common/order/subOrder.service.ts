@@ -1093,20 +1093,16 @@ export class SubOrderService {
             throw new ApiError(403, "You do not have permission to cancel this order");
         }
 
-        // Rule A: Before Seller Acceptance (status is CONFIRMED) -> Cancel immediately
+        // Rule A: Before Seller Acceptance (status is CONFIRMED) -> Cancel immediately and refund
         if (subOrder.status === SubOrderStatus.CONFIRMED) {
-            subOrder.status = SubOrderStatus.CANCELLED;
-            subOrder.timeline.push(
-                TimelineHelper.createEvent(
-                    SubOrderStatus.CANCELLED,
-                    "CUSTOMER",
-                    userId,
-                    requestInfo,
-                    { message: `Order cancelled by customer. Reason: ${reason}` }
-                )
+            await this.processCancellationRefund(
+                subOrder,
+                `Customer cancelled order. Reason: ${reason}`,
+                userId,
+                "CUSTOMER",
+                requestInfo
             );
-            await subOrder.save();
-            await this.syncParentOrderStatus(subOrder.parentOrderId, requestInfo);
+
             await this.publishUpdate(subOrder, {
                 type: "customer_cancelled",
                 actor: "CUSTOMER",
@@ -1117,11 +1113,11 @@ export class SubOrderService {
 
             socketService.emitToUser(subOrder.sellerId.toString(), SocketEvents.ORDER_STATUS_UPDATE, {
                 subOrderId: subOrder.subOrderId,
-                status: SubOrderStatus.CANCELLED,
+                status: subOrder.status,
                 message: `Sub-order ${subOrder.subOrderId} was cancelled by customer.`
             });
 
-            return { subOrder, cancelled: true, message: "Order cancelled successfully." };
+            return { subOrder, cancelled: true, message: "Order cancelled and refund processed successfully." };
         }
 
         // Rule B: After Seller Acceptance (PROCESSING or PACKED) -> Requires Seller Approval
@@ -1202,7 +1198,6 @@ export class SubOrderService {
         const subOrder = await this.getSellerSubOrder(sellerId, subOrderId);
 
         if (approve) {
-            subOrder.status = SubOrderStatus.CANCELLED;
             if (subOrder.delivery.riderId) {
                 // Notify rider that order is cancelled
                 socketService.emitToUser(subOrder.delivery.riderId.toString(), SocketEvents.ORDER_STATUS_UPDATE, {
@@ -1217,18 +1212,14 @@ export class SubOrderService {
                 subOrder.delivery.status = DeliveryStatus.CANCELLED;
             }
 
-            subOrder.timeline.push(
-                TimelineHelper.createEvent(
-                    SubOrderStatus.CANCELLED,
-                    "SELLER",
-                    sellerId,
-                    requestInfo,
-                    { message: "Seller approved customer cancellation request." }
-                )
+            await this.processCancellationRefund(
+                subOrder,
+                "Seller approved customer cancellation request.",
+                sellerId,
+                "SELLER",
+                requestInfo
             );
 
-            await subOrder.save();
-            await this.syncParentOrderStatus(subOrder.parentOrderId, requestInfo);
             await this.publishUpdate(subOrder, {
                 type: "cancellation_approved",
                 actor: "SELLER",
@@ -1239,7 +1230,7 @@ export class SubOrderService {
             const parentOrder = await this.parentOrderOf(subOrder);
             socketService.emitToUser(this.idString(parentOrder?.userId), SocketEvents.ORDER_STATUS_UPDATE, {
                 subOrderId: subOrder.subOrderId,
-                status: SubOrderStatus.CANCELLED,
+                status: subOrder.status,
                 message: `Seller approved your cancellation request for sub-order ${subOrder.subOrderId}.`
             });
 
@@ -2083,6 +2074,131 @@ export class SubOrderService {
         });
 
         return { refunded: outcome.refunded, refundMethod: outcome.refundMethod, amount, status: subOrder.status };
+    }
+
+    // Processes inventory restock, reverses any seller settlement, and executes
+    // automatic Razorpay refund for prepaid online orders upon order cancellation.
+    public static async processCancellationRefund(
+        subOrder: any,
+        reason: string,
+        actorId: string,
+        actor: "SYSTEM" | "SELLER" | "CUSTOMER" | "ADMIN" = "SYSTEM",
+        requestInfo?: IRequestInfo
+    ) {
+        // 1. Put items back into inventory stock (best-effort)
+        for (const item of subOrder.items || []) {
+            try {
+                await ProductDAO.restoreStock(this.idString(item.productId), item.sku, Number(item.quantity || 0));
+            } catch (stockErr) {
+                console.error(`[SubOrderService] Failed to restore stock for SKU ${item.sku} on cancellation of sub-order ${subOrder.subOrderId}:`, stockErr);
+            }
+        }
+
+        // 2. Reverse seller settlement if any was created
+        try {
+            await sellerSettlementService.reverseSubOrderSettlement(subOrder, {
+                note: `Cancellation for sub-order ${subOrder.subOrderId}: ${reason}`,
+            });
+        } catch (settleErr) {
+            console.error(`[SubOrderService] Settlement reversal failed on cancellation of sub-order ${subOrder.subOrderId}:`, settleErr);
+        }
+
+        // 3. Issue Razorpay refund if order was paid online
+        const parentOrder = await this.parentOrderOf(subOrder);
+        const razorpayPaymentId = parentOrder?.paymentInfo?.razorpayPaymentId;
+        const refundAmount = Math.round(Number(subOrder.payableAmount || 0) * 100);
+
+        let outcome: { status: SubOrderStatus; refundMethod: string; refunded: boolean; refundId?: string; note?: string };
+
+        if (razorpayPaymentId && refundAmount > 0) {
+            try {
+                const refundRes = await razorpay.payments.refund(razorpayPaymentId, {
+                    amount: refundAmount,
+                    notes: {
+                        subOrderId: subOrder.subOrderId,
+                        orderId: parentOrder.orderId,
+                        reason: reason || "Order cancelled",
+                        cancelledBy: actor,
+                    },
+                });
+                outcome = {
+                    status: SubOrderStatus.REFUNDED,
+                    refundMethod: "RAZORPAY",
+                    refunded: true,
+                    refundId: refundRes?.id,
+                };
+                console.log(`[SubOrderService] Razorpay auto-refund SUCCESS for sub-order ${subOrder.subOrderId}, payment ${razorpayPaymentId}, refundId: ${refundRes?.id}`);
+            } catch (refundErr: any) {
+                console.error(
+                    `[SubOrderService] CRITICAL: Razorpay refund FAILED for cancelled sub-order ${subOrder.subOrderId} (payment ${razorpayPaymentId}):`,
+                    refundErr?.message || refundErr
+                );
+                outcome = {
+                    status: SubOrderStatus.CANCELLED,
+                    refundMethod: "MANUAL_RECONCILE",
+                    refunded: false,
+                    note: `Razorpay refund failed: ${refundErr?.message || "Unknown error"} — needs manual reconciliation`,
+                };
+            }
+        } else {
+            // COD or 0 amount: no online payment to refund
+            outcome = {
+                status: SubOrderStatus.CANCELLED,
+                refundMethod: "MANUAL_CASH",
+                refunded: false,
+            };
+        }
+
+        const amount = refundAmount / 100;
+        const message = outcome.refunded
+            ? `Full refund of ₹${amount.toFixed(2)} automatically processed via Razorpay (Refund ID: ${outcome.refundId}). Reason: ${reason}`
+            : `Order cancelled. Reason: ${reason}`;
+
+        subOrder.status = outcome.status;
+        if (subOrder.delivery) {
+            subOrder.delivery.status = DeliveryStatus.CANCELLED;
+        }
+
+        if (!subOrder.timeline) subOrder.timeline = [];
+        subOrder.timeline.push(
+            TimelineHelper.createEvent(
+                outcome.status,
+                actor,
+                actorId,
+                requestInfo,
+                {
+                    message,
+                    reason,
+                    refundMethod: outcome.refundMethod,
+                    refundId: outcome.refundId,
+                    amount: outcome.refunded ? amount : 0,
+                    note: outcome.note,
+                }
+            )
+        );
+
+        await subOrder.save();
+
+        if (subOrder.parentOrderId) {
+            await this.syncParentOrderStatus(subOrder.parentOrderId, requestInfo);
+        }
+
+        await this.publishUpdate(subOrder, {
+            type: outcome.refunded ? "order_refunded" : "order_cancelled",
+            actor,
+            actorId,
+            message,
+            metadata: { refundMethod: outcome.refundMethod, refundId: outcome.refundId, amount: outcome.refunded ? amount : 0 },
+        });
+
+        const parent = await this.parentOrderOf(subOrder);
+        socketService.emitToUser(this.idString(parent?.userId), SocketEvents.ORDER_STATUS_UPDATE, {
+            subOrderId: subOrder.subOrderId,
+            status: subOrder.status,
+            message,
+        });
+
+        return { subOrder, outcome };
     }
 
     // DISPUTED --[ADMIN resolve]--> "refund" (side customer, runs refund) | "close" (side seller, no refund)

@@ -6,8 +6,11 @@ import {
   deleteProductRequest,
   getProductByIdRequest,
   getSimilarProductsRequest,
+  getProductReviewsRequest,
+  createProductReviewRequest,
+  voteHelpfulReviewRequest,
 } from "../api/product.api";
-import { IProduct } from "../types/product.types";
+import { IProduct, IReviewsResponse } from "../types/product.types";
 
 /**
  * Hook for admin products list
@@ -77,6 +80,45 @@ export const useSimilarProducts = (id: string) => {
     queryKey: ["similarProducts", id],
     queryFn: () => getSimilarProductsRequest(id),
     enabled: !!id && id !== 'mock',
+  });
+};
+
+/**
+ * Hook for fetching real product reviews & rating distributions
+ */
+export const useProductReviews = (id: string, params?: { page?: number; limit?: number }) => {
+  return useQuery<IReviewsResponse, Error>({
+    queryKey: ["productReviews", id, params?.page || 1],
+    queryFn: () => getProductReviewsRequest(id, params) as any,
+    enabled: !!id && id !== 'mock',
+  });
+};
+
+/**
+ * Mutation for writing/updating a product review
+ */
+export const useCreateProductReview = (productId: string) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { rating: number; title?: string; comment: string; images?: { url: string; fileId?: string }[] }) =>
+      createProductReviewRequest(productId, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["productReviews", productId] });
+      queryClient.invalidateQueries({ queryKey: ["product", productId] });
+    },
+  });
+};
+
+/**
+ * Mutation for toggling helpful vote on a review
+ */
+export const useVoteHelpfulReview = (productId: string) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (reviewId: string) => voteHelpfulReviewRequest(productId, reviewId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["productReviews", productId] });
+    },
   });
 };
 

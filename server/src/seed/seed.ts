@@ -5,6 +5,12 @@ import { ENV } from "../config/env.config";
 import { RefundPolicy } from "../modules/common/refundPolicy/refundPolicy.model";
 import { AppConfig } from "../modules/common/appConfig/appConfig.model";
 import { DeliveryBoy } from "../modules/common/deliveryBoy/delivery.model";
+import { Review } from "../modules/clothing/products/review.model";
+import { Role } from "../modules/common/rbac/rbac.model";
+import { Permission, RolePermission } from "../modules/common/rbac/rbac.model";
+import { PERMISSIONS, ROLES } from "../modules/common/rbac/rbac.constants";
+import { ROLE_PERMISSION_MAP } from "../modules/common/rbac/ROLE_PERMISSION_MAP";
+
 
 export const seedAppConfig = async () => {
     try {
@@ -461,6 +467,15 @@ export const seedSizeCharts = async () => {
             console.log(`✔️ Processed: ${chart.name}`);
         }
 
+        // Attach default size charts to clothing products that are missing sizeChartId
+        const defaultApparel = await SizeChart.findOne({ name: /T-Shirt/i });
+        if (defaultApparel) {
+            await Product.updateMany(
+                { vertical: "CLOTHING", sizeChartId: { $exists: false } },
+                { $set: { sizeChartId: defaultApparel._id } }
+            );
+        }
+
         console.log("🎉 All Size Charts Seeded Successfully!");
     } catch (error) {
         console.error("❌ Seed Error:", error);
@@ -652,9 +667,6 @@ export const seedRefundPolicies = async () => {
 };
 
 
-import { Role, Permission, RolePermission } from "../modules/common/rbac/rbac.model";
-import { PERMISSIONS, ROLES } from "../modules/common/rbac/rbac.constants";
-import { ROLE_PERMISSION_MAP } from "../modules/common/rbac/ROLE_PERMISSION_MAP";
 
 export const seedRbac = async () => {
     try {
@@ -734,8 +746,21 @@ export const syncProductVerticals = async () => {
             { $set: { vertical: "FOOD" } }
         );
 
-        console.log("✔️ Product verticals synchronized.");
+        // Update all jewellery categories in database so vertical is set to JEWELERY
+        const { Category } = await import("../modules/common/category/category.model");
+        await Category.updateMany(
+            {
+                $or: [
+                    { title: { $regex: /jewel|necklace|ring|earring|pendant|bangle|jhumka/i } },
+                    { slug: { $regex: /jewel|necklace|ring|earring|pendant|bangle|jhumka/i } },
+                ],
+            },
+            { $set: { vertical: "JEWELERY" } }
+        );
+
+        console.log("✔️ Product & Category verticals synchronized.");
     } catch (error) {
-        console.error("❌ Failed to sync product verticals:", error);
+        console.error("❌ Failed to sync verticals:", error);
     }
 };
+

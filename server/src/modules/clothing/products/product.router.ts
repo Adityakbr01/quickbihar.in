@@ -6,6 +6,7 @@
 
 import { Router } from "express";
 import * as ProductController from "./product.controller";
+import * as ReviewController from "./review.controller";
 import { verifyJWT, isSellerOrAdmin } from "@/middlewares/auth.middleware";
 import { upload } from "@/middlewares/multer.middleware";
 
@@ -17,7 +18,12 @@ router.get("/trending", ProductController.getTrendingProducts);
 router.get("/local", ProductController.getLocalProducts);
 router.get("/slug/:slug", ProductController.getProductBySlug);
 router.get("/:id/similar", ProductController.getSimilarProducts);
+router.get("/:id/reviews", ReviewController.getProductReviews);
 router.get("/:id", ProductController.getProductById);
+
+/* ── Authenticated User Review Actions ── */
+router.post("/:id/reviews", verifyJWT, ReviewController.createProductReview);
+router.post("/:id/reviews/:reviewId/helpful", verifyJWT, ReviewController.voteHelpfulReview);
 
 /* ── Protected routes (Seller/Admin) ── */
 router.use(verifyJWT);

@@ -54,7 +54,7 @@ export async function getAllCategories(isAdmin: boolean = false, query: any = {}
     if (isAdmin) {
         return await CategoryDAO.findAll(query);
     }
-    return await CategoryDAO.findActive();
+    return await CategoryDAO.findActive(query);
 }
 
 /** Fetch a category or fail with 404. */

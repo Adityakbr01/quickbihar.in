@@ -20,6 +20,9 @@ import * as Haptics from "expo-haptics";
 import Toast from "react-native-toast-message";
 import { useRouter } from "expo-router";
 
+import SizeChartModal from "./SizeChartModal";
+import { useSizeChart, useSizeCharts } from "@/src/features/clothing/sizeChart/hooks/useSizeCharts";
+
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 
 interface VariantSelectorBottomSheetProps {
@@ -40,11 +43,37 @@ export const VariantSelectorBottomSheet = ({
 
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
+  const [showSizeChart, setShowSizeChart] = useState(false);
+
+  // ── Backend Size Chart Resolution ──
+  const sizeChartIdString = typeof product.sizeChartId === "string" ? product.sizeChartId : undefined;
+  const { data: fetchedSizeChart } = useSizeChart(sizeChartIdString || "");
+  const { data: allBackendSizeCharts } = useSizeCharts();
+
+  const activeSizeChart = useMemo(() => {
+    if (product.sizeChartId && typeof product.sizeChartId === "object" && product.sizeChartId.data) {
+      return product.sizeChartId;
+    }
+    if (fetchedSizeChart && fetchedSizeChart.data) {
+      return fetchedSizeChart;
+    }
+    if (allBackendSizeCharts && allBackendSizeCharts.length > 0) {
+      const categoryMatch = allBackendSizeCharts.find((c: any) =>
+        c.category?.toLowerCase() === product.subCategory?.toLowerCase() ||
+        c.category?.toLowerCase() === product.category?.toLowerCase() ||
+        c.name?.toLowerCase().includes(product.category?.toLowerCase() || "")
+      );
+      if (categoryMatch) return categoryMatch;
+      const globalChart = allBackendSizeCharts.find((c: any) => c.category?.toLowerCase() === "clothing" || c.scope === "GLOBAL");
+      if (globalChart) return globalChart;
+    }
+    return null;
+  }, [product.sizeChartId, fetchedSizeChart, allBackendSizeCharts, product.category, product.subCategory]);
 
   // ── Derived State ──
   const uniqueColors = useMemo(() => {
     if (!product.variants) return [];
-    return Array.from(new Set(product.variants.map((v: any) => v.color.trim()).filter(Boolean))) as string[];
+    return Array.from(new Set(product.variants.map((v: any) => (v?.color ? String(v.color).trim() : "")).filter(Boolean))) as string[];
   }, [product.variants]);
 
   // Set default color
@@ -57,7 +86,7 @@ export const VariantSelectorBottomSheet = ({
   // Sizes available for the selected color
   const sizesForColor = useMemo(() => {
     if (!product.variants || !selectedColor) return [];
-    return product.variants.filter((v: any) => v.color.trim() === selectedColor);
+    return product.variants.filter((v: any) => (v?.color ? String(v.color).trim() : "") === selectedColor);
   }, [product.variants, selectedColor]);
 
   // Auto-select size if there's only one option
@@ -72,8 +101,8 @@ export const VariantSelectorBottomSheet = ({
   const selectedVariant = useMemo(() => {
     return product.variants?.find(
       (v: any) =>
-        (!selectedColor || v.color.trim() === selectedColor) &&
-        (!selectedSize || v.size === selectedSize)
+        (!selectedColor || (v?.color ? String(v.color).trim() : "") === selectedColor) &&
+        (!selectedSize || String(v?.size || "") === String(selectedSize))
     );
   }, [product.variants, selectedColor, selectedSize]);
 
@@ -225,7 +254,19 @@ export const VariantSelectorBottomSheet = ({
             {/* Size Selection */}
             {sizesForColor.length > 0 && (
               <View style={s.section}>
-                <Text style={[s.sectionLabel, { color: theme.text }]}>SELECT SIZE</Text>
+                <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                  <Text style={[s.sectionLabel, { color: theme.text, marginBottom: 0 }]}>SELECT SIZE</Text>
+                  <TouchableOpacity
+                    onPress={() => {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                      setShowSizeChart(true);
+                    }}
+                    style={{ flexDirection: "row", alignItems: "center", gap: 4 }}
+                  >
+                    <Ionicons name="resize-outline" size={14} color={theme.primary} />
+                    <Text style={{ fontSize: 12, fontWeight: "700", color: theme.primary }}>SIZE GUIDE</Text>
+                  </TouchableOpacity>
+                </View>
                 <View style={s.sizeRow}>
                   {sizesForColor.map((v: any) => {
                     const active = selectedSize === v.size;
@@ -334,6 +375,15 @@ export const VariantSelectorBottomSheet = ({
           </View>
         </Pressable>
       </Pressable>
+
+      <SizeChartModal
+        visible={showSizeChart}
+        onClose={() => setShowSizeChart(false)}
+        sizeChart={activeSizeChart}
+        selectedSize={selectedSize}
+        category={product?.category || product?.subCategory}
+        theme={theme}
+      />
     </Modal>
   );
 };

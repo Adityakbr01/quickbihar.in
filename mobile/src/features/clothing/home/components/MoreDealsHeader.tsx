@@ -10,8 +10,23 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import { CAMPAIGNS } from "../lib/dealsConfig";
 
-export const MoreDealsHeader = ({ theme }: any) => {
-  const [activeId, setActiveId] = React.useState(CAMPAIGNS[0]?.id);
+export const MoreDealsHeader = ({
+  theme,
+  activeCampaign,
+  setActiveCampaign,
+}: any) => {
+  const [internalActiveId, setInternalActiveId] = React.useState(
+    CAMPAIGNS[0]?.id || "1",
+  );
+
+  const activeId = activeCampaign ?? internalActiveId;
+
+  const handlePress = (id: string) => {
+    if (setActiveCampaign) {
+      setActiveCampaign(id);
+    }
+    setInternalActiveId(id);
+  };
 
   const formatTitle = (title: string) => {
     const upper = title.toUpperCase();
@@ -29,7 +44,7 @@ export const MoreDealsHeader = ({ theme }: any) => {
 
   return (
     <View style={[styles.container, { paddingBottom: 0 }]}>
-      <Text style={[styles.headerText, { color: theme.text }]}>
+      <Text style={[styles.headerText, { color: theme?.text || "#000" }]}>
         Explore More Deals
       </Text>
       <ScrollView
@@ -43,7 +58,7 @@ export const MoreDealsHeader = ({ theme }: any) => {
             <TouchableOpacity
               key={camp.id}
               activeOpacity={0.85}
-              onPress={() => setActiveId(camp.id)}
+              onPress={() => handlePress(camp.id)}
             >
               <LinearGradient
                 colors={
@@ -132,3 +147,5 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
 });
+
+export default MoreDealsHeader;

@@ -83,17 +83,19 @@ export default function Footer() {
                   <span>{col.title}</span>
                 </div>
                 <ul className="space-y-2">
-                  {col.links.map((link) => {
+                  {col.links.map((link: { label: string; href: string; highlight?: boolean; external?: boolean }) => {
                     const href = link.href === "PLAY_STORE" ? APP_LINKS.PLAY_STORE : link.href;
+                    const isExternal = Boolean(link.external);
+                    const isHighlight = Boolean(link.highlight);
                     return (
                       <li key={link.label}>
-                        {link.external ? (
+                        {isExternal ? (
                           <a
                             href={href}
                             target="_blank"
                             rel="noopener noreferrer"
                             className={`text-xs transition-colors ${
-                              link.highlight
+                              isHighlight
                                 ? "font-semibold text-primary hover:underline"
                                 : "text-muted-foreground hover:text-foreground"
                             }`}
@@ -104,7 +106,7 @@ export default function Footer() {
                           <Link
                             href={href}
                             className={`text-xs transition-colors ${
-                              link.highlight
+                              isHighlight
                                 ? "font-semibold text-primary hover:underline"
                                 : "text-muted-foreground hover:text-foreground"
                             }`}

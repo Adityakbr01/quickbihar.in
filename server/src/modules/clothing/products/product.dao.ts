@@ -108,9 +108,22 @@ export async function findAll(query: any = {}, options: { skip?: number; limit?:
     }
 
     // Feature flags
-    if (query.isTrending) finalQuery.isTrending = true;
-    if (query.isFeatured) finalQuery.isFeatured = true;
-    if (query.isNewArrival) finalQuery.isNewArrival = true;
+    if (query.isTrending === "true" || query.isTrending === true) finalQuery.isTrending = true;
+    if (query.isFeatured === "true" || query.isFeatured === true) finalQuery.isFeatured = true;
+    if (query.isNewArrival === "true" || query.isNewArrival === true) finalQuery.isNewArrival = true;
+    if (query.isExpressAvailable === "true" || query.isExpressAvailable === true) {
+        finalQuery["deliveryInfo.isExpressAvailable"] = true;
+    }
+    if (query.minRating) {
+        finalQuery["ratings.average"] = { $gte: Number(query.minRating) };
+    }
+    if (query.dealOfDay === "true" || query.dealOfDay === true) {
+        finalQuery.$or = [
+            ...(finalQuery.$or || []),
+            { isTrending: true },
+            { discountPercentage: { $gte: 20 } },
+        ];
+    }
 
     // 3. Handle Sorting
     let sortOption: any = { createdAt: -1 };
@@ -121,6 +134,8 @@ export async function findAll(query: any = {}, options: { skip?: number; limit?:
             case "rating": sortOption = { "ratings.average": -1 }; break;
             case "newest": sortOption = { createdAt: -1 }; break;
             case "oldest": sortOption = { createdAt: 1 }; break;
+            case "discount": sortOption = { discountPercentage: -1, price: 1 }; break;
+            case "trending": sortOption = { isTrending: -1, "ratings.average": -1, createdAt: -1 }; break;
         }
     } else if (query.search) {
         sortOption = { isTrending: -1, "ratings.average": -1, createdAt: -1 };
@@ -156,6 +171,8 @@ export async function findById(id: string) {
         .populate("policyRefs.shippingPolicy")
         .populate("policyRefs.termsPolicy")
         .populate("sizeChartId")
+        .populate("storeId", "name address city state contactNumber rating logo")
+        .populate("sellerId", "fullName email phone")
         .lean({ virtuals: true });
 }
 
@@ -170,6 +187,8 @@ export async function findBySlug(slug: string) {
         .populate("policyRefs.shippingPolicy")
         .populate("policyRefs.termsPolicy")
         .populate("sizeChartId")
+        .populate("storeId", "name address city state contactNumber rating logo")
+        .populate("sellerId", "fullName email phone")
         .lean({ virtuals: true });
 }
 

@@ -11,7 +11,9 @@ import { verifyJWT, isAdmin } from "@/middlewares/auth.middleware";
 const router = Router();
 
 /* ── Public routes ── */
+router.get("/", SizeChartController.getMyCharts);
 router.get("/my", SizeChartController.getMyCharts);
+router.get("/by-category/:category", SizeChartController.getChartByCategory);
 router.get("/:id", SizeChartController.getChartById);
 
 /* ── Admin routes ── */
