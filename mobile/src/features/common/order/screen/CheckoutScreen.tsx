@@ -153,7 +153,15 @@ const CheckoutScreen = () => {
       } catch (error: any) {
         if (!cancelled) {
           setQuote(null);
-          setQuoteError(error.response?.data?.message || error.message || "Unable to fetch delivery quote");
+          const rawMsg = error.response?.data?.message || error.message || "";
+          const friendlyMsg =
+            rawMsg.includes("24 character hex") ||
+            rawMsg.includes("Uint8Array") ||
+            rawMsg.includes("Cast to ObjectId") ||
+            rawMsg.includes("BSON")
+              ? "Unable to verify delivery to this location. Please check your address pin or try another address."
+              : rawMsg || "Unable to fetch delivery quote";
+          setQuoteError(friendlyMsg);
         }
       } finally {
         if (!cancelled) setIsQuoteLoading(false);

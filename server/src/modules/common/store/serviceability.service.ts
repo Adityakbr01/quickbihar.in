@@ -132,16 +132,17 @@ export async function assertCartServiceable(
     const storeIds = Array.from(
         new Set((items ?? []).map((item) => item.storeId?.toString()).filter(Boolean)),
     ) as string[];
-    if (storeIds.length === 0) return;
+    const validStoreIds = storeIds.filter((id) => Types.ObjectId.isValid(id));
+    if (validStoreIds.length === 0) return;
 
-    const stores = await Store.find({ _id: { $in: storeIds.map((id) => new Types.ObjectId(id)) } })
+    const stores = await Store.find({ _id: { $in: validStoreIds.map((id) => new Types.ObjectId(id)) } })
         .select("name deliveryConfig deliveryRadiusKm currentLocation")
         .lean();
     const storesById = new Map(stores.map((store: any) => [store._id.toString(), store]));
 
     for (const item of items ?? []) {
         const storeId = item.storeId?.toString();
-        if (!storeId) continue;
+        if (!storeId || !Types.ObjectId.isValid(storeId)) continue;
         const label = item.title ?? item.name;
         const store = storesById.get(storeId);
         if (!store) {
@@ -165,16 +166,17 @@ export async function assertCartStoresOpen(items: ServiceabilityCartItem[]): Pro
     const storeIds = Array.from(
         new Set((items ?? []).map((item) => item.storeId?.toString()).filter(Boolean)),
     ) as string[];
-    if (storeIds.length === 0) return;
+    const validStoreIds = storeIds.filter((id) => Types.ObjectId.isValid(id));
+    if (validStoreIds.length === 0) return;
 
-    const stores = await Store.find({ _id: { $in: storeIds.map((id) => new Types.ObjectId(id)) } })
+    const stores = await Store.find({ _id: { $in: validStoreIds.map((id) => new Types.ObjectId(id)) } })
         .select("name isOpen isActive")
         .lean();
     const storesById = new Map(stores.map((store: any) => [store._id.toString(), store]));
 
     for (const item of items ?? []) {
         const storeId = item.storeId?.toString();
-        if (!storeId) continue;
+        if (!storeId || !Types.ObjectId.isValid(storeId)) continue;
         const store: any = storesById.get(storeId);
         const label = store?.name ? `'${store.name}'` : "A store in your cart";
         if (!store || store.isActive === false) {

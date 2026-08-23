@@ -94,7 +94,7 @@ export type OrderPricingSnapshot = {
 
 export type OrderPricingQuote = {
     processedItems: any[];
-    appliedCouponsInfo: Array<{ code: string; sellerId: Types.ObjectId; discountAmount: number }>;
+    appliedCouponsInfo: Array<{ code: string; sellerId?: Types.ObjectId | null; discountAmount: number }>;
     couponCodes: string[];
     totalAmount: number;
     totalTax: number;
@@ -342,7 +342,7 @@ export class OrderPricingService {
 
         const productDiscount = mrpTotal - totalAmount;
         let couponDiscountAmount = 0;
-        const appliedCouponsInfo: Array<{ code: string; sellerId: Types.ObjectId; discountAmount: number }> = [];
+        const appliedCouponsInfo: Array<{ code: string; sellerId?: Types.ObjectId | null; discountAmount: number }> = [];
 
         if (codes.length > 0) {
             const validations = await couponService.validateMultipleCouponsForCart(codes, items, userId);
@@ -350,12 +350,14 @@ export class OrderPricingService {
                 couponDiscountAmount += val.discountAmount;
                 appliedCouponsInfo.push({
                     code: val.coupon.code,
-                    sellerId: new Types.ObjectId(val.coupon.sellerId as any),
+                    sellerId: val.coupon.sellerId && Types.ObjectId.isValid(val.coupon.sellerId.toString())
+                        ? new Types.ObjectId(val.coupon.sellerId.toString())
+                        : null,
                     discountAmount: val.discountAmount,
                 });
 
                 const eligibleItems = processedItems.filter((processedItem) => {
-                    const isSeller = processedItem.sellerId?.toString() === val.sellerId;
+                    const isSeller = !val.sellerId || processedItem.sellerId?.toString() === val.sellerId;
                     if (!isSeller) return false;
                     if (val.coupon?.appliesTo === "SPECIFIC") {
                         return val.coupon.productIds?.some((id: any) => id.toString() === processedItem.productId.toString()) || false;
@@ -393,7 +395,8 @@ export class OrderPricingService {
 
         const sellerIds = Array.from(new Set(processedItems.map((item) => item.sellerId?.toString()).filter(Boolean)));
         const storeIds = Array.from(new Set(processedItems.map((item) => item.storeId?.toString()).filter(Boolean)));
-        const stores = await Store.find({ _id: { $in: storeIds.map((id) => new Types.ObjectId(id)) } }).lean();
+        const validStoreIds = storeIds.filter((id) => Types.ObjectId.isValid(id));
+        const stores = await Store.find({ _id: { $in: validStoreIds.map((id) => new Types.ObjectId(id)) } }).lean();
         const storesById = new Map(stores.map((store: any) => [store._id.toString(), store]));
         const riderRules = effectiveRiderRules(config);
         const bonusRules = {
@@ -410,7 +413,7 @@ export class OrderPricingService {
             if (!sellerId) continue;
             const sellerItems = processedItems.filter((item) => item.sellerId?.toString() === sellerId);
             const sellerItemSubtotal = sellerItems.reduce((sum, item) => sum + (item.price || 0) * (item.quantity || 0), 0);
-            const sellerCoupon = appliedCouponsInfo.find((coupon) => coupon.sellerId.toString() === sellerId);
+            const sellerCoupon = appliedCouponsInfo.find((coupon) => coupon.sellerId ? coupon.sellerId.toString() === sellerId : true);
             const sellerCouponShare = Number(sellerCoupon?.discountAmount || 0);
             const commissionBase = Math.max(0, sellerItemSubtotal - sellerCouponShare);
             const platformCommission = roundMoney((commissionBase * commissionPercent) / 100);
