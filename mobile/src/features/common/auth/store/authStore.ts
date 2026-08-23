@@ -74,7 +74,7 @@ interface AuthState {
   initializeAuth: () => Promise<void>;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
+export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   token: null,
   refreshToken: null,
@@ -82,19 +82,29 @@ export const useAuthStore = create<AuthState>((set) => ({
   isInitialized: false,
 
   setAuth: async (user, token, refreshToken) => {
-    await authStorage.setItemAsync("userToken", token);
-    await authStorage.setItemAsync("refreshToken", refreshToken);
-    await authStorage.setItemAsync("userData", JSON.stringify(user));
-    await authStorage.setItemAsync("userRole", getRoleName(user.role) || "");
+    // 1. Immediately set in-memory state so all hooks and components see the authenticated user
     set({ user, token, refreshToken, isAuthenticated: true, isInitialized: true });
+    // 2. Persist to storage in background
+    try {
+      await authStorage.setItemAsync("userToken", token);
+      await authStorage.setItemAsync("refreshToken", refreshToken);
+      await authStorage.setItemAsync("userData", JSON.stringify(user));
+      await authStorage.setItemAsync("userRole", getRoleName(user?.role) || "");
+    } catch (error) {
+      console.warn("Storage error saving auth:", error);
+    }
   },
 
   clearAuth: async () => {
-    await authStorage.deleteItemAsync("userToken");
-    await authStorage.deleteItemAsync("refreshToken");
-    await authStorage.deleteItemAsync("userData");
-    await authStorage.deleteItemAsync("userRole");
     set({ user: null, token: null, refreshToken: null, isAuthenticated: false, isInitialized: true });
+    try {
+      await authStorage.deleteItemAsync("userToken");
+      await authStorage.deleteItemAsync("refreshToken");
+      await authStorage.deleteItemAsync("userData");
+      await authStorage.deleteItemAsync("userRole");
+    } catch (error) {
+      console.warn("Storage error clearing auth:", error);
+    }
   },
 
   initializeAuth: async () => {

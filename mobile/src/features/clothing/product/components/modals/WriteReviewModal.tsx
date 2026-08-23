@@ -63,7 +63,7 @@ export const WriteReviewModal: React.FC<WriteReviewModalProps> = ({
         text2: "Please log in to submit a review.",
       });
       onClose();
-      router.push("/auth/login" as any);
+      router.push("/auth" as any);
       return;
     }
 

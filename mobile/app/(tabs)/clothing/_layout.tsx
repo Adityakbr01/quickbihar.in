@@ -104,15 +104,17 @@ export default function TabsLayout() {
           options={{
             href: "hidden" in tab && tab.hidden ? null : undefined,
             tabBarLabel: tab.label,
-            tabBarIcon: ({ size, focused }) => (
-              <HugeiconsIcon
-                icon={tab.icon}
-                size={size}
-                // Explicitly use theme colors to ensure adaptivity
-                color={focused ? theme.iconColor : theme.tertiaryText}
-                strokeWidth={focused ? 2 : 1.5}
-              />
-            ),
+            tabBarIcon: ({ size, focused }) => {
+              const IconComp = HugeiconsIcon as any;
+              return (
+                <IconComp
+                  icon={tab.icon}
+                  size={size}
+                  color={focused ? theme.iconColor : theme.tertiaryText}
+                  strokeWidth={focused ? 2 : 1.5}
+                />
+              );
+            },
           }}
           listeners={{
             tabPress: (e) => {
@@ -128,6 +130,12 @@ export default function TabsLayout() {
           }}
         />
       ))}
+      <Tabs.Screen
+        name="checkout"
+        options={{
+          href: null,
+        }}
+      />
     </Tabs>
   );
 }

@@ -64,7 +64,7 @@ const CartContent = () => {
         text1: "Login Required",
         text2: "Please login to place an order",
       });
-      router.push("/auth/login" as any);
+      router.push("/auth" as any);
       return;
     }
     router.push("/checkout" as any);
