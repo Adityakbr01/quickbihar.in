@@ -72,19 +72,23 @@ export async function findAll(query: any = {}, options: { skip?: number; limit?:
         finalQuery.storeId = { $in: query.storeIds };
     }
 
-    if (query.category && query.subCategory) {
-        finalQuery.category = { $regex: new RegExp(`^${query.category.trim()}$`, "i") };
-        finalQuery.subCategory = { $regex: new RegExp(`^${query.subCategory.trim()}$`, "i") };
-    } else if (query.category) {
-        const catRegex = new RegExp(`^${query.category.trim()}$`, "i");
-        if (!finalQuery.$or) {
-            finalQuery.$or = [
-                { category: catRegex },
-                { subCategory: catRegex },
-            ];
-        }
-    } else if (query.subCategory) {
-        finalQuery.subCategory = { $regex: new RegExp(`^${query.subCategory.trim()}$`, "i") };
+    if (query.category && query.subCategory && query.category.trim().toLowerCase() !== query.subCategory.trim().toLowerCase()) {
+        const catRegex = new RegExp(query.category.trim(), "i");
+        const subCatRegex = new RegExp(query.subCategory.trim(), "i");
+        finalQuery.$and = [
+            ...(finalQuery.$and || []),
+            { $or: [{ category: catRegex }, { subCategory: catRegex }] },
+            { $or: [{ category: subCatRegex }, { subCategory: subCatRegex }] },
+        ];
+    } else if (query.category || query.subCategory) {
+        const catValue = (query.category || query.subCategory).trim();
+        const catRegex = new RegExp(catValue, "i");
+        finalQuery.$or = [
+            ...(finalQuery.$or || []),
+            { category: catRegex },
+            { subCategory: catRegex },
+            { tags: catRegex },
+        ];
     } else if (finalQuery.vertical === "CLOTHING") {
         finalQuery.category = { $not: /jewel|necklace|ring|earring|pendant|bangle|food|grocery|beverage|snack/i };
     }

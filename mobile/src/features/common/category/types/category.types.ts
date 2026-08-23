@@ -9,6 +9,7 @@ export interface Category {
     isFeatured?: boolean;
     isFeature?: boolean;
     parentId?: string;
+    vertical?: "CLOTHING" | "FOOD" | "JEWELERY" | "GLOBAL" | string;
     createdAt: string;
     updatedAt: string;
 }

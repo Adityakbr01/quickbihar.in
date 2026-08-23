@@ -16,9 +16,9 @@ import { useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
 
 const HomeCategories = ({ rootSlug = "clothing" }: { rootSlug?: string }) => {
-  const theme = useTheme();
+  const theme = useTheme() as any;
   const router = useRouter();
-  const { data: categories, isLoading, error } = useCategories();
+  const { data: rawCategories, isLoading, error } = useCategories({ vertical: "CLOTHING" });
 
   const renderItem = ({ item }: { item: Category }) => (
     <TouchableOpacity
@@ -27,7 +27,7 @@ const HomeCategories = ({ rootSlug = "clothing" }: { rootSlug?: string }) => {
       onPress={() => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
         router.push({
-          pathname: "/(tabs)/clothing/search",
+          pathname: "/(tabs)/clothing/search" as any,
           params: {
             query: item.title,
             categoryName: item.title,
@@ -52,8 +52,24 @@ const HomeCategories = ({ rootSlug = "clothing" }: { rootSlug?: string }) => {
   );
 
   const displayedCategories = React.useMemo(() => {
-    if (!categories || categories.length === 0) return [];
-    
+    if (!rawCategories || rawCategories.length === 0) return [];
+
+    // Filter only clothing categories (exclude Jewellery, etc.)
+    const categories = rawCategories.filter((cat) => {
+      if (cat.vertical && cat.vertical !== "CLOTHING") return false;
+      const lower = cat.title.toLowerCase();
+      return (
+        !lower.includes("jewel") &&
+        !lower.includes("necklace") &&
+        !lower.includes("jhumka") &&
+        !lower.includes("bangle") &&
+        !lower.includes("earring") &&
+        !lower.includes("ring") &&
+        !lower.includes("food") &&
+        !lower.includes("grocery")
+      );
+    });
+
     // Find the root category (e.g. "clothing")
     const targetSlug = (rootSlug || "clothing").toLowerCase();
     const rootCat = categories.find(
@@ -72,7 +88,7 @@ const HomeCategories = ({ rootSlug = "clothing" }: { rootSlug?: string }) => {
       }
     }
 
-    // Fallback: all subcategories (having a parentId) or non-root categories
+    // Fallback: all subcategories (having a parentId)
     const subCategories = categories.filter((cat) => Boolean(cat.parentId));
     if (subCategories.length > 0) {
       return subCategories;
@@ -82,7 +98,7 @@ const HomeCategories = ({ rootSlug = "clothing" }: { rootSlug?: string }) => {
     if (featured.length > 0) return featured;
 
     return categories;
-  }, [categories, rootSlug]);
+  }, [rawCategories, rootSlug]);
 
   if (isLoading) {
     return (
@@ -99,17 +115,19 @@ const HomeCategories = ({ rootSlug = "clothing" }: { rootSlug?: string }) => {
     );
   }
 
-  if (error || !categories) {
-    return null; // Or show error toast
+  if (error || !rawCategories) {
+    return null;
   }
 
   return (
     <View style={styles.container}>
       <FlashList
+        className="gap-28"
         data={displayedCategories}
         renderItem={renderItem}
         keyExtractor={(item) => item._id}
         horizontal
+        ItemSeparatorComponent={() => <View style={{ width: 8 }} />}
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.listContent}
       />
@@ -121,11 +139,10 @@ export default HomeCategories;
 
 const styles = StyleSheet.create({
   container: {
-    marginVertical: spacing.m,
+    marginVertical: spacing.md,
   },
   listContent: {
     paddingHorizontal: spacing.m,
-    gap: spacing.m,
   },
   categoryItem: {
     alignItems: "center",

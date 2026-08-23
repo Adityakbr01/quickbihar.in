@@ -73,18 +73,18 @@ export const ProductCard = ({ item }: ProductCardProps) => {
   };
 
   // Helper to handle both Mock and Real Data mapping
-  const productData = React.useMemo(() => ({
-    name: (item as IProduct).title || (item as MockProduct).name,
-    image: (item as IProduct).images?.[0]?.url || (item as MockProduct).image,
-    price: typeof item.price === 'number' ? formatPrice(item.price) : item.price,
-    originalPrice: typeof item.originalPrice === 'number' ? formatPrice(item.originalPrice) : item.originalPrice,
-    discount: (() => {
-      const p = item as IProduct;
+  const productData = React.useMemo(() => {
+    const p = item as IProduct;
+    const numPrice = typeof p.price === 'number' ? p.price : parseFloat(String(p.price || 0));
+    const numOrig = typeof p.originalPrice === 'number' ? p.originalPrice : parseFloat(String(p.originalPrice || 0));
+    const hasDiscount = numOrig > numPrice;
+
+    const discount = (() => {
       if (p.discountPercentage && Number(p.discountPercentage) > 0) {
         return `${Math.round(Number(p.discountPercentage))}% OFF`;
       }
-      if (typeof p.originalPrice === 'number' && typeof p.price === 'number' && p.originalPrice > p.price) {
-        const pct = Math.round(((p.originalPrice - p.price) / p.originalPrice) * 100);
+      if (hasDiscount && numOrig > 0) {
+        const pct = Math.round(((numOrig - numPrice) / numOrig) * 100);
         if (pct > 0) return `${pct}% OFF`;
       }
       if (p.discountLabel) {
@@ -94,11 +94,20 @@ export const ProductCard = ({ item }: ProductCardProps) => {
         }
         return p.discountLabel;
       }
-      return (item as MockProduct).discount || null;
-    })(),
-    rating: Number((item as IProduct).ratings?.average) || 0,
-    reviews: Number((item as IProduct).ratings?.count) || 0,
-  }), [item]);
+      return null;
+    })();
+
+    return {
+      name: p.title || (item as MockProduct).name || "",
+      image: p.images?.[0]?.url || (item as MockProduct).image || "",
+      price: numPrice > 0 ? formatPrice(numPrice) : (typeof item.price === 'string' ? item.price : "₹0"),
+      originalPrice: hasDiscount ? formatPrice(numOrig) : null,
+      hasDiscount,
+      discount,
+      rating: Number(p.ratings?.average) || 0,
+      reviews: Number(p.ratings?.count) || 0,
+    };
+  }, [item]);
 
   return (
     <TouchableOpacity
@@ -194,11 +203,10 @@ export const ProductCard = ({ item }: ProductCardProps) => {
           <Text style={[styles.price, { color: theme.text }]}>
             {productData.price}
           </Text>
-          <Text style={[styles.originalPrice, { color: theme.secondaryText }]}>
-            {productData.originalPrice}
-          </Text>
-          {productData.discount ? (
-            <Text style={styles.discountTextInline}>{productData.discount}</Text>
+          {productData.hasDiscount && productData.originalPrice ? (
+            <Text style={[styles.originalPrice, { color: theme.secondaryText }]}>
+              {productData.originalPrice}
+            </Text>
           ) : null}
         </View>
       </View>

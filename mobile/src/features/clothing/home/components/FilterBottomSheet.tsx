@@ -126,10 +126,12 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
                           <View style={{ flexDirection: "row", alignItems: "center" }}>
                             {option.icon && (
                               <HugeiconsIcon
-                                icon={option.icon}
-                                size={18}
-                                color={isSelected ? "#fff" : theme.text}
-                                style={{ marginRight: 6 }}
+                                {...({
+                                  icon: option.icon,
+                                  size: 18,
+                                  color: isSelected ? "#fff" : theme.text,
+                                  style: { marginRight: 6 },
+                                } as any)}
                               />
                             )}
                             <Text
@@ -203,10 +205,12 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
                     >
                       {option.icon && (
                         <HugeiconsIcon
-                          icon={option.icon}
-                          size={18}
-                          color={isSelected ? "#fff" : theme.text}
-                          style={{ marginRight: 6 }}
+                          {...({
+                            icon: option.icon,
+                            size: 18,
+                            color: isSelected ? "#fff" : theme.text,
+                            style: { marginRight: 6 },
+                          } as any)}
                         />
                       )}
                       <Text
