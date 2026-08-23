@@ -8,13 +8,13 @@ import {
     validateCoupon,
     getApplicableCoupons
 } from "./coupon.controller";
-import { verifyJWT, isAdmin } from "@/middlewares/auth.middleware";
+import { verifyJWT, isAdmin, verifyOptionalJWT } from "@/middlewares/auth.middleware";
 
 const router = Router();
 
 // Public routes for checkout/cart
 router.get("/public/applicable", getApplicableCoupons);
-router.post("/validate", verifyJWT, validateCoupon);
+router.post("/validate", verifyOptionalJWT, validateCoupon);
 
 // Admin only routes for managing coupons
 router.use(verifyJWT, isAdmin);

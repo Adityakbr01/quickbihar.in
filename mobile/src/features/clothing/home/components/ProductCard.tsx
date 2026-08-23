@@ -143,10 +143,10 @@ export const ProductCard = ({ item }: ProductCardProps) => {
 
         {productData.reviews > 0 && productData.rating > 0 ? (
           <View style={styles.ratingContainer}>
-            <Ionicons name="star" size={12} color="#f59e0b" />
-            <Text style={[styles.rating, { color: theme.text }]}>
+            <Ionicons name="star" size={11} color="#f59e0b" />
+            <Text style={styles.rating}>
               {productData.rating.toFixed(1)}{" "}
-              <Text style={{ color: theme.secondaryText, fontSize: 10 }}>
+              <Text style={styles.reviews}>
                 | {productData.reviews}
               </Text>
             </Text>

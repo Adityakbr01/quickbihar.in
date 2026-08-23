@@ -344,16 +344,17 @@ export const useCartStore = create<CartState>()(
           let sellerSubtotal = 0;
           for (const item of items) {
             const itemSellerId = item.sellerId;
-            if (itemSellerId === couponSellerId) {
+            const itemId = typeof item.productId === 'object' ? (item.productId as any)._id : item.productId;
+            if (!couponSellerId || itemSellerId === couponSellerId) {
               if (coupon.appliesTo === "SPECIFIC") {
-                const isEligible = coupon.productIds?.includes(item.productId);
+                const isEligible = coupon.productIds?.includes(itemId);
                 if (!isEligible) continue;
               }
               sellerSubtotal += (item.price || 0) * item.quantity;
             }
           }
 
-          if (sellerSubtotal >= coupon.minOrderValue) {
+          if (sellerSubtotal >= (coupon.minOrderValue || 0)) {
             let localDiscount = 0;
             if (coupon.discountType === "PERCENTAGE") {
               localDiscount = (sellerSubtotal * coupon.discountValue) / 100;

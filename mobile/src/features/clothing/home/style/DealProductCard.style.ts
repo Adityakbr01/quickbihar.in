@@ -1,4 +1,4 @@
-import { StyleSheet } from "react-native";
+import { Platform, StyleSheet } from "react-native";
 
 export const createDealProductCardStyles = (theme: any) =>
   StyleSheet.create({
@@ -76,20 +76,39 @@ export const createDealProductCardStyles = (theme: any) =>
     },
     ratingPill: {
       position: "absolute",
-      bottom: 12,
-      left: 4,
+      bottom: 10,
+      left: 8,
       flexDirection: "row",
       alignItems: "center",
-      backgroundColor: "rgba(255,255,255,0.96)",
-      paddingHorizontal: 8,
-      paddingVertical: 6.5,
-      borderRadius: 10,
-      gap: 4,
+      backgroundColor: "rgba(15, 23, 42, 0.88)",
+      paddingHorizontal: 7,
+      paddingVertical: 4,
+      borderRadius: 8,
+      borderWidth: 0.5,
+      borderColor: "rgba(255, 255, 255, 0.2)",
+      gap: 3,
+      zIndex: 5,
+      ...Platform.select({
+        ios: {
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 1 },
+          shadowOpacity: 0.2,
+          shadowRadius: 2,
+        },
+        android: {
+          elevation: 2,
+        },
+      }),
     },
     ratingText: {
       fontSize: 11,
-      fontWeight: "600",
-      color: theme.text,
+      fontWeight: "700",
+      color: "#ffffff",
+    },
+    ratingCount: {
+      fontSize: 10,
+      fontWeight: "500",
+      color: "rgba(255, 255, 255, 0.75)",
     },
     productTitle: {
       fontSize: 13,

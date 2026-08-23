@@ -12,6 +12,7 @@ import { Order } from "@/modules/common/order/order.model";
 import * as couponDAO from "./coupon.dao";
 import type { ICoupon } from "./coupon.type";
 import { Product } from "@/modules/clothing/products/product.model";
+import { Types } from "mongoose";
 
 /** Create a coupon, rejecting duplicate codes. */
 export async function createCoupon(data: Partial<ICoupon>) {
@@ -61,7 +62,7 @@ export async function validateCouponForCart(
     items: { productId: string; sku: string; quantity: number }[],
     userId: string
 ) {
-    const coupon = await couponDAO.findByCode(code);
+    const coupon = await couponDAO.findByCode(code ? code.trim().toUpperCase() : "");
     if (!coupon) throw new ApiError(404, "Invalid coupon code");
     if (!coupon.isActive) throw new ApiError(400, "Coupon is inactive");
     if (new Date() > coupon.endDate) throw new ApiError(400, "Coupon has expired");
@@ -69,16 +70,18 @@ export async function validateCouponForCart(
     if (coupon.usedCount >= coupon.usageLimit) throw new ApiError(400, "Coupon usage limit reached");
 
     // Per-user usage cap: count the buyer's prior non-cancelled orders that used this code.
-    const userUsageCount = await Order.countDocuments({
-        userId,
-        $or: [
-            { couponCode: code },
-            { couponCodes: code }
-        ],
-        status: { $nin: ["CANCELLED", "FAILED"] }
-    });
-    if (userUsageCount >= coupon.usageLimitPerUser) {
-        throw new ApiError(400, `You have already used this coupon ${coupon.usageLimitPerUser} time(s)`);
+    if (userId && Types.ObjectId.isValid(userId)) {
+        const userUsageCount = await Order.countDocuments({
+            userId: new Types.ObjectId(userId),
+            $or: [
+                { couponCode: code },
+                { couponCodes: code }
+            ],
+            status: { $nin: ["CANCELLED", "FAILED"] }
+        });
+        if (userUsageCount >= coupon.usageLimitPerUser) {
+            throw new ApiError(400, `You have already used this coupon ${coupon.usageLimitPerUser} time(s)`);
+        }
     }
 
     const couponSellerIdStr = coupon.sellerId?.toString();
@@ -93,7 +96,7 @@ export async function validateCouponForCart(
         if (!product) continue;
 
         const itemSellerIdStr = product.sellerId?.toString();
-        if (itemSellerIdStr !== couponSellerIdStr) {
+        if (couponSellerIdStr && itemSellerIdStr !== couponSellerIdStr) {
             continue; // Coupon is seller-specific, ignore other seller items
         }
 
@@ -102,7 +105,7 @@ export async function validateCouponForCart(
             if (!isEligibleProduct) continue;
         }
 
-        const variant = product.variants.find(v => v.sku === item.sku);
+        const variant = product.variants.find(v => v.sku === item.sku) || product.variants[0];
         if (!variant) continue;
 
         const basePrice = product.price;
@@ -217,17 +220,19 @@ export async function validateCoupon(
     }
 
     // Per-user usage cap (usageLimitPerUser).
-    const userUsageCount = await Order.countDocuments({
-        userId,
-        $or: [
-            { couponCode: code },
-            { couponCodes: code }
-        ],
-        status: { $nin: ["CANCELLED", "FAILED"] }
-    });
+    if (userId && Types.ObjectId.isValid(userId)) {
+        const userUsageCount = await Order.countDocuments({
+            userId: new Types.ObjectId(userId),
+            $or: [
+                { couponCode: code },
+                { couponCodes: code }
+            ],
+            status: { $nin: ["CANCELLED", "FAILED"] }
+        });
 
-    if (userUsageCount >= coupon.usageLimitPerUser) {
-        throw new ApiError(400, `You have already used this coupon ${coupon.usageLimitPerUser} time(s)`);
+        if (userUsageCount >= coupon.usageLimitPerUser) {
+            throw new ApiError(400, `You have already used this coupon ${coupon.usageLimitPerUser} time(s)`);
+        }
     }
 
     let discountAmount = 0;

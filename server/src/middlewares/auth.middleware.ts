@@ -44,6 +44,29 @@ export const verifyJWT = asyncHandler(
 );
 
 /**
+ * 🛡️ Optionally verify JWT if token is provided
+ */
+export const verifyOptionalJWT = asyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const token =
+        req.cookies?.accessToken ||
+        req.header("Authorization")?.replace("Bearer ", "");
+      if (token) {
+        const decodedToken: any = jwt.verify(token, ENV.ACCESS_TOKEN_SECRET);
+        const user = await UserDAO.findById(decodedToken?._id);
+        if (user) {
+          (req as any).user = user;
+        }
+      }
+    } catch {
+      // Ignore token errors for optional auth
+    }
+    next();
+  },
+);
+
+/**
  * 🛡️ Legacy/Shortcut Middlewares (Migrated to RBAC)
  */
 export const isAdmin = validateRole(RoleEnum.ADMIN, RoleEnum.SUPER_ADMIN);

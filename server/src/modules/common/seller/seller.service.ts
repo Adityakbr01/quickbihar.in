@@ -963,14 +963,20 @@ export class SellerService {
             }
         }
 
+        const wasApproved = coupon.approvalStatus === "APPROVED";
+        const isCoreTermsChanged = 
+            (data.code && data.code.toUpperCase() !== coupon.code) ||
+            (data.discountValue !== undefined && data.discountValue !== coupon.discountValue) ||
+            (data.discountType !== undefined && data.discountType !== coupon.discountType);
+
         Object.assign(coupon, {
             ...data,
             code: data.code ? data.code.toUpperCase() : coupon.code,
-            isActive: false,
-            approvalStatus: "DRAFT",
-            reviewedBy: undefined,
-            reviewedAt: undefined,
-            rejectionReason: undefined,
+            isActive: wasApproved && !isCoreTermsChanged ? (data.isActive !== undefined ? data.isActive : true) : (data.isActive ?? coupon.isActive ?? false),
+            approvalStatus: wasApproved && !isCoreTermsChanged ? "APPROVED" : (coupon.approvalStatus || "DRAFT"),
+            reviewedBy: isCoreTermsChanged ? undefined : coupon.reviewedBy,
+            reviewedAt: isCoreTermsChanged ? undefined : coupon.reviewedAt,
+            rejectionReason: isCoreTermsChanged ? undefined : coupon.rejectionReason,
         });
         await coupon.save();
         return coupon;
