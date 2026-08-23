@@ -397,6 +397,7 @@ export interface SellerCoupon {
   rejectionReason?: string;
   appliesTo?: "ALL" | "SPECIFIC";
   productIds?: string[];
+  showOnCart?: boolean;
 }
 
 export interface SellerCouponPayload {
@@ -411,6 +412,7 @@ export interface SellerCouponPayload {
   startDate?: string;
   endDate?: string;
   isActive?: boolean;
+  showOnCart?: boolean;
   appliesTo?: "ALL" | "SPECIFIC";
   productIds?: string[];
 }

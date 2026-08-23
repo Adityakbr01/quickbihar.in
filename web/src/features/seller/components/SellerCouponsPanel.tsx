@@ -65,7 +65,7 @@ export function SellerCouponsPanel() {
     >
       <SimpleTable
         empty={couponsQuery.isLoading ? "Loading coupons..." : "No coupons found."}
-        columns={["Code", "Rule", "Target", "Usage", "Dates", "Approval", "Actions"]}
+        columns={["Code", "Rule", "Target", "In Cart?", "Usage", "Dates", "Approval", "Actions"]}
         rows={(couponsQuery.data?.data || []).map((coupon) => [
           <div key={`${coupon._id}-code`} className="font-medium text-white">
             {coupon.code}
@@ -76,6 +76,45 @@ export function SellerCouponsPanel() {
               : `Rs. ${formatAmount(coupon.discountValue)}`
           } off`,
           coupon.appliesTo === "SPECIFIC" ? "Specific Products" : "All Products",
+          <button
+            key={`${coupon._id}-showOnCart`}
+            type="button"
+            disabled={mutations.update.isPending}
+            onClick={() => {
+              const nextVal = !(coupon.showOnCart ?? true);
+              mutations.update.mutate({
+                couponId: coupon._id,
+                payload: {
+                  code: coupon.code,
+                  description: coupon.description,
+                  discountType: coupon.discountType,
+                  discountValue: coupon.discountValue,
+                  minOrderValue: coupon.minOrderValue,
+                  maxDiscountAmount: coupon.maxDiscountAmount,
+                  usageLimit: coupon.usageLimit,
+                  usageLimitPerUser: coupon.usageLimitPerUser,
+                  startDate: coupon.startDate,
+                  endDate: coupon.endDate,
+                  appliesTo: coupon.appliesTo,
+                  productIds: coupon.productIds,
+                  showOnCart: nextVal,
+                },
+              });
+            }}
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border transition cursor-pointer ${
+              coupon.showOnCart !== false
+                ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20"
+                : "bg-zinc-500/10 border-zinc-500/30 text-zinc-400 hover:bg-zinc-500/20"
+            }`}
+            title="Click to toggle whether this coupon appears in customer cart"
+          >
+            <span
+              className={`w-1.5 h-1.5 rounded-full ${
+                coupon.showOnCart !== false ? "bg-emerald-400" : "bg-zinc-400"
+              }`}
+            />
+            {coupon.showOnCart !== false ? "Visible" : "Hidden"}
+          </button>,
           `${coupon.usedCount}/${coupon.usageLimit}`,
           `${formatDate(coupon.startDate)} - ${formatDate(coupon.endDate)}`,
           <StatusBadge key={`${coupon._id}-status`} label={coupon.approvalStatus || "APPROVED"} />,
@@ -130,6 +169,7 @@ function CouponDialog({
   const [dateError, setDateError] = useState("");
   const [appliesTo, setAppliesTo] = useState<"ALL" | "SPECIFIC">(coupon?.appliesTo || "ALL");
   const [selectedProductIds, setSelectedProductIds] = useState<string[]>(coupon?.productIds || []);
+  const [showOnCart, setShowOnCart] = useState<boolean>(coupon?.showOnCart ?? true);
 
   const productsQuery = useSellerProducts({ page: 1, limit: 100 });
   const products = productsQuery.data?.data || [];
@@ -142,6 +182,7 @@ function CouponDialog({
       setEndDate(dateInput(coupon?.endDate));
       setAppliesTo(coupon?.appliesTo || "ALL");
       setSelectedProductIds(coupon?.productIds || []);
+      setShowOnCart(coupon?.showOnCart ?? true);
     }
   };
 
@@ -169,6 +210,7 @@ function CouponDialog({
         usageLimitPerUser: numberValue(form, "usageLimitPerUser"),
         startDate,
         endDate,
+        showOnCart,
         appliesTo,
         productIds: appliesTo === "SPECIFIC" ? selectedProductIds : [],
       },
@@ -227,6 +269,24 @@ function CouponDialog({
               />
             </label>
             <Field name="description" label="Description" defaultValue={coupon?.description} required />
+
+            <div className="grid gap-2 md:col-span-2 rounded-lg border border-white/10 bg-white/[0.03] p-3">
+              <label className="flex items-center justify-between cursor-pointer">
+                <div>
+                  <span className="text-sm font-semibold text-white block">Show Coupon in Customer Cart</span>
+                  <span className="text-xs text-white/50 block mt-0.5">
+                    When enabled, this coupon is shown under "Offers & Benefits" in customer carts for 1-tap application.
+                  </span>
+                </div>
+                <input
+                  type="checkbox"
+                  name="showOnCart"
+                  checked={showOnCart}
+                  onChange={(e) => setShowOnCart(e.target.checked)}
+                  className="w-4 h-4 rounded text-emerald-500 focus:ring-0 focus:ring-offset-0 bg-white/10 border-white/20 ml-3"
+                />
+              </label>
+            </div>
 
             <div className="grid gap-2 md:col-span-2">
               <span className={labelClass}>Coupon Target</span>

@@ -42,7 +42,10 @@ const processQueue = (error: any, token: string | null = null) => {
 axiosInstance.interceptors.request.use(
   async (config) => {
     try {
-      const token = await authStorage.getItemAsync("userToken");
+      let token = await authStorage.getItemAsync("userToken");
+      if (!token) {
+        token = useAuthStore.getState().token;
+      }
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }

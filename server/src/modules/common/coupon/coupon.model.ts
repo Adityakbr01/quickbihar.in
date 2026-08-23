@@ -94,6 +94,10 @@ const couponSchema = new Schema<ICoupon>(
             ref: "Product",
             default: [],
         },
+        showOnCart: {
+            type: Boolean,
+            default: true,
+        },
     },
     { timestamps: true }
 );

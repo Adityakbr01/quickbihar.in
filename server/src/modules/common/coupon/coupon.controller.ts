@@ -41,3 +41,16 @@ export const validateCoupon = asyncHandler(async (req: Request, res: Response) =
     
     return res.status(200).json(new ApiResponse(200, result, "Coupon is valid"));
 });
+
+export const getApplicableCoupons = asyncHandler(async (req: Request, res: Response) => {
+    let productIds: string[] = [];
+    if (req.query.productIds) {
+        if (typeof req.query.productIds === "string") {
+            productIds = req.query.productIds.split(",").map(s => s.trim()).filter(Boolean);
+        } else if (Array.isArray(req.query.productIds)) {
+            productIds = (req.query.productIds as string[]).map(s => String(s).trim()).filter(Boolean);
+        }
+    }
+    const coupons = await couponService.getApplicableCouponsForCart(productIds);
+    return res.status(200).json(new ApiResponse(200, coupons, "Applicable coupons fetched successfully"));
+});

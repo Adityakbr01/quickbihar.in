@@ -4,6 +4,8 @@ import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { createCartStyles } from "../styles/cartStyles";
 import { useCartStore } from "../store/cartStore";
 
+import { Ionicons } from "@expo/vector-icons";
+
 interface CartSummaryProps {
   subtotal: number;
   totalTax: number;
@@ -17,7 +19,7 @@ const CartSummary = ({
   subtotal, 
   totalTax, 
   shipping, 
-  discount, 
+  discount = 0, 
   appliedCoupon, 
   discountAmount = 0 
 }: CartSummaryProps) => {
@@ -25,11 +27,15 @@ const CartSummary = ({
   const styles = createCartStyles(theme);
   const { appliedCoupons = [] } = useCartStore();
   
-  // Total discount includes hardcoded discount + coupon discount
-  const totalDiscount = discount + discountAmount;
-  const total = subtotal + shipping - totalDiscount;
+  // Total coupon discount
+  const couponsTotalDiscount = appliedCoupons.length > 0
+    ? appliedCoupons.reduce((sum, c) => sum + (c.appliedDiscount || 0), 0)
+    : discountAmount;
 
-  const formatPrice = (amount: number) => `₹${amount.toLocaleString()}`;
+  const totalDiscount = discount + couponsTotalDiscount;
+  const total = Math.max(0, subtotal + shipping - totalDiscount);
+
+  const formatPrice = (amount: number) => `₹${Math.round(amount).toLocaleString()}`;
 
   return (
     <View style={styles.summaryContainer}>
@@ -43,7 +49,7 @@ const CartSummary = ({
       {totalTax > 0 && (
         <View style={styles.summaryRow}>
           <Text style={[styles.summaryLabel, { color: theme.secondaryText }]}>
-            GST / Fixed Taxes (Incl.)
+            Taxes & GST (Included)
           </Text>
           <Text style={[styles.summaryValue, { color: theme.secondaryText }]}>
             {formatPrice(totalTax)}
@@ -52,7 +58,7 @@ const CartSummary = ({
       )}
       
       <View style={styles.summaryRow}>
-        <Text style={styles.summaryLabel}>Shipping Fee</Text>
+        <Text style={styles.summaryLabel}>Delivery Fee</Text>
         <Text style={[styles.summaryValue, { color: shipping === 0 ? theme.primary : theme.text }]}>
           {shipping === 0 ? "FREE" : formatPrice(shipping)}
         </Text>
@@ -60,7 +66,7 @@ const CartSummary = ({
       
       {discount > 0 && (
         <View style={styles.summaryRow}>
-          <Text style={styles.summaryLabel}>Discount</Text>
+          <Text style={styles.summaryLabel}>Product Discount</Text>
           <Text style={[styles.summaryValue, { color: theme.primary }]}>
             -{formatPrice(discount)}
           </Text>
@@ -76,13 +82,13 @@ const CartSummary = ({
         </View>
       ))}
 
-      {appliedCoupons.length === 0 && discountAmount > 0 && (
+      {appliedCoupons.length === 0 && couponsTotalDiscount > 0 && (
         <View style={styles.summaryRow}>
           <Text style={styles.summaryLabel}>
             Coupon {appliedCoupon ? `(${appliedCoupon.code})` : ""}
           </Text>
           <Text style={[styles.summaryValue, { color: theme.primary }]}>
-            -{formatPrice(discountAmount)}
+            -{formatPrice(couponsTotalDiscount)}
           </Text>
         </View>
       )}
@@ -93,6 +99,15 @@ const CartSummary = ({
         <Text style={styles.totalLabel}>Total Amount</Text>
         <Text style={styles.totalValue}>{formatPrice(total)}</Text>
       </View>
+
+      {totalDiscount > 0 && (
+        <View style={styles.savingsBanner}>
+          <Ionicons name="sparkles" size={16} color={theme.primary} />
+          <Text style={styles.savingsBannerText}>
+            Yay! You are saving {formatPrice(totalDiscount)} on this order.
+          </Text>
+        </View>
+      )}
     </View>
   );
 };

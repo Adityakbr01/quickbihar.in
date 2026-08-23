@@ -31,6 +31,7 @@ export interface ICoupon {
     rejectionReason?: string;
     appliesTo?: "ALL" | "SPECIFIC";
     productIds?: string[];
+    showOnCart?: boolean;
     isActive: boolean;
     createdAt: Date;
     updatedAt: Date;

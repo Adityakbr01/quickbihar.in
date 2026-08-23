@@ -16,6 +16,9 @@ import { Theme } from "@/src/theme/Provider/ThemeProvider";
 import * as Haptics from "expo-haptics";
 import Toast from "react-native-toast-message";
 
+import { useRouter } from "expo-router";
+import { useAuthStore } from "@/src/features/common/auth/store/authStore";
+
 interface WriteReviewModalProps {
   visible: boolean;
   onClose: () => void;
@@ -39,6 +42,8 @@ export const WriteReviewModal: React.FC<WriteReviewModalProps> = ({
   productTitle,
   theme,
 }) => {
+  const router = useRouter();
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const [rating, setRating] = useState<number>(5);
   const [title, setTitle] = useState("");
   const [comment, setComment] = useState("");
@@ -50,6 +55,18 @@ export const WriteReviewModal: React.FC<WriteReviewModalProps> = ({
   };
 
   const handleSubmit = async () => {
+    if (!isAuthenticated) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+      Toast.show({
+        type: "error",
+        text1: "Login Required",
+        text2: "Please log in to submit a review.",
+      });
+      onClose();
+      router.push("/auth/login" as any);
+      return;
+    }
+
     if (!comment.trim()) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       Toast.show({

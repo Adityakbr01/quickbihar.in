@@ -21,12 +21,12 @@ const CartContent = () => {
     items,
     subtotal,
     totalTax,
-    itemCount,
     updateQuantity,
     removeItem,
     fetchCart,
     isLoading,
     appliedCoupon,
+    appliedCoupons = [],
     discountAmount,
     shippingRules,
     fetchShippingConfig
@@ -64,15 +64,15 @@ const CartContent = () => {
         text1: "Login Required",
         text2: "Please login to place an order",
       });
-      router.push("/auth");
+      router.push("/auth/login" as any);
       return;
     }
-    router.push("/checkout");
+    router.push("/checkout" as any);
   };
 
   if (isLoading && items.length === 0) {
     return (
-      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+      <View style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
         <ActivityIndicator size="large" color={theme.primary} />
       </View>
     );
@@ -86,15 +86,23 @@ const CartContent = () => {
     );
   }
 
-  // Calculated values for summary
+  // Calculate distinct products and total units
+  const productsCount = items.length;
+  const totalUnits = items.reduce((sum, i) => sum + (i.quantity || 1), 0);
+
+  // Calculated values for summary & checkout
   const shipping = subtotal >= shippingRules.threshold ? 0 : shippingRules.fee;
-  const autoDiscount = 0; // Removed hardcoded discount
-  const totalAmount = subtotal + shipping - (autoDiscount + discountAmount);
+  const autoDiscount = 0;
+  const couponsTotalDiscount = appliedCoupons.length > 0
+    ? appliedCoupons.reduce((sum, c) => sum + (c.appliedDiscount || 0), 0)
+    : (discountAmount || 0);
+
+  const totalAmount = Math.max(0, subtotal + shipping - (autoDiscount + couponsTotalDiscount));
 
   return (
     <View style={styles.container}>
       <View style={styles.mainWrapper}>
-        <CartHeader itemCount={itemCount} />
+        <CartHeader productsCount={productsCount} totalUnits={totalUnits} />
 
         <ScrollView
           contentContainerStyle={styles.scrollContent}
@@ -106,7 +114,9 @@ const CartContent = () => {
               item={{
                 id: item.sku,
                 name: item.productTitle || "Product",
-                price: `₹${item.price}`,
+                price: item.price,
+                unitPrice: item.price,
+                originalPrice: item.originalPrice,
                 image: item.image,
                 quantity: item.quantity,
                 sku: item.sku,
@@ -130,20 +140,23 @@ const CartContent = () => {
           />
         </ScrollView>
 
-        {/* Sticky Bottom Checkout */}
+        {/* Sticky Bottom Checkout CTA */}
         <View style={styles.footer}>
           <TouchableOpacity
             style={[styles.checkoutButton, { backgroundColor: theme.primary }]}
             onPress={handleCheckout}
-            activeOpacity={0.9}
+            activeOpacity={0.88}
           >
-            <View style={{ flex: 1 }}>
-              <Text style={styles.checkoutText}>Place Order</Text>
-              <Text style={{ color: 'rgba(255,255,255,0.8)', fontSize: 12 }}>
-                Total: ₹{totalAmount.toLocaleString()}
+            <View style={styles.checkoutTotalInfo}>
+              <Text style={styles.checkoutTotalLabel}>Total Amount</Text>
+              <Text style={styles.checkoutTotalAmount}>
+                ₹{Math.round(totalAmount).toLocaleString()}
               </Text>
             </View>
-            <Ionicons name="arrow-forward" size={20} color="#fff" />
+            <View style={styles.checkoutActionRow}>
+              <Text style={styles.checkoutText}>Place Order</Text>
+              <Ionicons name="arrow-forward" size={18} color="#fff" />
+            </View>
           </TouchableOpacity>
         </View>
       </View>

@@ -24,3 +24,9 @@ export const validateCouponRequest = async (code: string, orderAmount: number) =
     const response = await axiosInstance.post("/coupons/validate", { code, orderAmount });
     return response.data.data;
 };
+
+export const getApplicableCouponsRequest = async (productIds?: string[]): Promise<ICoupon[]> => {
+    const params = productIds && productIds.length > 0 ? { productIds: productIds.join(",") } : {};
+    const response = await axiosInstance.get("/coupons/public/applicable", { params });
+    return response.data.data;
+};

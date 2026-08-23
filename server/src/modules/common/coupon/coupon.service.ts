@@ -251,3 +251,19 @@ export async function validateCoupon(
 export async function incrementUsage(code: string) {
     return await couponDAO.updateByCode(code, { $inc: { usedCount: 1 } });
 }
+
+/**
+ * Retrieve applicable active coupons for a cart.
+ * If productIds are supplied, finds the corresponding sellers and returns global + matching seller coupons.
+ */
+export async function getApplicableCouponsForCart(productIds: string[] = []) {
+    let sellerIds: string[] = [];
+    if (productIds.length > 0) {
+        const validIds = productIds.filter(id => /^[0-9a-fA-F]{24}$/.test(id));
+        if (validIds.length > 0) {
+            const products = await Product.find({ _id: { $in: validIds }, isDeleted: false }).select("sellerId").lean();
+            sellerIds = Array.from(new Set(products.map(p => p.sellerId?.toString()).filter(Boolean) as string[]));
+        }
+    }
+    return await couponDAO.findApplicableForCart(sellerIds, productIds);
+}

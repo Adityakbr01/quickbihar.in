@@ -23,6 +23,7 @@ export interface ICoupon {
     storeId?: string;
     appliesTo?: "ALL" | "SPECIFIC";
     productIds?: string[];
+    showOnCart?: boolean;
     appliedDiscount?: number;
     createdAt: string;
     updatedAt: string;

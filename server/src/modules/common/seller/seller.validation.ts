@@ -137,6 +137,7 @@ export const sellerCouponSchema = z.object({
     usageLimit: z.coerce.number().int().min(1).optional(),
     usageLimitPerUser: z.coerce.number().int().min(1).optional(),
     isActive: boolFromForm.optional(),
+    showOnCart: boolFromForm.optional().default(true),
     appliesTo: z.enum(["ALL", "SPECIFIC"]).optional().default("ALL"),
     productIds: z.preprocess(parseJson, z.array(mongoIdSchema).optional()),
 });

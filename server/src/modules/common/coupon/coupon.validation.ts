@@ -13,6 +13,7 @@ export const couponSchema = z.object({
     usageLimit: z.number().int().positive().optional(),
     usageLimitPerUser: z.number().int().positive().optional(),
     isActive: z.boolean().optional(),
+    showOnCart: z.boolean().optional(),
     appliesTo: z.enum(["ALL", "SPECIFIC"]).optional().default("ALL"),
     productIds: z.array(z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid Product ID")).optional(),
 });

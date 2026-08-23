@@ -108,3 +108,55 @@ export { deleteCoupon as delete };
 export async function updateByCode(code: string, data: any) {
     return await Coupon.findOneAndUpdate({ code: code.toUpperCase() }, data, { returnDocument: 'after' });
 }
+
+import { Types } from "mongoose";
+
+/**
+ * Find active coupons applicable for cart display:
+ * - isActive: true
+ * - showOnCart !== false
+ * - approvalStatus: "APPROVED" (or not set)
+ * - startDate <= now <= endDate
+ * - usedCount < usageLimit
+ * - Filtered by global OR matching seller/product ids if provided.
+ */
+export async function findApplicableForCart(sellerIds: string[] = [], productIds: string[] = []) {
+    const now = new Date();
+    const baseFilter: any = {
+        isActive: true,
+        showOnCart: { $ne: false },
+        startDate: { $lte: now },
+        endDate: { $gte: now },
+        $or: [{ approvalStatus: "APPROVED" }, { approvalStatus: { $exists: false } }],
+        $expr: { $lt: ["$usedCount", "$usageLimit"] },
+    };
+
+    const validSellerObjIds = sellerIds
+        .filter(id => Types.ObjectId.isValid(id))
+        .map(id => new Types.ObjectId(id));
+    const validProdObjIds = productIds
+        .filter(id => Types.ObjectId.isValid(id))
+        .map(id => new Types.ObjectId(id));
+
+    if (validSellerObjIds.length > 0) {
+        baseFilter.$and = [
+            {
+                $or: [
+                    { scope: "GLOBAL" },
+                    { sellerId: { $exists: false } },
+                    { sellerId: null },
+                    {
+                        sellerId: { $in: [...validSellerObjIds, ...sellerIds] },
+                        $or: [
+                            { appliesTo: "ALL" },
+                            { appliesTo: { $exists: false } },
+                            { productIds: { $in: [...validProdObjIds, ...productIds] } },
+                        ],
+                    },
+                ],
+            },
+        ];
+    }
+
+    return await Coupon.find(baseFilter).sort({ discountValue: -1, createdAt: -1 }).lean();
+}

@@ -5,13 +5,15 @@ import {
     getCouponById, 
     updateCoupon, 
     deleteCoupon, 
-    validateCoupon 
+    validateCoupon,
+    getApplicableCoupons
 } from "./coupon.controller";
 import { verifyJWT, isAdmin } from "@/middlewares/auth.middleware";
 
 const router = Router();
 
-// Validation route should be accessible to authenticated users (or public if needed)
+// Public routes for checkout/cart
+router.get("/public/applicable", getApplicableCoupons);
 router.post("/validate", verifyJWT, validateCoupon);
 
 // Admin only routes for managing coupons
