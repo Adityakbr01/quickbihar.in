@@ -1,62 +1,84 @@
 import Link from "next/link";
-import { ArrowRight, Mail, Phone } from "lucide-react";
+import { Mail, Phone, Smartphone, Store, Bike, Sparkles } from "lucide-react";
+import { APP_LINKS, landingData } from "@/constants/links";
 
-/**
- * CTA.tsx
- * Closing conversion band (#contact) — a bold final push to register plus
- * quick contact channels for anyone who still has questions.
- */
 export default function CTA() {
-  return (
-    <section id="contact" className="relative scroll-mt-16 py-24">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-cyan-500/10 via-white/[0.02] to-emerald-500/10 px-6 py-16 text-center sm:px-16">
-          <div className="pointer-events-none absolute -top-20 left-1/2 h-64 w-[500px] -translate-x-1/2 rounded-full bg-cyan-500/20 blur-[100px]" />
+  const { cta } = landingData;
 
+  return (
+    <section id="contact" className="relative scroll-mt-16 py-20 bg-background border-t border-border">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        
+        <div className="relative overflow-hidden rounded-2xl border border-border bg-card p-8 text-center sm:p-12 shadow-md">
+          
           <div className="relative">
-            <h2 className="mx-auto max-w-2xl text-3xl font-bold tracking-tight text-white sm:text-4xl lg:text-5xl">
-              Ready to grow your business with QuickBihar?
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-muted px-3 py-1 text-xs font-semibold text-foreground">
+              <Sparkles className="h-3.5 w-3.5 text-primary" />
+              <span>{cta.badge}</span>
+            </span>
+
+            <h2 className="mx-auto mt-4 max-w-3xl text-2xl font-extrabold tracking-tight text-card-foreground sm:text-4xl">
+              {cta.title}
             </h2>
-            <p className="mx-auto mt-5 max-w-xl text-base text-gray-300">
-              Join hundreds of sellers already reaching customers across Bihar.
-              Setup is free and takes less than a day.
+
+            <p className="mx-auto mt-3 max-w-xl text-xs text-muted-foreground sm:text-sm">
+              {cta.subtitle}
             </p>
 
-            <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
+            {/* CTAs */}
+            <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+              {/* Play Store CTA */}
+              <a
+                href={APP_LINKS.PLAY_STORE}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2.5 rounded-lg bg-primary px-6 py-3 text-xs font-bold text-primary-foreground shadow-sm hover:bg-primary/90 transition-colors"
+              >
+                <Smartphone className="h-4 w-4" />
+                <span>{cta.playStoreButtonText}</span>
+              </a>
+
+              {/* Partner Links */}
               <Link
                 href="/seller/register"
-                className="group inline-flex items-center gap-2 rounded-lg bg-cyan-500 px-8 py-3.5 text-sm font-semibold text-black shadow-lg shadow-cyan-500/20 transition-all hover:bg-cyan-400"
+                className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-5 py-3 text-xs font-semibold text-card-foreground transition-colors hover:bg-muted"
               >
-                Get Started Free
-                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                <Store className="h-4 w-4 text-primary" />
+                <span>{cta.sellerButtonText}</span>
               </Link>
+
               <Link
-                href="/seller/login"
-                className="inline-flex items-center gap-2 rounded-lg border border-white/15 bg-white/5 px-8 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-white/10"
+                href="/delivery/register"
+                className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-5 py-3 text-xs font-semibold text-card-foreground transition-colors hover:bg-muted"
               >
-                Seller Login
+                <Bike className="h-4 w-4 text-primary" />
+                <span>{cta.riderButtonText}</span>
               </Link>
             </div>
 
-            <div className="mt-10 flex flex-col items-center justify-center gap-4 text-sm text-gray-400 sm:flex-row sm:gap-8">
+            {/* Contact Details */}
+            <div className="mt-10 flex flex-col items-center justify-center gap-4 text-xs text-muted-foreground sm:flex-row sm:gap-6 border-t border-border pt-6">
               <a
-                href="mailto:support@quickbihar.in"
-                className="inline-flex items-center gap-2 transition-colors hover:text-white"
+                href={`mailto:${APP_LINKS.SUPPORT_EMAIL}`}
+                className="inline-flex items-center gap-1.5 transition-colors hover:text-foreground"
               >
-                <Mail className="h-4 w-4 text-cyan-400" />
-                support@quickbihar.in
+                <Mail className="h-3.5 w-3.5 text-primary" />
+                {APP_LINKS.SUPPORT_EMAIL}
               </a>
-              <span className="hidden h-4 w-px bg-white/10 sm:block" />
+              <span className="hidden h-3 w-px bg-border sm:block" />
               <a
-                href="tel:+911234567890"
-                className="inline-flex items-center gap-2 transition-colors hover:text-white"
+                href={`tel:${APP_LINKS.SUPPORT_PHONE}`}
+                className="inline-flex items-center gap-1.5 transition-colors hover:text-foreground"
               >
-                <Phone className="h-4 w-4 text-cyan-400" />
-                +91 12345 67890
+                <Phone className="h-3.5 w-3.5 text-primary" />
+                {APP_LINKS.SUPPORT_PHONE}
               </a>
             </div>
+
           </div>
+
         </div>
+
       </div>
     </section>
   );

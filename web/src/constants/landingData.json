@@ -1,0 +1,357 @@
+{
+  "app": {
+    "name": "QuickBihar",
+    "domain": "QuickBihar.in",
+    "tagline": "Fashion & Fast Delivery",
+    "badge": "Bihar's Fashion & Fast Delivery Platform",
+    "playStoreUrl": "https://play.google.com/store/apps/details?id=in.quickbihar.app",
+    "supportEmail": "support@quickbihar.in",
+    "supportPhone": "+91 91234 56789",
+    "officeAddress": "Boring Road, Patna, Bihar 800001, India",
+    "rating": "4.9",
+    "totalDownloads": "50,000+",
+    "coverageText": "Across Bihar"
+  },
+  "hero": {
+    "pillBadge": "Bihar's Fashion & Fast Delivery Platform",
+    "headlinePart1": "Trending Clothes,",
+    "headlineHighlight": "Delivered in 30 Mins",
+    "headlinePart2": "Across Bihar.",
+    "subtitle": "Shop authentic apparel and footwear from local stores in Patna, Gaya, Muzaffarpur, Bhagalpur & 20+ districts with Cash on Delivery and Doorstep Size Exchange.",
+    "ctaPlayStore": {
+      "subText": "Get it on",
+      "mainText": "Google Play"
+    },
+    "ctaQrText": "Scan QR Code",
+    "partnerLinks": {
+      "sellerText": "Sell on QuickBihar →",
+      "sellerHref": "/seller/register",
+      "riderText": "Join as Delivery Rider →",
+      "riderHref": "/delivery/register"
+    },
+    "trustPoints": [
+      {
+        "title": "30-60 Mins",
+        "subtitle": "Local delivery",
+        "icon": "Truck"
+      },
+      {
+        "title": "7 Days Return",
+        "subtitle": "Size exchange",
+        "icon": "RotateCcw"
+      },
+      {
+        "title": "COD & UPI",
+        "subtitle": "Safe payment",
+        "icon": "ShieldCheck"
+      }
+    ],
+    "phoneMockup": {
+      "time": "9:41",
+      "badgeExpress": "⚡ 30-Min Delivery",
+      "rating": "4.9",
+      "ratingTitle": "50,000+ Downloads",
+      "ratingSubtitle": "Across Bihar"
+    }
+  },
+  "stats": [
+    {
+      "value": "500+",
+      "label": "Verified Clothing Stores",
+      "sub": "Top boutiques in Bihar",
+      "icon": "Store"
+    },
+    {
+      "value": "50,000+",
+      "label": "Fashion Products",
+      "sub": "Men, Women & Kids Wear",
+      "icon": "Package"
+    },
+    {
+      "value": "20+",
+      "label": "Districts Covered",
+      "sub": "Patna, Gaya, Muzaffarpur...",
+      "icon": "MapPin"
+    },
+    {
+      "value": "50k+",
+      "label": "Active App Users",
+      "sub": "4.9 ★ Play Store Rating",
+      "icon": "Users"
+    }
+  ],
+  "features": {
+    "badge": "Designed for Instant Fashion",
+    "title": "Why Bihar Loves QuickBihar",
+    "subtitle": "Bringing local clothing boutiques right into your smartphone with lightning-fast delivery.",
+    "items": [
+      {
+        "title": "30-Min Neighborhood Delivery",
+        "description": "Order apparel from your local city markets and receive them within 30 to 60 minutes.",
+        "badge": "Express Speed",
+        "icon": "Truck"
+      },
+      {
+        "title": "100% Genuine Local Boutiques",
+        "description": "Shop top-rated fashion stores directly from Patna, Gaya, Muzaffarpur, Bhagalpur and more.",
+        "badge": "Verified Quality",
+        "icon": "ShoppingBag"
+      },
+      {
+        "title": "Doorstep Size Exchange",
+        "description": "Size mismatch? Our rider picks up and replaces your clothes with the right fit within 7 days.",
+        "badge": "Zero Risk",
+        "icon": "RotateCcw"
+      },
+      {
+        "title": "Cash on Delivery & Instant UPI",
+        "description": "Pay only when you receive your order at your doorstep, or pay securely via QR Code & UPI.",
+        "badge": "Flexible Pay",
+        "icon": "Banknote"
+      },
+      {
+        "title": "Real-Time GPS Order Tracking",
+        "description": "Watch your rider move live on the map from the store to your location with real-time ETAs.",
+        "badge": "Live GPS",
+        "icon": "MapPin"
+      },
+      {
+        "title": "Dedicated Bihar Support",
+        "description": "Our customer care team resolves questions rapidly 7 days a week in Hindi and English.",
+        "badge": "Local Care",
+        "icon": "Headphones"
+      }
+    ]
+  },
+  "howItWorks": {
+    "badge": "Simple & Transparent",
+    "title": "How QuickBihar Works",
+    "subtitle": "From discovering your favorite dress to doorstep delivery in 3 effortless steps.",
+    "steps": [
+      {
+        "step": "01",
+        "title": "Browse & Select Clothes",
+        "description": "Open the QuickBihar App, select your city, and browse trending apparel from nearby fashion boutiques.",
+        "icon": "ShoppingBag"
+      },
+      {
+        "step": "02",
+        "title": "Boutique Packs Order",
+        "description": "Your selected local clothing store receives the order and packs fresh, quality-checked items instantly.",
+        "icon": "Store"
+      },
+      {
+        "step": "03",
+        "title": "Delivered in 30 Mins",
+        "description": "Our delivery rider picks up the package and reaches your doorstep with live GPS tracking & Cash on Delivery.",
+        "icon": "Truck"
+      }
+    ]
+  },
+  "audiences": {
+    "badge": "Bihar's Local Commerce Ecosystem",
+    "title": "Built for Shoppers, Boutiques & Riders",
+    "subtitle": "Join the fastest growing hyper-local network powering clothing retail across Bihar.",
+    "items": [
+      {
+        "icon": "ShoppingBag",
+        "tag": "For Shoppers (ग्राहक)",
+        "title": "Trending fashion in 30 minutes",
+        "points": [
+          "Latest apparel collections for Men, Women & Kids",
+          "Instant 30-60 min delivery in your city",
+          "Cash on Delivery & 7-day doorstep size exchange"
+        ],
+        "primaryCta": {
+          "label": "Get Mobile App",
+          "usePlayStoreLink": true
+        },
+        "secondaryCta": {
+          "label": "Explore Features →",
+          "href": "#features"
+        }
+      },
+      {
+        "icon": "Store",
+        "tag": "For Sellers (दुकानदार)",
+        "title": "Take your clothing shop digital",
+        "points": [
+          "Zero onboarding fee — start selling today",
+          "Dedicated seller portal to manage inventory & orders",
+          "Weekly automated bank settlements"
+        ],
+        "primaryCta": {
+          "label": "Register Your Shop",
+          "href": "/seller/register"
+        },
+        "secondaryCta": {
+          "label": "Seller Login →",
+          "href": "/seller/login"
+        }
+      },
+      {
+        "icon": "Bike",
+        "tag": "For Riders (डिलीवरी पार्टनर)",
+        "title": "Earn with flexible hours & bike",
+        "points": [
+          "High per-order delivery earnings + weekly bonuses",
+          "Instant order notifications on your phone",
+          "Real-time wallet and instant bank payouts"
+        ],
+        "primaryCta": {
+          "label": "Join as Delivery Partner",
+          "href": "/delivery/register"
+        },
+        "secondaryCta": {
+          "label": "Rider Login →",
+          "href": "/delivery/login"
+        }
+      }
+    ]
+  },
+  "testimonials": {
+    "badge": "Real Stories across Bihar",
+    "title": "Loved by Shoppers, Boutiques & Riders",
+    "items": [
+      {
+        "quote": "I brought my boutique in Patna online with QuickBihar. Within a week, we started fulfilling 40+ daily orders across Boring Road & Kankarbagh. Weekly bank payouts are always on time!",
+        "name": "Ramesh Sharma",
+        "role": "Boutique Owner, Patna",
+        "initials": "RS",
+        "rating": 5,
+        "tag": "Verified Seller"
+      },
+      {
+        "quote": "Ordered an embroidered Kurti set for a family event in Gaya and it arrived in just 35 minutes! The fabric quality is genuinely authentic and the fit was spot on.",
+        "name": "Pooja Kumari",
+        "role": "Customer, Gaya",
+        "initials": "PK",
+        "rating": 5,
+        "tag": "Verified Buyer"
+      },
+      {
+        "quote": "Delivering fashion orders on my bike gives me great per-order earnings and flexible hours. The QuickBihar Rider app has live navigation and instant payout tracking.",
+        "name": "Vikash Yadav",
+        "role": "Delivery Rider, Muzaffarpur",
+        "initials": "VY",
+        "rating": 5,
+        "tag": "Delivery Partner"
+      }
+    ]
+  },
+  "appDownload": {
+    "badge": "Instant Android App Download",
+    "title": "Shop Bihar's best fashion directly from your phone",
+    "subtitle": "Install the official QuickBihar App from Google Play Store. Unlock app-exclusive discounts, live GPS order tracking, and express 30-minute delivery.",
+    "perks": [
+      "30-min express local delivery",
+      "Live real-time rider tracking on map",
+      "Exclusive in-app coupons",
+      "Cash on Delivery & instant UPI",
+      "7-day doorstep size exchange",
+      "Curated boutique clothing stores"
+    ],
+    "playStoreButtonLabel": "Available on",
+    "playStoreButtonTitle": "Google Play Store",
+    "ratingBadge": "4.9 / 5 Rating",
+    "usersBadge": "50,000+ Users",
+    "qrBadge": "Scan to Install",
+    "qrTitle": "Camera Scan QR",
+    "qrSubtitle": "Point your phone camera to open Play Store.",
+    "directDownloadText": "Direct Download Link →"
+  },
+  "cta": {
+    "badge": "Download & Start Shopping Today",
+    "title": "Experience the fastest way to shop fashion in Bihar",
+    "subtitle": "Get the latest fashion collections delivered in 30 minutes from top local boutiques, or partner with us to take your clothing business online.",
+    "playStoreButtonText": "Get App on Google Play",
+    "sellerButtonText": "Sell on QuickBihar",
+    "riderButtonText": "Join as Rider"
+  },
+  "navigation": {
+    "navLinks": [
+      { "label": "Features", "href": "#features" },
+      { "label": "Download App", "href": "#download-app" },
+      { "label": "For Sellers", "href": "/seller/register" },
+      { "label": "For Riders", "href": "/delivery/register" }
+    ],
+    "partnerButtonText": "Partner Login",
+    "partnerMenuTitle": "Partner Access",
+    "portalOptions": [
+      {
+        "title": "Seller Portal (दुकानदार)",
+        "description": "Manage catalog, orders & payouts",
+        "icon": "Store",
+        "loginHref": "/seller/login",
+        "registerHref": "/seller/register"
+      },
+      {
+        "title": "Delivery Partner (राइडर)",
+        "description": "Accept deliveries & track earnings",
+        "icon": "Bike",
+        "loginHref": "/delivery/login",
+        "registerHref": "/delivery/register"
+      },
+      {
+        "title": "Admin Portal",
+        "description": "Operations & store management",
+        "icon": "ShieldCheck",
+        "loginHref": "/admin/login"
+      }
+    ]
+  },
+  "footer": {
+    "tagline": "Fashion & Fast Delivery",
+    "description": "Bihar's hyper-local fashion commerce platform. Delivering clothing, ethnic wear & footwear in minutes from your favorite local boutiques.",
+    "playStoreButtonText": "Get App on Google Play →",
+    "columns": [
+      {
+        "title": "For Sellers (दुकानदार)",
+        "icon": "Store",
+        "links": [
+          { "label": "Sell on QuickBihar", "href": "/seller/register", "highlight": true },
+          { "label": "Seller Portal Login", "href": "/seller/login" },
+          { "label": "Seller Dashboard", "href": "/seller/dashboard" },
+          { "label": "Seller Commission & Terms", "href": "#" }
+        ]
+      },
+      {
+        "title": "For Delivery (राइडर)",
+        "icon": "Bike",
+        "links": [
+          { "label": "Join as Delivery Partner", "href": "/delivery/register", "highlight": true },
+          { "label": "Rider Portal Login", "href": "/delivery/login" },
+          { "label": "Delivery Dashboard", "href": "/delivery/dashboard" },
+          { "label": "Rider Safety & Benefits", "href": "#" }
+        ]
+      },
+      {
+        "title": "Admin & Operations",
+        "icon": "ShieldCheck",
+        "links": [
+          { "label": "Admin Portal Login", "href": "/admin/login" },
+          { "label": "Operations Dashboard", "href": "/admin/dashboard" },
+          { "label": "Catalog Controls", "href": "/admin/dashboard" },
+          { "label": "System Status", "href": "#" }
+        ]
+      },
+      {
+        "title": "Shoppers & Policies",
+        "icon": "Smartphone",
+        "links": [
+          { "label": "Download Android App", "href": "PLAY_STORE", "external": true, "highlight": true },
+          { "label": "7-Day Return Policy", "href": "#" },
+          { "label": "Apparel Size Charts", "href": "#" },
+          { "label": "Order Tracking Support", "href": "#" }
+        ]
+      }
+    ],
+    "bottomLinks": [
+      { "label": "Privacy Policy", "href": "#" },
+      { "label": "Terms of Service", "href": "#" },
+      { "label": "Seller Login", "href": "/seller/login", "primary": true },
+      { "label": "Rider Login", "href": "/delivery/login", "primary": true },
+      { "label": "Admin Login", "href": "/admin/login" }
+    ]
+  }
+}

@@ -1,119 +1,106 @@
 import Link from "next/link";
-import { ArrowRight, Bike, CheckCircle2, ShoppingBag, Store } from "lucide-react";
+import { ArrowRight, Bike, CheckCircle2, ShoppingBag, Store, Smartphone, Sparkles } from "lucide-react";
+import { APP_LINKS, landingData } from "@/constants/links";
 
-/**
- * Audiences.tsx
- * Role-oriented panels mapping to the platform's three participants
- * (sellers, delivery partners, customers), each with its own CTA.
- */
-const audiences = [
-  {
-    icon: Store,
-    tag: "For Sellers",
-    title: "Turn your shop into an online store",
-    points: [
-      "List unlimited products for free",
-      "Weekly payouts to your bank",
-      "Reach customers across Bihar",
-    ],
-    cta: { label: "Become a Seller", href: "/seller/register" },
-    accent: "cyan",
-  },
-  {
-    icon: Bike,
-    tag: "For Delivery Partners",
-    title: "Earn on your own schedule",
-    points: [
-      "Flexible hours, local routes",
-      "Transparent per-delivery payouts",
-      "Instant order notifications",
-    ],
-    cta: { label: "Partner With Us", href: "/delivery/register" },
-    accent: "emerald",
-  },
-  {
-    icon: ShoppingBag,
-    tag: "For Customers",
-    title: "Shop local, delivered fast",
-    points: [
-      "Thousands of products near you",
-      "Same-day delivery in most areas",
-      "Secure payments & easy returns",
-    ],
-    cta: { label: "Start Shopping", href: "#" },
-    accent: "cyan",
-  },
-];
-
-const accentMap: Record<string, { ring: string; icon: string; link: string }> = {
-  cyan: {
-    ring: "hover:border-cyan-400/40",
-    icon: "border-cyan-400/20 bg-cyan-400/10 text-cyan-400",
-    link: "text-cyan-400 hover:text-cyan-300",
-  },
-  emerald: {
-    ring: "hover:border-emerald-400/40",
-    icon: "border-emerald-400/20 bg-emerald-400/10 text-emerald-400",
-    link: "text-emerald-400 hover:text-emerald-300",
-  },
+const iconMap: Record<string, typeof ShoppingBag> = {
+  ShoppingBag,
+  Store,
+  Bike,
 };
 
 export default function Audiences() {
+  const { audiences } = landingData;
+
   return (
-    <section id="about" className="relative scroll-mt-16 border-t border-white/10 py-24">
+    <section id="partners" className="relative scroll-mt-16 border-t border-border py-20 bg-background">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        
+        {/* Section Header */}
         <div className="mx-auto max-w-2xl text-center">
-          <span className="text-sm font-semibold uppercase tracking-wider text-cyan-400">
-            One platform, three ways to win
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1 text-xs font-semibold text-card-foreground">
+            <Sparkles className="h-3.5 w-3.5 text-primary" />
+            {audiences.badge}
           </span>
-          <h2 className="mt-3 text-3xl font-bold tracking-tight text-white sm:text-4xl">
-            Built for everyone in the chain
+          <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
+            {audiences.title}
           </h2>
-          <p className="mt-4 text-base text-gray-400">
-            Whether you sell, deliver, or shop — QuickBihar gives you a reason to
-            be here.
+          <p className="mt-3 text-sm text-muted-foreground sm:text-base">
+            {audiences.subtitle}
           </p>
         </div>
 
-        <div className="mt-16 grid gap-6 lg:grid-cols-3">
-          {audiences.map((aud) => {
-            const Icon = aud.icon;
-            const accent = accentMap[aud.accent];
+        {/* 3 Audience Cards */}
+        <div className="mt-12 grid gap-6 lg:grid-cols-3">
+          {audiences.items.map((aud) => {
+            const Icon = iconMap[aud.icon] || ShoppingBag;
+            const primaryHref = aud.primaryCta.usePlayStoreLink ? APP_LINKS.PLAY_STORE : aud.primaryCta.href || "#";
+            const isExternal = aud.primaryCta.usePlayStoreLink;
+
             return (
               <div
                 key={aud.tag}
-                className={`flex flex-col rounded-2xl border border-white/10 bg-white/[0.02] p-8 transition-all ${accent.ring}`}
+                className="flex flex-col justify-between rounded-xl border border-border bg-card p-6 shadow-xs transition-all hover:bg-muted/40 hover:shadow-md"
               >
-                <div
-                  className={`flex h-12 w-12 items-center justify-center rounded-xl border ${accent.icon}`}
-                >
-                  <Icon className="h-6 w-6" />
+                <div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                      <Icon className="h-5 w-5" />
+                    </div>
+                    <span className="rounded-md bg-muted px-2.5 py-0.5 text-xs font-semibold text-muted-foreground">
+                      {aud.tag}
+                    </span>
+                  </div>
+
+                  <h3 className="mt-5 text-lg font-bold text-card-foreground">
+                    {aud.title}
+                  </h3>
+
+                  <ul className="mt-4 space-y-2.5">
+                    {aud.points.map((point) => (
+                      <li key={point} className="flex items-start gap-2 text-xs sm:text-sm text-muted-foreground">
+                        <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                        <span>{point}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-                <span className="mt-5 text-xs font-semibold uppercase tracking-wider text-gray-500">
-                  {aud.tag}
-                </span>
-                <h3 className="mt-2 text-xl font-semibold text-white">
-                  {aud.title}
-                </h3>
-                <ul className="mt-5 space-y-3">
-                  {aud.points.map((point) => (
-                    <li key={point} className="flex items-start gap-2.5 text-sm text-gray-300">
-                      <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-cyan-400" />
-                      {point}
-                    </li>
-                  ))}
-                </ul>
-                <Link
-                  href={aud.cta.href}
-                  className={`group mt-8 inline-flex items-center gap-1.5 text-sm font-semibold ${accent.link}`}
-                >
-                  {aud.cta.label}
-                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-                </Link>
+
+                <div className="mt-6 pt-5 border-t border-border space-y-2.5">
+                  {isExternal ? (
+                    <a
+                      href={primaryHref}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full flex items-center justify-center gap-2 rounded-lg bg-primary py-2.5 text-xs font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 transition-colors"
+                    >
+                      <Smartphone className="h-4 w-4" />
+                      {aud.primaryCta.label}
+                    </a>
+                  ) : (
+                    <Link
+                      href={primaryHref}
+                      className="w-full flex items-center justify-center gap-2 rounded-lg bg-primary py-2.5 text-xs font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 transition-colors"
+                    >
+                      {aud.primaryCta.label}
+                      <ArrowRight className="h-4 w-4" />
+                    </Link>
+                  )}
+
+                  <div className="text-center">
+                    <Link
+                      href={aud.secondaryCta.href}
+                      className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      {aud.secondaryCta.label}
+                    </Link>
+                  </div>
+                </div>
+
               </div>
             );
           })}
         </div>
+
       </div>
     </section>
   );

@@ -1,35 +1,35 @@
-import { IndianRupee, Package, Store, Truck } from "lucide-react";
+import { Package, Store, MapPin, Users } from "lucide-react";
+import { landingData } from "@/constants/links";
 
-/**
- * Stats.tsx
- * Key-metric band shown just below the hero to build instant credibility.
- */
-const stats = [
-  { icon: Store, value: "500+", label: "Active Sellers" },
-  { icon: Package, value: "50k+", label: "Products Listed" },
-  { icon: Truck, value: "20+", label: "Districts Covered" },
-  { icon: IndianRupee, value: "₹2Cr+", label: "Seller Earnings" },
-];
+const iconMap: Record<string, typeof Store> = {
+  Store,
+  Package,
+  MapPin,
+  Users,
+};
 
 export default function Stats() {
+  const { stats } = landingData;
+
   return (
-    <section className="relative border-y border-white/10 bg-white/[0.02]">
-      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-2 gap-8 lg:grid-cols-4">
+    <section className="relative border-y border-border bg-card">
+      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-2 gap-6 lg:grid-cols-4">
           {stats.map((stat) => {
-            const Icon = stat.icon;
+            const Icon = iconMap[stat.icon] || Store;
             return (
               <div
                 key={stat.label}
-                className="flex flex-col items-center gap-2 text-center"
+                className="flex flex-col items-center justify-center p-4 text-center"
               >
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-cyan-400/20 bg-cyan-400/10 text-cyan-400">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary mb-2.5">
                   <Icon className="h-5 w-5" />
                 </div>
-                <span className="text-3xl font-bold text-white sm:text-4xl">
+                <span className="text-2xl font-bold tracking-tight text-card-foreground sm:text-3xl">
                   {stat.value}
                 </span>
-                <span className="text-sm text-gray-500">{stat.label}</span>
+                <span className="mt-1 text-xs font-semibold text-card-foreground">{stat.label}</span>
+                <span className="text-[10px] text-muted-foreground">{stat.sub}</span>
               </div>
             );
           })}

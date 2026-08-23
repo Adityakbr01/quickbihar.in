@@ -1,74 +1,59 @@
-import { Quote, Star } from "lucide-react";
-
-/**
- * Testimonials.tsx
- * Social proof from sellers and customers across Bihar to reinforce trust
- * before the final call-to-action.
- */
-const testimonials = [
-  {
-    quote:
-      "I moved my kirana store online with QuickBihar and doubled my orders in two months. The payouts are always on time.",
-    name: "Ramesh Kumar",
-    role: "Seller, Patna",
-    initials: "RK",
-  },
-  {
-    quote:
-      "Delivery is genuinely same-day in my area. I now shop for groceries and electronics without leaving home.",
-    name: "Anjali Singh",
-    role: "Customer, Gaya",
-    initials: "AS",
-  },
-  {
-    quote:
-      "Flexible hours let me deliver around my college schedule. The app is simple and payments are instant.",
-    name: "Vikash Yadav",
-    role: "Delivery Partner, Muzaffarpur",
-    initials: "VY",
-  },
-];
+import { Star, Sparkles } from "lucide-react";
+import { landingData } from "@/constants/links";
 
 export default function Testimonials() {
+  const { testimonials } = landingData;
+
   return (
-    <section className="relative border-t border-white/10 py-24">
+    <section className="relative border-t border-border py-20 bg-background">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        
         <div className="mx-auto max-w-2xl text-center">
-          <span className="text-sm font-semibold uppercase tracking-wider text-cyan-400">
-            Loved across Bihar
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1 text-xs font-semibold text-card-foreground">
+            <Sparkles className="h-3.5 w-3.5 text-primary" />
+            {testimonials.badge}
           </span>
-          <h2 className="mt-3 text-3xl font-bold tracking-tight text-white sm:text-4xl">
-            Don&apos;t just take our word for it
+          <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
+            {testimonials.title}
           </h2>
         </div>
 
-        <div className="mt-16 grid gap-6 lg:grid-cols-3">
-          {testimonials.map((t) => (
+        <div className="mt-12 grid gap-6 lg:grid-cols-3">
+          {testimonials.items.map((t) => (
             <figure
               key={t.name}
-              className="flex flex-col rounded-2xl border border-white/10 bg-white/[0.02] p-7"
+              className="flex flex-col justify-between rounded-xl border border-border bg-card p-6 shadow-xs transition-all hover:bg-muted/40"
             >
-              <Quote className="h-8 w-8 text-cyan-400/30" />
-              <blockquote className="mt-4 flex-1 text-sm leading-relaxed text-gray-300">
-                &ldquo;{t.quote}&rdquo;
-              </blockquote>
-              <div className="mt-5 flex">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Star key={i} className="h-4 w-4 fill-amber-400 text-amber-400" />
-                ))}
+              <div>
+                <div className="flex items-center justify-between">
+                  <div className="flex text-primary gap-0.5 text-xs">
+                    {Array.from({ length: t.rating }).map((_, i) => (
+                      <Star key={i} className="h-3.5 w-3.5 fill-current" />
+                    ))}
+                  </div>
+                  <span className="rounded bg-muted px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">
+                    {t.tag}
+                  </span>
+                </div>
+
+                <blockquote className="mt-4 text-xs leading-relaxed text-card-foreground sm:text-sm">
+                  &ldquo;{t.quote}&rdquo;
+                </blockquote>
               </div>
-              <figcaption className="mt-5 flex items-center gap-3 border-t border-white/10 pt-5">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400/20 to-emerald-400/20 text-sm font-semibold text-cyan-300">
+
+              <figcaption className="mt-6 flex items-center gap-3 border-t border-border pt-4">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold text-xs">
                   {t.initials}
                 </div>
                 <div>
-                  <div className="text-sm font-semibold text-white">{t.name}</div>
-                  <div className="text-xs text-gray-500">{t.role}</div>
+                  <div className="text-xs font-bold text-card-foreground">{t.name}</div>
+                  <div className="text-[10px] text-muted-foreground">{t.role}</div>
                 </div>
               </figcaption>
             </figure>
           ))}
         </div>
+
       </div>
     </section>
   );

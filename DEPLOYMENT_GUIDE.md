@@ -12,14 +12,14 @@ This guide details the complete production setup for **QuickBihar** on your Orac
   │
   ├── Global Host Nginx (/etc/nginx/)
   │    ├── sites-available/voiceact.conf  -> 127.0.0.1:3001 (Web), 127.0.0.1:5001 (Backend)
-  │    └── sites-available/quickbihar.conf -> 127.0.0.1:3002 (Web), 127.0.0.1:5002 (Backend), 127.0.0.1:7001 (Mobile Web)
+  │    └── sites-available/quickbihar.conf -> 127.0.0.1:3002 (Web & Landing), 127.0.0.1:5002 (Backend API & Sockets)
   │
   ├── Docker Engine (Isolated Localhost Containers)
   │    ├── VoiceAct App Network (voiceact-network)
   │    └── QuickBihar App Network (quickbihar-network)
   │         ├── quickbihar-server     (127.0.0.1:5002 -> 8000)
-  │         ├── quickbihar-web        (127.0.0.1:3002 -> 3000)
-  │         └── quickbihar-mobile-web (127.0.0.1:7001 -> 80)
+  │         ├── quickbihar-web        (127.0.0.1:3002 -> 3000) [Landing Page + Dashboards]
+  │         └── quickbihar-redis      (redis:6379)
   │
   └── GitHub Self-Hosted Runners
        ├── ~/runners/voiceact-web/ (VoiceAct pipeline)
@@ -34,9 +34,9 @@ This guide details the complete production setup for **QuickBihar** on your Orac
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **VoiceAct** | Frontend Web | `voiceact-web` | `127.0.0.1:3001` | `3000` | `voiceact-network` |
 | **VoiceAct** | Backend API | `voiceact-backend` | `127.0.0.1:5001` | `5000` | `voiceact-network` |
-| **QuickBihar** | Backend API | `quickbihar-server` | `127.0.0.1:5002` | `8000` | `quickbihar-network` |
-| **QuickBihar** | Next.js Dashboard | `quickbihar-web` | `127.0.0.1:3002` | `3000` | `quickbihar-network` |
-| **QuickBihar** | Expo Mobile Web | `quickbihar-mobile-web` | `127.0.0.1:7001` | `80` | `quickbihar-network` |
+| **QuickBihar** | Backend API & Sockets | `quickbihar-server` | `127.0.0.1:5002` | `8000` | `quickbihar-network` |
+| **QuickBihar** | Next.js Landing & Portals | `quickbihar-web` | `127.0.0.1:3002` | `3000` | `quickbihar-network` |
+| **QuickBihar** | Redis Queues & Cache | `quickbihar-redis` | Internal | `6379` | `quickbihar-network` |
 
 > [!NOTE]
 > No container port is exposed publicly to the internet. Only `127.0.0.1` binding is used, preventing public access bypasses around Nginx.
@@ -122,11 +122,6 @@ upstream quickbihar_web {
     keepalive 32;
 }
 
-upstream quickbihar_mobile {
-    server 127.0.0.1:7001;
-    keepalive 32;
-}
-
 server {
     listen 80;
     listen [::]:80;
@@ -145,6 +140,7 @@ server {
     gzip_comp_level 6;
     gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript image/svg+xml;
 
+    # 1. REST API Endpoints
     location /api/ {
         proxy_pass http://quickbihar_backend;
         proxy_http_version 1.1;
@@ -159,6 +155,7 @@ server {
         proxy_send_timeout 90s;
     }
 
+    # 2. Realtime WebSockets
     location /socket.io/ {
         proxy_pass http://quickbihar_backend;
         proxy_http_version 1.1;
@@ -172,6 +169,7 @@ server {
         proxy_send_timeout 86400s;
     }
 
+    # 3. Next.js Static Assets
     location ^~ /_next/ {
         proxy_pass http://quickbihar_web;
         proxy_http_version 1.1;
@@ -182,20 +180,9 @@ server {
         proxy_cache_bypass $http_upgrade;
     }
 
-    location ~ ^/(admin|seller|delivery)(/.*)?$ {
-        proxy_pass http://quickbihar_web;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_cache_bypass $http_upgrade;
-    }
-
+    # 4. Landing Page and All Portal Routes (/admin, /seller, /delivery, etc.)
     location / {
-        proxy_pass http://quickbihar_mobile;
+        proxy_pass http://quickbihar_web;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';

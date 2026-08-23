@@ -72,29 +72,6 @@ services:
       retries: 3
       start_period: 20s
 
-  mobile-web:
-    image: ${DOCKER_USER:-adityakbr}/quickbihar-mobile-web:prod
-    build:
-      context: ./mobile
-      dockerfile: Dockerfile
-    container_name: quickbihar-mobile-web
-    restart: unless-stopped
-    ports:
-      - "127.0.0.1:7001:80"
-    env_file:
-      - path: ./mobile/.env
-        required: false
-    depends_on:
-      - server
-    networks:
-      - quickbihar-network
-    healthcheck:
-      test: ["CMD-SHELL", "wget -q -O - http://127.0.0.1:80/ > /dev/null || exit 1"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 10s
-
 volumes:
   quickbihar-redis-data:
     name: quickbihar-redis-data

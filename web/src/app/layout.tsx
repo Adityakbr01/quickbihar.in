@@ -5,11 +5,15 @@ import QueryProvider from "@/components/providers/QueryProvider";
 import SocketListenerProvider from "@/components/providers/SocketListenerProvider";
 import { Toaster } from "@/components/ui/sonner";
 
-const spaceGrotesk = Space_Grotesk({ subsets: ["latin"] });
+const spaceGrotesk = Space_Grotesk({
+  subsets: ["latin"],
+  variable: "--font-sans",
+  weight: ["300", "400", "500", "600", "700"],
+});
 
 export const metadata: Metadata = {
-  title: "QuickBihar - Bihar's Fastest Growing E-Commerce Platform",
-  description: "Shop online with QuickBihar.in — best prices, fastest delivery across Bihar.",
+  title: "QuickBihar.in | Bihar's #1 Fashion & Instant Delivery App",
+  description: "Shop trending fashion from local stores with 30-min delivery across Bihar.",
 };
 
 export default function RootLayout({
@@ -19,7 +23,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark">
-      <body className={spaceGrotesk.className}>
+      <body className={`${spaceGrotesk.variable} font-sans antialiased`}>
         <QueryProvider>
           <SocketListenerProvider>
             {children}
