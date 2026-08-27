@@ -456,6 +456,7 @@ export class OrderService {
                     sku: item.sku,
                     size: item.size,
                     color: item.color,
+                    image: item.image,
                     quantity: item.quantity,
                     price: item.price,
                     sellerSubtotal: item.sellerSubtotal || (item.price * item.quantity),

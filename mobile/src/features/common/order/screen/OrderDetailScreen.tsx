@@ -35,6 +35,51 @@ const ORDER_STEP_STAGES = [
   { key: "DELIVERED", label: "Delivered", shortLabel: "Delivered" },
 ];
 
+/**
+ * Bulletproof helper to extract valid image URL from any product/item structure.
+ */
+const extractProductImageUrl = (item: any): string | null => {
+  if (!item) return null;
+
+  // 1. Direct string image on item
+  if (typeof item.image === "string" && item.image.trim().startsWith("http")) {
+    return item.image.trim();
+  }
+  if (typeof item.imageUrl === "string" && item.imageUrl.trim().startsWith("http")) {
+    return item.imageUrl.trim();
+  }
+
+  // 2. Direct object on item.image
+  if (item.image && typeof item.image === "object" && typeof item.image.url === "string") {
+    return item.image.url.trim();
+  }
+
+  // 3. Populated productId object
+  const prod = item.productId || item.product;
+  if (prod && typeof prod === "object") {
+    if (Array.isArray(prod.images) && prod.images.length > 0) {
+      for (const img of prod.images) {
+        if (typeof img === "string" && img.trim().startsWith("http")) {
+          return img.trim();
+        }
+        if (img && typeof img === "object" && typeof img.url === "string" && img.url.trim().startsWith("http")) {
+          return img.url.trim();
+        }
+      }
+    }
+    if (typeof prod.image === "string" && prod.image.trim().startsWith("http")) return prod.image.trim();
+    if (typeof prod.thumbnail === "string" && prod.thumbnail.trim().startsWith("http")) return prod.thumbnail.trim();
+    if (typeof prod.mainImage === "string" && prod.mainImage.trim().startsWith("http")) return prod.mainImage.trim();
+  }
+
+  // 4. Any generic non-empty image string
+  if (typeof item.image === "string" && item.image.trim().length > 0) {
+    return item.image.trim();
+  }
+
+  return null;
+};
+
 export default function OrderDetailScreen() {
   const theme = useTheme();
   const styles = createOrderDetailStyles(theme);
@@ -170,7 +215,7 @@ export default function OrderDetailScreen() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     Toast.show({
       type: "success",
-      text1: "Order ID",
+      text1: "Order ID Copied",
       text2: `#${order?.orderId || orderId}`,
     });
   };
@@ -180,7 +225,7 @@ export default function OrderDetailScreen() {
     try {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       const itemsText = (order.items || [])
-        .map((i: any) => `• ${i.title} (x${i.quantity})`)
+        .map((i: any) => `• ${i.title} (x${i.quantity}) - ₹${i.price * i.quantity}`)
         .join("\n");
 
       await Share.share({
@@ -192,7 +237,7 @@ export default function OrderDetailScreen() {
           `${deliveryOtp ? `*Delivery OTP:* ${deliveryOtp}\n` : ""}` +
           `*Total Amount:* ₹${order.payableAmount || order.totalAmount}\n\n` +
           `*Items:*\n${itemsText}\n\n` +
-          `_Track your order on Quick Bihar!_`,
+          `_Track and manage your order on Quick Bihar!_`,
       });
     } catch (e) {
       console.error(e);
@@ -215,7 +260,16 @@ export default function OrderDetailScreen() {
     Linking.openURL(`tel:${phone}`);
   };
 
-
+  const handleNavigateToProduct = (item: any) => {
+    const prodId = item.productId?._id || item.productId || item._id;
+    if (prodId && typeof prodId === "string") {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      router.push({
+        pathname: "/product/[id]" as any,
+        params: { id: prodId },
+      });
+    }
+  };
 
   if (isLoading && !order) {
     return (
@@ -275,6 +329,7 @@ export default function OrderDetailScreen() {
   const itemsToDisplay = currentSubOrder?.items || order?.items || [];
   const assignedRider = currentSubOrder?.delivery?.riderId || order?.delivery?.partnerUserId;
   const isCod = order?.paymentInfo?.razorpayOrderId === "COD" || currentSubOrder?.packageDetails?.isCod;
+  const totalItemCount = itemsToDisplay.reduce((sum: number, it: any) => sum + (it.quantity || 1), 0);
 
   // Status subtitle copy
   const getStatusSubtitle = () => {
@@ -362,91 +417,147 @@ export default function OrderDetailScreen() {
           </Text>
         </View>
 
-        {/* Multi-SubOrder Tabs (if multi-vendor package) */}
+        {/* Multi-SubOrder / Multi-Store Package Tabs */}
         {subOrders.length > 1 && (
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={styles.subOrderTabsContainer}
-          >
-            {subOrders.map((sub: any, idx: number) => {
-              const isSelected = idx === selectedSubOrderIndex;
-              return (
-                <TouchableOpacity
-                  key={sub.subOrderId || idx}
-                  style={[
-                    styles.subOrderTab,
-                    isSelected && styles.subOrderTabActive,
-                  ]}
-                  onPress={() => setSelectedSubOrderIndex(idx)}
-                >
-                  <Text
+          <View style={{ marginBottom: 12 }}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={styles.subOrderTabsContainer}
+            >
+              {subOrders.map((sub: any, idx: number) => {
+                const isSelected = idx === selectedSubOrderIndex;
+                const pkgItemCount = (sub.items || []).reduce((acc: number, it: any) => acc + (it.quantity || 1), 0);
+                const storeName = sub.storeId?.name || `Store ${idx + 1}`;
+
+                return (
+                  <TouchableOpacity
+                    key={sub.subOrderId || idx}
                     style={[
-                      styles.subOrderTabText,
-                      isSelected && styles.subOrderTabTextActive,
+                      styles.subOrderTab,
+                      isSelected && styles.subOrderTabActive,
                     ]}
+                    onPress={() => setSelectedSubOrderIndex(idx)}
+                    activeOpacity={0.7}
                   >
-                    Package {idx + 1} ({sub.subOrderId || `S${idx + 1}`})
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </ScrollView>
+                    <Text
+                      style={[
+                        styles.subOrderTabText,
+                        isSelected && styles.subOrderTabTextActive,
+                      ]}
+                    >
+                      📦 Package {idx + 1} ({pkgItemCount} {pkgItemCount === 1 ? "item" : "items"})
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </View>
         )}
 
-        {/* Product Items List (Matches Reference UI Image 1) */}
+        {/* Items Section Header */}
+        <View style={styles.itemsSectionHeader}>
+          <Text style={styles.itemsSectionTitle}>
+            {subOrders.length > 1
+              ? `Package ${selectedSubOrderIndex + 1} Items (${itemsToDisplay.length})`
+              : `Ordered Items (${itemsToDisplay.length})`}
+          </Text>
+          <View style={styles.itemsCountBadge}>
+            <Text style={styles.itemsCountText}>
+              Total Qty: {totalItemCount}
+            </Text>
+          </View>
+        </View>
+
+        {/* Product Items List (Handles multiple products with rich UX) */}
         {itemsToDisplay.map((item: any, idx: number) => {
-          const imageUrl =
-            item.productId?.images?.[0] ||
-            item.productId?.thumbnail ||
-            item.productId?.mainImage ||
-            item.image;
+          const imageUrl = extractProductImageUrl(item);
+          const storeName = item.storeId?.name || currentSubOrder?.storeId?.name;
 
           return (
             <View key={item.sku || idx} style={styles.productCard}>
-              <View style={styles.productImageContainer}>
-                {imageUrl ? (
-                  <Image
-                    source={{ uri: imageUrl }}
-                    style={styles.productImage}
-                    contentFit="cover"
-                    transition={200}
-                  />
-                ) : (
-                  <MaterialCommunityIcons
-                    name="shopping-outline"
-                    size={32}
-                    color={theme.primary}
-                  />
-                )}
-              </View>
+              <View style={styles.productCardTop}>
+                {/* Product Image Thumbnail */}
+                <TouchableOpacity
+                  style={styles.productImageContainer}
+                  activeOpacity={0.8}
+                  onPress={() => handleNavigateToProduct(item)}
+                >
+                  {imageUrl ? (
+                    <Image
+                      source={{ uri: imageUrl }}
+                      style={styles.productImage}
+                      contentFit="cover"
+                      transition={250}
+                    />
+                  ) : (
+                    <MaterialCommunityIcons
+                      name="shopping-outline"
+                      size={32}
+                      color={theme.primary}
+                    />
+                  )}
+                </TouchableOpacity>
 
-              <View style={styles.productInfo}>
-                <Text style={styles.productTitle} numberOfLines={2}>
-                  {item.title}
-                </Text>
-
-                {(item.color || item.size) && (
-                  <Text style={styles.productVariantText}>
-                    {[
-                      item.color ? `Color: ${item.color}` : null,
-                      item.size ? `Size: ${item.size}` : null,
-                    ]
-                      .filter(Boolean)
-                      .join(" • ")}
-                  </Text>
-                )}
-
-                <View style={styles.productPriceRow}>
-                  <Text style={styles.productPrice}>
-                    ₹{item.price * (item.quantity || 1)}
-                  </Text>
-                  <View style={styles.productQtyBadge}>
-                    <Text style={styles.productQtyText}>
-                      Qty: {item.quantity || 1}
+                {/* Product Details */}
+                <View style={styles.productInfo}>
+                  <TouchableOpacity
+                    activeOpacity={0.7}
+                    onPress={() => handleNavigateToProduct(item)}
+                  >
+                    <Text style={styles.productTitle} numberOfLines={2}>
+                      {item.title}
                     </Text>
+                  </TouchableOpacity>
+
+                  {/* Visual Chips Row for Size, Color, SKU */}
+                  <View style={styles.chipsRow}>
+                    {item.color && (
+                      <View style={styles.chip}>
+                        <Text style={styles.chipText}>Color: {item.color}</Text>
+                      </View>
+                    )}
+                    {item.size && (
+                      <View style={styles.chip}>
+                        <Text style={styles.chipText}>Size: {item.size}</Text>
+                      </View>
+                    )}
+                    <View style={styles.chip}>
+                      <Text style={styles.chipText}>Qty: {item.quantity || 1}</Text>
+                    </View>
+                  </View>
+
+                  {/* Price & Unit Breakdown */}
+                  <View style={styles.productPriceRow}>
+                    <Text style={styles.productPrice}>
+                      ₹{item.price * (item.quantity || 1)}
+                    </Text>
+                    {(item.quantity || 1) > 1 && (
+                      <Text style={styles.productUnitPrice}>
+                        (₹{item.price} each)
+                      </Text>
+                    )}
                   </View>
                 </View>
+              </View>
+
+              {/* Product Card Footer (Store & View Product link) */}
+              <View style={styles.productCardFooter}>
+                <View style={styles.storeBadge}>
+                  <Ionicons name="storefront-outline" size={13} color={theme.tertiaryText} />
+                  <Text style={styles.storeBadgeText}>
+                    {storeName ? `Sold by: ${storeName}` : "Quick Bihar Fulfilled"}
+                  </Text>
+                </View>
+
+                <TouchableOpacity
+                  style={styles.viewProductLink}
+                  onPress={() => handleNavigateToProduct(item)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.viewProductText}>View Item</Text>
+                  <Ionicons name="chevron-forward" size={14} color={theme.primary} />
+                </TouchableOpacity>
               </View>
             </View>
           );
@@ -479,7 +590,7 @@ export default function OrderDetailScreen() {
           </View>
         )}
 
-        {/* Order Status & Progress Card (Matches Image 1 & Image 3) */}
+        {/* Order Status & Progress Card */}
         <View style={styles.statusCard}>
           <TouchableOpacity
             style={styles.statusCardHeader}
@@ -501,7 +612,7 @@ export default function OrderDetailScreen() {
             />
           </TouchableOpacity>
 
-          {/* Horizontal Stepper (Compact Mode - Image 1) */}
+          {/* Horizontal Stepper (Compact Mode) */}
           {!isTimelineExpanded && activeStepIndex >= 0 && (
             <View style={styles.stepperContainer}>
               <View style={styles.stepperTrack}>
@@ -562,7 +673,7 @@ export default function OrderDetailScreen() {
             </View>
           )}
 
-          {/* Vertical Detailed Timeline (Expanded Mode - Image 3) */}
+          {/* Vertical Detailed Timeline (Expanded Mode) */}
           {isTimelineExpanded && (
             <View style={styles.verticalTimeline}>
               {ORDER_STEP_STAGES.map((stage, idx) => {
@@ -670,8 +781,6 @@ export default function OrderDetailScreen() {
               </Text>
             </View>
           )}
-
-
         </View>
 
         {/* Shipping Address Card */}
@@ -704,7 +813,7 @@ export default function OrderDetailScreen() {
           </View>
         )}
 
-        {/* Price Details Card (Matches Image 2 & Image 4) */}
+        {/* Price Details Card (Collapsed by default, tap to expand) */}
         <View style={styles.sectionCard}>
           <TouchableOpacity
             style={styles.sectionCardHeader}
@@ -843,7 +952,7 @@ export default function OrderDetailScreen() {
                 </Text>
               </View>
 
-              {/* Paid By Box (Matches Screenshot) */}
+              {/* Paid By Box */}
               <View style={styles.paidByBox}>
                 <View style={styles.paidByLeft}>
                   <Ionicons
@@ -866,7 +975,7 @@ export default function OrderDetailScreen() {
           )}
         </View>
 
-        {/* Offers Earned Box (Matches Image 4) */}
+        {/* Offers Earned Box */}
         {order.discountAmount > 0 && (
           <View style={styles.offersCard}>
             <View style={styles.offersLeft}>

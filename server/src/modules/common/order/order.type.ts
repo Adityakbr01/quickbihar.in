@@ -90,6 +90,7 @@ export interface IOrderItem {
     sku: string;
     size?: string;
     color?: string;
+    image?: string;
     quantity: number;
     price: number; // Snapshot of price at purchase
     sellerId?: Types.ObjectId;

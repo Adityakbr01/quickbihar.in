@@ -327,6 +327,7 @@ export class OrderPricingService {
                 sku: variant.sku,
                 size: variant.size,
                 color: variant.color,
+                image: product.images?.[0]?.url || (typeof product.images?.[0] === "string" ? product.images[0] : "") || (product as any).thumbnail || (product as any).mainImage || "",
                 quantity: item.quantity,
                 price: itemPrice,
                 sellerId: toObjectId(rawSellerId),

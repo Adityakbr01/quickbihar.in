@@ -164,17 +164,42 @@ export const createOrderDetailStyles = (theme: Theme) =>
       fontWeight: "700",
     },
 
-    // Product Card
+    // Items Section Header
+    itemsSectionHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      marginBottom: 10,
+      marginTop: 4,
+    },
+    itemsSectionTitle: {
+      fontSize: 16,
+      fontWeight: "800",
+      color: theme.text,
+      letterSpacing: -0.2,
+    },
+    itemsCountBadge: {
+      backgroundColor: theme.tertiaryBackground,
+      paddingHorizontal: 8,
+      paddingVertical: 3,
+      borderRadius: radius.pill,
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    itemsCountText: {
+      fontSize: 12,
+      fontWeight: "700",
+      color: theme.primary,
+    },
+
+    // Product Card (Rich ecommerce card)
     productCard: {
       backgroundColor: theme.background,
       borderRadius: radius.xl,
-      padding: spacing.md,
-      marginBottom: spacing.md,
+      padding: 14,
+      marginBottom: 12,
       borderWidth: 1,
       borderColor: theme.border,
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 14,
       ...Platform.select({
         ios: {
           shadowColor: "#000",
@@ -187,9 +212,14 @@ export const createOrderDetailStyles = (theme: Theme) =>
         },
       }),
     },
+    productCardTop: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      gap: 14,
+    },
     productImageContainer: {
-      width: 72,
-      height: 72,
+      width: 80,
+      height: 80,
       borderRadius: radius.m,
       backgroundColor: theme.tertiaryBackground,
       justifyContent: "center",
@@ -211,32 +241,69 @@ export const createOrderDetailStyles = (theme: Theme) =>
       color: theme.text,
       lineHeight: 20,
     },
-    productVariantText: {
-      fontSize: 13,
+    chipsRow: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      alignItems: "center",
+      gap: 6,
+      marginTop: 6,
+    },
+    chip: {
+      backgroundColor: theme.tertiaryBackground,
+      paddingHorizontal: 7,
+      paddingVertical: 2.5,
+      borderRadius: radius.s,
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    chipText: {
+      fontSize: 11,
+      fontWeight: "600",
       color: theme.secondaryText,
-      marginTop: 3,
     },
     productPriceRow: {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      marginTop: 6,
+      marginTop: 8,
     },
     productPrice: {
       fontSize: 15,
-      fontWeight: "800",
+      fontWeight: "900",
       color: theme.text,
     },
-    productQtyBadge: {
-      paddingHorizontal: 8,
-      paddingVertical: 2,
-      borderRadius: radius.s,
-      backgroundColor: theme.tertiaryBackground,
-    },
-    productQtyText: {
+    productUnitPrice: {
       fontSize: 12,
-      fontWeight: "600",
+      fontWeight: "500",
       color: theme.secondaryText,
+    },
+    productCardFooter: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      marginTop: 10,
+      paddingTop: 8,
+      borderTopWidth: 1,
+      borderTopColor: theme.border,
+    },
+    storeBadge: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 4,
+    },
+    storeBadgeText: {
+      fontSize: 11,
+      color: theme.tertiaryText,
+    },
+    viewProductLink: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 2,
+    },
+    viewProductText: {
+      fontSize: 12,
+      fontWeight: "700",
+      color: theme.primary,
     },
 
     // OTP Card

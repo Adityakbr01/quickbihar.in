@@ -117,7 +117,7 @@ describe("Order Pricing with Populated Seller and Store Objects", () => {
     expect(quote.platformCommissionTotal).toBe(149.7);
     expect(quote.sellerBreakdowns.length).toBe(1);
 
-    const breakdown = quote.sellerBreakdowns[0];
+    const breakdown = quote.sellerBreakdowns[0]!;
     expect(breakdown.sellerId).toBe("6a808f16a011bd545c686e9f");
     expect(breakdown.sellerId).not.toBe("[object Object]");
     expect(breakdown.platformCommission).toBe(149.7);

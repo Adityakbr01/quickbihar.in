@@ -8,6 +8,7 @@ const orderItemSchema = new Schema(
         sku: { type: String, required: true },
         size: { type: String, required: false },
         color: { type: String, required: false },
+        image: { type: String },
         quantity: { type: Number, required: true, min: 1 },
         price: { type: Number, required: true },
         sellerId: { type: Schema.Types.ObjectId, ref: "User", index: true },

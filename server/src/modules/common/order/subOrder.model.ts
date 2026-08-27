@@ -71,6 +71,7 @@ export interface ISubOrderOrderItem {
   sku: string;
   size: string;
   color: string;
+  image?: string;
   quantity: number;
   price: number;
   sellerSubtotal: number;
@@ -155,6 +156,7 @@ const subOrderOrderItemSchema = new Schema(
     sku: { type: String, required: true },
     size: { type: String, required: false },
     color: { type: String, required: false },
+    image: { type: String },
     quantity: { type: Number, required: true, min: 1 },
     price: { type: Number, required: true },
     sellerSubtotal: { type: Number, required: true },
