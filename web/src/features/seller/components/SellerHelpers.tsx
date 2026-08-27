@@ -183,7 +183,7 @@ export function SimpleTable({
                 className="border-white/10 hover:bg-white/[0.03]"
               >
                 {row.map((cell, cellIndex) => (
-                  <TableCell key={cellIndex} className="max-w-[360px] text-gray-300">
+                  <TableCell key={cellIndex} className="text-gray-300 align-middle py-3">
                     {cell}
                   </TableCell>
                 ))}

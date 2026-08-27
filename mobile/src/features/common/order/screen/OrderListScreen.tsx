@@ -98,8 +98,8 @@ const OrderListScreen = () => {
       activeOpacity={0.8}
       onPress={() =>
         router.push({
-          pathname: "/order-success",
-          params: { orderId: item.orderId },
+          pathname: "/order/[id]" as any,
+          params: { id: item.orderId },
         })
       }
     >

@@ -1,7 +1,7 @@
-"use client";
-
 import React, { useState } from "react";
+import { ChevronDown, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useFulfillmentRealtime } from "@/hooks/useFulfillmentRealtime";
 import type { SellerQueryParams } from "@/features/seller/api/sellerManagement.api";
 import {
@@ -19,6 +19,70 @@ import {
   formatAmount,
   formatDate,
 } from "./SellerHelpers";
+
+function ItemsDropdownCell({ items }: { items: any[] }) {
+  if (!items || items.length === 0) {
+    return <span className="text-xs text-gray-500">No items</span>;
+  }
+
+  const totalQty = items.reduce((sum, item) => sum + (item.quantity || 1), 0);
+  const firstItem = items[0];
+
+  return (
+    <Popover>
+      <PopoverTrigger
+        type="button"
+        className="group inline-flex max-w-[190px] items-center gap-1.5 rounded-md border border-white/10 bg-white/5 px-2 py-1 text-left text-xs text-gray-200 transition hover:border-indigo-400/40 hover:bg-white/10 hover:text-white cursor-pointer"
+      >
+        <Package className="h-3.5 w-3.5 text-indigo-400 shrink-0" />
+        <span className="truncate flex-1 font-medium">
+          {firstItem.title}
+        </span>
+        {items.length > 1 ? (
+          <span className="shrink-0 rounded bg-indigo-500/20 px-1 py-0.2 text-[10px] font-bold text-indigo-300">
+            +{items.length - 1}
+          </span>
+        ) : (
+          <span className="shrink-0 text-[11px] font-semibold text-gray-400">
+            x{firstItem.quantity || 1}
+          </span>
+        )}
+        <ChevronDown className="h-3 w-3 text-gray-400 transition-transform group-data-open:rotate-180 shrink-0" />
+      </PopoverTrigger>
+      <PopoverContent
+        align="start"
+        className="w-80 border border-white/15 bg-[#18181b] p-3 text-white shadow-2xl rounded-xl z-50"
+      >
+        <div className="flex items-center justify-between border-b border-white/10 pb-2">
+          <div className="flex items-center gap-1.5 text-xs font-bold text-gray-200">
+            <Package className="h-3.5 w-3.5 text-indigo-400" />
+            <span>Package Contents ({items.length} {items.length === 1 ? "Item" : "Items"})</span>
+          </div>
+          <span className="rounded bg-white/10 px-1.5 py-0.5 text-[10px] font-bold text-gray-300">
+            Total Qty: {totalQty}
+          </span>
+        </div>
+        <div className="mt-2 divide-y divide-white/5 max-h-60 overflow-y-auto pr-1">
+          {items.map((item: any, idx: number) => (
+            <div key={idx} className="py-2.5 first:pt-1 last:pb-0 text-xs">
+              <div className="font-semibold text-gray-100 line-clamp-2">
+                {item.title}
+              </div>
+              <div className="mt-1 flex items-center justify-between text-[11px] text-gray-400">
+                <span className="text-gray-400 truncate max-w-[170px]">
+                  {[item.color, item.size, item.sku].filter(Boolean).join(" • ") || "Standard"}
+                </span>
+                <span className="shrink-0 font-bold text-emerald-400">
+                  Qty: {item.quantity || 1} {item.price ? `(₹${item.price})` : ""}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
 
 export function SellerOrdersPanel() {
   useFulfillmentRealtime();
@@ -112,9 +176,7 @@ export function SellerOrdersPanel() {
                 {subOrder.parentOrderId?.shippingAddress?.phone}
               </div>
             </div>,
-            <div key={`${subOrder._id}-items`} className="max-w-[200px] text-xs text-gray-300">
-              {subOrder.items.map((item: any) => `${item.title} x${item.quantity}`).join(", ")}
-            </div>,
+            <ItemsDropdownCell key={`${subOrder._id}-items`} items={subOrder.items} />,
             `Rs. ${formatAmount(subOrder.payableAmount || 0)}`,
             <div key={`${subOrder._id}-status-col`} className="flex flex-col gap-1.5 items-start">
               <StatusBadge label={subOrder.status} />

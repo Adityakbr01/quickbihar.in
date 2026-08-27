@@ -6,6 +6,7 @@ import * as appConfigService from "@/modules/common/appConfig/appConfig.service"
 import * as couponService from "@/modules/common/coupon/coupon.service";
 import * as ProductDAO from "@/modules/clothing/products/product.dao";
 import { Store } from "@/modules/common/store/store.model";
+import { idString, toObjectId } from "@/utils/id.util";
 import { calculateRiderPayout, distanceKmBetween, type RiderPayoutRules } from "./subOrder.service";
 
 type OrderQuoteItemInput = {
@@ -317,6 +318,9 @@ export class OrderPricingService {
             totalTax += taxAmount * item.quantity;
             mrpTotal += itemOriginalPrice * item.quantity;
 
+            const rawSellerId = idString(product.sellerId);
+            const rawStoreId = idString(product.storeId);
+
             processedItems.push({
                 productId: product._id,
                 title: product.title,
@@ -325,8 +329,8 @@ export class OrderPricingService {
                 color: variant.color,
                 quantity: item.quantity,
                 price: itemPrice,
-                sellerId: product.sellerId,
-                storeId: product.storeId,
+                sellerId: toObjectId(rawSellerId),
+                storeId: toObjectId(rawStoreId),
                 sellerSubtotal: itemSubtotal,
                 settlementStatus: "PENDING",
                 basePrice,
@@ -350,17 +354,16 @@ export class OrderPricingService {
                 couponDiscountAmount += val.discountAmount;
                 appliedCouponsInfo.push({
                     code: val.coupon.code,
-                    sellerId: val.coupon.sellerId && Types.ObjectId.isValid(val.coupon.sellerId.toString())
-                        ? new Types.ObjectId(val.coupon.sellerId.toString())
-                        : null,
+                    sellerId: toObjectId(val.coupon.sellerId) || null,
                     discountAmount: val.discountAmount,
                 });
 
+                const valSellerId = idString(val.sellerId);
                 const eligibleItems = processedItems.filter((processedItem) => {
-                    const isSeller = !val.sellerId || processedItem.sellerId?.toString() === val.sellerId;
+                    const isSeller = !valSellerId || idString(processedItem.sellerId) === valSellerId;
                     if (!isSeller) return false;
                     if (val.coupon?.appliesTo === "SPECIFIC") {
-                        return val.coupon.productIds?.some((id: any) => id.toString() === processedItem.productId.toString()) || false;
+                        return val.coupon.productIds?.some((id: any) => idString(id) === idString(processedItem.productId)) || false;
                     }
                     return true;
                 });
@@ -393,11 +396,11 @@ export class OrderPricingService {
             ? 0
             : Number(shippingRules.shippingFee || 0);
 
-        const sellerIds = Array.from(new Set(processedItems.map((item) => item.sellerId?.toString()).filter(Boolean)));
-        const storeIds = Array.from(new Set(processedItems.map((item) => item.storeId?.toString()).filter(Boolean)));
+        const sellerIds = Array.from(new Set(processedItems.map((item) => idString(item.sellerId)).filter(Boolean)));
+        const storeIds = Array.from(new Set(processedItems.map((item) => idString(item.storeId)).filter(Boolean)));
         const validStoreIds = storeIds.filter((id) => Types.ObjectId.isValid(id));
         const stores = await Store.find({ _id: { $in: validStoreIds.map((id) => new Types.ObjectId(id)) } }).lean();
-        const storesById = new Map(stores.map((store: any) => [store._id.toString(), store]));
+        const storesById = new Map(stores.map((store: any) => [idString(store._id), store]));
         const riderRules = effectiveRiderRules(config);
         const bonusRules = {
             rainBonus: config?.delivery?.riderPayoutRules?.rainBonus,
@@ -411,14 +414,14 @@ export class OrderPricingService {
         for (let index = 0; index < sellerIds.length; index++) {
             const sellerId = sellerIds[index];
             if (!sellerId) continue;
-            const sellerItems = processedItems.filter((item) => item.sellerId?.toString() === sellerId);
+            const sellerItems = processedItems.filter((item) => idString(item.sellerId) === sellerId);
             const sellerItemSubtotal = sellerItems.reduce((sum, item) => sum + (item.price || 0) * (item.quantity || 0), 0);
-            const sellerCoupon = appliedCouponsInfo.find((coupon) => coupon.sellerId ? coupon.sellerId.toString() === sellerId : true);
+            const sellerCoupon = appliedCouponsInfo.find((coupon) => coupon.sellerId ? idString(coupon.sellerId) === sellerId : true);
             const sellerCouponShare = Number(sellerCoupon?.discountAmount || 0);
             const commissionBase = Math.max(0, sellerItemSubtotal - sellerCouponShare);
             const platformCommission = roundMoney((commissionBase * commissionPercent) / 100);
             const sellerNet = roundMoney(commissionBase - platformCommission);
-            const storeId = sellerItems[0]?.storeId?.toString();
+            const storeId = idString(sellerItems[0]?.storeId);
             const store = storeId ? storesById.get(storeId) : null;
             const itemCoords = sellerItems.map((item) => finiteCoords(item)).find(Boolean) || null;
             const storeCoords = itemCoords || geoJsonCoords(store?.currentLocation);

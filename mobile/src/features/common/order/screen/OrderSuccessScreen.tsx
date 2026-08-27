@@ -184,18 +184,23 @@ const OrderSuccessScreen = () => {
         <View style={styles.buttonGroup}>
           <TouchableOpacity
             style={[styles.actionButton, styles.primaryActionButton]}
-            onPress={() => router.replace("/(tabs)/clothing/home")}
+            onPress={() =>
+              router.push({
+                pathname: "/order/[id]" as any,
+                params: { id: order?.orderId || orderId },
+              })
+            }
           >
-            <Ionicons name="cart-outline" size={20} color="#fff" />
-            <Text style={[styles.actionButtonText, { color: "#fff" }]}>Continue Shopping</Text>
+            <MaterialCommunityIcons name="package-variant-closed" size={20} color="#fff" />
+            <Text style={[styles.actionButtonText, { color: "#fff" }]}>View Order Details & OTP</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             style={[styles.actionButton, styles.secondaryActionButton]}
-            onPress={() => router.push("/account/orders")}
+            onPress={() => router.replace("/(tabs)/clothing/home")}
           >
-            <MaterialCommunityIcons name="package-variant-closed" size={20} color={theme.text} />
-            <Text style={[styles.actionButtonText, { color: theme.text }]}>View My Orders</Text>
+            <Ionicons name="cart-outline" size={20} color={theme.text} />
+            <Text style={[styles.actionButtonText, { color: theme.text }]}>Continue Shopping</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

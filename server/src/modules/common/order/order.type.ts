@@ -147,7 +147,7 @@ export interface IOrder extends Document {
     };
     couponCode?: string;
     couponCodes?: string[];
-    couponDiscounts?: Array<{ code: string; sellerId: any; discountAmount: number }>;
+    couponDiscounts?: Array<{ code: string; sellerId?: any; discountAmount: number }>;
     createdAt: Date;
     updatedAt: Date;
 }

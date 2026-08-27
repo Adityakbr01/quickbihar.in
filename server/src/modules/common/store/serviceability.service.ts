@@ -11,6 +11,7 @@
 import { Types } from "mongoose";
 import { ApiError } from "@/utils/ApiError";
 import { coordinatesFromGeoJson, distanceKmBetween, finiteLocation } from "@/utils/geo.util";
+import { idString } from "@/utils/id.util";
 import { Store } from "./store.model";
 
 /** Base filter for stores eligible to appear on the storefront and accept orders. */
@@ -130,7 +131,7 @@ export async function assertCartServiceable(
     target: ServiceabilityTarget,
 ): Promise<void> {
     const storeIds = Array.from(
-        new Set((items ?? []).map((item) => item.storeId?.toString()).filter(Boolean)),
+        new Set((items ?? []).map((item) => idString(item.storeId)).filter(Boolean)),
     ) as string[];
     const validStoreIds = storeIds.filter((id) => Types.ObjectId.isValid(id));
     if (validStoreIds.length === 0) return;
@@ -138,10 +139,10 @@ export async function assertCartServiceable(
     const stores = await Store.find({ _id: { $in: validStoreIds.map((id) => new Types.ObjectId(id)) } })
         .select("name deliveryConfig deliveryRadiusKm currentLocation")
         .lean();
-    const storesById = new Map(stores.map((store: any) => [store._id.toString(), store]));
+    const storesById = new Map(stores.map((store: any) => [idString(store._id), store]));
 
     for (const item of items ?? []) {
-        const storeId = item.storeId?.toString();
+        const storeId = idString(item.storeId);
         if (!storeId || !Types.ObjectId.isValid(storeId)) continue;
         const label = item.title ?? item.name;
         const store = storesById.get(storeId);
@@ -164,7 +165,7 @@ export async function assertCartServiceable(
  */
 export async function assertCartStoresOpen(items: ServiceabilityCartItem[]): Promise<void> {
     const storeIds = Array.from(
-        new Set((items ?? []).map((item) => item.storeId?.toString()).filter(Boolean)),
+        new Set((items ?? []).map((item) => idString(item.storeId)).filter(Boolean)),
     ) as string[];
     const validStoreIds = storeIds.filter((id) => Types.ObjectId.isValid(id));
     if (validStoreIds.length === 0) return;
@@ -172,10 +173,10 @@ export async function assertCartStoresOpen(items: ServiceabilityCartItem[]): Pro
     const stores = await Store.find({ _id: { $in: validStoreIds.map((id) => new Types.ObjectId(id)) } })
         .select("name isOpen isActive")
         .lean();
-    const storesById = new Map(stores.map((store: any) => [store._id.toString(), store]));
+    const storesById = new Map(stores.map((store: any) => [idString(store._id), store]));
 
     for (const item of items ?? []) {
-        const storeId = item.storeId?.toString();
+        const storeId = idString(item.storeId);
         if (!storeId || !Types.ObjectId.isValid(storeId)) continue;
         const store: any = storesById.get(storeId);
         const label = store?.name ? `'${store.name}'` : "A store in your cart";

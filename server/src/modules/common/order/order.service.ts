@@ -19,6 +19,7 @@ import { TimelineHelper } from "./timeline.helper";
 import { orderPricingService } from "./orderPricing.service";
 import { sellerSettlementService } from "@/modules/common/seller/sellerSettlement.service";
 import { assertCartServiceable, assertCartStoresOpen } from "@/modules/common/store/serviceability.service";
+import { idString, toObjectId } from "@/utils/id.util";
 
 const generateDeliveryOtp = () => Math.floor(100000 + Math.random() * 900000).toString();
 
@@ -65,7 +66,7 @@ const fulfillmentSummaryOf = (subOrders: any[]) => {
 export class OrderService {
     private async notifyOrderSellers(order: any, status: OrderStatus, message: string) {
         const sellerIds = Array.from(new Set((order.items || [])
-            .map((item: any) => item.sellerId?.toString())
+            .map((item: any) => idString(item.sellerId))
             .filter(Boolean)));
 
         if (!sellerIds.length) return;
@@ -87,15 +88,15 @@ export class OrderService {
     private async creditSellerEarnings(order: any) {
         const sellerBreakdowns = (order.pricingSnapshot?.sellerBreakdowns || []) as any[];
         for (const item of order.items || []) {
-            const sellerId = item.sellerId?.toString();
+            const sellerId = idString(item.sellerId);
             if (!sellerId) continue;
 
-            const sellerItems = (order.items || []).filter((orderItem: any) => orderItem.sellerId?.toString() === sellerId);
+            const sellerItems = (order.items || []).filter((orderItem: any) => idString(orderItem.sellerId) === sellerId);
             const sellerNetSubtotal = sellerItems.reduce(
                 (sum: number, orderItem: any) => sum + Number(orderItem.sellerSubtotal ?? ((orderItem.price || 0) * (orderItem.quantity || 0))),
                 0,
             );
-            const sellerBreakdown = sellerBreakdowns.find((breakdown) => breakdown.sellerId?.toString() === sellerId);
+            const sellerBreakdown = sellerBreakdowns.find((breakdown) => idString(breakdown.sellerId) === sellerId);
             const sellerCommissionTotal = Number(sellerBreakdown?.platformCommission || 0);
             const grossAmount = Number(item.sellerSubtotal ?? (item.price * item.quantity));
             const commissionAmount = sellerNetSubtotal > 0
@@ -113,7 +114,7 @@ export class OrderService {
 
             await SellerEarning.create({
                 sellerId: new Types.ObjectId(sellerId),
-                storeId: item.storeId,
+                storeId: toObjectId(item.storeId),
                 orderId: order.orderId,
                 ...key,
                 quantity: item.quantity,
@@ -401,7 +402,7 @@ export class OrderService {
         }
 
         // 2. Split Order into SubOrders (Multi-Vendor Independence)
-        const uniqueSellerIds = Array.from(new Set(order.items.map((item: any) => item.sellerId?.toString()).filter(Boolean)));
+        const uniqueSellerIds = Array.from(new Set(order.items.map((item: any) => idString(item.sellerId)).filter(Boolean)));
         const pricingBreakdowns = ((order as any).pricingSnapshot?.sellerBreakdowns || []) as any[];
         const splitAmount = (amount: number, count: number, index: number) => {
             if (count <= 0) return 0;
@@ -413,11 +414,11 @@ export class OrderService {
 
         for (let idx = 0; idx < uniqueSellerIds.length; idx++) {
             const sellerId = uniqueSellerIds[idx] as string;
-            const sellerItems = order.items.filter((item: any) => item.sellerId?.toString() === sellerId);
+            const sellerItems = order.items.filter((item: any) => idString(item.sellerId) === sellerId);
 
             const subtotal = sellerItems.reduce((sum: number, item: any) => sum + (item.price || 0) * item.quantity, 0);
             const tax = sellerItems.reduce((sum: number, item: any) => sum + (item.taxAmount || 0) * item.quantity, 0);
-            const pricingBreakdown = pricingBreakdowns.find((breakdown) => breakdown.sellerId?.toString() === sellerId);
+            const pricingBreakdown = pricingBreakdowns.find((breakdown) => idString(breakdown.sellerId) === sellerId);
             const shippingFeePerSeller = Number(
                 pricingBreakdown?.customerDeliveryFeeShare
                 ?? splitAmount(order.shippingFee || 0, uniqueSellerIds.length, idx)
@@ -429,12 +430,12 @@ export class OrderService {
             const riderBonuses = pricingBreakdown?.riderBonuses || { rain: 0, peak: 0, festival: 0, night: 0 };
             const appNetAfterRider = Number(pricingBreakdown?.appNetAfterRider || 0);
 
-            const sellerCoupon = order.couponDiscounts?.find((cd: any) => cd.sellerId?.toString() === sellerId);
+            const sellerCoupon = order.couponDiscounts?.find((cd: any) => idString(cd.sellerId) === sellerId);
             const sellerCouponDiscount = sellerCoupon ? sellerCoupon.discountAmount : 0;
             const sellerNet = Number(sellerNetFromSnapshot ?? Math.max(0, subtotal - sellerCouponDiscount - platformCommission));
             const payableAmount = Math.max(0, subtotal + shippingFeePerSeller + dynamicDeliverySurcharge - sellerCouponDiscount);
 
-            const storeId = sellerItems[0]?.storeId;
+            const storeId = idString(sellerItems[0]?.storeId);
             const subOrderId = `${order.orderId}-S${idx + 1}`;
 
             // Prevent duplicate sub-orders (idempotency check)
@@ -448,7 +449,7 @@ export class OrderService {
                 subOrderId,
                 parentOrderId: order._id,
                 sellerId: new Types.ObjectId(sellerId),
-                storeId: storeId ? new Types.ObjectId(storeId.toString()) : undefined,
+                storeId: toObjectId(storeId),
                 items: sellerItems.map((item: any) => ({
                     productId: item.productId,
                     title: item.title,
@@ -553,7 +554,7 @@ export class OrderService {
 
         // 4. Fetch sub-orders and append them to the response
         const subOrders = await SubOrder.find({ parentOrderId: order._id })
-            .populate("sellerId storeId delivery.riderId")
+            .populate("sellerId storeId delivery.riderId items.productId")
             .lean();
 
         return {

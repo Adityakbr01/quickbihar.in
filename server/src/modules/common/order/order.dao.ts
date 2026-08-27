@@ -4,6 +4,7 @@ import type { IOrder, OrderStatus } from "./order.type";
 const orderPopulate = [
     { path: "userId", select: "fullName email phone" },
     { path: "delivery.partnerUserId", select: "fullName email phone" },
+    { path: "items.productId", select: "title images thumbnail mainImage vertical" },
 ];
 
 export class OrderDAO {
