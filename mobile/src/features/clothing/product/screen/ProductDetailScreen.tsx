@@ -327,7 +327,7 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
             <View style={s.navRight}>
               <WishlistHeart
                 isWishlisted={isWishlisted}
-                onToggle={() => toggleWishlist(id)}
+                onToggle={() => toggleWishlist(id, product)}
                 size={22}
                 activeColor="#FF3B30"
                 inactiveColor={theme.text}
@@ -1176,7 +1176,7 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
         ]}
       >
         <TouchableOpacity
-          onPress={() => toggleWishlist(id)}
+          onPress={() => toggleWishlist(id, product)}
           style={[s.wishlistBtn, { borderColor: theme.border }]}
           activeOpacity={0.7}
         >

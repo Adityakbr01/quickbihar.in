@@ -168,7 +168,7 @@ export const DealProductCard = ({ product, width }: DealProductCardProps) => {
         {/* Favorite absolute button */}
         <WishlistHeart
           isWishlisted={isWishlisted}
-          onToggle={() => toggleWishlist(id)}
+          onToggle={() => toggleWishlist(id, product)}
           size={16}
           style={{
             position: 'absolute',

@@ -136,7 +136,7 @@ export const ProductCard = ({ item }: ProductCardProps) => {
         {/* Favorite absolute button */}
         <WishlistHeart
           isWishlisted={isWishlisted}
-          onToggle={() => toggleWishlist(id)}
+          onToggle={() => toggleWishlist(id, item)}
           size={16}
           style={styles.favoriteBtn}
         />

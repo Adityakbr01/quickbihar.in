@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { 
   View, 
   Text, 
@@ -15,11 +15,13 @@ import { createCartStyles } from "../styles/cartStyles";
 import { useCartStore } from "../store/cartStore";
 import { getApplicableCouponsRequest } from "@/src/features/common/coupon/api/coupon.api";
 import { ICoupon } from "@/src/features/common/coupon/types/coupon.types";
+import { CouponBottomSheet, calculateCouponApplicability } from "./CouponBottomSheet";
 
 const CouponInput = () => {
   const theme = useTheme() as any;
   const styles = createCartStyles(theme);
   const [code, setCode] = useState("");
+  const [isBottomSheetVisible, setIsBottomSheetVisible] = useState(false);
   const { 
     items,
     applyCoupon, 
@@ -29,7 +31,7 @@ const CouponInput = () => {
     error 
   } = useCartStore();
 
-  const productIds = React.useMemo(
+  const productIds = useMemo(
     () => Array.from(new Set(items.map((i) => i.productId).filter(Boolean))),
     [items]
   );
@@ -40,6 +42,12 @@ const CouponInput = () => {
     enabled: items.length > 0,
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
+
+  const applicableCount = useMemo(() => {
+    return availableCoupons.filter(
+      (c) => calculateCouponApplicability(c, items, appliedCoupons).isApplicable
+    ).length;
+  }, [availableCoupons, items, appliedCoupons]);
 
   const handleApply = async (couponCodeToApply?: string) => {
     const targetCode = (couponCodeToApply || code).trim().toUpperCase();
@@ -62,6 +70,7 @@ const CouponInput = () => {
       }
     } catch (err: any) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      throw err;
     }
   };
 
@@ -72,7 +81,23 @@ const CouponInput = () => {
 
   return (
     <View style={styles.couponContainer}>
-      <Text style={styles.couponTitle}>Offers & Benefits</Text>
+      {/* Header with Title and "View Offers" button opposite to it */}
+      <View style={styles.couponHeaderRow}>
+        <Text style={styles.couponTitle}>Offers & Benefits</Text>
+        {availableCoupons.length > 0 && (
+          <TouchableOpacity
+            style={styles.viewOffersBtn}
+            onPress={() => setIsBottomSheetVisible(true)}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="pricetag" size={12} color={theme.primary} />
+            <Text style={styles.viewOffersText}>
+              Offers ({availableCoupons.length})
+            </Text>
+            <Ionicons name="chevron-forward" size={12} color={theme.primary} />
+          </TouchableOpacity>
+        )}
+      </View>
 
       {/* Render list of applied coupons */}
       {appliedCoupons.map((coupon) => (
@@ -142,61 +167,18 @@ const CouponInput = () => {
         </Text>
       )}
 
-      {/* Available Coupons list */}
-      {availableCoupons.length > 0 && (
-        <View style={{ marginTop: 14 }}>
-          <View style={styles.availableCouponsHeader}>
-            <Text style={styles.availableCouponsTitle}>Available Coupons</Text>
-          </View>
-
-          {availableCoupons.map((c) => {
-            const isApplied = appliedCoupons.some(
-              (ac) => ac.code.toUpperCase() === c.code.toUpperCase()
-            );
-            const discountLabel =
-              c.discountType === "PERCENTAGE"
-                ? `${c.discountValue}% OFF`
-                : `₹${c.discountValue} OFF`;
-
-            return (
-              <View key={c._id || c.code} style={styles.couponCard}>
-                <View style={styles.couponCardLeft}>
-                  <View style={styles.couponCardCodeRow}>
-                    <Text style={styles.couponCardCode}>{c.code}</Text>
-                    <Text style={styles.couponCardDiscount}>{discountLabel}</Text>
-                  </View>
-                  <Text style={styles.couponCardDesc} numberOfLines={2}>
-                    {c.description}
-                  </Text>
-                  {c.minOrderValue > 0 && (
-                    <Text style={styles.couponCardMinOrder}>
-                      Min order: ₹{c.minOrderValue}
-                    </Text>
-                  )}
-                </View>
-                <TouchableOpacity
-                  style={[
-                    styles.couponApplyBtn,
-                    isApplied && styles.couponApplyBtnApplied,
-                  ]}
-                  onPress={() => handleApply(c.code)}
-                  disabled={isApplied || isLoading}
-                  activeOpacity={0.8}
-                >
-                  <Text
-                    style={[
-                      styles.couponApplyBtnText,
-                      isApplied && styles.couponApplyBtnTextApplied,
-                    ]}
-                  >
-                    {isApplied ? "Applied" : "Apply"}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            );
-          })}
-        </View>
-      )}
+      {/* Bottom Sheet containing full list with dynamic validation */}
+      <CouponBottomSheet
+        visible={isBottomSheetVisible}
+        onClose={() => setIsBottomSheetVisible(false)}
+        coupons={availableCoupons}
+        cartItems={items}
+        appliedCoupons={appliedCoupons}
+        onApplyCoupon={handleApply}
+        onRemoveCoupon={handleRemove}
+        isLoading={isLoading}
+        theme={theme}
+      />
     </View>
   );
 };

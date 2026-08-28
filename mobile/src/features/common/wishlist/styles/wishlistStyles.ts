@@ -47,10 +47,37 @@ export const createWishlistStyles = (theme: Theme) =>
       borderWidth: 1,
       borderColor: theme.border,
     },
-    image: {
+    imageContainer: {
       width: "100%",
       height: COLUMN_WIDTH * 1.3,
+      position: "relative",
       backgroundColor: theme.secondaryBackground,
+    },
+    image: {
+      width: "100%",
+      height: "100%",
+      backgroundColor: theme.secondaryBackground,
+    },
+    discountBadge: {
+      position: "absolute",
+      top: 8,
+      left: 8,
+      backgroundColor: theme.primary,
+      paddingHorizontal: 6,
+      paddingVertical: 3,
+      borderRadius: 4,
+      zIndex: 10,
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.15,
+      shadowRadius: 2,
+      elevation: 2,
+    },
+    discountText: {
+      color: "#fff",
+      fontSize: 10,
+      fontWeight: "800",
+      letterSpacing: 0.2,
     },
     removeBtn: {
       position: "absolute",

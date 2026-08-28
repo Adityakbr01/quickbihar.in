@@ -8,7 +8,7 @@ import { SharedValue } from "react-native-reanimated";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { homeStyles as styles } from "../style/homeStyles";
 import { useNotifications } from "@/src/features/common/notification/hooks/useNotifications";
-import { ModuleSwitcherButton } from "@/src/components/common/ModuleSwitcherButton";
+// import { ModuleSwitcherButton } from "@/src/components/common/ModuleSwitcherButton";
 
 const bellLottie = require("@/assets/lottie/Notification Bell.json");
 
@@ -37,7 +37,7 @@ const HomeHeader: React.FC<HomeHeaderProps> = () => {
       </View>
 
       <View style={styles.headerRight}>
-        <ModuleSwitcherButton />
+        {/* <ModuleSwitcherButton /> */}
 
         <Pressable
           onPress={() => {

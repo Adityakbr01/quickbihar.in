@@ -1,19 +1,11 @@
 import {
   Package01Icon,
-  DeliveryTruck01Icon,
-  PackageReceive01Icon,
   FolderFavouriteIcon,
-  ShoppingCartCheck01Icon,
-  AiViewIcon,
   Location01Icon,
-  CreditCardPosIcon,
   Notification01Icon,
-  Settings01Icon,
-  HelpCircleIcon,
   Logout01Icon,
   User03Icon,
   Shield01Icon,
-  InformationCircleIcon,
 } from "@hugeicons/core-free-icons";
 
 export interface AccountSubItem {
@@ -38,100 +30,42 @@ export interface AccountSection {
 
 export const ACCOUNT_SECTIONS: AccountSection[] = [
   {
-    title: "Orders & Track",
+    title: "Orders & Activity",
     options: [
       {
-        label: "Orders History",
+        label: "My Orders",
         icon: Package01Icon,
-        subItems: [
-          {
-            label: "My Orders",
-            icon: Package01Icon,
-            onPressLabel: "My Orders",
-          },
-          {
-            label: "Returns",
-            icon: PackageReceive01Icon,
-            onPressLabel: "Returns",
-          },
-        ],
+        onPressLabel: "My Orders",
       },
-    ],
-  },
-  {
-    title: "My Shopping",
-    options: [
       {
         label: "Wishlist",
         icon: FolderFavouriteIcon,
         onPressLabel: "Wishlist",
       },
-      {
-        label: "Saved Items",
-        icon: ShoppingCartCheck01Icon,
-        onPressLabel: "Saved Items",
-      },
-      {
-        label: "Recently Viewed",
-        icon: AiViewIcon,
-        onPressLabel: "Recently Viewed",
-      },
     ],
   },
   {
-    title: "Settings & Privacy",
+    title: "Account & Settings",
     options: [
       {
-        label: "Personal Details",
+        label: "Profile Info",
         icon: User03Icon,
-        subItems: [
-          {
-            label: "Profile Info",
-            icon: User03Icon,
-            onPressLabel: "Profile Info",
-          },
-          {
-            label: "Saved Addresses",
-            icon: Location01Icon,
-            onPressLabel: "Addresses",
-          },
-          {
-            label: "Payment Methods",
-            icon: CreditCardPosIcon,
-            onPressLabel: "Payments",
-          },
-          {
-            label: "Password & Email Setup",
-            icon: Shield01Icon,
-            onPressLabel: "PasswordSetup",
-          },
-        ],
+        onPressLabel: "Profile Info",
       },
       {
-        label: "App Preferences",
-        icon: Settings01Icon,
-        subItems: [
-          {
-            label: "Notifications",
-            icon: Notification01Icon,
-            onPressLabel: "Notifications",
-          },
-          {
-            label: "Security",
-            icon: Shield01Icon,
-            onPressLabel: "Security",
-          },
-          {
-            label: "Privacy Policy",
-            icon: InformationCircleIcon,
-            onPressLabel: "Privacy",
-          },
-        ],
+        label: "Saved Addresses",
+        icon: Location01Icon,
+        onPressLabel: "Addresses",
       },
       {
-        label: "Help & Support",
-        icon: HelpCircleIcon,
-        onPressLabel: "Help",
+        label: "Security & Password",
+        icon: Shield01Icon,
+        onPressLabel: "PasswordSetup",
+      },
+      {
+        label: "Notifications",
+        icon: Notification01Icon,
+        onPressLabel: "Notifications",
       },
     ],
   },
