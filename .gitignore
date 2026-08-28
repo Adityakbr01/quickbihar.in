@@ -37,3 +37,9 @@ build/
 temp/
 tmp/
 *.tmp
+
+
+# Google and firebase
+# 
+  mobile/google-services.json
+  server/quickbihar-4d3ab-firebase-adminsdk-fbsvc-7612bc0080.json

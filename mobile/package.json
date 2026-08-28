@@ -20,6 +20,7 @@
     "build:local": "npx expo prebuild && cd android && ./gradlew assembleRelease --info",
     "build:apk": "npx expo prebuild && cd android && ./gradlew assembleDebug",
     "build:apk:release": "npx expo prebuild && cd android && ./gradlew assembleRelease",
+    "build:aab:release": "npx expo prebuild && cd android && ./gradlew bundleRelease",
     "build": "bun expo run:android --variant release"
   },
   "dependencies": {

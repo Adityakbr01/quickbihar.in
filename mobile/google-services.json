@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "183149129805",
-    "project_id": "quickbihar",
-    "storage_bucket": "quickbihar.firebasestorage.app"
+    "project_number": "229991810105",
+    "project_id": "quickbihar-4d3ab",
+    "storage_bucket": "quickbihar-4d3ab.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:183149129805:android:323c4dd8549656201dec04",
+        "mobilesdk_app_id": "1:229991810105:android:5a5e85f123c31fd88a79e8",
         "android_client_info": {
           "package_name": "com.quickbihar.app"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyDElxRskHY3dpqTUNxWQMClMs-FAPXdclo"
+          "current_key": "AIzaSyA8KDxQqaMbyTHrlwFn-14r8-dJE6WOGZo"
         }
       ],
       "services": {
