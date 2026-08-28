@@ -100,7 +100,20 @@ export default function TrackOrderScreen() {
     longitude: order?.shippingAddress?.longitude || 85.1376,
   };
 
-  // Tracking hook (sockets, distance, ETA - no AnimatedRegion)
+  // Optional Origin coordinates from store / pickup location
+  const origin = selectedSubOrder?.pickupAddress?.latitude && selectedSubOrder?.pickupAddress?.longitude
+    ? {
+        latitude: Number(selectedSubOrder.pickupAddress.latitude),
+        longitude: Number(selectedSubOrder.pickupAddress.longitude),
+      }
+    : selectedSubOrder?.storeId?.latitude && selectedSubOrder?.storeId?.longitude
+    ? {
+        latitude: Number(selectedSubOrder.storeId.latitude),
+        longitude: Number(selectedSubOrder.storeId.longitude),
+      }
+    : null;
+
+  // Tracking hook (sockets, distance, ETA - with resilient fallback)
   const { riderLocation, distance, eta, heading } = useOrderTracking({
     orderId,
     subOrderId: selectedSubOrder?.subOrderId,
@@ -199,6 +212,7 @@ export default function TrackOrderScreen() {
         <LeafletMapComponent
           riderLocation={riderLocation}
           destination={destination}
+          origin={origin}
           heading={heading}
         />
 

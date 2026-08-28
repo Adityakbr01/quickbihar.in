@@ -51,7 +51,19 @@ export const TrackingInfoCard: React.FC<TrackingInfoCardProps> = ({
     (timeline[timeline.length - 1]?.metadata?.message?.includes("requested cancellation") || 
      timeline[timeline.length - 1]?.metadata?.message?.includes("Requested cancellation") || false);
 
-  const formattedStatus = status.replace(/_/g, " ");
+  const formattedStatus = (status || "").replace(/_/g, " ");
+  const isFinished = ["DELIVERED", "CANCELLED", "COMPLETED", "REJECTED", "REFUNDED"].includes(
+    status?.toUpperCase()
+  );
+  const isActivelyDelivering = [
+    "PICKED_UP",
+    "IN_TRANSIT",
+    "NEAR_CUSTOMER",
+    "OUT_FOR_DELIVERY",
+    "RIDER_ASSIGNED",
+    "RIDER_ARRIVING",
+  ].includes(status?.toUpperCase());
+  const canShowRiderPhone = isActivelyDelivering && !isFinished && Boolean(riderPhone);
 
   return (
     <View style={styles.cardContainer}>
@@ -63,8 +75,8 @@ export const TrackingInfoCard: React.FC<TrackingInfoCardProps> = ({
           <View style={styles.statusBox}>
             <Text style={styles.statusLabel}>{formattedStatus}</Text>
             <Text style={styles.etaLabel}>
-              {["DELIVERED", "CANCELLED", "COMPLETED"].includes(status) 
-                ? "Completed" 
+              {isFinished 
+                ? "Order Completed" 
                 : eta > 0 
                   ? `Arriving in ${eta} mins` 
                   : "Arriving soon"}
@@ -78,26 +90,31 @@ export const TrackingInfoCard: React.FC<TrackingInfoCardProps> = ({
 
         <View style={styles.divider} />
 
-        <View style={styles.riderRow}>
-          <View style={styles.avatar}>
-            <Ionicons name="person" size={24} color="#666" />
-          </View>
-          <View style={styles.riderInfo}>
-            <Text style={styles.riderName}>{riderName || "Assigning Rider..."}</Text>
-            <View style={styles.ratingRow}>
-              <Ionicons name="star" size={12} color="#FFD700" />
-              <Text style={styles.ratingText}>
-                {riderName ? "4.8 | Professional" : "Securing partner"}
-              </Text>
+        {/* Rider Row: Only shown if active or shows general delivery badge when completed */}
+        {!isFinished && (
+          <View style={styles.riderRow}>
+            <View style={styles.avatar}>
+              <Ionicons name="person" size={24} color="#666" />
             </View>
+            <View style={styles.riderInfo}>
+              <Text style={styles.riderName}>
+                {isActivelyDelivering ? (riderName || "Delivery Partner") : "Assigning Rider..."}
+              </Text>
+              <View style={styles.ratingRow}>
+                <Ionicons name="star" size={12} color="#FFD700" />
+                <Text style={styles.ratingText}>
+                  {isActivelyDelivering ? "4.8 | Verified Partner" : "Securing nearest partner"}
+                </Text>
+              </View>
+            </View>
+            {canShowRiderPhone ? (
+              <TouchableOpacity style={styles.callButton} onPress={handleCall}>
+                <Ionicons name="call" size={20} color="white" />
+                <Text style={styles.callText}>Call</Text>
+              </TouchableOpacity>
+            ) : null}
           </View>
-          {riderPhone ? (
-            <TouchableOpacity style={styles.callButton} onPress={handleCall}>
-              <Ionicons name="call" size={20} color="white" />
-              <Text style={styles.callText}>Call</Text>
-            </TouchableOpacity>
-          ) : null}
-        </View>
+        )}
 
         {/* Toggle details button */}
         <TouchableOpacity

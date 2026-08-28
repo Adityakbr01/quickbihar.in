@@ -10,12 +10,13 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.adityakbr.mobile",
+      "bundleIdentifier": "com.quickbihar.app",
       "icon": "./assets/images/icons/ios-icon-default.png",
       "googleServicesFile": "./GoogleService-Info.plist"
     },
     "android": {
-      "package": "com.adityakbr.mobile",
+      "package": "com.quickbihar.app",
+      "versionCode": 1,
       "googleServicesFile": "./google-services.json",
       "permissions": [
         "android.permission.POST_NOTIFICATIONS",

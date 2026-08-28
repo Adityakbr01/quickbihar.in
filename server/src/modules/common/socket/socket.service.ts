@@ -188,6 +188,21 @@ export class SocketService {
           longitude: number;
           heading?: number;
         }) => {
+          if (
+            !data ||
+            !data.orderId ||
+            typeof data.latitude !== "number" ||
+            typeof data.longitude !== "number" ||
+            isNaN(data.latitude) ||
+            isNaN(data.longitude) ||
+            data.latitude < -90 ||
+            data.latitude > 90 ||
+            data.longitude < -180 ||
+            data.longitude > 180
+          ) {
+            return;
+          }
+
           const isSubOrder = data.orderId.includes("-");
           let subOrder = null;
           let parentOrderId = data.orderId;

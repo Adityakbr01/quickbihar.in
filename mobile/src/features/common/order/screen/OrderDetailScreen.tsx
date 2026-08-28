@@ -98,20 +98,38 @@ export default function OrderDetailScreen() {
   const [isFeesExpanded, setIsFeesExpanded] = useState<boolean>(false);
   const [isDiscountExpanded, setIsDiscountExpanded] = useState<boolean>(false);
 
+  const socket = useSocketStore((state) => state.socket);
+  const isConnected = useSocketStore((state) => state.isConnected);
+
   useEffect(() => {
     if (orderId) {
       fetchOrderDetails();
+      useSocketStore.getState().connect();
     }
   }, [orderId]);
 
-  // Real-time socket updates
+  // Real-time socket updates & room subscriptions
   useEffect(() => {
-    const socket = useSocketStore.getState().socket;
-    if (!socket) return;
+    if (!socket || !isConnected || !orderId) return;
+
+    // Join order room
+    socket.emit(SocketEvents.JOIN_ORDER_ROOM, orderId);
+
+    // Also join sub-order rooms if they exist
+    if (order?.subOrders && Array.isArray(order.subOrders)) {
+      order.subOrders.forEach((sub: any) => {
+        if (sub.subOrderId) {
+          socket.emit("join_suborder_room", sub.subOrderId);
+        }
+      });
+    }
 
     const handleUpdate = (data: any) => {
-      console.log("[OrderDetailScreen] Order event received:", data);
+      console.log("[OrderDetailScreen] Live Order event received:", data);
       fetchOrderDetails(false);
+      try {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      } catch {}
       Toast.show({
         type: "info",
         text1: "Order Status Updated 🚀",
@@ -121,12 +139,41 @@ export default function OrderDetailScreen() {
 
     socket.on(SocketEvents.ORDER_STATUS_UPDATE, handleUpdate);
     socket.on(SocketEvents.FULFILLMENT_EVENT, handleUpdate);
+    socket.on("delivery_status_updated", handleUpdate);
+    socket.on("suborder_status_updated", handleUpdate);
+    socket.on("order_updated", handleUpdate);
 
     return () => {
+      socket.emit(SocketEvents.LEAVE_ORDER_ROOM, orderId);
+      if (order?.subOrders && Array.isArray(order.subOrders)) {
+        order.subOrders.forEach((sub: any) => {
+          if (sub.subOrderId) {
+            socket.emit("leave_suborder_room", sub.subOrderId);
+          }
+        });
+      }
       socket.off(SocketEvents.ORDER_STATUS_UPDATE, handleUpdate);
       socket.off(SocketEvents.FULFILLMENT_EVENT, handleUpdate);
+      socket.off("delivery_status_updated", handleUpdate);
+      socket.off("suborder_status_updated", handleUpdate);
+      socket.off("order_updated", handleUpdate);
     };
-  }, [orderId]);
+  }, [orderId, socket, isConnected, order?.subOrders]);
+
+  // Active status smart polling fallback (every 10s if active)
+  useEffect(() => {
+    const isFinished = ["DELIVERED", "CANCELLED", "REJECTED", "REFUNDED"].includes(
+      order?.status || ""
+    );
+
+    if (isFinished || !orderId) return;
+
+    const pollInterval = setInterval(() => {
+      fetchOrderDetails(false);
+    }, 10000);
+
+    return () => clearInterval(pollInterval);
+  }, [orderId, order?.status]);
 
   const fetchOrderDetails = async (showLoading = true) => {
     try {
@@ -330,6 +377,24 @@ export default function OrderDetailScreen() {
   const assignedRider = currentSubOrder?.delivery?.riderId || order?.delivery?.partnerUserId;
   const isCod = order?.paymentInfo?.razorpayOrderId === "COD" || currentSubOrder?.packageDetails?.isCod;
   const totalItemCount = itemsToDisplay.reduce((sum: number, it: any) => sum + (it.quantity || 1), 0);
+
+  const isActivelyDelivering = [
+    "PICKED_UP",
+    "IN_TRANSIT",
+    "NEAR_CUSTOMER",
+    "OUT_FOR_DELIVERY",
+    "RIDER_ASSIGNED",
+    "RIDER_ARRIVING",
+  ].includes(currentStatus);
+  const isOrderFinished = [
+    "DELIVERED",
+    "DELIVERY_CONFIRMED",
+    "COMPLETED",
+    "CANCELLED",
+    "REJECTED",
+    "REFUNDED",
+  ].includes(currentStatus);
+  const canShowRiderContact = isActivelyDelivering && !isOrderFinished && Boolean(assignedRider?.phone);
 
   // Status subtitle copy
   const getStatusSubtitle = () => {
@@ -739,8 +804,8 @@ export default function OrderDetailScreen() {
             </View>
           )}
 
-          {/* Rider / Delivery Partner Card (if assigned) */}
-          {assignedRider ? (
+          {/* Rider / Delivery Partner Card (ONLY shown when actively out for delivery, and hidden when completed/delivered) */}
+          {isActivelyDelivering && assignedRider ? (
             <View style={styles.riderBox}>
               <View style={styles.riderLeft}>
                 <View style={styles.riderAvatar}>
@@ -760,16 +825,17 @@ export default function OrderDetailScreen() {
                 </View>
               </View>
 
-              {assignedRider.phone && (
+              {canShowRiderContact && (
                 <TouchableOpacity
                   style={styles.riderCallButton}
                   onPress={() => handleCallRider(assignedRider.phone)}
+                  activeOpacity={0.7}
                 >
                   <Ionicons name="call" size={16} color="#ffffff" />
                 </TouchableOpacity>
               )}
             </View>
-          ) : (
+          ) : isOrderFinished ? null : (
             <View style={styles.infoCallout}>
               <Ionicons
                 name="information-circle-outline"
