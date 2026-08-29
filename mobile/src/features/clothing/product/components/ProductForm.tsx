@@ -1,24 +1,24 @@
 import IOSAlertDialog from "@/src/components/ui/IOSAlertDialog";
 
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
-import {
-  Cancel01Icon,
-  CheckmarkCircle01Icon,
-} from "@hugeicons/core-free-icons";
+import { CheckmarkCircle01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import * as ImagePicker from "expo-image-picker";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
-  Modal,
   ScrollView,
   Text,
   TouchableOpacity,
-  View,
 } from "react-native";
 import createProductFormStyles from "../style/ProductForm.style";
 import { IProduct, IVariant } from "../types/product.types";
 import { productSchema } from "../validation/product.schema";
+import {
+  Sheet,
+  SheetHeader,
+  useSheet,
+} from "@/src/components/common/BottomSheet";
 
 // Sub-components
 import ProductBasicInfo from "./form/ProductBasicInfo";
@@ -47,6 +47,7 @@ interface ProductFormProps {
 const ProductForm = ({ visible, onClose, onSubmit, initialData, loading }: ProductFormProps) => {
   const theme = useTheme();
   const styles = createProductFormStyles(theme);
+  const sheet = useSheet();
   const { data: categories } = useCategories();
   const { data: sizeCharts } = useSizeCharts();
 
@@ -87,6 +88,15 @@ const ProductForm = ({ visible, onClose, onSubmit, initialData, loading }: Produ
   const [errors, setErrors] = useState<any>({});
   const [alertVisible, setAlertVisible] = useState(false);
   const [alertConfig, setAlertConfig] = useState<any>({ title: "", message: "", onConfirm: () => { } });
+
+  // Imperative present/dismiss from the parent `visible` prop.
+  useEffect(() => {
+    if (visible) {
+      sheet.current?.present();
+    } else {
+      sheet.current?.dismiss();
+    }
+  }, [visible, sheet]);
 
   useEffect(() => {
     if (visible) {
@@ -302,38 +312,41 @@ const ProductForm = ({ visible, onClose, onSubmit, initialData, loading }: Produ
   };
 
   return (
-    <Modal visible={visible} animationType="slide" transparent>
-      <View style={styles.modalOverlay}>
-        <View style={styles.container}>
-          <View style={styles.header}>
-            <Text style={styles.title}>{initialData ? "Edit Product" : "New Product"}</Text>
-            <TouchableOpacity onPress={onClose}><HugeiconsIcon icon={Cancel01Icon} size={24} color={theme.text} /></TouchableOpacity>
-          </View>
+    <>
+      <Sheet
+        ref={sheet}
+        detents={[1]}
+        onDidDismiss={onClose}
+        backgroundColor={theme.background}
+      >
+        <SheetHeader
+          title={initialData ? "Edit Product" : "New Product"}
+          onClose={onClose}
+        />
 
-          <ScrollView style={styles.form} contentContainerStyle={styles.formContent} showsVerticalScrollIndicator={false}>
-            <ProductBasicInfo {...{ theme, styles, title, setTitle, description, setDescription, brand, setBrand, tags, setTags, gender, setGender, errors }} />
-            <ProductPricing {...{ theme, styles, price, setPrice, originalPrice, setOriginalPrice, isGstApplicable, setIsGstApplicable, gstPercentage, setGstPercentage, errors }} />
-            <ProductMedia {...{ theme, styles, images, pickImage, removeImage, errors }} />
-            <ProductCategorySelector {...{ theme, styles, categories, category, setCategory, subCategory, setSubCategory, errors }} />
-            <ProductSizeChartSelector {...{ theme, styles, sizeCharts, sizeChartId, setSizeChartId }} />
-            <ProductRefundPolicySelector {...{ theme, styles, refundPolicyId, setRefundPolicyId }} />
-            <ProductSpecifications {...{ theme, styles, fit, setFit, pattern, setPattern, material, setMaterial, sleeve, setSleeve, washCare, setWashCare }} />
-            <ProductDeliveryInfo {...{ theme, styles, isExpressAvailable, setIsExpressAvailable, isCodAvailable, setIsCodAvailable, estimatedDays, setEstimatedDays, returnPolicy, setReturnPolicy, errors }} />
-            <ProductCompliance {...{ theme, styles, manufacturerDetail, setManufacturerDetail, packerDetail, setPackerDetail, countryOfOrigin, setCountryOfOrigin }} />
-            <ProductLogistics {...{ theme, styles, pickupLocation, setPickupLocation, warehouseName, setWarehouseName, latitude, setLatitude, longitude, setLongitude }} />
-            <ProductVariants {...{ theme, styles, variants, addVariant, updateVariant, removeVariant, errors }} />
-          </ScrollView>
+        <ScrollView style={styles.form} contentContainerStyle={styles.formContent} showsVerticalScrollIndicator={false}>
+          <ProductBasicInfo {...{ theme, styles, title, setTitle, description, setDescription, brand, setBrand, tags, setTags, gender, setGender, errors }} />
+          <ProductPricing {...{ theme, styles, price, setPrice, originalPrice, setOriginalPrice, isGstApplicable, setIsGstApplicable, gstPercentage, setGstPercentage, errors }} />
+          <ProductMedia {...{ theme, styles, images, pickImage, removeImage, errors }} />
+          <ProductCategorySelector {...{ theme, styles, categories, category, setCategory, subCategory, setSubCategory, errors }} />
+          <ProductSizeChartSelector {...{ theme, styles, sizeCharts, sizeChartId, setSizeChartId }} />
+          <ProductRefundPolicySelector {...{ theme, styles, refundPolicyId, setRefundPolicyId }} />
+          <ProductSpecifications {...{ theme, styles, fit, setFit, pattern, setPattern, material, setMaterial, sleeve, setSleeve, washCare, setWashCare }} />
+          <ProductDeliveryInfo {...{ theme, styles, isExpressAvailable, setIsExpressAvailable, isCodAvailable, setIsCodAvailable, estimatedDays, setEstimatedDays, returnPolicy, setReturnPolicy, errors }} />
+          <ProductCompliance {...{ theme, styles, manufacturerDetail, setManufacturerDetail, packerDetail, setPackerDetail, countryOfOrigin, setCountryOfOrigin }} />
+          <ProductLogistics {...{ theme, styles, pickupLocation, setPickupLocation, warehouseName, setWarehouseName, latitude, setLatitude, longitude, setLongitude }} />
+          <ProductVariants {...{ theme, styles, variants, addVariant, updateVariant, removeVariant, errors }} />
+        </ScrollView>
 
-          <TouchableOpacity style={[styles.submitBtn, loading && { opacity: 0.7 }]} onPress={handleSubmit} disabled={loading}>
-            {loading ? <ActivityIndicator color="#fff" /> : (
-              <><HugeiconsIcon icon={CheckmarkCircle01Icon} size={20} color="#fff" /><Text style={styles.submitBtnText}>{initialData ? "Update Chart" : "Save Product"}</Text></>
-            )}
-          </TouchableOpacity>
-        </View>
-      </View>
+        <TouchableOpacity style={[styles.submitBtn, loading && { opacity: 0.7 }]} onPress={handleSubmit} disabled={loading}>
+          {loading ? <ActivityIndicator color="#fff" /> : (
+            <><HugeiconsIcon icon={CheckmarkCircle01Icon} size={20} color="#fff" /><Text style={styles.submitBtnText}>{initialData ? "Update Chart" : "Save Product"}</Text></>
+          )}
+        </TouchableOpacity>
+      </Sheet>
 
       <IOSAlertDialog visible={alertVisible} onClose={() => setAlertVisible(false)} title={alertConfig.title} message={alertConfig.message} buttons={[{ text: "Cancel", style: "cancel" }, { text: "Delete", style: "destructive", onPress: alertConfig.onConfirm }]} />
-    </Modal>
+    </>
   );
 };
 

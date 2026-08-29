@@ -4,7 +4,6 @@ import {
   Text,
   TouchableOpacity,
   ActivityIndicator,
-  Modal,
   TextInput,
   Platform,
 } from "react-native";
@@ -29,6 +28,11 @@ import { socketClient } from "@/src/lib/socket";
 import { SocketEvents } from "@/src/constants/socketEvents";
 import Toast from "react-native-toast-message";
 import { createStyles } from "../style/OrderAdminScreen.style";
+import {
+  Sheet,
+  SheetHeader,
+  useSheet,
+} from "@/src/components/common/BottomSheet";
 
 const STATUS_COLORS: any = {
   CONFIRMED: "#10B981",
@@ -53,6 +57,7 @@ const OrderAdminScreen = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [rejectionReason, setRejectionReason] = useState("");
+  const statusSheet = useSheet();
 
   const { data: orders, isLoading, refetch } = useQuery({
     queryKey: ["admin-orders"],
@@ -167,6 +172,15 @@ const OrderAdminScreen = () => {
     });
   };
 
+  // Imperative present/dismiss for the status update sheet.
+  useEffect(() => {
+    if (modalVisible) {
+      statusSheet.current?.present();
+    } else {
+      statusSheet.current?.dismiss();
+    }
+  }, [modalVisible, statusSheet]);
+
   return (
     <SafeViewWrapper>
       <View style={styles.container}>
@@ -250,63 +264,56 @@ const OrderAdminScreen = () => {
           />
         )}
 
-        {/* Status Update Modal */}
-        <Modal
-          visible={modalVisible}
-          transparent
-          animationType="fade"
-          onRequestClose={() => setModalVisible(false)}
+        {/* Status Update Sheet */}
+        <Sheet
+          ref={statusSheet}
+          onDidDismiss={() => setModalVisible(false)}
+          backgroundColor={theme.background}
         >
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalContent}>
-              <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>
-                  Update Order: {selectedOrder?.orderId}
-                </Text>
-                <TouchableOpacity onPress={() => setModalVisible(false)}>
-                  <HugeiconsIcon icon={CancelCircleIcon} size={24} color={theme.text} />
+          <SheetHeader
+            title={`Update Order: ${selectedOrder?.orderId ?? ""}`}
+            onClose={() => setModalVisible(false)}
+          />
+
+          <View style={{ padding: 16 }}>
+            <View style={styles.actionGrid}>
+              {[
+                { label: "Confirm", status: "CONFIRMED", icon: CheckmarkCircle02Icon, color: STATUS_COLORS.CONFIRMED },
+                { label: "Ship", status: "SHIPPED", icon: DeliveryTruck01Icon, color: STATUS_COLORS.SHIPPED },
+                { label: "Deliver", status: "DELIVERED", icon: CheckmarkCircle02Icon, color: STATUS_COLORS.DELIVERED },
+                { label: "Reject", status: "REJECTED", icon: CancelCircleIcon, color: STATUS_COLORS.REJECTED },
+              ].map((action) => (
+                <TouchableOpacity
+                  key={action.status}
+                  style={[styles.actionButton, { borderColor: action.color + "40" }]}
+                  onPress={() => handleStatusUpdate(action.status)}
+                  activeOpacity={0.8}
+                >
+                  <HugeiconsIcon icon={action.icon} size={24} color={action.color} />
+                  <Text style={[styles.actionLabel, { color: action.color }]}>{action.label}</Text>
                 </TouchableOpacity>
-              </View>
-
-              <View style={styles.actionGrid}>
-                {[
-                  { label: "Confirm", status: "CONFIRMED", icon: CheckmarkCircle02Icon, color: STATUS_COLORS.CONFIRMED },
-                  { label: "Ship", status: "SHIPPED", icon: DeliveryTruck01Icon, color: STATUS_COLORS.SHIPPED },
-                  { label: "Deliver", status: "DELIVERED", icon: CheckmarkCircle02Icon, color: STATUS_COLORS.DELIVERED },
-                  { label: "Reject", status: "REJECTED", icon: CancelCircleIcon, color: STATUS_COLORS.REJECTED },
-                ].map((action) => (
-                  <TouchableOpacity
-                    key={action.status}
-                    style={[styles.actionButton, { borderColor: action.color + "40" }]}
-                    onPress={() => handleStatusUpdate(action.status)}
-                    activeOpacity={0.8}
-                  >
-                    <HugeiconsIcon icon={action.icon} size={24} color={action.color} />
-                    <Text style={[styles.actionLabel, { color: action.color }]}>{action.label}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-
-              {(selectedOrder?.status !== "REJECTED" && selectedOrder?.status !== "CANCELLED") && (
-                <View style={styles.inputContainer}>
-                  <Text style={styles.inputLabel}>Remarks (Reason for Reject/Cancel)</Text>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="Provide context for the customer..."
-                    placeholderTextColor={theme.tertiaryText}
-                    value={rejectionReason}
-                    onChangeText={setRejectionReason}
-                    multiline
-                  />
-                </View>
-              )}
-
-              {updateStatusMutation.isPending && (
-                <ActivityIndicator size="small" color={theme.primary} style={{ marginTop: 20 }} />
-              )}
+              ))}
             </View>
+
+            {selectedOrder?.status !== "REJECTED" && selectedOrder?.status !== "CANCELLED" && (
+              <View style={styles.inputContainer}>
+                <Text style={styles.inputLabel}>Remarks (Reason for Reject/Cancel)</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Provide context for the customer..."
+                  placeholderTextColor={theme.tertiaryText}
+                  value={rejectionReason}
+                  onChangeText={setRejectionReason}
+                  multiline
+                />
+              </View>
+            )}
+
+            {updateStatusMutation.isPending && (
+              <ActivityIndicator size="small" color={theme.primary} style={{ marginTop: 20 }} />
+            )}
           </View>
-        </Modal>
+        </Sheet>
       </View>
     </SafeViewWrapper>
   );

@@ -7,9 +7,6 @@ import { Controller, useForm } from "react-hook-form";
 import {
     ActivityIndicator,
     Image,
-    KeyboardAvoidingView,
-    Modal,
-    Platform,
     ScrollView,
     Text,
     TextInput,
@@ -27,6 +24,11 @@ import ImageUploadField from "./form/ImageUploadField";
 import DatePickerField from "./form/DatePickerField";
 import { useCreateBanner, useUpdateBanner } from "../hooks/useBanners";
 import * as Haptics from "expo-haptics";
+import {
+  Sheet,
+  SheetHeader,
+  useSheet,
+} from "@/src/components/common/BottomSheet";
 
 const bannerSchema = z.object({
     title: z.string().optional(),
@@ -54,6 +56,7 @@ interface BannerFormModalProps {
 const BannerFormModal = ({ visible, onClose, initialData }: BannerFormModalProps) => {
     const theme = useTheme();
     const styles = React.useMemo(() => createBannerStyles(theme), [theme]);
+    const sheet = useSheet();
     const { data: categories, isLoading: isCategoriesLoading } = useCategories();
 
     const { mutate: createBanner, isPending: isCreating } = useCreateBanner();
@@ -112,6 +115,15 @@ const BannerFormModal = ({ visible, onClose, initialData }: BannerFormModalProps
         }
     }, [initialData, reset, visible]);
 
+    // Imperative present/dismiss from the parent `visible` prop.
+    useEffect(() => {
+        if (visible) {
+            sheet.current?.present();
+        } else {
+            sheet.current?.dismiss();
+        }
+    }, [visible, sheet]);
+
     const handleFormSubmit = React.useCallback(async (data: BannerFormData) => {
         const formData = new FormData();
 
@@ -159,29 +171,22 @@ const BannerFormModal = ({ visible, onClose, initialData }: BannerFormModalProps
     }, [initialData, createBanner, updateBanner, onClose, setError]);
 
     return (
-        <Modal visible={visible} animationType="slide" transparent>
-            <KeyboardAvoidingView
-                behavior={Platform.OS === "ios" ? "padding" : "height"}
-                keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
-                style={styles.modalContainer}
+        <Sheet
+            ref={sheet}
+            detents={[1]}
+            onDidDismiss={onClose}
+            backgroundColor={theme.background}
+        >
+            <SheetHeader
+                title={initialData ? "Edit Banner" : "New Banner"}
+                onClose={onClose}
+            />
+
+            <ScrollView
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={{ paddingBottom: 60 }}
+                keyboardShouldPersistTaps="handled"
             >
-                <View style={[styles.modalContent, { backgroundColor: theme.background }]}>
-                    <View style={styles.modalIndicator} />
-
-                    <View style={styles.modalHeader}>
-                        <Text style={[styles.modalTitle, { color: theme.text }]}>
-                            {initialData ? "Edit Banner" : "New Banner"}
-                        </Text>
-                        <TouchableOpacity onPress={onClose}>
-                            <HugeiconsIcon icon={Cancel01Icon} size={24} color={theme.text} />
-                        </TouchableOpacity>
-                    </View>
-
-                    <ScrollView
-                        showsVerticalScrollIndicator={false}
-                        contentContainerStyle={{ paddingBottom: 60 }}
-                        keyboardShouldPersistTaps="handled"
-                    >
                         <Controller
                             control={control}
                             name="image"
@@ -443,9 +448,7 @@ const BannerFormModal = ({ visible, onClose, initialData }: BannerFormModalProps
                             )}
                         </TouchableOpacity>
                     </ScrollView>
-                </View>
-            </KeyboardAvoidingView>
-        </Modal>
+        </Sheet>
     );
 };
 

@@ -1,9 +1,11 @@
 import { toastConfig } from "@/src/components/common/CustomToast";
+import { SheetProvider } from "@/src/components/common/BottomSheet";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
 import { usePushNotifications } from "@/src/hooks/usePushNotifications";
 import { QueryProvider } from "@/src/provider/QueryProvider";
 import { SocketListenerProvider } from "@/src/provider/SocketListenerProvider";
 import { ThemeProvider } from "@/src/theme/Provider/ThemeProvider";
+import { TrueSheetProvider } from "@lodev09/react-native-true-sheet";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
@@ -53,14 +55,18 @@ export default function RootLayout() {
           <AppNotificationsInit />
           <StatusBar style={scheme === "dark" ? "light" : "dark"} />
           <ThemeProvider>
-            <SocketListenerProvider>
-              <Stack
-                screenOptions={{
-                  headerShown: false,
-                }}
-              />
-              <Toast config={toastConfig} />
-            </SocketListenerProvider>
+            <TrueSheetProvider>
+              <SheetProvider>
+                <SocketListenerProvider>
+                  <Stack
+                    screenOptions={{
+                      headerShown: false,
+                    }}
+                  />
+                  <Toast config={toastConfig} />
+                </SocketListenerProvider>
+              </SheetProvider>
+            </TrueSheetProvider>
           </ThemeProvider>
         </QueryProvider>
       </SafeAreaProvider>

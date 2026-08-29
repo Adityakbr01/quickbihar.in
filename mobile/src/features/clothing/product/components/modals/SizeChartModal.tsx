@@ -1,19 +1,21 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
-  Modal,
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
   ScrollView,
-  Dimensions,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Theme } from "@/src/theme/Provider/ThemeProvider";
 import { ISizeChart } from "../../types/product.types";
 import * as Haptics from "expo-haptics";
-
-const { width: SCREEN_WIDTH } = Dimensions.get("window");
+import {
+  Sheet,
+  SheetHeader,
+  useSheet,
+} from "@/src/components/common/BottomSheet";
+import { spacing } from "@/src/theme/spacing";
 
 interface SizeChartModalProps {
   visible: boolean;
@@ -55,13 +57,24 @@ const SizeChartModal = ({
   category,
   theme,
 }: SizeChartModalProps) => {
+  const sheet = useSheet();
   const [activeUnit, setActiveUnit] = useState<"inches" | "cm">("inches");
 
-  const effectiveChart = sizeChart && sizeChart.data && sizeChart.data.length > 0
-    ? sizeChart
-    : DEFAULT_CHART;
+  const effectiveChart =
+    sizeChart && sizeChart.data && sizeChart.data.length > 0
+      ? sizeChart
+      : DEFAULT_CHART;
 
   const { fields, data, name, howToMeasure } = effectiveChart;
+
+  // Imperative present/dismiss from the parent `visible` prop.
+  useEffect(() => {
+    if (visible) {
+      sheet.current?.present();
+    } else {
+      sheet.current?.dismiss();
+    }
+  }, [visible, sheet]);
 
   const handleUnitToggle = (unit: "inches" | "cm") => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -81,211 +94,215 @@ const SizeChartModal = ({
   };
 
   return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="slide"
-      onRequestClose={onClose}
-    >
-      <View style={s.overlay}>
-        <View style={[s.container, { backgroundColor: theme.background }]}>
-          {/* Header */}
-          <View style={[s.header, { borderBottomColor: theme.border }]}>
-            <View style={{ flex: 1 }}>
-              <Text style={[s.title, { color: theme.text }]}>
-                {name || "Size & Fit Guide"}
-              </Text>
-              <Text style={[s.subtitle, { color: theme.secondaryText }]}>
-                Find your perfect fit ({category || "Apparel"})
+    <Sheet ref={sheet} onDidDismiss={onClose} backgroundColor={theme.background}>
+      <SheetHeader
+        title={name || "Size & Fit Guide"}
+        subtitle={`Find your perfect fit (${category || "Apparel"})`}
+        onClose={onClose}
+      />
+
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={s.content}
+      >
+        {/* Unit Toggle Buttons */}
+        <View
+          style={[
+            s.unitToggleRow,
+            {
+              backgroundColor: theme.tertiaryBackground,
+              borderColor: theme.border,
+            },
+          ]}
+        >
+          <TouchableOpacity
+            style={[
+              s.unitBtn,
+              activeUnit === "inches" && [
+                s.unitBtnActive,
+                { backgroundColor: theme.primary },
+              ],
+            ]}
+            onPress={() => handleUnitToggle("inches")}
+            activeOpacity={0.8}
+          >
+            <Text
+              style={[
+                s.unitBtnText,
+                {
+                  color: activeUnit === "inches" ? "#fff" : theme.secondaryText,
+                },
+              ]}
+            >
+              INCHES
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              s.unitBtn,
+              activeUnit === "cm" && [
+                s.unitBtnActive,
+                { backgroundColor: theme.primary },
+              ],
+            ]}
+            onPress={() => handleUnitToggle("cm")}
+            activeOpacity={0.8}
+          >
+            <Text
+              style={[
+                s.unitBtnText,
+                {
+                  color: activeUnit === "cm" ? "#fff" : theme.secondaryText,
+                },
+              ]}
+            >
+              CM
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Table Container */}
+        <View style={[s.tableContainer, { borderColor: theme.border }]}>
+          {/* Table Header */}
+          <View
+            style={[
+              s.row,
+              s.headerRow,
+              { backgroundColor: theme.tertiaryBackground },
+            ]}
+          >
+            <View style={[s.cell, s.firstCell]}>
+              <Text style={[s.headerCellText, { color: theme.text }]}>
+                SIZE
               </Text>
             </View>
-            <TouchableOpacity onPress={onClose} style={s.closeBtn} activeOpacity={0.7}>
-              <Ionicons name="close" size={24} color={theme.text} />
-            </TouchableOpacity>
+            {fields.map((field) => (
+              <View key={field} style={s.cell}>
+                <Text style={[s.headerCellText, { color: theme.text }]}>
+                  {String(field || "").toUpperCase()}
+                </Text>
+              </View>
+            ))}
           </View>
 
-          <ScrollView
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={s.content}
-          >
-            {/* Unit Toggle Buttons */}
-            <View style={[s.unitToggleRow, { backgroundColor: theme.tertiaryBackground, borderColor: theme.border }]}>
-              <TouchableOpacity
+          {/* Table Rows */}
+          {data.map((row, index) => {
+            const rowSizeStr = String(
+              row?.size ??
+                row?.Size ??
+                row?.["Size (UK)"] ??
+                row?.["Size (Age)"] ??
+                Object.values(row || {})[0] ??
+                "",
+            );
+            const isSelected = Boolean(
+              selectedSize &&
+                rowSizeStr &&
+                rowSizeStr.toUpperCase() ===
+                  String(selectedSize).toUpperCase(),
+            );
+            return (
+              <View
+                key={index}
                 style={[
-                  s.unitBtn,
-                  activeUnit === "inches" && [s.unitBtnActive, { backgroundColor: theme.primary }],
+                  s.row,
+                  { borderTopColor: theme.border },
+                  isSelected
+                    ? { backgroundColor: theme.primary + "1A" }
+                    : index % 2 === 1
+                      ? { backgroundColor: theme.tertiaryBackground + "40" }
+                      : undefined,
                 ]}
-                onPress={() => handleUnitToggle("inches")}
-                activeOpacity={0.8}
               >
-                <Text
-                  style={[
-                    s.unitBtnText,
-                    { color: activeUnit === "inches" ? "#fff" : theme.secondaryText },
-                  ]}
-                >
-                  INCHES
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  s.unitBtn,
-                  activeUnit === "cm" && [s.unitBtnActive, { backgroundColor: theme.primary }],
-                ]}
-                onPress={() => handleUnitToggle("cm")}
-                activeOpacity={0.8}
-              >
-                <Text
-                  style={[
-                    s.unitBtnText,
-                    { color: activeUnit === "cm" ? "#fff" : theme.secondaryText },
-                  ]}
-                >
-                  CM
-                </Text>
-              </TouchableOpacity>
-            </View>
-
-            {/* Table Container */}
-            <View style={[s.tableContainer, { borderColor: theme.border }]}>
-              {/* Table Header */}
-              <View style={[s.row, s.headerRow, { backgroundColor: theme.tertiaryBackground }]}>
                 <View style={[s.cell, s.firstCell]}>
-                  <Text style={[s.headerCellText, { color: theme.text }]}>SIZE</Text>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 4,
+                    }}
+                  >
+                    <Text
+                      style={[
+                        s.sizeText,
+                        {
+                          color: isSelected ? theme.primary : theme.text,
+                          fontWeight: isSelected ? "800" : "700",
+                        },
+                      ]}
+                    >
+                      {rowSizeStr || "-"}
+                    </Text>
+                    {isSelected && (
+                      <Ionicons
+                        name="checkmark-circle"
+                        size={13}
+                        color={theme.primary}
+                      />
+                    )}
+                  </View>
                 </View>
                 {fields.map((field) => (
                   <View key={field} style={s.cell}>
-                    <Text style={[s.headerCellText, { color: theme.text }]}>
-                      {String(field || "").toUpperCase()}
+                    <Text
+                      style={[
+                        s.cellText,
+                        {
+                          color: isSelected
+                            ? theme.primary
+                            : theme.secondaryText,
+                          fontWeight: isSelected ? "700" : "500",
+                        },
+                      ]}
+                    >
+                      {formatCellValue(row[field])}
                     </Text>
                   </View>
                 ))}
               </View>
-
-              {/* Table Rows */}
-              {data.map((row, index) => {
-                const rowSizeStr = String(row?.size ?? row?.Size ?? row?.["Size (UK)"] ?? row?.["Size (Age)"] ?? Object.values(row || {})[0] ?? "");
-                const isSelected = Boolean(
-                  selectedSize &&
-                  rowSizeStr &&
-                  rowSizeStr.toUpperCase() === String(selectedSize).toUpperCase()
-                );
-                return (
-                  <View
-                    key={index}
-                    style={[
-                      s.row,
-                      { borderTopColor: theme.border },
-                      isSelected
-                        ? { backgroundColor: theme.primary + "1A" }
-                        : index % 2 === 1
-                        ? { backgroundColor: theme.tertiaryBackground + "40" }
-                        : undefined,
-                    ]}
-                  >
-                    <View style={[s.cell, s.firstCell]}>
-                      <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
-                        <Text
-                          style={[
-                            s.sizeText,
-                            {
-                              color: isSelected ? theme.primary : theme.text,
-                              fontWeight: isSelected ? "800" : "700",
-                            },
-                          ]}
-                        >
-                          {rowSizeStr || "-"}
-                        </Text>
-                        {isSelected && (
-                          <Ionicons name="checkmark-circle" size={13} color={theme.primary} />
-                        )}
-                      </View>
-                    </View>
-                    {fields.map((field) => (
-                      <View key={field} style={s.cell}>
-                        <Text
-                          style={[
-                            s.cellText,
-                            {
-                              color: isSelected ? theme.primary : theme.secondaryText,
-                              fontWeight: isSelected ? "700" : "500",
-                            },
-                          ]}
-                        >
-                          {formatCellValue(row[field])}
-                        </Text>
-                      </View>
-                    ))}
-                  </View>
-                );
-              })}
-            </View>
-
-            {/* How to Measure Section */}
-            {howToMeasure && howToMeasure.length > 0 && (
-              <View style={[s.measureSection, { backgroundColor: theme.tertiaryBackground, borderColor: theme.border }]}>
-                <View style={s.measureTitleRow}>
-                  <Ionicons name="body-outline" size={18} color={theme.primary} />
-                  <Text style={[s.sectionTitle, { color: theme.text }]}>
-                    How to Measure Correctly
-                  </Text>
-                </View>
-                {howToMeasure.map((step, i) => (
-                  <View key={i} style={s.stepRow}>
-                    <View style={[s.stepDot, { backgroundColor: theme.primary }]} />
-                    <Text style={[s.stepText, { color: theme.secondaryText }]}>{step}</Text>
-                  </View>
-                ))}
-              </View>
-            )}
-
-            <View style={{ height: 40 }} />
-          </ScrollView>
+            );
+          })}
         </View>
-      </View>
-    </Modal>
+
+        {/* How to Measure Section */}
+        {howToMeasure && howToMeasure.length > 0 && (
+          <View
+            style={[
+              s.measureSection,
+              {
+                backgroundColor: theme.tertiaryBackground,
+                borderColor: theme.border,
+              },
+            ]}
+          >
+            <View style={s.measureTitleRow}>
+              <Ionicons name="body-outline" size={18} color={theme.primary} />
+              <Text style={[s.sectionTitle, { color: theme.text }]}>
+                How to Measure Correctly
+              </Text>
+            </View>
+            {howToMeasure.map((step, i) => (
+              <View key={i} style={s.stepRow}>
+                <View
+                  style={[s.stepDot, { backgroundColor: theme.primary }]}
+                />
+                <Text style={[s.stepText, { color: theme.secondaryText }]}>
+                  {step}
+                </Text>
+              </View>
+            ))}
+          </View>
+        )}
+
+        <View style={{ height: 40 }} />
+      </ScrollView>
+    </Sheet>
   );
 };
 
 const s = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.6)",
-    justifyContent: "flex-end",
-  },
-  container: {
-    maxHeight: "85%",
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    paddingTop: 8,
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  title: {
-    fontSize: 17,
-    fontWeight: "800",
-  },
-  subtitle: {
-    fontSize: 12,
-    marginTop: 2,
-    fontWeight: "500",
-  },
-  closeBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: "rgba(0,0,0,0.05)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
   content: {
-    padding: 20,
+    padding: spacing.lg,
   },
   unitToggleRow: {
     flexDirection: "row",

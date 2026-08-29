@@ -1,15 +1,12 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
-  Modal,
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  TextInput,
-  ScrollView,
   ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Theme } from "@/src/theme/Provider/ThemeProvider";
@@ -18,11 +15,22 @@ import Toast from "react-native-toast-message";
 
 import { useRouter } from "expo-router";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
+import {
+  Sheet,
+  SheetFooter,
+  SheetHeader,
+  useSheet,
+} from "@/src/components/common/BottomSheet";
+import { spacing } from "@/src/theme/spacing";
 
 interface WriteReviewModalProps {
   visible: boolean;
   onClose: () => void;
-  onSubmit: (data: { rating: number; title: string; comment: string }) => Promise<void>;
+  onSubmit: (data: {
+    rating: number;
+    title: string;
+    comment: string;
+  }) => Promise<void>;
   productTitle?: string;
   theme: Theme;
 }
@@ -44,10 +52,21 @@ export const WriteReviewModal: React.FC<WriteReviewModalProps> = ({
 }) => {
   const router = useRouter();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const sheet = useSheet();
+
   const [rating, setRating] = useState<number>(5);
   const [title, setTitle] = useState("");
   const [comment, setComment] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Imperative present/dismiss from the parent `visible` prop.
+  useEffect(() => {
+    if (visible) {
+      sheet.current?.present();
+    } else {
+      sheet.current?.dismiss();
+    }
+  }, [visible, sheet]);
 
   const handleStarPress = (score: number) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -99,7 +118,9 @@ export const WriteReviewModal: React.FC<WriteReviewModalProps> = ({
       Toast.show({
         type: "error",
         text1: "Submission Failed",
-        text2: error?.response?.data?.message || "Please log in to submit a review.",
+        text2:
+          error?.response?.data?.message ||
+          "Please log in to submit a review.",
       });
     } finally {
       setIsSubmitting(false);
@@ -107,159 +128,119 @@ export const WriteReviewModal: React.FC<WriteReviewModalProps> = ({
   };
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        style={styles.overlay}
+    <Sheet ref={sheet} onDidDismiss={onClose} backgroundColor={theme.background}>
+      <SheetHeader
+        title="Write a Review"
+        subtitle={productTitle}
+        onClose={onClose}
+      />
+
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.content}
       >
-        <View style={[styles.container, { backgroundColor: theme.background }]}>
-          {/* Header */}
-          <View style={[styles.header, { borderBottomColor: theme.border }]}>
-            <View style={{ flex: 1 }}>
-              <Text style={[styles.modalTitle, { color: theme.text }]}>Write a Review</Text>
-              {productTitle ? (
-                <Text style={[styles.productSub, { color: theme.secondaryText }]} numberOfLines={1}>
-                  {productTitle}
-                </Text>
-              ) : null}
-            </View>
-            <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
-              <Ionicons name="close" size={24} color={theme.text} />
-            </TouchableOpacity>
+        {/* Rating Stars Selector */}
+        <View style={styles.ratingSelectSection}>
+          <Text style={[styles.sectionLabel, { color: theme.text }]}>
+            Overall Rating
+          </Text>
+          <View style={styles.starsRow}>
+            {[1, 2, 3, 4, 5].map((star) => (
+              <TouchableOpacity
+                key={star}
+                activeOpacity={0.7}
+                onPress={() => handleStarPress(star)}
+                style={styles.starTouch}
+              >
+                <Ionicons
+                  name={star <= rating ? "star" : "star-outline"}
+                  size={36}
+                  color="#F59E0B"
+                />
+              </TouchableOpacity>
+            ))}
           </View>
-
-          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
-            {/* Rating Stars Selector */}
-            <View style={styles.ratingSelectSection}>
-              <Text style={[styles.sectionLabel, { color: theme.text }]}>Overall Rating</Text>
-              <View style={styles.starsRow}>
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <TouchableOpacity
-                    key={star}
-                    activeOpacity={0.7}
-                    onPress={() => handleStarPress(star)}
-                    style={styles.starTouch}
-                  >
-                    <Ionicons
-                      name={star <= rating ? "star" : "star-outline"}
-                      size={36}
-                      color="#F59E0B"
-                    />
-                  </TouchableOpacity>
-                ))}
-              </View>
-              <Text style={[styles.ratingLabelText, { color: theme.primary }]}>
-                {RATING_LABELS[rating]}
-              </Text>
-            </View>
-
-            {/* Review Title Input */}
-            <View style={styles.inputGroup}>
-              <Text style={[styles.inputLabel, { color: theme.secondaryText }]}>
-                Review Title (Optional)
-              </Text>
-              <TextInput
-                style={[
-                  styles.input,
-                  {
-                    backgroundColor: theme.tertiaryBackground,
-                    borderColor: theme.border,
-                    color: theme.text,
-                  },
-                ]}
-                placeholder="e.g. Great fabric and perfect fit"
-                placeholderTextColor={theme.tertiaryText}
-                value={title}
-                onChangeText={setTitle}
-                maxLength={80}
-              />
-            </View>
-
-            {/* Detailed Comment Input */}
-            <View style={styles.inputGroup}>
-              <Text style={[styles.inputLabel, { color: theme.secondaryText }]}>
-                Your Experience *
-              </Text>
-              <TextInput
-                style={[
-                  styles.textArea,
-                  {
-                    backgroundColor: theme.tertiaryBackground,
-                    borderColor: theme.border,
-                    color: theme.text,
-                  },
-                ]}
-                placeholder="How was the quality, fit, color, and delivery? Share details that will help other shoppers..."
-                placeholderTextColor={theme.tertiaryText}
-                value={comment}
-                onChangeText={setComment}
-                multiline
-                numberOfLines={4}
-                textAlignVertical="top"
-                maxLength={1000}
-              />
-              <Text style={[styles.charCount, { color: theme.tertiaryText }]}>
-                {comment.length}/1000
-              </Text>
-            </View>
-          </ScrollView>
-
-          {/* Footer Submit Button */}
-          <View style={[styles.footer, { borderTopColor: theme.border }]}>
-            <TouchableOpacity
-              style={[
-                styles.submitBtn,
-                { backgroundColor: theme.primary, opacity: isSubmitting ? 0.7 : 1 },
-              ]}
-              disabled={isSubmitting}
-              onPress={handleSubmit}
-              activeOpacity={0.8}
-            >
-              {isSubmitting ? (
-                <ActivityIndicator color="#fff" size="small" />
-              ) : (
-                <Text style={styles.submitBtnText}>Submit Review</Text>
-              )}
-            </TouchableOpacity>
-          </View>
+          <Text style={[styles.ratingLabelText, { color: theme.primary }]}>
+            {RATING_LABELS[rating]}
+          </Text>
         </View>
-      </KeyboardAvoidingView>
-    </Modal>
+
+        {/* Review Title Input */}
+        <View style={styles.inputGroup}>
+          <Text style={[styles.inputLabel, { color: theme.secondaryText }]}>
+            Review Title (Optional)
+          </Text>
+          <TextInput
+            style={[
+              styles.input,
+              {
+                backgroundColor: theme.tertiaryBackground,
+                borderColor: theme.border,
+                color: theme.text,
+              },
+            ]}
+            placeholder="e.g. Great fabric and perfect fit"
+            placeholderTextColor={theme.tertiaryText}
+            value={title}
+            onChangeText={setTitle}
+            maxLength={80}
+          />
+        </View>
+
+        {/* Detailed Comment Input */}
+        <View style={styles.inputGroup}>
+          <Text style={[styles.inputLabel, { color: theme.secondaryText }]}>
+            Your Experience *
+          </Text>
+          <TextInput
+            style={[
+              styles.textArea,
+              {
+                backgroundColor: theme.tertiaryBackground,
+                borderColor: theme.border,
+                color: theme.text,
+              },
+            ]}
+            placeholder="How was the quality, fit, color, and delivery? Share details that will help other shoppers..."
+            placeholderTextColor={theme.tertiaryText}
+            value={comment}
+            onChangeText={setComment}
+            multiline
+            numberOfLines={4}
+            textAlignVertical="top"
+            maxLength={1000}
+          />
+          <Text style={[styles.charCount, { color: theme.tertiaryText }]}>
+            {comment.length}/1000
+          </Text>
+        </View>
+      </ScrollView>
+
+      {/* Footer Submit Button */}
+      <SheetFooter>
+        <TouchableOpacity
+          style={[
+            styles.submitBtn,
+            { backgroundColor: theme.primary, opacity: isSubmitting ? 0.7 : 1 },
+          ]}
+          disabled={isSubmitting}
+          onPress={handleSubmit}
+          activeOpacity={0.8}
+        >
+          {isSubmitting ? (
+            <ActivityIndicator color="#fff" size="small" />
+          ) : (
+            <Text style={styles.submitBtnText}>Submit Review</Text>
+          )}
+        </TouchableOpacity>
+      </SheetFooter>
+    </Sheet>
   );
 };
 
 const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.55)",
-    justifyContent: "flex-end",
-  },
-  container: {
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    maxHeight: "85%",
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  modalTitle: {
-    fontSize: 17,
-    fontWeight: "700",
-  },
-  productSub: {
-    fontSize: 12,
-    marginTop: 2,
-  },
-  closeBtn: {
-    padding: 4,
-  },
   content: {
-    padding: 20,
+    padding: spacing.lg,
   },
   ratingSelectSection: {
     alignItems: "center",
@@ -309,17 +290,12 @@ const styles = StyleSheet.create({
     textAlign: "right",
     marginTop: 4,
   },
-  footer: {
-    paddingHorizontal: 20,
-    paddingTop: 12,
-    paddingBottom: Platform.OS === "ios" ? 34 : 16,
-    borderTopWidth: StyleSheet.hairlineWidth,
-  },
   submitBtn: {
     height: 48,
     borderRadius: 10,
     alignItems: "center",
     justifyContent: "center",
+    width: "100%",
   },
   submitBtnText: {
     color: "#fff",

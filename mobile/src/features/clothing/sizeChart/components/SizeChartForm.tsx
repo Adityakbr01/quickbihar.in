@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TextInput, TouchableOpacity, ScrollView, Modal, Image } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, ScrollView, Image } from "react-native";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { CheckmarkCircle01Icon, Cancel01Icon } from "@hugeicons/core-free-icons";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
@@ -9,6 +9,11 @@ import SizeChartFieldList from "./form/SizeChartFieldList";
 import SizeChartDataTable from "./form/SizeChartDataTable";
 import IOSAlertDialog from "@/src/components/ui/IOSAlertDialog";
 import { useCategories } from "@/src/features/common/category/hooks/useCategories";
+import {
+  Sheet,
+  SheetHeader,
+  useSheet,
+} from "@/src/components/common/BottomSheet";
 
 interface SizeChartFormProps {
   visible: boolean;
@@ -21,6 +26,7 @@ interface SizeChartFormProps {
 const SizeChartForm = ({ visible, onClose, onSubmit, initialData, loading }: SizeChartFormProps) => {
   const theme = useTheme();
   const styles = createSizeChartFormStyles(theme);
+  const sheet = useSheet();
   const { data: categoryList } = useCategories();
 
   const [name, setName] = useState("");
@@ -35,6 +41,15 @@ const SizeChartForm = ({ visible, onClose, onSubmit, initialData, loading }: Siz
     message: string;
     onConfirm: () => void;
   }>({ title: "", message: "", onConfirm: () => { } });
+
+  // Imperative present/dismiss from the parent `visible` prop.
+  useEffect(() => {
+    if (visible) {
+      sheet.current?.present();
+    } else {
+      sheet.current?.dismiss();
+    }
+  }, [visible, sheet]);
 
   useEffect(() => {
     if (visible) {
@@ -166,17 +181,19 @@ const SizeChartForm = ({ visible, onClose, onSubmit, initialData, loading }: Siz
   };
 
   return (
-    <Modal visible={visible} animationType="slide" transparent>
-      <View style={styles.modalOverlay}>
-        <View style={styles.container}>
-          <View style={styles.header}>
-            <Text style={styles.title}>{initialData ? "Edit Size Chart" : "New Size Chart"}</Text>
-            <TouchableOpacity onPress={onClose}>
-              <HugeiconsIcon icon={Cancel01Icon} size={24} color={theme.text} />
-            </TouchableOpacity>
-          </View>
+    <>
+      <Sheet
+        ref={sheet}
+        detents={[1]}
+        onDidDismiss={onClose}
+        backgroundColor={theme.background}
+      >
+        <SheetHeader
+          title={initialData ? "Edit Size Chart" : "New Size Chart"}
+          onClose={onClose}
+        />
 
-          <ScrollView style={styles.form} contentContainerStyle={styles.formContent}>
+        <ScrollView style={styles.form} contentContainerStyle={styles.formContent}>
             <Text style={styles.label}>Name</Text>
             <TextInput
               style={styles.input}
@@ -265,8 +282,7 @@ const SizeChartForm = ({ visible, onClose, onSubmit, initialData, loading }: Siz
             <HugeiconsIcon icon={CheckmarkCircle01Icon} size={20} color="#fff" />
             <Text style={styles.submitBtnText}>{initialData ? "Update Chart" : "Save Chart"}</Text>
           </TouchableOpacity>
-        </View>
-      </View>
+      </Sheet>
 
       <IOSAlertDialog
         visible={alertVisible}
@@ -282,7 +298,7 @@ const SizeChartForm = ({ visible, onClose, onSubmit, initialData, loading }: Siz
           },
         ]}
       />
-    </Modal>
+    </>
   );
 };
 

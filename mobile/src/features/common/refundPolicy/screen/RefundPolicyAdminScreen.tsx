@@ -1,19 +1,24 @@
-import React, { useState } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Modal, TextInput, ScrollView, Switch } from "react-native";
+import React, { useEffect, useState } from "react";
+import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, TextInput, ScrollView, Switch } from "react-native";
 import { FlashList } from "@shopify/flash-list";
 import { useRouter } from "expo-router";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { Add01Icon, ArrowLeft01Icon, Delete01Icon, PencilEdit01Icon, Cancel01Icon, CheckmarkCircle01Icon, Tag01Icon, Calendar03Icon, ShippingTruck02Icon, InformationCircleIcon } from "@hugeicons/core-free-icons";
 import SafeViewWrapper from "@/src/provider/SafeViewWrapper";
-import { 
-    useAdminRefundPolicies, 
-    useCreateRefundPolicy, 
-    useUpdateRefundPolicy, 
-    useDeleteRefundPolicy 
+import {
+    useAdminRefundPolicies,
+    useCreateRefundPolicy,
+    useUpdateRefundPolicy,
+    useDeleteRefundPolicy
 } from "../hooks/useRefundPolicies";
 import { IRefundPolicy } from "@/src/features/clothing/product/types/product.types";
 import IOSAlertDialog from "@/src/components/ui/IOSAlertDialog";
+import {
+  Sheet,
+  SheetHeader,
+  useSheet,
+} from "@/src/components/common/BottomSheet";
 
 const RefundPolicyAdminScreen = () => {
   const theme = useTheme();
@@ -24,6 +29,7 @@ const RefundPolicyAdminScreen = () => {
   const deleteMutation = useDeleteRefundPolicy();
 
   const [formVisible, setFormVisible] = useState(false);
+  const formSheet = useSheet();
   const [selectedPolicy, setSelectedPolicy] = useState<IRefundPolicy | null>(null);
   const [deleteAlertVisible, setDeleteAlertVisible] = useState(false);
   const [policyToDelete, setPolicyToDelete] = useState<string | null>(null);
@@ -42,10 +48,19 @@ const RefundPolicyAdminScreen = () => {
   const [conditionInput, setConditionInput] = useState("");
   const [conditions, setConditions] = useState<string[]>([]);
 
+  // Imperative present/dismiss for the form sheet.
+  useEffect(() => {
+    if (formVisible) {
+      formSheet.current?.present();
+    } else {
+      formSheet.current?.dismiss();
+    }
+  }, [formVisible, formSheet]);
+
   const handleCreate = () => {
     setSelectedPolicy(null);
     setName(""); setCategory("General"); setDescription(""); setReturnWindowDays("7");
-    setRefundProcessingDays("5"); setRefundType("Original Payment Method"); 
+    setRefundProcessingDays("5"); setRefundType("Original Payment Method");
     setReturnShipping("Customer"); setIsReturnable(true); setIsExchangeAvailable(true);
     setIsActive(true); setConditions([]);
     setFormVisible(true);
@@ -79,12 +94,12 @@ const RefundPolicyAdminScreen = () => {
   };
 
   const handleSubmit = () => {
-    const data = { 
-      name, category, description, 
-      returnWindowDays: Number(returnWindowDays), 
+    const data = {
+      name, category, description,
+      returnWindowDays: Number(returnWindowDays),
       refundProcessingDays: Number(refundProcessingDays),
       refundType, returnShipping, isReturnable, isExchangeAvailable,
-      isActive, conditions 
+      isActive, conditions
     };
 
     if (selectedPolicy) {
@@ -125,8 +140,8 @@ const RefundPolicyAdminScreen = () => {
         <TouchableOpacity onPress={() => handleEdit(item)} style={styles.actionBtn}>
           <HugeiconsIcon icon={PencilEdit01Icon} size={18} color={theme.primary} />
         </TouchableOpacity>
-        <TouchableOpacity 
-            onPress={() => { setPolicyToDelete(item._id); setDeleteAlertVisible(true); }} 
+        <TouchableOpacity
+            onPress={() => { setPolicyToDelete(item._id); setDeleteAlertVisible(true); }}
             style={styles.actionBtn}
         >
           <HugeiconsIcon icon={Delete01Icon} size={18} color={theme.error} />
@@ -161,146 +176,142 @@ const RefundPolicyAdminScreen = () => {
         />
       )}
 
-      {/* Advanced Form Modal */}
-      <Modal visible={formVisible} animationType="slide" transparent>
-        <View style={styles.modalOverlay}>
-          <View style={[styles.modalContainer, { backgroundColor: theme.background }]}>
-            <View style={styles.modalHeader}>
-              <Text style={[styles.modalTitle, { color: theme.text }]}>
-                {selectedPolicy ? "Edit Pro Policy" : "New Pro Policy"}
-              </Text>
-              <TouchableOpacity onPress={() => setFormVisible(false)}>
-                <HugeiconsIcon icon={Cancel01Icon} size={24} color={theme.text} />
-              </TouchableOpacity>
+      {/* Advanced Form Sheet */}
+      <Sheet
+        ref={formSheet}
+        onDidDismiss={() => setFormVisible(false)}
+        backgroundColor={theme.background}
+      >
+        <SheetHeader
+          title={selectedPolicy ? "Edit Pro Policy" : "New Pro Policy"}
+          onClose={() => setFormVisible(false)}
+        />
+
+        <ScrollView contentContainerStyle={{ padding: 20 }}>
+          <View style={styles.formSection}>
+            <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 12 }}>
+              <HugeiconsIcon icon={InformationCircleIcon} size={18} color={theme.primary} />
+              <Text style={[styles.sectionTitle, { color: theme.text, marginLeft: 8 }]}>Basic Info</Text>
             </View>
 
-            <ScrollView contentContainerStyle={{ padding: 20 }}>
-              <View style={styles.formSection}>
-                <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 12 }}>
-                  <HugeiconsIcon icon={InformationCircleIcon} size={18} color={theme.primary} />
-                  <Text style={[styles.sectionTitle, { color: theme.text, marginLeft: 8 }]}>Basic Info</Text>
-                </View>
-                
-                <Text style={[styles.label, { color: theme.text }]}>Policy Name</Text>
+            <Text style={[styles.label, { color: theme.text }]}>Policy Name</Text>
+            <TextInput
+              style={[styles.input, { backgroundColor: theme.tertiaryBackground, borderColor: theme.border, color: theme.text }]}
+              value={name}
+              onChangeText={setName}
+              placeholder="e.g. 7-Day Easy Return"
+              placeholderTextColor={theme.tertiaryText}
+            />
+
+            <View style={styles.row}>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.label, { color: theme.text }]}>Category</Text>
                 <TextInput
                   style={[styles.input, { backgroundColor: theme.tertiaryBackground, borderColor: theme.border, color: theme.text }]}
-                  value={name}
-                  onChangeText={setName}
-                  placeholder="e.g. 7-Day Easy Return"
+                  value={category}
+                  onChangeText={setCategory}
+                  placeholder="e.g. Fashion"
                   placeholderTextColor={theme.tertiaryText}
                 />
+              </View>
+              <View style={{ flex: 1, marginLeft: 10 }}>
+                 <Text style={[styles.label, { color: theme.text }]}>Refund Type</Text>
+                 <TextInput
+                   style={[styles.input, { backgroundColor: theme.tertiaryBackground, borderColor: theme.border, color: theme.text }]}
+                   value={refundType}
+                   onChangeText={setRefundType}
+                   placeholder="e.g. Wallet"
+                   placeholderTextColor={theme.tertiaryText}
+                 />
+              </View>
+            </View>
 
-                <View style={styles.row}>
-                  <View style={{ flex: 1 }}>
-                    <Text style={[styles.label, { color: theme.text }]}>Category</Text>
-                    <TextInput
-                      style={[styles.input, { backgroundColor: theme.tertiaryBackground, borderColor: theme.border, color: theme.text }]}
-                      value={category}
-                      onChangeText={setCategory}
-                      placeholder="e.g. Fashion"
-                      placeholderTextColor={theme.tertiaryText}
-                    />
-                  </View>
-                  <View style={{ flex: 1, marginLeft: 10 }}>
-                     <Text style={[styles.label, { color: theme.text }]}>Refund Type</Text>
-                     <TextInput
-                       style={[styles.input, { backgroundColor: theme.tertiaryBackground, borderColor: theme.border, color: theme.text }]}
-                       value={refundType}
-                       onChangeText={setRefundType}
-                       placeholder="e.g. Wallet"
-                       placeholderTextColor={theme.tertiaryText}
-                     />
-                  </View>
-                </View>
+            <Text style={[styles.label, { color: theme.text }]}>Description</Text>
+            <TextInput
+              style={[styles.input, { height: 80, textAlignVertical: "top", backgroundColor: theme.tertiaryBackground, borderColor: theme.border, color: theme.text }]}
+              value={description}
+              onChangeText={setDescription}
+              placeholder="Describe this policy briefly..."
+              placeholderTextColor={theme.tertiaryText}
+              multiline
+            />
+          </View>
 
-                <Text style={[styles.label, { color: theme.text }]}>Description</Text>
+          <View style={styles.formSection}>
+             <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 12 }}>
+              <HugeiconsIcon icon={Calendar03Icon} size={18} color={theme.primary} />
+              <Text style={[styles.sectionTitle, { color: theme.text, marginLeft: 8 }]}>Windows & Logic</Text>
+            </View>
+            <View style={styles.row}>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.label, { color: theme.text }]}>Return Window (Days)</Text>
                 <TextInput
-                  style={[styles.input, { height: 80, textAlignVertical: "top", backgroundColor: theme.tertiaryBackground, borderColor: theme.border, color: theme.text }]}
-                  value={description}
-                  onChangeText={setDescription}
-                  placeholder="Describe this policy briefly..."
-                  placeholderTextColor={theme.tertiaryText}
-                  multiline
+                  style={[styles.input, { backgroundColor: theme.tertiaryBackground, borderColor: theme.border, color: theme.text }]}
+                  value={returnWindowDays}
+                  onChangeText={setReturnWindowDays}
+                  keyboardType="numeric"
                 />
               </View>
-
-              <View style={styles.formSection}>
-                 <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 12 }}>
-                  <HugeiconsIcon icon={Calendar03Icon} size={18} color={theme.primary} />
-                  <Text style={[styles.sectionTitle, { color: theme.text, marginLeft: 8 }]}>Windows & Logic</Text>
-                </View>
-                <View style={styles.row}>
-                  <View style={{ flex: 1 }}>
-                    <Text style={[styles.label, { color: theme.text }]}>Return Window (Days)</Text>
-                    <TextInput
-                      style={[styles.input, { backgroundColor: theme.tertiaryBackground, borderColor: theme.border, color: theme.text }]}
-                      value={returnWindowDays}
-                      onChangeText={setReturnWindowDays}
-                      keyboardType="numeric"
-                    />
-                  </View>
-                  <View style={{ flex: 1, marginLeft: 10 }}>
-                    <Text style={[styles.label, { color: theme.text }]}>Processing (Days)</Text>
-                    <TextInput
-                      style={[styles.input, { backgroundColor: theme.tertiaryBackground, borderColor: theme.border, color: theme.text }]}
-                      value={refundProcessingDays}
-                      onChangeText={setRefundProcessingDays}
-                      keyboardType="numeric"
-                    />
-                  </View>
-                </View>
-
-                <View style={[styles.toggleRow, { marginBottom: 16 }]}>
-                  <Text style={[styles.label, { color: theme.text, marginBottom: 0 }]}>Is Returnable?</Text>
-                  <Switch value={isReturnable} onValueChange={setIsReturnable} trackColor={{ false: theme.border, true: theme.primary }} />
-                </View>
-
-                <View style={[styles.toggleRow, { marginBottom: 16 }]}>
-                  <Text style={[styles.label, { color: theme.text, marginBottom: 0 }]}>Is Exchange Available?</Text>
-                  <Switch value={isExchangeAvailable} onValueChange={setIsExchangeAvailable} trackColor={{ false: theme.border, true: theme.primary }} />
-                </View>
+              <View style={{ flex: 1, marginLeft: 10 }}>
+                <Text style={[styles.label, { color: theme.text }]}>Processing (Days)</Text>
+                <TextInput
+                  style={[styles.input, { backgroundColor: theme.tertiaryBackground, borderColor: theme.border, color: theme.text }]}
+                  value={refundProcessingDays}
+                  onChangeText={setRefundProcessingDays}
+                  keyboardType="numeric"
+                />
               </View>
+            </View>
 
-              <View style={styles.formSection}>
-                 <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 12 }}>
-                  <HugeiconsIcon icon={Tag01Icon} size={18} color={theme.primary} />
-                  <Text style={[styles.sectionTitle, { color: theme.text, marginLeft: 8 }]}>Conditions List</Text>
-                </View>
-                <View style={styles.conditionInputRow}>
-                  <TextInput
-                    style={[styles.input, { flex: 1, marginBottom: 0, backgroundColor: theme.tertiaryBackground, borderColor: theme.border, color: theme.text }]}
-                    value={conditionInput}
-                    onChangeText={setConditionInput}
-                    placeholder="Add a condition..."
-                    placeholderTextColor={theme.tertiaryText}
-                  />
-                  <TouchableOpacity style={[styles.addConditionBtn, { backgroundColor: theme.primary }]} onPress={addCondition}>
-                    <HugeiconsIcon icon={Add01Icon} size={18} color="#fff" />
+            <View style={[styles.toggleRow, { marginBottom: 16 }]}>
+              <Text style={[styles.label, { color: theme.text, marginBottom: 0 }]}>Is Returnable?</Text>
+              <Switch value={isReturnable} onValueChange={setIsReturnable} trackColor={{ false: theme.border, true: theme.primary }} />
+            </View>
+
+            <View style={[styles.toggleRow, { marginBottom: 16 }]}>
+              <Text style={[styles.label, { color: theme.text, marginBottom: 0 }]}>Is Exchange Available?</Text>
+              <Switch value={isExchangeAvailable} onValueChange={setIsExchangeAvailable} trackColor={{ false: theme.border, true: theme.primary }} />
+            </View>
+          </View>
+
+          <View style={styles.formSection}>
+             <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 12 }}>
+              <HugeiconsIcon icon={Tag01Icon} size={18} color={theme.primary} />
+              <Text style={[styles.sectionTitle, { color: theme.text, marginLeft: 8 }]}>Conditions List</Text>
+            </View>
+            <View style={styles.conditionInputRow}>
+              <TextInput
+                style={[styles.input, { flex: 1, marginBottom: 0, backgroundColor: theme.tertiaryBackground, borderColor: theme.border, color: theme.text }]}
+                value={conditionInput}
+                onChangeText={setConditionInput}
+                placeholder="Add a condition..."
+                placeholderTextColor={theme.tertiaryText}
+              />
+              <TouchableOpacity style={[styles.addConditionBtn, { backgroundColor: theme.primary }]} onPress={addCondition}>
+                <HugeiconsIcon icon={Add01Icon} size={18} color="#fff" />
+              </TouchableOpacity>
+            </View>
+            <View style={styles.conditionsList}>
+              {conditions.map((item, index) => (
+                <View key={index} style={[styles.conditionChip, { backgroundColor: theme.tertiaryBackground, borderColor: theme.border }]}>
+                  <Text style={{ color: theme.text, fontSize: 13, flex: 1 }}>• {item}</Text>
+                  <TouchableOpacity onPress={() => removeCondition(index)}>
+                    <HugeiconsIcon icon={Cancel01Icon} size={14} color={theme.error} />
                   </TouchableOpacity>
                 </View>
-                <View style={styles.conditionsList}>
-                  {conditions.map((item, index) => (
-                    <View key={index} style={[styles.conditionChip, { backgroundColor: theme.tertiaryBackground, borderColor: theme.border }]}>
-                      <Text style={{ color: theme.text, fontSize: 13, flex: 1 }}>• {item}</Text>
-                      <TouchableOpacity onPress={() => removeCondition(index)}>
-                        <HugeiconsIcon icon={Cancel01Icon} size={14} color={theme.error} />
-                      </TouchableOpacity>
-                    </View>
-                  ))}
-                </View>
-              </View>
-            </ScrollView>
-
-            <TouchableOpacity 
-              style={[styles.submitBtn, { backgroundColor: theme.primary }]} 
-              onPress={handleSubmit}
-            >
-              <HugeiconsIcon icon={CheckmarkCircle01Icon} size={20} color="#fff" />
-              <Text style={styles.submitBtnText}>Save Pro Policy</Text>
-            </TouchableOpacity>
+              ))}
+            </View>
           </View>
-        </View>
-      </Modal>
+        </ScrollView>
+
+        <TouchableOpacity
+          style={[styles.submitBtn, { backgroundColor: theme.primary }]}
+          onPress={handleSubmit}
+        >
+          <HugeiconsIcon icon={CheckmarkCircle01Icon} size={20} color="#fff" />
+          <Text style={styles.submitBtnText}>Save Pro Policy</Text>
+        </TouchableOpacity>
+      </Sheet>
 
       <IOSAlertDialog
         visible={deleteAlertVisible}
@@ -333,10 +344,6 @@ const styles = StyleSheet.create({
   policyTitle: { fontSize: 16, fontWeight: "700" },
   actionButtons: { flexDirection: "row", gap: 8 },
   actionBtn: { padding: 8 },
-  modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" },
-  modalContainer: { borderTopLeftRadius: 32, borderTopRightRadius: 32, height: "90%", paddingVertical: 20 },
-  modalHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 20, marginBottom: 20 },
-  modalTitle: { fontSize: 20, fontWeight: "700" },
   sectionTitle: { fontSize: 16, fontWeight: "700" },
   formSection: { marginBottom: 24 },
   label: { fontSize: 13, fontWeight: "600", marginBottom: 8, opacity: 0.8 },

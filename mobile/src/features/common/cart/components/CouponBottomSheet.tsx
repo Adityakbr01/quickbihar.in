@@ -1,23 +1,23 @@
-import React, { useState, useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
-  Modal,
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  TextInput,
   ActivityIndicator,
-  Pressable,
-  Platform,
-  Dimensions,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { ICoupon } from "@/src/features/common/coupon/types/coupon.types";
 import { CartItem } from "../store/cartStore";
-
-const { height: SCREEN_HEIGHT } = Dimensions.get("window");
+import {
+  Sheet,
+  SheetHeader,
+  useSheet,
+} from "@/src/components/common/BottomSheet";
+import { spacing } from "@/src/theme/spacing";
 
 export interface CouponApplicability {
   coupon: ICoupon;
@@ -46,10 +46,10 @@ interface CouponBottomSheetProps {
 export function calculateCouponApplicability(
   coupon: ICoupon,
   cartItems: CartItem[],
-  appliedCoupons: ICoupon[]
+  appliedCoupons: ICoupon[],
 ): CouponApplicability {
   const isApplied = appliedCoupons.some(
-    (c) => c.code.toUpperCase() === coupon.code.toUpperCase()
+    (c) => c.code.toUpperCase() === coupon.code.toUpperCase(),
   );
 
   const couponSellerId = coupon.sellerId?.toString();
@@ -69,7 +69,7 @@ export function calculateCouponApplicability(
 
     if (coupon.appliesTo === "SPECIFIC") {
       const isEligibleProduct = coupon.productIds?.some(
-        (id) => id.toString() === itemId?.toString()
+        (id) => id.toString() === itemId?.toString(),
       );
       if (!isEligibleProduct) continue;
     }
@@ -143,25 +143,35 @@ export const CouponBottomSheet: React.FC<CouponBottomSheetProps> = ({
   isLoading,
   theme,
 }) => {
+  const sheet = useSheet();
   const [manualCode, setManualCode] = useState("");
   const [applyingCode, setApplyingCode] = useState<string | null>(null);
 
   // Group and evaluate coupons dynamically
   const evaluatedCoupons = useMemo(() => {
     return coupons.map((c) =>
-      calculateCouponApplicability(c, cartItems, appliedCoupons)
+      calculateCouponApplicability(c, cartItems, appliedCoupons),
     );
   }, [coupons, cartItems, appliedCoupons]);
 
   const applicableCoupons = useMemo(
     () => evaluatedCoupons.filter((ec) => ec.isApplicable),
-    [evaluatedCoupons]
+    [evaluatedCoupons],
   );
 
   const lockedCoupons = useMemo(
     () => evaluatedCoupons.filter((ec) => !ec.isApplicable),
-    [evaluatedCoupons]
+    [evaluatedCoupons],
   );
+
+  // Imperative present/dismiss from the parent `visible` prop.
+  useEffect(() => {
+    if (visible) {
+      sheet.current?.present();
+    } else {
+      sheet.current?.dismiss();
+    }
+  }, [visible, sheet]);
 
   const handleApply = async (codeToApply: string) => {
     if (!codeToApply.trim()) return;
@@ -185,7 +195,13 @@ export const CouponBottomSheet: React.FC<CouponBottomSheetProps> = ({
   const styles = useMemo(() => createStyles(theme), [theme]);
 
   const renderCouponItem = (item: CouponApplicability) => {
-    const { coupon, isApplicable, isApplied, discountAmount, shortfall, reason } = item;
+    const {
+      coupon,
+      isApplicable,
+      isApplied,
+      discountAmount,
+      reason,
+    } = item;
     const isCurrentlyApplying = applyingCode === coupon.code.toUpperCase();
     const discountLabel =
       coupon.discountType === "PERCENTAGE"
@@ -231,7 +247,11 @@ export const CouponBottomSheet: React.FC<CouponBottomSheetProps> = ({
               onPress={() => handleRemove(coupon.code)}
               activeOpacity={0.7}
             >
-              <Ionicons name="checkmark-circle" size={16} color={theme.primary} />
+              <Ionicons
+                name="checkmark-circle"
+                size={16}
+                color={theme.primary}
+              />
               <Text style={styles.appliedBtnText}>Applied</Text>
               <Text style={styles.removeText}>Remove</Text>
             </TouchableOpacity>
@@ -314,226 +334,126 @@ export const CouponBottomSheet: React.FC<CouponBottomSheetProps> = ({
   };
 
   return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="slide"
-      onRequestClose={onClose}
+    <Sheet
+      ref={sheet}
+      onDidDismiss={onClose}
+      backgroundColor={theme.background}
     >
-      <Pressable style={styles.modalOverlay} onPress={onClose}>
-        <Pressable style={styles.bottomSheet} onPress={(e) => e.stopPropagation()}>
-          {/* Top Drag Handle */}
-          <View style={styles.handleContainer}>
-            <View style={styles.handle} />
-          </View>
-
-          {/* Header */}
-          <View style={styles.sheetHeader}>
-            <View style={styles.headerTitleRow}>
-              <View style={styles.headerIconContainer}>
-                <Ionicons name="pricetag" size={18} color={theme.primary} />
-              </View>
-              <Text style={styles.sheetTitle}>Coupons & Offers</Text>
-              {coupons.length > 0 && (
-                <View style={styles.countBadge}>
-                  <Text style={styles.countBadgeText}>{coupons.length}</Text>
-                </View>
-              )}
+      <SheetHeader
+        title="Coupons & Offers"
+        onClose={onClose}
+        right={
+          coupons.length > 0 ? (
+            <View style={styles.countBadge}>
+              <Text style={styles.countBadgeText}>{coupons.length}</Text>
             </View>
+          ) : undefined
+        }
+      />
 
-            <TouchableOpacity
-              onPress={onClose}
-              style={styles.closeBtn}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            >
-              <Ionicons name="close" size={20} color={theme.text} />
-            </TouchableOpacity>
-          </View>
+      {/* Manual Coupon Input inside Sheet */}
+      <View style={styles.inputContainer}>
+        <Ionicons
+          name="pricetag-outline"
+          size={18}
+          color={theme.secondaryText}
+          style={{ marginRight: 8 }}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Enter coupon code"
+          placeholderTextColor={theme.secondaryText}
+          value={manualCode}
+          onChangeText={setManualCode}
+          autoCapitalize="characters"
+          autoCorrect={false}
+        />
+        <TouchableOpacity
+          style={[
+            styles.manualApplyBtn,
+            {
+              backgroundColor: manualCode.trim()
+                ? theme.primary
+                : theme.border,
+            },
+          ]}
+          onPress={() => handleApply(manualCode)}
+          disabled={!manualCode.trim() || isLoading}
+        >
+          {applyingCode === manualCode.trim().toUpperCase() ? (
+            <ActivityIndicator size="small" color="#fff" />
+          ) : (
+            <Text style={styles.manualApplyBtnText}>Apply</Text>
+          )}
+        </TouchableOpacity>
+      </View>
 
-          {/* Manual Coupon Input inside Sheet */}
-          <View style={styles.inputContainer}>
+      {/* Coupon List */}
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
+        {coupons.length === 0 ? (
+          <View style={styles.emptyState}>
             <Ionicons
-              name="pricetag-outline"
-              size={18}
+              name="ticket-outline"
+              size={48}
               color={theme.secondaryText}
-              style={{ marginRight: 8 }}
             />
-            <TextInput
-              style={styles.input}
-              placeholder="Enter coupon code"
-              placeholderTextColor={theme.secondaryText}
-              value={manualCode}
-              onChangeText={setManualCode}
-              autoCapitalize="characters"
-              autoCorrect={false}
-            />
-            <TouchableOpacity
-              style={[
-                styles.manualApplyBtn,
-                {
-                  backgroundColor: manualCode.trim()
-                    ? theme.primary
-                    : theme.border,
-                },
-              ]}
-              onPress={() => handleApply(manualCode)}
-              disabled={!manualCode.trim() || isLoading}
-            >
-              {applyingCode === manualCode.trim().toUpperCase() ? (
-                <ActivityIndicator size="small" color="#fff" />
-              ) : (
-                <Text style={styles.manualApplyBtnText}>Apply</Text>
-              )}
-            </TouchableOpacity>
+            <Text style={styles.emptyTitle}>No Coupons Available</Text>
+            <Text style={styles.emptySubtitle}>
+              Check back later or enter a promo code above if you have one.
+            </Text>
           </View>
-
-          {/* Coupon List */}
-          <ScrollView
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.scrollContent}
-          >
-            {coupons.length === 0 ? (
-              <View style={styles.emptyState}>
-                <Ionicons
-                  name="ticket-outline"
-                  size={48}
-                  color={theme.secondaryText}
-                />
-                <Text style={styles.emptyTitle}>No Coupons Available</Text>
-                <Text style={styles.emptySubtitle}>
-                  Check back later or enter a promo code above if you have one.
-                </Text>
+        ) : (
+          <>
+            {/* Applicable Coupons Section */}
+            {applicableCoupons.length > 0 && (
+              <View style={styles.sectionContainer}>
+                <View style={styles.sectionHeader}>
+                  <Ionicons
+                    name="checkmark-done-circle"
+                    size={16}
+                    color={theme.primary}
+                  />
+                  <Text style={styles.sectionTitle}>
+                    Applicable on your cart ({applicableCoupons.length})
+                  </Text>
+                </View>
+                {applicableCoupons.map(renderCouponItem)}
               </View>
-            ) : (
-              <>
-                {/* Applicable Coupons Section */}
-                {applicableCoupons.length > 0 && (
-                  <View style={styles.sectionContainer}>
-                    <View style={styles.sectionHeader}>
-                      <Ionicons
-                        name="checkmark-done-circle"
-                        size={16}
-                        color={theme.primary}
-                      />
-                      <Text style={styles.sectionTitle}>
-                        Applicable on your cart ({applicableCoupons.length})
-                      </Text>
-                    </View>
-                    {applicableCoupons.map(renderCouponItem)}
-                  </View>
-                )}
-
-                {/* Locked / Other Offers Section */}
-                {lockedCoupons.length > 0 && (
-                  <View style={styles.sectionContainer}>
-                    <View style={styles.sectionHeader}>
-                      <Ionicons
-                        name="gift-outline"
-                        size={16}
-                        color={theme.secondaryText}
-                      />
-                      <Text
-                        style={[
-                          styles.sectionTitle,
-                          { color: theme.secondaryText },
-                        ]}
-                      >
-                        Other Offers ({lockedCoupons.length})
-                      </Text>
-                    </View>
-                    {lockedCoupons.map(renderCouponItem)}
-                  </View>
-                )}
-              </>
             )}
-          </ScrollView>
-        </Pressable>
-      </Pressable>
-    </Modal>
+
+            {/* Locked / Other Offers Section */}
+            {lockedCoupons.length > 0 && (
+              <View style={styles.sectionContainer}>
+                <View style={styles.sectionHeader}>
+                  <Ionicons
+                    name="gift-outline"
+                    size={16}
+                    color={theme.secondaryText}
+                  />
+                  <Text
+                    style={[
+                      styles.sectionTitle,
+                      { color: theme.secondaryText },
+                    ]}
+                  >
+                    Other Offers ({lockedCoupons.length})
+                  </Text>
+                </View>
+                {lockedCoupons.map(renderCouponItem)}
+              </View>
+            )}
+          </>
+        )}
+      </ScrollView>
+    </Sheet>
   );
 };
 
 const createStyles = (theme: any) =>
   StyleSheet.create({
-    modalOverlay: {
-      flex: 1,
-      backgroundColor: "rgba(0, 0, 0, 0.65)",
-      justifyContent: "flex-end",
-    },
-    bottomSheet: {
-      backgroundColor: theme.background,
-      borderTopLeftRadius: 24,
-      borderTopRightRadius: 24,
-      paddingHorizontal: 20,
-      paddingBottom: Platform.OS === "ios" ? 36 : 24,
-      maxHeight: SCREEN_HEIGHT * 0.82,
-      borderWidth: 1,
-      borderColor: theme.border,
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: -6 },
-      shadowOpacity: 0.25,
-      shadowRadius: 16,
-      elevation: 20,
-    },
-    handleContainer: {
-      alignItems: "center",
-      paddingVertical: 10,
-    },
-    handle: {
-      width: 40,
-      height: 4,
-      borderRadius: 2,
-      backgroundColor: theme.border,
-    },
-    sheetHeader: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      marginBottom: 16,
-      paddingTop: 4,
-    },
-    headerTitleRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 8,
-    },
-    headerIconContainer: {
-      width: 32,
-      height: 32,
-      borderRadius: 16,
-      backgroundColor: theme.primary + "18",
-      justifyContent: "center",
-      alignItems: "center",
-    },
-    sheetTitle: {
-      fontSize: 18,
-      fontWeight: "800",
-      color: theme.text,
-      letterSpacing: -0.3,
-    },
-    countBadge: {
-      backgroundColor: theme.tertiaryBackground,
-      paddingHorizontal: 8,
-      paddingVertical: 2,
-      borderRadius: 12,
-      borderWidth: 1,
-      borderColor: theme.border,
-    },
-    countBadgeText: {
-      fontSize: 12,
-      fontWeight: "700",
-      color: theme.primary,
-    },
-    closeBtn: {
-      width: 32,
-      height: 32,
-      borderRadius: 16,
-      backgroundColor: theme.tertiaryBackground,
-      justifyContent: "center",
-      alignItems: "center",
-      borderWidth: 1,
-      borderColor: theme.border,
-    },
     inputContainer: {
       flexDirection: "row",
       alignItems: "center",
@@ -543,6 +463,7 @@ const createStyles = (theme: any) =>
       height: 48,
       borderWidth: 1,
       borderColor: theme.border,
+      marginHorizontal: spacing.lg,
       marginBottom: 16,
     },
     input: {
@@ -565,6 +486,7 @@ const createStyles = (theme: any) =>
     },
     scrollContent: {
       paddingBottom: 24,
+      paddingHorizontal: spacing.lg,
     },
     sectionContainer: {
       marginBottom: 16,
@@ -757,5 +679,18 @@ const createStyles = (theme: any) =>
       color: theme.secondaryText,
       textAlign: "center",
       maxWidth: 260,
+    },
+    countBadge: {
+      backgroundColor: theme.tertiaryBackground,
+      paddingHorizontal: 8,
+      paddingVertical: 2,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    countBadgeText: {
+      fontSize: 12,
+      fontWeight: "700",
+      color: theme.primary,
     },
   });

@@ -1,16 +1,12 @@
 import React, { useEffect } from "react";
 import {
-  Modal,
-  View,
+  ActivityIndicator,
+  Keyboard,
+  ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-  TouchableWithoutFeedback,
-  Keyboard,
-  ScrollView,
+  View,
 } from "react-native";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -24,6 +20,11 @@ import { profileSchema, ProfileFormValues } from "../schema/account.schema";
 import { useAccount } from "../hooks/useAccount";
 import { useAccountStore } from "../store/accountStore";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
+import {
+  Sheet,
+  SheetHeader,
+  useSheet,
+} from "@/src/components/common/BottomSheet";
 
 const EditProfileModal = () => {
   const theme = useTheme();
@@ -31,6 +32,7 @@ const EditProfileModal = () => {
   const user = useAuthStore((state) => state.user);
   const isVisible = useAccountStore((state) => state.isEditModalVisible);
   const setVisible = useAccountStore((state) => state.setEditModalVisible);
+  const sheet = useSheet();
 
   // Alert State
   const [alertVisible, setAlertVisible] = React.useState(false);
@@ -63,6 +65,15 @@ const EditProfileModal = () => {
       });
     }
   }, [isVisible, user, reset]);
+
+  // Imperative present/dismiss from the store `isVisible` flag.
+  useEffect(() => {
+    if (isVisible) {
+      sheet.current?.present();
+    } else {
+      sheet.current?.dismiss();
+    }
+  }, [isVisible, sheet]);
 
   const onSubmit = (data: ProfileFormValues) => {
     console.log("[DEBUG_PROFILE] Modal Submit Button Pressed", data);
@@ -113,113 +124,92 @@ const EditProfileModal = () => {
   };
 
   return (
-    <Modal
-      visible={isVisible}
-      animationType="slide"
-      transparent={true}
-      onRequestClose={() => setVisible(false)}
-    >
-      <TouchableOpacity
-        activeOpacity={1}
-        style={styles.modalContainer}
-        onPress={() => setVisible(false)}
+    <>
+      <Sheet
+        ref={sheet}
+        onDidDismiss={() => setVisible(false)}
+        backgroundColor={theme.background}
       >
-        <TouchableWithoutFeedback>
-          <KeyboardAvoidingView
-            behavior={Platform.OS === "ios" ? "padding" : undefined}
-            style={{ width: "100%" }}
+        <SheetHeader
+          title="Edit Profile"
+          right={
+            <TouchableOpacity
+              onPress={() => setVisible(false)}
+              style={styles.closeButton}
+            >
+              <HugeiconsIcon icon={Cancel01Icon} size={24} color={theme.text} />
+            </TouchableOpacity>
+          }
+        />
+
+        <ScrollView
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 10 }}
+        >
+          {/* Full Name Field */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>Full Name</Text>
+            <Controller
+              control={control}
+              name="fullName"
+              render={({ field: { onChange, onBlur, value } }) => (
+                <TextInput
+                  style={[
+                    styles.input,
+                    errors.fullName && { borderColor: theme.error },
+                  ]}
+                  onBlur={onBlur}
+                  onChangeText={onChange}
+                  value={value}
+                  placeholder="Enter your full name"
+                  placeholderTextColor={theme.tertiaryText}
+                />
+              )}
+            />
+            {errors.fullName && (
+              <Text style={styles.errorText}>{errors.fullName.message}</Text>
+            )}
+          </View>
+
+          {/* Phone Field */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>Phone Number</Text>
+            <Controller
+              control={control}
+              name="phone"
+              render={({ field: { onChange, onBlur, value } }) => (
+                <TextInput
+                  style={[
+                    styles.input,
+                    errors.phone && { borderColor: theme.error },
+                  ]}
+                  onBlur={onBlur}
+                  onChangeText={onChange}
+                  value={value}
+                  placeholder="Enter your phone number"
+                  placeholderTextColor={theme.tertiaryText}
+                  keyboardType="phone-pad"
+                />
+              )}
+            />
+            {errors.phone && (
+              <Text style={styles.errorText}>{errors.phone.message}</Text>
+            )}
+          </View>
+
+          <TouchableOpacity
+            style={[styles.saveButton, isUpdating && { opacity: 0.7 }]}
+            onPress={handleSubmit(onSubmit)}
+            disabled={isUpdating}
           >
-            <View style={styles.modalContent}>
-              <View style={styles.drawerHandle} />
-
-              <ScrollView
-                keyboardShouldPersistTaps="handled"
-                scrollEnabled={false} // Only used for tap persistence in this layout
-                contentContainerStyle={{ paddingBottom: 10 }}
-              >
-                <View style={styles.modalHeader}>
-                  <Text style={styles.modalTitle}>Edit Profile</Text>
-                  <TouchableOpacity
-                    onPress={() => setVisible(false)}
-                    style={styles.closeButton}
-                  >
-                    <HugeiconsIcon
-                      icon={Cancel01Icon}
-                      size={24}
-                      color={theme.text}
-                    />
-                  </TouchableOpacity>
-                </View>
-
-                {/* Full Name Field */}
-                <View style={styles.inputGroup}>
-                  <Text style={styles.inputLabel}>Full Name</Text>
-                  <Controller
-                    control={control}
-                    name="fullName"
-                    render={({ field: { onChange, onBlur, value } }) => (
-                      <TextInput
-                        style={[
-                          styles.input,
-                          errors.fullName && { borderColor: theme.error },
-                        ]}
-                        onBlur={onBlur}
-                        onChangeText={onChange}
-                        value={value}
-                        placeholder="Enter your full name"
-                        placeholderTextColor={theme.tertiaryText}
-                      />
-                    )}
-                  />
-                  {errors.fullName && (
-                    <Text style={styles.errorText}>
-                      {errors.fullName.message}
-                    </Text>
-                  )}
-                </View>
-
-                {/* Phone Field */}
-                <View style={styles.inputGroup}>
-                  <Text style={styles.inputLabel}>Phone Number</Text>
-                  <Controller
-                    control={control}
-                    name="phone"
-                    render={({ field: { onChange, onBlur, value } }) => (
-                      <TextInput
-                        style={[
-                          styles.input,
-                          errors.phone && { borderColor: theme.error },
-                        ]}
-                        onBlur={onBlur}
-                        onChangeText={onChange}
-                        value={value}
-                        placeholder="Enter your phone number"
-                        placeholderTextColor={theme.tertiaryText}
-                        keyboardType="phone-pad"
-                      />
-                    )}
-                  />
-                  {errors.phone && (
-                    <Text style={styles.errorText}>{errors.phone.message}</Text>
-                  )}
-                </View>
-
-                <TouchableOpacity
-                  style={[styles.saveButton, isUpdating && { opacity: 0.7 }]}
-                  onPress={handleSubmit(onSubmit)}
-                  disabled={isUpdating}
-                >
-                  {isUpdating ? (
-                    <ActivityIndicator color="#fff" />
-                  ) : (
-                    <Text style={styles.saveButtonText}>Save Changes</Text>
-                  )}
-                </TouchableOpacity>
-              </ScrollView>
-            </View>
-          </KeyboardAvoidingView>
-        </TouchableWithoutFeedback>
-      </TouchableOpacity>
+            {isUpdating ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.saveButtonText}>Save Changes</Text>
+            )}
+          </TouchableOpacity>
+        </ScrollView>
+      </Sheet>
 
       <IOSAlertDialog
         visible={alertVisible}
@@ -228,7 +218,7 @@ const EditProfileModal = () => {
         message={alertConfig.message}
         buttons={[{ text: "OK", style: "default" }]}
       />
-    </Modal>
+    </>
   );
 };
 

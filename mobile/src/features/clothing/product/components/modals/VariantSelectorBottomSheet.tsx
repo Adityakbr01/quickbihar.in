@@ -1,16 +1,12 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
-  Modal,
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  Image,
   ActivityIndicator,
-  Pressable,
-  Platform,
-  Dimensions,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Theme } from "@/src/theme/Provider/ThemeProvider";
@@ -22,8 +18,11 @@ import { useRouter } from "expo-router";
 
 import SizeChartModal from "./SizeChartModal";
 import { useSizeChart, useSizeCharts } from "@/src/features/clothing/sizeChart/hooks/useSizeCharts";
-
-const { height: SCREEN_HEIGHT } = Dimensions.get("window");
+import {
+  Sheet,
+  SheetFooter,
+  useSheet,
+} from "@/src/components/common/BottomSheet";
 
 interface VariantSelectorBottomSheetProps {
   visible: boolean;
@@ -40,40 +39,64 @@ export const VariantSelectorBottomSheet = ({
 }: VariantSelectorBottomSheetProps) => {
   const router = useRouter();
   const { addItem, isLoading: isAddingToCart, items: cartItems } = useCartStore();
+  const sheet = useSheet();
 
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [showSizeChart, setShowSizeChart] = useState(false);
 
   // ── Backend Size Chart Resolution ──
-  const sizeChartIdString = typeof product.sizeChartId === "string" ? product.sizeChartId : undefined;
+  const sizeChartIdString =
+    typeof product.sizeChartId === "string" ? product.sizeChartId : undefined;
   const { data: fetchedSizeChart } = useSizeChart(sizeChartIdString || "");
   const { data: allBackendSizeCharts } = useSizeCharts();
 
   const activeSizeChart = useMemo(() => {
-    if (product.sizeChartId && typeof product.sizeChartId === "object" && product.sizeChartId.data) {
+    if (
+      product.sizeChartId &&
+      typeof product.sizeChartId === "object" &&
+      product.sizeChartId.data
+    ) {
       return product.sizeChartId;
     }
     if (fetchedSizeChart && fetchedSizeChart.data) {
       return fetchedSizeChart;
     }
     if (allBackendSizeCharts && allBackendSizeCharts.length > 0) {
-      const categoryMatch = allBackendSizeCharts.find((c: any) =>
-        c.category?.toLowerCase() === product.subCategory?.toLowerCase() ||
-        c.category?.toLowerCase() === product.category?.toLowerCase() ||
-        c.name?.toLowerCase().includes(product.category?.toLowerCase() || "")
+      const categoryMatch = allBackendSizeCharts.find(
+        (c: any) =>
+          c.category?.toLowerCase() === product.subCategory?.toLowerCase() ||
+          c.category?.toLowerCase() === product.category?.toLowerCase() ||
+          c.name
+            ?.toLowerCase()
+            .includes(product.category?.toLowerCase() || ""),
       );
       if (categoryMatch) return categoryMatch;
-      const globalChart = allBackendSizeCharts.find((c: any) => c.category?.toLowerCase() === "clothing" || c.scope === "GLOBAL");
+      const globalChart = allBackendSizeCharts.find(
+        (c: any) =>
+          c.category?.toLowerCase() === "clothing" || c.scope === "GLOBAL",
+      );
       if (globalChart) return globalChart;
     }
     return null;
-  }, [product.sizeChartId, fetchedSizeChart, allBackendSizeCharts, product.category, product.subCategory]);
+  }, [
+    product.sizeChartId,
+    fetchedSizeChart,
+    allBackendSizeCharts,
+    product.category,
+    product.subCategory,
+  ]);
 
   // ── Derived State ──
   const uniqueColors = useMemo(() => {
     if (!product.variants) return [];
-    return Array.from(new Set(product.variants.map((v: any) => (v?.color ? String(v.color).trim() : "")).filter(Boolean))) as string[];
+    return Array.from(
+      new Set(
+        product.variants.map((v: any) =>
+          v?.color ? String(v.color).trim() : "",
+        ).filter(Boolean),
+      ),
+    ) as string[];
   }, [product.variants]);
 
   // Set default color
@@ -86,7 +109,10 @@ export const VariantSelectorBottomSheet = ({
   // Sizes available for the selected color
   const sizesForColor = useMemo(() => {
     if (!product.variants || !selectedColor) return [];
-    return product.variants.filter((v: any) => (v?.color ? String(v.color).trim() : "") === selectedColor);
+    return product.variants.filter(
+      (v: any) =>
+        (v?.color ? String(v.color).trim() : "") === selectedColor,
+    );
   }, [product.variants, selectedColor]);
 
   // Auto-select size if there's only one option
@@ -101,8 +127,9 @@ export const VariantSelectorBottomSheet = ({
   const selectedVariant = useMemo(() => {
     return product.variants?.find(
       (v: any) =>
-        (!selectedColor || (v?.color ? String(v.color).trim() : "") === selectedColor) &&
-        (!selectedSize || String(v?.size || "") === String(selectedSize))
+        (!selectedColor ||
+          (v?.color ? String(v.color).trim() : "") === selectedColor) &&
+        (!selectedSize || String(v?.size || "") === String(selectedSize)),
     );
   }, [product.variants, selectedColor, selectedSize]);
 
@@ -110,7 +137,8 @@ export const VariantSelectorBottomSheet = ({
   const hasSizes = sizesForColor.length > 0;
   const hasColors = uniqueColors.length > 0;
   const isSelectionComplete =
-    (!hasSizes || selectedSize !== null) && (!hasColors || selectedColor !== null);
+    (!hasSizes || selectedSize !== null) &&
+    (!hasColors || selectedColor !== null);
 
   const isInCart = useMemo(() => {
     if (!isSelectionComplete || !selectedVariant) return false;
@@ -119,9 +147,23 @@ export const VariantSelectorBottomSheet = ({
 
   const isOutOfStock = useMemo(() => {
     if ((product.totalStock ?? 0) <= 0) return true;
-    if (selectedSize && selectedVariant && (selectedVariant.stock ?? 0) <= 0) return true;
+    if (
+      selectedSize &&
+      selectedVariant &&
+      (selectedVariant.stock ?? 0) <= 0
+    )
+      return true;
     return false;
   }, [product.totalStock, selectedSize, selectedVariant]);
+
+  // Imperative present/dismiss from the parent `visible` prop.
+  useEffect(() => {
+    if (visible) {
+      sheet.current?.present();
+    } else {
+      sheet.current?.dismiss();
+    }
+  }, [visible, sheet]);
 
   const handleConfirm = async () => {
     if (isInCart) {
@@ -175,206 +217,299 @@ export const VariantSelectorBottomSheet = ({
     : product.price;
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <Pressable style={s.overlay} onPress={onClose}>
-        <Pressable style={[s.container, { backgroundColor: theme.background }]} onPress={(e) => e.stopPropagation()}>
-          {/* Header handle for bottom sheet aesthetic */}
-          <View style={s.handleContainer}>
-            <View style={[s.handle, { backgroundColor: theme.border }]} />
-          </View>
-
-          {/* Product Header details */}
-          <View style={[s.header, { borderBottomColor: theme.border }]}>
-            <Image
-              source={{ uri: product.images?.[0]?.url || product.image }}
-              style={[s.productImage, { borderColor: theme.border }]}
-            />
-            <View style={s.headerInfo}>
-              <Text style={[s.brand, { color: theme.secondaryText }]} numberOfLines={1}>
-                {product.brand || "Brand"}
+    <>
+      <Sheet
+        ref={sheet}
+        onDidDismiss={onClose}
+        backgroundColor={theme.background}
+      >
+        {/* Product Header (custom header — has image + price) */}
+        <View
+          style={[
+            s.header,
+            { borderBottomColor: theme.border },
+          ]}
+        >
+          <Image
+            source={{
+              uri: product.images?.[0]?.url || product.image,
+            }}
+            style={[s.productImage, { borderColor: theme.border }]}
+          />
+          <View style={s.headerInfo}>
+            <Text
+              style={[s.brand, { color: theme.secondaryText }]}
+              numberOfLines={1}
+            >
+              {product.brand || "Brand"}
+            </Text>
+            <Text style={[s.title, { color: theme.text }]} numberOfLines={2}>
+              {product.title}
+            </Text>
+            <View style={s.priceRow}>
+              <Text style={[s.price, { color: theme.text }]}>
+                ₹{productPrice?.toLocaleString()}
               </Text>
-              <Text style={[s.title, { color: theme.text }]} numberOfLines={2}>
-                {product.title}
-              </Text>
-              <View style={s.priceRow}>
-                <Text style={[s.price, { color: theme.text }]}>
-                  ₹{productPrice?.toLocaleString()}
-                </Text>
-                {product.originalPrice && product.originalPrice > product.price && (
+              {product.originalPrice &&
+                product.originalPrice > product.price && (
                   <>
                     <Text style={[s.mrp, { color: theme.tertiaryText }]}>
                       ₹{product.originalPrice.toLocaleString()}
                     </Text>
-                    <Text style={s.discountText}>{Math.round(discount)}% OFF</Text>
+                    <Text style={s.discountText}>
+                      {Math.round(discount)}% OFF
+                    </Text>
                   </>
                 )}
+            </View>
+          </View>
+          <TouchableOpacity
+            onPress={onClose}
+            style={[
+              s.closeBtn,
+              { backgroundColor: (theme.border ?? "#000") + "40" },
+            ]}
+          >
+            <Ionicons name="close" size={20} color={theme.text} />
+          </TouchableOpacity>
+        </View>
+
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={s.content}
+        >
+          {/* Color Selection */}
+          {uniqueColors.length > 0 && (
+            <View style={s.section}>
+              <Text style={[s.sectionLabel, { color: theme.text }]}>
+                COLOR:{" "}
+                <Text
+                  style={{
+                    color: theme.secondaryText,
+                    fontWeight: "normal",
+                  }}
+                >
+                  {selectedColor}
+                </Text>
+              </Text>
+              <View style={s.colorRow}>
+                {uniqueColors.map((color) => {
+                  const active = selectedColor === color;
+                  return (
+                    <TouchableOpacity
+                      key={color}
+                      onPress={() => {
+                        setSelectedColor(color);
+                        setSelectedSize(null);
+                      }}
+                      style={[
+                        s.colorOption,
+                        {
+                          borderColor: active ? theme.primary : theme.border,
+                          backgroundColor: active
+                            ? theme.primary + "1A"
+                            : theme.background,
+                        },
+                      ]}
+                      activeOpacity={0.7}
+                    >
+                      <Text
+                        style={[
+                          s.colorText,
+                          {
+                            color: active ? theme.primary : theme.text,
+                          },
+                        ]}
+                      >
+                        {color}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
               </View>
             </View>
-            <TouchableOpacity onPress={onClose} style={[s.closeBtn, { backgroundColor: theme.border + "40" }]}>
-              <Ionicons name="close" size={20} color={theme.text} />
-            </TouchableOpacity>
-          </View>
+          )}
 
-          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.content}>
-            {/* Color Selection */}
-            {uniqueColors.length > 0 && (
-              <View style={s.section}>
-                <Text style={[s.sectionLabel, { color: theme.text }]}>
-                  COLOR: <Text style={{ color: theme.secondaryText, fontWeight: "normal" }}>{selectedColor}</Text>
+          {/* Size Selection */}
+          {sizesForColor.length > 0 && (
+            <View style={s.section}>
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginBottom: 12,
+                }}
+              >
+                <Text
+                  style={[s.sectionLabel, { color: theme.text, marginBottom: 0 }]}
+                >
+                  SELECT SIZE
                 </Text>
-                <View style={s.colorRow}>
-                  {uniqueColors.map((color) => {
-                    const active = selectedColor === color;
-                    return (
-                      <TouchableOpacity
-                        key={color}
-                        onPress={() => {
-                          setSelectedColor(color);
-                          setSelectedSize(null);
-                        }}
-                        style={[
-                          s.colorOption,
-                          {
-                            borderColor: active ? theme.primary : theme.border,
-                            backgroundColor: active ? theme.primary + "1A" : theme.background,
-                          },
-                        ]}
-                        activeOpacity={0.7}
-                      >
-                        <Text style={[s.colorText, { color: active ? theme.primary : theme.text }]}>
-                          {color}
-                        </Text>
-                      </TouchableOpacity>
-                    );
-                  })}
-                </View>
-              </View>
-            )}
-
-            {/* Size Selection */}
-            {sizesForColor.length > 0 && (
-              <View style={s.section}>
-                <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-                  <Text style={[s.sectionLabel, { color: theme.text, marginBottom: 0 }]}>SELECT SIZE</Text>
-                  <TouchableOpacity
-                    onPress={() => {
-                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                      setShowSizeChart(true);
+                <TouchableOpacity
+                  onPress={() => {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    setShowSizeChart(true);
+                  }}
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 4,
+                  }}
+                >
+                  <Ionicons
+                    name="resize-outline"
+                    size={14}
+                    color={theme.primary}
+                  />
+                  <Text
+                    style={{
+                      fontSize: 12,
+                      fontWeight: "700",
+                      color: theme.primary,
                     }}
-                    style={{ flexDirection: "row", alignItems: "center", gap: 4 }}
                   >
-                    <Ionicons name="resize-outline" size={14} color={theme.primary} />
-                    <Text style={{ fontSize: 12, fontWeight: "700", color: theme.primary }}>SIZE GUIDE</Text>
-                  </TouchableOpacity>
-                </View>
-                <View style={s.sizeRow}>
-                  {sizesForColor.map((v: any) => {
-                    const active = selectedSize === v.size;
-                    const oos = v.stock === 0;
-                    return (
-                      <TouchableOpacity
-                        key={v.sku}
-                        disabled={oos}
-                        onPress={() => setSelectedSize(v.size)}
-                        style={[
-                          s.sizeCircle,
-                          {
-                            borderColor: active
-                              ? theme.primary
-                              : oos
+                    SIZE GUIDE
+                  </Text>
+                </TouchableOpacity>
+              </View>
+              <View style={s.sizeRow}>
+                {sizesForColor.map((v: any) => {
+                  const active = selectedSize === v.size;
+                  const oos = v.stock === 0;
+                  return (
+                    <TouchableOpacity
+                      key={v.sku}
+                      disabled={oos}
+                      onPress={() => setSelectedSize(v.size)}
+                      style={[
+                        s.sizeCircle,
+                        {
+                          borderColor: active
+                            ? theme.primary
+                            : oos
                               ? theme.border
                               : theme.border,
-                            backgroundColor: active ? theme.primary : theme.background,
+                          backgroundColor: active
+                            ? theme.primary
+                            : theme.background,
+                        },
+                        oos && s.sizeCircleOOS,
+                      ]}
+                      activeOpacity={0.7}
+                    >
+                      <Text
+                        style={[
+                          s.sizeText,
+                          {
+                            color: active
+                              ? "#fff"
+                              : oos
+                                ? theme.tertiaryText
+                                : theme.text,
                           },
-                          oos && s.sizeCircleOOS,
                         ]}
-                        activeOpacity={0.7}
                       >
-                        <Text
-                          style={[
-                            s.sizeText,
-                            {
-                              color: active ? "#fff" : oos ? theme.tertiaryText : theme.text,
-                            },
-                          ]}
-                        >
-                          {v.size}
-                        </Text>
-                        {oos && <View style={[s.oosLine, { backgroundColor: theme.tertiaryText }]} />}
-                      </TouchableOpacity>
-                    );
-                  })}
-                </View>
-
-                {/* Low Stock Warning */}
-                {selectedSize &&
-                  sizesForColor.find((v: any) => v.size === selectedSize)?.stock! <= 5 && (
-                    <View style={s.lowStockRow}>
-                      <Ionicons name="flash" size={14} color={theme.warning} />
-                      <Text style={[s.lowStockText, { color: theme.warning }]}>
-                        Only {sizesForColor.find((v: any) => v.size === selectedSize)?.stock} items left!
+                        {v.size}
                       </Text>
-                    </View>
-                  )}
+                      {oos && (
+                        <View
+                          style={[
+                            s.oosLine,
+                            { backgroundColor: theme.tertiaryText },
+                          ]}
+                        />
+                      )}
+                    </TouchableOpacity>
+                  );
+                })}
               </View>
-            )}
-          </ScrollView>
 
-          {/* Action button */}
-          <View style={[s.footer, { borderTopColor: theme.border }]}>
-            {(() => {
-              const buttonDisabled = isAddingToCart || (!isSelectionComplete) || (isOutOfStock && !isInCart);
+              {/* Low Stock Warning */}
+              {selectedSize &&
+                sizesForColor.find((v: any) => v.size === selectedSize)
+                  ?.stock! <= 5 && (
+                  <View style={s.lowStockRow}>
+                    <Ionicons name="flash" size={14} color={theme.warning} />
+                    <Text
+                      style={[s.lowStockText, { color: theme.warning }]}
+                    >
+                      Only{" "}
+                      {
+                        sizesForColor.find(
+                          (v: any) => v.size === selectedSize,
+                        )?.stock
+                      }{" "}
+                      items left!
+                    </Text>
+                  </View>
+                )}
+            </View>
+          )}
+        </ScrollView>
 
-              let buttonText = "ADD TO BAG";
-              let buttonIcon = "bag-handle-outline";
+        {/* Action footer */}
+        <SheetFooter>
+          {(() => {
+            const buttonDisabled =
+              isAddingToCart ||
+              !isSelectionComplete ||
+              (isOutOfStock && !isInCart);
 
-              if (isInCart) {
-                buttonText = "GO TO CART";
-                buttonIcon = "arrow-forward-outline";
-              } else if (isOutOfStock) {
-                buttonText = "OUT OF STOCK";
-                buttonIcon = "close-circle-outline";
-              } else if (!isSelectionComplete) {
-                if (hasColors && !selectedColor) {
-                  buttonText = "SELECT COLOR";
-                  buttonIcon = "color-palette-outline";
-                } else if (hasSizes && !selectedSize) {
-                  buttonText = "SELECT SIZE";
-                  buttonIcon = "resize-outline";
-                }
+            let buttonText = "ADD TO BAG";
+            let buttonIcon = "bag-handle-outline";
+
+            if (isInCart) {
+              buttonText = "GO TO CART";
+              buttonIcon = "arrow-forward-outline";
+            } else if (isOutOfStock) {
+              buttonText = "OUT OF STOCK";
+              buttonIcon = "close-circle-outline";
+            } else if (!isSelectionComplete) {
+              if (hasColors && !selectedColor) {
+                buttonText = "SELECT COLOR";
+                buttonIcon = "color-palette-outline";
+              } else if (hasSizes && !selectedSize) {
+                buttonText = "SELECT SIZE";
+                buttonIcon = "resize-outline";
               }
+            }
 
-              return (
-                <TouchableOpacity
-                  onPress={handleConfirm}
-                  disabled={buttonDisabled}
-                  style={[
-                    s.actionBtn,
-                    {
-                      backgroundColor: isInCart
-                        ? theme.primary
-                        : buttonDisabled
+            return (
+              <TouchableOpacity
+                onPress={handleConfirm}
+                disabled={buttonDisabled}
+                style={[
+                  s.actionBtn,
+                  {
+                    backgroundColor: isInCart
+                      ? theme.primary
+                      : buttonDisabled
                         ? theme.secondaryText || "#9ca3af"
                         : theme.primary,
-                      opacity: isAddingToCart ? 0.7 : 1,
-                    },
-                  ]}
-                  activeOpacity={0.8}
-                >
-                  {isAddingToCart ? (
-                    <ActivityIndicator color="#fff" size="small" />
-                  ) : (
-                    <>
-                      <Ionicons name={buttonIcon as any} size={20} color="#fff" />
-                      <Text style={s.actionBtnText}>{buttonText}</Text>
-                    </>
-                  )}
-                </TouchableOpacity>
-              );
-            })()}
-          </View>
-        </Pressable>
-      </Pressable>
+                    opacity: isAddingToCart ? 0.7 : 1,
+                    width: "100%",
+                  },
+                ]}
+                activeOpacity={0.8}
+              >
+                {isAddingToCart ? (
+                  <ActivityIndicator color="#fff" size="small" />
+                ) : (
+                  <>
+                    <Ionicons
+                      name={buttonIcon as any}
+                      size={20}
+                      color="#fff"
+                    />
+                    <Text style={s.actionBtnText}>{buttonText}</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            );
+          })()}
+        </SheetFooter>
+      </Sheet>
 
       <SizeChartModal
         visible={showSizeChart}
@@ -384,35 +519,16 @@ export const VariantSelectorBottomSheet = ({
         category={product?.category || product?.subCategory}
         theme={theme}
       />
-    </Modal>
+    </>
   );
 };
 
 const s = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    justifyContent: "flex-end",
-  },
-  container: {
-    maxHeight: SCREEN_HEIGHT * 0.75,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    paddingTop: 8,
-  },
-  handleContainer: {
-    alignItems: "center",
-    paddingVertical: 8,
-  },
-  handle: {
-    width: 40,
-    height: 4,
-    borderRadius: 2,
-  },
   header: {
     flexDirection: "row",
     paddingHorizontal: 20,
     paddingBottom: 16,
+    paddingTop: 4,
     borderBottomWidth: 1,
     alignItems: "center",
   },
@@ -529,11 +645,6 @@ const s = StyleSheet.create({
   lowStockText: {
     fontSize: 12,
     fontWeight: "600",
-  },
-  footer: {
-    padding: 20,
-    borderTopWidth: 1,
-    paddingBottom: Platform.OS === "ios" ? 34 : 20,
   },
   actionBtn: {
     height: 48,

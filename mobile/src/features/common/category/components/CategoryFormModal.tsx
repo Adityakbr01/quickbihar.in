@@ -13,9 +13,6 @@ import { Controller, useForm } from "react-hook-form";
 import {
   ActivityIndicator,
   Image,
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
   ScrollView,
   Switch,
   Text,
@@ -27,6 +24,11 @@ import * as z from "zod";
 import { useCreateCategory, useUpdateCategory } from "../hooks/useCategories";
 import { createCategoryStyles } from "../styles/category.styles";
 import { Category } from "../types/category.types";
+import {
+  Sheet,
+  SheetHeader,
+  useSheet,
+} from "@/src/components/common/BottomSheet";
 
 const schema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -53,6 +55,7 @@ const CategoryFormModal = ({
 }: CategoryFormModalProps) => {
   const theme = useTheme();
   const styles = createCategoryStyles(theme);
+  const sheet = useSheet();
   const [image, setImage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -72,6 +75,15 @@ const CategoryFormModal = ({
       isActive: true,
     },
   });
+
+  // Imperative present/dismiss from the parent `visible` prop.
+  useEffect(() => {
+    if (visible) {
+      sheet.current?.present();
+    } else {
+      sheet.current?.dismiss();
+    }
+  }, [visible, sheet]);
 
   useEffect(() => {
     if (initialData) {
@@ -164,182 +176,171 @@ const CategoryFormModal = ({
   };
 
   return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      presentationStyle="pageSheet"
-      onRequestClose={onClose}
+    <Sheet
+      ref={sheet}
+      detents={[1]}
+      onDidDismiss={onClose}
+      backgroundColor={theme.background}
     >
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={{ flex: 1, backgroundColor: theme.background }}
-      >
-        {/* Header */}
-        <View style={[styles.header, { borderBottomColor: theme.border }]}>
-          <TouchableOpacity onPress={onClose} style={styles.backButton}>
-            <HugeiconsIcon icon={Cancel01Icon} size={24} color={theme.text} />
-          </TouchableOpacity>
-          <Text style={[styles.headerTitle, { color: theme.text }]}>
-            {initialData ? "Edit Category" : "Add New Category"}
+      <SheetHeader
+        title={initialData ? "Edit Category" : "Add New Category"}
+        onClose={onClose}
+      />
+
+      <ScrollView contentContainerStyle={styles.formScroll}>
+        {/* Image Picker */}
+        <View style={styles.inputGroup}>
+          <Text style={[styles.label, { color: theme.text }]}>
+            Category Image
           </Text>
-          <View style={{ width: 40 }} />
-        </View>
-
-        <ScrollView contentContainerStyle={styles.formScroll}>
-          {/* Image Picker */}
-          <View style={styles.inputGroup}>
-            <Text style={[styles.label, { color: theme.text }]}>
-              Category Image
-            </Text>
-            <TouchableOpacity
-              onPress={pickImage}
-              style={[
-                styles.imagePickerContainer,
-                {
-                  borderColor: theme.border,
-                  backgroundColor: theme.secondaryBackground,
-                },
-              ]}
-            >
-              {image ? (
-                <Image source={{ uri: image }} style={styles.previewImage} />
-              ) : (
-                <View style={styles.imagePickerPlaceholder}>
-                  <View style={{ width: 100, height: 100 }}>
-                    <LottieView
-                      source={require("@/assets/lottie/Upload.json")}
-                      autoPlay
-                      loop
-                      style={{ width: "100%", height: "100%" }}
-                    />
-                  </View>
-                  <Text
-                    style={[
-                      styles.placeholderText,
-                      { color: theme.tertiaryText },
-                    ]}
-                  >
-                    Select Image
-                  </Text>
-                </View>
-              )}
-            </TouchableOpacity>
-          </View>
-
-          {/* Title */}
-          <View style={styles.inputGroup}>
-            <Text style={[styles.label, { color: theme.text }]}>
-              Category Title
-            </Text>
-            <Controller
-              control={control}
-              name="title"
-              render={({ field: { onChange, onBlur, value } }) => (
-                <TextInput
-                  style={[
-                    styles.input,
-                    {
-                      borderColor: errors.title ? theme.error : theme.border,
-                      backgroundColor: theme.secondaryBackground,
-                      color: theme.text,
-                    },
-                  ]}
-                  placeholder="e.g. Mens Fashion"
-                  placeholderTextColor={theme.tertiaryText}
-                  onBlur={onBlur}
-                  onChangeText={onChange}
-                  value={value}
-                />
-              )}
-            />
-            {errors.title && (
-              <Text style={{ color: theme.error, fontSize: 12, marginTop: 4 }}>
-                {errors.title.message}
-              </Text>
-            )}
-          </View>
-
-          {/* Priority */}
-          <View style={styles.inputGroup}>
-            <Text style={[styles.label, { color: theme.text }]}>
-              Priority Order
-            </Text>
-            <Controller
-              control={control}
-              name="priority"
-              render={({ field: { onChange, onBlur, value } }) => (
-                <TextInput
-                  style={[
-                    styles.input,
-                    {
-                      borderColor: errors.priority ? theme.error : theme.border,
-                      backgroundColor: theme.secondaryBackground,
-                      color: theme.text,
-                    },
-                  ]}
-                  placeholder="Higher numbers show first"
-                  placeholderTextColor={theme.tertiaryText}
-                  keyboardType="numeric"
-                  onBlur={onBlur}
-                  onChangeText={(val) => onChange(val ? Number(val) : 0)}
-                  value={value?.toString()}
-                />
-              )}
-            />
-          </View>
-
-          {/* Is Active */}
-          <View style={styles.switchContainer}>
-            <View>
-              <Text
-                style={[styles.label, { color: theme.text, marginBottom: 0 }]}
-              >
-                Is Active
-              </Text>
-              <Text style={{ color: theme.tertiaryText, fontSize: 12 }}>
-                Visible on home screen
-              </Text>
-            </View>
-            <Controller
-              control={control}
-              name="isActive"
-              render={({ field: { onChange, value } }) => (
-                <Switch
-                  value={value}
-                  onValueChange={onChange}
-                  trackColor={{ false: theme.border, true: theme.primary }}
-                  thumbColor="#fff"
-                />
-              )}
-            />
-          </View>
-
-          {/* Submit Button */}
           <TouchableOpacity
-            style={[styles.submitButton, { backgroundColor: theme.primary }]}
-            onPress={handleSubmit(onSubmit)}
-            disabled={isSubmitting}
+            onPress={pickImage}
+            style={[
+              styles.imagePickerContainer,
+              {
+                borderColor: theme.border,
+                backgroundColor: theme.secondaryBackground,
+              },
+            ]}
           >
-            {isSubmitting ? (
-              <ActivityIndicator color="#fff" />
+            {image ? (
+              <Image source={{ uri: image }} style={styles.previewImage} />
             ) : (
-              <View
-                style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
-              >
-                <HugeiconsIcon
-                  icon={CheckmarkCircle02Icon}
-                  size={20}
-                  color="#fff"
-                />
-                <Text style={styles.submitButtonText}>
-                  {initialData ? "Update Category" : "Save Category"}
+              <View style={styles.imagePickerPlaceholder}>
+                <View style={{ width: 100, height: 100 }}>
+                  <LottieView
+                    source={require("@/assets/lottie/Upload.json")}
+                    autoPlay
+                    loop
+                    style={{ width: "100%", height: "100%" }}
+                  />
+                </View>
+                <Text
+                  style={[
+                    styles.placeholderText,
+                    { color: theme.tertiaryText },
+                  ]}
+                >
+                  Select Image
                 </Text>
               </View>
             )}
           </TouchableOpacity>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </Modal>
+        </View>
+
+        {/* Title */}
+        <View style={styles.inputGroup}>
+          <Text style={[styles.label, { color: theme.text }]}>
+            Category Title
+          </Text>
+          <Controller
+            control={control}
+            name="title"
+            render={({ field: { onChange, onBlur, value } }) => (
+              <TextInput
+                style={[
+                  styles.input,
+                  {
+                    borderColor: errors.title ? theme.error : theme.border,
+                    backgroundColor: theme.secondaryBackground,
+                    color: theme.text,
+                  },
+                ]}
+                placeholder="e.g. Mens Fashion"
+                placeholderTextColor={theme.tertiaryText}
+                onBlur={onBlur}
+                onChangeText={onChange}
+                value={value}
+              />
+            )}
+          />
+          {errors.title && (
+            <Text style={{ color: theme.error, fontSize: 12, marginTop: 4 }}>
+              {errors.title.message}
+            </Text>
+          )}
+        </View>
+
+        {/* Priority */}
+        <View style={styles.inputGroup}>
+          <Text style={[styles.label, { color: theme.text }]}>
+            Priority Order
+          </Text>
+          <Controller
+            control={control}
+            name="priority"
+            render={({ field: { onChange, onBlur, value } }) => (
+              <TextInput
+                style={[
+                  styles.input,
+                  {
+                    borderColor: errors.priority ? theme.error : theme.border,
+                    backgroundColor: theme.secondaryBackground,
+                    color: theme.text,
+                  },
+                ]}
+                placeholder="Higher numbers show first"
+                placeholderTextColor={theme.tertiaryText}
+                keyboardType="numeric"
+                onBlur={onBlur}
+                onChangeText={(val) => onChange(val ? Number(val) : 0)}
+                value={value?.toString()}
+              />
+            )}
+          />
+        </View>
+
+        {/* Is Active */}
+        <View style={styles.switchContainer}>
+          <View>
+            <Text
+              style={[styles.label, { color: theme.text, marginBottom: 0 }]}
+            >
+              Is Active
+            </Text>
+            <Text style={{ color: theme.tertiaryText, fontSize: 12 }}>
+              Visible on home screen
+            </Text>
+          </View>
+          <Controller
+            control={control}
+            name="isActive"
+            render={({ field: { onChange, value } }) => (
+              <Switch
+                value={value}
+                onValueChange={onChange}
+                trackColor={{ false: theme.border, true: theme.primary }}
+                thumbColor="#fff"
+              />
+            )}
+          />
+        </View>
+
+        {/* Submit Button */}
+        <TouchableOpacity
+          style={[styles.submitButton, { backgroundColor: theme.primary }]}
+          onPress={handleSubmit(onSubmit)}
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <View
+              style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
+            >
+              <HugeiconsIcon
+                icon={CheckmarkCircle02Icon}
+                size={20}
+                color="#fff"
+              />
+              <Text style={styles.submitButtonText}>
+                {initialData ? "Update Category" : "Save Category"}
+              </Text>
+            </View>
+          )}
+        </TouchableOpacity>
+      </ScrollView>
+    </Sheet>
   );
 };
 

@@ -9,6 +9,7 @@
         "@hookform/resolvers": "^5.2.2",
         "@hugeicons/core-free-icons": "^4.1.1",
         "@hugeicons/react-native": "^1.0.13",
+        "@lodev09/react-native-true-sheet": "^3.11.12",
         "@lottiefiles/dotlottie-react": "^0.18.10",
         "@react-native-async-storage/async-storage": "2.2.0",
         "@react-native-community/datetimepicker": "9.1.0",
@@ -414,6 +415,8 @@
     "@jridgewell/sourcemap-codec": ["@jridgewell/sourcemap-codec@1.5.5", "", {}, "sha512-cYQ9310grqxueWbl+WuIUIaiUaDcj7WOq5fVhEljNVgRfOUhY9fy2zTvfoqWsnebh8Sl70VScFbICvJnLKB0Og=="],
 
     "@jridgewell/trace-mapping": ["@jridgewell/trace-mapping@0.3.31", "", { "dependencies": { "@jridgewell/resolve-uri": "^3.1.0", "@jridgewell/sourcemap-codec": "^1.4.14" } }, "sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw=="],
+
+    "@lodev09/react-native-true-sheet": ["@lodev09/react-native-true-sheet@3.11.12", "", { "peerDependencies": { "@radix-ui/react-dialog": ">=1", "@radix-ui/react-presence": ">=1", "@react-navigation/core": ">=7", "react": "*", "react-native": "*", "react-native-reanimated": ">=4", "react-native-worklets": "*" }, "optionalPeers": ["@radix-ui/react-dialog", "@radix-ui/react-presence", "@react-navigation/core", "react-native-reanimated", "react-native-worklets"] }, "sha512-eL7mfUw0p3dxqXKqck3k7H2Ja6UHGbPSqbVDRKeANuxZN4xctxF1iFSPYHj0LULVtheqxKBhWBiR4lJ25El57Q=="],
 
     "@lottiefiles/dotlottie-react": ["@lottiefiles/dotlottie-react@0.18.10", "", { "dependencies": { "@lottiefiles/dotlottie-web": "0.70.0" }, "peerDependencies": { "react": "^17 || ^18 || ^19" } }, "sha512-7ZquvmoH+KrotNw2n65GHgOjP/tirFwqgGOHQWA5Qxt7wkA6gs1Y7j43DrPqcyIm69+kecsoJb+CtOS26UoKlw=="],
 
