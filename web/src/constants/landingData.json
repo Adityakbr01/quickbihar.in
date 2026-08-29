@@ -6,10 +6,10 @@
     "badge": "Bihar's Fashion & Fast Delivery Platform",
     "playStoreUrl": "https://play.google.com/store/apps/details?id=in.quickbihar.app",
     "supportEmail": "support@quickbihar.in",
-    "supportPhone": "+91 91234 56789",
-    "officeAddress": "Boring Road, Patna, Bihar 800001, India",
+    "supportPhone": "+91 93049 22632",
+    "officeAddress": "Dumraon, Buxar, Bihar 802119, India",
     "rating": "4.9",
-    "totalDownloads": "50,000+",
+    "totalDownloads": "100+",
     "coverageText": "Across Bihar"
   },
   "hero": {
@@ -50,13 +50,13 @@
       "time": "9:41",
       "badgeExpress": "⚡ 30-Min Delivery",
       "rating": "4.9",
-      "ratingTitle": "50,000+ Downloads",
+      "ratingTitle": "100+ Downloads",
       "ratingSubtitle": "Across Bihar"
     }
   },
   "stats": [
     {
-      "value": "500+",
+      "value": "20+",
       "label": "Verified Clothing Stores",
       "sub": "Top boutiques in Bihar",
       "icon": "Store"
@@ -270,10 +270,22 @@
   },
   "navigation": {
     "navLinks": [
-      { "label": "Features", "href": "#features" },
-      { "label": "Download App", "href": "#download-app" },
-      { "label": "For Sellers", "href": "/seller/register" },
-      { "label": "For Riders", "href": "/delivery/register" }
+      {
+        "label": "Features",
+        "href": "#features"
+      },
+      {
+        "label": "Download App",
+        "href": "#download-app"
+      },
+      {
+        "label": "For Sellers",
+        "href": "/seller/register"
+      },
+      {
+        "label": "For Riders",
+        "href": "/delivery/register"
+      }
     ],
     "partnerButtonText": "Partner Login",
     "partnerMenuTitle": "Partner Access",
@@ -309,49 +321,118 @@
         "title": "For Sellers (दुकानदार)",
         "icon": "Store",
         "links": [
-          { "label": "Sell on QuickBihar", "href": "/seller/register", "highlight": true },
-          { "label": "Seller Portal Login", "href": "/seller/login" },
-          { "label": "Seller Dashboard", "href": "/seller/dashboard" },
-          { "label": "Seller Commission & Terms", "href": "#" }
+          {
+            "label": "Sell on QuickBihar",
+            "href": "/seller/register",
+            "highlight": true
+          },
+          {
+            "label": "Seller Portal Login",
+            "href": "/seller/login"
+          },
+          {
+            "label": "Seller Dashboard",
+            "href": "/seller/dashboard"
+          },
+          {
+            "label": "Seller Commission & Terms",
+            "href": "#"
+          }
         ]
       },
       {
         "title": "For Delivery (राइडर)",
         "icon": "Bike",
         "links": [
-          { "label": "Join as Delivery Partner", "href": "/delivery/register", "highlight": true },
-          { "label": "Rider Portal Login", "href": "/delivery/login" },
-          { "label": "Delivery Dashboard", "href": "/delivery/dashboard" },
-          { "label": "Rider Safety & Benefits", "href": "#" }
+          {
+            "label": "Join as Delivery Partner",
+            "href": "/delivery/register",
+            "highlight": true
+          },
+          {
+            "label": "Rider Portal Login",
+            "href": "/delivery/login"
+          },
+          {
+            "label": "Delivery Dashboard",
+            "href": "/delivery/dashboard"
+          },
+          {
+            "label": "Rider Safety & Benefits",
+            "href": "#"
+          }
         ]
       },
       {
         "title": "Admin & Operations",
         "icon": "ShieldCheck",
         "links": [
-          { "label": "Admin Portal Login", "href": "/admin/login" },
-          { "label": "Operations Dashboard", "href": "/admin/dashboard" },
-          { "label": "Catalog Controls", "href": "/admin/dashboard" },
-          { "label": "System Status", "href": "#" }
+          {
+            "label": "Admin Portal Login",
+            "href": "/admin/login"
+          },
+          {
+            "label": "Operations Dashboard",
+            "href": "/admin/dashboard"
+          },
+          {
+            "label": "Catalog Controls",
+            "href": "/admin/dashboard"
+          },
+          {
+            "label": "System Status",
+            "href": "#"
+          }
         ]
       },
       {
         "title": "Shoppers & Policies",
         "icon": "Smartphone",
         "links": [
-          { "label": "Download Android App", "href": "PLAY_STORE", "external": true, "highlight": true },
-          { "label": "7-Day Return Policy", "href": "#" },
-          { "label": "Apparel Size Charts", "href": "#" },
-          { "label": "Order Tracking Support", "href": "#" }
+          {
+            "label": "Download Android App",
+            "href": "PLAY_STORE",
+            "external": true,
+            "highlight": true
+          },
+          {
+            "label": "7-Day Return Policy",
+            "href": "#"
+          },
+          {
+            "label": "Apparel Size Charts",
+            "href": "#"
+          },
+          {
+            "label": "Order Tracking Support",
+            "href": "#"
+          }
         ]
       }
     ],
     "bottomLinks": [
-      { "label": "Privacy Policy", "href": "#" },
-      { "label": "Terms of Service", "href": "#" },
-      { "label": "Seller Login", "href": "/seller/login", "primary": true },
-      { "label": "Rider Login", "href": "/delivery/login", "primary": true },
-      { "label": "Admin Login", "href": "/admin/login" }
+      {
+        "label": "Privacy Policy",
+        "href": "/privacy-policy"
+      },
+      {
+        "label": "Terms of Service",
+        "href": "/terms-of-service"
+      },
+      {
+        "label": "Seller Login",
+        "href": "/seller/login",
+        "primary": true
+      },
+      {
+        "label": "Rider Login",
+        "href": "/delivery/login",
+        "primary": true
+      },
+      {
+        "label": "Admin Login",
+        "href": "/admin/login"
+      }
     ]
   }
 }
