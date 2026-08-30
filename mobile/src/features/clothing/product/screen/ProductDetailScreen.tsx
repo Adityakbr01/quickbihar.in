@@ -31,11 +31,11 @@ import Carousel from "react-native-reanimated-carousel";
 
 // --- Imports from modular structure ---
 import { styles as s, SCREEN_WIDTH } from "./ProductDetail/styles";
-import { MOCK_PRODUCT, MOCK_REVIEWS } from "./ProductDetail/constants";
 import { SectionDivider } from "./ProductDetail/components/SectionDivider";
 import { ExpandableSection } from "./ProductDetail/components/ExpandableSection";
 import { RatingBar } from "./ProductDetail/components/RatingBar";
 import { SimilarProducts } from "./ProductDetail/components/SimilarProducts";
+import ProductDetailSkeleton from "./ProductDetail/components/ProductDetailSkeleton";
 import SizeChartModal from "../components/modals/SizeChartModal";
 import { WriteReviewModal } from "../components/modals/WriteReviewModal";
 import SafeViewWrapper from "@/src/provider/SafeViewWrapper";
@@ -56,7 +56,8 @@ const AVATAR_COLORS = ["#3B82F6", "#10B981", "#8B5CF6", "#F59E0B", "#EC4899", "#
 const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
   const router = useRouter();
   const theme = useTheme() as any;
-  const { data: product, isLoading } = useProductById(id);
+  const isDark = theme.text === "#ffffff" || theme.background === "#0f0f0f";
+  const { data: product, isLoading, isError } = useProductById(id);
   const { data: similarProducts } = useSimilarProducts(id);
   const { data: reviewsData } = useProductReviews(id);
 
@@ -75,8 +76,7 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
 
   const queryClient = useQueryClient();
 
-  const isMock = id === "mock" || !product;
-  const dp: Partial<IProduct> = isMock ? MOCK_PRODUCT : product;
+  const dp: Partial<IProduct> = product || {};
 
   // ── Backend Size Chart Resolution ──
   const sizeChartIdString = typeof dp.sizeChartId === "string" ? dp.sizeChartId : undefined;
@@ -278,14 +278,11 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
   const sellerObj = typeof dp.sellerId === "object" ? dp.sellerId : null;
 
   // ── Loading State ──
-  if (isLoading && !isMock) {
+  if (isLoading || !product) {
     return (
-      <View style={[s.loadingContainer, { backgroundColor: theme.background }]}>
-        <ActivityIndicator size="large" color={theme.primary} />
-        <Text style={[s.loadingText, { color: theme.secondaryText }]}>
-          Loading product...
-        </Text>
-      </View>
+      <SafeViewWrapper>
+        <ProductDetailSkeleton theme={theme} onBack={() => router.back()} />
+      </SafeViewWrapper>
     );
   }
 
@@ -320,20 +317,43 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
           <View style={s.galleryNav}>
             <TouchableOpacity
               onPress={() => router.back()}
-              style={[s.navBtn, { backgroundColor: theme.background + "E6" }]}
+              style={[
+                s.navBtn,
+                {
+                  backgroundColor: isDark
+                    ? "rgba(30, 30, 32, 0.85)"
+                    : "rgba(255, 255, 255, 0.9)",
+                  borderColor: isDark
+                    ? "rgba(255, 255, 255, 0.15)"
+                    : "rgba(0, 0, 0, 0.08)",
+                },
+              ]}
+              activeOpacity={0.7}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
-              <Ionicons name="arrow-back" size={22} color={theme.text} />
+              <Ionicons
+                name="arrow-back"
+                size={20}
+                color={isDark ? "#ffffff" : "#111827"}
+              />
             </TouchableOpacity>
             <View style={s.navRight}>
               <WishlistHeart
                 isWishlisted={isWishlisted}
                 onToggle={() => toggleWishlist(id, product)}
-                size={22}
+                size={20}
                 activeColor="#FF3B30"
-                inactiveColor={theme.text}
+                inactiveColor={isDark ? "#ffffff" : "#111827"}
                 style={[
                   s.navBtn,
-                  { backgroundColor: theme.background + "B3" },
+                  {
+                    backgroundColor: isDark
+                      ? "rgba(30, 30, 32, 0.85)"
+                      : "rgba(255, 255, 255, 0.9)",
+                    borderColor: isDark
+                      ? "rgba(255, 255, 255, 0.15)"
+                      : "rgba(0, 0, 0, 0.08)",
+                  },
                 ]}
               />
               <TouchableOpacity
@@ -341,26 +361,53 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
                 style={[
                   s.navBtn,
                   {
-                    backgroundColor: theme.background + "B3",
-                    marginLeft: 10,
+                    backgroundColor: isDark
+                      ? "rgba(30, 30, 32, 0.85)"
+                      : "rgba(255, 255, 255, 0.9)",
+                    borderColor: isDark
+                      ? "rgba(255, 255, 255, 0.15)"
+                      : "rgba(0, 0, 0, 0.08)",
                   },
                 ]}
+                activeOpacity={0.7}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               >
-                <Ionicons name="share-outline" size={20} color={theme.text} />
+                <Ionicons
+                  name="share-outline"
+                  size={19}
+                  color={isDark ? "#ffffff" : "#111827"}
+                />
               </TouchableOpacity>
             </View>
           </View>
 
           {/* Image Counter Pill */}
           {images.length > 1 && (
-            <View style={s.counterPill}>
+            <View
+              style={[
+                s.counterPill,
+                {
+                  backgroundColor: isDark
+                    ? "rgba(30, 30, 32, 0.85)"
+                    : "rgba(255, 255, 255, 0.9)",
+                  borderColor: isDark
+                    ? "rgba(255, 255, 255, 0.15)"
+                    : "rgba(0, 0, 0, 0.08)",
+                },
+              ]}
+            >
               <Ionicons
                 name="images-outline"
                 size={12}
-                color="#fff"
+                color={isDark ? "#fff" : "#111827"}
                 style={{ marginRight: 4 }}
               />
-              <Text style={s.counterText}>
+              <Text
+                style={[
+                  s.counterText,
+                  { color: isDark ? "#fff" : "#111827" },
+                ]}
+              >
                 {carouselIndex + 1}/{images.length}
               </Text>
             </View>
@@ -1100,7 +1147,7 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
                         >
                           {userName}
                         </Text>
-                        {(review.isVerifiedBuyer || isMock) && (
+                        {(review.isVerifiedBuyer) && (
                           <View style={s.verifiedBadge}>
                             <Ionicons name="checkmark" size={11} color="#2E7D32" />
                             <Text style={s.verifiedBadgeText}>Verified</Text>
