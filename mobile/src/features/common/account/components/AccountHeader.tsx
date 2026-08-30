@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, TouchableOpacity, ActivityIndicator } from "react-native";
 import { Image } from "expo-image";
-import { User02Icon, PencilEdit01Icon, Camera01Icon } from "@hugeicons/core-free-icons";
+import { PencilEdit01Icon, Camera01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import * as Haptics from "expo-haptics";
 import * as ImagePicker from "expo-image-picker";
@@ -84,21 +84,16 @@ const AccountHeader = ({ theme, styles, name, email, avatarUrl }: AccountHeaderP
         disabled={isUpdating}
         activeOpacity={0.7}
       >
-        {avatarUrl ? (
-          <Image
-            source={{ uri: avatarUrl }}
-            style={{ width: "100%", height: "100%", borderRadius: 40 }}
-            contentFit="cover"
-            transition={500}
-          />
-        ) : (
-          <HugeiconsIcon
-            icon={User02Icon}
-            size={40}
-            color={theme.primary}
-            strokeWidth={1.5}
-          />
-        )}
+        <Image
+          source={
+            avatarUrl
+              ? { uri: avatarUrl }
+              : require("@/assets/images/default-avatar.svg")
+          }
+          style={{ width: "100%", height: "100%", borderRadius: 40 }}
+          contentFit="cover"
+          transition={300}
+        />
         
         {isUpdating && (
           <View style={[styles.avatarContainer, { position: "absolute", backgroundColor: "rgba(0,0,0,0.3)", borderWidth: 0 }]}>

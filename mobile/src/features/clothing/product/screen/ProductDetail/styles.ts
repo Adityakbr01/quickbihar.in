@@ -109,8 +109,8 @@ export const styles = StyleSheet.create({
   discountChipText: { color: "#fff", fontSize: 11, fontWeight: "800" },
   taxInfo: { fontSize: 12, fontWeight: "500", marginTop: 4 },
 
-  // Section Divider
-  sectionDivider: { height: 8, width: "100%" },
+  // Section Divider (Border removed for seamless section flow)
+  sectionDivider: { height: 0, width: 0 },
 
   // Selection sections
   selectionSection: { paddingHorizontal: 16, paddingVertical: 16 },
@@ -204,7 +204,7 @@ export const styles = StyleSheet.create({
 
   // Expandable
   expandableSectionWrap: { paddingHorizontal: 16 },
-  expandableContainer: { borderBottomWidth: 1 },
+  expandableContainer: { borderBottomWidth: 0 },
   expandableHeader: {
     flexDirection: "row",
     justifyContent: "space-between",

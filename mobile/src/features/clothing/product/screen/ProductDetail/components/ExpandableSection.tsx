@@ -18,7 +18,7 @@ export const ExpandableSection = ({
 }: ExpandableSectionProps) => {
   const [open, setOpen] = useState(defaultOpen);
   return (
-    <View style={[s.expandableContainer, { borderBottomColor: theme.border }]}>
+    <View style={s.expandableContainer}>
       <TouchableOpacity
         style={s.expandableHeader}
         onPress={() => {

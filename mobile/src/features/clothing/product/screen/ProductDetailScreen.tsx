@@ -31,7 +31,6 @@ import Carousel from "react-native-reanimated-carousel";
 
 // --- Imports from modular structure ---
 import { styles as s, SCREEN_WIDTH } from "./ProductDetail/styles";
-import { SectionDivider } from "./ProductDetail/components/SectionDivider";
 import { ExpandableSection } from "./ProductDetail/components/ExpandableSection";
 import { RatingBar } from "./ProductDetail/components/RatingBar";
 import { SimilarProducts } from "./ProductDetail/components/SimilarProducts";
@@ -499,8 +498,6 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
           </Text>
         </View>
 
-        <SectionDivider theme={theme} />
-
         {/* ═══════════════════════════════════════════
             COLOR SELECTION
         ═══════════════════════════════════════════ */}
@@ -549,8 +546,6 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
             </View>
           </View>
         )}
-
-        <SectionDivider theme={theme} />
 
         {/* ═══════════════════════════════════════════
             SIZE SELECTION
@@ -651,8 +646,6 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
           </View>
         )}
 
-        <SectionDivider theme={theme} />
-
         {/* ═══════════════════════════════════════════
             DELIVERY INFO
         ═══════════════════════════════════════════ */}
@@ -748,8 +741,6 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
             ))}
           </View>
         </View>
-
-        <SectionDivider theme={theme} />
 
         {/* ═══════════════════════════════════════════
             1. PRODUCT DETAILS (Expandable Section)
@@ -986,8 +977,6 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
           </ExpandableSection>
         </View>
 
-        <SectionDivider theme={theme} />
-
         {/* ═══════════════════════════════════════════
             4. RATINGS & REVIEWS (Expandable & Interactive)
         ═══════════════════════════════════════════ */}
@@ -1196,8 +1185,6 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
           </ExpandableSection>
         </View>
 
-        <SectionDivider theme={theme} />
-
         {/* ═══════════════════════════════════════════
             SIMILAR PRODUCTS
         ═══════════════════════════════════════════ */}
@@ -1223,8 +1210,17 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
         ]}
       >
         <TouchableOpacity
-          onPress={() => toggleWishlist(id, product)}
-          style={[s.wishlistBtn, { borderColor: theme.border }]}
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            toggleWishlist(id, product);
+          }}
+          style={[
+            s.wishlistBtn,
+            {
+              borderColor: isWishlisted ? (isDark ? "rgba(255, 59, 48, 0.4)" : "#FFD2D0") : theme.border,
+              backgroundColor: isWishlisted ? (isDark ? "rgba(255, 59, 48, 0.12)" : "#FFF5F5") : "transparent",
+            },
+          ]}
           activeOpacity={0.7}
         >
           <Ionicons
@@ -1240,7 +1236,7 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
               },
             ]}
           >
-            WISHLIST
+            {isWishlisted ? "WISHLISTED" : "WISHLIST"}
           </Text>
         </TouchableOpacity>
         {/* Add to Bag Button */}

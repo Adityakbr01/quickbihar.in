@@ -149,9 +149,6 @@ const ProductDetailSkeleton: React.FC<ProductDetailSkeletonProps> = ({ theme, on
         />
       </View>
 
-      {/* Divider */}
-      <View style={[s.sectionDivider, { backgroundColor: theme.tertiaryBackground }]} />
-
       {/* ── Color Section ── */}
       <View style={[s.selectionSection, { backgroundColor: theme.background }]}>
         <Skeleton
@@ -172,9 +169,6 @@ const ProductDetailSkeleton: React.FC<ProductDetailSkeletonProps> = ({ theme, on
           ))}
         </View>
       </View>
-
-      {/* Divider */}
-      <View style={[s.sectionDivider, { backgroundColor: theme.tertiaryBackground }]} />
 
       {/* ── Size Section ── */}
       <View style={[s.selectionSection, { backgroundColor: theme.background }]}>
@@ -204,9 +198,6 @@ const ProductDetailSkeleton: React.FC<ProductDetailSkeletonProps> = ({ theme, on
           ))}
         </View>
       </View>
-
-      {/* Divider */}
-      <View style={[s.sectionDivider, { backgroundColor: theme.tertiaryBackground }]} />
 
       {/* ── Delivery Section ── */}
       <View style={[s.deliverySection, { backgroundColor: theme.background }]}>
@@ -266,9 +257,6 @@ const ProductDetailSkeleton: React.FC<ProductDetailSkeletonProps> = ({ theme, on
           ))}
         </View>
       </View>
-
-      {/* Divider */}
-      <View style={[s.sectionDivider, { backgroundColor: theme.tertiaryBackground }]} />
 
       {/* ── Expandable Sections ── */}
       <View style={[s.expandableSectionWrap, { backgroundColor: theme.background }]}>
@@ -338,9 +326,6 @@ const ProductDetailSkeleton: React.FC<ProductDetailSkeletonProps> = ({ theme, on
           </View>
         ))}
       </View>
-
-      {/* Divider */}
-      <View style={[s.sectionDivider, { backgroundColor: theme.tertiaryBackground }]} />
 
       {/* ── Reviews Section Skeleton ── */}
       <View style={[s.expandableSectionWrap, { backgroundColor: theme.background }]}>
