@@ -13,6 +13,7 @@ import CouponInput from "../components/CouponInput";
 import { useRouter } from "expo-router";
 import Toast from "react-native-toast-message";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
+import { AnimatedPrice } from "@/src/components/common/AnimatedPrice";
 
 const CartContent = () => {
   const theme = useTheme();
@@ -97,7 +98,8 @@ const CartContent = () => {
     ? appliedCoupons.reduce((sum, c) => sum + (c.appliedDiscount || 0), 0)
     : (discountAmount || 0);
 
-  const totalAmount = Math.max(0, subtotal + shipping - (autoDiscount + couponsTotalDiscount));
+  const totalDiscount = autoDiscount + couponsTotalDiscount;
+  const totalAmount = Math.max(0, subtotal + shipping - totalDiscount);
 
   return (
     <View style={styles.container}>
@@ -148,10 +150,26 @@ const CartContent = () => {
             activeOpacity={0.88}
           >
             <View style={styles.checkoutTotalInfo}>
-              <Text style={styles.checkoutTotalLabel}>Total Amount</Text>
-              <Text style={styles.checkoutTotalAmount}>
-                ₹{Math.round(totalAmount).toLocaleString()}
+              <Text style={styles.checkoutTotalLabel}>
+                {totalDiscount > 0
+                  ? "Total · You save"
+                  : "Total Amount"}
               </Text>
+              <View style={styles.checkoutTotalRow}>
+                <AnimatedPrice
+                  value={totalAmount}
+                  duration={700}
+                  style={styles.checkoutTotalAmount}
+                />
+                {totalDiscount > 0 ? (
+                  <AnimatedPrice
+                    value={totalDiscount}
+                    duration={700}
+                    noPulse
+                    style={styles.checkoutSavingsAmount}
+                  />
+                ) : null}
+              </View>
             </View>
             <View style={styles.checkoutActionRow}>
               <Text style={styles.checkoutText}>Place Order</Text>

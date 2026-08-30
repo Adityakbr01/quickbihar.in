@@ -1,11 +1,11 @@
 import React, { useState, useMemo } from "react";
-import { 
-  View, 
-  Text, 
-  TextInput, 
-  TouchableOpacity, 
-  ActivityIndicator, 
-  Alert 
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  ActivityIndicator,
+  Alert
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
@@ -22,13 +22,13 @@ const CouponInput = () => {
   const styles = createCartStyles(theme);
   const [code, setCode] = useState("");
   const [isBottomSheetVisible, setIsBottomSheetVisible] = useState(false);
-  const { 
+  const {
     items,
-    applyCoupon, 
-    removeCoupon, 
-    appliedCoupons = [], 
-    isLoading, 
-    error 
+    applyCoupon,
+    removeCoupon,
+    appliedCoupons = [],
+    isLoading,
+    error
   } = useCartStore();
 
   const productIds = useMemo(
@@ -52,7 +52,7 @@ const CouponInput = () => {
   const handleApply = async (couponCodeToApply?: string) => {
     const targetCode = (couponCodeToApply || code).trim().toUpperCase();
     if (!targetCode) return;
-    
+
     // Check if coupon code is already applied
     const isAlreadyApplied = appliedCoupons.some(
       (c) => c.code.toUpperCase() === targetCode
@@ -83,40 +83,69 @@ const CouponInput = () => {
     <View style={styles.couponContainer}>
       {/* Header with Title and "View Offers" button opposite to it */}
       <View style={styles.couponHeaderRow}>
-        <Text style={styles.couponTitle}>Offers & Benefits</Text>
+        <View style={styles.couponHeaderLeft}>
+          <View style={styles.couponTitleIconWrap}>
+            <Ionicons name="pricetags" size={16} color={theme.primary} />
+          </View>
+          <Text style={styles.couponTitle}>Offers & Benefits</Text>
+        </View>
         {availableCoupons.length > 0 && (
           <TouchableOpacity
             style={styles.viewOffersBtn}
             onPress={() => setIsBottomSheetVisible(true)}
             activeOpacity={0.7}
           >
-            <Ionicons name="pricetag" size={12} color={theme.primary} />
             <Text style={styles.viewOffersText}>
-              Offers ({availableCoupons.length})
+              View {availableCoupons.length} offer
+              {availableCoupons.length === 1 ? "" : "s"}
             </Text>
-            <Ionicons name="chevron-forward" size={12} color={theme.primary} />
+            <Ionicons name="chevron-forward" size={12} color="#fff" />
           </TouchableOpacity>
         )}
       </View>
 
       {/* Render list of applied coupons */}
       {appliedCoupons.map((coupon) => (
-        <View key={coupon.code} style={[styles.appliedCouponContainer, { marginBottom: 12 }]}>
+        <View
+          key={coupon.code}
+          style={[styles.appliedCouponContainer, { marginBottom: 12 }]}
+        >
           <View style={styles.appliedCouponInfo}>
-            <Ionicons name="checkmark-circle" size={22} color={theme.primary} />
+            <View style={styles.appliedCouponIconWrap}>
+              <Ionicons name="checkmark" size={16} color="#fff" />
+            </View>
             <View style={{ flex: 1, minWidth: 0 }}>
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-                <Text style={[styles.appliedCouponText, { fontWeight: "800", color: theme.text }]} numberOfLines={1}>
-                  {coupon.code} applied
+              <View
+                style={{ flexDirection: "row", alignItems: "center", gap: 6 }}
+              >
+                <Text
+                  style={[
+                    styles.appliedCouponText,
+                    { fontWeight: "800", color: theme.text },
+                  ]}
+                  numberOfLines={1}
+                >
+                  {coupon.code}
                 </Text>
               </View>
-              <Text style={[styles.couponStatusText, { color: theme.primary, marginTop: 2, marginLeft: 0, fontWeight: "700" }]} numberOfLines={1}>
+              <Text
+                style={[
+                  styles.couponStatusText,
+                  {
+                    color: theme.primary,
+                    marginTop: 2,
+                    marginLeft: 0,
+                    fontWeight: "700",
+                  },
+                ]}
+                numberOfLines={1}
+              >
                 You saved ₹{(coupon.appliedDiscount || 0).toLocaleString()}
               </Text>
             </View>
           </View>
-          <TouchableOpacity 
-            onPress={() => handleRemove(coupon.code)} 
+          <TouchableOpacity
+            onPress={() => handleRemove(coupon.code)}
             hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
             style={{ padding: 4 }}
           >
@@ -124,43 +153,6 @@ const CouponInput = () => {
           </TouchableOpacity>
         </View>
       ))}
-
-      {/* Render the input field to apply a coupon */}
-      <View style={[
-        styles.couponInputWrapper,
-        error ? { borderColor: theme.error || "#ff4444" } : {}
-      ]}>
-        <Ionicons 
-          name="pricetag-outline" 
-          size={20} 
-          color={theme.secondaryText} 
-          style={{ marginRight: 10 }} 
-        />
-        <TextInput
-          style={styles.couponInput}
-          placeholder="Enter coupon code"
-          placeholderTextColor={theme.secondaryText}
-          value={code}
-          onChangeText={setCode}
-          autoCapitalize="characters"
-          autoCorrect={false}
-        />
-        <TouchableOpacity
-          style={[
-            styles.applyButton,
-            { backgroundColor: code.trim() ? theme.primary : theme.border }
-          ]}
-          onPress={() => handleApply()}
-          disabled={!code.trim() || isLoading}
-        >
-          {isLoading ? (
-            <ActivityIndicator size="small" color="#fff" />
-          ) : (
-            <Text style={styles.applyButtonText}>Apply</Text>
-          )}
-        </TouchableOpacity>
-      </View>
-
       {error && (
         <Text style={[styles.couponStatusText, { color: theme.error || "#ff4444" }]}>
           {error}

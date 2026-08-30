@@ -19,6 +19,14 @@ import {
 } from "@/src/components/common/BottomSheet";
 import { spacing } from "@/src/theme/spacing";
 
+/** A short summary of a cart line that a coupon applies to. */
+export interface MatchingItem {
+  sku: string;
+  name: string;
+  price: number;
+  quantity: number;
+}
+
 export interface CouponApplicability {
   coupon: ICoupon;
   isApplicable: boolean;
@@ -27,6 +35,10 @@ export interface CouponApplicability {
   discountAmount: number;
   shortfall: number;
   reason: string;
+  /** Names of cart lines this coupon will discount (drives the "Applies on X of Y" UI). */
+  matchingItems: MatchingItem[];
+  /** Total cart line count, for the "X of Y" denominator. */
+  totalCartItems: number;
 }
 
 interface CouponBottomSheetProps {
@@ -54,7 +66,8 @@ export function calculateCouponApplicability(
 
   const couponSellerId = coupon.sellerId?.toString();
   let eligibleSubtotal = 0;
-  let matchingItemsCount = 0;
+  const matchingItems: MatchingItem[] = [];
+  const totalCartItems = cartItems.length;
 
   for (const item of cartItems) {
     const itemSellerId = item.sellerId?.toString();
@@ -74,12 +87,25 @@ export function calculateCouponApplicability(
       if (!isEligibleProduct) continue;
     }
 
-    eligibleSubtotal += (item.price || 0) * item.quantity;
-    matchingItemsCount++;
+    const linePrice = item.price || 0;
+    const lineQty = item.quantity || 0;
+    eligibleSubtotal += linePrice * lineQty;
+    matchingItems.push({
+      sku: item.sku,
+      name: item.productTitle || "Product",
+      price: linePrice,
+      quantity: lineQty,
+    });
   }
 
-  // If no items in cart match the coupon criteria
-  if (matchingItemsCount === 0 && cartItems.length > 0) {
+  // If no items in cart match the coupon criteria (seller-scoped or product-specific).
+  if (matchingItems.length === 0 && cartItems.length > 0) {
+    const reason =
+      coupon.appliesTo === "SPECIFIC"
+        ? "Not valid on any item in your cart"
+        : couponSellerId
+          ? "Not valid for items from other sellers"
+          : "Not applicable to items in your cart";
     return {
       coupon,
       isApplicable: false,
@@ -87,7 +113,9 @@ export function calculateCouponApplicability(
       eligibleSubtotal: 0,
       discountAmount: 0,
       shortfall: 0,
-      reason: "Not applicable to items in your cart",
+      reason,
+      matchingItems: [],
+      totalCartItems,
     };
   }
 
@@ -102,6 +130,8 @@ export function calculateCouponApplicability(
       discountAmount: 0,
       shortfall,
       reason: `Add ₹${shortfall.toLocaleString()} more to unlock`,
+      matchingItems,
+      totalCartItems,
     };
   }
 
@@ -129,6 +159,8 @@ export function calculateCouponApplicability(
     discountAmount,
     shortfall: 0,
     reason: `Save ₹${discountAmount.toLocaleString()} on this order`,
+    matchingItems,
+    totalCartItems,
   };
 }
 
@@ -201,12 +233,24 @@ export const CouponBottomSheet: React.FC<CouponBottomSheetProps> = ({
       isApplied,
       discountAmount,
       reason,
+      matchingItems,
+      totalCartItems,
     } = item;
     const isCurrentlyApplying = applyingCode === coupon.code.toUpperCase();
     const discountLabel =
       coupon.discountType === "PERCENTAGE"
         ? `${coupon.discountValue}% OFF`
         : `₹${coupon.discountValue} OFF`;
+
+    // "Applies on X of Y items" — only meaningful when the coupon doesn't
+    // blanket-cover the whole cart (i.e. it's SPECIFIC or seller-scoped).
+    const showCoverage =
+      isApplicable &&
+      matchingItems.length > 0 &&
+      (coupon.appliesTo === "SPECIFIC" || matchingItems.length < totalCartItems);
+
+    const visibleItemNames = matchingItems.slice(0, 2);
+    const moreCount = matchingItems.length - visibleItemNames.length;
 
     return (
       <View
@@ -274,7 +318,7 @@ export const CouponBottomSheet: React.FC<CouponBottomSheetProps> = ({
                     !isApplicable && styles.applyBtnTextDisabled,
                   ]}
                 >
-                  Apply
+                  {isApplicable ? "Apply" : "Locked"}
                 </Text>
               )}
             </TouchableOpacity>
@@ -292,6 +336,25 @@ export const CouponBottomSheet: React.FC<CouponBottomSheetProps> = ({
           >
             {coupon.description}
           </Text>
+        ) : null}
+
+        {/* Per-item coverage — drives the SPECIFIC-product UX. */}
+        {showCoverage ? (
+          <View style={styles.coverageRow}>
+            <Ionicons
+              name="checkmark-circle"
+              size={13}
+              color={theme.primary}
+            />
+            <Text style={styles.coverageText} numberOfLines={2}>
+              Applies on {matchingItems.length} of {totalCartItems} item
+              {totalCartItems === 1 ? "" : "s"}:{" "}
+              <Text style={styles.coverageTextBold}>
+                {visibleItemNames.map((m) => m.name).join(", ")}
+                {moreCount > 0 ? ` +${moreCount} more` : ""}
+              </Text>
+            </Text>
+          </View>
         ) : null}
 
         {/* Dynamic Status / Savings Tag */}
@@ -417,7 +480,24 @@ export const CouponBottomSheet: React.FC<CouponBottomSheetProps> = ({
                     color={theme.primary}
                   />
                   <Text style={styles.sectionTitle}>
-                    Applicable on your cart ({applicableCoupons.length})
+                    {(() => {
+                      // For each applicable coupon, the union of items it
+                      // covers gives a friendly "X items have offers" line.
+                      const coveredSkus = new Set<string>();
+                      applicableCoupons.forEach((c) =>
+                        c.matchingItems.forEach((m) => coveredSkus.add(m.sku)),
+                      );
+                      const totalItems =
+                        applicableCoupons[0]?.totalCartItems ?? 0;
+                      if (
+                        totalItems > 0 &&
+                        coveredSkus.size > 0 &&
+                        coveredSkus.size < totalItems
+                      ) {
+                        return `Applies on ${coveredSkus.size} of ${totalItems} items (${applicableCoupons.length} offer${applicableCoupons.length === 1 ? "" : "s"})`;
+                      }
+                      return `${applicableCoupons.length} offer${applicableCoupons.length === 1 ? "" : "s"} available on your cart`;
+                    })()}
                   </Text>
                 </View>
                 {applicableCoupons.map(renderCouponItem)}
@@ -429,7 +509,7 @@ export const CouponBottomSheet: React.FC<CouponBottomSheetProps> = ({
               <View style={styles.sectionContainer}>
                 <View style={styles.sectionHeader}>
                   <Ionicons
-                    name="gift-outline"
+                    name="lock-closed-outline"
                     size={16}
                     color={theme.secondaryText}
                   />
@@ -439,7 +519,8 @@ export const CouponBottomSheet: React.FC<CouponBottomSheetProps> = ({
                       { color: theme.secondaryText },
                     ]}
                   >
-                    Other Offers ({lockedCoupons.length})
+                    {lockedCoupons.length} locked offer
+                    {lockedCoupons.length === 1 ? "" : "s"}
                   </Text>
                 </View>
                 {lockedCoupons.map(renderCouponItem)}
@@ -616,6 +697,28 @@ const createStyles = (theme: any) =>
     },
     couponDescMuted: {
       color: theme.tertiaryText || theme.secondaryText,
+    },
+    coverageRow: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      gap: 6,
+      backgroundColor: theme.primary + "0A",
+      borderRadius: 8,
+      paddingHorizontal: 8,
+      paddingVertical: 6,
+      marginBottom: 8,
+      borderWidth: 1,
+      borderColor: theme.primary + "20",
+    },
+    coverageText: {
+      flex: 1,
+      fontSize: 11,
+      color: theme.secondaryText,
+      lineHeight: 15,
+    },
+    coverageTextBold: {
+      fontWeight: "700",
+      color: theme.text,
     },
     statusRow: {
       flexDirection: "row",

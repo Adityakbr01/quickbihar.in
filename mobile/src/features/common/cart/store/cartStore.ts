@@ -23,6 +23,63 @@ export interface CartItem {
   storeId?: string;
 }
 
+/**
+ * Pick the cart lines a coupon actually discounts.
+ *
+ * Mirrors the same seller + appliesTo + productIds rules the server enforces in
+ * `validateCouponForCart`, so the client preview matches what the buyer will
+ * see at checkout.
+ */
+export function pickCouponItems(
+  coupon: ICoupon,
+  items: CartItem[],
+): AppliedCouponItemCoverage[] {
+  const couponSellerId = coupon.sellerId?.toString();
+  const coverage: AppliedCouponItemCoverage[] = [];
+
+  for (const item of items) {
+    const itemSellerId = item.sellerId?.toString();
+    if (couponSellerId && itemSellerId && itemSellerId !== couponSellerId) {
+      continue;
+    }
+    if (coupon.appliesTo === "SPECIFIC") {
+      const itemId =
+        typeof item.productId === "object"
+          ? (item.productId as any)?._id
+          : item.productId;
+      const matched = coupon.productIds?.some(
+        (id) => id.toString() === itemId?.toString(),
+      );
+      if (!matched) continue;
+    }
+    const linePrice = item.price || 0;
+    const lineQty = item.quantity || 0;
+    coverage.push({
+      sku: item.sku,
+      name: item.productTitle || "Product",
+      price: linePrice,
+      quantity: lineQty,
+      lineSubtotal: linePrice * lineQty,
+    });
+  }
+  return coverage;
+}
+
+/** Per-item coverage snapshot stored alongside an applied coupon. */
+export interface AppliedCouponItemCoverage {
+  sku: string;
+  name: string;
+  price: number;
+  quantity: number;
+  lineSubtotal: number;
+}
+
+/** Augments ICoupon with the items the coupon actually discounted and the final discount. */
+export type AppliedCoupon = ICoupon & {
+  appliedDiscount: number;
+  appliedItems: AppliedCouponItemCoverage[];
+};
+
 interface CartState {
   items: CartItem[];
   subtotal: number;
@@ -34,8 +91,8 @@ interface CartState {
     threshold: number;
     fee: number;
   };
-  appliedCoupon: ICoupon | null;
-  appliedCoupons: ICoupon[];
+  appliedCoupon: AppliedCoupon | null;
+  appliedCoupons: AppliedCoupon[];
   discountAmount: number;
 
   // Actions
@@ -263,22 +320,28 @@ export const useCartStore = create<CartState>()(
         try {
           set({ isLoading: true, error: null });
           const { items, appliedCoupons } = get();
-          
+
           const itemsPayload = items.map((item) => ({
             productId: typeof item.productId === 'object' ? (item.productId as any)._id : item.productId,
             sku: item.sku,
             quantity: item.quantity,
           }));
 
-          const response = await axiosInstance.post("/coupons/validate", { 
-            code, 
-            items: itemsPayload 
+          const response = await axiosInstance.post("/coupons/validate", {
+            code,
+            items: itemsPayload
           });
           const { coupon, discountAmount, sellerId } = response.data.data;
 
-          const couponWithDiscount = {
+          // Compute the per-item coverage client-side so the UI can show
+          // exactly which cart lines the coupon will discount. Mirrors the
+          // server's eligibility rules (seller scope + productIds).
+          const appliedItems = pickCouponItems(coupon, items);
+
+          const couponWithDiscount: AppliedCoupon = {
             ...coupon,
             appliedDiscount: discountAmount,
+            appliedItems,
           };
 
           const sellerKey = sellerId || coupon.sellerId || "global";
@@ -337,24 +400,15 @@ export const useCartStore = create<CartState>()(
         }));
 
         // First do local quick calculation
-        const localValidCoupons: ICoupon[] = [];
+        const localValidCoupons: AppliedCoupon[] = [];
         for (const coupon of appliedCoupons) {
-          const couponSellerId = coupon.sellerId;
-          
-          let sellerSubtotal = 0;
-          for (const item of items) {
-            const itemSellerId = item.sellerId;
-            const itemId = typeof item.productId === 'object' ? (item.productId as any)._id : item.productId;
-            if (!couponSellerId || itemSellerId === couponSellerId) {
-              if (coupon.appliesTo === "SPECIFIC") {
-                const isEligible = coupon.productIds?.includes(itemId);
-                if (!isEligible) continue;
-              }
-              sellerSubtotal += (item.price || 0) * item.quantity;
-            }
-          }
+          const appliedItems = pickCouponItems(coupon, items);
+          const sellerSubtotal = appliedItems.reduce(
+            (acc, m) => acc + m.lineSubtotal,
+            0,
+          );
 
-          if (sellerSubtotal >= (coupon.minOrderValue || 0)) {
+          if (sellerSubtotal >= (coupon.minOrderValue || 0) && appliedItems.length > 0) {
             let localDiscount = 0;
             if (coupon.discountType === "PERCENTAGE") {
               localDiscount = (sellerSubtotal * coupon.discountValue) / 100;
@@ -368,6 +422,7 @@ export const useCartStore = create<CartState>()(
             localValidCoupons.push({
               ...coupon,
               appliedDiscount: localDiscount,
+              appliedItems,
             });
           }
         }
@@ -393,14 +448,15 @@ export const useCartStore = create<CartState>()(
               return {
                 ...serverCoupon,
                 appliedDiscount: discountAmount,
-              };
+                appliedItems: pickCouponItems(serverCoupon, items),
+              } as AppliedCoupon;
             } catch (err) {
               return null;
             }
           });
 
           const serverResults = await Promise.all(promises);
-          const finalCoupons = serverResults.filter((c): c is ICoupon => c !== null);
+          const finalCoupons = serverResults.filter((c): c is AppliedCoupon => c !== null);
           const finalTotalDiscount = finalCoupons.reduce((acc, c) => acc + (c.appliedDiscount || 0), 0);
 
           set({

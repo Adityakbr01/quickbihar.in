@@ -5,6 +5,7 @@ import * as Haptics from "expo-haptics";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { createCartStyles } from "../styles/cartStyles";
 import { CartItem as CartItemType } from "../lib/cartData";
+import { AnimatedPrice } from "@/src/components/common/AnimatedPrice";
 
 interface ExtendedCartItem extends CartItemType {
   unitPrice?: number;
@@ -58,7 +59,7 @@ const CartItem = ({ item, onUpdateQuantity, onRemove }: CartItemProps) => {
 
       <View style={styles.itemDetails}>
         <View>
-          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", position: "relative" }}>
+          <View style={styles.itemTopRow}>
             <Text style={styles.itemName} numberOfLines={2} ellipsizeMode="tail">
               {item.name}
             </Text>
@@ -66,9 +67,9 @@ const CartItem = ({ item, onUpdateQuantity, onRemove }: CartItemProps) => {
               style={styles.deleteButton}
               onPress={handleRemove}
               activeOpacity={0.6}
-              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+              hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
             >
-              <Ionicons name="trash-outline" size={18} color={theme.secondaryText} />
+              <Ionicons name="trash-outline" size={16} color={theme.secondaryText} />
             </TouchableOpacity>
           </View>
 
@@ -84,15 +85,23 @@ const CartItem = ({ item, onUpdateQuantity, onRemove }: CartItemProps) => {
 
         <View style={styles.priceRow}>
           <View style={styles.priceContainer}>
-            <Text style={styles.price}>₹{numericPrice.toLocaleString()}</Text>
+            <AnimatedPrice
+              value={numericPrice}
+              style={styles.price}
+            />
             {item.quantity > 1 ? (
-              <Text style={styles.itemSubtotal}>
-                Item Total: ₹{itemTotal.toLocaleString()}
-              </Text>
+              <View style={styles.itemSubtotalRow}>
+                <Text style={styles.itemSubtotalLabel}>Item Total: </Text>
+                <AnimatedPrice
+                  value={itemTotal}
+                  style={styles.itemSubtotal}
+                />
+              </View>
             ) : item.originalPrice && item.originalPrice > numericPrice ? (
-              <Text style={styles.originalPriceStrikethrough}>
-                ₹{item.originalPrice.toLocaleString()}
-              </Text>
+              <AnimatedPrice
+                value={item.originalPrice}
+                style={styles.originalPriceStrikethrough}
+              />
             ) : null}
           </View>
 
