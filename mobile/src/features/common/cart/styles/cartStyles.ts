@@ -385,7 +385,6 @@ export const createCartStyles = (theme: Theme) => StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 14,
   },
   couponHeaderLeft: {
     flexDirection: "row",

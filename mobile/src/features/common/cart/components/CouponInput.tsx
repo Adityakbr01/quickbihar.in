@@ -84,7 +84,7 @@ const CouponInput = () => {
 
   return (
     <View style={styles.couponContainer}>
-      {/* Header with Title and "View Offers" button opposite to it */}
+      {/* Header: title always visible; "View offers" only when no coupon is applied */}
       <View style={styles.couponHeaderRow}>
         <View style={styles.couponHeaderLeft}>
           <View style={styles.couponTitleIconWrap}>
@@ -92,7 +92,7 @@ const CouponInput = () => {
           </View>
           <Text style={styles.couponTitle}>Offers & Benefits</Text>
         </View>
-        {availableCoupons.length > 0 && (
+        {appliedCoupons.length === 0 && availableCoupons.length > 0 && (
           <TouchableOpacity
             style={styles.viewOffersBtn}
             onPress={() => setIsBottomSheetVisible(true)}

@@ -22,6 +22,14 @@ const AccountHeader = ({ theme, styles, name, email, avatarUrl }: AccountHeaderP
   const { updateAvatar, isUpdating } = useAccount();
   const setEditModalVisible = useAccountStore((state) => state.setEditModalVisible);
 
+  // Derive initials for the fallback avatar (first letter of first + last name)
+  const initials = name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0].toUpperCase())
+    .join("") || "?";
+
   // Alert State
   const [alertVisible, setAlertVisible] = React.useState(false);
   const [alertConfig, setAlertConfig] = React.useState({ title: "", message: "" });
@@ -84,16 +92,37 @@ const AccountHeader = ({ theme, styles, name, email, avatarUrl }: AccountHeaderP
         disabled={isUpdating}
         activeOpacity={0.7}
       >
-        <Image
-          source={
-            avatarUrl
-              ? { uri: avatarUrl }
-              : require("@/assets/images/default-avatar.svg")
-          }
-          style={{ width: "100%", height: "100%", borderRadius: 40 }}
-          contentFit="cover"
-          transition={300}
-        />
+        {avatarUrl ? (
+          <Image
+            source={{ uri: avatarUrl }}
+            style={{ width: "100%", height: "100%", borderRadius: 40 }}
+            contentFit="cover"
+            transition={300}
+          />
+        ) : (
+          // Initials fallback — works on all platforms, no SVG transformer needed
+          <View
+            style={{
+              width: "100%",
+              height: "100%",
+              borderRadius: 40,
+              backgroundColor: theme.primary,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Text
+              style={{
+                color: "#fff",
+                fontSize: 26,
+                fontWeight: "800",
+                letterSpacing: 1,
+              }}
+            >
+              {initials}
+            </Text>
+          </View>
+        )}
         
         {isUpdating && (
           <View style={[styles.avatarContainer, { position: "absolute", backgroundColor: "rgba(0,0,0,0.3)", borderWidth: 0 }]}>

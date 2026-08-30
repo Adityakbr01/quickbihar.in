@@ -13,6 +13,7 @@ import { useRouter } from "expo-router";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
 import { useLogout } from "@/src/features/common/auth/hooks/useAuth";
 import { useAccountStore } from "../store/accountStore";
+import { useProfile } from "@/src/features/common/profileInfo/hooks/useProfile";
 import PasswordEmailSetupSheet from "../components/PasswordEmailSetupSheet";
 
 const AccountMain = () => {
@@ -24,6 +25,10 @@ const AccountMain = () => {
   const setPasswordSheetVisible = useAccountStore(
     (state) => state.setPasswordSheetVisible,
   );
+
+  // Live profile always has the freshest avatar; store is stale until re-login
+  const { profile } = useProfile();
+  const avatarUrl = profile?.avatar?.url ?? user?.avatar?.url;
 
   const handleOptionPress = (label: string) => {
     console.log(`Pressed: ${label}`);
@@ -67,7 +72,7 @@ const AccountMain = () => {
             styles={styles}
             name={user?.fullName || "Guest"}
             email={user?.email || "guest@quickbihar.in"}
-            avatarUrl={user?.avatar?.url}
+            avatarUrl={avatarUrl}
           />
 
           {/* New Profile Edit Modal */}
