@@ -103,7 +103,7 @@ interface CartState {
   fetchCart: () => Promise<void>;
   syncLocalCart: () => Promise<void>;
   clearCart: () => Promise<void>;
-  applyCoupon: (code: string) => Promise<void>;
+  applyCoupon: (code: string, optimisticCoupon?: ICoupon) => Promise<void>;
   removeCoupon: (code?: string) => void;
   revalidateCoupon: () => Promise<void>;
   handleStockUpdate: (data: { productId: string; sku: string; newStock: number }) => void;
@@ -130,7 +130,11 @@ export const useCartStore = create<CartState>()(
 
       addItem: async (product, sku, quantity = 1) => {
         const { isAuthenticated } = useAuthStore.getState();
-        const { items, appliedCoupons } = get();
+        const { items } = get();
+        const previousItems = items;
+        const previousSubtotal = get().subtotal;
+        const previousTotalTax = get().totalTax;
+        const previousItemCount = get().itemCount;
 
         const existingItem = items.find((item) => item.sku === sku);
         let newItems = [...items];
@@ -166,77 +170,212 @@ export const useCartStore = create<CartState>()(
           newItems.push(newItem);
         }
 
-        if (isAuthenticated) {
-          try {
-            set({ isLoading: true });
-            await axiosInstance.post("/cart/add", {
-              productId: typeof product._id === 'object' ? product._id.toString() : (product._id || product.id),
-              sku,
-              quantity,
-            });
-            await get().fetchCart();
-            if (appliedCoupons && appliedCoupons.length > 0) await get().revalidateCoupon();
-          } catch (error: any) {
-            set({ error: error.response?.data?.message || "Failed to add item to cart" });
-          } finally {
-            set({ isLoading: false });
-          }
-        } else {
-          // Guest mode: update local state
-          const subtotal = newItems.reduce((acc, item) => acc + (item.price || 0) * item.quantity, 0);
-          const totalTax = newItems.reduce((acc, item) => acc + (item.taxAmount || 0) * item.quantity, 0);
-          set({ items: newItems, itemCount: newItems.length, subtotal, totalTax });
-          if (appliedCoupons && appliedCoupons.length > 0) await get().revalidateCoupon();
+        // Optimistic local update — happens BEFORE the network call so the
+        // user sees the new line item, new subtotal, and updated coupon
+        // discount immediately.
+        const newSubtotal = newItems.reduce(
+          (acc, item) => acc + (item.price || 0) * item.quantity,
+          0,
+        );
+        const newTotalTax = newItems.reduce(
+          (acc, item) => acc + (item.taxAmount || 0) * item.quantity,
+          0,
+        );
+        set({
+          items: newItems,
+          itemCount: newItems.length,
+          subtotal: newSubtotal,
+          totalTax: newTotalTax,
+          error: null,
+        });
+        if (get().appliedCoupons.length > 0) await get().revalidateCoupon();
+
+        if (!isAuthenticated) return; // Guest mode: local update is final.
+
+        try {
+          await axiosInstance.post("/cart/add", {
+            productId: typeof product._id === 'object' ? product._id.toString() : (product._id || product.id),
+            sku,
+            quantity,
+          });
+          // No full fetchCart() — the server now matches local state and a
+          // full refetch would flicker the price counters.
+        } catch (error: any) {
+          // Rollback: restore the previous items + totals.
+          set({
+            items: previousItems,
+            itemCount: previousItemCount,
+            subtotal: previousSubtotal,
+            totalTax: previousTotalTax,
+            error: error.response?.data?.message || "Failed to add item to cart",
+          });
+          if (get().appliedCoupons.length > 0) await get().revalidateCoupon();
+          throw error;
         }
       },
 
       removeItem: async (sku) => {
         const { isAuthenticated } = useAuthStore.getState();
-        const { items, appliedCoupons } = get();
+        const { items } = get();
+        const previousItems = items;
+        const previousSubtotal = get().subtotal;
+        const previousTotalTax = get().totalTax;
+        const previousItemCount = get().itemCount;
+        const previousAppliedCoupons = get().appliedCoupons;
+        const previousDiscountAmount = get().discountAmount;
 
-        if (isAuthenticated) {
-          try {
-            set({ isLoading: true });
-            await axiosInstance.delete(`/cart/remove/${sku}`);
-            await get().fetchCart();
-            if (appliedCoupons && appliedCoupons.length > 0) await get().revalidateCoupon();
-          } catch (error: any) {
-            set({ error: error.response?.data?.message || "Failed to remove item" });
-          } finally {
-            set({ isLoading: false });
+        // Optimistic: drop the line immediately, recompute totals, and
+        // recompute the coupon discount locally (the coupon is no longer
+        // valid for an item that's gone, so the discount should drop too).
+        const newItems = items.filter((item) => item.sku !== sku);
+        const newSubtotal = Math.round(
+          newItems.reduce((acc, item) => acc + (item.price || 0) * item.quantity, 0),
+        );
+        const newTotalTax = Math.round(
+          newItems.reduce((acc, item) => acc + (item.taxAmount || 0) * item.quantity, 0),
+        );
+
+        // Recompute coupon discounts against the post-removal items.
+        const newAppliedCoupons: AppliedCoupon[] = [];
+        for (const coupon of previousAppliedCoupons) {
+          const appliedItems = pickCouponItems(coupon, newItems);
+          if (appliedItems.length === 0) continue; // coupon no longer valid
+          const sub = appliedItems.reduce((acc, m) => acc + m.lineSubtotal, 0);
+          if (sub < (coupon.minOrderValue || 0)) continue;
+          let discount = 0;
+          if (coupon.discountType === "PERCENTAGE") {
+            discount = (sub * coupon.discountValue) / 100;
+            if (
+              coupon.maxDiscountAmount &&
+              coupon.maxDiscountAmount > 0 &&
+              discount > coupon.maxDiscountAmount
+            ) {
+              discount = coupon.maxDiscountAmount;
+            }
+          } else {
+            discount = Math.min(coupon.discountValue, sub);
           }
-        } else {
-          const newItems = items.filter((item) => item.sku !== sku);
-          const subtotal = Math.round(newItems.reduce((acc, item) => acc + (item.price || 0) * item.quantity, 0));
-          const totalTax = Math.round(newItems.reduce((acc, item) => acc + (item.taxAmount || 0) * item.quantity, 0));
-          set({ items: newItems, itemCount: newItems.length, subtotal, totalTax });
-          if (appliedCoupons && appliedCoupons.length > 0) await get().revalidateCoupon();
+          newAppliedCoupons.push({
+            ...coupon,
+            appliedDiscount: Math.round(discount),
+            appliedItems,
+          });
+        }
+        const newDiscountAmount = newAppliedCoupons.reduce(
+          (acc, c) => acc + (c.appliedDiscount || 0),
+          0,
+        );
+
+        set({
+          items: newItems,
+          itemCount: newItems.length,
+          subtotal: newSubtotal,
+          totalTax: newTotalTax,
+          appliedCoupons: newAppliedCoupons,
+          appliedCoupon: newAppliedCoupons[0] || null,
+          discountAmount: newDiscountAmount,
+          error: null,
+        });
+
+        if (!isAuthenticated) return;
+
+        try {
+          await axiosInstance.delete(`/cart/remove/${sku}`);
+        } catch (error: any) {
+          // Rollback to the exact pre-removal snapshot.
+          set({
+            items: previousItems,
+            itemCount: previousItemCount,
+            subtotal: previousSubtotal,
+            totalTax: previousTotalTax,
+            appliedCoupons: previousAppliedCoupons,
+            appliedCoupon: previousAppliedCoupons[0] || null,
+            discountAmount: previousDiscountAmount,
+            error: error.response?.data?.message || "Failed to remove item",
+          });
+          throw error;
         }
       },
 
       updateQuantity: async (sku, quantity) => {
         const { isAuthenticated } = useAuthStore.getState();
-        const { items, appliedCoupons } = get();
+        const { items } = get();
+        const previousItems = items;
+        const previousSubtotal = get().subtotal;
+        const previousTotalTax = get().totalTax;
+        const previousAppliedCoupons = get().appliedCoupons;
+        const previousDiscountAmount = get().discountAmount;
 
-        if (isAuthenticated) {
-          try {
-            set({ isLoading: true });
-            await axiosInstance.patch("/cart/update", { sku, quantity });
-            await get().fetchCart();
-            if (appliedCoupons && appliedCoupons.length > 0) await get().revalidateCoupon();
-          } catch (error: any) {
-            set({ error: error.response?.data?.message || "Failed to update quantity" });
-          } finally {
-            set({ isLoading: false });
+        // Optimistic: apply the new quantity, recompute totals, recompute
+        // the coupon discount against the new item list. All synchronous —
+        // the AnimatedPrice counters and the "You saved" line reflect the
+        // new value on the very next paint.
+        const newItems = items.map((item) =>
+          item.sku === sku ? { ...item, quantity } : item,
+        );
+        const newSubtotal = Math.round(
+          newItems.reduce((acc, item) => acc + (item.price || 0) * item.quantity, 0),
+        );
+        const newTotalTax = Math.round(
+          newItems.reduce((acc, item) => acc + (item.taxAmount || 0) * item.quantity, 0),
+        );
+
+        const newAppliedCoupons: AppliedCoupon[] = [];
+        for (const coupon of previousAppliedCoupons) {
+          const appliedItems = pickCouponItems(coupon, newItems);
+          if (appliedItems.length === 0) continue;
+          const sub = appliedItems.reduce((acc, m) => acc + m.lineSubtotal, 0);
+          if (sub < (coupon.minOrderValue || 0)) continue;
+          let discount = 0;
+          if (coupon.discountType === "PERCENTAGE") {
+            discount = (sub * coupon.discountValue) / 100;
+            if (
+              coupon.maxDiscountAmount &&
+              coupon.maxDiscountAmount > 0 &&
+              discount > coupon.maxDiscountAmount
+            ) {
+              discount = coupon.maxDiscountAmount;
+            }
+          } else {
+            discount = Math.min(coupon.discountValue, sub);
           }
-        } else {
-          const newItems = items.map((item) =>
-            item.sku === sku ? { ...item, quantity } : item
-          );
-          const subtotal = Math.round(newItems.reduce((acc, item) => acc + (item.price || 0) * item.quantity, 0));
-          const totalTax = Math.round(newItems.reduce((acc, item) => acc + (item.taxAmount || 0) * item.quantity, 0));
-          set({ items: newItems, subtotal, totalTax });
-          if (appliedCoupons && appliedCoupons.length > 0) await get().revalidateCoupon();
+          newAppliedCoupons.push({
+            ...coupon,
+            appliedDiscount: Math.round(discount),
+            appliedItems,
+          });
+        }
+        const newDiscountAmount = newAppliedCoupons.reduce(
+          (acc, c) => acc + (c.appliedDiscount || 0),
+          0,
+        );
+
+        set({
+          items: newItems,
+          subtotal: newSubtotal,
+          totalTax: newTotalTax,
+          appliedCoupons: newAppliedCoupons,
+          appliedCoupon: newAppliedCoupons[0] || null,
+          discountAmount: newDiscountAmount,
+          error: null,
+        });
+
+        if (!isAuthenticated) return;
+
+        try {
+          await axiosInstance.patch("/cart/update", { sku, quantity });
+        } catch (error: any) {
+          // Rollback to the exact pre-update snapshot.
+          set({
+            items: previousItems,
+            subtotal: previousSubtotal,
+            totalTax: previousTotalTax,
+            appliedCoupons: previousAppliedCoupons,
+            appliedCoupon: previousAppliedCoupons[0] || null,
+            discountAmount: previousDiscountAmount,
+            error: error.response?.data?.message || "Failed to update quantity",
+          });
+          throw error;
         }
       },
 
@@ -316,56 +455,110 @@ export const useCartStore = create<CartState>()(
         set({ items: [], subtotal: 0, itemCount: 0, appliedCoupon: null, appliedCoupons: [], discountAmount: 0 });
       },
 
-      applyCoupon: async (code: string) => {
+      applyCoupon: async (code: string, optimisticCoupon?: ICoupon) => {
+        const { items, appliedCoupons } = get();
+        const previousAppliedCoupons = appliedCoupons;
+        const previousDiscountAmount = get().discountAmount;
+
+        const itemsPayload = items.map((item) => ({
+          productId: typeof item.productId === 'object' ? (item.productId as any)._id : item.productId,
+          sku: item.sku,
+          quantity: item.quantity,
+        }));
+
+        // ---- Optimistic phase ------------------------------------------------
+        // If the caller (the bottom sheet) hands us the full coupon object we
+        // can preview the discount locally and apply it instantly, then
+        // reconcile with the server's authoritative value (or roll back on
+        // failure). When the coupon is unknown (manual code entry) we fall
+        // back to the legacy "wait for the server" path.
+        let optimisticApplied: AppliedCoupon | null = null;
+        if (optimisticCoupon) {
+          const appliedItems = pickCouponItems(optimisticCoupon, items);
+          if (appliedItems.length > 0) {
+            const sub = appliedItems.reduce((acc, m) => acc + m.lineSubtotal, 0);
+            if (sub >= (optimisticCoupon.minOrderValue || 0)) {
+              let discount = 0;
+              if (optimisticCoupon.discountType === "PERCENTAGE") {
+                discount = (sub * (optimisticCoupon.discountValue || 0)) / 100;
+                if (
+                  optimisticCoupon.maxDiscountAmount &&
+                  optimisticCoupon.maxDiscountAmount > 0 &&
+                  discount > optimisticCoupon.maxDiscountAmount
+                ) {
+                  discount = optimisticCoupon.maxDiscountAmount;
+                }
+              } else {
+                discount = Math.min(optimisticCoupon.discountValue || 0, sub);
+              }
+              const sellerKey =
+                optimisticCoupon.sellerId?.toString() || "global";
+              const filtered = previousAppliedCoupons.filter(
+                (c) => (c.sellerId || "global") !== sellerKey,
+              );
+              optimisticApplied = {
+                ...optimisticCoupon,
+                appliedDiscount: Math.round(discount),
+                appliedItems,
+              };
+              const newAppliedCoupons = [...filtered, optimisticApplied];
+              const newTotal = newAppliedCoupons.reduce(
+                (acc, c) => acc + (c.appliedDiscount || 0),
+                0,
+              );
+              set({
+                appliedCoupons: newAppliedCoupons,
+                appliedCoupon: newAppliedCoupons[0] || null,
+                discountAmount: newTotal,
+                error: null,
+              });
+            }
+          }
+        }
+
+        // ---- Server reconciliation ------------------------------------------
         try {
-          set({ isLoading: true, error: null });
-          const { items, appliedCoupons } = get();
-
-          const itemsPayload = items.map((item) => ({
-            productId: typeof item.productId === 'object' ? (item.productId as any)._id : item.productId,
-            sku: item.sku,
-            quantity: item.quantity,
-          }));
-
           const response = await axiosInstance.post("/coupons/validate", {
             code,
-            items: itemsPayload
+            items: itemsPayload,
           });
           const { coupon, discountAmount, sellerId } = response.data.data;
-
-          // Compute the per-item coverage client-side so the UI can show
-          // exactly which cart lines the coupon will discount. Mirrors the
-          // server's eligibility rules (seller scope + productIds).
           const appliedItems = pickCouponItems(coupon, items);
-
           const couponWithDiscount: AppliedCoupon = {
             ...coupon,
             appliedDiscount: discountAmount,
             appliedItems,
           };
-
           const sellerKey = sellerId || coupon.sellerId || "global";
-
-          const filteredCoupons = (appliedCoupons || []).filter(
-            (c) => (c.sellerId || "global") !== sellerKey
+          const filteredCoupons = previousAppliedCoupons.filter(
+            (c) => (c.sellerId || "global") !== sellerKey,
           );
-
           const newAppliedCoupons = [...filteredCoupons, couponWithDiscount];
-          const totalDiscount = newAppliedCoupons.reduce((acc, c) => acc + (c.appliedDiscount || 0), 0);
-
+          const totalDiscount = newAppliedCoupons.reduce(
+            (acc, c) => acc + (c.appliedDiscount || 0),
+            0,
+          );
           set({
             appliedCoupons: newAppliedCoupons,
             appliedCoupon: newAppliedCoupons[0] || null,
             discountAmount: totalDiscount,
-            error: null
+            error: null,
           });
         } catch (error: any) {
-          set({
-            error: error.response?.data?.message || "Invalid coupon code"
-          });
+          // Roll back the optimistic coupon if we applied one.
+          if (optimisticApplied) {
+            set({
+              appliedCoupons: previousAppliedCoupons,
+              appliedCoupon: previousAppliedCoupons[0] || null,
+              discountAmount: previousDiscountAmount,
+              error: error.response?.data?.message || "Invalid coupon code",
+            });
+          } else {
+            set({
+              error: error.response?.data?.message || "Invalid coupon code",
+            });
+          }
           throw error;
-        } finally {
-          set({ isLoading: false });
         }
       },
 

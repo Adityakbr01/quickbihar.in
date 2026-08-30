@@ -47,7 +47,12 @@ interface CouponBottomSheetProps {
   coupons: ICoupon[];
   cartItems: CartItem[];
   appliedCoupons: ICoupon[];
-  onApplyCoupon: (code: string) => Promise<void>;
+  /**
+   * Apply handler. Receives the code and, when the caller has the full
+   * coupon object, the coupon itself — so the store can preview the
+   * discount optimistically without waiting for the server round-trip.
+   */
+  onApplyCoupon: (code: string, coupon?: ICoupon) => Promise<void>;
   onRemoveCoupon: (code: string) => void;
   isLoading: boolean;
   theme: any;
@@ -205,15 +210,21 @@ export const CouponBottomSheet: React.FC<CouponBottomSheetProps> = ({
     }
   }, [visible, sheet]);
 
-  const handleApply = async (codeToApply: string) => {
+  const handleApply = async (codeToApply: string, couponObj?: ICoupon) => {
     if (!codeToApply.trim()) return;
-    setApplyingCode(codeToApply.trim().toUpperCase());
+    const upper = codeToApply.trim().toUpperCase();
+    setApplyingCode(upper);
+    // Close the sheet immediately so the buyer sees the discount land in
+    // the cart — the store will apply optimistically and reconcile in the
+    // background. If the call fails, the error surfaces on the cart screen
+    // (and the coupon is rolled back) and the user can retry.
+    onClose();
+    setManualCode("");
     try {
-      await onApplyCoupon(codeToApply.trim().toUpperCase());
-      setManualCode("");
-      onClose();
+      await onApplyCoupon(upper, couponObj);
     } catch {
-      // Error handled by parent / store
+      // Error handled by parent / store; we already closed the sheet so
+      // the user is back on the cart screen where the error toast renders.
     } finally {
       setApplyingCode(null);
     }
@@ -262,7 +273,8 @@ export const CouponBottomSheet: React.FC<CouponBottomSheetProps> = ({
         ]}
       >
         <View style={styles.couponCardHeader}>
-          {/* Code pill */}
+          {/* Code pill + discount badge — flex row that gracefully
+              truncates instead of overflowing the action button. */}
           <View style={styles.codePillRow}>
             <View
               style={[
@@ -275,37 +287,56 @@ export const CouponBottomSheet: React.FC<CouponBottomSheetProps> = ({
                   styles.codeText,
                   !isApplicable && !isApplied && styles.codeTextDisabled,
                 ]}
+                numberOfLines={1}
+                ellipsizeMode="tail"
               >
                 {coupon.code}
               </Text>
             </View>
-            <View style={styles.discountBadge}>
-              <Text style={styles.discountBadgeText}>{discountLabel}</Text>
-            </View>
+            {/* Show the discount badge only when there's space — hide it
+                once the coupon is applied because the "Saving ₹X" line
+                already conveys the amount. */}
+            {!isApplied ? (
+              <View style={styles.discountBadge}>
+                <Text
+                  style={styles.discountBadgeText}
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                >
+                  {discountLabel}
+                </Text>
+              </View>
+            ) : null}
           </View>
 
-          {/* Action Button */}
+          {/* Action Button — compact chip when applied so it never
+              collides with the code pill / discount badge. */}
           {isApplied ? (
-            <TouchableOpacity
-              style={styles.appliedBtn}
-              onPress={() => handleRemove(coupon.code)}
-              activeOpacity={0.7}
-            >
-              <Ionicons
-                name="checkmark-circle"
-                size={16}
-                color={theme.primary}
-              />
-              <Text style={styles.appliedBtnText}>Applied</Text>
-              <Text style={styles.removeText}>Remove</Text>
-            </TouchableOpacity>
+            <View style={styles.appliedChipWrap}>
+              <View style={styles.appliedChip}>
+                <Ionicons
+                  name="checkmark-circle"
+                  size={15}
+                  color={theme.primary}
+                />
+                <Text style={styles.appliedChipText}>Applied</Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => handleRemove(coupon.code)}
+                hitSlop={{ top: 10, bottom: 10, left: 8, right: 8 }}
+                style={styles.removeLinkWrap}
+                activeOpacity={0.6}
+              >
+                <Text style={styles.removeLink}>Remove</Text>
+              </TouchableOpacity>
+            </View>
           ) : (
             <TouchableOpacity
               style={[
                 styles.applyBtn,
                 !isApplicable && styles.applyBtnDisabled,
               ]}
-              onPress={() => handleApply(coupon.code)}
+              onPress={() => handleApply(coupon.code, coupon)}
               disabled={!isApplicable || isLoading || isCurrentlyApplying}
               activeOpacity={0.8}
             >
@@ -386,11 +417,11 @@ export const CouponBottomSheet: React.FC<CouponBottomSheetProps> = ({
             </View>
           )}
 
-          {coupon.minOrderValue > 0 && (
+          {coupon.minOrderValue > 0 ? (
             <Text style={styles.minOrderText}>
               Min order ₹{coupon.minOrderValue}
             </Text>
-          )}
+          ) : null}
         </View>
       </View>
     );
@@ -606,12 +637,14 @@ const createStyles = (theme: any) =>
       justifyContent: "space-between",
       alignItems: "center",
       marginBottom: 8,
+      gap: 10,
     },
     codePillRow: {
       flexDirection: "row",
       alignItems: "center",
       gap: 8,
       flex: 1,
+      minWidth: 0, // lets the inner pill shrink instead of overflowing
     },
     codePill: {
       borderWidth: 1,
@@ -621,6 +654,8 @@ const createStyles = (theme: any) =>
       paddingHorizontal: 8,
       paddingVertical: 4,
       borderRadius: 6,
+      flexShrink: 1,
+      minWidth: 0,
     },
     codePillDisabled: {
       borderColor: theme.border,
@@ -640,6 +675,7 @@ const createStyles = (theme: any) =>
       paddingHorizontal: 8,
       paddingVertical: 3,
       borderRadius: 6,
+      flexShrink: 0,
     },
     discountBadgeText: {
       fontSize: 12,
@@ -666,27 +702,37 @@ const createStyles = (theme: any) =>
     applyBtnTextDisabled: {
       color: theme.secondaryText,
     },
-    appliedBtn: {
+    // Applied state — compact chip + "Remove" stacked vertically so the
+    // row never overflows the code pill / discount badge.
+    appliedChipWrap: {
+      alignItems: "flex-end",
+      gap: 2,
+      flexShrink: 0,
+    },
+    appliedChip: {
       flexDirection: "row",
       alignItems: "center",
       gap: 4,
       backgroundColor: theme.primary + "15",
       paddingHorizontal: 10,
-      paddingVertical: 6,
-      borderRadius: 8,
+      paddingVertical: 5,
+      borderRadius: 999,
       borderWidth: 1,
       borderColor: theme.primary + "40",
     },
-    appliedBtnText: {
+    appliedChipText: {
       fontSize: 12,
-      fontWeight: "700",
+      fontWeight: "800",
       color: theme.primary,
     },
-    removeText: {
+    removeLinkWrap: {
+      paddingHorizontal: 6,
+      paddingVertical: 2,
+    },
+    removeLink: {
       fontSize: 11,
       color: theme.error || "#ef4444",
-      fontWeight: "600",
-      marginLeft: 4,
+      fontWeight: "700",
       textDecorationLine: "underline",
     },
     couponDesc: {

@@ -49,7 +49,10 @@ const CouponInput = () => {
     ).length;
   }, [availableCoupons, items, appliedCoupons]);
 
-  const handleApply = async (couponCodeToApply?: string) => {
+  const handleApply = async (
+    couponCodeToApply?: string,
+    optimisticCoupon?: ICoupon,
+  ) => {
     const targetCode = (couponCodeToApply || code).trim().toUpperCase();
     if (!targetCode) return;
 
@@ -63,7 +66,7 @@ const CouponInput = () => {
     }
 
     try {
-      await applyCoupon(targetCode);
+      await applyCoupon(targetCode, optimisticCoupon);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       if (!couponCodeToApply) {
         setCode("");
