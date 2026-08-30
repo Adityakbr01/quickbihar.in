@@ -25,7 +25,7 @@ export const getPublicProductsRequest = async (params: {
   maxPrice?: number;
   brand?: string;
   sortBy?: string;
-  isTrending?: boolean;
+  isTrending?: boolean | "true" | "false";
   isFeatured?: boolean;
   isNewArrival?: boolean;
 }): Promise<{ data: IProduct[]; total: number }> => {
@@ -37,6 +37,8 @@ export const getPublicProductsRequest = async (params: {
 
 /**
  * Fetch trending products (Top Selling)
+ * Backend returns a flat array under response.data.data — normalize to
+ * the { data, total } shape that the rest of the app expects.
  */
 export const getTrendingProductsRequest = async (params?: {
   vertical?: string;
@@ -46,7 +48,9 @@ export const getTrendingProductsRequest = async (params?: {
   const response = await axiosInstance.get("/products/trending", {
     params: { vertical: "CLOTHING", ...params },
   });
-  return response.data.data;
+  const raw = response.data?.data;
+  const arr: IProduct[] = Array.isArray(raw) ? raw : raw?.data ?? [];
+  return { data: arr, total: arr.length };
 };
 
 /**

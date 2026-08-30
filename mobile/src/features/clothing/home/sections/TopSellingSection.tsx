@@ -14,7 +14,12 @@ import { ProductCardSkeleton } from "../components/ProductCardSkeleton";
 import { createTopSellingSectionStyles } from "../style/TopSellingSection.style";
 
 import { useQuery } from "@tanstack/react-query";
-import { getTrendingProductsRequest } from "../../product/api/product.api";
+import { useRouter } from "expo-router";
+import * as Haptics from "expo-haptics";
+import {
+  getPublicProductsRequest,
+  getTrendingProductsRequest,
+} from "../../product/api/product.api";
 
 const arrowLottie = require("@/assets/lottie/arrow.json");
 const CARD_WIDTH = 240;
@@ -22,15 +27,41 @@ const GAP = 12;
 const ITEM_WIDTH = CARD_WIDTH + GAP;
 const TopSellingSection = ({ category }: { category?: string } = {}) => {
   const theme = useTheme() as any;
+  const router = useRouter();
   const scrollRef = useRef<ScrollView>(null);
   const styles = React.useMemo(
     () => createTopSellingSectionStyles(theme),
     [theme],
   );
 
+  const handleSeeAll = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    router.push({
+      pathname: "/top-selling",
+      params: category ? { category } : undefined,
+    });
+  };
+
   const { data: trendingProducts, isLoading } = useQuery({
     queryKey: ["trendingProducts", category],
-    queryFn: () => getTrendingProductsRequest(category ? { category } : undefined),
+    // Prefer the dedicated trending endpoint (it ranks by actual sales +
+    // ratings + trending flag) and fall back to the public feed with
+    // isTrending=true when there aren't enough sales-ranked products.
+    queryFn: async () => {
+      const primary = await getTrendingProductsRequest(
+        category ? { category } : undefined,
+      );
+      if (primary.data.length >= 6) return primary;
+
+      const fallback = await getPublicProductsRequest({
+        limit: 10,
+        sortBy: "trending",
+        category: category || undefined,
+        isTrending: "true",
+      });
+      if (fallback.data.length > primary.data.length) return fallback;
+      return primary;
+    },
   });
 
   const products = (trendingProducts?.data || []).slice(0, 10);
@@ -101,7 +132,11 @@ const TopSellingSection = ({ category }: { category?: string } = {}) => {
             />
           </View>
         </View>
-        <TouchableOpacity style={styles.seeAllBtn}>
+        <TouchableOpacity
+          style={styles.seeAllBtn}
+          onPress={handleSeeAll}
+          activeOpacity={0.7}
+        >
           <Text style={styles.seeAll}>See All</Text>
         </TouchableOpacity>
       </View>
