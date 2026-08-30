@@ -15,87 +15,103 @@ import {
   useWindowDimensions,
   View,
 } from "react-native";
+import {
+  Shirt01Icon,
+  GlassesIcon,
+  SparklesIcon,
+  ManIcon,
+  WomanIcon,
+  KidIcon,
+  ShoppingBag01Icon,
+  ShortsPantsIcon,
+  HoodieIcon,
+  HangerIcon,
+  SandalsIcon,
+  Kurta01Icon,
+} from "@hugeicons/core-free-icons";
 import { getPublicCategoriesRequest } from "@/src/features/common/category/api/category.api";
 import { getPublicProductsRequest } from "../../product/api/product.api";
 import { DealProductCard } from "../components/DealProductCard";
 import { DealProductSkeleton } from "../components/DealProductSkeleton";
 import { FilterBottomSheet } from "../components/FilterBottomSheet";
-import {
-  CATEGORY_OPTIONS,
-  FILTERS,
-  GENDER_OPTIONS,
-} from "../lib/dealsConfig";
+import { FILTERS, GENDER_OPTIONS } from "../lib/dealsConfig";
 import { createMoreDealsSectionStyles } from "../style/MoreDealsSection.style";
 
-const getSpeechRecognitionModule = () => {
-  if (!(NativeModulesProxy as any)?.ExpoSpeechRecognition) {
-    return null;
-  }
+// ── Icon mapping for categories by keyword ──
+// ponytail: linear scan on small fixed-size list — perfectly fine
+const CATEGORY_ICON_MAP: { keywords: string[]; icon: any }[] = [
+  { keywords: ["shirt", "top", "tee", "t-shirt", "polo"], icon: Shirt01Icon },
+  { keywords: ["pant", "trouser", "chino", "jeans", "denim", "short"], icon: ShortsPantsIcon },
+  { keywords: ["jacket", "coat", "blazer", "overcoat", "windbreaker", "hoodie", "sweater", "sweat", "pullover"], icon: HoodieIcon },
+  { keywords: ["dress", "gown", "maxi", "midi", "skirt"], icon: HangerIcon },
+  { keywords: ["kurta", "kurti", "ethnic", "salwar", "lehenga", "saree"], icon: Kurta01Icon },
+  { keywords: ["shoe", "boot", "sneaker", "footwear", "sandal", "slipper", "chappal"], icon: SandalsIcon },
+  { keywords: ["accessories", "bag", "wallet", "belt", "watch", "glasses"], icon: GlassesIcon },
+  { keywords: ["kids", "child", "baby", "infant"], icon: KidIcon },
+  { keywords: ["women", "ladies", "girl", "female"], icon: WomanIcon },
+  { keywords: ["men", "gents", "male"], icon: ManIcon },
+  { keywords: ["shopping", "collection", "general"], icon: ShoppingBag01Icon },
+  { keywords: ["sparkle", "special", "ethnic", "traditional"], icon: SparklesIcon },
+];
 
+function getIconForCategory(title: string): any {
+  const lower = title.toLowerCase();
+  for (const { keywords, icon } of CATEGORY_ICON_MAP) {
+    if (keywords.some((kw) => lower.includes(kw))) return icon;
+  }
+  return HangerIcon; // generic clothing fallback
+}
+
+// ─────────────────────────────────────────────
+
+const getSpeechRecognitionModule = () => {
+  if (!(NativeModulesProxy as any)?.ExpoSpeechRecognition) return null;
   try {
     const speech = require("expo-speech-recognition");
     return speech?.ExpoSpeechRecognitionModule ?? null;
   } catch {
-    // Expo Go does not include this native module.
     return null;
   }
 };
 
 const useDebouncedValue = <T,>(value: T, delay = 500) => {
   const [debounced, setDebounced] = useState(value);
-
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebounced(value);
-    }, delay);
-
+    const timer = setTimeout(() => setDebounced(value), delay);
     return () => clearTimeout(timer);
   }, [value, delay]);
-
   return debounced;
 };
+
+// ─────────────────────────────────────────────
 
 export const useMoreDealsLogic = () => {
   const theme = useTheme() as any;
   const { width } = useWindowDimensions();
-  const styles = React.useMemo(
-    () => createMoreDealsSectionStyles(theme),
-    [theme],
-  );
+  const styles = React.useMemo(() => createMoreDealsSectionStyles(theme), [theme]);
 
   const [activeFilter, setActiveFilter] = useState(FILTERS[0]);
   const [activeCampaign, setActiveCampaign] = useState("1");
   const [dropdownVisible, setDropdownVisible] = useState(false);
-  const [activeDropdownType, setActiveDropdownType] = useState<
-    "Gender" | "Categories" | null
-  >(null);
-
-  const [selectedGenderOptions, setSelectedGenderOptions] = useState<string[]>(
-    [],
-  );
-  const [selectedCategoryOptions, setSelectedCategoryOptions] = useState<
-    string[]
-  >([]);
-
+  const [activeDropdownType, setActiveDropdownType] = useState<"Gender" | "Categories" | null>(null);
+  const [selectedGenderOptions, setSelectedGenderOptions] = useState<string[]>([]);
+  const [selectedCategoryOptions, setSelectedCategoryOptions] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const normalizedSearchQuery = searchQuery.trim();
-  const debouncedSearchQuery = useDebouncedValue(normalizedSearchQuery, 500);
 
-  // Real-world search strategy:
-  // - debounce user input
-  // - wait for at least 2 characters before sending search param
-  const effectiveSearchQuery =
-    debouncedSearchQuery.length >= 2 ? debouncedSearchQuery : "";
+  const debouncedSearchQuery = useDebouncedValue(searchQuery.trim(), 500);
+  const effectiveSearchQuery = debouncedSearchQuery.length >= 2 ? debouncedSearchQuery : "";
 
-  // 1. Fetch Real Categories (CLOTHING only)
+  // 1. Fetch real categories — CLOTHING vertical only
   const { data: rawCategories } = useQuery({
     queryKey: ["categories", "public", "CLOTHING"],
     queryFn: () => getPublicCategoriesRequest({ vertical: "CLOTHING" }),
   });
 
-  const categories = React.useMemo(() => {
-    if (!rawCategories) return [];
-    return rawCategories.filter((cat) => {
+  // 2. Extract direct clothing subcategories (skip root "Clothing" node)
+  const categoryOptions = useMemo(() => {
+    if (!rawCategories || rawCategories.length === 0) return [];
+
+    const cleanCats = rawCategories.filter((cat) => {
       if (cat.vertical && cat.vertical !== "CLOTHING") return false;
       const lower = cat.title.toLowerCase();
       return (
@@ -104,24 +120,49 @@ export const useMoreDealsLogic = () => {
         !lower.includes("jhumka") &&
         !lower.includes("bangle") &&
         !lower.includes("earring") &&
-        !lower.includes("ring") &&
         !lower.includes("food") &&
         !lower.includes("grocery")
       );
     });
-  }, [rawCategories]);
 
-  // Map categories for the BottomSheet options fallback to CATEGORY_OPTIONS
-  const categoryOptions = React.useMemo(() => {
-    if (!categories || categories.length === 0) return CATEGORY_OPTIONS;
-    return categories.map((cat) => ({
+    // Find root "Clothing" node (no parentId, slug/title = "clothing")
+    const rootCat = cleanCats.find((cat) => {
+      const hasParent = Boolean(
+        typeof cat.parentId === "object" ? (cat.parentId as any)?._id : cat.parentId,
+      );
+      return (
+        !hasParent &&
+        (cat.title.toLowerCase() === "clothing" || cat.slug?.toLowerCase() === "clothing")
+      );
+    });
+
+    let subCats: typeof cleanCats;
+    if (rootCat) {
+      subCats = cleanCats.filter((cat) => {
+        const pId = typeof cat.parentId === "object" ? (cat.parentId as any)?._id : cat.parentId;
+        return pId && pId.toString() === rootCat._id.toString();
+      });
+    } else {
+      // Fallback: all categories that have any parentId
+      subCats = cleanCats.filter((cat) =>
+        Boolean(typeof cat.parentId === "object" ? (cat.parentId as any)?._id : cat.parentId),
+      );
+    }
+
+    // Last resort: all non-root categories (flat store with no hierarchy)
+    const source =
+      subCats.length > 0
+        ? subCats
+        : cleanCats.filter((cat) => cat.title.toLowerCase() !== "clothing");
+
+    return source.map((cat) => ({
       id: cat._id,
       title: cat.title,
-      parentId: typeof cat.parentId === "object" ? (cat.parentId as any)?._id : cat.parentId,
+      icon: getIconForCategory(cat.title),
     }));
-  }, [categories]);
+  }, [rawCategories]);
 
-  // 2. Fetch Paginated Products connected with Real Campaign & Filter API
+  // 3. Infinite paginated products
   const {
     data: productData,
     fetchNextPage,
@@ -136,111 +177,72 @@ export const useMoreDealsLogic = () => {
       selectedGenderOptions,
       effectiveSearchQuery,
       activeFilter.title,
-      categories,
     ],
     queryFn: ({ pageParam = 1 }) => {
-      let mappedCategory: string | undefined = undefined;
-      let mappedSubCategory: string | undefined = undefined;
-
-      if (selectedCategoryOptions.length > 0) {
-        const selectedTitle = selectedCategoryOptions[0];
-        const matchedCat = categories?.find((cat) => cat.title === selectedTitle);
-        if (matchedCat) {
-          const parentId =
-            typeof matchedCat.parentId === "object"
-              ? (matchedCat.parentId as any)?._id
-              : matchedCat.parentId;
-          if (parentId) {
-            // It is a subcategory!
-            const parentCat = categories?.find((cat) => cat._id === parentId);
-            mappedCategory = parentCat ? parentCat.title : undefined;
-            mappedSubCategory = matchedCat.title;
-          } else {
-            // It is a parent category!
-            mappedCategory = matchedCat.title;
-          }
-        } else {
-          // Fallback if not found in categories
-          mappedCategory = selectedTitle;
-        }
-      }
-
       const params: any = {
         page: pageParam,
         limit: 10,
-        category: mappedCategory,
-        subCategory: mappedSubCategory,
         gender: selectedGenderOptions.length > 0 ? selectedGenderOptions[0] : undefined,
         search: effectiveSearchQuery || undefined,
       };
 
-      // ── Map Campaign (MoreDealsHeader) to Server params ──
-      if (activeCampaign === "2") {
-        // What's New
-        params.isNewArrival = true;
-        params.sortBy = "newest";
-      } else if (activeCampaign === "3") {
-        // Deal of the Day
-        params.dealOfDay = true;
-        params.sortBy = "discount";
-      } else if (activeCampaign === "4") {
-        // Express Delivery
-        params.isExpressAvailable = true;
-      } else if (activeCampaign === "5") {
-        // Top Rated / Notify
-        params.minRating = 4;
-        params.sortBy = "rating";
+      // Subcategory → server subCategory param
+      if (selectedCategoryOptions.length > 0) {
+        params.subCategory = selectedCategoryOptions[0];
       }
 
-      // ── Map UI filters to Server params ──
-      if (activeFilter.title === "Trending" || activeFilter.title === "Rising Star") {
-        params.isTrending = true;
-      } else if (activeFilter.title === "New Arrival") {
-        params.isNewArrival = true;
-        params.sortBy = "newest";
-      } else if (activeFilter.title === "Most Popular" || activeFilter.title === "Top Brand") {
-        params.isFeatured = true;
-      } else if (activeFilter.title === "Top Rated") {
-        params.minRating = 4;
-        params.sortBy = "rating";
-      } else if (activeFilter.title === "₹1000 and above") {
-        params.minPrice = 1000;
-      } else if (activeFilter.title === "₹500 - ₹999") {
-        params.minPrice = 500;
-        params.maxPrice = 999;
-      } else if (activeFilter.title === "₹200 - ₹499") {
-        params.minPrice = 200;
-        params.maxPrice = 499;
-      } else if (activeFilter.title === "Under ₹199") {
-        params.maxPrice = 199;
+      // Campaign → server params
+      if (activeCampaign === "2") { params.isNewArrival = true; params.sortBy = "newest"; }
+      else if (activeCampaign === "3") { params.dealOfDay = true; params.sortBy = "discount"; }
+      else if (activeCampaign === "4") { params.isExpressAvailable = true; }
+      else if (activeCampaign === "5") { params.minRating = 4; params.sortBy = "rating"; }
+
+      // Filter pill → server params
+      switch (activeFilter.title) {
+        case "Rising Star": params.isTrending = true; break;
+        case "New Arrival": params.isNewArrival = true; params.sortBy = "newest"; break;
+        case "Top Brand": params.isFeatured = true; break;
+        case "Top Rated": params.minRating = 4; params.sortBy = "rating"; break;
+        case "₹1000 and above": params.minPrice = 1000; break;
+        case "₹500 - ₹999": params.minPrice = 500; params.maxPrice = 999; break;
+        case "₹200 - ₹499": params.minPrice = 200; params.maxPrice = 499; break;
+        case "Under ₹199": params.maxPrice = 199; break;
       }
 
       return getPublicProductsRequest(params);
     },
     getNextPageParam: (lastPage, allPages) => {
       if (!lastPage || typeof lastPage.total === "undefined") return undefined;
-      const currentLoaded = allPages.length * 10;
-      return currentLoaded < lastPage.total ? allPages.length + 1 : undefined;
+      return allPages.length * 10 < lastPage.total ? allPages.length + 1 : undefined;
     },
     initialPageParam: 1,
   });
 
-  const allProducts = React.useMemo(() => {
-    return productData?.pages.flatMap((page) => page?.data || []) || [];
-  }, [productData]);
+  const allProducts = useMemo(
+    () => productData?.pages.flatMap((page) => page?.data || []) || [],
+    [productData],
+  );
 
   const handleApply = (selected: string[]) => {
-    if (activeDropdownType === "Gender") {
-      setSelectedGenderOptions(selected);
-    } else if (activeDropdownType === "Categories") {
-      setSelectedCategoryOptions(selected);
-    }
+    if (activeDropdownType === "Gender") setSelectedGenderOptions(selected);
+    else if (activeDropdownType === "Categories") setSelectedCategoryOptions(selected);
   };
 
-  const currentOptionsList =
-    activeDropdownType === "Gender" ? GENDER_OPTIONS : categoryOptions;
+  const currentOptionsList = activeDropdownType === "Gender" ? GENDER_OPTIONS : categoryOptions;
 
-  // 2 columns with dynamic width
+  // Dynamic pill labels
+  const categoryPillLabel = useMemo(() => {
+    if (selectedCategoryOptions.length === 0) return "Categories";
+    if (selectedCategoryOptions.length === 1) return selectedCategoryOptions[0];
+    return `Categories (${selectedCategoryOptions.length})`;
+  }, [selectedCategoryOptions]);
+
+  const genderPillLabel = useMemo(() => {
+    if (selectedGenderOptions.length === 0) return "Gender";
+    if (selectedGenderOptions.length === 1) return selectedGenderOptions[0];
+    return `Gender (${selectedGenderOptions.length})`;
+  }, [selectedGenderOptions]);
+
   const cardWidth = (width - spacing.md * 2 - spacing.sm) / 2;
 
   return {
@@ -259,6 +261,8 @@ export const useMoreDealsLogic = () => {
     selectedCategoryOptions,
     handleApply,
     currentOptionsList,
+    categoryPillLabel,
+    genderPillLabel,
     cardWidth,
     allProducts,
     fetchNextPage,
@@ -270,6 +274,8 @@ export const useMoreDealsLogic = () => {
   };
 };
 
+// ─────────────────────────────────────────────
+
 export const MoreDealsFilters = ({
   theme,
   styles,
@@ -279,6 +285,10 @@ export const MoreDealsFilters = ({
   setDropdownVisible,
   searchQuery,
   setSearchQuery,
+  selectedCategoryOptions,
+  selectedGenderOptions,
+  categoryPillLabel,
+  genderPillLabel,
 }: any) => {
   const [isListening, setIsListening] = useState(false);
   const [speechError, setSpeechError] = useState<string | null>(null);
@@ -286,31 +296,17 @@ export const MoreDealsFilters = ({
   const isSpeechModuleAvailable = !!speechModule;
 
   useEffect(() => {
-    if (!speechModule?.addListener) {
-      return;
-    }
+    if (!speechModule?.addListener) return;
 
-    const startSub = speechModule.addListener("start", () => {
-      setIsListening(true);
-      setSpeechError(null);
-    });
-
-    const endSub = speechModule.addListener("end", () => {
-      setIsListening(false);
-    });
-
+    const startSub = speechModule.addListener("start", () => { setIsListening(true); setSpeechError(null); });
+    const endSub = speechModule.addListener("end", () => setIsListening(false));
     const resultSub = speechModule.addListener("result", (event: any) => {
       const transcript = event?.results?.[0]?.transcript?.trim();
-      if (transcript) {
-        setSearchQuery(transcript);
-      }
+      if (transcript) setSearchQuery(transcript);
     });
-
     const errorSub = speechModule.addListener("error", (event: any) => {
       setIsListening(false);
-      setSpeechError(
-        event?.message || "Voice search is unavailable right now.",
-      );
+      setSpeechError(event?.message || "Voice search is unavailable right now.");
     });
 
     return () => {
@@ -323,58 +319,36 @@ export const MoreDealsFilters = ({
 
   const handleMicPress = useCallback(async () => {
     setSpeechError(null);
-
-    if (!speechModule) {
-      return;
-    }
-
-    if (!speechModule.isRecognitionAvailable?.()) {
-      return;
-    }
-
-    if (isListening) {
-      speechModule.stop?.();
-      return;
-    }
-
+    if (!speechModule || !speechModule.isRecognitionAvailable?.()) return;
+    if (isListening) { speechModule.stop?.(); return; }
     try {
       const permission = await speechModule.requestPermissionsAsync?.();
-      if (!permission.granted) {
-        setSpeechError("Microphone permission is required for voice search.");
-        return;
-      }
-
-      speechModule.start?.({
-        lang: "en-IN",
-        interimResults: true,
-        continuous: false,
-        maxAlternatives: 1,
-        iosTaskHint: "search",
-      });
+      if (!permission.granted) { setSpeechError("Microphone permission is required for voice search."); return; }
+      speechModule.start?.({ lang: "en-IN", interimResults: true, continuous: false, maxAlternatives: 1, iosTaskHint: "search" });
     } catch {
       setSpeechError("Could not start voice search.");
     }
   }, [isListening, speechModule]);
 
+  // Dynamic filter pills with resolved display labels
+  const dynamicFilters = useMemo(
+    () =>
+      FILTERS.map((f) => {
+        if (f.title === "Categories") {
+          return { ...f, displayTitle: categoryPillLabel, hasSelection: selectedCategoryOptions.length > 0 };
+        }
+        if (f.title === "Gender") {
+          return { ...f, displayTitle: genderPillLabel, hasSelection: selectedGenderOptions.length > 0 };
+        }
+        return { ...f, displayTitle: f.title, hasSelection: false };
+      }),
+    [categoryPillLabel, genderPillLabel, selectedCategoryOptions, selectedGenderOptions],
+  );
+
   return (
-    <View
-      style={[
-        styles.filterWrapper,
-        {
-          backgroundColor: theme.background,
-          paddingBottom: 12,
-          zIndex: 10,
-        },
-      ]}
-    >
-      {/* iOS + Swiggy style search bar */}
-      <View
-        style={{
-          paddingHorizontal: spacing.lg,
-          marginBottom: 18,
-          marginTop: 14,
-        }}
-      >
+    <View style={[styles.filterWrapper, { backgroundColor: theme.background, paddingBottom: 12, zIndex: 10 }]}>
+      {/* Search bar */}
+      <View style={{ paddingHorizontal: spacing.lg, marginBottom: 18, marginTop: 14 }}>
         <View
           style={{
             flexDirection: "row",
@@ -392,24 +366,9 @@ export const MoreDealsFilters = ({
             elevation: searchQuery ? 4 : 2,
           }}
         >
-          <View
-            style={{
-              width: 30,
-              height: 30,
-              borderRadius: 15,
-              backgroundColor: theme.tertiaryBackground,
-              alignItems: "center",
-              justifyContent: "center",
-              marginRight: 10,
-            }}
-          >
-            <Ionicons
-              name="search"
-              size={17}
-              color={searchQuery ? theme.primary : theme.secondaryText}
-            />
+          <View style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: theme.tertiaryBackground, alignItems: "center", justifyContent: "center", marginRight: 10 }}>
+            <Ionicons name="search" size={17} color={searchQuery ? theme.primary : theme.secondaryText} />
           </View>
-
           <TextInput
             placeholder="Search products, brands..."
             placeholderTextColor={theme.tertiaryText}
@@ -417,113 +376,54 @@ export const MoreDealsFilters = ({
             onChangeText={setSearchQuery}
             autoCapitalize="none"
             returnKeyType="search"
-            style={{
-              flex: 1,
-              color: theme.text,
-              fontSize: 16,
-              fontWeight: "500",
-              letterSpacing: -0.2,
-            }}
+            style={{ flex: 1, color: theme.text, fontSize: 16, fontWeight: "500", letterSpacing: -0.2 }}
             selectionColor={theme.primary}
             clearButtonMode="while-editing"
           />
-
           {searchQuery.length > 0 && Platform.OS !== "ios" ? (
-            <TouchableOpacity
-              onPress={() => setSearchQuery("")}
-              style={{ padding: 4, marginRight: 4 }}
-            >
-              <Ionicons
-                name="close-circle"
-                size={20}
-                color={theme.secondaryText}
-              />
+            <TouchableOpacity onPress={() => setSearchQuery("")} style={{ padding: 4, marginRight: 4 }}>
+              <Ionicons name="close-circle" size={20} color={theme.secondaryText} />
             </TouchableOpacity>
           ) : null}
-
           <TouchableOpacity
             onPress={handleMicPress}
             activeOpacity={0.8}
             disabled={!isSpeechModuleAvailable}
-            style={{
-              width: 28,
-              height: 28,
-              borderRadius: 14,
-              alignItems: "center",
-              justifyContent: "center",
-              backgroundColor: isListening ? theme.primary : "transparent",
-              opacity: isSpeechModuleAvailable ? 1 : 0.5,
-            }}
+            style={{ width: 28, height: 28, borderRadius: 14, alignItems: "center", justifyContent: "center", backgroundColor: isListening ? theme.primary : "transparent", opacity: isSpeechModuleAvailable ? 1 : 0.5 }}
           >
-            <Ionicons
-              name={isListening ? "mic" : "mic-outline"}
-              size={18}
-              color={isListening ? "#fff" : theme.tertiaryText}
-            />
+            <Ionicons name={isListening ? "mic" : "mic-outline"} size={18} color={isListening ? "#fff" : theme.tertiaryText} />
           </TouchableOpacity>
         </View>
 
-        {/* Active Search Hint */}
         {searchQuery.length > 0 && (
-          <View
-            style={{
-              marginTop: 10,
-              paddingHorizontal: 6,
-              flexDirection: "row",
-              alignItems: "center",
-            }}
-          >
+          <View style={{ marginTop: 10, paddingHorizontal: 6, flexDirection: "row", alignItems: "center" }}>
             <Ionicons name="flash-outline" size={13} color={theme.primary} />
-            <Text
-              style={{
-                marginLeft: 6,
-                fontSize: 12,
-                color: theme.secondaryText,
-                fontWeight: "500",
-              }}
-            >
+            <Text style={{ marginLeft: 6, fontSize: 12, color: theme.secondaryText, fontWeight: "500" }}>
               Showing results for{" "}
-              <Text style={{ color: theme.primary, fontWeight: "700" }}>
-                "{searchQuery}"
-              </Text>
+              <Text style={{ color: theme.primary, fontWeight: "700" }}>"{searchQuery}"</Text>
             </Text>
           </View>
         )}
-
         {speechError ? (
-          <Text
-            style={{
-              marginTop: 8,
-              marginLeft: 6,
-              color: theme.error,
-              fontSize: 12,
-              fontWeight: "500",
-            }}
-          >
+          <Text style={{ marginTop: 8, marginLeft: 6, color: theme.error, fontSize: 12, fontWeight: "500" }}>
             {speechError}
           </Text>
         ) : null}
       </View>
 
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.filterList}
-      >
-        {FILTERS.map((filter) => {
-          const isActive = activeFilter.title === filter.title;
-          const isDropdown =
-            filter.title === "Gender" || filter.title === "Categories";
+      {/* Filter pills */}
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterList}>
+        {dynamicFilters.map((filter) => {
+          const isActive = activeFilter.title === filter.title || filter.hasSelection;
+          const isDropdown = filter.title === "Gender" || filter.title === "Categories";
 
           return (
             <TouchableOpacity
               key={filter.title}
               onPress={() => {
-                setActiveFilter(filter);
+                setActiveFilter({ title: filter.title, icon: filter.icon });
                 if (isDropdown) {
-                  setActiveDropdownType(
-                    filter.title as "Gender" | "Categories",
-                  );
+                  setActiveDropdownType(filter.title as "Gender" | "Categories");
                   setDropdownVisible(true);
                 }
               }}
@@ -536,28 +436,13 @@ export const MoreDealsFilters = ({
               ]}
             >
               {filter.icon && (
-                <HugeiconsIcon
-                  {...({
-                    icon: filter.icon as any,
-                    size: 14,
-                    color: isActive ? "#fff" : theme.iconColor,
-                  } as any)}
-                />
+                <HugeiconsIcon {...({ icon: filter.icon as any, size: 14, color: isActive ? "#fff" : theme.iconColor } as any)} />
               )}
-              <Text
-                style={[
-                  styles.filterText,
-                  { color: isActive ? "#fff" : theme.text },
-                ]}
-              >
-                {filter.title}
+              <Text style={[styles.filterText, { color: isActive ? "#fff" : theme.text }]}>
+                {filter.displayTitle}
               </Text>
               {isDropdown && (
-                <Ionicons
-                  name="chevron-down"
-                  size={14}
-                  color={isActive ? "#fff" : theme.iconColor}
-                />
+                <Ionicons name="chevron-down" size={14} color={isActive ? "#fff" : theme.iconColor} />
               )}
             </TouchableOpacity>
           );
@@ -566,6 +451,8 @@ export const MoreDealsFilters = ({
     </View>
   );
 };
+
+// ─────────────────────────────────────────────
 
 export const MoreDealsGrid = ({
   styles,
@@ -586,42 +473,18 @@ export const MoreDealsGrid = ({
 }: any) => (
   <View style={styles.productGrid}>
     {isLoading && !allProducts.length ? (
-      // Render a grid of skeletons while loading initial data
-      [1, 2, 3, 4, 5, 6].map((key) => (
-        <DealProductSkeleton key={key} width={cardWidth} />
-      ))
+      [1, 2, 3, 4, 5, 6].map((key) => <DealProductSkeleton key={key} width={cardWidth} />)
     ) : allProducts.length > 0 ? (
       allProducts.map((product: any) => (
-        <DealProductCard
-          key={product._id}
-          product={product}
-          width={cardWidth}
-        />
+        <DealProductCard key={product._id} product={product} width={cardWidth} />
       ))
     ) : (
-      <View
-        style={{ width: "100%", paddingVertical: 60, alignItems: "center" }}
-      >
+      <View style={{ width: "100%", paddingVertical: 60, alignItems: "center" }}>
         <Ionicons name="search-outline" size={48} color={theme.tertiaryText} />
-        <Text
-          style={{
-            marginTop: 16,
-            fontSize: 16,
-            color: theme.secondaryText,
-            fontWeight: "600",
-          }}
-        >
+        <Text style={{ marginTop: 16, fontSize: 16, color: theme.secondaryText, fontWeight: "600" }}>
           No products found
         </Text>
-        <Text
-          style={{
-            marginTop: 8,
-            fontSize: 14,
-            color: theme.tertiaryText,
-            textAlign: "center",
-            paddingHorizontal: 40,
-          }}
-        >
+        <Text style={{ marginTop: 8, fontSize: 14, color: theme.tertiaryText, textAlign: "center", paddingHorizontal: 40 }}>
           Try adjusting your search or filters to find what you're looking for.
         </Text>
       </View>
@@ -636,25 +499,18 @@ export const MoreDealsGrid = ({
         {isFetchingNextPage ? (
           <ActivityIndicator color={theme.primary} />
         ) : (
-          <Text style={{ color: theme.primary, fontWeight: "600" }}>
-            Load More
-          </Text>
+          <Text style={{ color: theme.primary, fontWeight: "600" }}>Load More</Text>
         )}
       </TouchableOpacity>
     )}
 
-    {/* Bottom Sheet Modal */}
     {activeDropdownType && (
       <FilterBottomSheet
         visible={dropdownVisible}
         onClose={() => setDropdownVisible(false)}
         title={activeDropdownType}
         options={currentOptionsList}
-        initialSelected={
-          activeDropdownType === "Gender"
-            ? selectedGenderOptions
-            : selectedCategoryOptions
-        }
+        initialSelected={activeDropdownType === "Gender" ? selectedGenderOptions : selectedCategoryOptions}
         onApply={handleApply}
       />
     )}
@@ -662,12 +518,8 @@ export const MoreDealsGrid = ({
 );
 
 // Fallback for legacy imports
-const MoreDealsSection = () => {
-  return (
-    <Text>
-      Please use the destructured components for MoreDealsSection directly
-    </Text>
-  );
-};
+const MoreDealsSection = () => (
+  <Text>Please use the destructured components for MoreDealsSection directly</Text>
+);
 
 export default MoreDealsSection;

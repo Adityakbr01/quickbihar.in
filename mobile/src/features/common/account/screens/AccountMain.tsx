@@ -12,6 +12,8 @@ import EditProfileModal from "../components/EditProfileModal";
 import { useRouter } from "expo-router";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
 import { useLogout } from "@/src/features/common/auth/hooks/useAuth";
+import { useAccountStore } from "../store/accountStore";
+import PasswordEmailSetupSheet from "../components/PasswordEmailSetupSheet";
 
 const AccountMain = () => {
   const theme = useTheme();
@@ -19,6 +21,9 @@ const AccountMain = () => {
   const user = useAuthStore((state) => state.user);
   const { mutate: logout, isPending: isLoggingOut } = useLogout();
   const router = useRouter();
+  const setPasswordSheetVisible = useAccountStore(
+    (state) => state.setPasswordSheetVisible,
+  );
 
   const handleOptionPress = (label: string) => {
     console.log(`Pressed: ${label}`);
@@ -41,8 +46,10 @@ const AccountMain = () => {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       router.push("/account/notifications");
     } else if (label === "PasswordSetup" || label === "Security") {
+      // Open the Password & Email Setup bottom sheet instead of routing
+      // to a new screen.
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      router.push("/account/reset-password?flow=forgot" as any);
+      setPasswordSheetVisible(true);
     } else {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
@@ -65,6 +72,10 @@ const AccountMain = () => {
 
           {/* New Profile Edit Modal */}
           <EditProfileModal />
+
+          {/* Password & Email Setup bottom sheet (mounted once, opened
+              imperatively via the account store) */}
+          <PasswordEmailSetupSheet />
 
           {ACCOUNT_SECTIONS.map((section, sectionIndex) => (
             <View key={section.title} style={styles.section}>

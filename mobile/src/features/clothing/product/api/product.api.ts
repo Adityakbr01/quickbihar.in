@@ -28,6 +28,9 @@ export const getPublicProductsRequest = async (params: {
   isTrending?: boolean | "true" | "false";
   isFeatured?: boolean;
   isNewArrival?: boolean;
+  dealOfDay?: boolean;
+  isExpressAvailable?: boolean;
+  minRating?: number;
 }): Promise<{ data: IProduct[]; total: number }> => {
   const response = await axiosInstance.get("/products/public", {
     params: { vertical: "CLOTHING", ...params },

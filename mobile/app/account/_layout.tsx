@@ -38,7 +38,7 @@ export default function AccountLayout() {
       <Stack.Screen
         name="notifications"
         options={{
-          headerTitle: "Notification Center",
+          headerShown: false,
         }}
       />
       <Stack.Screen

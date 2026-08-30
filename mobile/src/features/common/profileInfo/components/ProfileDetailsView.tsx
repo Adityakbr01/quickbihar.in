@@ -1,16 +1,16 @@
 import React from "react";
 import { View, TouchableOpacity, Text } from "react-native";
-import { router } from "expo-router";
-import { 
-  Mail01Icon, 
-  CallIcon, 
-  UserCircleIcon, 
-  Calendar03Icon, 
-  Edit02Icon 
+import {
+  Mail01Icon,
+  CallIcon,
+  UserCircleIcon,
+  Calendar03Icon,
+  Edit02Icon
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { Theme } from "@/src/theme/Provider/ThemeProvider";
 import ProfileInfoRow from "./ProfileInfoRow";
+import { useAccountStore } from "@/src/features/common/account/store/accountStore";
 import dayjs from "dayjs";
 
 interface ProfileDetailsViewProps {
@@ -32,6 +32,10 @@ const ProfileDetailsView: React.FC<ProfileDetailsViewProps> = ({
   theme,
   styles,
 }) => {
+  const setPasswordSheetVisible = useAccountStore(
+    (state) => state.setPasswordSheetVisible,
+  );
+
   return (
     <View style={styles.infoCard}>
       <ProfileInfoRow
@@ -70,7 +74,7 @@ const ProfileDetailsView: React.FC<ProfileDetailsViewProps> = ({
 
       <TouchableOpacity
         style={[styles.editButton, { marginTop: 10, backgroundColor: "#1e293b" }]}
-        onPress={() => router.push("/account/reset-password?flow=forgot" as any)}
+        onPress={() => setPasswordSheetVisible(true)}
       >
         <Text style={styles.editButtonText}>🔐 Password & Email Setup</Text>
       </TouchableOpacity>

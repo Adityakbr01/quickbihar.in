@@ -41,6 +41,15 @@ const ProfileInfoScreen = () => {
 
   const displayUser = profile || userFromStore;
 
+  // ponytail: roleId may arrive as a populated object {_id, name, description}
+  // or as a plain string — guard both shapes here, once.
+  const roleLabel: string = (() => {
+    const r = displayUser?.role as any;
+    if (!r) return "";
+    if (typeof r === "string") return r;
+    return r?.name ?? "";
+  })();
+
   const {
     control,
     handleSubmit,
@@ -119,7 +128,7 @@ const ProfileInfoScreen = () => {
               <Text style={styles.fullName}>{displayUser?.fullName}</Text>
               <Text style={styles.username}>@{displayUser?.username}</Text>
               <View style={styles.roleBadge}>
-                <Text style={styles.roleText}>{displayUser?.role}</Text>
+                <Text style={styles.roleText}>{roleLabel}</Text>
               </View>
             </View>
           </View>
@@ -140,7 +149,7 @@ const ProfileInfoScreen = () => {
             <ProfileDetailsView
               email={displayUser?.email || ""}
               phone={displayUser?.phone || ""}
-              role={displayUser?.role || ""}
+              role={roleLabel}
               createdAt={displayUser?.createdAt || ""}
               onEdit={() => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);

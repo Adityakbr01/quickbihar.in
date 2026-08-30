@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import {
@@ -37,11 +38,13 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
   const theme = useTheme() as any;
   const sheet = useSheet();
   const [tempOptions, setTempOptions] = useState<string[]>(initialSelected);
+  const [searchText, setSearchText] = useState("");
 
   // Sync internal state when opened
   useEffect(() => {
     if (visible) {
       setTempOptions(initialSelected);
+      setSearchText("");
     }
   }, [visible, initialSelected]);
 
@@ -52,8 +55,16 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
     } else {
       sheet.current?.dismiss();
     }
-    // sheet.current is stable across renders
   }, [visible, sheet]);
+
+  // Show search bar only when there are enough options to warrant it
+  const showSearch = options.length > 6;
+
+  const filteredOptions = useMemo(() => {
+    if (!searchText.trim()) return options;
+    const q = searchText.toLowerCase();
+    return options.filter((o) => o.title.toLowerCase().includes(q));
+  }, [options, searchText]);
 
   const handleToggleOption = (optionTitle: string) => {
     setTempOptions((prev) =>
@@ -65,12 +76,15 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
 
   const handleClearAll = () => {
     setTempOptions([]);
+    setSearchText("");
   };
 
   const handleApply = () => {
     onApply(tempOptions);
     onClose();
   };
+
+  const selectedCount = tempOptions.length;
 
   return (
     <Sheet
@@ -80,173 +94,67 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
     >
       <SheetHeader title={title} onClose={onClose} />
 
+      {/* Optional search bar */}
+      {showSearch && (
+        <View
+          style={{
+            marginHorizontal: spacing.lg,
+            marginBottom: spacing.sm,
+            flexDirection: "row",
+            alignItems: "center",
+            backgroundColor: theme.secondaryBackground,
+            borderRadius: 50,
+            paddingHorizontal: 14,
+            paddingVertical: 9,
+            borderWidth: 1,
+            borderColor: searchText ? theme.primary : theme.border,
+          }}
+        >
+          <Ionicons name="search" size={16} color={theme.tertiaryText} style={{ marginRight: 8 }} />
+          <TextInput
+            placeholder={`Search ${title.toLowerCase()}...`}
+            placeholderTextColor={theme.tertiaryText}
+            value={searchText}
+            onChangeText={setSearchText}
+            autoCapitalize="none"
+            style={{
+              flex: 1,
+              color: theme.text,
+              fontSize: 14,
+              fontWeight: "500",
+            }}
+          />
+          {searchText.length > 0 && (
+            <TouchableOpacity onPress={() => setSearchText("")}>
+              <Ionicons name="close-circle" size={17} color={theme.tertiaryText} />
+            </TouchableOpacity>
+          )}
+        </View>
+      )}
+
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: spacing.xl }}
       >
-        <View
-          style={{
-            flexDirection: "row",
-            flexWrap: "wrap",
-            gap: spacing.sm,
-            paddingHorizontal: spacing.lg,
-            paddingVertical: spacing.sm,
-          }}
-        >
-          {(() => {
-            const isCategories = title === "Categories";
-            const rootOptions = isCategories
-              ? options.filter((opt) => !opt.parentId)
-              : options;
-            const subOptions = isCategories
-              ? options.filter((opt) => opt.parentId)
-              : [];
-
-            return rootOptions.map((option) => {
+        {filteredOptions.length === 0 ? (
+          <View style={{ padding: spacing.xl, alignItems: "center" }}>
+            <Ionicons name="search-outline" size={36} color={theme.tertiaryText} />
+            <Text style={{ color: theme.secondaryText, marginTop: 10, fontSize: 14 }}>
+              No results for "{searchText}"
+            </Text>
+          </View>
+        ) : (
+          <View
+            style={{
+              flexDirection: "row",
+              flexWrap: "wrap",
+              gap: spacing.sm,
+              paddingHorizontal: spacing.lg,
+              paddingVertical: spacing.sm,
+            }}
+          >
+            {filteredOptions.map((option) => {
               const isSelected = tempOptions.includes(option.title);
-              const matchingSubs = subOptions.filter(
-                (sub) => sub.parentId === option.id,
-              );
-
-              if (isCategories) {
-                return (
-                  <View
-                    key={option.title}
-                    style={{ width: "100%", marginBottom: 12 }}
-                  >
-                    <TouchableOpacity
-                      style={[
-                        {
-                          flexDirection: "row",
-                          alignItems: "center",
-                          paddingHorizontal: 20,
-                          paddingVertical: 12,
-                          borderRadius: 100,
-                          borderWidth: 1,
-                          gap: 8,
-                          width: "100%",
-                          justifyContent: "space-between",
-                        },
-                        {
-                          borderColor: isSelected
-                            ? theme.primary
-                            : theme.border,
-                          backgroundColor: isSelected
-                            ? theme.primary
-                            : theme.secondaryBackground ?? theme.background,
-                        },
-                      ]}
-                      onPress={() => {
-                        const subTitles = matchingSubs.map((s) => s.title);
-                        setTempOptions((prev) => {
-                          const filtered = prev.filter(
-                            (o) => !subTitles.includes(o),
-                          );
-                          return filtered.includes(option.title)
-                            ? filtered.filter((o) => o !== option.title)
-                            : [...filtered, option.title];
-                        });
-                      }}
-                      activeOpacity={0.7}
-                    >
-                      <View
-                        style={{ flexDirection: "row", alignItems: "center" }}
-                      >
-                        {option.icon && (
-                          <HugeiconsIcon
-                            {...({
-                              icon: option.icon,
-                              size: 18,
-                              color: isSelected ? "#fff" : theme.text,
-                              style: { marginRight: 6 },
-                            } as any)}
-                          />
-                        )}
-                        <Text
-                          style={{
-                            fontSize: 14,
-                            fontWeight: "600",
-                            color: isSelected ? "#fff" : theme.text,
-                          }}
-                        >
-                          {option.title}
-                        </Text>
-                      </View>
-                      {matchingSubs.length > 0 && (
-                        <Text
-                          style={{
-                            color: isSelected ? "#fff" : theme.secondaryText,
-                            fontSize: 16,
-                          }}
-                        >
-                          {isSelected ? "−" : "+"}
-                        </Text>
-                      )}
-                    </TouchableOpacity>
-
-                    {/* Subcategories section */}
-                    {matchingSubs.length > 0 && isSelected && (
-                      <View
-                        style={{
-                          paddingLeft: 12,
-                          marginTop: 8,
-                          flexDirection: "row",
-                          flexWrap: "wrap",
-                          gap: 8,
-                        }}
-                      >
-                        {matchingSubs.map((sub) => {
-                          const isSubSelected = tempOptions.includes(
-                            sub.title,
-                          );
-                          return (
-                            <TouchableOpacity
-                              key={sub.title}
-                              style={{
-                                paddingHorizontal: 12,
-                                paddingVertical: 8,
-                                borderRadius: 100,
-                                borderWidth: 1,
-                                borderColor: isSubSelected
-                                  ? theme.primary
-                                  : theme.border,
-                                backgroundColor: isSubSelected
-                                  ? theme.primary
-                                  : theme.secondaryBackground ??
-                                    theme.background,
-                              }}
-                              onPress={() => {
-                                setTempOptions((prev) => {
-                                  const filtered = prev.filter(
-                                    (o) => o !== option.title,
-                                  );
-                                  return filtered.includes(sub.title)
-                                    ? filtered.filter(
-                                        (o) => o !== sub.title,
-                                      )
-                                    : [...filtered, sub.title];
-                                });
-                              }}
-                              activeOpacity={0.7}
-                            >
-                              <Text
-                                style={{
-                                  fontSize: 12,
-                                  fontWeight: "600",
-                                  color: isSubSelected ? "#fff" : theme.text,
-                                }}
-                              >
-                                {sub.title}
-                              </Text>
-                            </TouchableOpacity>
-                          );
-                        })}
-                      </View>
-                    )}
-                  </View>
-                );
-              }
-
               return (
                 <TouchableOpacity
                   key={option.title}
@@ -254,11 +162,11 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
                     {
                       flexDirection: "row",
                       alignItems: "center",
-                      paddingHorizontal: 20,
-                      paddingVertical: 12,
+                      paddingHorizontal: 16,
+                      paddingVertical: 11,
                       borderRadius: 100,
-                      borderWidth: 1,
-                      gap: 8,
+                      borderWidth: 1.5,
+                      gap: 6,
                     },
                     {
                       borderColor: isSelected ? theme.primary : theme.border,
@@ -274,9 +182,8 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
                     <HugeiconsIcon
                       {...({
                         icon: option.icon,
-                        size: 18,
+                        size: 16,
                         color: isSelected ? "#fff" : theme.text,
-                        style: { marginRight: 6 },
                       } as any)}
                     />
                   )}
@@ -289,11 +196,14 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
                   >
                     {option.title}
                   </Text>
+                  {isSelected && (
+                    <Ionicons name="checkmark" size={14} color="#fff" />
+                  )}
                 </TouchableOpacity>
               );
-            });
-          })()}
-        </View>
+            })}
+          </View>
+        )}
       </ScrollView>
 
       <SheetFooter>
@@ -342,7 +252,7 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
               letterSpacing: 0.2,
             }}
           >
-            Apply
+            {selectedCount > 0 ? `Apply (${selectedCount})` : "Apply"}
           </Text>
         </TouchableOpacity>
       </SheetFooter>

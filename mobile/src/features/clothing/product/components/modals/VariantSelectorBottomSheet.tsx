@@ -220,6 +220,7 @@ export const VariantSelectorBottomSheet = ({
     <>
       <Sheet
         ref={sheet}
+        
         onDidDismiss={onClose}
         backgroundColor={theme.background}
       >
