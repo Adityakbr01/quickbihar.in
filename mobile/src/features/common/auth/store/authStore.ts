@@ -39,15 +39,15 @@ export const getRoleName = (
 
 /**
  * Resolves the post-login landing route from a user's role. The predicates mirror
- * the tab guards in app/(tabs)/clothing/{admin,rider}.tsx and _layout.tsx, so a user
+ * the tab guards in app/(tabs)/clothing/rider.tsx and _layout.tsx, so a user
  * always lands on a screen their role can actually render (no guard-redirect bounce).
- * USER/SELLER and unknown roles land on the shopping home.
+ * USER/SELLER/ADMIN and unknown roles land on the shopping home. Admins reach the
+ * web admin via the "Web Admin Dashboard" option in the Account screen.
  */
 export const getRoleLandingRoute = (
   role?: Role | string | null
-): "/(tabs)/clothing/home" | "/(tabs)/clothing/admin" | "/(tabs)/clothing/rider" => {
+): "/(tabs)/clothing/home" | "/(tabs)/clothing/rider" => {
   const roleName = getRoleName(role);
-  if (roleName === RoleEnum.ADMIN) return "/(tabs)/clothing/admin";
   if (roleName === RoleEnum.DELIVERY || roleName === RIDER_ROLE_ALIAS) return "/(tabs)/clothing/rider";
   return "/(tabs)/clothing/home";
 };

@@ -1,7 +1,6 @@
 import { getRoleName, RIDER_ROLE_ALIAS, RoleEnum, useAuthStore } from "@/src/features/common/auth/store/authStore";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import {
-  DashboardCircleSettingsIcon,
   DeliveryTruck01Icon,
   Home01Icon,
   Search01Icon,
@@ -42,7 +41,6 @@ export default function TabsLayout() {
   const { user, isAuthenticated } = useAuthStore();
   const router = useRouter();
   const roleName = getRoleName(user?.role);
-  const isAdmin = roleName === RoleEnum.ADMIN;
   const isRider = roleName === RoleEnum.DELIVERY || roleName === RIDER_ROLE_ALIAS;
 
   const isWeb = Platform.OS === "web";
@@ -54,12 +52,6 @@ export default function TabsLayout() {
       label: "Rider",
       icon: DeliveryTruck01Icon,
       hidden: !isRider,
-    },
-    {
-      name: "admin",
-      label: "Admin",
-      icon: DashboardCircleSettingsIcon,
-      hidden: !isAdmin,
     },
   ];
 

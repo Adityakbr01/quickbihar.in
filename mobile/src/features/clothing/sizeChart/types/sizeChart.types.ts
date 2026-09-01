@@ -16,14 +16,3 @@ export interface ISizeChart {
   createdAt?: string;
   updatedAt?: string;
 }
-
-export interface CreateSizeChartDto {
-  name: string;
-  category: string;
-  unit: SizeChartUnit;
-  fields: string[];
-  data: ISizeChartRow[];
-  howToMeasure?: string[];
-}
-
-export interface UpdateSizeChartDto extends Partial<CreateSizeChartDto> {}

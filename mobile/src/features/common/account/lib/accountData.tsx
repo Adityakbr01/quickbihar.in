@@ -6,6 +6,7 @@ import {
   Logout01Icon,
   User03Icon,
   Shield01Icon,
+  DashboardSquare01Icon,
 } from "@hugeicons/core-free-icons";
 
 export interface AccountSubItem {
@@ -66,6 +67,13 @@ export const ACCOUNT_SECTIONS: AccountSection[] = [
         label: "Notifications",
         icon: Notification01Icon,
         onPressLabel: "Notifications",
+      },
+      {
+        // Admin-only — visibility is gated in AccountMain.tsx by role.
+        // Opens the web admin in the system browser (no JWT handoff).
+        label: "Web Admin Dashboard",
+        icon: DashboardSquare01Icon,
+        onPressLabel: "WebAdminDashboard",
       },
     ],
   },

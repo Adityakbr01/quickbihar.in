@@ -1,14 +1,5 @@
-
 import axiosInstance from "@/src/api/axiosInstance";
 import { IProduct } from "../types/product.types";
-
-/**
- * Fetch all products (Admin/Seller view)
- */
-export const getAllProductsAdminRequest = async (): Promise<{ data: IProduct[]; total: number }> => {
-  const response = await axiosInstance.get("/products");
-  return response.data.data;
-};
 
 /**
  * Fetch public products with pagination and filters
@@ -54,36 +45,6 @@ export const getTrendingProductsRequest = async (params?: {
   const raw = response.data?.data;
   const arr: IProduct[] = Array.isArray(raw) ? raw : raw?.data ?? [];
   return { data: arr, total: arr.length };
-};
-
-/**
- * Create a new product (Multipart for images)
- */
-export const createProductRequest = async (formData: FormData): Promise<IProduct> => {
-  const response = await axiosInstance.post("/products", formData, {
-    headers: {
-      "Content-Type": "multipart/form-data",
-    },
-  });
-  return response.data.data;
-};
-
-/**
- * Update an existing product
- */
-export const updateProductRequest = async ({ id, data }: { id: string; data: any }): Promise<IProduct> => {
-  const isFormData = data instanceof FormData;
-  const response = await axiosInstance.patch(`/products/${id}`, data, {
-    headers: isFormData ? { "Content-Type": "multipart/form-data" } : {},
-  });
-  return response.data.data;
-};
-
-/**
- * Delete a product
- */
-export const deleteProductRequest = async (id: string): Promise<void> => {
-  await axiosInstance.delete(`/products/${id}`);
 };
 
 /**
@@ -148,5 +109,3 @@ export const voteHelpfulReviewRequest = async (
   const response = await axiosInstance.post(`/products/${productId}/reviews/${reviewId}/helpful`);
   return response.data.data;
 };
-
-

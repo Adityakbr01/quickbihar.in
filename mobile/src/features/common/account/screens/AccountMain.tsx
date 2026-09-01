@@ -1,5 +1,5 @@
-import React from "react";
-import { View, ScrollView, Text } from "react-native";
+import React, { useMemo } from "react";
+import { View, ScrollView, Text, Linking } from "react-native";
 import * as Haptics from "expo-haptics";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { createAccountStyles } from "../styles/accountStyles";
@@ -10,11 +10,16 @@ import { ActivityIndicator } from "react-native";
 import EditProfileModal from "../components/EditProfileModal";
 
 import { useRouter } from "expo-router";
-import { useAuthStore } from "@/src/features/common/auth/store/authStore";
+import {
+  getRoleName,
+  RoleEnum,
+  useAuthStore,
+} from "@/src/features/common/auth/store/authStore";
 import { useLogout } from "@/src/features/common/auth/hooks/useAuth";
 import { useAccountStore } from "../store/accountStore";
 import { useProfile } from "@/src/features/common/profileInfo/hooks/useProfile";
 import PasswordEmailSetupSheet from "../components/PasswordEmailSetupSheet";
+import { WEB_ADMIN_LOGIN_URL } from "@/src/constants/app.constants";
 
 const AccountMain = () => {
   const theme = useTheme();
@@ -29,6 +34,12 @@ const AccountMain = () => {
   // Live profile always has the freshest avatar; store is stale until re-login
   const { profile } = useProfile();
   const avatarUrl = profile?.avatar?.url ?? user?.avatar?.url;
+
+  // Hide the Web Admin Dashboard option from non-admin users. SUPER_ADMIN
+  // inherits the admin surface.
+  const isAdmin =
+    getRoleName(user?.role) === RoleEnum.ADMIN ||
+    getRoleName(user?.role) === RoleEnum.SUPER_ADMIN;
 
   const handleOptionPress = (label: string) => {
     console.log(`Pressed: ${label}`);
@@ -55,10 +66,31 @@ const AccountMain = () => {
       // to a new screen.
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       setPasswordSheetVisible(true);
+    } else if (label === "WebAdminDashboard") {
+      // Open the web admin in the system browser. Admin re-authenticates
+      // there — no JWT handoff.
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      Linking.openURL(WEB_ADMIN_LOGIN_URL).catch((err) =>
+        console.error("Failed to open web admin:", err),
+      );
     } else {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
   };
+
+  // Admin-only options live here so the gate is colocated with the render
+  // and never leaks into non-admin section lists.
+  const visibleSections = useMemo(
+    () =>
+      ACCOUNT_SECTIONS.map((section) => ({
+        ...section,
+        options: section.options.filter((option) => {
+          if (option.onPressLabel === "WebAdminDashboard") return isAdmin;
+          return true;
+        }),
+      })).filter((section) => section.options.length > 0),
+    [isAdmin],
+  );
 
   return (
     <View style={styles.container}>
@@ -82,7 +114,7 @@ const AccountMain = () => {
               imperatively via the account store) */}
           <PasswordEmailSetupSheet />
 
-          {ACCOUNT_SECTIONS.map((section, sectionIndex) => (
+          {visibleSections.map((section, sectionIndex) => (
             <View key={section.title} style={styles.section}>
               <Text style={styles.sectionTitle}>{section.title}</Text>
               {section.options.map((option, optionIndex) => (

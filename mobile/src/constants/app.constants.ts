@@ -67,3 +67,10 @@ export const MODULE_CONFIGS: Record<
 export const CLOTHING_MODULE_CONFIG = MODULE_CONFIGS.clothing;
 export const JEWELERY_MODULE_CONFIG = MODULE_CONFIGS.jewelery;
 export const FOOD_MODULE_CONFIG = MODULE_CONFIGS.food;
+
+// Web Admin Dashboard
+// The mobile app does not ship an in-app admin panel — admins reach the
+// web admin at this URL. Open in the system browser via Linking.openURL;
+// the user re-authenticates on the web (no JWT handoff).
+export const WEB_ADMIN_URL = "https://admin.quickbihar.com";
+export const WEB_ADMIN_LOGIN_URL = `${WEB_ADMIN_URL}/admin/login`;
