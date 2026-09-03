@@ -229,6 +229,39 @@ export const useSellerSubOrderCancellationMutation = () => {
   });
 };
 
+/**
+ * Phase 9 — seller confirms a sub-order after phoning the customer. When every
+ * sub-order on the parent is confirmed, the parent order advances to
+ * CONFIRMED automatically.
+ */
+export const useSellerConfirmSubOrderMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: sellerManagementApi.sellerConfirmSubOrder,
+    onSuccess: () => {
+      invalidateSeller(queryClient);
+      toast.success("Sub-order confirmed. OTPs shared on the call.");
+    },
+    onError: mutationError("Failed to confirm sub-order"),
+  });
+};
+
+/**
+ * Phase 9 — seller declines a sub-order (e.g. customer unreachable).
+ * Triggers a refund flow for online payments.
+ */
+export const useSellerDeclineSubOrderMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: sellerManagementApi.sellerDeclineSubOrder,
+    onSuccess: () => {
+      invalidateSeller(queryClient);
+      toast.success("Sub-order declined");
+    },
+    onError: mutationError("Failed to decline sub-order"),
+  });
+};
+
 export const useSellerCouponMutations = () => {
   const queryClient = useQueryClient();
   return {

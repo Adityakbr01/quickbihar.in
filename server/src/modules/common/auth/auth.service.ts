@@ -13,7 +13,6 @@ import * as rbacService from "@/modules/common/rbac/rbac.service";
 import { RoleEnum } from "@/modules/common/rbac/rbac.types";
 import { redis } from "@/config/redis.config";
 import { MailService } from "@/utils/mail.service";
-import { SmsService } from "@/services/sms/sms.service";
 import { serializeAuthUser } from "./auth.serializer";
 
 import { User } from "@/modules/common/user/user.model";
@@ -133,21 +132,10 @@ export async function login(loginData: any) {
       throw new ApiError(401, "Invalid password credentials");
     }
 
-    // If not verified, trigger OTP and block login
-    if (!user.isVerified) {
-      try {
-        await requestOTP(identifier);
-      } catch (otpError: any) {
-        if (otpError.statusCode === 429) {
-          throw new ApiError(
-            401,
-            "Account not verified. OTP already sent, please check your inbox.",
-          );
-        }
-        throw otpError;
-      }
-      throw new ApiError(401, "Account not verified. A new OTP has been sent.");
-    }
+    // Blocked check stays (above). The isVerified gate is removed as part of the
+    // OTP cut-over — Google users are inherently verified (email_verified=true),
+    // and password users authenticate by proving knowledge of the password.
+// The legacy OTP fallback that used to fire here has been removed.
 
     const accessToken = user.generateAccessToken();
     const refreshToken = user.generateRefreshToken();
@@ -168,258 +156,6 @@ export async function login(loginData: any) {
   }
 }
 
-export function normalizeTarget(identifier: string): string {
-  const trimmed = (identifier || "").trim();
-  if (!trimmed) return "";
-  if (trimmed.includes("@")) {
-    return trimmed.toLowerCase();
-  }
-  const digits = trimmed.replace(/\D/g, "");
-  if (digits.length >= 10) {
-    return digits.slice(-10);
-  }
-  return digits || trimmed;
-}
-
-export async function requestOTP(
-  identifier: string,
-  isRegistration: boolean = false,
-) {
-  const rawTarget = (identifier || "").trim();
-  const target = normalizeTarget(rawTarget);
-
-  console.log(`\n======================================================`);
-  console.log(
-    `🔑 [REQUEST OTP] Raw Input: "${rawTarget}" | Target Key: "${target}" | isRegistration: ${isRegistration}`,
-  );
-
-  if (!target) {
-    throw new ApiError(
-      400,
-      "Please provide a valid mobile number or email address.",
-    );
-  }
-
-  const existingUser = await UserDAO.findByUsernameOrEmail(undefined, target);
-
-  // Check if mobile number or email is already registered before sending OTP for registration
-  if (isRegistration) {
-    if (existingUser && existingUser.isVerified) {
-      const isPhone = !rawTarget.includes("@");
-      console.log(
-        `❌ [REGISTRATION REJECTED] ${isPhone ? "Phone" : "Email"} ${target} is already registered in DB.`,
-      );
-      throw new ApiError(
-        400,
-        isPhone
-          ? "This mobile number is already registered. Please sign in instead."
-          : "This email address is already registered. Please sign in instead.",
-      );
-    }
-  } else {
-    // LOGIN MODE: Prevent sending OTP if account does not exist
-    if (!existingUser) {
-      const isPhone = !rawTarget.includes("@");
-      console.log(
-        `❌ [LOGIN REJECTED] ${isPhone ? "Phone" : "Email"} ${target} is not registered in DB.`,
-      );
-      throw new ApiError(
-        404,
-        isPhone
-          ? "No account found with this mobile number. Please register first."
-          : "No account found with this email address. Please register first.",
-      );
-    }
-  }
-
-  const cooldownKey = `otp_cooldown:${target}`;
-  const onCooldown = await redis.get(cooldownKey);
-
-  if (onCooldown) {
-    console.log(`⚠️ [REQUEST OTP] Target "${target}" is on cooldown.`);
-    throw new ApiError(
-      429,
-      "Too many requests. Please wait 60 seconds before requesting another OTP.",
-    );
-  }
-
-  const otp = Math.floor(100000 + Math.random() * 900000).toString();
-  const redisKey = `otp:${target}`;
-
-  // Store OTP in Redis for 10 minutes
-  await redis.set(redisKey, otp, "EX", 600);
-  // Set cooldown for 60 seconds
-  await redis.set(cooldownKey, "true", "EX", 10);
-
-  // 🔑 LOG OTP IN BACKEND CONSOLE (FOR DEV / TESTING MODE)
-  console.log(`\n======================================================`);
-  console.log(`🔑 [OTP REQUEST RECEIVED] Target: "${target}" | Raw Input: "${rawTarget}"`);
-  console.log(`📱 [GENERATED OTP CODE] => *** ${otp} ***`);
-  console.log(`======================================================`);
-
-  if (rawTarget.includes("@")) {
-    console.log(`📧 [OTP ROUTE] Target is Email (${target}). Dispatching via Resend MailService...`);
-    const emailSent = await MailService.sendOTP(target, otp);
-    if (!emailSent) {
-      console.warn(
-        `⚠️ [OTP WARNING] MailService failed to deliver email to ${target}. Code: ${otp}`,
-      );
-    }
-  } else {
-    // 1. Attempt delivery via configured SMS Service
-    console.log(`📱 [OTP ROUTE] Target is Mobile (${target}). Attempting SMS Service...`);
-    const smsResult = await SmsService.sendOtp(target, otp);
-    if (!smsResult.success) {
-      console.warn(
-        `⚠️ [SMS NOTICE] SmsService unconfigured/failed for ${target}: ${smsResult.errorMessage}. Falling back to Email dispatch...`,
-      );
-    }
-
-    // 2. Dispatch Mobile OTP to Email (Testing Fallback: Sends "Mobile: {target}, OTP: {otp}" to Admin / Registered Email)
-    const existingUser = await UserDAO.findByUsernameOrEmail(undefined, target);
-    const recipientEmail = existingUser?.email && !existingUser.email.includes("@quickbihar.local") ? existingUser.email : undefined;
-    console.log(`📧 [OTP TESTING FALLBACK] Dispatching Mobile OTP (${target}) to test email...`);
-    const mailSent = await MailService.sendMobileOTPToEmail(target, otp, recipientEmail);
-    if (mailSent) {
-      console.log(`✅ [OTP DISPATCH SUCCESS] Mobile OTP (${otp}) sent via email to test recipient.`);
-    } else {
-      console.error(`❌ [OTP DISPATCH ERROR] Failed to send Mobile OTP email for ${target}. Check Resend API Key/Domain.`);
-    }
-  }
-  console.log(`======================================================\n`);
-
-  return {
-    message: "OTP sent successfully",
-  };
-}
-
-/**
- * Verifies the OTP code submitted by a user and logs them in.
- * If user does not exist yet (OTP-only login), creates a verified user profile and assigns a default role.
- */
-export async function verifyOTPAndAuthenticate(
-  emailOrPhone: string,
-  otp: string,
-) {
-  const rawTarget = (emailOrPhone || "").trim();
-  const target = normalizeTarget(rawTarget);
-  const redisKey = `otp:${target}`;
-  const storedOtp = await redis.get(redisKey);
-
-  console.log(`\n------------------------------------------------------`);
-  console.log(
-    `🔍 [VERIFY OTP REQUEST] Raw Target: "${rawTarget}" | Key: "${target}" | Submitted Code: "${otp}" | Redis Stored: "${storedOtp}"`,
-  );
-
-  const isDevFallback =
-    process.env.NODE_ENV !== "production" && otp === "123456";
-
-  if (!storedOtp && !isDevFallback) {
-    console.log(
-      `❌ [VERIFY OTP FAILED] Redis key "${redisKey}" not found or expired.`,
-    );
-    throw new ApiError(
-      400,
-      "OTP expired or not found. Please request a new code.",
-    );
-  }
-
-  if (storedOtp !== otp && !isDevFallback) {
-    console.log(
-      `❌ [VERIFY OTP FAILED] Code mismatch for "${target}". Expected "${storedOtp}", received "${otp}".`,
-    );
-    throw new ApiError(400, "Invalid OTP code. Please check and try again.");
-  }
-
-  console.log(`✅ [VERIFY OTP SUCCESS] Code match verified for "${target}".`);
-
-  // OTP verified, remove it from redis
-  if (storedOtp) {
-    await redis.del(redisKey);
-  }
-
-  // 1. Check if user exists
-  let user = await UserDAO.findByUsernameOrEmail(undefined, target);
-  let isNewUser = false;
-
-  if (!user) {
-    isNewUser = true;
-    const isPhone = !rawTarget.includes("@");
-    const resolvedEmail = isPhone
-      ? `${target}@quickbihar.local`
-      : target.toLowerCase();
-    const resolvedPhone = isPhone ? target : undefined;
-    const generatedUsername = isPhone
-      ? `user_${target}`
-      : target.split("@")[0] + "_" + Math.floor(Math.random() * 1000);
-    const generatedFullName = isPhone
-      ? `User ${target.slice(-4)}`
-      : target.split("@")[0];
-    const userRole = await rbacService.getRoleByName(RoleEnum.USER);
-
-    // Temporary password for OTP-only users (they can change it later)
-    const tempPassword = Math.random().toString(36).slice(-10);
-
-    user = await UserDAO.createUser({
-      email: resolvedEmail,
-      phone: resolvedPhone,
-      password: tempPassword,
-      username: generatedUsername.toLowerCase(),
-      fullName: generatedFullName,
-      isVerified: true, // Mark as verified since they used OTP
-      roleId: userRole._id,
-    });
-
-    if (!user) {
-      throw new ApiError(500, "Failed to create user account");
-    }
-
-    // ⭐ RBAC: Assign default USER role
-    try {
-      if (userRole) {
-        await rbacService.assignUserToRole(
-          user._id.toString(),
-          userRole._id.toString(),
-        );
-      }
-    } catch (rbacError) {
-      console.error("Failed to assign default role:", rbacError);
-    }
-  } else {
-    if (user.isBlocked) {
-      throw new ApiError(
-        403,
-        "Your account has been blocked. Please contact support.",
-      );
-    }
-    if (!user.isVerified) {
-      user.isVerified = true;
-      if (!user.roleId) {
-        const userRole = await rbacService.getRoleByName(RoleEnum.USER);
-        user.roleId = userRole._id;
-      }
-      await user.save();
-    }
-  }
-
-  const accessToken = user.generateAccessToken();
-  const refreshToken = user.generateRefreshToken();
-
-  user.refreshToken = refreshToken;
-  await user.save({ validateBeforeSave: false });
-
-  console.log(
-    `🚀 [AUTH SUCCESS] User authenticated: ${user.fullName} (${user._id})`,
-  );
-  console.log(`------------------------------------------------------\n`);
-
-  return {
-    user: await serializeAuthUser(user),
-    accessToken,
-    refreshToken,
-    isNewUser,
-  };
-}
 
 /**
  * Logs out a user by removing their persistent refresh token from the database.
@@ -477,4 +213,253 @@ export async function refreshAccessToken(incomingRefreshToken: string) {
   } catch (error: any) {
     throw new ApiError(401, error?.message || "Invalid refresh token");
   }
+}
+
+// ─────────────────────────────────────────────────────────────────
+// Google OAuth + Password Reset — Phase 4 of the auth redesign
+// ─────────────────────────────────────────────────────────────────
+
+import { verifyGoogleIdToken } from "./googleOAuth.service";
+import type { IUser, IUserIdentity } from "@/modules/common/user/user.model";
+
+/**
+ * Generate a token pair (access + refresh) and persist the refresh token on the
+ * user record. Returns the serialized user alongside the raw tokens.
+ */
+async function issueTokensForUser(user: IUser) {
+  const accessToken = user.generateAccessToken();
+  const refreshToken = user.generateRefreshToken();
+  user.refreshToken = refreshToken;
+  await user.save({ validateBeforeSave: false });
+  return {
+    user: await serializeAuthUser(user),
+    accessToken,
+    refreshToken,
+  };
+}
+
+/**
+ * Verify a Google ID token and either find or create the corresponding user.
+ * Email is the natural linking key; a Google arrival with an email that already
+ * exists on a user without a Google identity simply appends the identity.
+ *
+ * @throws ApiError 409 if the email exists but is linked to a different Google account.
+ */
+export async function googleAuthOrCreate(idToken: string, client: "web" | "mobile") {
+  const profile = await verifyGoogleIdToken(idToken, client);
+
+  let user = await UserDAO.findByEmail(profile.email);
+
+  if (!user) {
+    // Brand-new customer — create ACTIVE immediately. No OTP, no admin approval.
+    const userRole = await rbacService.getRoleByName(RoleEnum.USER);
+    if (!userRole) throw new ApiError(500, "Default user role not found");
+
+    const baseUsername = (profile.email.split("@")[0] ?? "user")
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, "");
+    const username = `${baseUsername}_${Math.floor(Math.random() * 10000)}`;
+
+    const newIdentity: IUserIdentity = {
+      provider: "google",
+      providerId: profile.sub,
+      email: profile.email,
+      linkedAt: new Date(),
+    };
+
+    user = await UserDAO.createUser({
+      email: profile.email,
+      username,
+      fullName: profile.name || profile.email.split("@")[0],
+      avatar: profile.picture
+        ? { url: profile.picture, fileId: `google-${profile.sub}` }
+        : undefined,
+      isVerified: true,
+      legacyOtpOnly: false,
+      roleId: userRole._id,
+      identities: [newIdentity],
+    });
+
+    if (!user) throw new ApiError(500, "Failed to create user account");
+  } else {
+    // Existing user — link Google identity if not already present.
+    const identities = (user.identities ?? []) as IUserIdentity[];
+    const sameGoogleLink = identities.find(
+      (i) => i.provider === "google" && i.providerId === profile.sub
+    );
+    const otherGoogleLink = identities.find(
+      (i) => i.provider === "google" && i.providerId !== profile.sub
+    );
+
+    if (otherGoogleLink) {
+      // Account already linked to a different Google account — refuse to relink.
+      throw new ApiError(
+        409,
+        "This email is already linked to a different Google account."
+      );
+    }
+
+    if (!sameGoogleLink) {
+      identities.push({
+        provider: "google",
+        providerId: profile.sub,
+        email: profile.email,
+        linkedAt: new Date(),
+      });
+      user.identities = identities;
+      // A user originally created by mobile-OTP may have legacyOtpOnly=true;
+      // once they verify via Google, they're no longer legacy.
+      if (user.legacyOtpOnly) user.legacyOtpOnly = false;
+      // Promote avatar if Google has one and the user doesn't.
+      if (profile.picture && !user.avatar?.url) {
+        user.avatar = { url: profile.picture, fileId: `google-${profile.sub}` };
+      }
+      await user.save();
+    }
+  }
+
+  return issueTokensForUser(user);
+}
+
+/**
+ * Set a password on the currently-authenticated user. Used by Google-only users
+ * who want a password as a backup sign-in method. Idempotent — overwrites.
+ */
+export async function setPassword(userId: string, password: string) {
+  const user = await User.findById(userId);
+  if (!user) throw new ApiError(404, "User not found");
+
+  // Pre-save hook will hash this with bcrypt 10.
+  user.password = password;
+
+  // Ensure a "password" identity row exists so future conflict checks work.
+  const identities = (user.identities ?? []) as IUserIdentity[];
+  const hasPasswordIdentity = identities.some((i) => i.provider === "password");
+  if (!hasPasswordIdentity) {
+    identities.push({
+      provider: "password",
+      providerId: `pwd-${user._id.toString()}-${Date.now()}`,
+      email: user.email,
+      linkedAt: new Date(),
+    });
+    user.identities = identities;
+  }
+
+  await user.save();
+  return { ok: true };
+}
+
+/**
+ * Link a Google identity to an existing password-only account. The Google
+ * account's email must match the user's email.
+ */
+export async function linkGoogle(userId: string, idToken: string) {
+  const profile = await verifyGoogleIdToken(idToken, "web");
+
+  const user = await User.findById(userId);
+  if (!user) throw new ApiError(404, "User not found");
+
+  if (user.email.toLowerCase() !== profile.email) {
+    throw new ApiError(
+      409,
+      "Google account email does not match your account email."
+    );
+  }
+
+  const identities = (user.identities ?? []) as IUserIdentity[];
+  const existingGoogle = identities.find((i) => i.provider === "google");
+  if (existingGoogle) {
+    if (existingGoogle.providerId === profile.sub) {
+      // Already linked — idempotent success.
+      return { ok: true };
+    }
+    throw new ApiError(409, "Account already linked to a different Google account.");
+  }
+
+  identities.push({
+    provider: "google",
+    providerId: profile.sub,
+    email: profile.email,
+    linkedAt: new Date(),
+  });
+  user.identities = identities;
+  await user.save();
+  return { ok: true };
+}
+
+// ── Password reset (was absent in the original codebase) ────────
+
+const RESET_JWT_TTL = "15m";
+const RESET_REDIS_PREFIX = "pwd_reset:";
+
+function getResetSecret(): string {
+  return ENV.RESET_PASSWORD_JWT_SECRET || ENV.REFRESH_TOKEN_SECRET;
+}
+
+/**
+ * Generate a 15-minute reset JWT and email a magic link. Always responds
+ * identically (success) regardless of whether the email is registered —
+ * prevents account enumeration.
+ */
+export async function requestPasswordReset(email: string) {
+  const cleanEmail = (email || "").toLowerCase().trim();
+  if (!cleanEmail) throw new ApiError(400, "Please provide an email address.");
+
+  const user = await UserDAO.findByEmail(cleanEmail);
+
+  if (user) {
+    const token = jwt.sign({ _id: user._id.toString(), aud: "reset" }, getResetSecret(), {
+      expiresIn: RESET_JWT_TTL,
+    });
+    const link = `${ENV.RESET_PASSWORD_JWT_SECRET ? "" : ""}${token}`; // full URL built by client
+    // We send the token + a base URL hint; the email template renders the link.
+    await MailService.sendResetPasswordLink(user.email, token);
+  }
+
+  // Always return the same message — do not reveal whether the email is registered.
+  return {
+    message:
+      "If an account exists with that email, a password reset link has been sent.",
+  };
+}
+
+/**
+ * Consume a reset JWT and update the user's password. Marks the token as used
+ * in Redis (15-min TTL) so a single token can't be replayed.
+ */
+export async function consumePasswordReset(token: string, newPassword: string) {
+  if (!token || token.length < 10) {
+    throw new ApiError(400, "Reset link is invalid.");
+  }
+  if (!newPassword || newPassword.length < 8) {
+    throw new ApiError(400, "Password must be at least 8 characters.");
+  }
+
+  let decoded: any;
+  try {
+    decoded = jwt.verify(token, getResetSecret());
+  } catch {
+    throw new ApiError(400, "Reset link has expired or is invalid.");
+  }
+
+  if (decoded?.aud !== "reset") {
+    throw new ApiError(400, "Reset link is invalid.");
+  }
+
+  const usedKey = `${RESET_REDIS_PREFIX}${decoded._id}:${token.slice(-12)}`;
+  const alreadyUsed = await redis.get(usedKey);
+  if (alreadyUsed) {
+    throw new ApiError(400, "Reset link has already been used.");
+  }
+
+  const user = await User.findById(decoded._id);
+  if (!user) throw new ApiError(400, "Reset link is invalid.");
+
+  user.password = newPassword; // pre-save hook hashes
+  await user.save();
+
+  // Mark this token as used for the remaining TTL window.
+  await redis.set(usedKey, "1", "EX", 15 * 60);
+
+  return { ok: true };
 }

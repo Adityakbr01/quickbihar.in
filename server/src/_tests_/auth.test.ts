@@ -12,6 +12,7 @@ process.env.RAZORPAY_WEBHOOK_SECRET = "dummy_webhook_secret";
 process.env.FIREBASE_PROJECT_ID = "dummy_project";
 process.env.FIREBASE_CLIENT_EMAIL = "dummy@test.com";
 process.env.FIREBASE_PRIVATE_KEY = "dummy_key";
+process.env.GOOGLE_CLIENT_ID = "dummy_google_client";
 
 import { describe, expect, mock, test } from "bun:test";
 import request from "supertest";
@@ -38,28 +39,35 @@ mock.module("jsonwebtoken", () => ({
 }));
 mock.module("../config/redis.config", () => ({
     redis: {
-        get: mock((key) => {
-            if (key === "otp:otpuser@test.com") return "123456";
-            if (key === "otp_cooldown:cooldown@test.com") return "true";
-            return null;
-        }),
+        get: mock(() => Promise.resolve(null)),
         set: mock(() => Promise.resolve()),
         del: mock(() => Promise.resolve())
     }
 }));
 const mockMailService = {
     MailService: {
-        sendOTP: mock(() => Promise.resolve(true)),
-        sendMobileOTPToEmail: mock(() => Promise.resolve(true)),
         sendApplicationStatus: mock(() => Promise.resolve(true)),
         sendAdminInvite: mock(() => Promise.resolve(true)),
-        sendPayoutNotice: mock(() => Promise.resolve(true))
+        sendPayoutNotice: mock(() => Promise.resolve(true)),
+        sendResetPasswordLink: mock(() => Promise.resolve(true))
     }
 };
 mock.module("../utils/mail.service", () => mockMailService);
 mock.module("@/utils/mail.service", () => mockMailService);
 mock.module("../config/db", () => ({ default: mock(() => Promise.resolve()) }));
 mock.module("../config/imagekit.config", () => ({ imagekit: {} }));
+
+// Mock the Google OAuth verifier so the new /auth/google endpoint can
+// be exercised in tests without real Google credentials.
+mock.module("../modules/common/auth/googleOAuth.service", () => ({
+    verifyGoogleIdToken: mock(() => Promise.resolve({
+        sub: "google-sub-123",
+        email: "google@test.com",
+        email_verified: true,
+        name: "Google User",
+        picture: null,
+    })),
+}));
 
 mock.module("../modules/common/user/user.model", () => ({
     User: {
@@ -71,19 +79,6 @@ mock.module("../modules/common/user/user.model", () => ({
 mock.module("../modules/common/user/user.dao", () => ({
     UserDAO: {
         findByUsernameOrEmail: mock((username, email) => {
-            if (email === "unverified@test.com") {
-                return Promise.resolve({
-                    _id: VALID_ID,
-                    email,
-                    username: "unverified",
-                    fullName: "Unverified User",
-                    isVerified: false,
-                    isPasswordCorrect: mock(() => Promise.resolve(true)),
-                    generateAccessToken: () => "valid_access_token",
-                    generateRefreshToken: () => "valid_refresh_token",
-                    save: mock(() => Promise.resolve())
-                });
-            }
             if (email === "approvedrider@test.com") {
                 return Promise.resolve({
                     _id: RIDER_ID,
@@ -98,13 +93,29 @@ mock.module("../modules/common/user/user.dao", () => ({
                     save: mock(() => Promise.resolve())
                 });
             }
-            if (email === "existing@test.com" || email === "otpuser@test.com" || email === "cooldown@test.com") {
+            if (email === "existing@test.com") {
                 return Promise.resolve({
                     _id: VALID_ID,
                     email,
                     username: "existing",
                     fullName: "Existing User",
                     isVerified: true,
+                    isPasswordCorrect: mock(() => Promise.resolve(true)),
+                    generateAccessToken: () => "valid_access_token",
+                    generateRefreshToken: () => "valid_refresh_token",
+                    save: mock(() => Promise.resolve())
+                });
+            }
+            return Promise.resolve(null);
+        }),
+        findByEmail: mock((email) => {
+            if (email === "existing@test.com") {
+                return Promise.resolve({
+                    _id: VALID_ID,
+                    email,
+                    username: "existing",
+                    fullName: "Existing User",
+                    identities: [{ provider: "password", providerId: email }],
                     isPasswordCorrect: mock(() => Promise.resolve(true)),
                     generateAccessToken: () => "valid_access_token",
                     generateRefreshToken: () => "valid_refresh_token",
@@ -157,13 +168,12 @@ mock.module("../modules/common/deliveryBoy/delivery.model", () => ({
 // 4. Delayed Import of App
 const { app } = await import("../app");
 
-describe("Authentication Routes", () => {
+describe("Authentication Routes (post-OTP cutover)", () => {
 
     test("POST /api/v1/auth/register (Success)", async () => {
         const res = await request(app)
             .post("/api/v1/auth/register")
             .send({
-                phone: "9876543210",
                 email: "newuser@test.com",
                 password: "password123",
                 fullName: "New User"
@@ -172,33 +182,6 @@ describe("Authentication Routes", () => {
         expect(res.status).toBe(201);
         expect(res.body.success).toBe(true);
         expect(res.body.data.accessToken).toBeDefined();
-    });
-
-    test("POST /api/v1/auth/request-otp (Success)", async () => {
-        const res = await request(app)
-            .post("/api/v1/auth/request-otp")
-            .send({ email: "otpuser@test.com" });
-
-        expect(res.status).toBe(200);
-        expect(res.body.message).toContain("OTP sent");
-    });
-
-    test("POST /api/v1/auth/request-otp (Cooldown Error)", async () => {
-        const res = await request(app)
-            .post("/api/v1/auth/request-otp")
-            .send({ email: "cooldown@test.com" });
-
-        expect(res.status).toBe(429);
-        expect(res.body.message).toContain("Too many requests");
-    });
-
-    test("POST /api/v1/auth/login (Unverified Failure - Triggers OTP)", async () => {
-        const res = await request(app)
-            .post("/api/v1/auth/login")
-            .send({ email: "unverified@test.com", password: "password123" });
-
-        expect(res.status).toBe(401);
-        expect(res.body.message).toContain("Account not verified");
     });
 
     test("POST /api/v1/auth/login self-heals approved delivery role", async () => {
@@ -212,23 +195,22 @@ describe("Authentication Routes", () => {
         expect(assignUserToRole).toHaveBeenCalledWith(RIDER_ID, VALID_ID);
     });
 
-    test("POST /api/v1/auth/verify-otp (Success)", async () => {
+    test("POST /api/v1/auth/google (New user)", async () => {
         const res = await request(app)
-            .post("/api/v1/auth/verify-otp")
-            .send({ email: "otpuser@test.com", otp: "123456" });
+            .post("/api/v1/auth/google")
+            .send({ idToken: "mock_google_id_token", client: "web" });
 
         expect(res.status).toBe(200);
         expect(res.body.data.accessToken).toBeDefined();
-        expect(res.body.message).toContain("verified");
+        expect(res.body.data.user.email).toBe("google@test.com");
     });
 
-    test("POST /api/v1/auth/verify-otp (Invalid OTP)", async () => {
+    test("POST /api/v1/auth/request-reset (Always 200)", async () => {
         const res = await request(app)
-            .post("/api/v1/auth/verify-otp")
-            .send({ email: "otpuser@test.com", otp: "wrong" });
+            .post("/api/v1/auth/request-reset")
+            .send({ email: "anyuser@test.com" });
 
-        expect(res.status).toBe(400);
-        expect(res.body.message).toContain("Invalid OTP");
+        expect(res.status).toBe(200);
     });
 
     test("POST /api/v1/auth/refresh-token", async () => {

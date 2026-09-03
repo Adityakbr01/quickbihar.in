@@ -3,6 +3,7 @@ import { Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import QueryProvider from "@/components/providers/QueryProvider";
 import SocketListenerProvider from "@/components/providers/SocketListenerProvider";
+import AuthProviders from "@/components/providers/AuthProviders";
 import { Toaster } from "@/components/ui/sonner";
 
 const spaceGrotesk = Space_Grotesk({
@@ -13,7 +14,8 @@ const spaceGrotesk = Space_Grotesk({
 
 export const metadata: Metadata = {
   title: "QuickBihar.in | Bihar's #1 Fashion & Instant Delivery App",
-  description: "Shop trending fashion from local stores with 30-min delivery across Bihar.",
+  description:
+    "Shop trending fashion from local stores with 30-min delivery across Bihar.",
 };
 
 export default function RootLayout({
@@ -23,11 +25,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark">
-      <body className={`${spaceGrotesk.variable} font-sans antialiased`}>
+      <body
+        className={`${spaceGrotesk.variable} font-sans antialiased`}
+      >
         <QueryProvider>
-          <SocketListenerProvider>
-            {children}
-          </SocketListenerProvider>
+          <AuthProviders>
+            <SocketListenerProvider>{children}</SocketListenerProvider>
+          </AuthProviders>
           <Toaster position="top-center" richColors />
         </QueryProvider>
       </body>

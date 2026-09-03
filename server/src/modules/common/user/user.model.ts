@@ -3,6 +3,13 @@ import jwt from "jsonwebtoken";
 import mongoose, { Document, Schema, Types } from "mongoose";
 import { ENV } from "@/config/env.config";
 
+export interface IUserIdentity {
+  provider: "google" | "password";
+  providerId: string;
+  email: string;
+  linkedAt: Date;
+}
+
 export interface IUser extends Document {
   username: string;
   email: string;
@@ -13,10 +20,14 @@ export interface IUser extends Document {
     fileId: string;
   };
   fcmToken?: string;
-  password: string;
+  password?: string;
   roleId: Types.ObjectId;
   isVerified?: boolean;
   isBlocked?: boolean;
+  /** Set to true for users originally created by the OTP flow whose email is a synthetic `<phone>@quickbihar.local`. They must add a real email before using email-password auth. */
+  legacyOtpOnly?: boolean;
+  /** All credentials attached to this account (Google sub, password fingerprint). Email is the natural linking key. */
+  identities?: IUserIdentity[];
   deletedAt?: Date;
   deletedBy?: Types.ObjectId;
   deletionReason?: string;
@@ -62,7 +73,8 @@ const userSchema = new Schema<IUser>(
     },
     password: {
       type: String,
-      required: [true, "Password is required"],
+      // No longer required at the schema level — Google-only users have no password.
+      required: false,
     },
     roleId: {
       type: Types.ObjectId,
@@ -72,6 +84,27 @@ const userSchema = new Schema<IUser>(
     },
     isVerified: { type: Boolean, default: false, index: true },
     isBlocked: { type: Boolean, default: false, index: true },
+    legacyOtpOnly: { type: Boolean, default: false, index: true },
+    identities: {
+      type: [
+        {
+          provider: {
+            type: String,
+            enum: ["google", "password"],
+            required: true,
+          },
+          providerId: { type: String, required: true },
+          email: {
+            type: String,
+            required: true,
+            lowercase: true,
+            trim: true,
+          },
+          linkedAt: { type: Date, default: Date.now },
+        },
+      ],
+      default: [],
+    },
     deletedAt: {
       type: Date,
       index: true,
@@ -99,12 +132,15 @@ const userSchema = new Schema<IUser>(
 // Pre-save hook to hash password
 userSchema.pre("save", async function () {
   if (!this.isModified("password")) return;
+  // Google-only users have no password; skip hashing if undefined/empty.
+  if (!this.password) return;
 
   this.password = await bcrypt.hash(this.password, 10);
 });
 
 // Instance method to check password
 userSchema.methods.isPasswordCorrect = async function (password: string) {
+  if (!this.password) return false;
   return await bcrypt.compare(password, this.password);
 };
 
@@ -136,5 +172,15 @@ userSchema.methods.generateRefreshToken = function () {
     }
   );
 };
+
+// ── Auth-redesign indexes (Phase 3) ──────────────────────────────
+// Compound unique index on identities prevents the same Google `sub` from
+// being linked to two different accounts.
+userSchema.index(
+  { "identities.provider": 1, "identities.providerId": 1 },
+  { unique: true, partialFilterExpression: { "identities.0": { $exists: true } } }
+);
+// Email lookup index for identity records.
+userSchema.index({ "identities.email": 1 });
 
 export const User = mongoose.model<IUser>("User", userSchema);

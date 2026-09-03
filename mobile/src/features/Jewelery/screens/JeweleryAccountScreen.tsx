@@ -376,7 +376,7 @@ export default function JeweleryAccountScreen() {
                 icon="key"
                 label="Password & Email Setup"
                 sub="Update password or link email address for password login"
-                route="/jewelery/auth/reset-password?flow=forgot"
+                route="/account/set-password"
               />
               <MenuItem
                 icon="bell"

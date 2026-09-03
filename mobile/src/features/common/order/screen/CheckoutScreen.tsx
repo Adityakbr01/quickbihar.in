@@ -27,6 +27,7 @@ import IOSAlertDialog, {
   AlertButton,
 } from "@/src/components/ui/IOSAlertDialog";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
+import { PhoneMissingBanner } from "../components/PhoneMissingBanner";
 
 const CheckoutScreen = () => {
   const theme = useTheme();
@@ -343,6 +344,11 @@ const CheckoutScreen = () => {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
+        {/* Phone capture banner — sellers call to confirm orders, so
+            users without a phone on file are nudged to add one before
+            they can complete checkout. */}
+        {!user?.phone && <PhoneMissingBanner />}
+
         {/* Delivery Address */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>

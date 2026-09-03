@@ -1,77 +1,6 @@
 import { resend, RESEND_FROM } from "../config/resend.config";
-import { ENV } from "../config/env.config";
 
 export class MailService {
-  static async sendOTP(email: string, otp: string) {
-    try {
-      console.log(`📧 [MailService] Sending OTP to ${email} using sender: ${RESEND_FROM}`);
-      const { data, error } = await resend.emails.send({
-        from: RESEND_FROM,
-        to: [email],
-        subject: "Your Quick Bihar Verification Code",
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e1e1e1; border-radius: 10px;">
-            <h2 style="color: #333; text-align: center;">Verification Code</h2>
-            <p style="font-size: 16px; color: #555;">Hello,</p>
-            <p style="font-size: 16px; color: #555;">Your one-time password (OTP) for Quick Bihar is:</p>
-            <div style="background-color: #f4f4f4; padding: 15px; text-align: center; border-radius: 5px; margin: 20px 0;">
-              <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #007bff;">${otp}</span>
-            </div>
-            <p style="font-size: 14px; color: #888;">This code will expire in 10 minutes. If you did not request this code, please ignore this email.</p>
-            <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
-            <p style="font-size: 12px; color: #aaa; text-align: center;">&copy; 2024 Quick Bihar. All rights reserved.</p>
-          </div>
-        `,
-      });
-
-      if (error) {
-        console.error("❌ Resend Error:", JSON.stringify(error, null, 2));
-        return false;
-      }
-
-      console.log(`✅ [MailService] OTP email successfully sent to ${email}. ID: ${data?.id}`);
-      return true;
-    } catch (error) {
-      console.error("❌ Mail Service Error:", error);
-      return false;
-    }
-  }
-
-  static async sendMobileOTPToEmail(phoneNumber: string, otp: string, recipientEmail?: string) {
-    const toEmail = recipientEmail || ENV.OTP_TEST_EMAIL || ENV.ADMIN_EMAIL || "adityakbr01@gmail.com";
-    try {
-      console.log(`📧 [MailService] Dispatching Mobile OTP notification for ${phoneNumber} to ${toEmail}`);
-      const { data, error } = await resend.emails.send({
-        from: RESEND_FROM,
-        to: [toEmail],
-        subject: `[OTP Testing] Code for Mobile: ${phoneNumber}`,
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e1e1e1; border-radius: 10px;">
-            <h2 style="color: #333; text-align: center;">QuickBihar Verification Code</h2>
-            <p style="font-size: 16px; color: #555;">Hello,</p>
-            <p style="font-size: 16px; color: #555;">An OTP code was generated for mobile number: <strong>${phoneNumber}</strong></p>
-            <div style="background-color: #f4f4f4; padding: 15px; text-align: center; border-radius: 5px; margin: 20px 0;">
-              <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #007bff;">${otp}</span>
-            </div>
-            <p style="font-size: 15px; color: #333;"><strong>Your mobile number:</strong> ${phoneNumber}</p>
-            <p style="font-size: 15px; color: #333;"><strong>Your OTP code:</strong> ${otp}</p>
-            <p style="font-size: 12px; color: #888; margin-top: 20px;">This email was sent for testing mode while SMS gateway is unconfigured. Valid for 10 minutes.</p>
-          </div>
-        `,
-      });
-
-      if (error) {
-        console.error("❌ Resend Mobile OTP Mail Error:", JSON.stringify(error, null, 2));
-        return false;
-      }
-      console.log(`✅ [MailService] Mobile OTP email dispatched to ${toEmail}. ID: ${data?.id}`);
-      return true;
-    } catch (error) {
-      console.error("❌ Mail Service Mobile OTP Error:", error);
-      return false;
-    }
-  }
-
   static async sendApplicationStatus(email: string, status: string, reason?: string) {
     const isApproved = status === "APPROVED";
     const subject = isApproved ? "Application Approved! - Quick Bihar" : "Application Update - Quick Bihar";
@@ -146,6 +75,41 @@ export class MailService {
       }
     } catch (error) {
       console.error("❌ Payout Mail Service Error:", error);
+    }
+  }
+
+  /**
+   * Send a password-reset link to the given email. The reset URL is built by
+   * the client because the email recipient might be opening the link on a
+   * different device (mobile vs web). The token alone is sent — the recipient
+   * chooses the surface.
+   */
+  static async sendResetPasswordLink(email: string, token: string) {
+    try {
+      const { data, error } = await resend.emails.send({
+        from: RESEND_FROM,
+        to: [email],
+        subject: "Reset your Quick Bihar password",
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <h2>Reset your password</h2>
+            <p>We received a request to reset the password for your Quick Bihar account.</p>
+            <p>Open this link on the device where you want to set your new password (web or mobile):</p>
+            <p style="margin: 20px 0;">
+              <code style="display:inline-block;background:#f4f4f4;padding:10px;border-radius:6px;">${token}</code>
+            </p>
+            <p>This link expires in 15 minutes. If you didn't request a password reset, you can safely ignore this email.</p>
+          </div>
+        `,
+      });
+      if (error) {
+        console.error("❌ Reset Link Mail Error:", JSON.stringify(error, null, 2));
+        return false;
+      }
+      return true;
+    } catch (error) {
+      console.error("❌ Reset Link Mail Service Error:", error);
+      return false;
     }
   }
 }

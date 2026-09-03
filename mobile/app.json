@@ -67,6 +67,11 @@
     "extra": {
       "eas": {
         "projectId": "c41a890a-b542-40e8-a2c3-d5d51814767d"
+      },
+      "google": {
+        "webClientId": "REPLACE_WITH_OAUTH_WEB_CLIENT_ID",
+        "iosClientId": "REPLACE_WITH_OAUTH_IOS_CLIENT_ID",
+        "androidClientId": "REPLACE_WITH_OAUTH_ANDROID_CLIENT_ID"
       }
     }
   }

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { ChevronDown, Package } from "lucide-react";
+import { ChevronDown, Copy, Package, Phone, PhoneCall, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useFulfillmentRealtime } from "@/hooks/useFulfillmentRealtime";
@@ -8,7 +8,10 @@ import {
   useSellerSubOrders,
   useSellerSubOrderStatusMutation,
   useSellerSubOrderCancellationMutation,
+  useSellerConfirmSubOrderMutation,
+  useSellerDeclineSubOrderMutation,
 } from "../hooks/useSellerManagement";
+import { maskPhone } from "@/features/auth/utils/privacy";
 import {
   ModuleCard,
   ListFilters,
@@ -90,6 +93,9 @@ export function SellerOrdersPanel() {
   const subOrdersQuery = useSellerSubOrders(params);
   const updateStatus = useSellerSubOrderStatusMutation();
   const processCancellation = useSellerSubOrderCancellationMutation();
+  // Phase 9 — call-and-confirm mutations.
+  const confirmSubOrder = useSellerConfirmSubOrderMutation();
+  const declineSubOrder = useSellerDeclineSubOrderMutation();
 
   // State for Ready for Pickup modal
   const [selectedSubOrder, setSelectedSubOrder] = useState<any | null>(null);
@@ -97,6 +103,26 @@ export function SellerOrdersPanel() {
   const [packageCount, setPackageCount] = useState<number>(1);
   const [isFragile, setIsFragile] = useState<boolean>(false);
   const [pickupNotes, setPickupNotes] = useState<string>("");
+
+  // Phase 9 — decline-modal state. The seller types a reason; the server
+  // triggers a refund for online payments and marks the order REJECTED for COD.
+  const [declineTarget, setDeclineTarget] = useState<any | null>(null);
+  const [declineReason, setDeclineReason] = useState<string>("");
+
+  const copyToClipboard = async (value?: string | null) => {
+    if (!value) return;
+    try {
+      await navigator.clipboard.writeText(value);
+    } catch {
+      // Older browsers / insecure context — fall back to a temporary input.
+      const input = document.createElement("input");
+      input.value = value;
+      document.body.appendChild(input);
+      input.select();
+      document.execCommand("copy");
+      document.body.removeChild(input);
+    }
+  };
 
   const handleOpenPickupModal = (subOrder: any) => {
     setSelectedSubOrder(subOrder);
@@ -133,6 +159,7 @@ export function SellerOrdersPanel() {
           onChange={setParams}
           statusOptions={[
             "ALL",
+            "PENDING_SELLER_CONFIRMATION",
             "CONFIRMED",
             "PROCESSING",
             "PACKED",
@@ -146,6 +173,7 @@ export function SellerOrdersPanel() {
             "DELIVERED",
             "CANCELLED",
             "REJECTED",
+            "SELLER_REJECTED",
           ]}
         />
       }
@@ -172,8 +200,8 @@ export function SellerOrdersPanel() {
               <div className="text-sm text-gray-200">
                 {subOrder.parentOrderId?.shippingAddress?.fullName || "Customer"}
               </div>
-              <div className="text-xs text-gray-500">
-                {subOrder.parentOrderId?.shippingAddress?.phone}
+              <div className="text-xs text-gray-500 font-mono">
+                {maskPhone(subOrder.parentOrderId?.shippingAddress?.phone)}
               </div>
             </div>,
             <ItemsDropdownCell key={`${subOrder._id}-items`} items={subOrder.items} />,
@@ -187,6 +215,98 @@ export function SellerOrdersPanel() {
               )}
             </div>,
             <div key={`${subOrder._id}-actions`} className="flex flex-col gap-2">
+              {/* Phase 9 — pending seller confirmation. The seller must phone
+                  the customer, read the OTPs, then click Confirm. OTPs are
+                  generated up-front in finalizePendingConfirmation so they
+                  exist from the moment the order is created. */}
+              {subOrder.status === "PENDING_SELLER_CONFIRMATION" && (() => {
+                const customerPhone = subOrder.parentOrderId?.shippingAddress?.phone;
+                return (
+                  <div className="bg-amber-500/5 border border-amber-500/20 rounded-lg p-3 text-xs space-y-2.5">
+                    <div className="flex items-center gap-1.5 text-amber-400 font-bold">
+                      <PhoneCall className="h-3.5 w-3.5" />
+                      Call customer to confirm
+                    </div>
+
+                    {customerPhone && (
+                      <a
+                        href={`tel:${customerPhone}`}
+                        className="flex items-center justify-between gap-2 rounded-md bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 px-2.5 py-2 transition group"
+                      >
+                        <div className="flex items-center gap-1.5">
+                          <Phone className="h-3.5 w-3.5 text-emerald-400" />
+                          <span className="font-mono text-emerald-300 font-bold">
+                            {maskPhone(customerPhone)}
+                          </span>
+                        </div>
+                        <span className="text-[10px] font-bold text-emerald-400 group-hover:text-emerald-300">
+                          TAP TO CALL →
+                        </span>
+                      </a>
+                    )}
+
+                    {subOrder.delivery?.pickupOtp && (
+                      <button
+                        type="button"
+                        onClick={() => copyToClipboard(subOrder.delivery.pickupOtp)}
+                        className="flex items-center justify-between gap-2 w-full rounded-md bg-black/30 hover:bg-black/40 border border-white/10 px-2.5 py-2 transition"
+                      >
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                            Pickup OTP
+                          </span>
+                          <span className="font-mono text-emerald-400 font-bold tracking-wider text-sm">
+                            {subOrder.delivery.pickupOtp}
+                          </span>
+                        </div>
+                        <Copy className="h-3.5 w-3.5 text-gray-400" />
+                      </button>
+                    )}
+
+                    {subOrder.delivery?.deliveryOtp && (
+                      <button
+                        type="button"
+                        onClick={() => copyToClipboard(subOrder.delivery.deliveryOtp)}
+                        className="flex items-center justify-between gap-2 w-full rounded-md bg-black/30 hover:bg-black/40 border border-white/10 px-2.5 py-2 transition"
+                      >
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                            Delivery OTP
+                          </span>
+                          <span className="font-mono text-emerald-400 font-bold tracking-wider text-sm">
+                            {subOrder.delivery.deliveryOtp}
+                          </span>
+                        </div>
+                        <Copy className="h-3.5 w-3.5 text-gray-400" />
+                      </button>
+                    )}
+
+                    <div className="flex gap-2 pt-1">
+                      <Button
+                        size="sm"
+                        className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white"
+                        onClick={() => confirmSubOrder.mutate({ subOrderId: subOrder._id, method: "phone_call" })}
+                        disabled={confirmSubOrder.isPending}
+                      >
+                        Confirm Order
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="flex-1 border-red-500/30 text-red-400 hover:bg-red-500/10"
+                        onClick={() => {
+                          setDeclineTarget(subOrder);
+                          setDeclineReason("");
+                        }}
+                        disabled={declineSubOrder.isPending}
+                      >
+                        Decline
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })()}
+
               {/* State transition buttons */}
               {subOrder.status === "CONFIRMED" && (
                 <Button
@@ -348,6 +468,72 @@ export function SellerOrdersPanel() {
                 disabled={updateStatus.isPending}
               >
                 Confirm & Request Rider
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Phase 9 — Decline-sub-order modal. Triggers a refund for online
+          payments; for COD the order is just marked REJECTED. */}
+      {declineTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="w-full max-w-md bg-[#181818] border border-red-500/30 rounded-xl shadow-2xl overflow-hidden p-6 text-white animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                <X className="h-5 w-5 text-red-400" />
+                Decline Sub-Order
+              </h3>
+              <button
+                type="button"
+                onClick={() => setDeclineTarget(null)}
+                className="text-gray-400 hover:text-white"
+                aria-label="Close"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="space-y-3 py-4 text-sm text-gray-300">
+              <p>
+                Declining <span className="font-mono text-white">{declineTarget.subOrderId}</span>{" "}
+                will reject the order. The customer will be notified and, for online
+                payments, the money will be refunded.
+              </p>
+              <div>
+                <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">
+                  Reason
+                </label>
+                <textarea
+                  value={declineReason}
+                  onChange={(e) => setDeclineReason(e.target.value)}
+                  placeholder="e.g. Customer unreachable after 3 attempts"
+                  className="w-full h-24 bg-black/30 border border-white/10 rounded-lg px-3 py-2 text-white outline-none focus:border-red-500 resize-none text-sm placeholder:text-gray-600"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 border-t border-white/10 pt-4 mt-2">
+              <Button
+                variant="ghost"
+                className="text-gray-400 hover:bg-white/5 hover:text-white"
+                onClick={() => setDeclineTarget(null)}
+                disabled={declineSubOrder.isPending}
+              >
+                Cancel
+              </Button>
+              <Button
+                className="bg-red-600 hover:bg-red-700 text-white"
+                onClick={() => {
+                  if (!declineReason.trim()) return;
+                  declineSubOrder.mutate(
+                    { subOrderId: declineTarget._id, reason: declineReason.trim() },
+                    { onSuccess: () => setDeclineTarget(null) },
+                  );
+                }}
+                disabled={declineSubOrder.isPending || declineReason.trim().length < 2}
+              >
+                {declineSubOrder.isPending ? "Declining…" : "Decline Sub-Order"}
               </Button>
             </div>
           </div>

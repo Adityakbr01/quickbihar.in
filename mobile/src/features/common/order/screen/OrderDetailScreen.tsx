@@ -224,6 +224,15 @@ export default function OrderDetailScreen() {
     return null;
   }, [currentSubOrder, order]);
 
+  // Phase 9 — pickup OTP (rider shares it with the seller at store pickup).
+  // Generated up front when the sub-order is created (finalizePendingConfirmation).
+  const pickupOtp = useMemo(() => {
+    if (currentSubOrder?.delivery?.pickupOtp) {
+      return String(currentSubOrder.delivery.pickupOtp);
+    }
+    return null;
+  }, [currentSubOrder]);
+
   // Determine current active step index for progress bar
   const currentStatus = (currentSubOrder?.status || order?.status || "CONFIRMED").toUpperCase();
 
@@ -628,32 +637,75 @@ export default function OrderDetailScreen() {
           );
         })}
 
-        {/* Prominent Delivery OTP Card (When Active & Available) */}
-        {deliveryOtp && currentStatus !== "DELIVERED" && currentStatus !== "CANCELLED" && (
-          <View style={styles.otpCard}>
-            <View style={styles.otpHeader}>
-              <View style={styles.otpTitleContainer}>
-                <Ionicons name="shield-checkmark" size={18} color="#15803d" />
-                <Text style={styles.otpTitle}>Delivery OTP</Text>
-              </View>
-              <View style={styles.otpBadge}>
-                <Text style={styles.otpBadgeText}>Required for Delivery</Text>
-              </View>
-            </View>
-
-            <View style={styles.otpCodeRow}>
-              {deliveryOtp.split("").map((digit: string, i: number) => (
-                <View key={i} style={styles.otpDigitBox}>
-                  <Text style={styles.otpDigitText}>{digit}</Text>
+        {/* Phase 9 — Prominent Delivery + Pickup OTP card.
+            Generated up front when the sub-order is created; NOT sent via SMS.
+            The customer shows the delivery OTP to the rider on arrival. */}
+        {(deliveryOtp || pickupOtp) &&
+          currentStatus !== "DELIVERED" &&
+          currentStatus !== "CANCELLED" && (
+            <View style={styles.otpCard}>
+              <View style={styles.otpHeader}>
+                <View style={styles.otpTitleContainer}>
+                  <Ionicons name="shield-checkmark" size={18} color="#15803d" />
+                  <Text style={styles.otpTitle}>Verification OTPs</Text>
                 </View>
-              ))}
-            </View>
+                <View style={styles.otpBadge}>
+                  <Text style={styles.otpBadgeText}>Show to delivery person</Text>
+                </View>
+              </View>
 
-            <Text style={styles.otpSubtitle}>
-              Please share this 6-digit secure code with the delivery partner upon arrival.
-            </Text>
-          </View>
-        )}
+              {deliveryOtp && (
+                <View style={{ marginBottom: 12 }}>
+                  <Text
+                    style={[
+                      styles.otpSubtitle,
+                      { marginTop: 0, marginBottom: 6, fontWeight: "700", color: "#0f172a" },
+                    ]}
+                  >
+                    Delivery OTP (for delivery at your door)
+                  </Text>
+                  <View style={styles.otpCodeRow}>
+                    {deliveryOtp.split("").map((digit: string, i: number) => (
+                      <View key={i} style={styles.otpDigitBox}>
+                        <Text style={styles.otpDigitText}>{digit}</Text>
+                      </View>
+                    ))}
+                  </View>
+                </View>
+              )}
+
+              {pickupOtp && (
+                <View>
+                  <Text
+                    style={[
+                      styles.otpSubtitle,
+                      { marginTop: 0, marginBottom: 6, fontWeight: "700", color: "#0f172a" },
+                    ]}
+                  >
+                    Pickup OTP (rider uses at the store)
+                  </Text>
+                  <View style={styles.otpCodeRow}>
+                    {pickupOtp.split("").map((digit: string, i: number) => (
+                      <View key={i} style={styles.otpDigitBox}>
+                        <Text style={styles.otpDigitText}>{digit}</Text>
+                      </View>
+                    ))}
+                  </View>
+                </View>
+              )}
+
+              <Text
+                style={[
+                  styles.otpSubtitle,
+                  { marginTop: 12, color: "#64748b" },
+                ]}
+              >
+                {deliveryOtp
+                  ? "Share the delivery OTP only when the rider arrives at your door with your package."
+                  : "The seller will share the delivery OTP with you on their confirmation call."}
+              </Text>
+            </View>
+          )}
 
         {/* Order Status & Progress Card */}
         <View style={styles.statusCard}>

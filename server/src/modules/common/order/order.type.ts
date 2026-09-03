@@ -3,6 +3,12 @@ import { Document, Types } from "mongoose";
 export enum OrderStatus {
     PENDING_PAYMENT = "PENDING_PAYMENT",
     PAID = "PAID",
+    /**
+     * Phase 9: payment is captured but the seller(s) have not yet confirmed
+     * the order by phone. Order sits here until every sub-order's seller
+     * confirms (or declines). See sellerConfirmSubOrder in order.service.ts.
+     */
+    PENDING_SELLER_CONFIRMATION = "PENDING_SELLER_CONFIRMATION",
     CONFIRMED = "CONFIRMED",
     PROCESSING = "PROCESSING",
     SHIPPED = "SHIPPED",

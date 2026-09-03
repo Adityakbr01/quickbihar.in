@@ -1,12 +1,18 @@
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import helmet from "helmet";
 import { errorHandler } from "./middlewares/error.middleware";
 import { ENV } from "./config/env.config";
 import { loggerMiddleware } from "./middlewares/logger.middleware";
 import { responseExtensions } from "./middlewares/responseExtensions.middleware";
 
 const app = express();
+
+// Security headers — applied before the request logger so the body dump gate
+// stays effective. CSP is intentionally permissive for now (server returns
+// only JSON; any UI CSP belongs to the web/mobile apps).
+app.use(helmet());
 
 app.use(loggerMiddleware);
 

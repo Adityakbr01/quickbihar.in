@@ -25,6 +25,9 @@ router.get("/me", OrderController.getMyOrders);
 router.get("/sub-orders/:id", OrderController.getSubOrderDetails);
 router.post("/sub-orders/:id/cancel", OrderController.cancelSubOrder);
 router.post("/sub-orders/:id/return", OrderController.returnSubOrder);
+// Phase 9 — seller confirms / declines a sub-order after phoning the customer.
+router.post("/sub-orders/:id/seller-confirm", OrderController.sellerConfirmSubOrder);
+router.post("/sub-orders/:id/seller-decline", OrderController.sellerDeclineSubOrder);
 router.get("/:id", OrderController.getOrderById);
 
 export default router;

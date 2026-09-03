@@ -23,6 +23,49 @@ import { idString, toObjectId } from "@/utils/id.util";
 
 const generateDeliveryOtp = () => Math.floor(100000 + Math.random() * 900000).toString();
 
+/**
+ * Customer-facing status aliasing.
+ *
+ * Internally, after payment a sub-order is in `PENDING_SELLER_CONFIRMATION` until
+ * the seller phones the customer and confirms. This is an operational state
+ * that only the seller panel cares about — the customer just paid, so from
+ * their side the order reads as `CONFIRMED` (or "ready for dispatch").
+ *
+ * Call `mapCustomerOrderStatus` / `mapCustomerSubOrderStatus` at the boundary
+ * of any customer-facing read path so the UI never shows
+ * `PENDING_SELLER_CONFIRMATION`. Seller/admin endpoints MUST NOT call these.
+ */
+const mapCustomerOrderStatus = (status: OrderStatus): OrderStatus =>
+    status === OrderStatus.PENDING_SELLER_CONFIRMATION ? OrderStatus.CONFIRMED : status;
+
+const mapCustomerSubOrderStatus = (status: SubOrderStatus): SubOrderStatus =>
+    status === SubOrderStatus.PENDING_SELLER_CONFIRMATION
+        ? SubOrderStatus.CONFIRMED
+        : status;
+
+const maskOrderForCustomer = (order: any) => {
+    if (!order) return order;
+    if (order.status === OrderStatus.PENDING_SELLER_CONFIRMATION) {
+        order.status = OrderStatus.CONFIRMED;
+    }
+    if (Array.isArray(order.subOrders)) {
+        for (const so of order.subOrders) {
+            if (so && so.status === SubOrderStatus.PENDING_SELLER_CONFIRMATION) {
+                so.status = SubOrderStatus.CONFIRMED;
+            }
+        }
+    }
+    return order;
+};
+
+const maskSubOrderForCustomer = (subOrder: any) => {
+    if (!subOrder) return subOrder;
+    if (subOrder.status === SubOrderStatus.PENDING_SELLER_CONFIRMATION) {
+        subOrder.status = SubOrderStatus.CONFIRMED;
+    }
+    return subOrder;
+};
+
 // Sentinel stored in `paymentInfo.razorpayOrderId` for Cash-on-Delivery orders, which
 // have no real Razorpay order. Sub-order creation reads this to flag `packageDetails.isCod`,
 // which drives the whole COD subsystem (rider cash-liability ceiling + admin settle-COD).
@@ -249,9 +292,10 @@ export class OrderService {
             createdAt: order.createdAt
         });
 
-        // COD skips Razorpay. Secure inventory first (all-or-nothing); only then confirm and
-        // run the same post-confirmation pipeline online orders run in verifyPayment. There is
-        // no payment to refund, so an out-of-stock COD order is simply marked FAILED.
+        // COD skips Razorpay. Secure inventory first (all-or-nothing); only then move the
+        // order into PENDING_SELLER_CONFIRMATION (Phase 9) and run the same post-payment
+        // pipeline online orders run in verifyPayment. There is no payment to refund, so
+        // an out-of-stock COD order is simply marked FAILED.
         if (isCod) {
             try {
                 await this.deductOrderStock(order);
@@ -259,9 +303,11 @@ export class OrderService {
                 await orderDAO.updateStatus(order._id.toString(), OrderStatus.FAILED).catch(() => {});
                 throw stockError;
             }
-            const confirmedOrder = await orderDAO.updateStatus(order._id.toString(), OrderStatus.CONFIRMED);
-            await this.finalizeConfirmedOrder(order);
-            return { order: confirmedOrder, razorpayOrder: null };
+            const pendingOrder = await orderDAO.updateStatus(order._id.toString(), OrderStatus.PENDING_SELLER_CONFIRMATION);
+            await this.finalizePendingConfirmation(order);
+            // Customer never sees PENDING_SELLER_CONFIRMATION — the order is "confirmed"
+            // from their side the moment payment/COD is placed.
+            return { order: maskOrderForCustomer(pendingOrder), razorpayOrder: null };
         }
 
         return {
@@ -303,18 +349,27 @@ export class OrderService {
             throw stockError;
         }
 
-        // 4. Stock secured — mark the order CONFIRMED.
+        // 4. Stock secured — move order into PENDING_SELLER_CONFIRMATION (Phase 9).
+        //    The seller(s) must call the customer to confirm before the order advances
+        //    to CONFIRMED. Sub-orders are created in the same pending state by
+        //    finalizePendingConfirmation, which also generates the pickup/delivery
+        //    OTPs up front so the seller can read them on the call.
         const updatedOrder = await orderDAO.updateStatus(
             order._id.toString(),
-            OrderStatus.CONFIRMED,
+            OrderStatus.PENDING_SELLER_CONFIRMATION,
             razorpayPaymentId,
             razorpaySignature
         );
 
-        // 5. Run the shared post-confirmation pipeline (coupons, sub-orders, emissions).
-        await this.finalizeConfirmedOrder(order);
+        // 5. Run the post-payment pipeline: coupons, sub-orders, emissions — but in
+        //    pending mode, so the seller can still see the order in their "pending
+        //    confirmation" queue.
+        await this.finalizePendingConfirmation(order);
 
-        return updatedOrder;
+        // Customer never sees PENDING_SELLER_CONFIRMATION — payment success is the
+        // "order confirmed" moment for the buyer. The seller panel still surfaces
+        // the pending state for the call-and-confirm workflow.
+        return maskOrderForCustomer(updatedOrder);
     }
 
     // Compensation for a captured online payment we can no longer fulfil (M1): refund the
@@ -383,14 +438,17 @@ export class OrderService {
         }
     }
 
-    // Shared post-confirmation pipeline used by both online (verifyPayment) and COD (createOrder)
-    // once an order reaches CONFIRMED: mark coupon usage, split into sub-orders, emit.
-    // Stock is already secured by deductOrderStock (called before confirmation).
-    private async finalizeConfirmedOrder(order: any) {
+    // Shared post-payment pipeline used by both online (verifyPayment) and COD (createOrder)
+    // once payment lands: mark coupon usage, split into sub-orders, emit.
+    //
+    // Phase 9 change: sub-orders are created in PENDING_SELLER_CONFIRMATION (not CONFIRMED).
+    // The pickup/delivery OTPs are generated NOW so the seller can read them to the customer
+    // on the confirmation call. Once every sub-order is confirmed, the parent order moves to
+    // CONFIRMED — see sellerConfirmSubOrder below.
+    //
+    // Stock is already secured by deductOrderStock (called before this).
+    private async finalizePendingConfirmation(order: any) {
         const isCod = order.paymentInfo?.razorpayOrderId === COD_SENTINEL;
-
-        // Stock is deducted all-or-nothing (with rollback) by deductOrderStock BEFORE the
-        // order is confirmed, so inventory is already secured by the time we get here.
 
         // 1. Update Coupon Usage if applicable
         if (order.couponCodes && order.couponCodes.length > 0) {
@@ -442,6 +500,8 @@ export class OrderService {
             const existingSub = await SubOrder.findOne({ subOrderId });
             if (existingSub) continue;
 
+            // Phase 9: generate the OTPs up front so the seller can read them to
+            // the customer on the call. They are NOT sent via SMS anywhere.
             const pickupOtp = Math.floor(100000 + Math.random() * 900000).toString();
             const deliveryOtp = Math.floor(100000 + Math.random() * 900000).toString();
 
@@ -470,7 +530,8 @@ export class OrderService {
                 appNetAfterRider,
                 pricingSnapshot: pricingBreakdown,
                 payableAmount,
-                status: SubOrderStatus.CONFIRMED,
+                // Phase 9: sub-orders now start in PENDING_SELLER_CONFIRMATION.
+                status: SubOrderStatus.PENDING_SELLER_CONFIRMATION,
                 packageDetails: {
                     weight: 0,
                     packageCount: 1,
@@ -488,11 +549,15 @@ export class OrderService {
                 },
                 timeline: [
                     TimelineHelper.createEvent(
-                        SubOrderStatus.CONFIRMED,
+                        SubOrderStatus.PENDING_SELLER_CONFIRMATION,
                         "SYSTEM",
                         undefined,
                         undefined,
-                        { message: isCod ? "COD order placed and sub-order created" : "Order payment verified and sub-order created" }
+                        {
+                            message: isCod
+                                ? "COD order placed — seller must call the customer to confirm"
+                                : "Payment verified — seller must call the customer to confirm",
+                        }
                     )
                 ]
             });
@@ -501,34 +566,198 @@ export class OrderService {
             socketService.emitToUser(sellerId, SocketEvents.ORDER_STATUS_UPDATE, {
                 orderId: order.orderId,
                 subOrderId,
-                status: SubOrderStatus.CONFIRMED,
-                message: `New confirmed sub-order ${subOrderId} is ready for fulfillment.`
+                status: SubOrderStatus.PENDING_SELLER_CONFIRMATION,
+                message: `New ${isCod ? "COD" : "paid"} sub-order ${subOrderId} — please call the customer to confirm.`,
             });
         }
 
-        // Emission of events
-        socketService.emitToAdmins(SocketEvents.ORDER_CONFIRMED, { orderId: order.orderId });
+        // Phase 9: notify the customer and the seller panel. We DO NOT fire
+        // ORDER_CONFIRMED yet (that happens when every sub-order is confirmed).
         socketService.emitToUser(order.userId.toString(), SocketEvents.ORDER_STATUS_UPDATE, {
             orderId: order.orderId,
-            status: OrderStatus.CONFIRMED,
+            status: OrderStatus.PENDING_SELLER_CONFIRMATION,
             message: isCod
-                ? "Your Cash on Delivery order is confirmed!"
-                : "Your payment has been verified and order is confirmed!"
+                ? "Your COD order is placed. The seller will call to confirm shortly."
+                : "Payment received! The seller will call to confirm your order shortly.",
         });
 
         await this.notifyOrderSellers(
             order,
-            OrderStatus.CONFIRMED,
-            isCod
-                ? `A new COD order ${order.orderId} is ready for fulfillment.`
-                : `A new paid order ${order.orderId} is ready for fulfillment.`,
+            OrderStatus.PENDING_SELLER_CONFIRMATION,
+            `New ${isCod ? "COD" : "paid"} order ${order.orderId} — please call the customer to confirm.`,
         );
 
         return order;
     }
 
+    /**
+     * Phase 9 — seller confirms a single sub-order after phoning the customer.
+     * When every sub-order on the parent order is confirmed, the parent order
+     * advances to CONFIRMED. Authorization: only the sub-order's seller may call.
+     */
+    async sellerConfirmSubOrder(
+        subOrderId: string,
+        sellerUserId: string,
+        data: { method?: "phone_call" | "auto"; note?: string } = {},
+    ) {
+        const subOrder = await SubOrder.findById(subOrderId);
+        if (!subOrder) throw new ApiError(404, "Sub-order not found");
+
+        if (idString(subOrder.sellerId) !== sellerUserId) {
+            throw new ApiError(403, "Only the assigned seller can confirm this sub-order");
+        }
+
+        if (subOrder.status !== SubOrderStatus.PENDING_SELLER_CONFIRMATION) {
+            throw new ApiError(400, `Sub-order is already ${subOrder.status}`);
+        }
+
+        const now = new Date();
+        const updatedSub = await SubOrder.findByIdAndUpdate(
+            subOrder._id,
+            {
+                $set: {
+                    status: SubOrderStatus.CONFIRMED,
+                    sellerConfirmation: {
+                        confirmedAt: now,
+                        confirmedBy: new Types.ObjectId(sellerUserId),
+                        method: data.method || "phone_call",
+                        note: data.note,
+                    },
+                },
+                $push: {
+                    timeline: TimelineHelper.createEvent(
+                        SubOrderStatus.CONFIRMED,
+                        "SELLER",
+                        sellerUserId,
+                        undefined,
+                        {
+                            message: `Seller confirmed the order${data.method === "phone_call" ? " after a phone call" : ""}.`,
+                            method: data.method || "phone_call",
+                            note: data.note,
+                        },
+                    ),
+                },
+            },
+            { new: true },
+        );
+
+        socketService.emitToUser(sellerUserId, SocketEvents.ORDER_STATUS_UPDATE, {
+            orderId: updatedSub?.parentOrderId?.toString(),
+            subOrderId: updatedSub?.subOrderId,
+            status: SubOrderStatus.CONFIRMED,
+            message: `Sub-order ${updatedSub?.subOrderId} confirmed.`,
+        });
+
+        // Roll up: if every sibling sub-order is also CONFIRMED (or terminal-confirmed),
+        // the parent order moves to CONFIRMED.
+        await this.rollUpOrderConfirmationStatus(updatedSub!.parentOrderId.toString());
+
+        return updatedSub;
+    }
+
+    /**
+     * Phase 9 — seller declines a sub-order (customer unreachable, etc.).
+     * For online payments the parent order is auto-refunded; for COD it's just
+     * marked REJECTED so the customer can re-place.
+     */
+    async sellerDeclineSubOrder(
+        subOrderId: string,
+        sellerUserId: string,
+        data: { reason: string },
+    ) {
+        const subOrder = await SubOrder.findById(subOrderId);
+        if (!subOrder) throw new ApiError(404, "Sub-order not found");
+
+        if (idString(subOrder.sellerId) !== sellerUserId) {
+            throw new ApiError(403, "Only the assigned seller can decline this sub-order");
+        }
+
+        if (subOrder.status !== SubOrderStatus.PENDING_SELLER_CONFIRMATION) {
+            throw new ApiError(400, `Sub-order is already ${subOrder.status}`);
+        }
+
+        const updatedSub = await SubOrder.findByIdAndUpdate(
+            subOrder._id,
+            {
+                $set: {
+                    status: SubOrderStatus.SELLER_REJECTED,
+                    rejectionReason: data.reason,
+                },
+                $push: {
+                    timeline: TimelineHelper.createEvent(
+                        SubOrderStatus.SELLER_REJECTED,
+                        "SELLER",
+                        sellerUserId,
+                        undefined,
+                        { reason: data.reason },
+                    ),
+                },
+            },
+            { new: true },
+        );
+
+        // Roll up: a single rejected sub-order rejects the whole parent order.
+        await this.rollUpOrderConfirmationStatus(updatedSub!.parentOrderId.toString(), {
+            forceRejected: true,
+            reason: data.reason,
+        });
+
+        return updatedSub;
+    }
+
+    /**
+     * Recompute the parent order's status from its sub-orders.
+     *  - All sub-orders CONFIRMED → order CONFIRMED
+     *  - Any sub-order SELLER_REJECTED / REJECTED → order REJECTED (refund online)
+     *  - Otherwise leave in PENDING_SELLER_CONFIRMATION
+     */
+    private async rollUpOrderConfirmationStatus(
+        parentOrderId: string,
+        opts: { forceRejected?: boolean; reason?: string } = {},
+    ) {
+        const order = await orderDAO.findById(parentOrderId);
+        if (!order) return;
+
+        if (order.status !== OrderStatus.PENDING_SELLER_CONFIRMATION) {
+            // Only operate on orders that are still in the pending bucket.
+            return;
+        }
+
+        const subOrders = await SubOrder.find({ parentOrderId: order._id }).select("status").lean();
+        if (!subOrders.length) return;
+
+        if (opts.forceRejected) {
+            await orderDAO.updateStatus(order._id.toString(), OrderStatus.REJECTED);
+            socketService.emitToUser(order.userId.toString(), SocketEvents.ORDER_STATUS_UPDATE, {
+                orderId: order.orderId,
+                status: OrderStatus.REJECTED,
+                message: opts.reason
+                    ? `Your order ${order.orderId} was declined: ${opts.reason}`
+                    : `Your order ${order.orderId} was declined.`,
+            });
+            return;
+        }
+
+        const allConfirmed = subOrders.every((so) => so.status === SubOrderStatus.CONFIRMED);
+        if (allConfirmed) {
+            await orderDAO.updateStatus(order._id.toString(), OrderStatus.CONFIRMED);
+            socketService.emitToAdmins(SocketEvents.ORDER_CONFIRMED, { orderId: order.orderId });
+            socketService.emitToUser(order.userId.toString(), SocketEvents.ORDER_STATUS_UPDATE, {
+                orderId: order.orderId,
+                status: OrderStatus.CONFIRMED,
+                message: `Your order ${order.orderId} is confirmed and ready for dispatch.`,
+            });
+            await this.notifyOrderSellers(
+                order,
+                OrderStatus.CONFIRMED,
+                `Order ${order.orderId} is confirmed by all sellers and ready for fulfillment.`,
+            );
+        }
+    }
+
     async getMyOrders(userId: string) {
-        return await orderDAO.findByUserId(userId);
+        const orders = await orderDAO.findByUserId(userId);
+        return Array.isArray(orders) ? orders.map((o) => maskOrderForCustomer(o)) : orders;
     }
 
     async getOrderById(userId: string, id: string) {
@@ -558,10 +787,15 @@ export class OrderService {
             .populate("sellerId storeId delivery.riderId items.productId")
             .lean();
 
+        // Customer-facing: hide the internal pending-seller-confirmation state
+        // (it is an operational state for the seller panel only).
+        const maskedOrder = maskOrderForCustomer(order.toObject());
+        const maskedSubOrders = subOrders.map((so) => maskSubOrderForCustomer(so));
+
         return {
-            ...order.toObject(),
-            subOrders,
-            fulfillmentSummary: fulfillmentSummaryOf(subOrders),
+            ...maskedOrder,
+            subOrders: maskedSubOrders,
+            fulfillmentSummary: fulfillmentSummaryOf(maskedSubOrders),
         };
     }
 

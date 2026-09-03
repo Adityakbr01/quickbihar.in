@@ -65,14 +65,19 @@ const envSchema = z.object({
   // EMAIL
   RESEND_API_KEY: z.string().optional(),
   RESEND_FROM_EMAIL: z.string().default("Quick Bihar <noreply@voiceact.tech>"),
-  OTP_TEST_EMAIL: z.string().email().optional(),
 
-  // SMS CONFIGURATION
-  SMS_PROVIDER: z.string().default("smslocal"),
-  SMSLOCAL_API_KEY: z.string().optional(),
-  SMSLOCAL_SENDER_ID: z.string().optional(),
-  SMSLOCAL_TEMPLATE_ID: z.string().optional(),
-  SMSLOCAL_ROUTE: z.string().default("2"),
+  // ── Google OAuth (added during auth redesign, Phase 2) ──────────
+  // Required for the new ID-token verification flow.
+  GOOGLE_CLIENT_ID: z.string().min(1, "GOOGLE_CLIENT_ID is required for Google sign-in"),
+  GOOGLE_CLIENT_SECRET: z.string().optional(),
+  GOOGLE_REDIRECT_URI: z.string().url().optional(),
+  GOOGLE_ANDROID_CLIENT_ID: z.string().optional(),
+  GOOGLE_IOS_CLIENT_ID: z.string().optional(),
+  GOOGLE_ANDROID_PACKAGE: z.string().optional(),
+
+  // Reset-password JWT — separate from REFRESH_TOKEN_SECRET so a leak in one
+  // doesn't compromise the other. Defaults to REFRESH_TOKEN_SECRET if unset.
+  RESET_PASSWORD_JWT_SECRET: z.string().optional(),
 });
 
 const parsed = envSchema.safeParse(process.env);

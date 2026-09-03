@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import { asyncHandler } from "@/utils/asyncHandler";
 import { ApiResponse } from "@/utils/ApiResponse";
+import { ApiError } from "@/utils/ApiError";
 import { getCookieOptions, getClearCookieOptions } from "@/utils/cookie.util";
 import * as authService from "./auth.service";
 
@@ -63,45 +64,6 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
 });
 
 /**
- * Sends a one-time password (OTP) verification email.
- * 
- * @route POST /api/v1/auth/request-otp
- * @access Public
- */
-export const requestOTP = asyncHandler(async (req: Request, res: Response) => {
-  const target = req.body.email || req.body.phone || req.body.target;
-  const isRegistration = req.body.isRegistration || req.body.flow === "signup";
-  const result = await authService.requestOTP(target, isRegistration);
-  return res.status(200).json(new ApiResponse(200, result, "OTP sent successfully"));
-});
-
-/**
- * Verifies the OTP code submitted by a user and authenticates them.
- * Sets secure cookies on the response containing tokens.
- * 
- * @route POST /api/v1/auth/verify-otp
- * @access Public
- */
-export const verifyOTP = asyncHandler(async (req: Request, res: Response) => {
-  const target = req.body.phone || req.body.email || req.body.target || req.body.identifier;
-  const { otp } = req.body;
-  const { user, accessToken, refreshToken } = await authService.verifyOTPAndAuthenticate(target, otp);
-  const options = getCookieOptions();
-
-  return res
-    .status(200)
-    .cookie("accessToken", accessToken, options)
-    .cookie("refreshToken", refreshToken, options)
-    .json(
-      new ApiResponse(
-        200,
-        { user, accessToken, refreshToken },
-        "User verified and logged in successfully"
-      )
-    );
-});
-
-/**
  * Logs out the currently authenticated user.
  * Destroys token storage on database and clears the client response cookies.
  * 
@@ -149,4 +111,73 @@ export const refreshAccessToken = asyncHandler(async (req: Request, res: Respons
         "Access token refreshed successfully"
       )
     );
+});
+
+// ── Phase 4 — Google OAuth + password reset handlers ─────────────
+
+/**
+ * POST /api/v1/auth/google
+ * Exchange a Google ID token for a QuickBihar session (JWT pair).
+ * Brand-new customers are auto-created as ACTIVE users.
+ */
+export const googleAuth = asyncHandler(async (req: Request, res: Response) => {
+  const { idToken, client } = req.body as { idToken: string; client: "web" | "mobile" };
+  const { user, accessToken, refreshToken } = await authService.googleAuthOrCreate(idToken, client);
+
+  // Set cookies on the web path. Mobile clients use the body tokens.
+  if (client === "web") {
+    const options = getCookieOptions();
+    res.cookie("accessToken", accessToken, options);
+    res.cookie("refreshToken", refreshToken, options);
+  }
+
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      { user, accessToken, refreshToken },
+      "Signed in with Google"
+    )
+  );
+});
+
+/**
+ * POST /api/v1/auth/set-password  (auth required)
+ * Set a password on the currently-authenticated user. Used by Google-only users
+ * who want a fallback sign-in method.
+ */
+export const setPassword = asyncHandler(async (req: Request, res: Response) => {
+  const userId = (req as any).user?._id?.toString();
+  if (!userId) throw new ApiError(401, "Unauthorized");
+  await authService.setPassword(userId, req.body.password);
+  return res.status(200).json(new ApiResponse(200, { ok: true }, "Password set successfully"));
+});
+
+/**
+ * POST /api/v1/auth/link-google  (auth required)
+ * Link a Google identity to an existing password-only account.
+ */
+export const linkGoogle = asyncHandler(async (req: Request, res: Response) => {
+  const userId = (req as any).user?._id?.toString();
+  if (!userId) throw new ApiError(401, "Unauthorized");
+  await authService.linkGoogle(userId, req.body.idToken);
+  return res.status(200).json(new ApiResponse(200, { ok: true }, "Google account linked"));
+});
+
+/**
+ * POST /api/v1/auth/request-reset
+ * Send a password-reset link to the given email. Always responds identically
+ * to prevent account enumeration.
+ */
+export const requestReset = asyncHandler(async (req: Request, res: Response) => {
+  const result = await authService.requestPasswordReset(req.body.email);
+  return res.status(200).json(new ApiResponse(200, result, result.message));
+});
+
+/**
+ * POST /api/v1/auth/reset-password
+ * Consume a reset JWT and set a new password.
+ */
+export const resetPassword = asyncHandler(async (req: Request, res: Response) => {
+  await authService.consumePasswordReset(req.body.token, req.body.newPassword);
+  return res.status(200).json(new ApiResponse(200, { ok: true }, "Password reset successfully. Please sign in."));
 });

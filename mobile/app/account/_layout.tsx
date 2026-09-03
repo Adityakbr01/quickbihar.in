@@ -47,6 +47,12 @@ export default function AccountLayout() {
           headerShown: false,
         }}
       />
+      <Stack.Screen
+        name="set-password"
+        options={{
+          headerShown: false,
+        }}
+      />
     </Stack>
   );
 }

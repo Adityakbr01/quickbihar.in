@@ -11,19 +11,27 @@ import {
   formatAmount,
   formatDate,
 } from "./SellerHelpers";
+import { maskPhone, maskEmail } from "@/features/auth/utils/privacy";
 
 export function SellerCustomersPanel() {
   const [params, setParams] = useState<SellerQueryParams>({ page: 1, limit: 10 });
   const customersQuery = useSellerCustomers(params);
 
   return (
-    <ModuleCard title="Customers" filters={<ListFilters params={params} onChange={setParams} />}>
+    <ModuleCard
+      title="Customers"
+      filters={<ListFilters params={params} onChange={setParams} />}
+    >
       <SimpleTable
         empty={customersQuery.isLoading ? "Loading customers..." : "No customers found."}
-        columns={["Customer", "Contact", "Orders", "Revenue", "Last Order"]}
+        columns={["Customer", "Contact (masked)", "Orders", "Revenue", "Last Order"]}
         rows={(customersQuery.data?.data || []).map((customer) => [
           customer.fullName || "Customer",
-          [customer.email, customer.phone].filter(Boolean).join(" / ") || "-",
+          // Mask the contact details — sellers see the customer in their
+          // directory, but we don't expose the full phone/email.
+          [maskEmail(customer.email), maskPhone(customer.phone)]
+            .filter(Boolean)
+            .join(" / ") || "-",
           customer.orderCount,
           `Rs. ${formatAmount(customer.revenue)}`,
           formatDate(customer.lastOrderAt),

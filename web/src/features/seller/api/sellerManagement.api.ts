@@ -32,6 +32,7 @@ export type ApprovalStatus = "DRAFT" | "PENDING_REVIEW" | "APPROVED" | "REJECTED
 export type OrderStatus =
   | "PENDING_PAYMENT"
   | "PAID"
+  | "PENDING_SELLER_CONFIRMATION"
   | "CONFIRMED"
   | "PROCESSING"
   | "SHIPPED"
@@ -40,6 +41,32 @@ export type OrderStatus =
   | "REJECTED"
   | "REFUNDED"
   | "FAILED";
+
+export type SubOrderStatus =
+  | "PAYMENT_VERIFIED"
+  | "PENDING_SELLER_CONFIRMATION"
+  | "CONFIRMED"
+  | "SELLER_ACCEPTED"
+  | "SELLER_REJECTED"
+  | "PROCESSING"
+  | "PACKED"
+  | "READY_FOR_PICKUP"
+  | "RIDER_ASSIGNED"
+  | "RIDER_ACCEPTED"
+  | "RIDER_REJECTED"
+  | "RIDER_ARRIVING"
+  | "RIDER_REACHED_STORE"
+  | "PICKED_UP"
+  | "IN_TRANSIT"
+  | "NEAR_CUSTOMER"
+  | "DELIVERED"
+  | "DELIVERY_CONFIRMED"
+  | "COMPLETED"
+  | "CANCELLED"
+  | "REJECTED"
+  | "SELLER_CANCELLED"
+  | "CUSTOMER_CANCELLED"
+  | "RIDER_CANCELLED";
 
 export interface SellerDashboard {
   setup: SellerSetupStatus;
@@ -376,6 +403,21 @@ export interface SellerSubOrder {
     pickupPhoto?: string;
     deliveryPhoto?: string;
   };
+  /**
+   * Phase 9 — populated when the seller confirms the sub-order after phoning
+   * the customer.
+   */
+  sellerConfirmation?: {
+    confirmedAt: string;
+    confirmedBy?: string;
+    method: "phone_call" | "auto";
+    note?: string;
+  };
+  /**
+   * Phase 9 — populated when the seller declines the sub-order (e.g. customer
+   * unreachable). Triggers a refund flow for online payments.
+   */
+  rejectionReason?: string;
   createdAt?: string;
 }
 
@@ -826,6 +868,46 @@ export const sellerManagementApi = {
     packageDetails?: Record<string, unknown>;
   }) => {
     const response = await axiosInstance.patch(`/sellers/sub-orders/${subOrderId}/status`, { status, packageDetails });
+    return response.data.data;
+  },
+
+  /**
+   * Phase 9 — seller confirms a sub-order after phoning the customer. The
+   * pickup/delivery OTPs are read to the customer on the call; the customer
+   * (or seller) shares them with the rider at pickup/delivery. When every
+   * sub-order on the parent order is confirmed, the parent order advances
+   * to CONFIRMED.
+   */
+  sellerConfirmSubOrder: async ({
+    subOrderId,
+    method = "phone_call",
+    note,
+  }: {
+    subOrderId: string;
+    method?: "phone_call" | "auto";
+    note?: string;
+  }): Promise<SellerSubOrder> => {
+    const response = await axiosInstance.post(`/orders/sub-orders/${subOrderId}/seller-confirm`, {
+      method,
+      note,
+    });
+    return response.data.data;
+  },
+
+  /**
+   * Phase 9 — seller declines a sub-order (e.g. customer unreachable, wrong
+   * number, duplicate order). Triggers a refund for online payments.
+   */
+  sellerDeclineSubOrder: async ({
+    subOrderId,
+    reason,
+  }: {
+    subOrderId: string;
+    reason: string;
+  }): Promise<SellerSubOrder> => {
+    const response = await axiosInstance.post(`/orders/sub-orders/${subOrderId}/seller-decline`, {
+      reason,
+    });
     return response.data.data;
   },
 

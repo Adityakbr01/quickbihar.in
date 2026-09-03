@@ -1,8 +1,18 @@
 import { ApiResponse } from "@/utils/ApiResponse";
 import { asyncHandler } from "@/utils/asyncHandler";
 import { orderService } from "./order.service";
-import { adminOrderStatusSchema, assignDeliverySchema, createOrderSchema, quoteOrderSchema, resolveReturnSchema, verifyPaymentSchema } from "./order.validator";
+import {
+    adminOrderStatusSchema,
+    assignDeliverySchema,
+    createOrderSchema,
+    quoteOrderSchema,
+    resolveReturnSchema,
+    sellerConfirmSubOrderSchema,
+    sellerDeclineSubOrderSchema,
+    verifyPaymentSchema,
+} from "./order.validator";
 import { SubOrderService } from "./subOrder.service";
+import { SubOrderStatus } from "./subOrder.model";
 import { ApiError } from "@/utils/ApiError";
 
 export class OrderController {
@@ -89,10 +99,42 @@ export class OrderController {
         );
     });
 
+    /**
+     * Phase 9 — seller confirms a sub-order after calling the customer.
+     * Body: { method?: "phone_call" | "auto", note?: string }.
+     * Authorization: the sub-order's seller (req.user).
+     */
+    static sellerConfirmSubOrder = asyncHandler(async (req, res) => {
+        const { id } = req.params;
+        const data = sellerConfirmSubOrderSchema.parse(req.body || {});
+        const sellerUserId = (req as any).user._id.toString();
+
+        const result = await orderService.sellerConfirmSubOrder(id as string, sellerUserId, data);
+        return res.status(200).json(
+            new ApiResponse(200, result, "Sub-order confirmed by seller")
+        );
+    });
+
+    /**
+     * Phase 9 — seller declines a sub-order (customer unreachable, etc.).
+     * Body: { reason: string }.
+     * Authorization: the sub-order's seller (req.user).
+     */
+    static sellerDeclineSubOrder = asyncHandler(async (req, res) => {
+        const { id } = req.params;
+        const data = sellerDeclineSubOrderSchema.parse(req.body);
+        const sellerUserId = (req as any).user._id.toString();
+
+        const result = await orderService.sellerDeclineSubOrder(id as string, sellerUserId, data);
+        return res.status(200).json(
+            new ApiResponse(200, result, "Sub-order declined by seller")
+        );
+    });
+
     static getSubOrderDetails = asyncHandler(async (req, res) => {
         const { id } = req.params;
         const subOrder = await SubOrderService.getSubOrderById(id as string);
-        
+
         const userId = (req as any).user._id.toString();
         const userRole = (req as any).user.roleId?.name || (req as any).user.role || "";
         const parentOrder = subOrder.parentOrderId as any;
@@ -105,8 +147,22 @@ export class OrderController {
             throw new ApiError(403, "You do not have permission to view this sub-order");
         }
 
+        // Phase 9: the customer never sees PENDING_SELLER_CONFIRMATION. The
+        // pending state is an operational view for the seller/admin only.
+        const responseSubOrder = isCustomer && !isAdmin
+            ? (subOrder.toObject
+                ? (() => {
+                    const obj = subOrder.toObject();
+                    if (obj.status === SubOrderStatus.PENDING_SELLER_CONFIRMATION) {
+                        obj.status = SubOrderStatus.CONFIRMED;
+                    }
+                    return obj;
+                })()
+                : subOrder)
+            : subOrder;
+
         return res.status(200).json(
-            new ApiResponse(200, subOrder, "Sub-order details fetched successfully")
+            new ApiResponse(200, responseSubOrder, "Sub-order details fetched successfully")
         );
     });
 

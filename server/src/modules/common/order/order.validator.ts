@@ -89,3 +89,17 @@ export const returnPickupSchema = z.object({
     returnOtp: z.string().trim().min(4).max(8),
     proofPhoto: z.string().trim().min(1, "Photo proof is required at the return pickup checkpoint"),
 });
+
+// Phase 9 — seller confirms a sub-order after calling the customer.
+// The seller tells the customer the pickup/delivery OTPs over the phone; the
+// customer (or seller) then shares them with the rider at pickup/delivery.
+export const sellerConfirmSubOrderSchema = z.object({
+    method: z.enum(["phone_call", "auto"]).default("phone_call"),
+    note: z.string().trim().max(500).optional(),
+});
+
+// Phase 9 — seller declines a sub-order (e.g. customer unreachable, wrong
+// number, duplicate order). Triggers a refund flow for online payments.
+export const sellerDeclineSubOrderSchema = z.object({
+    reason: z.string().trim().min(2).max(500),
+});

@@ -120,6 +120,7 @@ export function StatusBadge({ label }: { label: string }) {
   const warning = [
     "PENDING",
     "PENDING_REVIEW",
+    "PENDING_SELLER_CONFIRMATION",
     "DRAFT",
     "LOW",
     "PROCESSING",

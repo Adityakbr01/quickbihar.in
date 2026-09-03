@@ -27,6 +27,16 @@ export class UserDAO {
     return await User.findOne({ $or: conditions }).populate("roleId");
   }
 
+  /**
+   * Find a user by exact lowercase email. This is the natural primary key for
+   * the new Google + email-password linking strategy. Phone-based login is
+   * removed — phone remains contact-only.
+   */
+  static async findByEmail(email: string) {
+    if (!email) return null;
+    return await User.findOne({ email: email.toLowerCase().trim() }).populate("roleId");
+  }
+
   static async findById(id: string) {
     return await User.findById(id).select("-password").populate("roleId");
   }

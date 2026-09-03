@@ -1,6 +1,7 @@
 import { toastConfig } from "@/src/components/common/CustomToast";
 import { SheetProvider } from "@/src/components/common/BottomSheet";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
+import { configureGoogleSignIn } from "@/src/features/common/auth/config/googleSignInConfig";
 import { usePushNotifications } from "@/src/hooks/usePushNotifications";
 import { QueryProvider } from "@/src/provider/QueryProvider";
 import { SocketListenerProvider } from "@/src/provider/SocketListenerProvider";
@@ -25,6 +26,10 @@ export default function RootLayout() {
   useEffect(() => {
     async function prepare() {
       try {
+        // Wire the native Google sign-in SDK once at app start. The
+        // config is a no-op on web / in Expo Go without the native
+        // module, so the rest of the app keeps working.
+        configureGoogleSignIn();
         await initializeAuth();
       } catch (e) {
         console.warn(e);

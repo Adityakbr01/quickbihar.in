@@ -21,12 +21,22 @@ import * as Haptics from "expo-haptics";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { createAuthStyles } from "../styles/auth.style";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
-import { useLogin, useRegister, useVerifyOTP } from "../hooks/useAuth";
+import { useGoogleAuth, useLogin, useRegister } from "../hooks/useAuth";
 import { LoginForm } from "../components/LoginForm";
 import { RegisterForm } from "../components/RegisterForm";
-import { OTPForm } from "../components/OTPForm";
+import { GoogleSignInButton } from "../components/GoogleSignInButton";
 import { AuthMode } from "../components/auth.types";
 
+/**
+ * Auth screen — post-OTP cutover.
+ *
+ *   Primary path:   Google sign-in (one-tap)
+ *   Secondary path: email + password
+ *
+ * OTP code is gone. Legacy OTP users hit a forced email-capture
+ * screen once they successfully authenticate (the hook redirects
+ * there if `user.legacyOtpOnly === true`).
+ */
 export default function AuthScreen() {
   const insets = useSafeAreaInsets();
   const theme = useTheme() as any;
@@ -34,19 +44,40 @@ export default function AuthScreen() {
   const [apiError, setApiError] = useState<string | null>(null);
   const [apiSuccess, setApiSuccess] = useState<string | null>(null);
   const [mode, setMode] = useState<AuthMode>("login");
-  const [otpEmail, setOtpEmail] = useState("");
 
   const { mutate: login, isPending: loginPending } = useLogin();
   const { mutate: register, isPending: registerPending } = useRegister();
-  const { mutate: verifyOTP, isPending: otpPending } = useVerifyOTP();
+  const { mutate: googleAuth, isPending: googlePending } = useGoogleAuth();
 
-  const loading = loginPending || registerPending || otpPending;
+  const loading = loginPending || registerPending || googlePending;
 
   const switchMode = (newMode: AuthMode) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setApiError(null);
     setApiSuccess(null);
     setMode(newMode);
+  };
+
+  const handleGoogleSuccess = async (idToken: string) => {
+    setApiError(null);
+    setApiSuccess(null);
+    await new Promise<void>((resolve, reject) => {
+      googleAuth(
+        { idToken, client: "mobile" },
+        {
+          onSuccess: () => {
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+            resolve();
+          },
+          onError: (err: any) => {
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+            const msg = err?.message || "Google sign-in failed.";
+            setApiError(msg);
+            reject(err);
+          },
+        }
+      );
+    });
   };
 
   const ANIMATION_START = 100;
@@ -59,7 +90,6 @@ export default function AuthScreen() {
     apiSuccess,
     setApiSuccess,
     switchMode,
-    setOtpEmail,
   };
 
   return (
@@ -106,18 +136,12 @@ export default function AuthScreen() {
               entering={FadeInDown.delay(getDelay(1)).duration(600)}
             >
               <Text style={styles.title}>
-                {mode === "login"
-                  ? "Sign In"
-                  : mode === "register"
-                    ? "Create Account"
-                    : "Verify Email"}
+                {mode === "login" ? "Sign In" : "Create Account"}
               </Text>
               <Text style={styles.subtitle}>
                 {mode === "login"
-                  ? "Welcome back! Enter your details to continue."
-                  : mode === "register"
-                    ? "Create a new account to get started."
-                    : `Enter the 6-digit code sent to ${otpEmail}`}
+                  ? "Welcome back! Use Google or your email to continue."
+                  : "Sign up in seconds with Google, or use your email."}
               </Text>
             </Animated.View>
 
@@ -149,87 +173,81 @@ export default function AuthScreen() {
               </Animated.View>
             )}
 
-            {/* Conditional Forms */}
+            {/* ⭐ Google — primary path */}
             <Animated.View
               entering={FadeInDown.delay(getDelay(2)).duration(600)}
+              style={{ marginBottom: 20 }}
+            >
+              <GoogleSignInButton
+                mode="signin"
+                disabled={loading}
+                onSuccess={(idToken) => {
+                  handleGoogleSuccess(idToken).catch(() => {
+                    /* error already shown via apiError */
+                  });
+                }}
+                onError={(msg) => setApiError(msg)}
+              />
+            </Animated.View>
+
+            {/* Divider */}
+            <Animated.View
+              entering={FadeInDown.delay(getDelay(3)).duration(600)}
+              style={localStyles.dividerRow}
+            >
+              <View style={localStyles.dividerLine} />
+              <Text style={localStyles.dividerText}>or use email</Text>
+              <View style={localStyles.dividerLine} />
+            </Animated.View>
+
+            {/* Email + password form (login or register) */}
+            <Animated.View
+              entering={FadeInDown.delay(getDelay(4)).duration(600)}
             >
               {mode === "login" && <LoginForm {...sharedProps} login={login} />}
               {mode === "register" && (
                 <RegisterForm {...sharedProps} register={register} />
               )}
-              {mode === "otp" && (
-                <OTPForm
-                  {...sharedProps}
-                  otpEmail={otpEmail}
-                  verifyOTP={verifyOTP}
-                />
-              )}
             </Animated.View>
 
             {/* Mode Toggle */}
-            {mode !== "otp" && (
-              <Animated.View
-                entering={FadeInDown.delay(getDelay(4)).duration(600)}
-                style={{ marginTop: 24, alignItems: "center" }}
+            <Animated.View
+              entering={FadeInDown.delay(getDelay(5)).duration(600)}
+              style={{ marginTop: 24, alignItems: "center" }}
+            >
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={() =>
+                  switchMode(mode === "login" ? "register" : "login")
+                }
+                disabled={loading}
               >
-                <TouchableOpacity
-                  activeOpacity={0.7}
-                  onPress={() =>
-                    switchMode(mode === "login" ? "register" : "login")
-                  }
-                  disabled={loading}
+                <Text
+                  style={{
+                    color: theme.secondaryText,
+                    fontSize: 14,
+                    fontWeight: "500",
+                  }}
                 >
+                  {mode === "login"
+                    ? "Don't have an account? "
+                    : "Already have an account? "}
                   <Text
                     style={{
-                      color: theme.secondaryText,
-                      fontSize: 14,
-                      fontWeight: "500",
+                      color: theme.text,
+                      fontWeight: "700",
+                      textDecorationLine: "underline",
                     }}
                   >
-                    {mode === "login"
-                      ? "Don't have an account? "
-                      : "Already have an account? "}
-                    <Text
-                      style={{
-                        color: theme.text,
-                        fontWeight: "700",
-                        textDecorationLine: "underline",
-                      }}
-                    >
-                      {mode === "login" ? "Sign Up" : "Sign In"}
-                    </Text>
+                    {mode === "login" ? "Sign Up" : "Sign In"}
                   </Text>
-                </TouchableOpacity>
-              </Animated.View>
-            )}
-
-            {/* Back to login from OTP */}
-            {mode === "otp" && (
-              <Animated.View
-                entering={FadeInUp.delay(200).duration(400)}
-                style={{ marginTop: 24, alignItems: "center" }}
-              >
-                <TouchableOpacity
-                  activeOpacity={0.7}
-                  onPress={() => switchMode("login")}
-                  disabled={loading}
-                >
-                  <Text
-                    style={{
-                      color: theme.secondaryText,
-                      fontSize: 14,
-                      fontWeight: "500",
-                    }}
-                  >
-                    ← Back to Sign In
-                  </Text>
-                </TouchableOpacity>
-              </Animated.View>
-            )}
+                </Text>
+              </TouchableOpacity>
+            </Animated.View>
 
             {/* Terms Footer */}
             <Animated.View
-              entering={FadeInDown.delay(getDelay(5)).duration(600)}
+              entering={FadeInUp.delay(getDelay(6)).duration(600)}
               style={{ marginTop: 30, alignItems: "center" }}
             >
               <Text
@@ -295,5 +313,23 @@ const localStyles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "500",
     flex: 1,
+  },
+  dividerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 20,
+    gap: 12,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: "rgba(255,255,255,0.12)",
+  },
+  dividerText: {
+    color: "rgba(255,255,255,0.5)",
+    fontSize: 12,
+    fontWeight: "500",
+    textTransform: "uppercase",
+    letterSpacing: 1,
   },
 });

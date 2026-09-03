@@ -24,6 +24,12 @@ import { DeliveryStatus, OrderStatus } from "./order.type";
  */
 export enum SubOrderStatus {
   PAYMENT_VERIFIED = "PAYMENT_VERIFIED",
+  /**
+   * Phase 9: payment captured, waiting for THIS sub-order's seller to
+   * confirm by phone. Sibling sub-orders may be in any other state.
+   * See sellerConfirmSubOrder in order.service.ts.
+   */
+  PENDING_SELLER_CONFIRMATION = "PENDING_SELLER_CONFIRMATION",
   CONFIRMED = "CONFIRMED",
   SELLER_ACCEPTED = "SELLER_ACCEPTED",
   SELLER_REJECTED = "SELLER_REJECTED",
@@ -144,6 +150,24 @@ export interface ISubOrder extends Document {
     };
     events?: any[];
   };
+  /**
+   * Phase 9: when a sub-order was confirmed by its seller (seller called the
+   * customer). The OTPs are generated when the sub-order is created (in
+   * finalizePendingConfirmation) so the seller can read them to the customer on
+   * the call. confirmedAt + method are populated when the seller hits the
+   * confirm endpoint.
+   */
+  sellerConfirmation?: {
+    confirmedAt: Date;
+    confirmedBy: Types.ObjectId;
+    method: "phone_call" | "auto";
+    note?: string;
+  };
+  /**
+   * Phase 9: when a sub-order was declined by its seller (e.g. customer
+   * unreachable). Populated by sellerDeclineSubOrder in order.service.ts.
+   */
+  rejectionReason?: string;
   timeline: ITimelineEvent[];
   createdAt: Date;
   updatedAt: Date;
@@ -284,6 +308,13 @@ const subOrderSchema = new Schema<ISubOrder>(
         default: [],
       },
     },
+    sellerConfirmation: {
+      confirmedAt: Date,
+      confirmedBy: { type: Schema.Types.ObjectId, ref: "User" },
+      method: { type: String, enum: ["phone_call", "auto"], default: "phone_call" },
+      note: String,
+    },
+    rejectionReason: { type: String, trim: true, maxlength: 500 },
     timeline: {
       type: [timelineEventSchema],
       default: [],
