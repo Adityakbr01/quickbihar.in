@@ -63,7 +63,8 @@ Agar aap **experienced** ho aur specific cheez dhoondh rahe ho, toh neeche index
 ### 🔐 Security
 | # | File | Kya milega |
 |---|------|-----------|
-| 08 | [08_Authentication.md](./08_Authentication.md) | Login, JWT, OTP, refresh token, cookies |
+| — | [oauth.md](./oauth.md) | **Google OAuth 2.0 setup** (Cloud Console + .env templates + production URLs) |
+| 08 | [08_Authentication.md](./08_Authentication.md) | Login, JWT, refresh token, cookies |
 | 09 | [09_Authorization_RBAC.md](./09_Authorization_RBAC.md) | Roles, permissions, middleware gating |
 
 ### 🛒 Core Business Systems
