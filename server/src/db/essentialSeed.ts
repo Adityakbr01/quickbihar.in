@@ -95,7 +95,7 @@ async function runEssentialSeed() {
     const adminRoleId = roleMap.get("ADMIN");
     if (!adminRoleId) throw new Error("ADMIN role not found.");
 
-    const adminEmail = ENV.ADMIN_EMAIL || "admin@gmail.com";
+    const adminEmail = ENV.ADMIN_EMAIL || "admin@quickbihar.in";
     const adminPassword = ENV.ADMIN_PASSWORD || "admin123";
 
     const admin = await User.create({

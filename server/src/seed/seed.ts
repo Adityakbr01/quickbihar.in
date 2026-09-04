@@ -128,21 +128,44 @@ export const seedAdmin = async () => {
         const adminRole = await Role.findOne({ name: "ADMIN" });
         if (!adminRole) throw new Error("ADMIN role not found. Seed RBAC before users.");
 
-        const existingAdmin = await User.findOne({ email: adminEmail });
+        // Look up by EITHER email or username. Previous runs may have created
+        // an admin with a different ADMIN_EMAIL but the same fixed username
+        // "admin" — querying by email alone misses them, and the create then
+        // hits the unique index on username. This $or catches both cases.
+        const existingAdmin = await User.findOne({
+            $or: [{ email: adminEmail }, { username: "admin" }],
+        });
 
         if (!existingAdmin) {
             console.log("🌱 Seeding Admin User...");
 
-            await User.create({
-                username: "admin",
-                email: adminEmail,
-                password: adminPassword,
-                fullName: "System Administrator",
-                roleId: adminRole._id,
-                isVerified: true,
-            });
-
-            console.log("✅ Admin User seeded successfully!");
+            try {
+                await User.create({
+                    username: "admin",
+                    email: adminEmail,
+                    password: adminPassword,
+                    fullName: "System Administrator",
+                    roleId: adminRole._id,
+                    isVerified: true,
+                });
+                console.log("✅ Admin User seeded successfully!");
+            } catch (createError: any) {
+                // Race: another seed/process inserted between our findOne and
+                // create. Fall through to the update path.
+                if (createError?.code === 11000) {
+                    const raced = await User.findOne({
+                        $or: [{ email: adminEmail }, { username: "admin" }],
+                    });
+                    if (raced) {
+                        raced.roleId = adminRole._id as any;
+                        raced.isVerified = true;
+                        await raced.save();
+                        console.log("ℹ️ Admin User already existed (race), updated role.");
+                        return;
+                    }
+                }
+                throw createError;
+            }
         } else {
             console.log("ℹ️ Admin User exists, ensuring ADMIN role assignment...");
             existingAdmin.roleId = adminRole._id as any;

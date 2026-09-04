@@ -113,10 +113,13 @@ export default function DeliveryDashboardPage() {
     return persistApi.onFinishHydration(() => setHasHydrated(true));
   }, []);
 
-  useEffect(() => {
-    if (!hasHydrated) return;
-    if (!isAuthenticated || !isDeliveryUser) router.replace("/delivery/login");
-  }, [hasHydrated, isAuthenticated, isDeliveryUser, router]);
+  // Auth gating is intentionally NOT done via a client-side router.replace
+  // here. The proxy.ts server guard already bounces visitors without an
+  // accessToken cookie back to /delivery/login. For wrong-role users the
+  // axios response interceptor catches the 403, clears the httpOnly cookie
+  // (via /auth/logout), and then redirects — that single owner avoids the
+  // ping-pong that happens if both this effect and the interceptor race to
+  // redirect while the cookie is still present.
 
   // Setup real-time job offer socket listener
   useEffect(() => {

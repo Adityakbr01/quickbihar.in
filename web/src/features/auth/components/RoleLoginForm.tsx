@@ -193,9 +193,13 @@ export default function RoleLoginForm({ theme }: RoleLoginFormProps) {
         <GoogleSignInButton
           onSuccess={handleGoogleIdToken}
           onError={handleGoogleError}
-          disabled={isGoogleAuthing}
+          disabled={isGoogleAuthing || isLoggingIn}
           label={
-            isGoogleAuthing ? "Signing in with Google..." : "Continue with Google"
+            isGoogleAuthing
+              ? "Signing in with Google..."
+              : isLoggingIn
+                ? "Signing you in..."
+                : "Continue with Google"
           }
         />
 

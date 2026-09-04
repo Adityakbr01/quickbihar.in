@@ -89,12 +89,9 @@ export default function AdminDashboardPage() {
     return persistApi.onFinishHydration(() => setHasHydrated(true));
   }, []);
 
-  useEffect(() => {
-    if (!hasHydrated) return;
-    if (!isAuthenticated || !isAdminUser) {
-      router.replace("/admin/login");
-    }
-  }, [hasHydrated, isAuthenticated, isAdminUser, router]);
+  // Auth gating is intentionally NOT done via a client-side router.replace
+  // here. See web/src/app/delivery/dashboard/page.tsx for the full rationale
+  // (proxy.ts + axios 403 interceptor are the single owner of redirects).
 
   const peopleParams = useMemo(
     () => ({

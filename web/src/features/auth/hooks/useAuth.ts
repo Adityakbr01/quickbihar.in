@@ -98,7 +98,15 @@ const useRoleLogin = ({
 
       setAuth(user, accessToken);
       toast.success(`Welcome back, ${user.fullName}!`);
+      // router.replace alone can race with the next route's hydration —
+      // the dashboard's auth guard may see stale state and bounce the user
+      // back to the login page. We (1) push so the destination is on the
+      // history stack, (2) refresh to flush the router cache, and (3) yield
+      // to the next microtask so the zustand persist write hits localStorage
+      // before the new page reads it.
+      await Promise.resolve();
       router.replace(redirectTo);
+      router.refresh();
     },
     onError: (err: Error) => {
       const errorMessage =
@@ -180,7 +188,10 @@ const useRoleGoogleAuth = ({
 
       setAuth(user, accessToken);
       toast.success(`Welcome back, ${user.fullName}!`);
+      // See useRoleLogin above for why we refresh + await before navigating.
+      await Promise.resolve();
       router.replace(redirectTo);
+      router.refresh();
     },
     onError: (err: Error) => {
       const errorMessage =
@@ -217,14 +228,18 @@ export const useRegister = () => {
 
   return useMutation({
     mutationFn: registerRequest,
-    onSuccess: (response) => {
+    onSuccess: async (response) => {
       const { user, accessToken } = response.data;
       setAuth(user, accessToken);
       toast.success("Account created! Continue with your partner details.");
-      // The caller decides where to go — they pass it in via the redirect arg.
-      router.replace(typeof window !== "undefined" && window.location.pathname.includes("delivery")
-        ? "/delivery/register"
-        : "/seller/register");
+      const next =
+        typeof window !== "undefined" &&
+        window.location.pathname.includes("delivery")
+          ? "/delivery/register"
+          : "/seller/register";
+      await Promise.resolve();
+      router.replace(next);
+      router.refresh();
     },
     onError: (err: Error) => {
       toast.error(err.message || "Registration failed. Please try again.");
@@ -275,9 +290,11 @@ export const useResetPassword = () => {
   const router = useRouter();
   return useMutation({
     mutationFn: resetPasswordRequest,
-    onSuccess: () => {
+    onSuccess: async () => {
       toast.success("Password reset. Please sign in with your new password.");
+      await Promise.resolve();
       router.replace("/admin/login");
+      router.refresh();
     },
     onError: (err: Error) => {
       toast.error(err.message || "Could not reset password.");

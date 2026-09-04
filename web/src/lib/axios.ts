@@ -3,8 +3,33 @@ import axios, {
   type AxiosRequestConfig,
   type InternalAxiosRequestConfig,
 } from "axios";
+import { toast } from "sonner";
 
 const AUTH_STORAGE_KEY = "admin-auth-storage";
+
+/**
+ * URL substrings that should NEVER trigger the silent-refresh / sign-out flow.
+ * The /auth/* endpoints are how users sign in — a 401/403 from one of them is
+ * just "wrong credentials" or "role not allowed", not a session-expiry event.
+ * Treating those as session-expiry would log the user out of an open browser
+ * while they're literally trying to authenticate.
+ */
+const AUTH_PATHS = [
+  "/auth/login",
+  "/auth/register",
+  "/auth/google",
+  "/auth/refresh-token",
+  "/auth/request-reset",
+  "/auth/reset-password",
+  "/auth/set-password",
+  "/auth/link-google",
+  "/auth/logout",
+];
+
+const isAuthEndpoint = (url?: string) => {
+  if (!url) return false;
+  return AUTH_PATHS.some((path) => url.includes(path));
+};
 
 const axiosInstance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1",
@@ -47,13 +72,26 @@ const writePersistedToken = (token: string) => {
   }
 };
 
-const clearPersistedAuth = () => {
+const clearPersistedAuth = async () => {
   if (typeof window === "undefined") return;
   window.localStorage.removeItem(AUTH_STORAGE_KEY);
+  // The accessToken / refreshToken are httpOnly cookies — document.cookie
+  // CANNOT delete them. The only thing that can is the server's /auth/logout
+  // endpoint, which sets Set-Cookie with Max-Age=0. We hit it before
+  // redirecting; if it fails, fall back to a plain document.cookie write
+  // (harmless for non-httpOnly fallbacks, no-op for the real ones).
   try {
-    document.cookie = "accessToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-    document.cookie = "refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-  } catch {}
+    await axios.post(
+      `${axiosInstance.defaults.baseURL}/auth/logout`,
+      {},
+      { withCredentials: true },
+    );
+  } catch {
+    try {
+      document.cookie = "accessToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+      document.cookie = "refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    } catch {}
+  }
 };
 
 axiosInstance.interceptors.request.use(
@@ -95,7 +133,23 @@ const redirectToLogin = () => {
     : path.startsWith("/delivery")
       ? "/delivery/login"
       : "/admin/login";
-  if (path !== loginPath) window.location.assign(loginPath);
+  if (path !== loginPath) {
+    toast.error("Your session has ended. Please sign in again.");
+    // Use assign so the page fully reloads and React Query / zustand persist
+    // state is cleared. A router.replace alone would keep stale caches that
+    // could trigger the same 401/403 loop.
+    window.location.assign(loginPath);
+  }
+};
+
+let lastRedirectAt = 0;
+const redirectToLoginDebounced = () => {
+  // Many parallel 401/403s in flight at once — only fire one redirect per 2s
+  // so we don't hammer the browser with back-to-back location.assign calls.
+  const now = Date.now();
+  if (now - lastRedirectAt < 2000) return;
+  lastRedirectAt = now;
+  redirectToLogin();
 };
 
 axiosInstance.interceptors.response.use(
@@ -103,18 +157,27 @@ axiosInstance.interceptors.response.use(
   async (error: AxiosError) => {
     const originalRequest = error.config as RetriableConfig | undefined;
     const status = error.response?.status;
+    const url = originalRequest?.url || "";
+
+    // Auth endpoints (login, register, google, refresh, reset, etc.) are how
+    // a user signs in — a 401/403 there is "wrong credentials / wrong role"
+    // and should NOT be treated as a session-expiry event. Just surface the
+    // server's message and let the form handle it.
+    if (isAuthEndpoint(url)) {
+      const authMessage =
+        (error.response?.data instanceof Object &&
+          (error.response.data as { message?: string }).message) ||
+        error.message ||
+        "Authentication failed";
+      return Promise.reject(new Error(authMessage));
+    }
 
     if (status === 401 && originalRequest && !originalRequest._retry) {
-      const url = originalRequest.url || "";
       // A 401 from the refresh endpoint itself is terminal — log out.
       if (url.includes("/auth/refresh-token")) {
-        clearPersistedAuth();
-        redirectToLogin();
-        return Promise.reject(
-          new Error(error.response?.data instanceof Object
-            ? (error.response.data as { message?: string }).message || "Session expired"
-            : "Session expired"),
-        );
+        await clearPersistedAuth();
+        redirectToLoginDebounced();
+        return Promise.reject(new Error("Session expired"));
       }
 
       // A refresh is already in flight — queue this request and replay it.
@@ -156,12 +219,33 @@ axiosInstance.interceptors.response.use(
         return axiosInstance(originalRequest);
       } catch (refreshError) {
         processQueue(refreshError, null);
-        clearPersistedAuth();
-        redirectToLogin();
+        await clearPersistedAuth();
+        redirectToLoginDebounced();
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;
       }
+    }
+
+    // 403 from a protected route means the token is valid but the user's role
+    // no longer matches what the endpoint requires. This is effectively
+    // session-expiry from the dashboard's perspective — keep the user from
+    // staring at a blank page full of failed requests.
+    if (status === 403) {
+      // CRITICAL: await the cookie clear before redirecting. The server
+      // proxy (proxy.ts) redirects /delivery/login back to /delivery/dashboard
+      // whenever the accessToken cookie is present. If we navigate before
+      // /auth/logout finishes, the proxy sees the still-present cookie and
+      // bounces the user straight back to the dashboard — a tight loop.
+      await clearPersistedAuth();
+      redirectToLoginDebounced();
+      return Promise.reject(
+        new Error(
+          (error.response?.data instanceof Object &&
+            (error.response.data as { message?: string }).message) ||
+            "Access denied. Please sign in again.",
+        ),
+      );
     }
 
     const message =
