@@ -9,12 +9,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { registerRequest, googleAuthRequest } from "../api/auth.api";
 import { useAuthStore } from "../store/authStore";
-import { useRegister } from "../hooks/useAuth";
+import { useRegister, useUpdateProfile } from "../hooks/useAuth";
 import { onboardingApi, OnboardingApplication } from "@/features/onboarding/api/onboarding.api";
 import GoogleSignInButton from "./GoogleSignInButton";
 
 type PartnerMode = "SELLER" | "RIDER";
-type Phase = "auth" | "application" | "submitted";
+type Phase = "auth" | "google-phone" | "application" | "submitted";
 type RiderLocation = { latitude: number; longitude: number };
 
 const inputClass =
@@ -36,13 +36,23 @@ export default function PartnerRegisterForm({ mode }: { mode: PartnerMode }) {
   const { user, token, isAuthenticated, setAuth } = useAuthStore();
 
   const { mutate: register, isPending: isRegistering } = useRegister();
+  const { mutate: updateProfile, isPending: isUpdatingProfile } = useUpdateProfile();
 
-  // Decide initial phase based on authentication state
-  const [phase, setPhase] = useState<Phase>(isAuthenticated ? "application" : "auth");
+  // Decide initial phase based on authentication state. Google-only users who
+  // don't have a phone on file land in the "google-phone" sub-phase first so
+  // we can capture a phone before letting them submit an application — admin
+  // can't verify identity without it.
+  const initialPhase: Phase = (() => {
+    if (!isAuthenticated) return "auth";
+    if (!user?.phone) return "google-phone";
+    return "application";
+  })();
+  const [phase, setPhase] = useState<Phase>(initialPhase);
 
   const [authEmail, setAuthEmail] = useState(user?.email || "");
   const [authPassword, setAuthPassword] = useState("");
   const [authFullName, setAuthFullName] = useState(user?.fullName || "");
+  const [authPhone, setAuthPhone] = useState(user?.phone || "");
   const [files, setFiles] = useState<File[]>([]);
   const [status, setStatus] = useState<OnboardingApplication | null>(null);
   const [isBusy, setIsBusy] = useState(false);
@@ -82,6 +92,14 @@ export default function PartnerRegisterForm({ mode }: { mode: PartnerMode }) {
 
   useEffect(() => {
     if (!isAuthenticated || !token) return;
+    // If the user doesn't have a phone on file, we need to capture one before
+    // they can submit an application. Stay in (or move to) google-phone phase
+    // so the user can fill it in. The submit handler in that phase advances
+    // the user forward to "application" once the phone is persisted.
+    if (!user?.phone) {
+      setPhase("google-phone");
+      return;
+    }
     onboardingApi
       .status()
       .then((data) => {
@@ -212,12 +230,20 @@ export default function PartnerRegisterForm({ mode }: { mode: PartnerMode }) {
       toast.error("Please enter your full name (min. 2 characters).");
       return;
     }
+    // Phone is required so admin can verify identity and the rider
+    // eligibility check (`Missing: Phone`) is satisfied out of the box.
+    const cleanPhone = authPhone.replace(/[\s\-()]/g, "");
+    if (!/^\+?\d{10,15}$/.test(cleanPhone)) {
+      toast.error("Please enter a valid mobile number (10 to 15 digits).");
+      return;
+    }
     setIsBusy(true);
     try {
       const response = await registerRequest({
         email: authEmail.trim(),
         password: authPassword,
         fullName: authFullName.trim(),
+        phone: cleanPhone,
       });
       const { user: authedUser, accessToken } = response.data;
       setAuth(authedUser, accessToken);
@@ -264,6 +290,28 @@ export default function PartnerRegisterForm({ mode }: { mode: PartnerMode }) {
         toast.error(error.message || "Location permission failed");
       },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },
+    );
+  };
+
+  // Captures a phone number from a Google-only user who signed in without one
+  // on file. Persists via PATCH /users/profile, refreshes the auth store, and
+  // advances to the application phase.
+  const submitGooglePhone = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const cleanPhone = authPhone.replace(/[\s\-()]/g, "");
+    if (!/^\+?\d{10,15}$/.test(cleanPhone)) {
+      toast.error("Please enter a valid mobile number (10 to 15 digits).");
+      return;
+    }
+    updateProfile(
+      { phone: cleanPhone },
+      {
+        onSuccess: () => {
+          toast.success("Mobile number saved. Continue with your partner details.");
+          setPhase("application");
+        },
+        onError: (err: Error) => toast.error(err.message || "Could not save mobile number."),
+      },
     );
   };
 
@@ -358,8 +406,13 @@ export default function PartnerRegisterForm({ mode }: { mode: PartnerMode }) {
                   const response = await googleAuthRequest({ idToken });
                   const { user, accessToken } = response.data;
                   setAuth(user, accessToken);
-                  toast.success("Signed in with Google. Continue with your partner details.");
-                  setPhase("application");
+                  if (user?.phone) {
+                    toast.success("Signed in with Google. Continue with your partner details.");
+                    setPhase("application");
+                  } else {
+                    toast.success("Signed in with Google. Add a mobile number to continue.");
+                    setPhase("google-phone");
+                  }
                 } catch (err: any) {
                   toast.error(err?.message || "Google sign-in failed.");
                 }
@@ -412,6 +465,27 @@ export default function PartnerRegisterForm({ mode }: { mode: PartnerMode }) {
                   className={inputClass}
                 />
               </div>
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-gray-300">
+                  Mobile Number
+                </label>
+                <Input
+                  value={authPhone}
+                  onChange={(event) =>
+                    setAuthPhone(event.target.value.replace(/[^\d+\s\-()]/g, ""))
+                  }
+                  placeholder="e.g. 9876543210"
+                  type="tel"
+                  inputMode="tel"
+                  autoComplete="tel"
+                  required
+                  className={inputClass}
+                />
+                <p className="text-xs text-gray-500">
+                  We use this to verify your identity and to contact you about
+                  deliveries or payout updates.
+                </p>
+              </div>
               <Button
                 type="submit"
                 disabled={isBusy}
@@ -426,6 +500,57 @@ export default function PartnerRegisterForm({ mode }: { mode: PartnerMode }) {
               </Button>
             </form>
           </div>
+        )}
+
+        {phase === "google-phone" && (
+          <form onSubmit={submitGooglePhone} className="grid gap-5 animate-in fade-in-50">
+            <div className="rounded-lg bg-amber-500/10 border border-amber-500/20 p-3.5 text-xs text-amber-200 flex items-start gap-2">
+              <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold text-amber-100 mb-0.5">
+                  One more step — add your mobile number
+                </p>
+                <p>
+                  Admin will use this number to verify your identity before
+                  approving your {isRider ? "delivery" : "seller"} application.
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-gray-300">
+                Mobile Number
+              </label>
+              <Input
+                value={authPhone}
+                onChange={(event) =>
+                  setAuthPhone(event.target.value.replace(/[^\d+\s\-()]/g, ""))
+                }
+                placeholder="e.g. 9876543210"
+                type="tel"
+                inputMode="tel"
+                autoComplete="tel"
+                required
+                className={inputClass}
+              />
+              <p className="text-xs text-gray-500">
+                10 to 15 digits, with optional + country code.
+              </p>
+            </div>
+
+            <Button
+              type="submit"
+              disabled={isUpdatingProfile}
+              className={`${activeColorClass} font-semibold py-6`}
+            >
+              {isUpdatingProfile ? (
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              ) : (
+                <Icon className="h-4 w-4 mr-2" />
+              )}
+              Save & Continue
+            </Button>
+          </form>
         )}
 
         {phase === "application" && (
@@ -1001,6 +1126,8 @@ function phaseLabel(phase: Phase, status: OnboardingApplication | null) {
     return "Your partner account is approved";
   if (status?.status === "REJECTED")
     return "Your previous application needs attention";
+  if (phase === "google-phone")
+    return "Add a mobile number for identity verification";
   if (phase === "application")
     return "Submit partner details and documents for admin approval";
   return "Create an account to start onboarding";

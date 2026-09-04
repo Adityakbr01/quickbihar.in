@@ -4,16 +4,28 @@ import { z } from "zod";
  * Auth validation — post-OTP cutover.
  *
  *   • /auth/login        → email + password
- *   • /auth/register     → email + password + fullName
+ *   • /auth/register     → email + password + fullName + phone
  *   • /auth/google       → Google idToken (+ optional client)
  *   • /auth/set-password → password (authenticated)
  *   • /auth/link-google  → Google idToken (authenticated)
  *   • /auth/request-reset → email
  *   • /auth/reset-password → reset JWT + new password
  *
- * Phone is no longer part of any auth payload — it's contact info
- * captured at checkout, not a credential.
+ * Phone is part of the register payload for seller/rider sign-up so we can
+ * (a) verify the applicant's identity up-front and (b) keep the rider
+ * eligibility check (`riderProfileMissingFields`) satisfied without forcing
+ * the user to fill in profile details after the fact. Customers signing up
+ * for plain shopping still provide phone — it's the same one field, no
+ * branching on the schema.
  */
+
+const phoneSchema = z
+  .string()
+  .trim()
+  .regex(
+    /^\+?\d{10,15}$/,
+    "Phone number must be 10 to 15 digits (optionally prefixed with +)",
+  );
 
 export const authenticateSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -24,6 +36,7 @@ export const registerSchema = z.object({
   email: z.string().email("Invalid email address"),
   password: z.string().min(8, "Password must be at least 8 characters"),
   fullName: z.string().min(2, "Full name must be at least 2 characters"),
+  phone: phoneSchema,
 });
 
 // ── Google OAuth + password reset schemas ─────────────────

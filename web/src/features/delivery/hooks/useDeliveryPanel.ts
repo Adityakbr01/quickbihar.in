@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { deliveryApi, DeliveryStatus } from "../api/delivery.api";
+import { onboardingApi } from "@/features/onboarding/api/onboarding.api";
 
 export const useDeliveryProfile = () =>
   useQuery({
@@ -36,6 +37,19 @@ export const useDeliveryPayouts = () =>
   useQuery({
     queryKey: ["delivery-payouts"],
     queryFn: deliveryApi.getPayouts,
+  });
+
+/**
+ * Fetches the rider's onboarding status — most importantly whether their
+ * application has been APPROVED. Used by the delivery dashboard to gate
+ * access: PENDING/REJECTED/missing riders see a "Application Under Review"
+ * screen instead of the live dashboard, mirroring the seller dashboard's
+ * pattern.
+ */
+export const useDeliverySetupStatus = () =>
+  useQuery({
+    queryKey: ["delivery-onboarding-status"],
+    queryFn: onboardingApi.status,
   });
 
 const invalidateDelivery = (queryClient: ReturnType<typeof useQueryClient>) => {

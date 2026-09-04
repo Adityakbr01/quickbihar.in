@@ -13,6 +13,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useAuthStore } from "@/features/auth/store/authStore";
+import { useAuthHydrated } from "@/features/auth/hooks/useAuthHydrated";
 import { useLinkGoogle } from "@/features/auth/hooks/useAuth";
 import GoogleSignInButton from "@/features/auth/components/GoogleSignInButton";
 
@@ -23,18 +24,9 @@ import GoogleSignInButton from "@/features/auth/components/GoogleSignInButton";
 export default function LinkGooglePage() {
   const router = useRouter();
   const { isAuthenticated, user } = useAuthStore();
-  const [hasHydrated, setHasHydrated] = useState(false);
+  const hasHydrated = useAuthHydrated();
   const { mutate, isPending } = useLinkGoogle();
   const [done, setDone] = useState(false);
-
-  useEffect(() => {
-    const persistApi = useAuthStore.persist;
-    if (!persistApi || persistApi.hasHydrated()) {
-      setHasHydrated(true);
-      return;
-    }
-    return persistApi.onFinishHydration(() => setHasHydrated(true));
-  }, []);
 
   useEffect(() => {
     if (hasHydrated && !isAuthenticated) {

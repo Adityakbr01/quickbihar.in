@@ -1,6 +1,6 @@
 # QuickBihar.in — Developer Documentation
 
-> **Last updated:** 2026-09-04
+> **Last updated:** 2026-09-04 (added: phone-at-`/auth/register` for partner onboarding; admin-verification gate on seller + rider login + dashboard; `google-phone` sub-phase in the partner register form)
 > **Audience:** New developers, senior engineers, and anyone onboarding to this codebase.
 > **Tone:** English-first, code-anchored. Every claim is verified against the actual source.
 
@@ -96,6 +96,7 @@ If you are **looking for something specific**, jump straight from the index belo
 3. **Database is the source of truth for realtime.** Socket.IO is only the notification path. The real state always lands in the DB (FulfillmentEvent + NotificationOutbox) first. The mobile app is allowed to trust the DB and treat sockets as best-effort.
 4. **Money is in paise, not rupees.** Razorpay works in paise (₹1 = 100 paise). The pricing engine uses `roundMoney` to avoid rounding bugs.
 5. **Stock is secured before a sub-order is confirmed.** Every sub-order sits in `PENDING_SELLER_CONFIRMATION` until the seller calls the customer; once the seller confirms, the parent Order rolls up to `CONFIRMED`. Stock was already atomically deducted in `finalizePendingConfirmation` immediately after payment — see [orders.md](./features/orders.md).
+6. **Sellers and riders are admin-verified before they can use their dashboards.** Phone is collected at sign-up (Zod-validated) and persisted on the `User` record. An applicant signs in but is redirected to the partner register page (and the dashboard itself shows an "Application Under Review" screen) until an admin approves the application. The login hook and the dashboard read the same `onboardingApi.status()` so they never disagree — see [authentication.md → Admin verification gate](./features/authentication.md#admin-verification-gate-login--dashboard).
 
 ---
 

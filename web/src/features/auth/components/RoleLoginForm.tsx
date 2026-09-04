@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -34,6 +34,7 @@ import {
   useDeliveryGoogleAuth,
 } from "../hooks/useAuth";
 import { useAuthStore } from "../store/authStore";
+import { useAuthHydrated } from "../hooks/useAuthHydrated";
 import { isAdmin, isSeller, isRider } from "@/lib/rbac";
 import GoogleSignInButton from "./GoogleSignInButton";
 
@@ -130,16 +131,7 @@ export default function RoleLoginForm({ theme }: RoleLoginFormProps) {
   const config = THEME[theme];
   const router = useRouter();
   const { user, isAuthenticated } = useAuthStore();
-  const [hasHydrated, setHasHydrated] = useState(false);
-
-  useEffect(() => {
-    const persistApi = useAuthStore.persist;
-    if (!persistApi || persistApi.hasHydrated()) {
-      setHasHydrated(true);
-      return;
-    }
-    return persistApi.onFinishHydration(() => setHasHydrated(true));
-  }, []);
+  const hasHydrated = useAuthHydrated();
 
   useEffect(() => {
     if (hasHydrated && isAuthenticated && config.isAuthorized(user)) {

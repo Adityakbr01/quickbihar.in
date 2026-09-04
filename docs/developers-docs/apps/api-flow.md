@@ -1,6 +1,6 @@
 # 06 — API Flow
 
-> **Created:** 2026-08-01
+> **Created:** 2026-08-01 · **Updated:** 2026-09-04 (added admin-verification gate + phone-on-`/auth/register`)
 > **File type:** App deep-dive
 > **Padhne ka time:** ~20 min
 
@@ -63,6 +63,46 @@ Koi bhi error `errorHandler` (global middleware) se guzarta hai aur yeh shape ba
 `ApiError(statusCode, message, errors[])` — services yeh throw karte hain, `asyncHandler` `.catch(next)` karta hai, `errorHandler` JSON banata hai. Detail: 18_Error_Handling.md.
 
 ---
+
+## FLOW — A partner applies (end-to-end: `POST /auth/register` → application → admin approval)
+
+This is the most behavior-rich flow in the system right now — it touches `/auth/register`, `/users/profile`, `/onboarding/*`, the RBAC auto-upgrade, and the dashboard gate. Everything below is verified against the source.
+
+```mermaid
+sequenceDiagram
+    participant U as User (browser)
+    participant W as Web (Next.js)
+    participant S as Server (Bun)
+    participant DB as MongoDB
+    participant A as Admin
+
+    U->>W: Fill PartnerRegisterForm (Phase 1: auth)
+    W->>S: POST /auth/register { email, password, fullName, phone }
+    S->>DB: User.create({ role: USER, isVerified: true, phone })
+    S-->>W: 201 { user, accessToken, refreshToken }
+    W->>W: setAuth(user, accessToken) → redirect to /seller/register
+    Note over U,W: Google sign-in path: if Google didn't return a phone,<br/>Phase 2 ("google-phone") runs PATCH /users/profile { phone }<br/>before Phase 3 (application) is shown.
+
+    U->>W: Phase 3 — fill seller details, submit
+    W->>S: POST /onboarding/seller { storeName, gst, address, docs, ... }
+    S->>DB: SellerApplication.create({ userId, status: PENDING })
+    S-->>W: 201 { application }
+    W->>U: Phase 4 — "Application received" success screen
+
+    Note over A,DB: --- async: admin reviews ---
+    A->>S: PATCH /onboarding/seller/:id  { status: APPROVED }
+    S->>DB: SellerApplication.status = APPROVED, Seller.create({ ... })
+    S->>DB: User.roleId = SELLER (next /me call auto-upgrades via ensureAuthRole)
+
+    U->>W: (next day) /seller/login
+    W->>S: POST /auth/login
+    S-->>W: { user (now SELLER), accessToken }
+    W->>S: GET /onboarding/status  (handleIncompletePartner)
+    S-->>W: { sellerProfile, applications: [{ status: APPROVED }] }
+    W->>U: router.replace(/seller/dashboard) — dashboard gate passes
+```
+
+> **Two layers, one source of truth.** The login hook (`useRoleLogin` / `useRoleGoogleAuth`) checks `onboardingApi.status()` so the user is redirected to `/seller/register` *before* hitting the dashboard when the application is `PENDING` / `REJECTED` / missing. The seller / delivery dashboard pages *also* call the same status hook, so a stale cookie or a manual role change can't leak a live dashboard to an unapproved partner. The two layers read the same endpoint, so there is no drift.
 
 ## FLOW — Ek request ka poora safar (example: `POST /api/v1/orders/quote`)
 
@@ -155,7 +195,7 @@ Sab `/api/v1/` prefix ke saath (`app.ts` se):
 | delivery | `/delivery` | [11_Order_System.md](./../features/orders.md) |
 | events | `/events` | [14_Notifications.md](./../features/notifications.md) |
 | notifications | `/notifications` | [14_Notifications.md](./../features/notifications.md) |
-| onboarding | `/onboarding` | — |
+| onboarding | `/onboarding` | Seller + rider applications, admin review, status endpoint used by login hook + dashboard gate |
 | stores | `/stores` | — |
 | categories | `/categories` | — |
 | users | `/users` | — |
@@ -204,8 +244,9 @@ Admin:
 |--------|-------------------|
 | Mobile (customer) | `/products`, `/cart`, `/orders/*`, `/addresses`, `/wishlist` |
 | Mobile (rider) | `/delivery/*` (offers, lifecycle) |
-| Web (admin) | `/admin/*`, `/rbac`, `/categories`, `/orders/admin/*` |
-| Web (seller) | `/sellers/*`, `/products`, `/orders`, `/coupons` |
+| Web (admin) | `/admin/*`, `/rbac`, `/categories`, `/orders/admin/*`, `/onboarding/*` (admin review queue — approve/reject seller & rider applications) |
+| Web (seller) | `/sellers/*`, `/products`, `/orders`, `/coupons` (gated: see [authentication.md → Admin verification gate](./../features/authentication.md#admin-verification-gate-login--dashboard)) |
+| Web (delivery) | `/delivery/*` (gated: same admin-verification gate — PENDING/REJECTED/missing application → "Application Under Review" screen) |
 
 ---
 

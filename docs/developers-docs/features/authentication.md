@@ -10,7 +10,9 @@ This document describes how a caller proves their identity to the QuickBihar ser
 
 Email is the natural linking key. A single user can have a Google sign-in, a password sign-in, or both, attached to the same `identities[]` array on the `User` record.
 
-Phone number is **not** an authentication credential. It is contact info captured at checkout.
+Phone number is **not** an authentication credential (you cannot sign in with it), but it is now a **required** profile field for any user who registers as a **seller** or **rider**. The web partner-register form collects it in the auth phase, and Google-only sign-ups that didn't supply a phone are routed through a `google-phone` sub-phase to capture one before they can submit a partner application. Server backfills a phone from Google's `phone_number` claim when available, and the `PATCH /users/profile` endpoint also accepts a phone update. The phone is what an admin cross-checks before approving a partner application, so the platform never has an unverified seller or rider hitting dashboards.
+
+> **Why "phone at registration, not at checkout"** — admin verification needs to know who they're approving *before* the seller starts listing products or the rider starts taking offers. Collecting the phone up front (and persisting it on the `User` record at sign-up) means the partner application can be reviewed in one step instead of bouncing the applicant back to fill in profile details later.
 
 ---
 
@@ -38,7 +40,7 @@ All routes are mounted under `/api/v1/auth` in [server/src/modules/common/auth/a
 
 | Method | Path | Auth | Rate limit | Purpose |
 |--------|------|------|-----------|---------|
-| `POST` | `/register` | public | `authRateLimiter` | Email + password + fullName. New users get `USER` role and start as ACTIVE. |
+| `POST` | `/register` | public | `authRateLimiter` | Email + password + fullName + **phone** (required). New users get `USER` role and start as ACTIVE. Phone is persisted on the `User` record so partner applications can be reviewed by an admin without asking the applicant to fill in profile details later. |
 | `POST` | `/login` | public | `authRateLimiter` | Email/username + password. Sets `accessToken` + `refreshToken` cookies (web). |
 | `POST` | `/google` | public | `authRateLimiter` | Body: `{ idToken, client: "web" \| "mobile" }`. Verifies Google ID token, finds-or-creates the user, returns a token pair. Web path also sets cookies. |
 | `POST` | `/set-password` | required | `strictAuthRateLimiter` | Set a password on the currently-authenticated user. Idempotent — overwrites. Adds a `"password"` identity row. |
@@ -73,7 +75,23 @@ Defined in `server/src/middlewares/rateLimit.middleware.ts` and applied in `auth
    - **Existing user with the same email** → append a `google` identity row (unless the email is already linked to a *different* Google `sub` — that returns `409`).
    - **Avatar promotion** — if Google has a picture and the user has none, use the Google one.
    - **Legacy OTP merge** — if `legacyOtpOnly` is true, flip it to false.
+   - **Phone backfill** — if Google's `id_token` payload includes a `phoneNumber` / `phone_number` claim **and** the user record has no phone, persist it. This is best-effort; most Google accounts don't expose the claim, so the web client falls through to a phone-capture sub-phase (see "Google phone-capture sub-phase" below).
 5. **Server issues a token pair** and, on the web path, sets `accessToken` + `refreshToken` httpOnly cookies. Mobile clients read the tokens from the JSON body.
+
+### Google phone-capture sub-phase (Google-only sign-ups)
+
+A Google sign-in almost never provides a phone number. The partner-register form runs through four phases:
+
+```
+Phase 1: "auth"             ← email + password sign-up (or "Sign in with Google")
+Phase 2: "google-phone"     ← only if Phase 1 ended with a Google sign-in AND user has no phone
+Phase 3: "application"      ← partner application form (seller / rider details)
+Phase 4: "submitted"        ← "Application received" success screen
+```
+
+The `google-phone` phase is gated on `isAuthenticated && !user?.phone`. It calls `PATCH /users/profile` with `{ phone }` (a Zod-validated `^\+?\d{10,15}$`), then transitions to the application phase. This guarantees that by the time the partner application is submitted, the `User` record has a phone the admin can call/verify.
+
+> **Why a separate phase instead of just adding the field to the application form?** The application form is a *business* record (store details / vehicle / documents). The phone is an *identity* record on the `User`. Splitting them lets the server enforce phone-required at the auth layer (Zod on `registerSchema`) and partner-data at the onboarding layer (Zod on the partner application schema) without one validating the other.
 
 ### Audience check (why three Client IDs)
 
@@ -97,7 +115,7 @@ This way the same `/auth/google` route accepts tokens issued for the Web, Androi
 
 `POST /auth/login` accepts `{ email, password }` (or `{ phone, password }` for backwards-compatible identifier resolution — but the model is email-first). It checks `isPasswordCorrect` (bcrypt compare) and, on success, issues a token pair. There is **no** `isVerified` gate — a user who knows the password is the user.
 
-New users self-register with `POST /auth/register` (`{ email, password, fullName }`) and are immediately ACTIVE.
+New users self-register with `POST /auth/register` (`{ email, password, fullName, phone }`) and are immediately ACTIVE. **Phone is required** at the Zod layer (`^\+?\d{10,15}$`) — the auth phase of `PartnerRegisterForm` renders a `Phone` field that the user cannot submit without. The server persists `phone` on create and, on the update path, only writes it when the user doesn't already have one (so re-registering with a different phone never overwrites a verified number).
 
 ### Linking a password to a Google-only account
 
@@ -197,8 +215,9 @@ The web client (`web/src/lib/axios.ts`) and mobile client (`mobile/src/api/axios
 | `username` | `String` (unique, indexed) | Lowercase + trimmed. For password users: derived from email prefix. For Google users: `<emailPrefix>_<4-digit-random>`. |
 | `password` | `String` (optional) | Bcrypt 10 rounds (pre-save hook). Optional — Google-only users have no password. |
 | `identities[]` | `[{ provider, providerId, email, linkedAt }]` | All credentials attached to this account. Compound unique index on `(provider, providerId)` prevents the same Google `sub` from being linked twice. |
-| `roleId` | `ObjectId → Role` | Required. See [authorization-rbac.md](./authorization-rbac.md). |
-| `isVerified` | `Boolean` | Defaults to `false`. Set to `true` on registration and on Google sign-in. **Not** used as a login gate anymore. |
+| `roleId` | `ObjectId → Role` | Required. See [authorization-rbac.md](./authorization-rbac.md). Auto-upgraded from `USER` → `SELLER` / `DELIVERY` on the next request after the partner application is admin-approved. |
+| `phone` | `String` | Required for partner (SELLER / RIDER) applicants — collected at sign-up or backfilled via Google's `phone_number` claim or the `google-phone` sub-phase. Validated `^\+?\d{10,15}$`. Used by admins to verify the applicant's identity before approval. |
+| `isVerified` | `Boolean` | Defaults to `false`. Set to `true` on registration and on Google sign-in. **Not** used as a login gate anymore — see the "Admin verification gate" section below for the SELLER / RIDER approval flow. |
 | `isBlocked` | `Boolean` | Admin can flip this; `POST /auth/login` returns 403 when true. |
 | `legacyOtpOnly` | `Boolean` | True for users whose email is a synthetic `<phone>@quickbihar.local`. They must add a real email before using email-password auth. Cleared automatically on first Google sign-in. |
 | `refreshToken` | `String` | Latest issued refresh token. Cleared on logout. |
@@ -214,8 +233,8 @@ Roles are looked up by **name**, not by string literal at the call site, via `rb
 | Role | Auto-assigned? | How someone gets it |
 |------|----------------|---------------------|
 | `USER` | Yes (Google sign-in) | Brand-new Google user → `USER`. Also the default for `POST /auth/register`. |
-| `SELLER` | No | Seller registers a partner application; stays `PENDING` until admin approves (which flips the `Seller.status` to `APPROVED` and the `User.roleId` is auto-upgraded by `ensureAuthRole` on the next request). |
-| `DELIVERY` | No | Same flow as `SELLER`, against `DeliveryBoy`. |
+| `SELLER` | No | Seller registers a partner application; stays `PENDING` until admin approves (which flips the `Seller.status` to `APPROVED` and the `User.roleId` is auto-upgraded by `ensureAuthRole` on the next request). The seller dashboard itself **also** gates on this — a PENDING or REJECTED application is shown a "Application Under Review" / "Application Needs Attention" screen instead of the live dashboard, so the role + application status are checked in two places (login hook + dashboard gate). |
+| `DELIVERY` | No | Same flow as `SELLER`, against `DeliveryBoy`. The delivery dashboard has the same gate as the seller dashboard (added in Phase 5). |
 | `ADMIN` | No | Seeded by the boot script (`ADMIN_EMAIL` + `ADMIN_PASSWORD` env vars). |
 | `SUPER_ADMIN` | No | Manual DB change. |
 
@@ -230,7 +249,7 @@ See [authorization-rbac.md](./authorization-rbac.md) for the full permission mat
 `server/src/modules/common/auth/auth.validation.ts` defines Zod schemas:
 
 - `authenticateSchema` — `{ email, password }`
-- `registerSchema` — `{ email, password, fullName }` (password min 8 chars)
+- `registerSchema` — `{ email, password, fullName, phone }` (password min 8 chars, phone `^\+?\d{10,15}$`) — phone is required so partner applications have an identity the admin can verify.
 - `googleAuthSchema` — `{ idToken, client: "web" | "mobile", legacyPhone? }`
 - `setPasswordSchema` — `{ password, currentPassword? }` (currentPassword required when a password identity already exists — server-side enforced)
 - `linkGoogleSchema` — `{ idToken }`
@@ -240,6 +259,29 @@ See [authorization-rbac.md](./authorization-rbac.md) for the full permission mat
 Zod failures bubble as `ApiError(400, "Validation failed", issues)`.
 
 ---
+
+## Admin verification gate (login + dashboard)
+
+A user can have the `SELLER` or `DELIVERY` role on their `User.roleId` and *still* not be allowed to use the seller/rider dashboard — the role gets flipped on admin approval, but approval can be reversed, an application can be `REJECTED`, or the role can be out of sync with the partner profile. Two layers guard against that:
+
+1. **Login-time check** — `useRoleLogin` / `useRoleGoogleAuth` in `web/src/features/auth/hooks/useAuth.ts` (the `handleIncompletePartner` helper) calls `onboardingApi.status()` immediately after a successful login. If the user is missing the partner role OR the latest application for that type is not `APPROVED` AND no `sellerProfile` / `riderProfile` exists, the helper toasts the status (`PENDING` → info toast, `REJECTED` → error toast with `rejectionReason`, missing → "Please complete … registration first") and `router.replace`s to `/seller/register` or `/delivery/register`. The dashboard never even sees the request.
+2. **Dashboard-time check** — even if the login hook is bypassed (cached credentials, deep link, etc.), the seller and delivery dashboard pages themselves call the same onboarding status hook (`useSellerSetupStatusV2` / `useDeliverySetupStatus`) and render the pending/rejected gate UI when the result isn't `APPROVED`. The user sees a "Check Approval Status" button that re-fetches the status, plus a "Sign out" button. The live dashboard is not rendered.
+
+```mermaid
+flowchart TD
+    A[User hits /seller/login] --> B[POST /auth/login]
+    B --> C[handleIncompletePartner]
+    C -->|approved| D[router.replace /seller/dashboard]
+    C -->|pending| E[toast + router.replace /seller/register]
+    C -->|rejected| F[toast rejectionReason + router.replace /seller/register]
+    C -->|missing| G[toast + router.replace /seller/register]
+    D --> H[Dashboard page]
+    H -->|setup status = APPROVED| I[Live seller dashboard]
+    H -->|setup status = PENDING| J[Application Under Review screen]
+    H -->|setup status = REJECTED| K[Application Needs Attention screen]
+```
+
+> **Why two layers?** The login hook handles the *common* case (user just signed in) and avoids a bounce. The dashboard hook handles the *rare* case (cached creds, deep link, role drifted from application status) and keeps the dashboard self-defending so a stale cookie or a manual role change can't leak a live dashboard to a pending user. Both read the same `onboardingApi.status()` source of truth, so there's no drift.
 
 ## Security notes
 

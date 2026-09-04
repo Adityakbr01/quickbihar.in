@@ -1,6 +1,6 @@
 # 00 — Project Overview
 
-> **Created:** 2026-08-01
+> **Created:** 2026-08-01 · **Updated:** 2026-09-04 (sellers and riders now require admin approval before they can use their dashboards — phone is collected at sign-up for identity verification)
 > **File type:** Foundation doc
 > **Padhne ka time:** ~10 min
 
@@ -42,9 +42,11 @@ Har actor ka apna entry point hai:
 | Actor | Kaha se use karta hai |
 |-------|----------------------|
 | Customer (USER) | Mobile app (`mobile/`) |
-| Seller | Web seller portal (`web/` → `/seller/*`) |
-| Rider (DELIVERY) | Web delivery portal (`/delivery/*`) **aur** mobile rider tab |
+| Seller | Web seller portal (`web/` → `/seller/*`) — **gated on admin approval of the partner application** |
+| Rider (DELIVERY) | Web delivery portal (`/delivery/*`) **aur** mobile rider tab — **gated on admin approval of the partner application** |
 | Admin / Super Admin | Web admin portal (`/admin/*`) **aur** mobile admin tab |
+
+> **Identity verification:** sellers and riders collect a phone number at sign-up (Zod-validated, `^\+?\d{10,15}$`). The admin uses the phone to verify the applicant before approving the partner application; an unapproved applicant can sign in but is redirected to `/seller/register` or `/delivery/register` instead of the live dashboard. Detail: [authentication.md → Admin verification gate](./../features/authentication.md#admin-verification-gate-login--dashboard).
 
 ---
 

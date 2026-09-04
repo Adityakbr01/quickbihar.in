@@ -29,6 +29,7 @@ import {
 } from "@/features/auth/schemas/auth.schema";
 import { useSetPassword } from "@/features/auth/hooks/useAuth";
 import { useAuthStore } from "@/features/auth/store/authStore";
+import { useAuthHydrated } from "@/features/auth/hooks/useAuthHydrated";
 
 /**
  * "Set a password" screen for Google-only accounts. Once they set a
@@ -37,18 +38,9 @@ import { useAuthStore } from "@/features/auth/store/authStore";
 export default function SetPasswordPage() {
   const router = useRouter();
   const { isAuthenticated, user } = useAuthStore();
-  const [hasHydrated, setHasHydrated] = useState(false);
+  const hasHydrated = useAuthHydrated();
   const { mutate, isPending } = useSetPassword();
   const [done, setDone] = useState(false);
-
-  useEffect(() => {
-    const persistApi = useAuthStore.persist;
-    if (!persistApi || persistApi.hasHydrated()) {
-      setHasHydrated(true);
-      return;
-    }
-    return persistApi.onFinishHydration(() => setHasHydrated(true));
-  }, []);
 
   useEffect(() => {
     if (hasHydrated && !isAuthenticated) {

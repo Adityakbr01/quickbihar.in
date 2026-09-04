@@ -6,6 +6,7 @@ import { LogOut, RefreshCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuthStore } from "@/features/auth/store/authStore";
+import { useAuthHydrated } from "@/features/auth/hooks/useAuthHydrated";
 import { logoutRequest } from "@/features/auth/api/auth.api";
 import { isAdmin } from "@/lib/rbac";
 import {
@@ -61,7 +62,7 @@ export default function AdminDashboardPage() {
   const router = useRouter();
   const pathname = usePathname();
   const { user, isAuthenticated, clearAuth } = useAuthStore();
-  const [hasHydrated, setHasHydrated] = useState(false);
+  const hasHydrated = useAuthHydrated();
   const [search, setSearch] = useState("");
   const [role, setRole] = useState<
     "ALL" | "USER" | "SELLER" | "DELIVERY" | "ADMIN" | "SUPER_ADMIN"
@@ -73,21 +74,7 @@ export default function AdminDashboardPage() {
   const isAdminUser = isAdmin(user);
   const activeSection = adminSectionFromPathname(pathname);
 
-  useEffect(() => {
-    const persistApi = useAuthStore.persist;
-
-    if (!persistApi) {
-      queueMicrotask(() => setHasHydrated(true));
-      return;
-    }
-
-    if (persistApi.hasHydrated()) {
-      queueMicrotask(() => setHasHydrated(true));
-      return;
-    }
-
-    return persistApi.onFinishHydration(() => setHasHydrated(true));
-  }, []);
+  // persist hydration is tracked via useAuthHydrated() above.
 
   // Auth gating is intentionally NOT done via a client-side router.replace
   // here. See web/src/app/delivery/dashboard/page.tsx for the full rationale

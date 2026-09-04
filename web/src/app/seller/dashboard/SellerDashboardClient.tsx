@@ -6,6 +6,7 @@ import { LogOut, RefreshCcw, Clock, AlertTriangle, FileText } from "lucide-react
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuthStore } from "@/features/auth/store/authStore";
+import { useAuthHydrated } from "@/features/auth/hooks/useAuthHydrated";
 import { logoutRequest } from "@/features/auth/api/auth.api";
 import {
   sectionLabels,
@@ -25,7 +26,7 @@ export function SellerDashboardClient() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { user, isAuthenticated, clearAuth } = useAuthStore();
-  const [hasHydrated, setHasHydrated] = useState(false);
+  const hasHydrated = useAuthHydrated();
   const setupQuery = useSellerSetupStatusV2();
 
   const isApprovedOnboarding =
@@ -76,22 +77,7 @@ export function SellerDashboardClient() {
     return intent;
   }, [searchParams]);
 
-  useEffect(() => {
-    const persistApi = useAuthStore.persist;
-
-    if (!persistApi) {
-      queueMicrotask(() => setHasHydrated(true));
-      return;
-    }
-
-    if (persistApi.hasHydrated()) {
-      queueMicrotask(() => setHasHydrated(true));
-      return;
-    }
-
-    return persistApi.onFinishHydration(() => setHasHydrated(true));
-  }, []);
-
+  // persist hydration is tracked via useAuthHydrated() above.
   // Auth gating is intentionally NOT done via a client-side router.replace
   // here. See web/src/app/delivery/dashboard/page.tsx for the full rationale
   // (proxy.ts + axios 403 interceptor are the single owner of redirects). The

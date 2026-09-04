@@ -1,6 +1,6 @@
 # 03 — Frontend (Web Dashboards)
 
-> **Created:** 2026-08-01
+> **Created:** 2026-08-01 · **Updated:** 2026-09-04 (rider dashboard now mirrors the seller-dashboard admin-verification gate; partner register page now has a `google-phone` sub-phase)
 > **File type:** App deep-dive
 > **Padhne ka time:** ~25 min
 
@@ -57,13 +57,13 @@ web/src/app/
 │       └── [section]/       ← /admin/dashboard/users, /orders, etc.
 ├── seller/
 │   ├── login/page.tsx       ← /seller/login
-│   ├── register/            ← /seller/register (onboarding)
+│   ├── register/            ← /seller/register (onboarding, 4-phase: auth → google-phone? → application → submitted)
 │   └── dashboard/
-│       └── [section]/       ← /seller/dashboard/products, etc.
+│       └── [section]/       ← /seller/dashboard/products, etc. (gated on application status)
 └── delivery/
     ├── login/page.tsx       ← /delivery/login
-    ├── register/
-    └── dashboard/           ← /delivery/dashboard
+    ├── register/            ← /delivery/register (same 4-phase flow as seller)
+    └── dashboard/           ← /delivery/dashboard (gated on application status — same gate as seller)
 ```
 
 **Pattern:** `app/` sirf **routing shell** hai (patli layer). Asli business logic `features/` mein hai. `[section]` dynamic routes bas ek panel component ko re-export karte hain.
@@ -92,6 +92,30 @@ Web mein ek **`useRoleLogin` factory** hai jo har portal ke liye login hook bana
 Login ke baad token **Zustand store** mein persist hota hai (key: `admin-auth-storage` — localStorage). Yeh key `web/src/lib/axios.ts` bhi padhta hai token attach karne ke liye.
 
 > **Note (verified):** Agar koi `USER` role (customer) web pe login kare, toh use **partner-onboarding** pe bhej diya jaata hai (kyunki customer ke liye web dashboard nahi hai).
+
+### Login-time admin-verification gate (seller / delivery)
+
+`useRoleLogin` aur `useRoleGoogleAuth` (in `web/src/features/auth/hooks/useAuth.ts`) shared helper `handleIncompletePartner` use karte hain. After a successful `POST /auth/login` (or `/auth/google`):
+
+1. `setAuth(user, accessToken)` — Zustand mein auth state set.
+2. `onboardingApi.status()` se latest application + partner profile pull.
+3. Agar `partnerProfileOk` (`Seller` ya `DeliveryBoy` doc) **ya** latest application `APPROVED` hai → proceed to dashboard.
+4. Warna toast dikhao (PENDING → info, REJECTED → error + `rejectionReason`, missing → generic) aur `router.replace(/seller/register | /delivery/register)`.
+
+Yeh login hook + dashboard page **same `onboardingApi.status()`** padhte hain, so the two layers never disagree. Detail: [authentication.md → Admin verification gate](./../features/authentication.md#admin-verification-gate-login--dashboard).
+
+### Partner register page — 4-phase form (`PartnerRegisterForm.tsx`)
+
+`web/src/features/auth/components/PartnerRegisterForm.tsx` runs through four phases, picked at mount time based on auth state and whether the user already has a phone:
+
+```
+Phase 1: "auth"             ← email + password + fullName + phone (Zod-validated; phone is required)
+Phase 2: "google-phone"     ← only if signed in via Google AND user has no phone
+Phase 3: "application"      ← partner details form (seller / rider, depending on route)
+Phase 4: "submitted"        ← "Application received — admin will review" success screen
+```
+
+The `google-phone` phase is a single-input screen that calls `PATCH /users/profile` to backfill the phone, then advances to the application phase. The application phase hits `POST /onboarding/seller` or `POST /onboarding/rider`, which creates a `PENDING` application. Phase 4 then sits on top of the success state — the user can sign out and wait for the admin review.
 
 ### Route guard (proxy.ts)
 
@@ -196,6 +220,8 @@ Socket event names `web/src/constants/socketEvents.ts` mein hain — yeh server 
 
 ### Delivery portal (`/delivery/dashboard`)
 5 tabs — active deliveries, offers, earnings, payouts, history.
+
+**Gated on admin verification (added 2026-09-04):** the page reads `useDeliverySetupStatus()` (which calls `onboardingApi.status()`) and shows an "Application Under Review" / "Application Needs Attention" / "Rider Onboarding Required" screen instead of the live dashboard when the rider's application isn't `APPROVED` and no `riderProfile` exists. This mirrors the seller-dashboard pattern (see `SellerDashboardClient.tsx`) — a stale cookie or a manual role change can't leak a live dashboard to an unapproved rider.
 
 ---
 

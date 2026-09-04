@@ -17,11 +17,15 @@ import {
   Coins,
   PackageOpen,
   CheckCircle,
+  Clock,
+  AlertTriangle,
+  FileText,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuthStore } from "@/features/auth/store/authStore";
+import { useAuthHydrated } from "@/features/auth/hooks/useAuthHydrated";
 import { logoutRequest } from "@/features/auth/api/auth.api";
 import { isRider } from "@/lib/rbac";
 import { webSocketClient } from "@/lib/socket";
@@ -35,6 +39,7 @@ import {
   useDeliveryOrders,
   useDeliveryPayoutMutations,
   useDeliveryPayouts,
+  useDeliverySetupStatus,
   useUpdateDeliveryAvailability,
   useUpdateDeliveryProfile,
   useAcceptSubOrder,
@@ -85,7 +90,7 @@ export default function DeliveryDashboardPage() {
   useFulfillmentRealtime();
   const router = useRouter();
   const { user, isAuthenticated, clearAuth, token } = useAuthStore();
-  const [hasHydrated, setHasHydrated] = useState(false);
+  const hasHydrated = useAuthHydrated();
   const [activeTab, setActiveTab] = useState<DeliveryTab>("overview");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [historyStatus, setHistoryStatus] = useState<any | "ALL">("ALL");
@@ -100,19 +105,7 @@ export default function DeliveryDashboardPage() {
 
   const isDeliveryUser = isRider(user);
 
-  useEffect(() => {
-    const persistApi = useAuthStore.persist;
-    if (!persistApi) {
-      queueMicrotask(() => setHasHydrated(true));
-      return;
-    }
-    if (persistApi.hasHydrated()) {
-      queueMicrotask(() => setHasHydrated(true));
-      return;
-    }
-    return persistApi.onFinishHydration(() => setHasHydrated(true));
-  }, []);
-
+  // persist hydration is tracked via useAuthHydrated() above.
   // Auth gating is intentionally NOT done via a client-side router.replace
   // here. The proxy.ts server guard already bounces visitors without an
   // accessToken cookie back to /delivery/login. For wrong-role users the
@@ -180,6 +173,7 @@ export default function DeliveryDashboardPage() {
   const historyQuery = useDeliveryHistory(historyParams);
   const earningsQuery = useDeliveryEarnings(earningsParams);
   const payoutsQuery = useDeliveryPayouts();
+  const setupStatusQuery = useDeliverySetupStatus();
   const updateAvailability = useUpdateDeliveryAvailability();
   const payoutMutations = useDeliveryPayoutMutations();
   const updateProfile = useUpdateDeliveryProfile();
@@ -232,7 +226,144 @@ export default function DeliveryDashboardPage() {
     });
   };
 
-  if (!hasHydrated || !isAuthenticated || !isDeliveryUser) return <div className="min-h-screen bg-[#101214]" />;
+  if (!hasHydrated || !isAuthenticated) {
+    return <div className="min-h-screen bg-[#101214]" />;
+  }
+
+  // Show a friendly "not a delivery partner" UI for authenticated users who
+  // landed on this dashboard without the DELIVERY role. Mirrors the seller
+  // dashboard's onboarding fallback instead of leaving a blank screen.
+  if (!isDeliveryUser) {
+    return (
+      <main className="min-h-screen bg-[#101214] flex items-center justify-center p-4">
+        <div className="max-w-md w-full rounded-2xl bg-white/5 border border-white/10 p-6 text-center space-y-5 shadow-2xl">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-cyan-400/10 text-cyan-400">
+            <Bike className="h-8 w-8" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-white">Not a Delivery Partner</h2>
+            <p className="text-sm text-gray-400 mt-2">
+              Your account isn't registered as a delivery partner. Apply to
+              start accepting delivery jobs.
+            </p>
+          </div>
+          <div className="flex flex-col gap-2.5 pt-2">
+            <Button
+              onClick={() => router.push("/delivery/register")}
+              className="bg-cyan-600 hover:bg-cyan-700 text-white font-semibold py-5 transition-all"
+            >
+              Apply as Delivery Partner
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={async () => {
+                await logoutRequest();
+                clearAuth();
+                window.location.assign("/delivery/login");
+              }}
+              className="text-gray-400 hover:text-white"
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              Sign out
+            </Button>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  // Rider onboarding gate — the seller dashboard has the same pattern. Until
+  // admin has approved the rider's application (and a DeliveryBoy profile
+  // exists), the dashboard stays locked. This prevents unverified accounts
+  // from browsing the live dashboard or hitting the realtime job socket.
+  const riderApp = setupStatusQuery.data?.latestRiderApplication;
+  const riderProfile = setupStatusQuery.data?.riderProfile;
+  const isRiderApproved =
+    Boolean(riderProfile) || riderApp?.status === "APPROVED";
+  const isRiderPending =
+    !setupStatusQuery.isLoading &&
+    !isRiderApproved &&
+    (riderApp?.status === "PENDING" || Boolean(riderApp));
+  const isRiderRejected =
+    !setupStatusQuery.isLoading &&
+    !isRiderApproved &&
+    riderApp?.status === "REJECTED";
+
+  if (setupStatusQuery.isLoading || setupStatusQuery.isFetching) {
+    return <div className="min-h-screen bg-[#101214]" />;
+  }
+
+  if (!isRiderApproved) {
+    const heading = isRiderRejected
+      ? "Application Needs Attention"
+      : isRiderPending
+        ? "Application Under Review"
+        : "Rider Onboarding Required";
+    const body =
+      (riderApp as any)?.message ||
+      (isRiderRejected
+        ? riderApp?.rejectionReason ||
+          "Your rider application was rejected. Update your details and submit again for admin review."
+        : isRiderPending
+          ? "Your rider application is waiting for admin approval. You'll be able to accept delivery jobs as soon as it's approved."
+          : "You haven't submitted a rider application yet. Complete the onboarding form to start receiving delivery jobs.");
+
+    const Icon = isRiderRejected ? AlertTriangle : Clock;
+    const iconColor = isRiderRejected ? "text-amber-400" : "text-cyan-400";
+    const iconBg = isRiderRejected ? "bg-amber-400/10" : "bg-cyan-400/10";
+
+    return (
+      <main className="min-h-screen bg-[#101214] flex items-center justify-center p-4">
+        <div className="max-w-md w-full rounded-2xl bg-white/5 border border-white/10 p-6 text-center space-y-5 shadow-2xl">
+          <div className={`mx-auto flex h-16 w-16 items-center justify-center rounded-full ${iconBg} ${iconColor}`}>
+            <Icon className={`h-8 w-8 ${isRiderPending ? "animate-pulse" : ""}`} />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-white">{heading}</h2>
+            <p className="text-sm text-gray-400 mt-2">{body}</p>
+            {riderApp && (
+              <p className="text-xs text-gray-500 mt-2">
+                Application status: {riderApp.status}
+              </p>
+            )}
+          </div>
+          <div className="flex flex-col gap-2.5 pt-2">
+            <Button
+              onClick={() => setupStatusQuery.refetch()}
+              disabled={setupStatusQuery.isFetching}
+              className="bg-cyan-600 hover:bg-cyan-700 text-white font-semibold py-5 transition-all"
+            >
+              <RefreshCcw className={`h-4 w-4 mr-2 ${setupStatusQuery.isFetching ? "animate-spin" : ""}`} />
+              Check Approval Status
+            </Button>
+            {(isRiderRejected || !riderApp) && (
+              <Button
+                variant="outline"
+                onClick={() => router.push("/delivery/register")}
+                className="border-white/10 bg-white/5 text-white hover:bg-white/10 py-5"
+              >
+                <FileText className="h-4 w-4 mr-2" />
+                {isRiderRejected ? "Update Application" : "Start Application"}
+              </Button>
+            )}
+            <Button
+              variant="ghost"
+              onClick={async () => {
+                await logoutRequest();
+                clearAuth();
+                webSocketClient.disconnect();
+                window.location.assign("/delivery/login");
+              }}
+              className="text-gray-400 hover:text-white"
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              Sign out
+            </Button>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="dark h-screen overflow-hidden bg-background text-foreground">

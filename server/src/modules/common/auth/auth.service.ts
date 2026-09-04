@@ -31,7 +31,7 @@ import { User } from "@/modules/common/user/user.model";
 export async function register(registerData: any) {
   try {
     const validatedData: RegisterBody = registerSchema.parse(registerData);
-    const { email, password, fullName } = validatedData;
+    const { email, password, fullName, phone } = validatedData;
 
     // 1. Check if user already exists
     let user = await UserDAO.findByUsernameOrEmail(undefined, email);
@@ -55,6 +55,10 @@ export async function register(registerData: any) {
     if (user) {
       if (password) user.password = password;
       if (fullName) user.fullName = fullName;
+      // Only overwrite phone if the user doesn't already have one set —
+      // protects users who originally supplied a phone via another channel
+      // (e.g. legacy OTP) and are now re-registering with a different email.
+      if (phone && !user.phone) user.phone = phone;
       user.roleId = user.roleId || userRole._id;
       user.isVerified = true;
       await user.save();
@@ -66,6 +70,7 @@ export async function register(registerData: any) {
         password,
         username: generatedUsername.toLowerCase(),
         fullName,
+        ...(phone ? { phone } : {}),
         isVerified: true,
         roleId: userRole._id,
       });
@@ -316,6 +321,15 @@ export async function googleAuthOrCreate(idToken: string, client: "web" | "mobil
       }
       await user.save();
     }
+  }
+
+  // Backfill a phone onto the user record if Google provided one and we don't
+  // already have one. Some Google accounts include a `phone_number` or
+  // `phoneNumber` claim; the verify service normalises these onto `profile`.
+  const googlePhone = (profile as any)?.phoneNumber || (profile as any)?.phone_number;
+  if (googlePhone && !user.phone) {
+    user.phone = String(googlePhone).trim();
+    await user.save({ validateBeforeSave: false });
   }
 
   return issueTokensForUser(user);

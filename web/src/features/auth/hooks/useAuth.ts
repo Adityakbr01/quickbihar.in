@@ -31,8 +31,11 @@ const partnerTypeFromAllowed = (allowedRoles: RoleName[]): "RIDER" | "SELLER" | 
 };
 
 /**
- * If the signed-in user only has the base USER role, redirect them to partner
- * onboarding (with an explanatory toast) instead of locking them out.
+ * If the signed-in user only has the base USER role, OR has the partner role
+ * but their onboarding application isn't APPROVED, redirect them to the
+ * partner register page with a status-aware toast. This is the single
+ * authority on where a non-verified partner lands — the dashboards defer
+ * to this same condition.
  */
 const handleIncompletePartner = async (
   user: AuthUser,
@@ -40,11 +43,26 @@ const handleIncompletePartner = async (
   setAuth: (u: AuthUser, t: string) => void,
   accessToken: string,
   router: ReturnType<typeof useRouter>,
+  fallbackMessage?: string,
 ) => {
   setAuth(user, accessToken);
   try {
     const status = await onboardingApi.status();
     const application = latestApplication(status.applications, partnerType);
+    const partnerProfileOk =
+      partnerType === "RIDER"
+        ? Boolean(status.riderProfile)
+        : Boolean(status.sellerProfile);
+    const isApproved = partnerProfileOk || application?.status === "APPROVED";
+
+    if (isApproved) {
+      // The role is set AND the application/profile is in good standing — let
+      // the caller proceed to the dashboard. This shouldn't normally happen
+      // when this function is invoked, but the guard makes the behaviour
+      // explicit and future-proof.
+      return false;
+    }
+
     if (application?.status === "PENDING") {
       toast.info(
         `Your ${partnerType === "RIDER" ? "delivery" : "seller"} application is pending admin approval.`,
@@ -54,17 +72,22 @@ const handleIncompletePartner = async (
         application.rejectionReason ||
           `Your ${partnerType.toLowerCase()} application was rejected.`,
       );
+    } else if (fallbackMessage) {
+      toast.error(fallbackMessage);
     } else {
       toast.error(
         `Please complete ${partnerType === "RIDER" ? "delivery" : "seller"} registration first.`,
       );
     }
   } catch {
-    toast.error(
-      `Please complete ${partnerType === "RIDER" ? "delivery" : "seller"} registration first.`,
-    );
+    if (fallbackMessage) toast.error(fallbackMessage);
+    else
+      toast.error(
+        `Please complete ${partnerType === "RIDER" ? "delivery" : "seller"} registration first.`,
+      );
   }
   router.replace(partnerType === "RIDER" ? "/delivery/register" : "/seller/register");
+  return true;
 };
 
 const useRoleLogin = ({
@@ -85,28 +108,46 @@ const useRoleLogin = ({
       const { user, accessToken } = response.data;
       const userRoles = getUserRoles(user);
       const isAllowed = hasRole(user, ...allowedRoles);
+      const partnerType = partnerTypeFromAllowed(allowedRoles);
 
-      if (!isAllowed) {
-        const partnerType = partnerTypeFromAllowed(allowedRoles);
+      // Case 1: user is missing the partner role entirely → send them to
+      // onboarding. Case 2: user has the role but their application is not
+      // APPROVED (e.g. role/profile got out of sync, or admin reversed the
+      // approval) → also send them to the register page so they can see
+      // the current status instead of getting bounced by the dashboard gate.
+      if (!isAllowed || partnerType) {
         if (userRoles.includes("USER") && partnerType) {
-          await handleIncompletePartner(user, partnerType, setAuth, accessToken, router);
+          const handled = await handleIncompletePartner(
+            user,
+            partnerType,
+            setAuth,
+            accessToken,
+            router,
+            !isAllowed ? undefined : accessDeniedMessage,
+          );
+          if (handled || !isAllowed) return;
+          // handled=false means the partner profile IS approved, so the role
+          // is in good standing — fall through to the dashboard redirect.
+        } else if (!isAllowed) {
+          toast.error(accessDeniedMessage);
           return;
         }
-        toast.error(accessDeniedMessage);
-        return;
       }
 
       setAuth(user, accessToken);
       toast.success(`Welcome back, ${user.fullName}!`);
-      // router.replace alone can race with the next route's hydration —
-      // the dashboard's auth guard may see stale state and bounce the user
-      // back to the login page. We (1) push so the destination is on the
-      // history stack, (2) refresh to flush the router cache, and (3) yield
-      // to the next microtask so the zustand persist write hits localStorage
-      // before the new page reads it.
-      await Promise.resolve();
-      router.replace(redirectTo);
-      router.refresh();
+      // Force a full page reload to the dashboard. router.replace alone can
+      // race with the next route's hydration — the dashboard's auth guard
+      // may see stale state and bounce the user back to login, and
+      // router.refresh can collide with the in-flight replace transition.
+      // A full reload guarantees: (1) the proxy runs with the new cookie,
+      // (2) zustand re-hydrates from localStorage on the new page,
+      // (3) React Query starts with a fresh cache.
+      // Same pattern as axios.ts:141 for session-expiry redirects.
+      // Small delay so the toast is visible before the page unloads.
+      setTimeout(() => {
+        window.location.assign(redirectTo);
+      }, 250);
     },
     onError: (err: Error) => {
       const errorMessage =
@@ -175,23 +216,31 @@ const useRoleGoogleAuth = ({
       const { user, accessToken } = response.data;
       const userRoles = getUserRoles(user);
       const isAllowed = hasRole(user, ...allowedRoles);
+      const partnerType = partnerTypeFromAllowed(allowedRoles);
 
-      if (!isAllowed) {
-        const partnerType = partnerTypeFromAllowed(allowedRoles);
+      if (!isAllowed || partnerType) {
         if (userRoles.includes("USER") && partnerType) {
-          await handleIncompletePartner(user, partnerType, setAuth, accessToken, router);
+          const handled = await handleIncompletePartner(
+            user,
+            partnerType,
+            setAuth,
+            accessToken,
+            router,
+            !isAllowed ? undefined : accessDeniedMessage,
+          );
+          if (handled || !isAllowed) return;
+        } else if (!isAllowed) {
+          toast.error(accessDeniedMessage);
           return;
         }
-        toast.error(accessDeniedMessage);
-        return;
       }
 
       setAuth(user, accessToken);
       toast.success(`Welcome back, ${user.fullName}!`);
-      // See useRoleLogin above for why we refresh + await before navigating.
-      await Promise.resolve();
-      router.replace(redirectTo);
-      router.refresh();
+      // See useRoleLogin above for why we use a full reload here.
+      setTimeout(() => {
+        window.location.assign(redirectTo);
+      }, 250);
     },
     onError: (err: Error) => {
       const errorMessage =
@@ -223,7 +272,6 @@ export const useDeliveryGoogleAuth = () =>
   });
 
 export const useRegister = () => {
-  const router = useRouter();
   const setAuth = useAuthStore((state) => state.setAuth);
 
   return useMutation({
@@ -237,9 +285,10 @@ export const useRegister = () => {
         window.location.pathname.includes("delivery")
           ? "/delivery/register"
           : "/seller/register";
-      await Promise.resolve();
-      router.replace(next);
-      router.refresh();
+      // Full reload — same rationale as useRoleLogin above.
+      setTimeout(() => {
+        window.location.assign(next);
+      }, 250);
     },
     onError: (err: Error) => {
       toast.error(err.message || "Registration failed. Please try again.");
@@ -287,14 +336,14 @@ export const useRequestPasswordReset = () => {
 };
 
 export const useResetPassword = () => {
-  const router = useRouter();
   return useMutation({
     mutationFn: resetPasswordRequest,
     onSuccess: async () => {
       toast.success("Password reset. Please sign in with your new password.");
-      await Promise.resolve();
-      router.replace("/admin/login");
-      router.refresh();
+      // Full reload — same rationale as useRoleLogin above.
+      setTimeout(() => {
+        window.location.assign("/admin/login");
+      }, 250);
     },
     onError: (err: Error) => {
       toast.error(err.message || "Could not reset password.");

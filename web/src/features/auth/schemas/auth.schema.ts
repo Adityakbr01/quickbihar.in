@@ -17,6 +17,9 @@ export type LoginValues = z.infer<typeof loginSchema>;
  * Partner (seller / rider) self-registration.
  * Phase A: Phases 1 (mobile OTP) and 2 (OTP verify) are removed.
  * Phase 3: email + password + fullName, identity later linked to the role by admin approval.
+ * Phone is required at sign-up so we can (a) verify the applicant's identity
+ * up-front and (b) keep the rider eligibility check satisfied without forcing
+ * them to fill in profile details after the fact.
  */
 export const registerSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address." }),
@@ -26,6 +29,12 @@ export const registerSchema = z.object({
   fullName: z
     .string()
     .min(2, { message: "Full name must be at least 2 characters." }),
+  phone: z
+    .string()
+    .trim()
+    .regex(/^\+?\d{10,15}$/, {
+      message: "Phone number must be 10 to 15 digits (optionally prefixed with +).",
+    }),
 });
 
 export type RegisterValues = z.infer<typeof registerSchema>;
@@ -97,11 +106,20 @@ export type ResetPasswordValues = z.infer<typeof resetPasswordSchema>;
 
 /**
  * Optional profile fields the user can update without touching auth.
+ * Phone is included so Google-only users can backfill one for identity
+ * verification before the seller/rider approval flow.
  */
 export const updateProfileSchema = z.object({
   fullName: z.string().min(2).optional(),
   email: z.string().email().optional(),
   password: z.string().min(8).optional(),
+  phone: z
+    .string()
+    .trim()
+    .regex(/^\+?\d{10,15}$/, {
+      message: "Phone number must be 10 to 15 digits (optionally prefixed with +).",
+    })
+    .optional(),
 });
 export type UpdateProfileValues = z.infer<typeof updateProfileSchema>;
 
