@@ -179,7 +179,7 @@ initializeNotificationHandler():
   - action buttons ke liye
 ```
 
-FCM token server ko bheja jaata hai (user document mein save hota hai) taaki server push bhej sake. Detail: [14_Notifications.md](./14_Notifications.md).
+FCM token server ko bheja jaata hai (user document mein save hota hai) taaki server push bhej sake. Detail: [14_Notifications.md](./../features/notifications.md).
 
 ---
 
@@ -219,7 +219,7 @@ cancelSubOrderRequest   POST /orders/sub-orders/:id/cancel
 returnSubOrderRequest   POST /orders/sub-orders/:id/return
 ```
 
-Detail: [11_Order_System.md](./11_Order_System.md), [12_Payment_System.md](./12_Payment_System.md).
+Detail: [11_Order_System.md](./../features/orders.md), [12_Payment_System.md](./../features/payments.md).
 
 ---
 
@@ -236,9 +236,9 @@ Data fetching **React Query** se (server state), UI state **Zustand** se. `Query
 
 ## DEPENDENCIES
 
-- **Isse pehle:** [02_System_Architecture.md](./02_System_Architecture.md)
-- **Web counterpart:** [03_Frontend.md](./03_Frontend.md)
-- **Related:** [08_Authentication.md](./08_Authentication.md), [11_Order_System.md](./11_Order_System.md), [12_Payment_System.md](./12_Payment_System.md), [14_Notifications.md](./14_Notifications.md)
+- **Isse pehle:** [02_System_Architecture.md](./../getting-started/system-architecture.md)
+- **Web counterpart:** [03_Frontend.md](././web-dashboard.md)
+- **Related:** [08_Authentication.md](./../features/authentication.md), [11_Order_System.md](./../features/orders.md), [12_Payment_System.md](./../features/payments.md), [14_Notifications.md](./../features/notifications.md)
 
 ---
 

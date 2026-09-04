@@ -30,7 +30,7 @@ Kyunki **saara business logic yaha hai**. Web aur mobile sirf "clients" hain —
 | Validation | **Zod** | Env + request validation |
 | Auth | **jsonwebtoken + bcrypt** | JWT + password hashing |
 
-Detail versions: [22_Dependency_Graph.md](./22_Dependency_Graph.md).
+Detail versions: 22_Dependency_Graph.md.
 
 ---
 
@@ -82,7 +82,7 @@ Har module in layers mein bata hai. `order` module ko example lo:
 
 **Golden rule:** Business logic **hamesha service mein**. Controller patla rakho (sirf req/res). DAO sirf DB queries. Yeh separation testing + maintainability ke liye zaroori hai.
 
-> **Reality note (verified):** Sab modules mein DAO nahi hai. Kuch chhote modules directly service mein model use karte hain. Yeh inconsistency tech debt hai. Dekho [30_Tech_Debt.md](./30_Tech_Debt.md).
+> **Reality note (verified):** Sab modules mein DAO nahi hai. Kuch chhote modules directly service mein model use karte hain. Yeh inconsistency tech debt hai. Dekho 30_Tech_Debt.md.
 
 ---
 
@@ -155,7 +155,7 @@ Request
 | `responseExtensions` | `responseExtensions.middleware.ts` | `res.ok()` etc. helpers |
 | `errorHandler` | `error.middleware.ts` | Global error → JSON |
 
-Detail: [08_Authentication.md](./08_Authentication.md), [18_Error_Handling.md](./18_Error_Handling.md).
+Detail: [08_Authentication.md](./../features/authentication.md), 18_Error_Handling.md.
 
 ---
 
@@ -195,7 +195,7 @@ Har ~10 second:
   - nearest available rider ko offer bhejo
   - proximity score: max(0, 10 - distanceToStore)
 ```
-Detail: [11_Order_System.md](./11_Order_System.md) (matching engine section).
+Detail: [11_Order_System.md](./../features/orders.md) (matching engine section).
 
 ### 2. Notification Worker (`startNotificationWorker()`)
 ```
@@ -204,7 +204,7 @@ BullMQ worker (concurrency 2):
   - FCM (native) / Expo push bhejta hai
   - NotificationOutbox update karta hai
 ```
-Detail: [14_Notifications.md](./14_Notifications.md).
+Detail: [14_Notifications.md](./../features/notifications.md).
 
 > **Verified:** Dono workers **same process** mein chalte hain (koi alag worker container nahi). Server crash = workers bhi band.
 
@@ -219,7 +219,7 @@ Detail: [14_Notifications.md](./14_Notifications.md).
 | `redis.config.ts` | Redis connection (cache + BullMQ + OTP) |
 | `imagekit.config.ts` | ImageKit client |
 
-**`env.config.ts` ka fail-fast design:** Agar koi required env variable missing/galat ho, toh Zod validation fail hoti hai aur server **turant exit** ho jaata hai (silently galat config se chalne se accha crash). Detail: [16_Environment.md](./16_Environment.md).
+**`env.config.ts` ka fail-fast design:** Agar koi required env variable missing/galat ho, toh Zod validation fail hoti hai aur server **turant exit** ho jaata hai (silently galat config se chalne se accha crash). Detail: [16_Environment.md](./../operations/environment.md).
 
 ---
 
@@ -247,15 +247,15 @@ flowchart TD
     M -.throws ApiError.-> Z4[errorHandler → JSON]
 ```
 
-Detail: [23_Request_Lifecycle.md](./23_Request_Lifecycle.md).
+Detail: 23_Request_Lifecycle.md.
 
 ---
 
 ## DEPENDENCIES
 
-- **Isse pehle:** [02_System_Architecture.md](./02_System_Architecture.md)
-- **Related:** [06_API_Flow.md](./06_API_Flow.md), [07_Database.md](./07_Database.md), [18_Error_Handling.md](./18_Error_Handling.md)
-- **Conventions:** `rule.md` (root), [27_Add_New_Module.md](./27_Add_New_Module.md)
+- **Isse pehle:** [02_System_Architecture.md](./../getting-started/system-architecture.md)
+- **Related:** [06_API_Flow.md](././api-flow.md), [07_Database.md](./../data/database.md), 18_Error_Handling.md
+- **Conventions:** `rule.md` (root), 27_Add_New_Module.md
 
 ---
 

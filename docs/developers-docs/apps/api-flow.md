@@ -60,7 +60,7 @@ Koi bhi error `errorHandler` (global middleware) se guzarta hai aur yeh shape ba
 }
 ```
 
-`ApiError(statusCode, message, errors[])` — services yeh throw karte hain, `asyncHandler` `.catch(next)` karta hai, `errorHandler` JSON banata hai. Detail: [18_Error_Handling.md](./18_Error_Handling.md).
+`ApiError(statusCode, message, errors[])` — services yeh throw karte hain, `asyncHandler` `.catch(next)` karta hai, `errorHandler` JSON banata hai. Detail: 18_Error_Handling.md.
 
 ---
 
@@ -138,7 +138,7 @@ Protected route:
   → controller
 ```
 
-401 aaye toh client **single-flight silent refresh** karta hai (dekho [08_Authentication.md](./08_Authentication.md)).
+401 aaye toh client **single-flight silent refresh** karta hai (dekho [08_Authentication.md](./../features/authentication.md)).
 
 ---
 
@@ -148,29 +148,29 @@ Sab `/api/v1/` prefix ke saath (`app.ts` se):
 
 | Router | Base path | Detail doc |
 |--------|-----------|-----------|
-| auth | `/auth` | [08_Authentication.md](./08_Authentication.md) |
+| auth | `/auth` | [08_Authentication.md](./../features/authentication.md) |
 | admin | `/admin` | — |
 | sellers | `/sellers` | — |
 | malls | `/malls` | — |
-| delivery | `/delivery` | [11_Order_System.md](./11_Order_System.md) |
-| events | `/events` | [14_Notifications.md](./14_Notifications.md) |
-| notifications | `/notifications` | [14_Notifications.md](./14_Notifications.md) |
+| delivery | `/delivery` | [11_Order_System.md](./../features/orders.md) |
+| events | `/events` | [14_Notifications.md](./../features/notifications.md) |
+| notifications | `/notifications` | [14_Notifications.md](./../features/notifications.md) |
 | onboarding | `/onboarding` | — |
 | stores | `/stores` | — |
 | categories | `/categories` | — |
 | users | `/users` | — |
-| rbac | `/rbac` | [09_Authorization_RBAC.md](./09_Authorization_RBAC.md) |
+| rbac | `/rbac` | [09_Authorization_RBAC.md](./../features/authorization-rbac.md) |
 | banners | `/banners` | — |
-| products | `/products` | [10_Product_System.md](./10_Product_System.md) |
-| size-charts | `/size-charts` | [10_Product_System.md](./10_Product_System.md) |
+| products | `/products` | [10_Product_System.md](./../features/products.md) |
+| size-charts | `/size-charts` | [10_Product_System.md](./../features/products.md) |
 | coupons | `/coupons` | — |
 | addresses | `/addresses` | — |
-| orders | `/orders` | [11_Order_System.md](./11_Order_System.md) |
+| orders | `/orders` | [11_Order_System.md](./../features/orders.md) |
 | labels | `/labels` | — |
-| payment-methods | `/payment-methods` | [12_Payment_System.md](./12_Payment_System.md) |
+| payment-methods | `/payment-methods` | [12_Payment_System.md](./../features/payments.md) |
 | cart | `/cart` | — |
 | wishlist | `/wishlist` | — |
-| app-config | `/app-config` | [16_Environment.md](./16_Environment.md) |
+| app-config | `/app-config` | [16_Environment.md](./../operations/environment.md) |
 | refund-policies | `/refund-policies` | — |
 
 ### Example: order endpoints (`order.router.ts`)
@@ -211,17 +211,17 @@ Admin:
 
 ## DEPENDENCIES
 
-- **Isse pehle:** [04_Backend.md](./04_Backend.md) (layered architecture)
-- **Deep:** [23_Request_Lifecycle.md](./23_Request_Lifecycle.md) (HTTP + socket lifecycle)
-- **Related:** [18_Error_Handling.md](./18_Error_Handling.md), [08_Authentication.md](./08_Authentication.md)
+- **Isse pehle:** [04_Backend.md](././server.md) (layered architecture)
+- **Deep:** 23_Request_Lifecycle.md (HTTP + socket lifecycle)
+- **Related:** 18_Error_Handling.md, [08_Authentication.md](./../features/authentication.md)
 
 ---
 
 ## RISKS
 
-- ⚠️ **16kb body limit** — bade payloads (jaise base64 image body mein) fail honge. Images multipart se jaati hain (multer), JSON nahi. Dekho [13_File_Uploads.md](./13_File_Uploads.md).
+- ⚠️ **16kb body limit** — bade payloads (jaise base64 image body mein) fail honge. Images multipart se jaati hain (multer), JSON nahi. Dekho [13_File_Uploads.md](./../features/file-uploads.md).
 - ⚠️ **`response.data.data` nesting** — ApiResponse wrapper ki wajah se double `.data`. Naye devs yaha confuse hote hain.
-- ⚠️ **Har protected request pe DB read** (verifyJWT). Scale pe overhead. Dekho [20_Performance.md](./20_Performance.md).
+- ⚠️ **Har protected request pe DB read** (verifyJWT). Scale pe overhead. Dekho 20_Performance.md.
 
 ---
 

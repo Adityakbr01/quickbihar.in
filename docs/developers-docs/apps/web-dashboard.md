@@ -106,7 +106,7 @@ proxy.ts logic:
   matcher: /admin/:path*, /seller/:path*, /delivery/:path*
 ```
 
-> ⚠️ **CRITICAL:** `proxy.ts` **security boundary NAHI hai.** Woh sirf UX ke liye hai (login page dikhana ya na dikhana). Asli security **backend RBAC** karta hai (har API pe `verifyJWT` + role guard). Client-side guard ko kabhi security ke liye trust mat karo. Dekho [09_Authorization_RBAC.md](./09_Authorization_RBAC.md).
+> ⚠️ **CRITICAL:** `proxy.ts` **security boundary NAHI hai.** Woh sirf UX ke liye hai (login page dikhana ya na dikhana). Asli security **backend RBAC** karta hai (har API pe `verifyJWT` + role guard). Client-side guard ko kabhi security ke liye trust mat karo. Dekho [09_Authorization_RBAC.md](./../features/authorization-rbac.md).
 
 ---
 
@@ -219,9 +219,9 @@ Socket event names `web/src/constants/socketEvents.ts` mein hain — yeh server 
 
 ## DEPENDENCIES
 
-- **Isse pehle:** [02_System_Architecture.md](./02_System_Architecture.md)
-- **Related:** [08_Authentication.md](./08_Authentication.md), [09_Authorization_RBAC.md](./09_Authorization_RBAC.md), [06_API_Flow.md](./06_API_Flow.md)
-- **Mobile counterpart:** [05_Mobile_App.md](./05_Mobile_App.md)
+- **Isse pehle:** [02_System_Architecture.md](./../getting-started/system-architecture.md)
+- **Related:** [08_Authentication.md](./../features/authentication.md), [09_Authorization_RBAC.md](./../features/authorization-rbac.md), [06_API_Flow.md](././api-flow.md)
+- **Mobile counterpart:** [05_Mobile_App.md](././mobile-app.md)
 
 ---
 
@@ -229,7 +229,7 @@ Socket event names `web/src/constants/socketEvents.ts` mein hain — yeh server 
 
 - ⚠️ **`proxy.ts` ko security samajhna** — yeh sabse badi galti. Woh sirf cookie presence check karta hai; asli guard backend RBAC hai.
 - ⚠️ **basePath confusion** — `/web` prefix production mein hota hai, dev/code mein nahi. Redirects aur links likhte time yaad rakho.
-- ⚠️ **Dual seller API layers** — `sellerManagement.api.ts` (admin ka seller-management) aur `sellerPanel.api.ts` (seller ka apna) overlap karte hain. Dekho [30_Tech_Debt.md](./30_Tech_Debt.md).
+- ⚠️ **Dual seller API layers** — `sellerManagement.api.ts` (admin ka seller-management) aur `sellerPanel.api.ts` (seller ka apna) overlap karte hain. Dekho 30_Tech_Debt.md.
 - ⚠️ **socketEvents.ts sync** — web aur server ke event names manually sync rakhne padte hain. Ek jagah change kiya, doosri jagah bhoolna = silent break.
 
 ---

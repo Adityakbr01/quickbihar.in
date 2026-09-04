@@ -81,7 +81,7 @@ erDiagram
     Mall ||--o{ Seller : mallId
 ```
 
-> **Refs are IDs, not embedded docs.** Mongoose `populate()` se join hota hai (SQL FK jaisa nahi — application-level join). Isiliye `verifyJWT` har baar `roleId` populate karta hai. Dekho [08_Authentication.md](./08_Authentication.md).
+> **Refs are IDs, not embedded docs.** Mongoose `populate()` se join hota hai (SQL FK jaisa nahi — application-level join). Isiliye `verifyJWT` har baar `roleId` populate karta hai. Dekho [08_Authentication.md](./../features/authentication.md).
 
 ---
 
@@ -105,7 +105,7 @@ erDiagram
 **Methods:** `isPasswordCorrect(pw)`, `generateAccessToken()` (`{_id,email,username,fullName}`, `1d`), `generateRefreshToken()` (`{_id}`, `ENV.REFRESH_TOKEN_EXPIRY`).
 **Hook:** `pre("save")` → agar password modified toh `bcrypt.hash(pw, 10)`.
 
-> **Single-role:** `roleId` ek hi field hai (array nahi). Detail: [09_Authorization_RBAC.md](./09_Authorization_RBAC.md).
+> **Single-role:** `roleId` ek hi field hai (array nahi). Detail: [09_Authorization_RBAC.md](./../features/authorization-rbac.md).
 
 ---
 
@@ -177,7 +177,7 @@ Clothing vertical ka core catalog document.
 
 **Hook:** `pre("validate")` → product SKU + variant SKUs auto-generate, `discountPercentage` + `totalStock` compute. **Virtual:** `discountLabel`.
 
-> ⚠️ **RECONCILIATION (important):** `approvalStatus` ka default **`APPROVED`** hai — matlab product create hote hi **live** ho jaata hai (auto-approve), moderation optional hai. Yeh 03_Frontend.md ke "products save as PENDING" claim ko **override** karta hai — code ka sach `APPROVED` hai. Yahi pattern `Coupon`, `SizeChart` (default APPROVED) aur `Mall.status` (default APPROVED) mein bhi hai. Dekho [10_Product_System.md](./10_Product_System.md).
+> ⚠️ **RECONCILIATION (important):** `approvalStatus` ka default **`APPROVED`** hai — matlab product create hote hi **live** ho jaata hai (auto-approve), moderation optional hai. Yeh 03_Frontend.md ke "products save as PENDING" claim ko **override** karta hai — code ka sach `APPROVED` hai. Yahi pattern `Coupon`, `SizeChart` (default APPROVED) aur `Mall.status` (default APPROVED) mein bhi hai. Dekho [10_Product_System.md](./../features/products.md).
 
 ---
 
@@ -277,13 +277,13 @@ Clothing vertical ka core catalog document.
 
 **Hook:** `pre("save")` → agar `isDefault:true`, baaki addresses ka `isDefault:false` (single default guarantee).
 
-> ⚠️ **GPS mandatory:** `latitude`/`longitude` required hain. Checkout mein GPS pin zaroori (0,0 = order fail). Dekho [05_Mobile_App.md](./05_Mobile_App.md), [11_Order_System.md](./11_Order_System.md).
+> ⚠️ **GPS mandatory:** `latitude`/`longitude` required hain. Checkout mein GPS pin zaroori (0,0 = order fail). Dekho [05_Mobile_App.md](./../apps/mobile-app.md), [11_Order_System.md](./../features/orders.md).
 
 ---
 
 ## COLLECTION — `PaymentMethod` (`paymentMethod.model.ts`)
 
-`userId(ref, indexed)`, `provider(enum RAZORPAY/PAYPAL/STRIPE/OTHER, default RAZORPAY)`, `methodType*` (card/upi/wallet), `last4`, `brand`, `isDefault(false)`, `providerToken` (saved-card token). **Hook:** `pre("save")` single-default enforce (SavedAddress jaisa). Detail: [12_Payment_System.md](./12_Payment_System.md).
+`userId(ref, indexed)`, `provider(enum RAZORPAY/PAYPAL/STRIPE/OTHER, default RAZORPAY)`, `methodType*` (card/upi/wallet), `last4`, `brand`, `isDefault(false)`, `providerToken` (saved-card token). **Hook:** `pre("save")` single-default enforce (SavedAddress jaisa). Detail: [12_Payment_System.md](./../features/payments.md).
 
 ---
 
@@ -314,7 +314,7 @@ Ek customer checkout = **ek Order**. Multi-seller cart hone pe items **per-selle
 **Hook:** `pre("validate")` → `orderId` generate. **Virtuals:** `deliveryPartner`, `deliveryPartnerLocation`, `deliveryOtp`.
 **Indexes:** `{delivery.partnerUserId:1, createdAt:-1}`, `{delivery.status:1, createdAt:-1}`.
 
-> **COD sentinel:** COD order mein `paymentInfo.razorpayOrderId` = `"COD"` (literal string). Detail: [12_Payment_System.md](./12_Payment_System.md).
+> **COD sentinel:** COD order mein `paymentInfo.razorpayOrderId` = `"COD"` (literal string). Detail: [12_Payment_System.md](./../features/payments.md).
 
 ---
 
@@ -346,7 +346,7 @@ CONFIRMED → PROCESSING → PACKED → READY_FOR_PICKUP
    → RIDER_ASSIGNED/RIDER_ACCEPTED → PICKED_UP → IN_TRANSIT
    → NEAR_CUSTOMER → DELIVERED → COMPLETED
 ```
-**Return flow (M2):** `RETURN_INITIATED → RETURN_APPROVED → RETURN_PICKUP_SCHEDULED → RETURN_PICKED_UP → RETURNED → REFUNDED` (+ `DISPUTED` admin branch). Detail: [11_Order_System.md](./11_Order_System.md).
+**Return flow (M2):** `RETURN_INITIATED → RETURN_APPROVED → RETURN_PICKUP_SCHEDULED → RETURN_PICKED_UP → RETURNED → REFUNDED` (+ `DISPUTED` admin branch). Detail: [11_Order_System.md](./../features/orders.md).
 
 ---
 
@@ -369,7 +369,7 @@ CONFIRMED → PROCESSING → PACKED → READY_FOR_PICKUP
 | `metadata` | Mixed | |
 | `occurredAt` | Date | default now, indexed |
 
-**Indexes:** `{orderId,sequence}`, `{subOrderId,sequence}`, `{recipientIds,occurredAt:-1}`, `{rooms,occurredAt:-1}`. Detail: [14_Notifications.md](./14_Notifications.md), [23_Request_Lifecycle.md](./23_Request_Lifecycle.md).
+**Indexes:** `{orderId,sequence}`, `{subOrderId,sequence}`, `{recipientIds,occurredAt:-1}`, `{rooms,occurredAt:-1}`. Detail: [14_Notifications.md](./../features/notifications.md), 23_Request_Lifecycle.md.
 
 ---
 
@@ -428,7 +428,7 @@ Rider ne COD cash collect kiya → platform ko deposit → settlement record.
 | `depositedAt` | Date | default now |
 | `verifiedBy` | ref `User` | admin |
 
-**Index:** `{riderId, createdAt:-1}`. Detail: [12_Payment_System.md](./12_Payment_System.md).
+**Index:** `{riderId, createdAt:-1}`. Detail: [12_Payment_System.md](./../features/payments.md).
 
 ---
 
@@ -446,7 +446,7 @@ Reliable delivery ke liye **outbox pattern** — event ko channel-wise (socket/p
 | `title` / `body` / `payload` | | |
 | `attempts(0)` / `nextAttemptAt` / `sentAt` / `lastError` | | **retry with backoff** |
 
-**Indexes:** `{status, nextAttemptAt}` (retry scan), `{recipientId, createdAt:-1}`. Detail: [14_Notifications.md](./14_Notifications.md).
+**Indexes:** `{status, nextAttemptAt}` (retry scan), `{recipientId, createdAt:-1}`. Detail: [14_Notifications.md](./../features/notifications.md).
 
 ---
 
@@ -469,7 +469,7 @@ Reliable delivery ke liye **outbox pattern** — event ko channel-wise (socket/p
 | `isVerified` | Boolean | default `false` |
 | `status` | enum PENDING/APPROVED/REJECTED | |
 
-> ⚠️ **PII/financial:** `bankDetails` + `payoutMethods` mein account/PAN/Aadhaar/UPI. In fields ko kabhi API response mein blindly expose mat karo — serializer se filter. Dekho [19_Security.md](./19_Security.md).
+> ⚠️ **PII/financial:** `bankDetails` + `payoutMethods` mein account/PAN/Aadhaar/UPI. In fields ko kabhi API response mein blindly expose mat karo — serializer se filter. Dekho 19_Security.md.
 
 ---
 
@@ -506,7 +506,7 @@ Notification system **campaign + per-user tracking** ke liye alag collections us
 | `DeviceToken` | `fcmToken*(unique), userId` | FCM token registry (user 1:N devices) |
 | `NotificationOutbox` | (upar Fulfillment section mein) | Reliable per-channel delivery + retry |
 
-**`Notification` hook:** `pre("validate")` legacy records migrate karta hai (purana `deliveryType` value `BOTH/IN_APP/FCM` ko `deliveryChannel` mein shift + `status:"COMPLETED"→"SENT"`). Detail: [14_Notifications.md](./14_Notifications.md).
+**`Notification` hook:** `pre("validate")` legacy records migrate karta hai (purana `deliveryType` value `BOTH/IN_APP/FCM` ko `deliveryChannel` mein shift + `status:"COMPLETED"→"SENT"`). Detail: [14_Notifications.md](./../features/notifications.md).
 
 > **Do "notification" cheezein confuse mat karo:** `Notification` = marketing/broadcast campaigns (admin banata hai). `FulfillmentEvent` + `NotificationOutbox` = transactional order events (system banata hai). Alag pipelines.
 
@@ -514,7 +514,7 @@ Notification system **campaign + per-user tracking** ke liye alag collections us
 
 ## COLLECTIONS — Config, Policy, Content
 
-**`AppConfig`** (`appConfig.model.ts`) — **singleton** (ek hi document; DAO/service enforce karta hai, schema nahi). Sections: `store`, `policies`, `contact`, `socialLinks`, `seo`, `appearance`, `shipping{freeShippingThreshold(2000), shippingFee(99)}`, `tax`, `currency{code(INR),symbol(Rs.)}`, `marketplace{commissionPercent = ENV.MARKETPLACE_COMMISSION_PERCENT}`, `delivery{defaultRadiusKm(5), estimatedMinutes(45), riderPayoutAmount(40), riderPayoutRules{upto3Km/upto5Km/upto8Km/extraPerKmAfter8...}, bonusRules{rain/peak/festival/night + AUTO/FORCE_ON/FORCE_OFF modes + peakWindows/festivalWindows/nightStart/nightEnd}}`. Defaults `ENV` se aate hain → **runtime-tunable pricing/payout knobs**. Detail: [16_Environment.md](./16_Environment.md), [12_Payment_System.md](./12_Payment_System.md).
+**`AppConfig`** (`appConfig.model.ts`) — **singleton** (ek hi document; DAO/service enforce karta hai, schema nahi). Sections: `store`, `policies`, `contact`, `socialLinks`, `seo`, `appearance`, `shipping{freeShippingThreshold(2000), shippingFee(99)}`, `tax`, `currency{code(INR),symbol(Rs.)}`, `marketplace{commissionPercent = ENV.MARKETPLACE_COMMISSION_PERCENT}`, `delivery{defaultRadiusKm(5), estimatedMinutes(45), riderPayoutAmount(40), riderPayoutRules{upto3Km/upto5Km/upto8Km/extraPerKmAfter8...}, bonusRules{rain/peak/festival/night + AUTO/FORCE_ON/FORCE_OFF modes + peakWindows/festivalWindows/nightStart/nightEnd}}`. Defaults `ENV` se aate hain → **runtime-tunable pricing/payout knobs**. Detail: [16_Environment.md](./../operations/environment.md), [12_Payment_System.md](./../features/payments.md).
 
 **`RefundPolicy`** (`refundPolicy.model.ts`) — `name*, policyType(RETURN/REFUND/SHIPPING/TERMS/GENERAL, default REFUND, indexed), category, description, returnWindowDays(0), refundProcessingDays(0), conditions[], refundType, returnShipping, isReturnable(true), isExchangeAvailable(true), isActive(true)`. Product + Store `policyRefs` (4×) isse refer karte hain.
 
@@ -580,7 +580,7 @@ flowchart LR
     J --> K[DELIVERED -> CodSettlement / settlement]
 ```
 
-**Ek checkout ~8–10 collections ko touch karta hai** — isiliye stock deduction atomic + rollback hona zaroori. Detail: [11_Order_System.md](./11_Order_System.md), [12_Payment_System.md](./12_Payment_System.md).
+**Ek checkout ~8–10 collections ko touch karta hai** — isiliye stock deduction atomic + rollback hona zaroori. Detail: [11_Order_System.md](./../features/orders.md), [12_Payment_System.md](./../features/payments.md).
 
 ---
 
@@ -592,16 +592,16 @@ flowchart LR
 
 ## DEPENDENCIES
 
-- **Isse pehle:** [04_Backend.md](./04_Backend.md) (layered architecture — DAO/model layer)
-- **Related:** [08_Authentication.md](./08_Authentication.md) (User + roleId populate), [09_Authorization_RBAC.md](./09_Authorization_RBAC.md) (RBAC trio), [11_Order_System.md](./11_Order_System.md) (Order/SubOrder lifecycle), [12_Payment_System.md](./12_Payment_System.md) (wallet/settlement/COD)
-- **Config:** [16_Environment.md](./16_Environment.md) (AppConfig defaults ENV se)
+- **Isse pehle:** [04_Backend.md](./../apps/server.md) (layered architecture — DAO/model layer)
+- **Related:** [08_Authentication.md](./../features/authentication.md) (User + roleId populate), [09_Authorization_RBAC.md](./../features/authorization-rbac.md) (RBAC trio), [11_Order_System.md](./../features/orders.md) (Order/SubOrder lifecycle), [12_Payment_System.md](./../features/payments.md) (wallet/settlement/COD)
+- **Config:** [16_Environment.md](./../operations/environment.md) (AppConfig defaults ENV se)
 
 ---
 
 ## RISKS
 
 - ⚠️ **Auto-approve default (`APPROVED`)** — koi bhi seller product/coupon/banner turant live kar sakta hai bina admin review. Marketplace trust/moderation gap. Business decision confirm karo.
-- ⚠️ **PII/financial fields** — `Seller`/`DeliveryBoy` mein bank account, IFSC, PAN, Aadhaar, UPI. Encryption-at-rest + response serialization se filter zaroori. Dekho [19_Security.md](./19_Security.md).
+- ⚠️ **PII/financial fields** — `Seller`/`DeliveryBoy` mein bank account, IFSC, PAN, Aadhaar, UPI. Encryption-at-rest + response serialization se filter zaroori. Dekho 19_Security.md.
 - ⚠️ **Refs = application-level joins** — orphan refs possible (product delete ho par order item usko point karta rahe). Cleanup/soft-delete discipline chahiye.
 - ⚠️ **`pricingSnapshot`/`timeline` = `Mixed`** — schema validation nahi, koi bhi shape ghus sakta hai. Consistency application code pe depend karti hai.
 - ⚠️ **AppConfig singleton schema-level enforce nahi** — do docs ban gaye toh config ambiguous. DAO/service pe bharosa.

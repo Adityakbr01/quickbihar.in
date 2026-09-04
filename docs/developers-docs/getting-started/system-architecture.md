@@ -67,7 +67,7 @@ Production mein **sab kuch ek hi origin (nginx port 80)** se serve hota hai. ngi
 
 > ⚠️ **Order matters:** `/socket.io/` ko alag se proxy karna **zaroori** hai. Agar yeh block hata do, toh WebSocket handshake `/` (mobile-web) pe gir jaata hai aur realtime tut jaata hai. Config mein iska comment bhi likha hai.
 
-Detail: [17_Deployment.md](./17_Deployment.md).
+Detail: 17_Deployment.md.
 
 ---
 
@@ -147,7 +147,7 @@ Server **layered (N-tier) architecture** follow karta hai. Har HTTP request in l
 /api/v1/refund-policies → refund policies
 ```
 
-> **Note:** `products` aur `size-charts` `modules/clothing/` se aate hain (vertical-specific). Baaki sab `modules/common/` se. Yeh wahi **common/clothing seam** hai. Dekho [01_Folder_Structure.md](./01_Folder_Structure.md).
+> **Note:** `products` aur `size-charts` `modules/clothing/` se aate hain (vertical-specific). Baaki sab `modules/common/` se. Yeh wahi **common/clothing seam** hai. Dekho [01_Folder_Structure.md](././folder-structure.md).
 
 ---
 
@@ -172,7 +172,7 @@ Server **layered (N-tier) architecture** follow karta hai. Har HTTP request in l
 - **Matching loop aur notification worker** MongoDB connect hone ke baad hi start hote hain (warna DB access fail hoga).
 - Agar `connectDB()` fail ho jaaye, toh server **listen hi nahi karega** — sirf error print karke ruk jaata hai.
 
-Detail: [23_Request_Lifecycle.md](./23_Request_Lifecycle.md).
+Detail: 23_Request_Lifecycle.md.
 
 ---
 
@@ -205,7 +205,7 @@ Yeh system ka **sabse important design principle** hai:
 
 **Kyun yeh order?** Kyunki socket **reliable nahi hai** — client offline ho sakta hai, connection drop ho sakta hai. Agar sirf socket pe bharosa karo, toh event kho jaayega. Isliye pehle DB mein likho (event kabhi nahi khoyega), phir socket sirf "turant bata do" ke liye use karo. Client reconnect hone pe DB se history fetch kar leta hai.
 
-Detail: [14_Notifications.md](./14_Notifications.md).
+Detail: [14_Notifications.md](./../features/notifications.md).
 
 ---
 
@@ -235,7 +235,7 @@ Dono clients (web + mobile) ka pattern **same** hai:
 - **axios interceptor**: har request mein token attach karta hai; 401 aane pe **single-flight silent refresh** karta hai (ek hi refresh call, baaki requests queue mein wait karti hain). Web: `web/src/lib/axios.ts`. Mobile: `mobile/src/api/axiosInstance.ts`.
 - **Socket → React Query bridge**: socket event aane pe relevant query invalidate hoti hai → automatic refetch → UI update. Web: `web/src/hooks/useFulfillmentRealtime.ts`.
 
-Detail: [03_Frontend.md](./03_Frontend.md), [05_Mobile_App.md](./05_Mobile_App.md), [06_API_Flow.md](./06_API_Flow.md).
+Detail: [03_Frontend.md](./../apps/web-dashboard.md), [05_Mobile_App.md](./../apps/mobile-app.md), [06_API_Flow.md](./../apps/api-flow.md).
 
 ---
 
@@ -269,7 +269,7 @@ sequenceDiagram
     S-->>M: success
 ```
 
-Poora order flow: [11_Order_System.md](./11_Order_System.md). Payment detail: [12_Payment_System.md](./12_Payment_System.md).
+Poora order flow: [11_Order_System.md](./../features/orders.md). Payment detail: [12_Payment_System.md](./../features/payments.md).
 
 ---
 
@@ -286,15 +286,15 @@ Poora order flow: [11_Order_System.md](./11_Order_System.md). Payment detail: [1
 | **Resend** | Transactional email (OTP, etc.) | `utils/mail.service.ts` |
 | **open-meteo** | Rain detection (dynamic surcharge) | `orderPricing.service.ts` |
 
-Detail: [16_Environment.md](./16_Environment.md).
+Detail: [16_Environment.md](./../operations/environment.md).
 
 ---
 
 ## DEPENDENCIES
 
-- **Isse pehle:** [00_Project_Overview.md](./00_Project_Overview.md), [01_Folder_Structure.md](./01_Folder_Structure.md)
-- **Iske baad:** [03_Frontend.md](./03_Frontend.md), [04_Backend.md](./04_Backend.md), [05_Mobile_App.md](./05_Mobile_App.md)
-- **Deep:** [06_API_Flow.md](./06_API_Flow.md), [23_Request_Lifecycle.md](./23_Request_Lifecycle.md)
+- **Isse pehle:** [00_Project_Overview.md](././overview.md), [01_Folder_Structure.md](././folder-structure.md)
+- **Iske baad:** [03_Frontend.md](./../apps/web-dashboard.md), [04_Backend.md](./../apps/server.md), [05_Mobile_App.md](./../apps/mobile-app.md)
+- **Deep:** [06_API_Flow.md](./../apps/api-flow.md), 23_Request_Lifecycle.md
 
 ---
 

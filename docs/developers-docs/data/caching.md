@@ -13,7 +13,7 @@ QuickBihar ka **caching layer** — jo actually code mein wired hai, na kम na 
 ```
 TIER 1 — REDIS (ioredis, shared client, cross-process)
   1. RBAC permission cache   ← role → permission-codes hash, 24h TTL   (hot path)
-  2. OTP + cooldown          ← otp:<email> (10min), otp_cooldown:<email> (60s)
+  2. Password-reset replay store ← pwd_reset:<userId>:<tokenTail> (15min)  (see [authentication.md](../features/authentication.md))
   3. BullMQ notification queue ← job store + delivery (shared Redis)   (dekho 14)
 
 TIER 2 — IN-MEMORY (per-process Map, NOT shared)
@@ -31,8 +31,7 @@ Har cache ka ek **specific reason** hai — blanket caching nahi:
 | Cache | Kyun cache kiya |
 |-------|-----------------|
 | **RBAC permissions** | Har protected request pe permission check hota hai. Har baar `RolePermission.find().populate()` = do collection hit per request. Role ke permissions **rarely change**, isliye 24h cache = massive DB save. **Hot path optimization.** |
-| **OTP** | OTP inherently **ephemeral** (10 min valid). DB mein daalna = cleanup ka jhanjhat + extra collection. Redis native TTL se खुद expire — perfect fit. |
-| **OTP cooldown** | Abuse guard — 60s mein ek hi OTP. Redis `EX 60` key = built-in rate limit, koi cron nahi chahiye. |
+| **Password-reset replay store** | Reset JWT 15 min ke liye valid hai — ek baar use ho jaaye toh dobara use nahi hona chahiye. `pwd_reset:<userId>:<tokenTail>` ki maujoodgi = "is token ko already consume kar liya gaya". Redis native TTL ke saath 15 min baad gayab. |
 | **Rain (in-memory)** | open-meteo ek **external paid-ish API** hai (rate limits). Har order pe call karna = slow + quota burn. Same area ke liye 5-min cache kaafi (mausam 5 min mein nahi badalta). |
 | **BullMQ** | Queue ko durable backing store chahiye — Redis is the standard. Job persistence + retry BullMQ khud manage karta hai. |
 
@@ -48,9 +47,9 @@ Har cache ka ek **specific reason** hai — blanket caching nahi:
 | `modules/common/rbac/rbac.dao.ts` | ★ `rolePermissionDao` — `getCachedPermissions`, `hasPermission`, `invalidateCache` |
 | `modules/common/rbac/rbac.service.ts` | `getPermissionsByRole` → `getCachedPermissions` wrapper |
 | `modules/common/rbac/rbac.middleware.ts` | Guard — `getPermissionsByRole` se cached hash le kar permission check |
-| `modules/common/auth/auth.service.ts` | OTP cache: `otp:<email>` (EX 600), `otp_cooldown:<email>` (EX 60) |
+| `modules/common/auth/auth.service.ts` | Password-reset replay store: `pwd_reset:<userId>:<tokenTail>` (EX 900) |
 | `modules/common/order/orderPricing.service.ts` | In-memory `rainCache` Map (5-min), `detectRain` |
-| `modules/common/notification/notification.queue.ts` | BullMQ Queue (shared Redis) — dekho [14_Notifications.md](./14_Notifications.md) |
+| `modules/common/notification/notification.queue.ts` | BullMQ Queue (shared Redis) — dekho [14_Notifications.md](./../features/notifications.md) |
 
 ---
 
@@ -77,7 +76,7 @@ redis.on("error",   (err) => console.error("❌ Redis Connection Error", err));
 
 ## HOW — RBAC permission cache (the hot path) ★
 
-Yeh **sabse important** cache hai — har protected request isse touch karti hai (dekho [09_Authorization_RBAC.md](./09_Authorization_RBAC.md)).
+Yeh **sabse important** cache hai — har protected request isse touch karti hai (dekho [09_Authorization_RBAC.md](./../features/authorization-rbac.md)).
 
 ### Key + data shape
 
@@ -159,34 +158,28 @@ Yeh **cache-aside** (lazy-loading) pattern hai: pehle cache dekho, miss pe DB se
 
 ## HOW — OTP cache (`auth.service.ts`)
 
-OTP flow poora Redis pe chalta hai — koi OTP DB collection nahi (dekho [08_Authentication.md](./08_Authentication.md)):
+Reset-password flow ka **replay protection** Redis pe chalta hai — JWT ke saath ek 15-min flag rakhte hain taki same token dobara use na ho (dekho [authentication.md](../features/authentication.md)):
 
 ```
-requestOTP(email):
-  1. GET otp_cooldown:<email>  → exists? → 429 "wait 60 seconds"   (rate limit)
-  2. OTP generate
-  3. SET otp:<email> <otp> EX 600           ← 10-min validity (native TTL)
-  4. SET otp_cooldown:<email> "true" EX 60  ← 60-sec cooldown
-  5. MailService.sendOTP
-
-verifyOTPAndAuthenticate(email, otp):
-  1. GET otp:<email>  → null? → 400 "OTP expired or not found"
-  2. mismatch? → 400
-  3. DEL otp:<email>            ← one-time use (verify ke baad turant delete)
-  4. user find/create → tokens
+consumePasswordReset(token, newPassword):
+  1. jwt.verify(token, RESET_PASSWORD_JWT_SECRET)         ← signature + exp + aud
+  2. GET pwd_reset:<userId>:<tokenTail-12-chars>          ← pehle se consumed?
+     → exists? → 400 "Reset link has already been used."
+  3. user.password = newPassword                          ← pre-save hook hashes
+  4. SET pwd_reset:<userId>:<tokenTail> "1" EX 900        ← remaining 15-min TTL pe lock
 ```
 
-- **Native TTL = self-cleaning** — `EX 600`/`EX 60` se Redis khud expire kar deta hai. Koi cron/cleanup job nahi chahiye. OTP ke liye **perfect** — inherently temporary data.
-- **Cooldown = Redis-native rate limit** — `otp_cooldown:<email>` ki mere maujoodgi hi "abhi mat bhejo" ka signal hai. 60s baad key gayab → dobara allowed.
-- **One-time use** — verify hote hi `DEL`, replay attack se bachaव.
+- **Token-tail as key** — pure JWT ko key nahi banate (Redis key size + PII leak). Sirf `userId + last 12 chars of token` — yeh enough entropy hai collision-avoid ke liye aur kisi aur token se overlap nahi hoga.
+- **Native TTL = self-cleaning** — `EX 900` ke baad Redis khud expire kar deta hai. 15 min TTL ke saath key sync karta hai (reset JWT bhi 15 min ka hai).
+- **Reuse blocked** — agar attacker ne token intercept bhi kar liya, ek baar use hone ke baad lock ho jaata hai.
 
-> ★ Yeh QuickBihar ka **only real rate-limiting** hai (OTP endpoint pe). Baaki koi endpoint pe general rate limiter (express-rate-limit type) **wired nahi** — verified, grep se koi rate-limit middleware nahi mila. Dekho RISKS + [19_Security.md](./19_Security.md).
+> ⚠️ Yeh **rate-limiting ke liye nahi hai**. Rate-limiting `authRateLimiter` / `strictAuthRateLimiter` middleware pe hai (`/auth/google`, `/auth/request-reset`, etc.) — in-memory (rate-limit package), Redis pe nahi. Yeh replay-protection hai, alag concern.
 
 ---
 
 ## HOW — Rain cache (in-memory, `orderPricing.service.ts`)
 
-Rider payout mein rain bonus ke liye open-meteo API call hoti hai (dekho [12_Payment_System.md](./12_Payment_System.md) — dynamic bonuses). Yeh call **cache** hoti hai, par **Redis mein nahi — process memory mein**:
+Rider payout mein rain bonus ke liye open-meteo API call hoti hai (dekho [12_Payment_System.md](./../features/payments.md) — dynamic bonuses). Yeh call **cache** hoti hai, par **Redis mein nahi — process memory mein**:
 
 ```javascript
 const rainCache = new Map<string, { expiresAt: number; isRainActive: boolean }>();
@@ -212,7 +205,7 @@ detectRain(coords):
 
 ## HOW — BullMQ shared Redis (queue backing)
 
-Campaign notifications BullMQ pe chalti hain (poora detail [14_Notifications.md](./14_Notifications.md)):
+Campaign notifications BullMQ pe chalti hain (poora detail [14_Notifications.md](./../features/notifications.md)):
 
 ```
 notification.queue.ts → new Queue("notification-queue", { connection: <ioredis, REDIS_URL, maxRetriesPerRequest:null> })
@@ -220,7 +213,7 @@ notification.worker.ts → new Worker("notification-queue", handler, { connectio
 ```
 
 - Redis yaha **cache nahi, durable job store** hai — jobs, retries, delays sab BullMQ Redis mein rakhta hai.
-- **Same `REDIS_URL`** RBAC/OTP ke saath share hoti hai (ek hi Redis instance, alag key namespaces: `bull:*` vs `rbac:*` vs `otp:*`).
+- **Same `REDIS_URL`** RBAC/reset-replay ke saath share hoti hai (ek hi Redis instance, alag key namespaces: `bull:*` vs `rbac:*` vs `pwd_reset:*`).
 - `maxRetriesPerRequest: null` isiliye zaroori (BullMQ ki hard requirement — dekho upar client config).
 
 ---
@@ -234,10 +227,10 @@ notification.worker.ts → new Worker("notification-queue", handler, { connectio
              ┌────────────────────────┼────────────────────────┐
              ▼                        ▼                        ▼
      ┌───────────────┐       ┌────────────────┐       ┌─────────────────┐
-     │ rbac:role_perm │       │ otp:* /         │       │ bull:notification│
-     │ :<roleId>      │       │ otp_cooldown:*  │       │ -queue:*         │
-     │ HASH, 24h TTL  │       │ STRING, 600/60s │       │ BullMQ managed   │
-     │ (cache-aside)  │       │ (ephemeral)     │       │ (job store)      │
+     │ rbac:role_perm │       │ pwd_reset:*    │       │ bull:notification│
+     │ :<roleId>      │       │ STRING, 900s   │       │ -queue:*         │
+     │ HASH, 24h TTL  │       │ (replay lock)  │       │ BullMQ managed   │
+     │ (cache-aside)  │       │                │       │ (job store)      │
      └───────────────┘       └────────────────┘       └─────────────────┘
         rbac.dao.ts              auth.service.ts          notification.*
 
@@ -263,9 +256,9 @@ notification.worker.ts → new Worker("notification-queue", handler, { connectio
 
 ## DEPENDENCIES
 
-- **Isse pehle:** [09_Authorization_RBAC.md](./09_Authorization_RBAC.md) (permission cache kaha use hoti hai), [08_Authentication.md](./08_Authentication.md) (OTP flow)
-- **Related:** [14_Notifications.md](./14_Notifications.md) (BullMQ shared Redis), [12_Payment_System.md](./12_Payment_System.md) (rain cache → rider bonus)
-- **Config:** [16_Environment.md](./16_Environment.md) (`REDIS_URL`), [20_Performance.md](./20_Performance.md) (caching = perf lever)
+- **Isse pehle:** [09_Authorization_RBAC.md](./../features/authorization-rbac.md) (permission cache kaha use hoti hai), [08_Authentication.md](./../features/authentication.md) (OTP flow)
+- **Related:** [14_Notifications.md](./../features/notifications.md) (BullMQ shared Redis), [12_Payment_System.md](./../features/payments.md) (rain cache → rider bonus)
+- **Config:** [16_Environment.md](./../operations/environment.md) (`REDIS_URL`), 20_Performance.md (caching = perf lever)
 - **External:** Redis (ioredis), open-meteo API (rain)
 
 ---
@@ -276,9 +269,9 @@ notification.worker.ts → new Worker("notification-queue", handler, { connectio
 - ⚠️ **Redis down = auth/RBAC degrade** — `getCachedPermissions` catch → `{}` (fail-closed, sab 403). Achha security-wise, par **poora app effectively down** (har protected route 403). OTP bhi fail (login block). Redis is a **hard dependency**, no graceful fallback to DB-direct.
 - ⚠️ **`hasPermission` no try/catch (verified)** — `getCachedPermissions` fail-closed hai par `hasPermission` Redis error pe **throw** karega. Abhi middleware `getCachedPermissions` use karta hai (safe), par `hasPermission` ka koi naya caller inconsistent crash paayega. Dono ka error behaviour align hona chahiye.
 - ⚠️ **`hasPermission` possibly unused (verified)** — middleware `getPermissionsByRole`→`getCachedPermissions` use karta hai; DAO ka `hasPermission` (3-step optimized) guard path mein call hota **nahi** dikha. Dead-ish code ya future-use — confirm karke ya wire karo ya hatao.
-- ⚠️ **Rain cache in-memory (single-instance)** — plain `Map`, Redis nahi. Multi-instance pe har process apna cache (duplicate open-meteo calls); restart pe cold. Consistent with baaki in-process risks (dekho [14_Notifications.md](./14_Notifications.md) socket, [11_Order_System.md](./11_Order_System.md) matching loop). Shared cache chahiye toh Redis mein daalo.
+- ⚠️ **Rain cache in-memory (single-instance)** — plain `Map`, Redis nahi. Multi-instance pe har process apna cache (duplicate open-meteo calls); restart pe cold. Consistent with baaki in-process risks (dekho [14_Notifications.md](./../features/notifications.md) socket, [11_Order_System.md](./../features/orders.md) matching loop). Shared cache chahiye toh Redis mein daalo.
 - ⚠️ **24h RBAC TTL — stale window on missed invalidation** — agar kisi mutation pe `invalidateCache` call chhoot jaaye (naya code path), stale permissions **24 ghante** tak reh sakti hain. Invalidation manual/explicit hai, isliye har perm-mutation site pe discipline chahiye.
-- ⚠️ **No general rate limiting (verified)** — sirf OTP cooldown. Baaki endpoints (login attempts, order spam, upload) pe koi Redis-based throttle nahi. Abuse surface. Dekho [19_Security.md](./19_Security.md).
+- ⚠️ **No general rate limiting (verified)** — sirf OTP cooldown. Baaki endpoints (login attempts, order spam, upload) pe koi Redis-based throttle nahi. Abuse surface. Dekho 19_Security.md.
 - ⚠️ **Redis `.on("error")` sirf logs** — koi alerting/health-check hook nahi. Redis outage silently degrade karega jab tak kisi ko 403 flood na dikhe.
 
 ---
@@ -288,14 +281,14 @@ notification.worker.ts → new Worker("notification-queue", handler, { connectio
 - **Separate Redis connections** — BullMQ (`maxRetriesPerRequest:null`) alag, app cache (fail-fast, short timeout) alag. Cache command hang na ho.
 - **Align `hasPermission` error handling** — usko bhi `getCachedPermissions` jaisa fail-closed try/catch do; ya agar unused hai toh remove.
 - **Rain cache → Redis** — `SETEX rain:<coords> 300` se multi-instance share + restart-safe.
-- **General rate limiter** — Redis token-bucket / sliding-window (login, order, upload endpoints). OTP cooldown ko usi framework mein le aao.
+- **General rate limiter** — Redis token-bucket / sliding-window (login, order, upload endpoints). Reset-replay store ko alag keyspace mein rakha hai; future rate-limit framework ke saath co-exist kar sakta hai.
 - **Cache-invalidation audit** — har RolePermission/Role mutation path pe `invalidateCache` guaranteed (test/lint se enforce).
 - **Redis health signal** — `.on("error")` pe metric/alert; `/health` mein Redis ping include.
-- **Optional short-TTL catalog cache** — hyperlocal product lists (`/products/local`) mehnga geo query hai (dekho [10_Product_System.md](./10_Product_System.md)); 30-60s Redis cache read-heavy load kam karega (staleness acceptable ho toh).
+- **Optional short-TTL catalog cache** — hyperlocal product lists (`/products/local`) mehnga geo query hai (dekho [10_Product_System.md](./../features/products.md)); 30-60s Redis cache read-heavy load kam karega (staleness acceptable ho toh).
 
 ---
 
-*Verified against `config/redis.config.ts` (ioredis, maxRetriesPerRequest:null, retryStrategy), `rbac.dao.ts` (getCachedPermissions/hasPermission/invalidateCache, `_populated` sentinel, 24h CACHE_TTL), `rbac.middleware.ts` (getPermissionsByRole path — line 16-17), `auth.service.ts` (otp/otp_cooldown SET EX 600/60, DEL on verify), aur `orderPricing.service.ts` (in-memory rainCache Map, WEATHER_CACHE_MS=5min) on 2026-08-01. "No general HTTP cache", "no general rate limiter", "hasPermission not on middleware path", aur "rain cache in-memory not Redis" grep/read se confirm kiye gaye — hallucinate nahi.*
+*Verified against `config/redis.config.ts` (ioredis, maxRetriesPerRequest:null, retryStrategy), `rbac.dao.ts` (getCachedPermissions/hasPermission/invalidateCache, `_populated` sentinel, 24h CACHE_TTL), `rbac.middleware.ts` (getPermissionsByRole path — line 16-17), `auth.service.ts` (pwd_reset:<userId>:<tokenTail> SET EX 900, GET on consumePasswordReset), aur `orderPricing.service.ts` (in-memory rainCache Map, WEATHER_CACHE_MS=5min) on 2026-09-04. "No general HTTP cache", "authRateLimiter / strictAuthRateLimiter are in-memory (rate-limit package, not Redis)", "hasPermission not on middleware path", aur "rain cache in-memory not Redis" grep/read se confirm kiye gaye — hallucinate nahi.*
 
 
 

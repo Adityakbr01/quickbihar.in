@@ -29,7 +29,7 @@ Kyunki **yaha galti = asli paisa idhar-udhar**. Marketplace hai, isliye ek order
 1. **Paisa gum na ho / double na ho** — settlement **idempotent** hai (`idempotencyKey` unique index). Chahe delivery event do baar fire ho, seller ko ek hi baar credit hoga.
 2. **Confirmed order bina stock ke na bane** — online payment capture hone ke baad agar stock khatam (race), toh **auto-refund** (M1) hota hai, order kabhi CONFIRMED nahi hota bina inventory secure kiye.
 
-> ★ **Golden principle (code se):** "DB never holds a confirmed order without its inventory secured." Stock pehle deduct hota hai (all-or-nothing, rollback ke saath), **tab** order CONFIRMED banta hai — dono COD aur online path pe. Dekho [11_Order_System.md](./11_Order_System.md).
+> ★ **Golden principle (code se):** "DB never holds a confirmed order without its inventory secured." Stock pehle deduct hota hai (all-or-nothing, rollback ke saath), **tab** order CONFIRMED banta hai — dono COD aur online path pe. Dekho [11_Order_System.md](././orders.md).
 
 ---
 
@@ -46,7 +46,7 @@ Kyunki **yaha galti = asli paisa idhar-udhar**. Marketplace hai, isliye ek order
 | `modules/common/fulfillment/codSettlement.model.ts` | `CodSettlement` ledger (rider cash deposit record) |
 | `modules/common/paymentMethod/*` | Saved payment methods (cards/UPI tokens) — CRUD |
 
-> ⚠️ **Tech-debt note (verified, consistent with [11_Order_System.md](./11_Order_System.md)):** `OrderPricingService`, `OrderService`, aur `SellerSettlementService` **class-based** hain. Project ka `rule.md` **function-based** modules maangta hai (jaise `matching.service.ts` aur `paymentMethod.service.ts` sahi hain). Yeh teeno refactor candidates hain.
+> ⚠️ **Tech-debt note (verified, consistent with [11_Order_System.md](././orders.md)):** `OrderPricingService`, `OrderService`, aur `SellerSettlementService` **class-based** hain. Project ka `rule.md` **function-based** modules maangta hai (jaise `matching.service.ts` aur `paymentMethod.service.ts` sahi hain). Yeh teeno refactor candidates hain.
 
 ---
 
@@ -251,7 +251,7 @@ distanceKm  > 8   → extraKm = ceil(distanceKm − 8)
 ```
 
 Rules **config-driven** hain, warna `ENV` defaults:
-`RIDER_PAYOUT_UPTO_3_KM / _5_KM / _8_KM / _EXTRA_PER_KM_AFTER_8`. Admin app-config se in tiers ko override kar sakta hai (dekho [16_Environment.md](./16_Environment.md)).
+`RIDER_PAYOUT_UPTO_3_KM / _5_KM / _8_KM / _EXTRA_PER_KM_AFTER_8`. Admin app-config se in tiers ko override kar sakta hai (dekho [16_Environment.md](./../operations/environment.md)).
 
 ### Dynamic bonuses (rain / peak / festival / night)
 
@@ -304,7 +304,7 @@ Customer payableAmount (ek order)
 
 ## HOW — Seller settlement (`settleSubOrder`) — App → Seller
 
-Jab ek **sub-order DELIVERED/DELIVERY_CONFIRMED/COMPLETED** ho jaata hai, seller ka paisa uske wallet mein credit hota hai. Yeh `riderDeliver` ke andar automatically call hota hai (dekho [11_Order_System.md](./11_Order_System.md)).
+Jab ek **sub-order DELIVERED/DELIVERY_CONFIRMED/COMPLETED** ho jaata hai, seller ka paisa uske wallet mein credit hota hai. Yeh `riderDeliver` ke andar automatically call hota hai (dekho [11_Order_System.md](././orders.md)).
 
 ### Amount calc
 
@@ -344,7 +344,7 @@ Yeh audit jobs batate hain ki koi settlement drop toh nahi hua (ops safety net).
 
 ## HOW — Settlement reversal (`reverseSubOrderSettlement`) — return par claw-back
 
-Jab delivered order **return** ho jaata hai (M2, dekho [11_Order_System.md](./11_Order_System.md)), seller ka credit **wapas leni** padti hai. Yeh `issueReturnRefund` ke andar call hota hai.
+Jab delivered order **return** ho jaata hai (M2, dekho [11_Order_System.md](././orders.md)), seller ka credit **wapas leni** padti hai. Yeh `issueReturnRefund` ke andar call hota hai.
 
 ```
 reverseSubOrderSettlement(subOrder):
@@ -436,7 +436,7 @@ flowchart LR
     E --> F[CodSettlement VERIFIED ledger row]
 ```
 
-> **COD ceiling:** rider naya COD job accept karne se pehle `riderAcceptOrder` check karta hai ki `collectedCodLiability + naya payableAmount` ceiling cross toh nahi karega (warna **429**). Yeh rider ke paas bahut zyada app-cash jama hone se rokta hai. Dekho [11_Order_System.md](./11_Order_System.md).
+> **COD ceiling:** rider naya COD job accept karne se pehle `riderAcceptOrder` check karta hai ki `collectedCodLiability + naya payableAmount` ceiling cross toh nahi karega (warna **429**). Yeh rider ke paas bahut zyada app-cash jama hone se rokta hai. Dekho [11_Order_System.md](././orders.md).
 
 ---
 
@@ -453,7 +453,7 @@ IPaymentMethod: { userId, provider(default RAZORPAY), methodType("card"/"upi"/"w
 - **Single-default invariant:** `isDefault:true` set karne pe `pre("save")` hook + DAO `setAsDefault` baaki sab ko `false` kar dete hain. Ek user, ek default.
 - **`providerToken`** gateway se aaya recurring/saved-payment token hai — **raw card number kabhi store nahi hota** (PCI safe).
 
-> ⚠️ `providerToken` sensitive hai. Iska serialization filter hona chahiye (client ko token expose na ho). Abhi model level pe koi `select:false` nahi — dekho RISKS + [19_Security.md](./19_Security.md).
+> ⚠️ `providerToken` sensitive hai. Iska serialization filter hona chahiye (client ko token expose na ho). Abhi model level pe koi `select:false` nahi — dekho RISKS + 19_Security.md.
 
 ---
 
@@ -504,23 +504,23 @@ IPaymentMethod: { userId, provider(default RAZORPAY), methodType("card"/"upi"/"w
 
 ## DEPENDENCIES
 
-- **Isse pehle:** [11_Order_System.md](./11_Order_System.md) (order lifecycle, SubOrder split, rider leg jaha settlement trigger hota hai)
-- **Related:** [07_Database.md](./07_Database.md) (Order/SubOrder/SellerEarning/CodSettlement/Seller wallet schemas), [16_Environment.md](./16_Environment.md) (Razorpay keys, payout tier ENV, app-config overrides)
-- **Security:** [19_Security.md](./19_Security.md) (secret handling, `providerToken`/wallet serialization), [09_Authorization_RBAC.md](./09_Authorization_RBAC.md) (admin cod-settle guard)
-- **Realtime:** [14_Notifications.md](./14_Notifications.md) (payout/settlement notifications)
+- **Isse pehle:** [11_Order_System.md](././orders.md) (order lifecycle, SubOrder split, rider leg jaha settlement trigger hota hai)
+- **Related:** [07_Database.md](./../data/database.md) (Order/SubOrder/SellerEarning/CodSettlement/Seller wallet schemas), [16_Environment.md](./../operations/environment.md) (Razorpay keys, payout tier ENV, app-config overrides)
+- **Security:** 19_Security.md (secret handling, `providerToken`/wallet serialization), [09_Authorization_RBAC.md](././authorization-rbac.md) (admin cod-settle guard)
+- **Realtime:** [14_Notifications.md](././notifications.md) (payout/settlement notifications)
 - **External:** Razorpay (payments/orders/refunds), open-meteo (rain detection)
 
 ---
 
 ## RISKS
 
-- ⚠️ **No DB transactions (multi-document money moves)** — settlement, wallet `$inc`, aur ledger create alag-alag ops hain (Mongo transaction wrap nahi). Idempotency keys duplicate-pay se bachate hain, par ek op fail-mid-flow ho toh partial state ban sakta hai. Consistent with [11_Order_System.md](./11_Order_System.md) ka same risk.
+- ⚠️ **No DB transactions (multi-document money moves)** — settlement, wallet `$inc`, aur ledger create alag-alag ops hain (Mongo transaction wrap nahi). Idempotency keys duplicate-pay se bachate hain, par ek op fail-mid-flow ho toh partial state ban sakta hai. Consistent with [11_Order_System.md](././orders.md) ka same risk.
 - ⚠️ **Already-PAID earning reversal = manual claw-back** — return-after-payout ka paisa recover karne ka automatic mechanism nahi. Sirf `console.error CRITICAL` log; admin ko manually seller se recover karna padta hai.
 - ⚠️ **Refund failure → manual reconciliation** — `refundAndFailOrder` aur `issueReturnRefund` refund fail hone pe MANUAL_RECONCILE/FAILED mark karke loud log karte hain, par koi retry queue nahi. Ops ko logs monitor karne padenge (koi alerting/dashboard nahi verified).
 - ⚠️ **`splitAmount` do jagah duplicate** — `orderPricing.service.ts` aur `order.service.ts` dono mein same paise-split logic. Ek jagah change, doosri bhoolna = mismatch. Shared util hona chahiye.
 - ⚠️ **open-meteo pricing hot-path pe** — rain bonus ke liye external API call (5-min cache ke saath). API down = rain bonus silently 0 (rider ko kam paisa raining day pe, fail-safe par unfair). Third-party availability pe paisa depend karta hai.
-- ⚠️ **Class-based services (tech debt)** — `OrderPricingService`, `OrderService`, `SellerSettlementService` `rule.md` function-based convention todte hain. Consistent flag with [11_Order_System.md](./11_Order_System.md) + [30_Tech_Debt.md](./30_Tech_Debt.md).
-- ⚠️ **`providerToken` / wallet fields serialization** — `PaymentMethod.providerToken` aur `Seller.wallet` / `DeliveryBoy.wallet` pe koi `select:false` ya toJSON filter verified nahi. Sensitive financial data client ko leak ho sakta hai. Dekho [07_Database.md](./07_Database.md) RISKS.
+- ⚠️ **Class-based services (tech debt)** — `OrderPricingService`, `OrderService`, `SellerSettlementService` `rule.md` function-based convention todte hain. Consistent flag with [11_Order_System.md](././orders.md) + 30_Tech_Debt.md.
+- ⚠️ **`providerToken` / wallet fields serialization** — `PaymentMethod.providerToken` aur `Seller.wallet` / `DeliveryBoy.wallet` pe koi `select:false` ya toJSON filter verified nahi. Sensitive financial data client ko leak ho sakta hai. Dekho [07_Database.md](./../data/database.md) RISKS.
 - ⚠️ **Commission snapshot vs live config** — commission `pricingSnapshot` pe freeze hota hai (sahi), par agar snapshot missing/corrupt ho toh settlement `max(0, gross−commission)` fallback pe chala jaata hai — silent behaviour change.
 - ⚠️ **COD liability clamp at 0** — `max(0, previous − amount)` galat/duplicate settle pe liability negative nahi hone deta, par yeh **error ko hide** bhi kar sakta hai (over-settlement silently swallow). Ledger se audit zaroori.
 

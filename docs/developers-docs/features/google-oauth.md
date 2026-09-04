@@ -1,12 +1,14 @@
-# OAuth (Google) — QuickBihar
+# Google OAuth Setup
 
-> Single source of truth for **Google OAuth 2.0** in QuickBihar — covers the **Google Cloud Console** setup, **all production + testing URLs/URIs/redirects**, the **.env templates** for server / web / mobile, and how the **code uses each env var**.
->
-> **Last updated:** 2026-09-04
-> **Audience:** Devs onboarding a new environment (laptop, staging, prod)
-> **Time:** ~25 min for the cloud console + ~5 min per env file
->
-> For the deeper auth-flow / cookie / token-rotation architecture, see [08_Authentication.md](./08_Authentication.md). For every other env var, see [16_Environment.md](./16_Environment.md).
+> Owner: `server/src/modules/common/auth/googleOAuth.service.ts`
+> Related: [authentication.md](./authentication.md) · [operations/environment.md](../operations/environment.md)
+
+Single source of truth for **Google OAuth 2.0** in QuickBihar — Google Cloud Console setup, all production + testing URLs/URIs/redirects, the `.env` templates for server / web / mobile, and how the code uses each env var.
+
+**Audience:** Devs onboarding a new environment (laptop, staging, prod).
+**Time:** ~25 min for the cloud console + ~5 min per env file.
+
+For the auth-flow / cookie / token-rotation architecture, see [authentication.md](./authentication.md). For every other env var, see [operations/environment.md](../operations/environment.md).
 
 ---
 
@@ -91,7 +93,7 @@
 1. Same **Credentials** page → **+ Create Credentials** → **OAuth client ID**.
 2. **Application type:** **Android**.
 3. **Name:** `QuickBihar Android`.
-4. **Package name:** `com.quickbihar.app`  *(the package in `mobile/app.json`; the placeholder `com.example` from your spec will NOT match the real app — use the real one)*
+4. **Package name:** `com.quickbihar.app`  *(the package in `mobile/app.json`; the placeholder `com.example` will NOT match the real app — use the real one)*
 5. **SHA-1 certificate fingerprint** — get the SHA-1 of the keystore you'll sign the app with:
 
    ```bash
@@ -103,8 +105,6 @@
    keytool -list -v -keystore /path/to/your-release-key.jks \
        -alias your-key-alias | grep SHA1
    ```
-
-   The `12:34:56:78:90:AB:CD:EF:12:34:56:78:90:AB:CD:EF:AA:BB:CC:DD` in your spec is a **placeholder**. You must replace it with the SHA-1 of your real keystore, otherwise Google will reject the id_token with a `package+signature mismatch` error.
 
    > You can register **two SHA-1s** (debug + release) by editing the client after creation. This lets dev builds and Play Store builds both work.
 
@@ -178,16 +178,17 @@ Bundle ID:        com.quickbihar.app
 POST https://quick.voiceact.tech/api/v1/auth/google
 body: {
   idToken:    "<JWT id_token from Google>",
-  client:     "web" | "android" | "ios",
+  client:     "web" | "mobile",
   legacyPhone?: "+919876543210"     // optional, for legacy phone migration
 }
 returns: {
   user: { _id, email, fullName, role, ... },
   accessToken: "...",
-  refreshToken: "...",
-  isNewUser: true|false
+  refreshToken: "..."
 }
 ```
+
+> `client` is a discriminator. On the server it widens the audience check to include `GOOGLE_ANDROID_CLIENT_ID` / `GOOGLE_IOS_CLIENT_ID` when `client === "mobile"`.
 
 ### 2.7 Mobile deep-link / redirect scheme
 
@@ -220,26 +221,12 @@ returns: {
 > - `mobile/.env` keys are **`EXPO_PUBLIC_*`** (inlined at build time, public).
 > - Mock/placeholder values are clearly marked. **Replace `replace_me-*` with real values from Google Cloud before testing.**
 
-### 3.1 `server/.env`
+### 3.1 `server/.env` (Google section)
+
+The full template lives at [`server/.env.example`](../../../server/.env.example). The Google-specific block:
 
 ```bash
-# ── Core ──────────────────────────────────────────────
-PORT=8000
-NODE_ENV=development                       # development | production | test
-MONGODB_URI=mongodb://localhost:27017/quickbihar
-REDIS_URL=redis://localhost:6379
-
-# ── JWT secrets ─────────────────────────────────────
-ACCESS_TOKEN_SECRET=replace_me-access-token-secret-min-8-chars
-ACCESS_TOKEN_EXPIRY=1d
-REFRESH_TOKEN_SECRET=replace_me-refresh-token-secret-min-8-chars
-REFRESH_TOKEN_EXPIRY=10d
-RESET_PASSWORD_JWT_SECRET=                  # optional, defaults to REFRESH_TOKEN_SECRET
-
-# ── CORS ────────────────────────────────────────────
-CORS_ORIGIN=http://localhost:3000,http://localhost:3001,http://localhost:8081
-
-# ── Google OAuth (THIS DOC) ─────────────────────────
+# ── Google OAuth (this doc) ─────────────────────────────
 # Required — Web client ID from Google Cloud. The server uses this as
 # the audience when verifying the id_token. MUST match the Web client
 # ID used by the web dashboard and (typically) the iOS app.
@@ -247,8 +234,6 @@ GOOGLE_CLIENT_ID=replace_me-web-client-id.apps.googleusercontent.com
 
 # Optional — only needed if you ever wire the auth-code flow server-side.
 GOOGLE_CLIENT_SECRET=
-
-# Optional — explicit redirect URI for the auth-code flow.
 GOOGLE_REDIRECT_URI=
 
 # Recommended — Android client ID. Set this to a stricter value so the
@@ -258,67 +243,19 @@ GOOGLE_ANDROID_CLIENT_ID=replace_me-android-client-id.apps.googleusercontent.com
 # Optional — iOS client ID (mirrors the Android logic).
 GOOGLE_IOS_CLIENT_ID=replace_me-ios-client-id.apps.googleusercontent.com
 
-# Optional — only used by the Google Sign-In SDK on Android to verify
-# the calling package. Must match the package in mobile/app.json.
+# Optional — must match the package in mobile/app.json.
 GOOGLE_ANDROID_PACKAGE=com.quickbihar.app
-
-# ── ImageKit (uploads) ─────────────────────────────
-IMAGEKIT_PUBLIC_KEY=replace_me_imagekit_public_key
-IMAGEKIT_PRIVATE_KEY=replace_me_imagekit_private_key
-IMAGEKIT_URL_ENDPOINT=https://ik.imagekit.io/your-id
-
-# ── Razorpay (payments) ────────────────────────────
-RAZORPAY_KEY_ID=replace_me_razorpay_key_id
-RAZORPAY_KEY_SECRET=replace_me_razorpay_key_secret
-RAZORPAY_WEBHOOK_SECRET=                    # optional
-
-# ── Firebase (push) ────────────────────────────────
-FIREBASE_PROJECT_ID=replace_me_firebase_project_id
-FIREBASE_CLIENT_EMAIL=firebase-adminsdk-xxx@your-project.iam.gserviceaccount.com
-FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\\nMIIE...\\n-----END PRIVATE KEY-----\\n"
-
-# ── Email (Resend) ────────────────────────────────
-RESEND_API_KEY=                             # optional
-RESEND_FROM_EMAIL="Quick Bihar <noreply@voiceact.tech>"
-
-# ── Admin seed ─────────────────────────────────────
-ADMIN_EMAIL=admin@yourdomain
-ADMIN_PASSWORD=replace_me_admin_password_min_8
-
-# ── Rider / marketplace tuning (defaults shown) ───
-MATCHING_STAGE4_RADIUS_KM=8
-RIDER_MAX_ACCEPTED_ORDERS_PER_WINDOW=15
-RIDER_ACCEPTANCE_WINDOW_HOURS=12
-RIDER_MAX_COD_LIABILITY=5000
-RETURN_WINDOW_DAYS=7
-RIDER_PAYOUT_UPTO_3_KM=20
-RIDER_PAYOUT_UPTO_5_KM=30
-RIDER_PAYOUT_UPTO_8_KM=45
-RIDER_PAYOUT_EXTRA_PER_KM_AFTER_8=5
-RIDER_PAYOUT_RAIN_BONUS=0
-RIDER_PAYOUT_PEAK_BONUS=0
-RIDER_PAYOUT_FESTIVAL_BONUS=0
-RIDER_PAYOUT_NIGHT_BONUS=0
-MARKETPLACE_COMMISSION_PERCENT=15
 ```
 
 > **Test-mode mock values:** When running unit tests, set
-> `GOOGLE_CLIENT_ID=test_placeholder` and `GOOGLE_CLIENT_SECRET=test_placeholder`
-> to satisfy the Zod-validator without making real Google calls.
+> `GOOGLE_CLIENT_ID=test_placeholder` to satisfy the Zod validator without making real Google calls.
 
 ### 3.2 `web/.env`
 
+The full template lives at [`web/.env.example`](../../../web/.env.example). The Google block:
+
 ```bash
-# ── API ──────────────────────────────────────────────
-# Dev:           http://localhost:8000/api/v1
-# Production:    https://quick.voiceact.tech/api/v1
-NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
-
-# Dev:           http://localhost:8000
-# Production:    https://quick.voiceact.tech
-NEXT_PUBLIC_SOCKET_URL=http://localhost:8000
-
-# ── Google OAuth (Web client) ──────────────────────
+# ── Google OAuth (Web client) ─────────────────────────
 # MUST equal the Web client ID from Google Cloud. Same value goes into
 # server's GOOGLE_CLIENT_ID so the server can verify the id_token.
 NEXT_PUBLIC_GOOGLE_CLIENT_ID=replace_me-web-client-id.apps.googleusercontent.com
@@ -328,21 +265,17 @@ NEXT_PUBLIC_GOOGLE_CLIENT_ID=replace_me-web-client-id.apps.googleusercontent.com
 
 ### 3.3 `mobile/.env`
 
-```bash
-# ── API origin (pick ONE; uncomment the active one) ─
-EXPO_PUBLIC_API_ORIGIN=https://quick.voiceact.tech
-# EXPO_PUBLIC_API_ORIGIN=http://localhost:8000
-# EXPO_PUBLIC_API_ORIGIN=http://10.0.2.2:8000            # Android emulator
-# EXPO_PUBLIC_API_ORIGIN=http://10.56.21.27:8000         # LAN (replace IP)
+The full template lives at [`mobile/.env.example`](../../../mobile/.env.example). The Google block:
 
-# ── Google OAuth (mobile) ──────────────────────────
+```bash
+# ── Google OAuth (mobile) ─────────────────────────────
 # Android client ID — @react-native-google-signin/google-signin v15
 EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID=replace_me-android-client-id.apps.googleusercontent.com
 
 # iOS client ID
 EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID=replace_me-ios-client-id.apps.googleusercontent.com
 
-# Web client ID (rare fallback)
+# Web client ID (rare fallback; needed if you embed a web sign-in flow).
 EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID=replace_me-web-client-id.apps.googleusercontent.com
 ```
 
@@ -354,27 +287,27 @@ EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID=replace_me-web-client-id.apps.googleusercontent
 
 | Env var | Used in | Purpose |
 |---------|---------|---------|
-| `GOOGLE_CLIENT_ID` | [googleAuth.service.ts](../../server/src/modules/common/auth/googleAuth.service.ts) | Audience for `OAuth2Client.verifyIdToken` (web + iOS tokens) |
+| `GOOGLE_CLIENT_ID` | [`googleOAuth.service.ts`](../../../server/src/modules/common/auth/googleOAuth.service.ts) | Audience for `OAuth2Client.verifyIdToken` (web + iOS tokens) |
 | `GOOGLE_ANDROID_CLIENT_ID` | same | Audience for Android tokens (stricter) |
 | `GOOGLE_IOS_CLIENT_ID` | same | Audience for iOS tokens (stricter) |
 | `GOOGLE_CLIENT_SECRET` | (unused today) | Reserved for auth-code flow |
 | `GOOGLE_REDIRECT_URI` | (unused today) | Reserved for auth-code flow |
 | `GOOGLE_ANDROID_PACKAGE` | (server doesn't read this; SDK-side only) | — |
 
-> **Startup guard:** If `GOOGLE_CLIENT_ID` is missing, [env.config.ts](../../server/src/config/env.config.ts) (Zod) refuses to start the server with a clear error message. This is intentional — fail-fast is better than runtime 500s.
+> **Startup guard:** If `GOOGLE_CLIENT_ID` is missing, [`env.config.ts`](../../../server/src/config/env.config.ts) (Zod) refuses to start the server with a clear error message. This is intentional — fail-fast is better than runtime 500s.
 
 ### 4.2 Web
 
 | Env var | Used in | Purpose |
 |---------|---------|---------|
-| `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | [AuthProviders.tsx](../../web/src/components/providers/AuthProviders.tsx) | `GoogleOAuthProvider` wraps the entire app |
-| `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | [GoogleSignInButton.tsx](../../web/src/features/auth/components/GoogleSignInButton.tsx) | Implicit flow; the returned `id_token` is POSTed to `/api/v1/auth/google` |
+| `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | [`AuthProviders.tsx`](../../../web/src/components/providers/AuthProviders.tsx) | `GoogleOAuthProvider` wraps the entire app |
+| `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | [`GoogleSignInButton.tsx`](../../../web/src/features/auth/components/GoogleSignInButton.tsx) | Implicit flow; the returned `id_token` is POSTed to `/api/v1/auth/google` |
 
 ### 4.3 Mobile
 
 | Env var | Used in | Purpose |
 |---------|---------|---------|
-| `EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID` | [googleAuth.ts](../../mobile/src/features/auth/api/googleAuth.ts) | `GoogleSignin.configure({ webClientId, iosClientId })` on Android |
+| `EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID` | [`googleAuth.ts`](../../../mobile/src/features/auth/api/googleAuth.ts) | `GoogleSignin.configure({ webClientId, iosClientId })` on Android |
 | `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID` | same | Same on iOS |
 | `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` | same | `webClientId` param (so a future web-in-WebView flow still works) |
 
@@ -443,9 +376,8 @@ The server's `GOOGLE_CLIENT_ID` is the single source of truth for verification �
 
 ## Cross-references
 
-- [08_Authentication.md](./08_Authentication.md) — auth flow, JWT, refresh rotation
-- [16_Environment.md](./16_Environment.md) — every other env var
-- [GOOGLE_OAUTH_SETUP.md](./GOOGLE_OAUTH_SETUP.md) — alternate, deeper reference (same content, different layout)
+- [authentication.md](./authentication.md) — auth flow, JWT, refresh rotation
+- [operations/environment.md](../operations/environment.md) — every other env var
 - Google Cloud Console — https://console.cloud.google.com/apis/credentials
 - `google-auth-library` (Node) — https://www.npmjs.com/package/google-auth-library
 - `@react-oauth/google` (Web) — https://www.npmjs.com/package/@react-oauth/google

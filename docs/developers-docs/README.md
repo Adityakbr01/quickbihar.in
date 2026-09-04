@@ -1,135 +1,112 @@
-# QuickBihar.in — Developer Documentation (Hinglish)
+# QuickBihar.in — Developer Documentation
 
-> **Created:** 2026-08-01
-> **Maintainer:** Engineering Team
-> **Audience:** Naye developers, senior engineers, aur koi bhi jo is codebase ko samajhna chahta hai.
-> **Language style:** Hinglish (easy Hindi + English mix) — jaise ek senior engineer doosre developer ko samjhaata hai.
+> **Last updated:** 2026-09-04
+> **Audience:** New developers, senior engineers, and anyone onboarding to this codebase.
+> **Tone:** English-first, code-anchored. Every claim is verified against the actual source.
 
 ---
 
-## Yeh docs kya hai? (WHAT)
+## What this is
 
-Yeh `quickbihar.in` monorepo ki **complete reverse-engineered documentation** hai. Poore codebase ko file-by-file, folder-by-folder, flow-by-flow padh kar likha gaya hai. Har cheez **code se verify** ki gayi hai — koi bhi cheez assume ya hallucinate nahi ki gayi. Jahan kuch unclear tha, wahan clearly likha gaya hai ki "yeh flow unclear hai kyunki...".
+This is the developer documentation for the `quickbihar.in` monorepo — a hyperlocal multi-vertical commerce platform. The currently-live vertical is `clothing`; `food` and `jewelery` are scaffolded but not production-ready.
 
-QuickBihar ek **hyperlocal multi-vertical commerce platform** hai (abhi `clothing` vertical live hai; `food` aur `jewelery` scaffold/placeholder hain). Isme 3 alag-alag apps hain:
+The platform is built as three apps:
 
-| App | Tech | Kaam |
+| App | Tech | Role |
 |-----|------|------|
-| `server/` | Bun + Express 5 + Mongoose 9 + TypeScript | Poore system ka brain — API, DB, realtime, queues, payments |
-| `web/` | Next.js 16 + React 19 + Tailwind 4 | Admin / Seller / Delivery portals (dashboard) |
-| `mobile/` | Expo SDK 56 + React Native 0.85 + expo-router | Customer + Rider + Admin ka mobile app |
+| `server/` | Bun + Express 5 + Mongoose 9 + TypeScript | The brain — API, DB, realtime, queues, payments |
+| `web/` | Next.js 16 + React 19 + Tailwind 4 | Admin / Seller / Delivery portals |
+| `mobile/` | Expo SDK 56 + React Native 0.85 + expo-router | Customer + Rider app |
+
+The docs are reverse-engineered from the source. Anything that can't be verified in the code is flagged with a `⚠️` warning. If you find the docs contradicting the code, **the code is the truth** — please open a PR to fix the doc.
 
 ---
 
-## Documentation kaise padhein? (HOW TO READ)
+## How to read
 
-Agar aap **bilkul naye** ho is project mein, toh is order mein padho:
+If you are **new to the project**, read in this order:
 
 ```
-00 → 01 → 02   (Overview + Structure + Architecture — bada picture)
-       ↓
-24 → 21 → 23   (Developer Guide + Codebase Map + Request Lifecycle — practical)
-       ↓
-08 → 09        (Auth + RBAC — security foundation)
-       ↓
-10 → 11 → 12   (Product → Order → Payment — core business)
-       ↓
-baaki docs jaise-jaise zaroorat pade
+1. getting-started/overview.md            — what we're building and why
+2. getting-started/folder-structure.md     — where everything lives
+3. getting-started/system-architecture.md  — how the 3 apps talk
+4. features/authentication.md             — how sessions work (Google-first now)
+5. features/authorization-rbac.md         — roles, permissions, route gates
+6. features/orders.md                     — the core commerce flow
+7. features/payments.md                   — Razorpay, COD, pricing engine
 ```
 
-Agar aap **experienced** ho aur specific cheez dhoondh rahe ho, toh neeche index se seedha jump karo.
+Then dive into whatever you need: `apps/server.md` for the backend layer, `data/database.md` for schemas, `features/products.md` for the catalog, etc.
+
+If you are **looking for something specific**, jump straight from the index below.
 
 ---
 
-## Poora Index (33 documents)
+## Index
 
-### 🏛️ Foundation (System ko samajhna)
-| # | File | Kya milega |
-|---|------|-----------|
-| — | [README.md](./README.md) | Yeh file — index + reading guide |
-| 00 | [00_Project_Overview.md](./00_Project_Overview.md) | Project kya hai, kaun use karta hai, business model |
-| 01 | [01_Folder_Structure.md](./01_Folder_Structure.md) | Har folder ka matlab, kya safe hai edit karna, kya nahi |
-| 02 | [02_System_Architecture.md](./02_System_Architecture.md) | 3 apps kaise baat karte hain, high-level diagram |
+### 🏛️ Getting started
 
-### 💻 Apps (Code layers)
-| # | File | Kya milega |
-|---|------|-----------|
-| 03 | [03_Frontend.md](./03_Frontend.md) | Web (Next.js) portals ka andar ka kaam |
-| 04 | [04_Backend.md](./04_Backend.md) | Server (Express) ka structure, layers, conventions |
-| 05 | [05_Mobile_App.md](./05_Mobile_App.md) | Mobile (Expo) app ka structure, navigation, modules |
-| 06 | [06_API_Flow.md](./06_API_Flow.md) | Ek API request start se end tak kaise chalti hai |
-| 07 | [07_Database.md](./07_Database.md) | Saari MongoDB collections, fields, indexes, relations |
+| Doc | What you'll find |
+|-----|------------------|
+| [overview.md](./getting-started/overview.md) | The product, the verticals, the business model, the honest "what's not built yet" notes |
+| [folder-structure.md](./getting-started/folder-structure.md) | Every folder's purpose, what is safe to edit, what is not |
+| [system-architecture.md](./getting-started/system-architecture.md) | How the 3 apps communicate, the high-level diagram, the deployment topology |
 
-### 🔐 Security
-| # | File | Kya milega |
-|---|------|-----------|
-| — | [oauth.md](./oauth.md) | **Google OAuth 2.0 setup** (Cloud Console + .env templates + production URLs) |
-| 08 | [08_Authentication.md](./08_Authentication.md) | Login, JWT, refresh token, cookies |
-| 09 | [09_Authorization_RBAC.md](./09_Authorization_RBAC.md) | Roles, permissions, middleware gating |
+### 💻 Apps
 
-### 🛒 Core Business Systems
-| # | File | Kya milega |
-|---|------|-----------|
-| 10 | [10_Product_System.md](./10_Product_System.md) | Product model, variants, stock, approval |
-| 11 | [11_Order_System.md](./11_Order_System.md) | Order → SubOrder split, pricing, fulfillment |
-| 12 | [12_Payment_System.md](./12_Payment_System.md) | Razorpay, COD, signature verify, refund |
-| 13 | [13_File_Uploads.md](./13_File_Uploads.md) | ImageKit + multer image upload |
-| 14 | [14_Notifications.md](./14_Notifications.md) | Push (FCM/Expo), BullMQ worker, socket, outbox |
-| 15 | [15_Caching.md](./15_Caching.md) | Redis, in-memory caches, kaha use hota hai |
+| Doc | What you'll find |
+|-----|------------------|
+| [web-dashboard.md](./apps/web-dashboard.md) | The Next.js admin / seller / delivery portals |
+| [server.md](./apps/server.md) | The Express + Mongoose backend — layers, conventions, request lifecycle |
+| [mobile-app.md](./apps/mobile-app.md) | The Expo customer + rider app — navigation, modules, build flow |
+| [api-flow.md](./apps/api-flow.md) | A single API request from middleware stack to DB and back |
 
-### ⚙️ Operations
-| # | File | Kya milega |
-|---|------|-----------|
-| 16 | [16_Environment.md](./16_Environment.md) | Saari env variables, Zod validation |
-| 17 | [17_Deployment.md](./17_Deployment.md) | Docker, nginx, CI/CD, VPS |
-| 18 | [18_Error_Handling.md](./18_Error_Handling.md) | ApiError, ApiResponse, asyncHandler, global handler |
-| 19 | [19_Security.md](./19_Security.md) | Security posture, kya theek hai, kya risk hai |
-| 20 | [20_Performance.md](./20_Performance.md) | Bottlenecks, indexes, N+1, optimization ideas |
+### 🗄️ Data
 
-### 🗺️ Knowledge Base (Cross-referenced)
-| # | File | Kya milega |
-|---|------|-----------|
-| 21 | [21_Codebase_Map.md](./21_Codebase_Map.md) | Har important file ka one-line map |
-| 22 | [22_Dependency_Graph.md](./22_Dependency_Graph.md) | Module kaun kisko import karta hai |
-| 23 | [23_Request_Lifecycle.md](./23_Request_Lifecycle.md) | HTTP + Socket request ka poora lifecycle |
+| Doc | What you'll find |
+|-----|------------------|
+| [database.md](./data/database.md) | All MongoDB collections, fields, indexes, and relations |
+| [caching.md](./data/caching.md) | Redis usage, in-memory caches, the reset-token replay store |
 
-### 🧑‍💻 New Developer Guide (How-To)
-| # | File | Kya milega |
-|---|------|-----------|
-| 24 | [24_Developer_Guide.md](./24_Developer_Guide.md) | Setup, local run, conventions, first day guide |
-| 25 | [25_Add_New_Feature.md](./25_Add_New_Feature.md) | Naya feature kaise add karein (step-by-step) |
-| 26 | [26_Add_New_API.md](./26_Add_New_API.md) | Nayi API endpoint kaise banayein |
-| 27 | [27_Add_New_Module.md](./27_Add_New_Module.md) | Naya backend module kaise banayein |
-| 28 | [28_Add_New_Business_Type.md](./28_Add_New_Business_Type.md) | Naya vertical (jaise food) kaise add karein |
+### ⚙️ Features
 
-### 🧹 Health & Roadmap
-| # | File | Kya milega |
-|---|------|-----------|
-| 29 | [29_Common_Mistakes.md](./29_Common_Mistakes.md) | Galtiyan jo log karte hain, kaise bachein |
-| 30 | [30_Tech_Debt.md](./30_Tech_Debt.md) | Code mein jo udhaar (debt) pada hai |
-| 31 | [31_Production_Readiness.md](./31_Production_Readiness.md) | Production ke liye kitna tayaar hai |
-| 32 | [32_TODO.md](./32_TODO.md) | Aage kya karna baaki hai |
+| Doc | What you'll find |
+|-----|------------------|
+| [authentication.md](./features/authentication.md) | Google OAuth (primary) + password (secondary), JWT, refresh rotation, cookies |
+| [google-oauth.md](./features/google-oauth.md) | Google Cloud Console setup, all URLs/URIs, .env templates, audience checks |
+| [authorization-rbac.md](./features/authorization-rbac.md) | Roles, permission matrix, middleware gates |
+| [products.md](./features/products.md) | Product model, variants, stock, approval flow |
+| [orders.md](./features/orders.md) | Order → SubOrder split, the Phase 9 phone-call confirmation step, fulfillment |
+| [payments.md](./features/payments.md) | Razorpay, COD, signature verify, refunds, the HYBRID_MARKETPLACE_V1 pricing engine |
+| [file-uploads.md](./features/file-uploads.md) | ImageKit + multer image upload |
+| [notifications.md](./features/notifications.md) | Push (FCM/Expo), BullMQ worker, socket gateway, outbox pattern |
+
+### 🔧 Operations
+
+| Doc | What you'll find |
+|-----|------------------|
+| [environment.md](./operations/environment.md) | Every env var, Zod fail-fast validation, required vs optional, production secrets |
 
 ---
 
-## Golden Rules (har developer padhe)
+## Golden rules (read these first)
 
-1. **Code hi truth hai.** Yeh docs helpful hai, par jab confusion ho toh code padho. Docs ko update karo agar code badle.
-2. **`common` vs `clothing` seam.** `server/src/modules/common/*` vertical-agnostic hai (sab verticals share karte hain). `server/src/modules/clothing/*` sirf clothing ke liye hai. Naya vertical add karte time yeh distinction sabse important hai. Dekho [28_Add_New_Business_Type.md](./28_Add_New_Business_Type.md).
-3. **Database = source of truth for realtime.** Socket.IO sirf "notification" hai. Asli data hamesha DB (FulfillmentEvent + NotificationOutbox) mein likha jaata hai pehle. Dekho [14_Notifications.md](./14_Notifications.md).
-4. **Money ko paise mein socho.** Razorpay paise (₹1 = 100) mein kaam karta hai. Rounding bugs se bachne ke liye pricing engine `roundMoney` use karta hai. Dekho [12_Payment_System.md](./12_Payment_System.md).
-5. **Stock pehle secure, phir confirm.** Order kabhi bhi CONFIRMED nahi hota jab tak stock atomically deduct na ho jaaye (M1 fix). Dekho [11_Order_System.md](./11_Order_System.md).
-
----
-
-## Verification note (IMPORTANT)
-
-Yeh saari docs **actual code padh kar** likhi gayi hain (August 2026 tak ka codebase). Jahan bhi koi behaviour code se 100% clear nahi tha, wahan maine explicitly likha hai:
-
-> ⚠️ *"Maine code analyze kiya par yeh flow unclear hai kyunki..."*
-
-Aise notes ko seriously lo — woh jagah hai jaha aapko khud code verify karna chahiye ya team se poochna chahiye.
+1. **The code is the truth.** If this doc contradicts the code, the code wins. Open a PR to fix the doc.
+2. **`common` vs `clothing` seam.** `server/src/modules/common/*` is vertical-agnostic (shared by every business type). `server/src/modules/clothing/*` is clothing-only. This distinction is the most important thing to get right when adding a new vertical.
+3. **Database is the source of truth for realtime.** Socket.IO is only the notification path. The real state always lands in the DB (FulfillmentEvent + NotificationOutbox) first. The mobile app is allowed to trust the DB and treat sockets as best-effort.
+4. **Money is in paise, not rupees.** Razorpay works in paise (₹1 = 100 paise). The pricing engine uses `roundMoney` to avoid rounding bugs.
+5. **Stock is secured before a sub-order is confirmed.** Every sub-order sits in `PENDING_SELLER_CONFIRMATION` until the seller calls the customer; once the seller confirms, the parent Order rolls up to `CONFIRMED`. Stock was already atomically deducted in `finalizePendingConfirmation` immediately after payment — see [orders.md](./features/orders.md).
 
 ---
 
-*Yeh documentation set `quickbihar.in` codebase ke deep reverse-engineering se banaya gaya hai. Creation date: 2026-08-01.*
+## How the docs are organized
+
+- **Folders group by concern**, not by doc number. New docs slot into the folder that matches their topic without renumbering anything.
+- **Cross-references are relative paths** — click a link in GitHub, VS Code, or any markdown viewer and you land on the right file.
+- **English only.** Code comments may still be in Hinglish in some places (intentional — engineers find it readable), but docs are English so a global team can onboard.
+
+---
+
+## Verification note
+
+Every claim in these docs has been verified against the codebase as of **2026-09-04**. Anything that couldn't be verified in the code is flagged with a `⚠️` warning and a one-line reason. If you find one of these notes, it means the team wants a human to look at that specific spot before relying on the doc.

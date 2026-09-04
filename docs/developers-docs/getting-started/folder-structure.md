@@ -108,7 +108,7 @@ server/
 | `responseExtensions.middleware.ts` | `res` object pe custom helper methods add karta hai |
 | `validate.middleware.ts` | Zod schema validation middleware |
 
-Detail: [18_Error_Handling.md](./18_Error_Handling.md), [08_Authentication.md](./08_Authentication.md).
+Detail: 18_Error_Handling.md, [08_Authentication.md](./../features/authentication.md).
 
 ### `server/src/utils/` — Helpers
 
@@ -138,7 +138,7 @@ modules/
 - Agar koi cheez **har business type** ke liye same hai (order kaise place hota hai, payment kaise hota hai, rider kaise match hota hai) → **`common/`**.
 - Agar koi cheez **sirf clothing** ke liye specific hai (size charts, apparel variants) → **`clothing/`**.
 
-Naya vertical (jaise food) add karte time yeh distinction hi aapko bachaayegi. Dekho [28_Add_New_Business_Type.md](./28_Add_New_Business_Type.md).
+Naya vertical (jaise food) add karte time yeh distinction hi aapko bachaayegi. Dekho 28_Add_New_Business_Type.md.
 
 ### `modules/common/` ke 23 folders
 
@@ -196,7 +196,7 @@ router → (middleware: verifyJWT, role guard) → controller → service → da
                                           validator (Zod) request check karta hai
 ```
 
-Yeh **layered architecture** hai. Detail: [04_Backend.md](./04_Backend.md).
+Yeh **layered architecture** hai. Detail: [04_Backend.md](./../apps/server.md).
 
 > **Note:** Sab modules mein saari files nahi hoti. Chhote modules mein sirf `model + service + controller + router` ho sakta hai. Yeh normal hai.
 
@@ -266,7 +266,7 @@ Component → React Query hook → api function → axios → server /api/v1/*
         socket event → invalidateQueries → refetch
 ```
 
-Detail: [03_Frontend.md](./03_Frontend.md).
+Detail: [03_Frontend.md](./../apps/web-dashboard.md).
 
 ### ⚠️ Web mein kya dhyan rakhein
 
@@ -345,7 +345,7 @@ common/order/
 └── style/       ← styles
 ```
 
-Detail: [05_Mobile_App.md](./05_Mobile_App.md).
+Detail: [05_Mobile_App.md](./../apps/mobile-app.md).
 
 ### ⚠️ Mobile mein kya dhyan rakhein
 
@@ -382,10 +382,10 @@ Naya vertical (food)?       → dono common + clothing pattern follow karo
 
 ## DEPENDENCIES
 
-- **Isse pehle:** [00_Project_Overview.md](./00_Project_Overview.md)
-- **Iske baad:** [02_System_Architecture.md](./02_System_Architecture.md)
-- **Deep dives:** [04_Backend.md](./04_Backend.md), [03_Frontend.md](./03_Frontend.md), [05_Mobile_App.md](./05_Mobile_App.md)
-- **Full file map:** [21_Codebase_Map.md](./21_Codebase_Map.md)
+- **Isse pehle:** [00_Project_Overview.md](././overview.md)
+- **Iske baad:** [02_System_Architecture.md](././system-architecture.md)
+- **Deep dives:** [04_Backend.md](./../apps/server.md), [03_Frontend.md](./../apps/web-dashboard.md), [05_Mobile_App.md](./../apps/mobile-app.md)
+- **Full file map:** 21_Codebase_Map.md
 
 ---
 
@@ -399,7 +399,7 @@ Naya vertical (food)?       → dono common + clothing pattern follow karo
 ## IMPROVEMENTS
 
 - Server modules mein consistency laana (kuch modules mein DAO hai, kuch mein nahi).
-- Web mein `sellerManagement.api.ts` aur `sellerPanel.api.ts` overlap karte hain — consolidate karna chahiye (dekho [30_Tech_Debt.md](./30_Tech_Debt.md)).
+- Web mein `sellerManagement.api.ts` aur `sellerPanel.api.ts` overlap karte hain — consolidate karna chahiye (dekho 30_Tech_Debt.md).
 
 ---
 

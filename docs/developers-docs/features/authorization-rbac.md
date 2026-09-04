@@ -157,7 +157,7 @@ Request → validatePermission → getPermissionsByRole(roleId)
                                     └─ cache miss → DB join → cache set
 ```
 
-Detail: [15_Caching.md](./15_Caching.md).
+Detail: [15_Caching.md](./../data/caching.md).
 
 ---
 
@@ -185,7 +185,7 @@ validateRole / validatePermission (rbac.middleware)  →  role/permission check
      ↓
 controller  →  service
 ```
-Auth aur RBAC ek doosre pe depend karte hain — `verifyJWT` **pehle** chalna zaroori hai (warna `req.user` undefined). Dekho [08_Authentication.md](./08_Authentication.md).
+Auth aur RBAC ek doosre pe depend karte hain — `verifyJWT` **pehle** chalna zaroori hai (warna `req.user` undefined). Dekho [08_Authentication.md](././authentication.md).
 
 ---
 
@@ -211,15 +211,15 @@ Saare `validateRole(ADMIN)` se protected:
 
 Roles + permissions DB mein hone chahiye tabhi authorization kaam karega. Seed script (`db/rbacSeed.ts` / `seed/seed.ts`) roles upsert karta hai (RoleEnum ke हर value ke liye ek Role) aur `ROLE_PERMISSION_MAP` ke hisaab se permissions assign karta hai.
 
-> ⚠️ **CRITICAL:** `server.ts` mein `seedRbac()` **commented out** hai. Fresh DB pe RBAC manually seed karna padega, warna koi bhi role guard fail hoga (kyunki `getRoleByName` 404 dega). Dekho [24_Developer_Guide.md](./24_Developer_Guide.md).
+> ⚠️ **CRITICAL:** `server.ts` mein `seedRbac()` **commented out** hai. Fresh DB pe RBAC manually seed karna padega, warna koi bhi role guard fail hoga (kyunki `getRoleByName` 404 dega). Dekho 24_Developer_Guide.md.
 
 ---
 
 ## DEPENDENCIES
 
-- **Isse pehle:** [08_Authentication.md](./08_Authentication.md) (authorization se pehle authentication)
-- **Related:** [15_Caching.md](./15_Caching.md) (permission cache), [19_Security.md](./19_Security.md)
-- **Seed:** [24_Developer_Guide.md](./24_Developer_Guide.md)
+- **Isse pehle:** [08_Authentication.md](././authentication.md) (authorization se pehle authentication)
+- **Related:** [15_Caching.md](./../data/caching.md) (permission cache), 19_Security.md
+- **Seed:** 24_Developer_Guide.md
 
 ---
 

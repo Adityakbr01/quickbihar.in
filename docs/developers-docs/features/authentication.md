@@ -1,0 +1,269 @@
+# Authentication
+
+> Owner: `server/src/modules/common/auth/`
+> Related: [google-oauth.md](./google-oauth.md) · [authorization-rbac.md](./authorization-rbac.md)
+
+This document describes how a caller proves their identity to the QuickBihar server and how the server grants a session. The auth model is **credential-agnostic** — a user may hold one or both of:
+
+- A **Google identity** (verified by `google-auth-library`).
+- A **password** (bcrypt-hashed, optional on top of Google).
+
+Email is the natural linking key. A single user can have a Google sign-in, a password sign-in, or both, attached to the same `identities[]` array on the `User` record.
+
+Phone number is **not** an authentication credential. It is contact info captured at checkout.
+
+---
+
+## TL;DR — what changed (Phase 1-4)
+
+The previous implementation was email + mobile-OTP (`/auth/request-otp`, `/auth/verify-otp`, Redis `otp:*` keys, `otp_cooldown` 60s). It has been replaced.
+
+| Old | New |
+|-----|-----|
+| Mobile OTP is the only sign-in path | Google OAuth is the primary sign-in path |
+| `requestOTP`, `verifyOTPAndAuthenticate` | `googleAuthOrCreate` (verifies Google `id_token`) |
+| Redis `otp:*` keys, `otp_cooldown` | `pwd_reset:*` keys (15-min replay protection) |
+| `/auth/request-otp`, `/auth/verify-otp` | `/auth/google`, `/auth/set-password`, `/auth/link-google` |
+| `/auth/request-reset` (existed but inactive) | `/auth/request-reset`, `/auth/reset-password` (wired) |
+| `isVerified` gate on login | Removed — Google users are inherently verified |
+| `legacyOtpOnly: true` for OTP-created users | Set on synthetic emails (`<phone>@quickbihar.local`); cleared on first Google sign-in |
+
+If you find any reference to `requestOTP`, `verifyOTPAndAuthenticate`, `redis.set("otp:`, or `/auth/request-otp` in the code, it is **stale** and should be removed.
+
+---
+
+## Endpoints
+
+All routes are mounted under `/api/v1/auth` in [server/src/modules/common/auth/auth.router.ts](../../../server/src/modules/common/auth/auth.router.ts).
+
+| Method | Path | Auth | Rate limit | Purpose |
+|--------|------|------|-----------|---------|
+| `POST` | `/register` | public | `authRateLimiter` | Email + password + fullName. New users get `USER` role and start as ACTIVE. |
+| `POST` | `/login` | public | `authRateLimiter` | Email/username + password. Sets `accessToken` + `refreshToken` cookies (web). |
+| `POST` | `/google` | public | `authRateLimiter` | Body: `{ idToken, client: "web" \| "mobile" }`. Verifies Google ID token, finds-or-creates the user, returns a token pair. Web path also sets cookies. |
+| `POST` | `/set-password` | required | `strictAuthRateLimiter` | Set a password on the currently-authenticated user. Idempotent — overwrites. Adds a `"password"` identity row. |
+| `POST` | `/link-google` | required | `strictAuthRateLimiter` | Link a Google identity to an existing password-only account. Email must match. |
+| `POST` | `/request-reset` | public | `authRateLimiter` | Email-only. Always returns the same response to prevent account enumeration. Sends a 15-minute reset link via Resend. |
+| `POST` | `/reset-password` | public | `strictAuthRateLimiter` | Body: `{ token, newPassword }`. Consumes the reset JWT, marks it as used in Redis. |
+| `POST` | `/refresh-token` | public | `authRateLimiter` | Exchanges a valid `refreshToken` (cookie or body) for a new token pair. Old refresh token is invalidated. |
+| `POST` | `/logout` | required | — | Clears the refresh token server-side and clears the cookies. |
+
+### Rate limits
+
+Defined in `server/src/middlewares/rateLimit.middleware.ts` and applied in `auth.router.ts`:
+
+- `authRateLimiter` — coarse throttle on all public auth endpoints.
+- `strictAuthRateLimiter` — tighter cap on the endpoints that can change credentials (`set-password`, `link-google`, `reset-password`).
+
+---
+
+## Google sign-in flow (the primary path)
+
+1. **Client obtains an ID token.**
+   - Web (`@react-oauth/google`): `GoogleLogin` → `credentialResponse.credential`.
+   - Mobile (`@react-native-google-signin/google-signin` v15): `signIn().idToken`.
+2. **Client posts `{ idToken, client }` to `POST /api/v1/auth/google`.**
+3. **Server verifies the token** in `googleOAuth.service.ts` via `google-auth-library`:
+   - Signature is checked against Google's public keys.
+   - `audience` is the Web client ID, plus the Android client ID when `client === "mobile"`, plus the iOS client ID if configured.
+   - `email_verified === true` is enforced.
+   - Any failure becomes a generic `401 Invalid or expired Google token` — the underlying Google error is never echoed.
+4. **Server finds-or-creates the user** in `auth.service.ts → googleAuthOrCreate`:
+   - **New email → create ACTIVE `USER`.** No email verification round-trip. No admin approval.
+   - **Existing user with the same email** → append a `google` identity row (unless the email is already linked to a *different* Google `sub` — that returns `409`).
+   - **Avatar promotion** — if Google has a picture and the user has none, use the Google one.
+   - **Legacy OTP merge** — if `legacyOtpOnly` is true, flip it to false.
+5. **Server issues a token pair** and, on the web path, sets `accessToken` + `refreshToken` httpOnly cookies. Mobile clients read the tokens from the JSON body.
+
+### Audience check (why three Client IDs)
+
+`verifyGoogleIdToken` accepts any of the configured audiences:
+
+```ts
+const audience: string[] = [ENV.GOOGLE_CLIENT_ID];
+if (client === "mobile" && ENV.GOOGLE_ANDROID_CLIENT_ID) {
+  audience.push(ENV.GOOGLE_ANDROID_CLIENT_ID);
+}
+if (ENV.GOOGLE_IOS_CLIENT_ID) {
+  audience.push(ENV.GOOGLE_IOS_CLIENT_ID);
+}
+```
+
+This way the same `/auth/google` route accepts tokens issued for the Web, Android, and iOS clients without requiring a separate per-platform route. See [google-oauth.md](./google-oauth.md) for the full Cloud Console setup.
+
+---
+
+## Password sign-in flow (secondary)
+
+`POST /auth/login` accepts `{ email, password }` (or `{ phone, password }` for backwards-compatible identifier resolution — but the model is email-first). It checks `isPasswordCorrect` (bcrypt compare) and, on success, issues a token pair. There is **no** `isVerified` gate — a user who knows the password is the user.
+
+New users self-register with `POST /auth/register` (`{ email, password, fullName }`) and are immediately ACTIVE.
+
+### Linking a password to a Google-only account
+
+`POST /auth/set-password` (auth required) is the migration path:
+
+```ts
+user.password = password;            // pre-save hook hashes
+if (!identities.some(i => i.provider === "password")) {
+  identities.push({ provider: "password", providerId: `pwd-${user._id}-...`, email, linkedAt });
+}
+user.identities = identities;
+```
+
+### Linking a Google identity to a password-only account
+
+`POST /auth/link-google` (auth required) verifies the ID token and asserts `profile.email === user.email`. Returns 409 if the email is already linked to a different Google `sub`.
+
+---
+
+## Password reset
+
+The reset flow was a stub in the old codebase. It is now wired:
+
+1. `POST /auth/request-reset` accepts `{ email }`. If the user exists, a JWT with `aud: "reset"` and 15-minute TTL is signed (using `RESET_PASSWORD_JWT_SECRET` if set, else `REFRESH_TOKEN_SECRET`) and emailed via `MailService.sendResetPasswordLink`.
+2. The response is **always** the same string, regardless of whether the email is registered, to prevent account enumeration.
+3. The user clicks the link → the client posts `{ token, newPassword }` to `POST /auth/reset-password`. The server verifies the JWT, checks `aud === "reset"`, rejects replayed tokens via a 15-minute Redis key (`pwd_reset:<userId>:<tokenTail>`), and saves the new password.
+
+`RESET_PASSWORD_JWT_SECRET` is optional; if unset the system reuses `REFRESH_TOKEN_SECRET`. Use a separate secret in production.
+
+---
+
+## Session model
+
+### Token pair
+
+- **Access token** — HS256 JWT signed with `ACCESS_TOKEN_SECRET`, 1-day TTL. Payload: `{ _id, email, username, fullName }`.
+- **Refresh token** — HS256 JWT signed with `REFRESH_TOKEN_SECRET`, 10-day TTL. Payload: `{ _id }`. The latest issued refresh token is stored on the `User.refreshToken` field, so a re-issued refresh token automatically invalidates the previous one.
+
+Both tokens are issued by `user.generateAccessToken()` / `user.generateRefreshToken()` (defined in the `User` schema) and returned to the caller by every successful auth endpoint.
+
+### Cookie vs body
+
+| Client | Access token | Refresh token |
+|--------|--------------|----------------|
+| Web (Next.js) | `accessToken` httpOnly cookie + JSON body | `refreshToken` httpOnly cookie + JSON body |
+| Mobile (Expo) | JSON body only | JSON body only |
+
+Cookie options (`server/src/utils/cookie.util.ts`):
+
+```ts
+{
+  httpOnly: true,
+  secure: NODE_ENV === "production",
+  sameSite: NODE_ENV === "production" ? "none" : "lax",
+  path: "/",
+}
+```
+
+> The cookies do **not** set `maxAge`/`expires` — they are session cookies (cleared on browser close). This is a known gap; see the [security notes](#security-notes) below.
+
+### Refresh-rotation
+
+`POST /auth/refresh-token` accepts a refresh token (cookie or body), verifies it, and re-issues **both** a new access token and a new refresh token. The old refresh token is invalidated because the user record now holds a different value:
+
+```ts
+if (incomingRefreshToken !== user.refreshToken) {
+  throw new ApiError(401, "Refresh token is expired or used");
+}
+```
+
+This is single-use rotation; refresh-token theft has a narrow replay window (one request).
+
+### `verifyJWT` middleware
+
+`server/src/middlewares/auth.middleware.ts` runs on every protected request:
+
+1. Read the token from `req.cookies.accessToken` first, then `Authorization: Bearer ...`.
+2. `jwt.verify` with `ACCESS_TOKEN_SECRET`.
+3. `UserDAO.findById(decoded._id)` — every protected request reads the user from DB.
+4. Attach the user to `req.user`.
+
+Legacy `isAdmin`, `isSeller`, `isDelivery`, `isSellerOrAdmin` short-cuts are re-exported here but are now thin wrappers over `validateRole` from the RBAC module. Use `validateRole` / `validatePermission` directly in new code; see [authorization-rbac.md](./authorization-rbac.md).
+
+### Single-flight refresh (clients)
+
+The web client (`web/src/lib/axios.ts`) and mobile client (`mobile/src/api/axiosInstance.ts`) both implement a single-flight refresh queue. If 5 requests fire at once and the access token has expired, only one `/auth/refresh-token` call is made; the other four wait for the new token and retry.
+
+---
+
+## User model (auth-relevant fields)
+
+`server/src/modules/common/user/user.model.ts`:
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `email` | `String` (unique, indexed) | Lowercase + trimmed. The natural linking key across providers. |
+| `username` | `String` (unique, indexed) | Lowercase + trimmed. For password users: derived from email prefix. For Google users: `<emailPrefix>_<4-digit-random>`. |
+| `password` | `String` (optional) | Bcrypt 10 rounds (pre-save hook). Optional — Google-only users have no password. |
+| `identities[]` | `[{ provider, providerId, email, linkedAt }]` | All credentials attached to this account. Compound unique index on `(provider, providerId)` prevents the same Google `sub` from being linked twice. |
+| `roleId` | `ObjectId → Role` | Required. See [authorization-rbac.md](./authorization-rbac.md). |
+| `isVerified` | `Boolean` | Defaults to `false`. Set to `true` on registration and on Google sign-in. **Not** used as a login gate anymore. |
+| `isBlocked` | `Boolean` | Admin can flip this; `POST /auth/login` returns 403 when true. |
+| `legacyOtpOnly` | `Boolean` | True for users whose email is a synthetic `<phone>@quickbihar.local`. They must add a real email before using email-password auth. Cleared automatically on first Google sign-in. |
+| `refreshToken` | `String` | Latest issued refresh token. Cleared on logout. |
+| `fcmToken` | `String` | Push token. Not auth-related but lives on the user record. |
+| `deletedAt` | `Date` | Soft-delete marker. |
+
+---
+
+## Roles and onboarding
+
+Roles are looked up by **name**, not by string literal at the call site, via `rbacService.getRoleByName(RoleEnum.X)`.
+
+| Role | Auto-assigned? | How someone gets it |
+|------|----------------|---------------------|
+| `USER` | Yes (Google sign-in) | Brand-new Google user → `USER`. Also the default for `POST /auth/register`. |
+| `SELLER` | No | Seller registers a partner application; stays `PENDING` until admin approves (which flips the `Seller.status` to `APPROVED` and the `User.roleId` is auto-upgraded by `ensureAuthRole` on the next request). |
+| `DELIVERY` | No | Same flow as `SELLER`, against `DeliveryBoy`. |
+| `ADMIN` | No | Seeded by the boot script (`ADMIN_EMAIL` + `ADMIN_PASSWORD` env vars). |
+| `SUPER_ADMIN` | No | Manual DB change. |
+
+`serializeAuthUser` (in `auth.serializer.ts`) calls `ensureAuthRole` before returning. `ensureAuthRole` checks for an approved `Seller` or `DeliveryBoy` profile and auto-promotes the role — so a user who registers a partner application but hasn't been approved still serializes as `USER`. The moment the admin approves the partner application, the next request flips the role transparently.
+
+See [authorization-rbac.md](./authorization-rbac.md) for the full permission matrix.
+
+---
+
+## Validation
+
+`server/src/modules/common/auth/auth.validation.ts` defines Zod schemas:
+
+- `authenticateSchema` — `{ email, password }`
+- `registerSchema` — `{ email, password, fullName }` (password min 8 chars)
+- `googleAuthSchema` — `{ idToken, client: "web" | "mobile", legacyPhone? }`
+- `setPasswordSchema` — `{ password, currentPassword? }` (currentPassword required when a password identity already exists — server-side enforced)
+- `linkGoogleSchema` — `{ idToken }`
+- `requestResetSchema` — `{ email }`
+- `resetPasswordSchema` — `{ token, password }`
+
+Zod failures bubble as `ApiError(400, "Validation failed", issues)`.
+
+---
+
+## Security notes
+
+- **ID-token-only on Google path.** The server never accepts a Google `access_token` as proof of identity — only the ID token. The signature + audience + expiry check is enough.
+- **Generic errors.** Failed Google verification throws `Invalid or expired Google token` — the underlying Google error (which can contain token contents) is never echoed.
+- **Account enumeration protection.** `/auth/request-reset` always returns the same response, regardless of whether the email is registered.
+- **Single-use reset tokens.** The reset JWT is replay-protected by a 15-minute Redis key (`pwd_reset:<userId>:<tokenTail>`).
+- **Rate limits.** `authRateLimiter` is wired on every public auth route; `strictAuthRateLimiter` is on the credential-changing routes. There is no general rate limiter on the rest of the API — that gap is tracked in the security review.
+- **Cookies.** `httpOnly: true`, `secure` in production, `sameSite: "none"` in production (so cross-site mobile dashboards work) / `"lax"` in dev. `maxAge` and `expires` are **not** set — the cookies are session cookies, cleared on browser close. Adding a `maxAge` to match the access-token TTL is a small follow-up.
+- **DB read per request.** `verifyJWT` reads the user from MongoDB on every protected request (the role guard needs the populated `roleId`). At scale this is a hotspot; consider a small in-memory cache keyed on `decoded._id` + token-version for hot users.
+- **No password change history / no breach check.** Out of scope for now.
+
+---
+
+## Where to look in the code
+
+- `server/src/modules/common/auth/googleOAuth.service.ts` — `verifyGoogleIdToken`
+- `server/src/modules/common/auth/auth.service.ts` — `register`, `login`, `logoutUser`, `refreshAccessToken`, `googleAuthOrCreate`, `setPassword`, `linkGoogle`, `requestPasswordReset`, `consumePasswordReset`
+- `server/src/modules/common/auth/auth.controller.ts` — HTTP handlers
+- `server/src/modules/common/auth/auth.router.ts` — routes + rate-limit wiring
+- `server/src/modules/common/auth/auth.validation.ts` — Zod schemas
+- `server/src/modules/common/auth/auth.serializer.ts` — `serializeAuthUser`, `ensureAuthRole`
+- `server/src/modules/common/user/user.model.ts` — `User` schema, password hash, JWT generators
+- `server/src/middlewares/auth.middleware.ts` — `verifyJWT`, `verifyOptionalJWT`, legacy role short-cuts
+- `server/src/utils/cookie.util.ts` — cookie options
+- `server/src/utils/mail.service.ts` — `sendResetPasswordLink` (Resend)
+- `web/src/lib/axios.ts` and `mobile/src/api/axiosInstance.ts` — single-flight refresh on the clients

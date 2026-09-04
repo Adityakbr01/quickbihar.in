@@ -16,7 +16,7 @@ QuickBihar ka **image upload pipeline** — multipart file aata hai → `multer`
 
 Do bade reasons:
 
-1. **JSON body limit 16kb hai** (dekho [06_API_Flow.md](./06_API_Flow.md)). Base64 image body mein daaloge toh fail. Isliye images **`multipart/form-data`** se jaati hain (multer parse karta hai), JSON se nahi.
+1. **JSON body limit 16kb hai** (dekho [06_API_Flow.md](./../apps/api-flow.md)). Base64 image body mein daaloge toh fail. Isliye images **`multipart/form-data`** se jaati hain (multer parse karta hai), JSON se nahi.
 2. **CDN chahiye** — images ko fast, globally serve karne ke liye ImageKit (transformations + CDN). Server sirf ek **pass-through** hai: file receive karo, ImageKit ko bhejo, URL DB mein rakho. Server disk pe kuch nahi rehta (`memoryStorage`).
 
 ```
@@ -37,7 +37,7 @@ Client (multipart) → multer (RAM buffer) → uploadToImageKit → ImageKit CDN
 | `utils/imagekit.util.ts` | ★ `uploadToImageKit` (sanitize+folder), `deleteFromImageKit` (best-effort) |
 | `config/imagekit.config.ts` | ImageKit client (publicKey/privateKey/urlEndpoint from ENV) |
 | `modules/common/mall/mall.media.ts` | Mall multi-field media helper (`uploadMallMediaFiles`, `normalizeMallPayload`) |
-| `modules/clothing/products/products.service.ts` | Product image add/remove diff (dekho [10_Product_System.md](./10_Product_System.md)) |
+| `modules/clothing/products/products.service.ts` | Product image add/remove diff (dekho [10_Product_System.md](././products.md)) |
 
 ---
 
@@ -125,7 +125,7 @@ notifications/           ← push notification images
 general/                 ← fallback (folder empty ho toh)
 ```
 
-> ⚠️ **`onboarding-documents/` sensitive hai** — KYC/ID documents public ImageKit URL pe. Signed/private URLs ya access control hona chahiye (abhi public CDN URL). Dekho RISKS + [19_Security.md](./19_Security.md).
+> ⚠️ **`onboarding-documents/` sensitive hai** — KYC/ID documents public ImageKit URL pe. Signed/private URLs ya access control hona chahiye (abhi public CDN URL). Dekho RISKS + 19_Security.md.
 
 ---
 
@@ -149,7 +149,7 @@ Saath mein `normalizeMallPayload(body)` multipart ke string fields ko parse kart
 
 ## HOW — Product image diff (update pe add/remove)
 
-`updateProduct` ka image handling (detail [10_Product_System.md](./10_Product_System.md) mein):
+`updateProduct` ka image handling (detail [10_Product_System.md](././products.md) mein):
 
 ```
 existingImages payload → kaunsi purani images retain karni hain
@@ -174,7 +174,7 @@ POST /delivery/proof-upload  (isDelivery, upload.single("file"))
   4. res.ok({ url, fileId })
 ```
 
-Yeh URL phir `riderPickup` (pickupPhoto) / `riderDeliver` (deliveryPhoto) mein sub-order pe save hota hai (dekho [11_Order_System.md](./11_Order_System.md)). Do-step design: pehle upload (URL milta hai), phir OTP action mein woh URL bhejo.
+Yeh URL phir `riderPickup` (pickupPhoto) / `riderDeliver` (deliveryPhoto) mein sub-order pe save hota hai (dekho [11_Order_System.md](././orders.md)). Do-step design: pehle upload (URL milta hai), phir OTP action mein woh URL bhejo.
 
 ---
 
@@ -217,9 +217,9 @@ sequenceDiagram
 
 ## DEPENDENCIES
 
-- **Isse pehle:** [06_API_Flow.md](./06_API_Flow.md) (16kb JSON limit — isliye multipart), [04_Backend.md](./04_Backend.md) (middleware chain)
-- **Related:** [10_Product_System.md](./10_Product_System.md) (product image diff), [11_Order_System.md](./11_Order_System.md) (delivery proof photos), [16_Environment.md](./16_Environment.md) (ImageKit keys)
-- **Security:** [19_Security.md](./19_Security.md) (public URLs, KYC docs, no virus scan)
+- **Isse pehle:** [06_API_Flow.md](./../apps/api-flow.md) (16kb JSON limit — isliye multipart), [04_Backend.md](./../apps/server.md) (middleware chain)
+- **Related:** [10_Product_System.md](././products.md) (product image diff), [11_Order_System.md](././orders.md) (delivery proof photos), [16_Environment.md](./../operations/environment.md) (ImageKit keys)
+- **Security:** 19_Security.md (public URLs, KYC docs, no virus scan)
 - **External:** ImageKit (upload/delete/CDN)
 
 ---
@@ -229,7 +229,7 @@ sequenceDiagram
 - ⚠️ **Orphan images (best-effort delete)** — `deleteFromImageKit` fail hone pe `return false` (no throw). Update/delete pe purani image ImageKit pe reh jaati hai (DB se de-linked). Cost + clutter over time. Koi cleanup/reconciliation job verified nahi.
 - ⚠️ **Memory pressure** — `memoryStorage` + 15MB × 5 files = ek request 75MB RAM. Concurrent uploads pe memory spike / OOM risk. Bade scale pe streaming ya direct-to-ImageKit signed upload better.
 - ⚠️ **No virus/malware scan** — file content scan nahi hota, sirf extension+mimetype. Malicious file (image ke bhes mein) upload ho sakti hai. Public serve hone se pehle scan hona chahiye.
-- ⚠️ **KYC docs public CDN URL pe** — `onboarding-documents/` mein ID/KYC public ImageKit URL pe. URL guess/leak hua toh sensitive PII expose. Signed/private URLs chahiye. Dekho [19_Security.md](./19_Security.md).
+- ⚠️ **KYC docs public CDN URL pe** — `onboarding-documents/` mein ID/KYC public ImageKit URL pe. URL guess/leak hua toh sensitive PII expose. Signed/private URLs chahiye. Dekho 19_Security.md.
 - ⚠️ **fileId store na hua toh delete impossible** — agar kisi legacy record mein sirf URL hai (fileId nahi), toh us image ko ImageKit se kabhi delete nahi kar sakte (permanent orphan).
 - ⚠️ **Field-name mismatch = silent drop** — multer named field expect karta hai. Frontend key aur backend field match na karein toh file bina error ke miss ho jaati hai (`req.file` undefined → downstream 400 ya missing image).
 - ⚠️ **No rate limit on uploads** — upload endpoints pe koi throttle verified nahi. Abuse se ImageKit quota/cost spike.

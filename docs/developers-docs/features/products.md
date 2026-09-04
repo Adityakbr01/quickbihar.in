@@ -22,7 +22,7 @@ Kyunki yeh **marketplace** hai — koi bhi seller apna maal daal sakta hai. Agar
 
 | File | Kaam |
 |------|------|
-| `product.model.ts` | Mongoose schema (variants, approvalStatus, scope) — dekho [07_Database.md](./07_Database.md) |
+| `product.model.ts` | Mongoose schema (variants, approvalStatus, scope) — dekho [07_Database.md](./../data/database.md) |
 | `product.validation.ts` | Zod create/update schemas |
 | `products.service.ts` | ★ Business logic — gates, slug, image upload, discovery |
 | `product.dao.ts` | DB queries (findAll, findBySlug, findSimilar, top-selling) |
@@ -81,7 +81,7 @@ Phir reference validation (parallel):
 - `assertPolicyRefsActive` → policyRefs (return/refund/shipping/terms) sahi `policyType` ke active admin policies ho.
 - `assertImageCount` → **min 1, max 5** images.
 
-> ★ **Yahi asli moderation hai.** Yaad hai `approvalStatus` ka default `APPROVED` hai (dekho [07_Database.md](./07_Database.md))? Woh isliye theek hai kyunki **seller khud pehle se vetted hai** (approved + verified + store complete). Gate seller pe hai, per-product review pe nahi. Isliye "PENDING" wala purana assumption galat tha — product turant live, par sirf trusted seller hi bana sakta hai.
+> ★ **Yahi asli moderation hai.** Yaad hai `approvalStatus` ka default `APPROVED` hai (dekho [07_Database.md](./../data/database.md))? Woh isliye theek hai kyunki **seller khud pehle se vetted hai** (approved + verified + store complete). Gate seller pe hai, per-product review pe nahi. Isliye "PENDING" wala purana assumption galat tha — product turant live, par sirf trusted seller hi bana sakta hai.
 
 ---
 
@@ -106,7 +106,7 @@ flowchart TD
     M --> N[201 product]
 ```
 
-**scope decide:** seller create kare → `scope="SELLER"`; admin create kare → `scope="GLOBAL"`. Yeh multi-tenant seam hai (dekho [28_Add_New_Business_Type.md](./28_Add_New_Business_Type.md)).
+**scope decide:** seller create kare → `scope="SELLER"`; admin create kare → `scope="GLOBAL"`. Yeh multi-tenant seam hai (dekho 28_Add_New_Business_Type.md).
 
 ---
 
@@ -137,7 +137,7 @@ flowchart LR
     F -->|No| H[trending/rating/price sort]
 ```
 
-> **Why this matters:** Amazon/Flipkart "sab kuch dikhao" karte hain; QuickBihar "jo mil sakta hai wahi dikhao" karta hai (quick-commerce local model). Serviceability logic `store.currentLocation` ke 2dsphere geo index pe depend karti hai (dekho [07_Database.md](./07_Database.md)).
+> **Why this matters:** Amazon/Flipkart "sab kuch dikhao" karte hain; QuickBihar "jo mil sakta hai wahi dikhao" karta hai (quick-commerce local model). Serviceability logic `store.currentLocation` ke 2dsphere geo index pe depend karti hai (dekho [07_Database.md](./../data/database.md)).
 
 ---
 
@@ -176,8 +176,8 @@ Source product ke `category + tags + brand` se milte-julte products (`findSimila
 
 ## DEPENDENCIES
 
-- **Isse pehle:** [07_Database.md](./07_Database.md) (Product/Store/Category/SizeChart schemas)
-- **Related:** [11_Order_System.md](./11_Order_System.md) (product → order item + stock), [13_File_Uploads.md](./13_File_Uploads.md) (ImageKit), [09_Authorization_RBAC.md](./09_Authorization_RBAC.md) (isSellerOrAdmin)
+- **Isse pehle:** [07_Database.md](./../data/database.md) (Product/Store/Category/SizeChart schemas)
+- **Related:** [11_Order_System.md](././orders.md) (product → order item + stock), [13_File_Uploads.md](././file-uploads.md) (ImageKit), [09_Authorization_RBAC.md](././authorization-rbac.md) (isSellerOrAdmin)
 - **Discovery:** `serviceability.service.ts`, `store.setup.ts`
 
 ---
@@ -185,7 +185,7 @@ Source product ke `category + tags + brand` se milte-julte products (`findSimila
 ## RISKS
 
 - ⚠️ **Auto-approve (`approvalStatus` default APPROVED)** — product turant live. Trust seller-gating pe hai, per-product review pe nahi. Agar spam/abuse ho toh moderation queue chahiye.
-- ⚠️ **Stock variants mein** — `variants[].stock` source of truth; `totalStock` derived. Order stock deduction variant-level hona chahiye (dekho [11_Order_System.md](./11_Order_System.md)).
+- ⚠️ **Stock variants mein** — `variants[].stock` source of truth; `totalStock` derived. Order stock deduction variant-level hona chahiye (dekho [11_Order_System.md](././orders.md)).
 - ⚠️ **Image delete best-effort** — `deleteFromImageKit(...).catch(() => undefined)` — orphan images ImageKit pe reh sakti hain (silently ignore). Cost/cleanup risk.
 - ⚠️ **Serviceability = store geo + radius** — agar store `currentLocation` galat/missing ho toh product kahin discover na ho. Store setup GPS accuracy critical.
 - ⚠️ **Slug random suffix** — har title change pe naya slug; purane slug ke bookmarks/SEO links toot sakte hain (redirect nahi).

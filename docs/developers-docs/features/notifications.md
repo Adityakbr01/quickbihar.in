@@ -40,7 +40,7 @@ Fayde:
 3. **Audit** — kaunsa event kab kaha bheja gaya, sab DB mein.
 4. **Ordering** — per-scope `sequence` number, events ka sahi order guarantee.
 
-> ★ Yeh **event-sourcing-lite** pattern hai. Ledger source of truth, socket/push sirf delivery channels. Dekho [11_Order_System.md](./11_Order_System.md) jaha har state transition `publishUpdate` → `record()` call karta hai.
+> ★ Yeh **event-sourcing-lite** pattern hai. Ledger source of truth, socket/push sirf delivery channels. Dekho [11_Order_System.md](././orders.md) jaha har state transition `publishUpdate` → `record()` call karta hai.
 
 ---
 
@@ -76,7 +76,7 @@ NOTIFICATION_STATUS_UPDATE "notification_status_update" → admins (campaign pro
 JOIN/LEAVE_ORDER_ROOM, JOIN/LEAVE_SUBORDER_ROOM, UPDATE_DELIVERY_LOCATION (client→server)
 ```
 
-> ⚠️ **Manual mirror:** yeh file `web/src/constants/socketEvents.ts` aur mobile ke event names ka **manual mirror** hai. Ek jagah naam badla, doosri jagah bhoolna = silent break. Dekho [03_Frontend.md](./03_Frontend.md) + RISKS.
+> ⚠️ **Manual mirror:** yeh file `web/src/constants/socketEvents.ts` aur mobile ke event names ka **manual mirror** hai. Ek jagah naam badla, doosri jagah bhoolna = silent break. Dekho [03_Frontend.md](./../apps/web-dashboard.md) + RISKS.
 
 ---
 
@@ -94,7 +94,7 @@ Har socket connection **authenticate** hota hai connect se pehle (`io.use` middl
 5. socket.user = user  → connection allow
 ```
 
-> ★ HTTP `verifyJWT` jaisa hi, par socket handshake pe. Bina valid token ke socket connect hi nahi hota — **security boundary yaha real hai** (proxy.ts ke ulta, dekho [03_Frontend.md](./03_Frontend.md)).
+> ★ HTTP `verifyJWT` jaisa hi, par socket handshake pe. Bina valid token ke socket connect hi nahi hota — **security boundary yaha real hai** (proxy.ts ke ulta, dekho [03_Frontend.md](./../apps/web-dashboard.md)).
 
 ### Room model (dual naming)
 
@@ -160,7 +160,7 @@ emitToAll()             → io.emit (global broadcast, e.g. STOCK_UPDATE)
 
 ## HOW — Transactional fulfillment events (`record()`)
 
-Yeh **subsystem 1** ka dil hai. Har order/sub-order state change (dekho [11_Order_System.md](./11_Order_System.md) ka `publishUpdate`) yaha aata hai:
+Yeh **subsystem 1** ka dil hai. Har order/sub-order state change (dekho [11_Order_System.md](././orders.md) ka `publishUpdate`) yaha aata hai:
 
 ```
 record({ type, status, actor, orderId, subOrderId, metadata, rooms, recipients }):
@@ -244,7 +244,7 @@ if (admin.apps.length === 0)
   });
 ```
 
-> ⚠️ `FIREBASE_PRIVATE_KEY` sensitive secret hai (env se, `\n` un-escape). Iske alawa repo mein `quickbihar-firebase-adminsdk-*.json` service-account file bhi ho sakti hai — **kabhi commit/echo mat karo**. Dekho [19_Security.md](./19_Security.md).
+> ⚠️ `FIREBASE_PRIVATE_KEY` sensitive secret hai (env se, `\n` un-escape). Iske alawa repo mein `quickbihar-firebase-adminsdk-*.json` service-account file bhi ho sakti hai — **kabhi commit/echo mat karo**. Dekho 19_Security.md.
 
 ### Token routing (Expo vs native FCM)
 
@@ -336,9 +336,9 @@ sequenceDiagram
 
 ## DEPENDENCIES
 
-- **Isse pehle:** [11_Order_System.md](./11_Order_System.md) (jaha har transition `publishUpdate` → `record()` call karta hai)
-- **Related:** [08_Authentication.md](./08_Authentication.md) (socket handshake JWT), [09_Authorization_RBAC.md](./09_Authorization_RBAC.md) (room-join ownership), [03_Frontend.md](./03_Frontend.md) (web socket cache invalidation), [05_Mobile_App.md](./05_Mobile_App.md) (push handling)
-- **Infra:** [15_Caching.md](./15_Caching.md) (Redis — BullMQ same Redis), [16_Environment.md](./16_Environment.md) (FIREBASE_*, REDIS_URL, ACCESS_TOKEN_SECRET)
+- **Isse pehle:** [11_Order_System.md](././orders.md) (jaha har transition `publishUpdate` → `record()` call karta hai)
+- **Related:** [08_Authentication.md](././authentication.md) (socket handshake JWT), [09_Authorization_RBAC.md](././authorization-rbac.md) (room-join ownership), [03_Frontend.md](./../apps/web-dashboard.md) (web socket cache invalidation), [05_Mobile_App.md](./../apps/mobile-app.md) (push handling)
+- **Infra:** [15_Caching.md](./../data/caching.md) (Redis — BullMQ same Redis), [16_Environment.md](./../operations/environment.md) (FIREBASE_*, REDIS_URL, ACCESS_TOKEN_SECRET)
 - **External:** Firebase FCM, Expo Push API, Redis (BullMQ), Socket.IO
 
 ---
@@ -346,7 +346,7 @@ sequenceDiagram
 ## RISKS
 
 - ⚠️ **Push retry not wired (verified)** — `NotificationOutbox` pe `nextAttemptAt`/`FAILED` set hota hai par koi worker/cron unhe drain karke re-send nahi karta. Failed push abhi **retry nahi hota** — sirf record hota hai. Idempotency + audit kaam karta hai, delivery guarantee nahi.
-- ⚠️ **In-process Socket.IO (single-instance)** — `socketService` in-memory `userSockets` Map + local `io` use karta hai. Multi-instance deploy pe ek instance ka emit doosre instance ke connected clients tak nahi pahunchega. Socket.IO Redis adapter chahiye horizontal scale ke liye. Consistent with [11_Order_System.md](./11_Order_System.md) ka in-process matching loop risk.
+- ⚠️ **In-process Socket.IO (single-instance)** — `socketService` in-memory `userSockets` Map + local `io` use karta hai. Multi-instance deploy pe ek instance ka emit doosre instance ke connected clients tak nahi pahunchega. Socket.IO Redis adapter chahiye horizontal scale ke liye. Consistent with [11_Order_System.md](././orders.md) ka in-process matching loop risk.
 - ⚠️ **`sequence` via `countDocuments` (race)** — sequence = `countDocuments + 1`. Do events ek saath aayein toh same sequence mil sakta hai (unique index nahi sequence pe). High concurrency pe ordering collision. Atomic counter better.
 - ⚠️ **socketEvents.ts manual mirror** — server, web, mobile teeno alag copy. Naam mismatch = silent break. Shared package chahiye.
 - ⚠️ **Dual room naming (`:` + `_`)** — har emit do rooms pe, har join do rooms. Maintenance overhead + double emit. Legacy migration adhura.

@@ -15,13 +15,13 @@ QuickBihar ek **hyperlocal multi-vertical e-commerce platform** hai. Simple shab
 - 🍔 **Food** — abhi sirf placeholder/scaffold hai (screens hain par backend logic nahi).
 - 💍 **Jewelery** — abhi sirf placeholder/scaffold hai.
 
-> ⚠️ **Important honesty note:** Code mein `food` aur `jewelery` ke folders/screens toh dikhte hain, par unka koi real backend product model ya order flow nahi hai. Poora business logic abhi **clothing** ke around bana hai. Isko detail mein [28_Add_New_Business_Type.md](./28_Add_New_Business_Type.md) aur [30_Tech_Debt.md](./30_Tech_Debt.md) mein samjhaaya gaya hai.
+> ⚠️ **Important honesty note:** Code mein `food` aur `jewelery` ke folders/screens toh dikhte hain, par unka koi real backend product model ya order flow nahi hai. Poora business logic abhi **clothing** ke around bana hai. Isko detail mein 28_Add_New_Business_Type.md aur 30_Tech_Debt.md mein samjhaaya gaya hai.
 
 ---
 
 ## WHO — Kaun use karta hai? (Actors)
 
-System mein 5 tarah ke log hain. Yeh RBAC roles se match karte hain (dekho [09_Authorization_RBAC.md](./09_Authorization_RBAC.md)):
+System mein 5 tarah ke log hain. Yeh RBAC roles se match karte hain (dekho [09_Authorization_RBAC.md](./../features/authorization-rbac.md)):
 
 ```
 ┌─────────────┬──────────────────────────────────────────────────────┐
@@ -35,7 +35,7 @@ System mein 5 tarah ke log hain. Yeh RBAC roles se match karte hain (dekho [09_A
 └─────────────┴──────────────────────────────────────────────────────┘
 ```
 
-> **Note:** Kabhi-kabhi purane mobile clients "RIDER" bolte hain jo actually "DELIVERY" role hi hai (alias). Code mein iske liye `RIDER_ROLE_ALIAS = "RIDER"` constant hai. Detail: [09_Authorization_RBAC.md](./09_Authorization_RBAC.md).
+> **Note:** Kabhi-kabhi purane mobile clients "RIDER" bolte hain jo actually "DELIVERY" role hi hai (alias). Code mein iske liye `RIDER_ROLE_ALIAS = "RIDER"` constant hai. Detail: [09_Authorization_RBAC.md](./../features/authorization-rbac.md).
 
 Har actor ka apna entry point hai:
 
@@ -50,7 +50,7 @@ Har actor ka apna entry point hai:
 
 ## WHY — Yeh project kyun exist karta hai? (Business model)
 
-Business model ek **HYBRID MARKETPLACE** hai. Iska matlab platform paise 3 tarah se banata hai (yeh sab pricing engine mein code kiya gaya hai — dekho [11_Order_System.md](./11_Order_System.md) aur `orderPricing.service.ts`):
+Business model ek **HYBRID MARKETPLACE** hai. Iska matlab platform paise 3 tarah se banata hai (yeh sab pricing engine mein code kiya gaya hai — dekho [11_Order_System.md](./../features/orders.md) aur `orderPricing.service.ts`):
 
 1. **Marketplace Commission** — har seller ki sale ka ek % (default `15%`, env `MARKETPLACE_COMMISSION_PERCENT`) platform rakhta hai.
 2. **Delivery Fee** — customer se shipping fee (agar order chhota hai; badे order pe free).
@@ -68,7 +68,7 @@ App Gross Revenue  = Platform Commission + Delivery Fee + Dynamic Surcharge
 App Net (estimate) = App Gross Revenue − Rider Payout Estimate
 ```
 
-Yeh exact formula `orderPricing.service.ts` mein hai (verified). Poori calculation [11_Order_System.md](./11_Order_System.md) mein.
+Yeh exact formula `orderPricing.service.ts` mein hai (verified). Poori calculation [11_Order_System.md](./../features/orders.md) mein.
 
 ---
 
@@ -96,9 +96,9 @@ flowchart LR
 ```
 
 Har box ka detailed flow apni doc mein hai. Sabse important:
-- Payment: [12_Payment_System.md](./12_Payment_System.md)
-- Order split + fulfillment: [11_Order_System.md](./11_Order_System.md)
-- Rider matching: [11_Order_System.md](./11_Order_System.md) (matching engine section)
+- Payment: [12_Payment_System.md](./../features/payments.md)
+- Order split + fulfillment: [11_Order_System.md](./../features/orders.md)
+- Rider matching: [11_Order_System.md](./../features/orders.md) (matching engine section)
 
 ---
 
@@ -116,7 +116,7 @@ quickbihar.in/
 └── .github/workflows/   ← CI/CD (build → Docker Hub → VPS deploy)
 ```
 
-Detailed folder-by-folder breakdown: [01_Folder_Structure.md](./01_Folder_Structure.md).
+Detailed folder-by-folder breakdown: [01_Folder_Structure.md](././folder-structure.md).
 
 ---
 
@@ -149,7 +149,7 @@ Detailed folder-by-folder breakdown: [01_Folder_Structure.md](./01_Folder_Struct
 - Realtime updates ke liye dono **Socket.IO** se connect hote hain.
 - Server sab external services ko orchestrate karta hai.
 
-Deep architecture: [02_System_Architecture.md](./02_System_Architecture.md).
+Deep architecture: [02_System_Architecture.md](././system-architecture.md).
 
 ---
 
@@ -167,15 +167,15 @@ Agar aap yeh 5 cheezein samajh lo, toh aap 80% system samajh gaye:
 
 ## DEPENDENCIES — Yeh doc kis pe depend karti hai / kaun ispe depend karti hai
 
-- **Aage padho:** [01_Folder_Structure.md](./01_Folder_Structure.md) → [02_System_Architecture.md](./02_System_Architecture.md)
-- **Related:** [24_Developer_Guide.md](./24_Developer_Guide.md) (setup karne ke liye)
+- **Aage padho:** [01_Folder_Structure.md](././folder-structure.md) → [02_System_Architecture.md](././system-architecture.md)
+- **Related:** 24_Developer_Guide.md (setup karne ke liye)
 
 ---
 
 ## RISKS — Is level pe kya dhyan rakhein
 
 - ⚠️ **Multi-vertical abhi adhoora hai.** Marketing/PM ko lagta hoga food/jewelery ready hai — nahi hai. Sirf clothing production-ready hai.
-- ⚠️ **Single VPS deployment.** Abhi ek hi self-hosted VPS pe sab chalta hai (koi horizontal scaling nahi). Detail: [17_Deployment.md](./17_Deployment.md).
+- ⚠️ **Single VPS deployment.** Abhi ek hi self-hosted VPS pe sab chalta hai (koi horizontal scaling nahi). Detail: 17_Deployment.md.
 
 ---
 
@@ -183,7 +183,7 @@ Agar aap yeh 5 cheezein samajh lo, toh aap 80% system samajh gaye:
 
 - Multi-vertical ko sach mein generalize karna (abhi `sellerType: "CLOTHING"` kai jagah hardcoded hai).
 - Managed database + Redis (abhi self-hosted).
-- Roadmap: [32_TODO.md](./32_TODO.md).
+- Roadmap: 32_TODO.md.
 
 ---
 
