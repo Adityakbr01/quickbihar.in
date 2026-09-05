@@ -22,13 +22,15 @@ const AccountHeader = ({ theme, styles, name, email, avatarUrl }: AccountHeaderP
   const { updateAvatar, isUpdating } = useAccount();
   const setEditModalVisible = useAccountStore((state) => state.setEditModalVisible);
 
-  // Derive initials for the fallback avatar (first letter of first + last name)
-  const initials = name
-    .split(" ")
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((w) => w[0].toUpperCase())
-    .join("") || "?";
+  // Derive initials for the fallback avatar safely
+  const safeName = typeof name === "string" && name.trim() ? name.trim() : "Guest";
+  const initials =
+    safeName
+      .split(" ")
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((w) => (w && w[0] ? w[0].toUpperCase() : ""))
+      .join("") || "?";
 
   // Alert State
   const [alertVisible, setAlertVisible] = React.useState(false);

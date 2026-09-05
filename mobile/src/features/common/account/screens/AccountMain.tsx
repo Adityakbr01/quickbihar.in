@@ -33,7 +33,13 @@ const AccountMain = () => {
 
   // Live profile always has the freshest avatar; store is stale until re-login
   const { profile } = useProfile();
-  const avatarUrl = profile?.avatar?.url ?? user?.avatar?.url;
+  const avatarUrl = useMemo(() => {
+    const raw = profile?.avatar ?? user?.avatar;
+    if (!raw) return undefined;
+    if (typeof raw === "string" && raw.startsWith("http")) return raw;
+    if (typeof (raw as any)?.url === "string" && (raw as any).url.startsWith("http")) return (raw as any).url;
+    return undefined;
+  }, [profile?.avatar, user?.avatar]);
 
   // Hide the Web Admin Dashboard option from non-admin users. SUPER_ADMIN
   // inherits the admin surface.

@@ -175,8 +175,8 @@ export default function AuthScreen() {
             entering={FadeInDown.delay(500).duration(600)}
             style={{ marginTop: 12, alignItems: "center" }}
           >
-            <Text style={{ color: theme.tertiaryText, fontSize: 13, textAlign: "center" }}>
-              One-tap sign in <br/> New users will be registered automatically
+            <Text style={{ color: theme.tertiaryText, fontSize: 13, textAlign: "center", lineHeight: 18 }}>
+              One-tap sign in{"\n"}New users will be registered automatically
             </Text>
           </Animated.View>
         </View>
