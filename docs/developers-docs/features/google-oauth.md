@@ -66,18 +66,23 @@ For the auth-flow / cookie / token-rotation architecture, see [authentication.md
 
    ```
    http://localhost:3000
-   http://localhost:3001
+   http://localhost
    https://quick.voiceact.tech
-   https://www.quick.voiceact.tech
+   https://quickbihar.in
    ```
 
-5. **Authorized redirect URIs** — add (forward-compat; the web client uses the *implicit* flow today):
+5. **Authorized redirect URIs** — add:
 
    ```
    http://localhost:3000
    http://localhost:3000/auth/callback
+   http://localhost:3000/api/v1/auth/google/callback
    https://quick.voiceact.tech
    https://quick.voiceact.tech/auth/callback
+   https://quick.voiceact.tech/api/v1/auth/google/callback
+   https://quickbihar.in
+   https://quickbihar.in/auth/callback
+   https://quickbihar.in/api/v1/auth/google/callback
    ```
 
 6. Click **Create**. You'll get:
@@ -154,8 +159,13 @@ https://www.quick.voiceact.tech
 ```
 http://localhost:3000
 http://localhost:3000/auth/callback
+http://localhost:3000/api/v1/auth/google/callback
 https://quick.voiceact.tech
 https://quick.voiceact.tech/auth/callback
+https://quick.voiceact.tech/api/v1/auth/google/callback
+https://quickbihar.in
+https://quickbihar.in/auth/callback
+https://quickbihar.in/api/v1/auth/google/callback
 ```
 
 ### 2.4 Android client — Package name + SHA-1 fingerprints
@@ -300,8 +310,11 @@ EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID=replace_me-web-client-id.apps.googleusercontent
 
 | Env var | Used in | Purpose |
 |---------|---------|---------|
-| `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | [`AuthProviders.tsx`](../../../web/src/components/providers/AuthProviders.tsx) | `GoogleOAuthProvider` wraps the entire app |
-| `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | [`GoogleSignInButton.tsx`](../../../web/src/features/auth/components/GoogleSignInButton.tsx) | Implicit flow; the returned `id_token` is POSTed to `/api/v1/auth/google` |
+| `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | [`GoogleSignInButton.tsx`](../../../web/src/features/auth/components/GoogleSignInButton.tsx) | Baked into client at build time. Used to initialize Google Identity Services (`window.google.accounts.id`). |
+| Dynamic Config Fallback | `GET /api/v1/auth/config` | When `NEXT_PUBLIC_GOOGLE_CLIENT_ID` is not baked into Docker images at build time, the frontend fetches the client ID dynamically from the server at runtime. |
+
+> **Google Identity Services (GIS) button rendering:**
+> Modern GIS loads an `<iframe>` from `accounts.google.com`. Browser cross-origin security strictly prohibits synthetic `.click()` events or DOM queries (`querySelector('div[role="button"]')`) across iframe boundaries. [GoogleSignInButton.tsx](../../../web/src/features/auth/components/GoogleSignInButton.tsx) mounts Google's button directly using `window.google.accounts.id.renderButton()`, ensuring user gestures open the genuine OAuth popup without popup-blocker issues or security exceptions.
 
 ### 4.3 Mobile
 
@@ -330,6 +343,8 @@ EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID=replace_me-web-client-id.apps.googleusercontent
 |---------|-----|
 | `Invalid audience` from the server | `GOOGLE_CLIENT_ID` (server) ≠ the Client ID the SDK is using. Make them the same value. |
 | `idpiframe_initialization_failed` on web | Web Client ID missing in `NEXT_PUBLIC_GOOGLE_CLIENT_ID`, or the JS origin isn't whitelisted in Google Cloud. |
+| `Google Sign-In is not ready. Please try again.` | Caused by querying `div[role="button"]` inside Google's sandboxed iframe. Fixed by mounting Google's button directly via `renderButton`. |
+| `Error 400: origin_mismatch` | Domain (e.g. `https://quick.voiceact.tech`) is missing under **Authorized JavaScript origins** in Google Cloud Console. Add the URI without a trailing slash. |
 | Android signs in but server says `Invalid audience` | You created a dedicated Android client. Either set `GOOGLE_ANDROID_CLIENT_ID` to that value, or have the Android SDK use the Web client ID's tokens. |
 | `package+signature mismatch` on Android | The SHA-1 in Google Cloud doesn't match the keystore you signed the build with. Re-run `keytool -list` and update. |
 | iOS `Error 400: invalid_request` | Bundle ID in Google Cloud ≠ the bundle in `app.json`. |

@@ -19,6 +19,15 @@ export const configureGoogleSignIn = () => {
   const extra = (Constants.expoConfig?.extra as any) ?? {};
   const google = extra.google ?? {};
 
+  const webClientId =
+    google.webClientId ||
+    process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ||
+    "183149129805-vf8pkq6h066lcapjanjv1271g36jvij4.apps.googleusercontent.com";
+
+  const iosClientId =
+    google.iosClientId ||
+    process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID;
+
   const config: {
     webClientId?: string;
     iosClientId?: string;
@@ -27,8 +36,8 @@ export const configureGoogleSignIn = () => {
     offlineAccess: true,
   };
 
-  if (google.webClientId) config.webClientId = google.webClientId;
-  if (google.iosClientId) config.iosClientId = google.iosClientId;
+  if (webClientId) config.webClientId = webClientId;
+  if (iosClientId) config.iosClientId = iosClientId;
 
   // The library requires at least one of webClientId / iosClientId.
   // When running in Expo Go without native config, this is a no-op

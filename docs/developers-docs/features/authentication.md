@@ -49,6 +49,7 @@ All routes are mounted under `/api/v1/auth` in [server/src/modules/common/auth/a
 | `POST` | `/request-reset` | public | `authRateLimiter` | Email-only. Always returns the same response to prevent account enumeration. Sends a 15-minute reset link via Resend. |
 | `POST` | `/reset-password` | public | `strictAuthRateLimiter` | Body: `{ token, newPassword }`. Consumes the reset JWT, marks it as used in Redis. |
 | `POST` | `/refresh-token` | public | `authRateLimiter` | Exchanges a valid `refreshToken` (cookie or body) for a new token pair. Old refresh token is invalidated. |
+| `GET` | `/config` | public | — | Returns public frontend configuration (e.g. `{ googleClientId }`). Used as a runtime fallback when `NEXT_PUBLIC_*` environment variables were not embedded at Docker image build time. |
 | `POST` | `/logout` | optional/auth | — | Clears the refresh token server-side and clears the cookies. |
 
 ### Rate limits

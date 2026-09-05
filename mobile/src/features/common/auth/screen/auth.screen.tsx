@@ -1,13 +1,9 @@
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import {
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
   StatusBar,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
 } from "react-native";
 import LivingPixelOcean from "@/src/components/LivingPixelOcean";
@@ -21,11 +17,8 @@ import * as Haptics from "expo-haptics";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { createAuthStyles } from "../styles/auth.style";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
-import { useGoogleAuth, useLogin, useRegister } from "../hooks/useAuth";
-import { LoginForm } from "../components/LoginForm";
-import { RegisterForm } from "../components/RegisterForm";
+import { useGoogleAuth } from "../hooks/useAuth";
 import { GoogleSignInButton } from "../components/GoogleSignInButton";
-import { AuthMode } from "../components/auth.types";
 
 /**
  * Auth screen — post-OTP cutover.
@@ -43,20 +36,8 @@ export default function AuthScreen() {
   const styles = createAuthStyles(theme);
   const [apiError, setApiError] = useState<string | null>(null);
   const [apiSuccess, setApiSuccess] = useState<string | null>(null);
-  const [mode, setMode] = useState<AuthMode>("login");
 
-  const { mutate: login, isPending: loginPending } = useLogin();
-  const { mutate: register, isPending: registerPending } = useRegister();
   const { mutate: googleAuth, isPending: googlePending } = useGoogleAuth();
-
-  const loading = loginPending || registerPending || googlePending;
-
-  const switchMode = (newMode: AuthMode) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setApiError(null);
-    setApiSuccess(null);
-    setMode(newMode);
-  };
 
   const handleGoogleSuccess = async (idToken: string) => {
     setApiError(null);
@@ -80,21 +61,9 @@ export default function AuthScreen() {
     });
   };
 
-  const ANIMATION_START = 100;
-  const getDelay = (index: number) => ANIMATION_START + index * 100;
-
-  const sharedProps = {
-    loading,
-    apiError,
-    setApiError,
-    apiSuccess,
-    setApiSuccess,
-    switchMode,
-  };
-
   return (
     <View style={styles.screen}>
-      {/* Top 30% Ocean background with fade out */}
+      {/* Top 35% Ocean background with smooth gradient fade */}
       <View style={localStyles.oceanContainer} pointerEvents="none">
         <LivingPixelOcean />
         <LinearGradient
@@ -110,180 +79,145 @@ export default function AuthScreen() {
         backgroundColor="transparent"
       />
 
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={styles.keyboardView}
-        enabled={Platform.OS !== "web"}
+      <View
+        style={[
+          styles.scrollContent,
+          {
+            paddingTop: insets.top + 30,
+            paddingBottom: insets.bottom + 20,
+            justifyContent: "space-between",
+          },
+        ]}
       >
-        <ScrollView
-          style={{ flex: 1 }}
-          contentContainerStyle={{ flexGrow: 1 }}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-        >
-          <View
-            style={[
-              styles.scrollContent,
-              {
-                paddingTop: insets.top + 40,
-                paddingBottom: insets.bottom + 40,
-              },
-            ]}
+        {/* Top Spacer / Branding Area */}
+        <View style={{ alignItems: "center", marginTop: 40 }}>
+          <Animated.View
+            entering={FadeInDown.delay(200).duration(600)}
+            style={{ alignItems: "center", marginTop: 16 }}
           >
-            {/* Header */}
-            <Animated.View
-              style={styles.header}
-              entering={FadeInDown.delay(getDelay(1)).duration(600)}
-            >
-              <Text style={styles.title}>
-                {mode === "login" ? "Sign In" : "Create Account"}
+            <Text style={styles.title}>QuickBihar</Text>
+
+          </Animated.View>
+
+          {/* Value props / Trust badges */}
+          <Animated.View
+            entering={FadeInDown.delay(300).duration(600)}
+            style={localStyles.featuresList}
+          >
+            <View style={localStyles.featureItem}>
+              <Ionicons name="speedometer-outline" size={18} color="#38bdf8" />
+              <Text style={[localStyles.featureText, { color: theme.secondaryText }]}>
+                30-Min Express Delivery
               </Text>
-              <Text style={styles.subtitle}>
-                {mode === "login"
-                  ? "Welcome back! Use Google or your email to continue."
-                  : "Sign up in seconds with Google, or use your email."}
+            </View>
+            <View style={localStyles.featureItem}>
+              <Ionicons name="storefront-outline" size={18} color="#4ade80" />
+              <Text style={[localStyles.featureText, { color: theme.secondaryText }]}>
+                Best Local Stores & Malls
               </Text>
-            </Animated.View>
+            </View>
+            <View style={localStyles.featureItem}>
+              <Ionicons name="shield-checkmark-outline" size={18} color="#a78bfa" />
+              <Text style={[localStyles.featureText, { color: theme.secondaryText }]}>
+                100% Genuine Products
+              </Text>
+            </View>
+          </Animated.View>
+        </View>
 
-            {/* Success Banner */}
-            {apiSuccess && (
-              <Animated.View
-                entering={FadeInDown}
-                layout={LinearTransition}
-                style={localStyles.successBanner}
-              >
-                <Ionicons
-                  name="checkmark-circle-outline"
-                  size={20}
-                  color="#86efac"
-                />
-                <Text style={localStyles.successBannerText}>{apiSuccess}</Text>
-              </Animated.View>
-            )}
-
-            {/* Error Banner */}
-            {apiError && (
-              <Animated.View
-                entering={FadeInDown}
-                layout={LinearTransition}
-                style={styles.errorBanner}
-              >
-                <Ionicons name="warning-outline" size={20} color="#fca5a5" />
-                <Text style={styles.errorBannerText}>{apiError}</Text>
-              </Animated.View>
-            )}
-
-            {/* ⭐ Google — primary path */}
+        {/* Action Center: Single Google Sign In Button */}
+        <View style={{ width: "100%", paddingHorizontal: 4, marginBottom: 20 }}>
+          {/* Success Banner */}
+          {apiSuccess && (
             <Animated.View
-              entering={FadeInDown.delay(getDelay(2)).duration(600)}
-              style={{ marginBottom: 20 }}
+              entering={FadeInDown}
+              layout={LinearTransition}
+              style={localStyles.successBanner}
             >
-              <GoogleSignInButton
-                mode="signin"
-                disabled={loading}
-                onSuccess={(idToken) => {
-                  handleGoogleSuccess(idToken).catch(() => {
-                    /* error already shown via apiError */
-                  });
-                }}
-                onError={(msg) => setApiError(msg)}
+              <Ionicons
+                name="checkmark-circle-outline"
+                size={20}
+                color="#86efac"
               />
+              <Text style={localStyles.successBannerText}>{apiSuccess}</Text>
             </Animated.View>
+          )}
 
-            {/* Divider */}
+          {/* Error Banner */}
+          {apiError && (
             <Animated.View
-              entering={FadeInDown.delay(getDelay(3)).duration(600)}
-              style={localStyles.dividerRow}
+              entering={FadeInDown}
+              layout={LinearTransition}
+              style={styles.errorBanner}
             >
-              <View style={localStyles.dividerLine} />
-              <Text style={localStyles.dividerText}>or use email</Text>
-              <View style={localStyles.dividerLine} />
+              <Ionicons name="warning-outline" size={20} color="#fca5a5" />
+              <Text style={styles.errorBannerText}>{apiError}</Text>
             </Animated.View>
+          )}
 
-            {/* Email + password form (login or register) */}
-            <Animated.View
-              entering={FadeInDown.delay(getDelay(4)).duration(600)}
-            >
-              {mode === "login" && <LoginForm {...sharedProps} login={login} />}
-              {mode === "register" && (
-                <RegisterForm {...sharedProps} register={register} />
-              )}
-            </Animated.View>
+          <Animated.View
+            entering={FadeInDown.delay(400).duration(600)}
+            style={{ width: "100%" }}
+          >
+            <GoogleSignInButton
+              mode="signin"
+              disabled={googlePending}
+              onSuccess={(idToken) => {
+                handleGoogleSuccess(idToken).catch(() => {
+                  /* error shown via apiError */
+                });
+              }}
+              onError={(msg) => setApiError(msg)}
+            />
+          </Animated.View>
 
-            {/* Mode Toggle */}
-            <Animated.View
-              entering={FadeInDown.delay(getDelay(5)).duration(600)}
-              style={{ marginTop: 24, alignItems: "center" }}
-            >
-              <TouchableOpacity
-                activeOpacity={0.7}
-                onPress={() =>
-                  switchMode(mode === "login" ? "register" : "login")
-                }
-                disabled={loading}
-              >
-                <Text
-                  style={{
-                    color: theme.secondaryText,
-                    fontSize: 14,
-                    fontWeight: "500",
-                  }}
-                >
-                  {mode === "login"
-                    ? "Don't have an account? "
-                    : "Already have an account? "}
-                  <Text
-                    style={{
-                      color: theme.text,
-                      fontWeight: "700",
-                      textDecorationLine: "underline",
-                    }}
-                  >
-                    {mode === "login" ? "Sign Up" : "Sign In"}
-                  </Text>
-                </Text>
-              </TouchableOpacity>
-            </Animated.View>
+          <Animated.View
+            entering={FadeInDown.delay(500).duration(600)}
+            style={{ marginTop: 12, alignItems: "center" }}
+          >
+            <Text style={{ color: theme.tertiaryText, fontSize: 13, textAlign: "center" }}>
+              One-tap sign in <br/> New users will be registered automatically
+            </Text>
+          </Animated.View>
+        </View>
 
-            {/* Terms Footer */}
-            <Animated.View
-              entering={FadeInUp.delay(getDelay(6)).duration(600)}
-              style={{ marginTop: 30, alignItems: "center" }}
+        {/* Terms Footer */}
+        <Animated.View
+          entering={FadeInUp.delay(600).duration(600)}
+          style={{ alignItems: "center", marginBottom: 10 }}
+        >
+          <Text
+            style={{
+              color: theme.tertiaryText,
+              fontSize: 12,
+              textAlign: "center",
+              lineHeight: 18,
+            }}
+          >
+            By continuing, you agree to our{" "}
+            <Text
+              style={{
+                fontWeight: "600",
+                color: theme.secondaryText,
+                textDecorationLine: "underline",
+              }}
             >
-              <Text
-                style={{
-                  color: theme.tertiaryText,
-                  fontSize: 12,
-                  textAlign: "center",
-                  lineHeight: 18,
-                }}
-              >
-                By continuing, you agree to our{" "}
-                <Text
-                  style={{
-                    fontWeight: "600",
-                    color: theme.secondaryText,
-                    textDecorationLine: "underline",
-                  }}
-                >
-                  Terms of Service
-                </Text>
-                {"\n"}and{" "}
-                <Text
-                  style={{
-                    fontWeight: "600",
-                    color: theme.secondaryText,
-                    textDecorationLine: "underline",
-                  }}
-                >
-                  Privacy Policy
-                </Text>
-                .
-              </Text>
-            </Animated.View>
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+              Terms of Service
+            </Text>{" "}
+            and{" "}
+            <Text
+              style={{
+                fontWeight: "600",
+                color: theme.secondaryText,
+                textDecorationLine: "underline",
+              }}
+            >
+              Privacy Policy
+            </Text>
+            .
+          </Text>
+        </Animated.View>
+      </View>
     </View>
   );
 }
@@ -294,8 +228,35 @@ const localStyles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    height: "30%",
+    height: "35%",
     overflow: "hidden",
+  },
+  logoBadge: {
+    width: 68,
+    height: 68,
+    borderRadius: 34,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 4,
+  },
+  featuresList: {
+    marginTop: 28,
+    gap: 12,
+    alignItems: "flex-start",
+  },
+  featureItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  featureText: {
+    fontSize: 14,
+    fontWeight: "500",
   },
   successBanner: {
     flexDirection: "row",
@@ -313,23 +274,5 @@ const localStyles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "500",
     flex: 1,
-  },
-  dividerRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 20,
-    gap: 12,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: "rgba(255,255,255,0.12)",
-  },
-  dividerText: {
-    color: "rgba(255,255,255,0.5)",
-    fontSize: 12,
-    fontWeight: "500",
-    textTransform: "uppercase",
-    letterSpacing: 1,
   },
 });

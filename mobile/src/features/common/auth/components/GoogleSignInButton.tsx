@@ -85,7 +85,16 @@ export const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({
             onError?.("Google Play Services are not available on this device.");
             return;
           default:
-            onError?.(err.message ?? "Google sign-in failed.");
+            if (
+              String(err.code) === "10" ||
+              err.message?.includes("DEVELOPER_ERROR")
+            ) {
+              onError?.(
+                "DEVELOPER_ERROR (10): Keystore SHA-1 fingerprint Google Cloud Console me add nahi hai."
+              );
+            } else {
+              onError?.(err.message ?? "Google sign-in failed.");
+            }
             return;
         }
       }
