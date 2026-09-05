@@ -41,6 +41,7 @@ export const applyOnboardingSchema = z.discriminatedUnion("type", [
         type: z.literal(ApplicationType.SELLER),
         documents: z.array(documentSchema).min(1, "At least one document is required"),
         details: z.object({
+            phone: z.string().trim().regex(/^\+?\d{10,15}$/, "Valid 10 to 15 digit mobile number is required").optional(),
             businessName: z.string().min(1, "Business name is required"),
             sellerType: z.enum([DomainEnum.CLOTHING, DomainEnum.FOOD, DomainEnum.JEWELERY] as const, {
                 message: "Invalid seller type (must be CLOTHING, FOOD, or JEWELERY)",
@@ -56,6 +57,7 @@ export const applyOnboardingSchema = z.discriminatedUnion("type", [
         type: z.literal(ApplicationType.RIDER),
         documents: z.array(documentSchema).min(1, "At least one document is required"),
         details: z.object({
+            phone: z.string().trim().regex(/^\+?\d{10,15}$/, "Valid 10 to 15 digit mobile number is required").optional(),
             vehicleType: z.string().min(1, "Vehicle type is required"),
             vehicleNumber: z.string().min(1, "Vehicle number is required"),
             licenseNumber: z.string().min(1, "License number is required"),

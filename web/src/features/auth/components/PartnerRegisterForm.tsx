@@ -3,12 +3,12 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
-import { Bike, CheckCircle2, FileUp, Loader2, MapPin, Store, ArrowLeft, X, FileText, UploadCloud, AlertCircle } from "lucide-react";
+import { Bike, CheckCircle2, FileUp, Loader2, MapPin, Store, ArrowLeft, X, FileText, UploadCloud, AlertCircle, LogOut } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { googleAuthRequest, updateProfileRequest } from "../api/auth.api";
+import { googleAuthRequest, updateProfileRequest, logoutRequest } from "../api/auth.api";
 import { useAuthStore } from "../store/authStore";
 import { useAuthHydrated } from "../hooks/useAuthHydrated";
 import { onboardingApi, OnboardingApplication } from "@/features/onboarding/api/onboarding.api";
@@ -27,6 +27,12 @@ const selectClass =
 const textareaClass =
   "min-h-24 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none placeholder:text-gray-500 focus:border-emerald-500 transition-colors w-full";
 
+interface CrossRoleConflict {
+  role: string;
+  status: string;
+  dashboardUrl?: string;
+}
+
 interface ValidationErrors {
   [key: string]: string;
 }
@@ -34,12 +40,14 @@ interface ValidationErrors {
 export default function PartnerRegisterForm({ mode }: { mode: PartnerMode }) {
   const router = useRouter();
   const isRider = mode === "RIDER";
-  const { user, token, isAuthenticated, setAuth } = useAuthStore();
+  const { user, token, isAuthenticated, setAuth, clearAuth } = useAuthStore();
   const hasHydrated = useAuthHydrated();
 
   // ponytail: track status checking state so authenticated users never flash the auth screen
   const [phase, setPhase] = useState<Phase>("auth");
   const [isCheckingStatus, setIsCheckingStatus] = useState(true);
+  const [crossRoleConflict, setCrossRoleConflict] = useState<CrossRoleConflict | null>(null);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const [files, setFiles] = useState<File[]>([]);
   const [status, setStatus] = useState<OnboardingApplication | null>(null);
@@ -80,11 +88,26 @@ export default function PartnerRegisterForm({ mode }: { mode: PartnerMode }) {
     ? "bg-cyan-600 hover:bg-cyan-700"
     : "bg-emerald-600 hover:bg-emerald-700";
 
+  const handleLogout = async () => {
+    if (isLoggingOut) return;
+    setIsLoggingOut(true);
+    try {
+      await logoutRequest();
+    } catch {}
+    clearAuth();
+    setPhase("auth");
+    setCrossRoleConflict(null);
+    setStatus(null);
+    setIsLoggingOut(false);
+    toast.success("Logged out successfully. You can now sign in with another account.");
+  };
+
   useEffect(() => {
     if (!hasHydrated) return;
 
     if (!isAuthenticated || !token) {
       setPhase("auth");
+      setCrossRoleConflict(null);
       setIsCheckingStatus(false);
       return;
     }
@@ -93,13 +116,33 @@ export default function PartnerRegisterForm({ mode }: { mode: PartnerMode }) {
     onboardingApi
       .status()
       .then((data) => {
-        const app = (isRider
+        const currentApp = (isRider
           ? data.latestRiderApplication
           : data.latestSellerApplication) || null;
-        setStatus(app);
-        if (app?.status === "APPROVED") {
+        const oppositeApp = (isRider
+          ? data.latestSellerApplication
+          : data.latestRiderApplication) || null;
+        const hasOppositeProfile = isRider
+          ? Boolean(data.sellerProfile)
+          : Boolean(data.riderProfile);
+        const oppositeRoleName = isRider ? "Seller" : "Delivery Partner";
+
+        if (hasOppositeProfile || (oppositeApp && ["PENDING", "APPROVED"].includes(oppositeApp.status))) {
+          const oppStatus = hasOppositeProfile ? "APPROVED" : oppositeApp?.status || "PENDING";
+          setCrossRoleConflict({
+            role: oppositeRoleName,
+            status: oppStatus,
+            dashboardUrl: isRider ? "/seller/dashboard" : "/delivery/dashboard",
+          });
+          setPhase("application");
+          return;
+        }
+
+        setCrossRoleConflict(null);
+        setStatus(currentApp);
+        if (currentApp?.status === "APPROVED") {
           router.replace(isRider ? "/delivery/dashboard" : "/seller/dashboard");
-        } else if (app?.status === "PENDING") {
+        } else if (currentApp?.status === "PENDING") {
           setPhase("submitted");
         } else {
           setPhase("application");
@@ -271,7 +314,13 @@ export default function PartnerRegisterForm({ mode }: { mode: PartnerMode }) {
             setAuth(profileRes.data.user, token);
           }
         } catch (phoneErr: any) {
-          console.warn("Could not sync phone to user profile:", phoneErr);
+          const errMsg =
+            phoneErr?.response?.data?.message ||
+            phoneErr?.message ||
+            "This phone number cannot be linked. It may already be registered to another account.";
+          toast.error(errMsg);
+          setIsBusy(false);
+          return;
         }
       }
 
@@ -296,6 +345,7 @@ export default function PartnerRegisterForm({ mode }: { mode: PartnerMode }) {
             type: "RIDER" as const,
             documents,
             details: {
+              phone: cleanPhone,
               vehicleType: formFields.vehicleType,
               vehicleNumber: formFields.vehicleNumber.trim().toUpperCase(),
               licenseNumber: formFields.licenseNumber.trim().toUpperCase(),
@@ -311,6 +361,7 @@ export default function PartnerRegisterForm({ mode }: { mode: PartnerMode }) {
             type: "SELLER" as const,
             documents,
             details: {
+              phone: cleanPhone,
               businessName: formFields.businessName.trim(),
               sellerType: formFields.sellerType,
               ...(formFields.gstNumber.trim()
@@ -349,169 +400,283 @@ export default function PartnerRegisterForm({ mode }: { mode: PartnerMode }) {
           {title}
         </CardTitle>
         <CardDescription className="text-gray-400">
-          {phaseLabel(phase, status)}
+          {crossRoleConflict
+            ? "A partner account already exists for your email or phone"
+            : phaseLabel(phase, status)}
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {phase === "auth" && (
-          <div className="grid gap-6 text-center">
-            <div className="rounded-xl border border-white/10 bg-white/[0.02] p-6 sm:p-8 space-y-4">
-              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-white/5">
-                <Icon className={`h-7 w-7 ${isRider ? "text-cyan-400" : "text-emerald-400"}`} />
+        {crossRoleConflict ? (
+          <div className="grid gap-6 text-center py-6 animate-in zoom-in-95">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-amber-500/10 text-amber-400">
+              <AlertCircle className="h-8 w-8" />
+            </div>
+            <div className="space-y-2">
+              <div className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-300">
+                Partner Account Notice
               </div>
-              <div className="space-y-1">
-                <h3 className="text-lg font-semibold text-white">
-                  Continue with Google
-                </h3>
-                <p className="text-sm text-gray-400 max-w-sm mx-auto">
-                  Sign in with your Google account to start your {isRider ? "delivery partner" : "seller"} onboarding and set up your profile in one step.
-                </p>
-              </div>
-
-              <div className="pt-2 max-w-sm mx-auto">
-                <GoogleSignInButton
-                  label="Continue with Google"
-                  onSuccess={async (idToken) => {
-                    try {
-                      const response = await googleAuthRequest({ idToken });
-                      const { user: authedUser, accessToken } = response.data;
-                      setAuth(authedUser, accessToken);
-                      toast.success(`Welcome, ${authedUser.fullName || "Partner"}!`);
-                      setIsCheckingStatus(true);
-                      try {
-                        const data = await onboardingApi.status();
-                        const app = (isRider
-                          ? data.latestRiderApplication
-                          : data.latestSellerApplication) || null;
-                        setStatus(app);
-                        if (app?.status === "APPROVED") {
-                          router.replace(isRider ? "/delivery/dashboard" : "/seller/dashboard");
-                        } else if (app?.status === "PENDING") {
-                          setPhase("submitted");
-                        } else {
-                          setPhase("application");
-                        }
-                      } catch {
-                        setPhase("application");
-                      } finally {
-                        setIsCheckingStatus(false);
-                      }
-                    } catch (err: any) {
-                      toast.error(err?.message || "Google sign-in failed.");
-                    }
-                  }}
-                  onError={(msg) => toast.error(msg)}
-                />
-              </div>
+              <h3 className="text-xl font-bold text-white">
+                Existing {crossRoleConflict.role} Account Found
+              </h3>
+              <p className="text-sm text-gray-300 max-w-md mx-auto leading-relaxed">
+                Your account (<span className="text-white font-medium">{user?.email}</span>) already has an active{" "}
+                <span className="text-amber-300 font-semibold">{crossRoleConflict.role}</span> application/profile ({crossRoleConflict.status}). QuickBihar partner policy allows only one role (Rider or Seller) per individual account and phone number.
+              </p>
             </div>
 
-            <div className="text-center text-sm text-gray-400">
-              Already registered?{" "}
-              <Link
-                href={isRider ? "/delivery/login" : "/seller/login"}
-                className={`font-medium ${isRider ? "text-cyan-400 hover:text-cyan-300" : "text-emerald-400 hover:text-emerald-300"} hover:underline`}
-              >
-                Sign in
-              </Link>
-            </div>
-          </div>
-        )}
-
-        {phase === "application" && (
-          <form onSubmit={submitApplication} className="grid gap-5 animate-in fade-in-50">
-            <div className="rounded-lg bg-emerald-500/10 border border-emerald-500/20 p-3.5 text-xs text-emerald-300 flex items-start gap-2">
-              <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
-              <div>
-                <p className="font-semibold text-emerald-200 mb-0.5">
-                  Please provide accurate verification details
-                </p>
-                <p>
-                  All information provided below will be verified by the admin
-                  team before account activation.
-                </p>
-              </div>
-            </div>
-
-            {isRider ? (
-              <RiderFields
-                formFields={formFields}
-                updateField={updateField}
-                errors={errors}
-                location={riderLocation}
-                isLocating={isLocating}
-                onCaptureLocation={captureLocation}
-              />
-            ) : (
-              <SellerFields
-                formFields={formFields}
-                updateField={updateField}
-                errors={errors}
-              />
-            )}
-
-            <CommonApplicationFields
-              formFields={formFields}
-              updateField={updateField}
-              errors={errors}
-              files={files}
-              onFileAdd={handleFileAdd}
-              onFileRemove={handleFileRemove}
-              isRider={isRider}
-            />
-
-            <Button
-              type="submit"
-              disabled={isBusy}
-              className={`${activeColorClass} font-semibold py-6 text-base shadow-lg transition-all`}
-            >
-              {isBusy ? (
-                <Loader2 className="h-5 w-5 animate-spin mr-2" />
-              ) : (
-                <FileUp className="h-5 w-5 mr-2" />
-              )}
-              Submit Application For Admin Approval
-            </Button>
-          </form>
-        )}
-
-        {phase === "submitted" && (
-          <div className="grid gap-4 text-center py-6 animate-in zoom-in-95">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-400/10 text-emerald-400">
-              <CheckCircle2 className="h-8 w-8" />
-            </div>
-            <div className="text-xl font-bold text-white">
-              {status?.status || "Application received"}
-            </div>
-            <p className="text-sm text-gray-400 max-w-md mx-auto">
-              {status?.status === "APPROVED"
-                ? "Your application is approved. You can log in to the partner panel."
-                : status?.status === "REJECTED"
-                  ? status.rejectionReason ||
-                    "Your application was rejected. Update details and submit again."
-                  : "Admin approval is required before panel access is enabled."}
-            </p>
-            {status?.status === "APPROVED" && (
-              <Button
-                type="button"
-                className={`${activeColorClass} text-white font-semibold py-6 text-base shadow-lg`}
-                onClick={() =>
-                  router.push(isRider ? "/delivery/dashboard" : "/seller/dashboard")
-                }
-              >
-                Go to {isRider ? "Rider" : "Seller"} Dashboard →
-              </Button>
-            )}
-            {status?.status === "REJECTED" && (
+            <div className="flex flex-col sm:flex-row gap-3 justify-center items-center pt-2">
               <Button
                 type="button"
                 variant="outline"
-                className="border-white/10 bg-white/5 text-white hover:bg-white/10"
-                onClick={() => setPhase("application")}
+                disabled={isLoggingOut}
+                className="border-white/20 bg-white/5 text-white hover:bg-white/10 w-full sm:w-auto cursor-pointer"
+                onClick={handleLogout}
               >
-                Submit Again
+                {isLoggingOut ? (
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                ) : (
+                  <LogOut className="h-4 w-4 mr-2 text-red-400" />
+                )}
+                Log Out to Switch Account
               </Button>
-            )}
+
+              {crossRoleConflict.status === "APPROVED" && crossRoleConflict.dashboardUrl && (
+                <Button
+                  type="button"
+                  className={`${activeColorClass} text-white font-semibold w-full sm:w-auto cursor-pointer`}
+                  onClick={() => router.push(crossRoleConflict.dashboardUrl!)}
+                >
+                  Go to {crossRoleConflict.role} Dashboard →
+                </Button>
+              )}
+            </div>
           </div>
+        ) : (
+          <>
+            {phase === "auth" && (
+              <div className="grid gap-6 text-center">
+                <div className="rounded-xl border border-white/10 bg-white/[0.02] p-6 sm:p-8 space-y-4">
+                  <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-white/5">
+                    <Icon className={`h-7 w-7 ${isRider ? "text-cyan-400" : "text-emerald-400"}`} />
+                  </div>
+                  <div className="space-y-1">
+                    <h3 className="text-lg font-semibold text-white">
+                      Continue with Google
+                    </h3>
+                    <p className="text-sm text-gray-400 max-w-sm mx-auto">
+                      Sign in with your Google account to start your {isRider ? "delivery partner" : "seller"} onboarding and set up your profile in one step.
+                    </p>
+                  </div>
+
+                  <div className="pt-2 max-w-sm mx-auto">
+                    <GoogleSignInButton
+                      label="Continue with Google"
+                      onSuccess={async (idToken) => {
+                        try {
+                          const response = await googleAuthRequest({ idToken });
+                          const { user: authedUser, accessToken } = response.data;
+                          setAuth(authedUser, accessToken);
+                          toast.success(`Welcome, ${authedUser.fullName || "Partner"}!`);
+                          setIsCheckingStatus(true);
+                          try {
+                            const data = await onboardingApi.status();
+                            const currentApp = (isRider
+                              ? data.latestRiderApplication
+                              : data.latestSellerApplication) || null;
+                            const oppositeApp = (isRider
+                              ? data.latestSellerApplication
+                              : data.latestRiderApplication) || null;
+                            const hasOppositeProfile = isRider
+                              ? Boolean(data.sellerProfile)
+                              : Boolean(data.riderProfile);
+                            const oppositeRoleName = isRider ? "Seller" : "Delivery Partner";
+
+                            if (hasOppositeProfile || (oppositeApp && ["PENDING", "APPROVED"].includes(oppositeApp.status))) {
+                              setCrossRoleConflict({
+                                role: oppositeRoleName,
+                                status: hasOppositeProfile ? "APPROVED" : oppositeApp?.status || "PENDING",
+                                dashboardUrl: isRider ? "/seller/dashboard" : "/delivery/dashboard",
+                              });
+                              setPhase("application");
+                              return;
+                            }
+
+                            setCrossRoleConflict(null);
+                            setStatus(currentApp);
+                            if (currentApp?.status === "APPROVED") {
+                              router.replace(isRider ? "/delivery/dashboard" : "/seller/dashboard");
+                            } else if (currentApp?.status === "PENDING") {
+                              setPhase("submitted");
+                            } else {
+                              setPhase("application");
+                            }
+                          } catch {
+                            setPhase("application");
+                          } finally {
+                            setIsCheckingStatus(false);
+                          }
+                        } catch (err: any) {
+                          toast.error(err?.message || "Google sign-in failed.");
+                        }
+                      }}
+                      onError={(msg) => toast.error(msg)}
+                    />
+                  </div>
+                </div>
+
+                <div className="text-center text-sm text-gray-400">
+                  Already registered?{" "}
+                  <Link
+                    href={isRider ? "/delivery/login" : "/seller/login"}
+                    className={`font-medium ${isRider ? "text-cyan-400 hover:text-cyan-300" : "text-emerald-400 hover:text-emerald-300"} hover:underline`}
+                  >
+                    Sign in
+                  </Link>
+                </div>
+              </div>
+            )}
+
+            {phase === "application" && (
+              <form onSubmit={submitApplication} className="grid gap-5 animate-in fade-in-50">
+                {/* Authenticated user session header with in-page Logout */}
+                <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-white/10 bg-white/[0.03] px-4 py-2.5 text-xs text-gray-300">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="h-2 w-2 rounded-full bg-emerald-400 shrink-0" />
+                    <span className="truncate">
+                      Signed in as <strong className="text-white font-semibold">{user?.email}</strong>
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    disabled={isLoggingOut}
+                    onClick={handleLogout}
+                    className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium text-gray-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer disabled:opacity-50"
+                    title="Sign out and switch accounts"
+                  >
+                    {isLoggingOut ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <LogOut className="h-3.5 w-3.5 text-red-400" />
+                    )}
+                    <span>Log Out</span>
+                  </button>
+                </div>
+
+                <div className="rounded-lg bg-emerald-500/10 border border-emerald-500/20 p-3.5 text-xs text-emerald-300 flex items-start gap-2">
+                  <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-semibold text-emerald-200 mb-0.5">
+                      Please provide accurate verification details
+                    </p>
+                    <p>
+                      All information provided below will be verified by the admin
+                      team before account activation.
+                    </p>
+                  </div>
+                </div>
+
+                {isRider ? (
+                  <RiderFields
+                    formFields={formFields}
+                    updateField={updateField}
+                    errors={errors}
+                    location={riderLocation}
+                    isLocating={isLocating}
+                    onCaptureLocation={captureLocation}
+                  />
+                ) : (
+                  <SellerFields
+                    formFields={formFields}
+                    updateField={updateField}
+                    errors={errors}
+                  />
+                )}
+
+                <CommonApplicationFields
+                  formFields={formFields}
+                  updateField={updateField}
+                  errors={errors}
+                  files={files}
+                  onFileAdd={handleFileAdd}
+                  onFileRemove={handleFileRemove}
+                  isRider={isRider}
+                />
+
+                <Button
+                  type="submit"
+                  disabled={isBusy}
+                  className={`${activeColorClass} font-semibold py-6 text-base shadow-lg transition-all cursor-pointer`}
+                >
+                  {isBusy ? (
+                    <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                  ) : (
+                    <FileUp className="h-5 w-5 mr-2" />
+                  )}
+                  Submit Application For Admin Approval
+                </Button>
+              </form>
+            )}
+
+            {phase === "submitted" && (
+              <div className="grid gap-4 text-center py-6 animate-in zoom-in-95">
+                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-400/10 text-emerald-400">
+                  <CheckCircle2 className="h-8 w-8" />
+                </div>
+                <div className="text-xl font-bold text-white">
+                  {status?.status || "Application received"}
+                </div>
+                <p className="text-sm text-gray-400 max-w-md mx-auto">
+                  {status?.status === "APPROVED"
+                    ? "Your application is approved. You can log in to the partner panel."
+                    : status?.status === "REJECTED"
+                      ? status.rejectionReason ||
+                        "Your application was rejected. Update details and submit again."
+                      : "Admin approval is required before panel access is enabled."}
+                </p>
+                {status?.status === "APPROVED" && (
+                  <Button
+                    type="button"
+                    className={`${activeColorClass} text-white font-semibold py-6 text-base shadow-lg cursor-pointer`}
+                    onClick={() =>
+                      router.push(isRider ? "/delivery/dashboard" : "/seller/dashboard")
+                    }
+                  >
+                    Go to {isRider ? "Rider" : "Seller"} Dashboard →
+                  </Button>
+                )}
+                {status?.status === "REJECTED" && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="border-white/10 bg-white/5 text-white hover:bg-white/10 cursor-pointer"
+                    onClick={() => setPhase("application")}
+                  >
+                    Submit Again
+                  </Button>
+                )}
+
+                {/* Status screen account footer with Logout button */}
+                <div className="mt-4 pt-4 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-gray-400">
+                  <span className="truncate">
+                    Signed in as <strong className="text-gray-200">{user?.email}</strong>
+                  </span>
+                  <button
+                    type="button"
+                    disabled={isLoggingOut}
+                    onClick={handleLogout}
+                    className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium text-gray-300 hover:text-white hover:bg-white/10 border border-white/10 transition-colors cursor-pointer disabled:opacity-50"
+                  >
+                    {isLoggingOut ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" />
+                    ) : (
+                      <LogOut className="h-3.5 w-3.5 text-red-400 mr-1" />
+                    )}
+                    Log Out & Switch Account
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </CardContent>
     </Card>

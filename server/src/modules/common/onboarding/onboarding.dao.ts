@@ -26,6 +26,21 @@ export async function findApprovedProfile(userId: string | Types.ObjectId) {
 }
 
 /**
+ * Loads approved Seller and Rider profiles for any user in a list of user IDs.
+ *
+ * @param userIds - Array of user ids (string or ObjectId).
+ * @returns Object with `seller` and `rider` documents (each `null` when absent).
+ */
+export async function findApprovedProfilesByUserIds(userIds: (string | Types.ObjectId)[]) {
+  if (!userIds.length) return { seller: null, rider: null };
+  const [seller, rider] = await Promise.all([
+    Seller.findOne({ userId: { $in: userIds } }),
+    DeliveryBoy.findOne({ userId: { $in: userIds } }),
+  ]);
+  return { seller, rider };
+}
+
+/**
  * Finds a user's currently active application (PENDING or APPROVED), if one exists.
  *
  * @param userId - Owning user's id (string or ObjectId).
@@ -34,6 +49,26 @@ export async function findApprovedProfile(userId: string | Types.ObjectId) {
 export async function findActiveApplication(userId: string | Types.ObjectId) {
   return await Application.findOne({
     userId,
+    status: { $in: [ApplicationStatus.PENDING, ApplicationStatus.APPROVED] },
+  });
+}
+
+/**
+ * Finds an active (PENDING or APPROVED) application by phone number or list of user IDs.
+ *
+ * @param phone - Mobile number to query in details.phone.
+ * @param userIds - Array of user ids to check.
+ * @returns The active application document, or `null`.
+ */
+export async function findActiveApplicationByPhoneOrUserIds(phone: string, userIds: (string | Types.ObjectId)[]) {
+  const queryParts: any[] = [];
+  if (userIds.length) queryParts.push({ userId: { $in: userIds } });
+  if (phone) queryParts.push({ "details.phone": phone });
+
+  if (!queryParts.length) return null;
+
+  return await Application.findOne({
+    $or: queryParts,
     status: { $in: [ApplicationStatus.PENDING, ApplicationStatus.APPROVED] },
   });
 }

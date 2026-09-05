@@ -30,3 +30,18 @@ export const strictAuthRateLimiter: RateLimitRequestHandler = rateLimit({
     error: "Too many attempts. Please wait a minute and try again.",
   },
 });
+
+/**
+ * Partner onboarding rate limiter — prevents spamming application submissions and document uploads.
+ * Max 6 attempts per 10-minute window per IP.
+ */
+export const onboardingRateLimiter: RateLimitRequestHandler = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  max: 6,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    statusCode: 429,
+    error: "Too many partner onboarding attempts. Please wait a few minutes before trying again.",
+  },
+});

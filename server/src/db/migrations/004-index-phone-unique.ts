@@ -28,7 +28,7 @@ async function main() {
 
   // Step 1: find duplicates
   const duplicates = await User.aggregate([
-    { $match: { phone: { $exists: true, $ne: null, $ne: "" } } },
+    { $match: { phone: { $exists: true, $nin: [null, ""] } } },
     { $group: { _id: "$phone", count: { $sum: 1 }, docs: { $push: "$_id" } } },
     { $match: { count: { $gt: 1 } } },
   ]);

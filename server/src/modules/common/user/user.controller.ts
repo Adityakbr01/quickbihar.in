@@ -22,7 +22,14 @@ export class UserController {
         if (!user) throw new ApiError(404, "User not found");
 
         if (fullName) user.fullName = fullName.trim();
-        if (phone) user.phone = phone.trim();
+        if (phone) {
+            const cleanPhone = phone.trim().replace(/[\s\-()]/g, "");
+            const phoneOccupied = await User.findOne({ phone: cleanPhone, _id: { $ne: userId } });
+            if (phoneOccupied) {
+                throw new ApiError(400, "This phone number is already linked to another account.");
+            }
+            user.phone = cleanPhone;
+        }
 
         if (email) {
             const cleanEmail = email.trim().toLowerCase();

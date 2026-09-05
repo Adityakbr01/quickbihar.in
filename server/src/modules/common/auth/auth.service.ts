@@ -60,6 +60,15 @@ export async function register(registerData: any) {
       }
     }
 
+    // Check if phone is already registered to another account
+    if (phone) {
+      const cleanPhone = phone.trim().replace(/[\s\-()]/g, "");
+      const phoneOccupied = await User.findOne({ phone: cleanPhone });
+      if (phoneOccupied && (!user || phoneOccupied._id.toString() !== user._id.toString())) {
+        throw new ApiError(400, "This phone number is already registered to another account.");
+      }
+    }
+
     // 2. Get Default Role
     const userRole = await rbacService.getRoleByName(RoleEnum.USER);
     if (!userRole) {

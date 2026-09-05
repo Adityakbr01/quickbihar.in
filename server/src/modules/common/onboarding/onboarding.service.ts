@@ -17,38 +17,86 @@ import * as OnboardingDAO from "./onboarding.dao";
 import { ApplicationStatus, ApplicationType } from "./onboarding.model";
 import { Store } from "@/modules/common/store/store.model";
 
+import { User } from "@/modules/common/user/user.model";
+
 /**
  * Submits a new onboarding application for a user.
- * Rejects the request if the user already holds an approved Seller/Rider profile or has
- * any active (PENDING/APPROVED) application — a user may only ever hold one role.
+ * Rejects the request if:
+ * 1. The user already holds an approved Seller/Rider profile.
+ * 2. The user has any active (PENDING/APPROVED) application — a user may only ever hold one role.
+ * 3. The applicant's phone number is already associated with an approved partner profile or
+ *    active (PENDING/APPROVED) application across ANY account.
  *
  * @param userId - Applicant user's id.
  * @param data - Application payload: `type`, `documents`, and `details`.
  * @returns The created application document.
- * @throws {ApiError} 400 if the user is already registered or has an active application.
+ * @throws {ApiError} 400 if the user or phone number is already registered or has an active application.
  */
 export async function apply(userId: string, data: any) {
   const { type, documents, details } = data;
+
+  const user = await User.findById(userId);
+  if (!user) {
+    throw new ApiError(404, "User account not found");
+  }
 
   // 1. Check if user already has an APPROVED profile of ANY type
   const { seller, rider } = await OnboardingDAO.findApprovedProfile(userId);
   if (seller || rider) {
     const role = seller ? "Seller" : "Rider";
-    throw new ApiError(400, `You are already registered as a ${role}. You cannot apply for another role.`);
+    throw new ApiError(400, `You are already registered as a ${role}. Each account can only hold one partner role.`);
   }
 
-  // 2. Check if there's already ANY active (PENDING or APPROVED) application
+  // 2. Check if there's already ANY active (PENDING or APPROVED) application for this account
   const activeApplication = await OnboardingDAO.findActiveApplication(userId);
   if (activeApplication) {
-    const statusMsg = activeApplication.status === ApplicationStatus.PENDING ? "pending" : "already approved";
-    throw new ApiError(400, `You already have a ${activeApplication.type} application that is ${statusMsg}. You cannot apply for another role.`);
+    const statusMsg = activeApplication.status === ApplicationStatus.PENDING ? "pending review" : "approved";
+    throw new ApiError(400, `You already have a ${activeApplication.type} application that is ${statusMsg}. Each account can only hold one partner role.`);
+  }
+
+  // 3. Resolve & validate applicant phone number
+  const cleanPhone = (details?.phone || user.phone || "").trim().replace(/[\s\-()]/g, "");
+  if (!cleanPhone) {
+    throw new ApiError(400, "Mobile number is required for partner onboarding.");
+  }
+
+  // If applicant phone is new/different, check uniqueness and sync to user
+  if (user.phone !== cleanPhone) {
+    const phoneOccupied = await User.findOne({ phone: cleanPhone, _id: { $ne: userId } });
+    if (phoneOccupied) {
+      throw new ApiError(400, "This phone number is already linked to another account.");
+    }
+    user.phone = cleanPhone;
+    await user.save();
+  }
+
+  // 4. Partner Phone Collision Guard:
+  // Ensure the phone number is not linked to an approved partner or active (PENDING/APPROVED) application
+  const usersWithPhone = await User.find({ phone: cleanPhone }).select("_id email");
+  const phoneUserIds = usersWithPhone.map((u) => u._id);
+
+  // Check if any account with this phone has an approved Seller or Rider profile
+  const { seller: phoneSeller, rider: phoneRider } = await OnboardingDAO.findApprovedProfilesByUserIds(phoneUserIds);
+  if (phoneSeller || phoneRider) {
+    const role = phoneSeller ? "Seller" : "Rider";
+    throw new ApiError(400, `This phone number is already linked to an approved ${role} partner account. A phone number cannot be used for multiple partner accounts.`);
+  }
+
+  // Check if any account with this phone has an active (PENDING or APPROVED) partner application
+  const existingAppWithPhone = await OnboardingDAO.findActiveApplicationByPhoneOrUserIds(cleanPhone, phoneUserIds);
+  if (existingAppWithPhone && existingAppWithPhone.userId.toString() !== userId.toString()) {
+    const statusMsg = existingAppWithPhone.status === ApplicationStatus.PENDING ? "pending review" : "approved";
+    throw new ApiError(400, `This phone number is already linked to a ${existingAppWithPhone.type} application that is ${statusMsg}. A phone number cannot be used for multiple partner accounts.`);
   }
 
   return await OnboardingDAO.createApplication({
     userId,
     type,
     documents,
-    details,
+    details: {
+      ...details,
+      phone: cleanPhone,
+    },
   });
 }
 

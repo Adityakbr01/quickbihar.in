@@ -83,12 +83,13 @@ sequenceDiagram
     W->>W: setAuth(user, accessToken) → Phase 2 (application form)
 
     U->>W: Phase 2 — fill details, docs, & phone (in Section 1), submit
-    W->>S: PATCH /users/profile { phone }
+    W->>S: PATCH /users/profile { phone } (verifies phone uniqueness)
     S->>DB: User.updateOne({ _id: userId }, { phone })
-    W->>S: POST /onboarding/apply { type: SELLER, documents, details }
+    W->>S: POST /onboarding/apply { type: SELLER, documents, details: { phone, ... } } (rate-limited)
+    Note over S,DB: Server checks: 1) no approved profile, 2) no active/pending app for this user, 3) no active/pending app or profile for this phone across ALL users
     S->>DB: OnboardingApplication.create({ userId, status: PENDING })
     S-->>W: 201 { application }
-    W->>U: Phase 3 — "Application received" success screen
+    W->>U: Phase 3 — "Application received" success screen (includes [Log Out & Switch Account])
 
     Note over A,DB: --- async: admin reviews ---
     A->>S: POST /onboarding/:id/review  { status: APPROVED }
@@ -103,7 +104,11 @@ sequenceDiagram
     W->>U: router.replace(/seller/dashboard) — dashboard gate passes
 ```
 
-> **Two layers, one source of truth.** The login hook (`useRoleLogin` / `useRoleGoogleAuth`) checks `onboardingApi.status()` so the user is redirected to `/seller/register` *before* hitting the dashboard when the application is `PENDING` / `REJECTED` / missing. The seller / delivery dashboard pages *also* call the same status hook, so a stale cookie or a manual role change can't leak a live dashboard to an unapproved partner. The two layers read the same endpoint, so there is no drift.
+> **Single-Role and Phone Integrity**:
+> 1. **Cross-Role Guard (even when PENDING)**: If an account holds an active (`PENDING` or `APPROVED`) application or approved profile for one role (e.g. Seller), navigating to `/delivery/register` renders a `Partner Account Notice` with a `Log Out to Switch Account` button instead of the registration form.
+> 2. **Phone Collision Guard**: If a phone number is registered with an existing active application or approved partner, any new application using that phone number is rejected with `400 Bad Request`.
+> 3. **Spam Protection**: `onboardingRateLimiter` restricts `/onboarding/apply` and `/onboarding/documents` to a maximum of 6 requests per 10 minutes per IP.
+> 4. **In-Page Logout**: Every stage of the onboarding interface (`auth`, `application`, `submitted`, and conflict notice) features an accessible Logout button so partners can switch Google accounts immediately.
 
 ## FLOW — Ek request ka poora safar (example: `POST /api/v1/orders/quote`)
 

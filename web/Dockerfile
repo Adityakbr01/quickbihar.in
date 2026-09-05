@@ -14,8 +14,13 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 # Set relative paths so frontend automatically uses the current IP/Domain
-ENV NEXT_PUBLIC_API_URL=/api/v1
-ENV NEXT_PUBLIC_SOCKET_URL=/
+ARG NEXT_PUBLIC_API_URL=/api/v1
+ARG NEXT_PUBLIC_SOCKET_URL=/
+ARG NEXT_PUBLIC_GOOGLE_CLIENT_ID=183149129805-vf8pkq6h066lcapjanjv1271g36jvij4.apps.googleusercontent.com
+
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_SOCKET_URL=$NEXT_PUBLIC_SOCKET_URL
+ENV NEXT_PUBLIC_GOOGLE_CLIENT_ID=$NEXT_PUBLIC_GOOGLE_CLIENT_ID
 
 RUN npm run build
 

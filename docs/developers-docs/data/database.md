@@ -92,7 +92,7 @@ erDiagram
 | `username` | String | unique, lowercase, indexed |
 | `email` | String | unique, lowercase, indexed |
 | `fullName` | String | indexed |
-| `phone` | String | **Required** for partner (SELLER / RIDER) applicants — collected directly at registration time in Section 1 of the onboarding application form and synced to `User` profile via `PATCH /users/profile` on submission. Plain USER customer sign-ups have an optional phone. Used by admins to verify the applicant's identity before approving the partner application. |
+| `phone` | String | **unique (sparse)**, indexed. **Required** for partner (SELLER / RIDER) applicants — collected directly at registration time in Section 1 of the onboarding application form and synced to `User` profile via `PATCH /users/profile` on submission. Plain USER customer sign-ups have an optional phone. Prevents duplicate accounts across users. |
 | `avatar` | `{ url, fileId }` | ImageKit |
 | `fcmToken` | String | push ke liye (native FCM) |
 | `password` | String | **required**, bcrypt hash (10 rounds), pre-save hook |
@@ -105,9 +105,31 @@ erDiagram
 **Methods:** `isPasswordCorrect(pw)`, `generateAccessToken()` (`{_id,email,username,fullName}`, `1d`), `generateRefreshToken()` (`{_id}`, `ENV.REFRESH_TOKEN_EXPIRY`).
 **Hook:** `pre("save")` → agar password modified toh `bcrypt.hash(pw, 10)`.
 
-> **Phone is the verification key.** Partner onboarding requires a verified contact phone: **required** for SELLER / RIDER partners (collected in Section 1 of the onboarding registration form alongside business or vehicle fields), **optional** for USER customer sign-ups. On submitting the onboarding form, the phone is validated and synced via `PATCH /users/profile`. The admin uses that phone to call/verify the applicant before flipping the partner application to `APPROVED`. See [authentication.md → Admin verification gate](./../features/authentication.md#admin-verification-gate-login--dashboard).
+> **Phone is the verification key & anti-collision barrier.** Partner onboarding requires a unique contact phone: **required** for SELLER / RIDER partners (collected in Section 1 of the onboarding registration form alongside business or vehicle fields), **optional** for USER customer sign-ups. On submitting the onboarding form, the phone is validated and synced via `PATCH /users/profile`. Unique sparse indexing ensures no two users share the same phone number. Furthermore, the onboarding service checks across both user accounts and active applications (`Application.status in [PENDING, APPROVED]`) so that a single phone number cannot hold or apply for multiple partner roles (Rider vs Seller). See [authentication.md → Admin verification gate](./../features/authentication.md#admin-verification-gate-login--dashboard).
 
 > **Single-role:** `roleId` ek hi field hai (array nahi). Detail: [09_Authorization_RBAC.md](./../features/authorization-rbac.md).
+
+---
+
+## COLLECTION — `Application` (`onboarding.model.ts`)
+
+Holds partner onboarding applications before admin approval.
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `userId` | ref `User` | required, indexed |
+| `type` | enum `ApplicationType` | `SELLER` \| `RIDER`, required, indexed |
+| `status` | enum `ApplicationStatus` | `PENDING` (default) \| `APPROVED` \| `REJECTED`, indexed |
+| `documents[]` | `[{ name, url, fileId }]` | supporting verification docs uploaded to ImageKit |
+| `details` | Mixed | Stores `phone` (validated 10-15 digits), address, bank details, vehicle or business information |
+| `reviewedBy` | ref `User` | admin user who reviewed the application |
+| `reviewedAt` | Date | timestamp of review decision |
+| `rejectionReason` | String | reason text shown to applicant if rejected |
+
+> **Single-Role and Phone Uniqueness Guard**:
+> - An account (`userId`) can only hold ONE active application (`PENDING` or `APPROVED`). Applying for another role is rejected even if the current application is `PENDING`.
+> - A phone number (`details.phone`) cannot be shared across multiple partner accounts. Applying with a phone number already associated with an active application or approved partner profile is rejected.
+> - Rate limited: `onboardingRateLimiter` caps submissions at 6 attempts per 10 minutes per IP.
 
 ---
 

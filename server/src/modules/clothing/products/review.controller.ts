@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import type { Request, Response } from "express";
 import { Types } from "mongoose";
 import { asyncHandler } from "@/utils/asyncHandler";
 import { ApiResponse } from "@/utils/ApiResponse";
@@ -83,7 +83,7 @@ export const getProductReviews = asyncHandler(async (req: Request, res: Response
     });
 
     const averageRating = totalCount > 0 ? Number((sumScore / totalCount).toFixed(1)) : 0;
-    const positiveCount = distribution[5] + distribution[4];
+    const positiveCount = (distribution[5] ?? 0) + (distribution[4] ?? 0);
     const positivePercentage = totalCount > 0 ? Math.round((positiveCount / totalCount) * 100) : 100;
 
     const currentUserId = (req as any).user?._id?.toString();

@@ -7,6 +7,7 @@ const router = Router();
 
 // ── Google OAuth + password reset ────────────────────────
 // New public endpoints (rate-limited to throttle abuse)
+router.route("/config").get(authController.getAuthConfig);
 router.route("/google").post(authRateLimiter, authController.googleAuth);
 router.route("/request-reset").post(authRateLimiter, authController.requestReset);
 router.route("/reset-password").post(strictAuthRateLimiter, authController.resetPassword);

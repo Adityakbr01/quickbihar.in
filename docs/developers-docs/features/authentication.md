@@ -100,6 +100,32 @@ Phase 3: "submitted"        ← "Application received — admin will review" sta
 - On submitting the application, the form validates the phone number (10 to 15 digits), syncs it to the user profile via `PATCH /users/profile`, and posts the onboarding payload to `onboardingApi.apply()`.
 - Normal customer accounts (`USER` role) are unaffected: phone numbers remain **optional** for customers.
 
+### Strict Single-Partner-Account & Cross-Role Collision Prevention
+
+To maintain operational integrity and prevent fraud, QuickBihar enforces a strict **one active partner role per email and phone number** policy:
+
+1. **Cross-Role Blocking (Even When PENDING)**:
+   - A single user account (`userId` / email) cannot create both Rider and Seller accounts.
+   - If an account has an existing application in `PENDING` or `APPROVED` status, applying for the opposite role is blocked immediately on both the server (`onboarding.service.ts → apply`) and the frontend (`PartnerRegisterForm.tsx`).
+   - If a user with a pending/approved Seller application navigates to `/delivery/register` (or vice versa), the UI displays a dedicated **Partner Account Notice** instead of showing the form.
+
+2. **Phone Number Collision Guard for Partners**:
+   - A phone number cannot be reused to create multiple partner accounts.
+   - When an application is submitted via `POST /api/v1/onboarding/apply`, the server checks whether the phone number is already associated with:
+     - Any user holding an approved `Seller` or `DeliveryBoy` profile.
+     - Any active application in `PENDING` or `APPROVED` status in the `Application` collection (across all accounts).
+   - If a match is found, the submission is rejected with `400 Bad Request` ("This phone number is already linked to an active application...").
+
+3. **Anti-Spam Rate Limiting**:
+   - `onboardingRateLimiter` is applied to `/api/v1/onboarding/apply` and `/api/v1/onboarding/documents` (capped at 6 requests per 10-minute window per IP) to prevent bot spam and rapid repeated submissions.
+
+4. **In-Page Logout & Account Switching**:
+   - Every partner onboarding screen provides a clear **Log Out** button:
+     - **Application Form**: Top session bar displays the signed-in Google email and a `[Log Out]` button.
+     - **Submitted / Status Screen**: A `[Log Out & Switch Account]` button allows partners awaiting admin approval to switch accounts.
+     - **Cross-Role Conflict Screen**: A `[Log Out to Switch Account]` button lets partners quickly sign out and use another Google account.
+   - Logging out clears cookies, tokens, and client state (`useAuthStore → clearAuth`), returning to the single-click Google sign-in screen without leaving the page.
+
 ### Audience check (why three Client IDs)
 
 `verifyGoogleIdToken` accepts any of the configured audiences:

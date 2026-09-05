@@ -106,7 +106,16 @@ mock.module("@/modules/common/store/store.model", () => ({
 
 mock.module("../modules/common/user/user.model", () => ({
     User: {
-        findById: mock(() => Promise.resolve({ _id: USER_ID }))
+        findById: mock(() => Promise.resolve({ _id: USER_ID, phone: "9876543210", save: mock(() => Promise.resolve()) })),
+        findOne: mock(() => Promise.resolve(null)),
+        find: mock(() => ({ select: mock(() => Promise.resolve([])) })),
+    }
+}));
+mock.module("@/modules/common/user/user.model", () => ({
+    User: {
+        findById: mock(() => Promise.resolve({ _id: USER_ID, phone: "9876543210", save: mock(() => Promise.resolve()) })),
+        findOne: mock(() => Promise.resolve(null)),
+        find: mock(() => ({ select: mock(() => Promise.resolve([])) })),
     }
 }));
 
@@ -124,6 +133,10 @@ mock.module("../modules/common/rbac/rbac.service", () => ({
 // 4. Mock Auth Middleware
 const mockAuth = () => ({
     verifyJWT: (req: any, res: any, next: any) => {
+        req.user = { _id: req.headers.isadmin === "true" ? ADMIN_ID : USER_ID };
+        next();
+    },
+    verifyOptionalJWT: (req: any, res: any, next: any) => {
         req.user = { _id: req.headers.isadmin === "true" ? ADMIN_ID : USER_ID };
         next();
     },

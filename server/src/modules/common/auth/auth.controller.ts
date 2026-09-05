@@ -3,6 +3,7 @@ import { asyncHandler } from "@/utils/asyncHandler";
 import { ApiResponse } from "@/utils/ApiResponse";
 import { ApiError } from "@/utils/ApiError";
 import { getCookieOptions, getClearCookieOptions } from "@/utils/cookie.util";
+import { ENV } from "@/config/env.config";
 import * as authService from "./auth.service";
 
 /**
@@ -192,3 +193,21 @@ export const resetPassword = asyncHandler(async (req: Request, res: Response) =>
   await authService.consumePasswordReset(req.body.token, req.body.newPassword);
   return res.status(200).json(new ApiResponse(200, { ok: true }, "Password reset successfully. Please sign in."));
 });
+
+/**
+ * GET /api/v1/auth/config (public)
+ * Returns public auth client configuration (Google Client ID).
+ * Acts as a resilient fallback if frontend static bundle wasn't baked with env at build time.
+ */
+export const getAuthConfig = asyncHandler(async (_req: Request, res: Response) => {
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        googleClientId: ENV.GOOGLE_CLIENT_ID || "",
+      },
+      "Auth configuration retrieved successfully"
+    )
+  );
+});
+

@@ -111,6 +111,31 @@ export default function GoogleSignInButton({
     typeof window !== "undefined" && Boolean(window.google?.accounts?.id),
   );
   const [busy, setBusy] = useState(false);
+  const [clientId, setClientId] = useState<string | null>(
+    process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID &&
+      !process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID.includes("placeholder")
+      ? process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
+      : null,
+  );
+
+  // Fallback: If NEXT_PUBLIC_GOOGLE_CLIENT_ID wasn't baked in at build time (e.g. deployed Docker image),
+  // fetch it dynamically from the server's public auth config endpoint.
+  useEffect(() => {
+    if (clientId) return;
+
+    const controller = new AbortController();
+    fetch("/api/v1/auth/config", { signal: controller.signal })
+      .then((res) => res.json())
+      .then((payload) => {
+        const id = payload?.data?.googleClientId;
+        if (id && typeof id === "string" && !id.includes("placeholder")) {
+          setClientId(id);
+        }
+      })
+      .catch(() => {});
+
+    return () => controller.abort();
+  }, [clientId]);
 
   // ── 1. Load the GIS SDK once per page ───────────────────────────────
   useEffect(() => {
@@ -145,12 +170,7 @@ export default function GoogleSignInButton({
     if (initializedRef.current) return;
     if (!gisMountRef.current) return;
     if (!window.google?.accounts?.id) return;
-
-    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
-    if (!clientId || clientId.includes("placeholder")) {
-      // Don't throw — the button will show a friendly error when clicked.
-      return;
-    }
+    if (!clientId) return;
 
     window.google.accounts.id.initialize({
       client_id: clientId,
@@ -175,7 +195,7 @@ export default function GoogleSignInButton({
     });
 
     initializedRef.current = true;
-  }, [gsiReady]);
+  }, [gsiReady, clientId]);
 
   // ── 3. Click handler — triggers the hidden GIS button ──────────────
   const handleClick = useCallback(() => {
@@ -183,7 +203,7 @@ export default function GoogleSignInButton({
 
     if (!initializedRef.current) {
       onErrorRef.current?.(
-        !process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
+        !clientId
           ? "Google Sign-In is not configured."
           : "Google Sign-In is still loading. Please try again in a moment.",
       );
@@ -202,7 +222,7 @@ export default function GoogleSignInButton({
       setBusy(false);
       onErrorRef.current?.("Google Sign-In is not ready. Please try again.");
     }
-  }, [disabled, busy]);
+  }, [disabled, busy, clientId]);
 
   // Reset busy if the GIS callback never fires (e.g. user closes popup
   // without signing in). GIS doesn't always fire onError for cancel, so
