@@ -1,6 +1,6 @@
 # 02 — System Architecture
 
-> **Created:** 2026-08-01 · **Updated:** 2026-09-04 (note: `POST /auth/register` now requires `phone`; partner application requires admin approval before dashboard access — see [authentication.md](./../features/authentication.md))
+> **Created:** 2026-08-01 · **Updated:** 2026-09-05 (`POST /auth/register` enforces role-conditional phone — required for SELLER/RIDER, optional for USER; partner application requires admin approval before dashboard access — see [authentication.md](./../features/authentication.md))
 > **File type:** Foundation doc
 > **Padhne ka time:** ~25 min
 

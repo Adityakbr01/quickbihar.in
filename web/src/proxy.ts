@@ -38,9 +38,54 @@ const LOGIN_ROUTES: Array<{ prefix: string; dashboard: string }> = [
   { prefix: "/delivery/login", dashboard: "/delivery/dashboard" },
 ];
 
+function isTokenValid(token?: string): boolean {
+  if (!token) return false;
+  try {
+    const parts = token.split(".");
+    if (parts.length !== 3) return false;
+    const base64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+    const payload = JSON.parse(atob(base64));
+    if (payload.exp && typeof payload.exp === "number") {
+      // Expired token (with 5s buffer) is not considered authenticated
+      if (payload.exp * 1000 <= Date.now() + 5000) {
+        return false;
+      }
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const hasToken = request.cookies.has(ACCESS_COOKIE);
+  const token = request.cookies.get(ACCESS_COOKIE)?.value;
+  const hasToken = isTokenValid(token);
+
+  const isForceLogin =
+    request.nextUrl.searchParams.has("expired") ||
+    request.nextUrl.searchParams.has("logout") ||
+    request.nextUrl.searchParams.has("force");
+
+  const loginMatch = LOGIN_ROUTES.find((route) =>
+    pathname.startsWith(route.prefix),
+  );
+  if (loginMatch) {
+    // If redirected due to expired session or token is invalid, show login and wipe stale cookies
+    if (isForceLogin || !hasToken) {
+      const response = NextResponse.next();
+      if (request.cookies.has(ACCESS_COOKIE) || request.cookies.has("refreshToken")) {
+        response.cookies.set(ACCESS_COOKIE, "", { maxAge: 0, path: "/" });
+        response.cookies.set("refreshToken", "", { maxAge: 0, path: "/" });
+      }
+      return response;
+    }
+
+    const url = request.nextUrl.clone();
+    url.pathname = loginMatch.dashboard;
+    url.search = "";
+    return NextResponse.redirect(url);
+  }
 
   const protectedMatch = PROTECTED.find((route) =>
     pathname.startsWith(route.prefix),
@@ -49,17 +94,12 @@ export function proxy(request: NextRequest) {
     const url = request.nextUrl.clone();
     url.pathname = protectedMatch.login;
     url.search = "";
-    return NextResponse.redirect(url);
-  }
-
-  const loginMatch = LOGIN_ROUTES.find((route) =>
-    pathname.startsWith(route.prefix),
-  );
-  if (loginMatch && hasToken) {
-    const url = request.nextUrl.clone();
-    url.pathname = loginMatch.dashboard;
-    url.search = "";
-    return NextResponse.redirect(url);
+    const response = NextResponse.redirect(url);
+    if (request.cookies.has(ACCESS_COOKIE) || request.cookies.has("refreshToken")) {
+      response.cookies.set(ACCESS_COOKIE, "", { maxAge: 0, path: "/" });
+      response.cookies.set("refreshToken", "", { maxAge: 0, path: "/" });
+    }
+    return response;
   }
 
   return NextResponse.next();

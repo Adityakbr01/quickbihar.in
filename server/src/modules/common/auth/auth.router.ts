@@ -1,6 +1,6 @@
 import { Router } from "express";
 import * as authController from "./auth.controller";
-import { verifyJWT } from "@/middlewares/auth.middleware";
+import { verifyJWT, verifyOptionalJWT } from "@/middlewares/auth.middleware";
 import { authRateLimiter, strictAuthRateLimiter } from "@/middlewares/rateLimit.middleware";
 
 const router = Router();
@@ -16,8 +16,10 @@ router.route("/register").post(authRateLimiter, authController.register);
 router.route("/login").post(authRateLimiter, authController.login);
 router.route("/refresh-token").post(authRateLimiter, authController.refreshAccessToken);
 
-// 🛡️ Protected routes
-router.route("/logout").post(verifyJWT, authController.logout);
+// 🛡️ Protected / Public routes
+// ponytail: verifyOptionalJWT ensures that if an access token is expired or user record is gone,
+// logout still executes, clears httpOnly cookies, and returns 200 without trapping the browser in a 401 loop.
+router.route("/logout").post(verifyOptionalJWT, authController.logout);
 router.route("/set-password").post(verifyJWT, strictAuthRateLimiter, authController.setPassword);
 router.route("/link-google").post(verifyJWT, strictAuthRateLimiter, authController.linkGoogle);
 

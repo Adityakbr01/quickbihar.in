@@ -57,12 +57,12 @@ web/src/app/
 │       └── [section]/       ← /admin/dashboard/users, /orders, etc.
 ├── seller/
 │   ├── login/page.tsx       ← /seller/login
-│   ├── register/            ← /seller/register (onboarding, 4-phase: auth → google-phone? → application → submitted)
+│   ├── register/            ← /seller/register (onboarding: Google sign-in → unified application form → submitted)
 │   └── dashboard/
 │       └── [section]/       ← /seller/dashboard/products, etc. (gated on application status)
 └── delivery/
     ├── login/page.tsx       ← /delivery/login
-    ├── register/            ← /delivery/register (same 4-phase flow as seller)
+    ├── register/            ← /delivery/register (same unified onboarding flow as seller)
     └── dashboard/           ← /delivery/dashboard (gated on application status — same gate as seller)
 ```
 
@@ -104,18 +104,26 @@ Login ke baad token **Zustand store** mein persist hota hai (key: `admin-auth-st
 
 Yeh login hook + dashboard page **same `onboardingApi.status()`** padhte hain, so the two layers never disagree. Detail: [authentication.md → Admin verification gate](./../features/authentication.md#admin-verification-gate-login--dashboard).
 
-### Partner register page — 4-phase form (`PartnerRegisterForm.tsx`)
+### Partner register page — streamlined flow (`PartnerRegisterForm.tsx`)
 
-`web/src/features/auth/components/PartnerRegisterForm.tsx` runs through four phases, picked at mount time based on auth state and whether the user already has a phone:
+`web/src/features/auth/components/PartnerRegisterForm.tsx` runs through a single streamlined onboarding flow without duplicate registration screens:
 
 ```
-Phase 1: "auth"             ← email + password + fullName + phone (Zod-validated; phone is required)
-Phase 2: "google-phone"     ← only if signed in via Google AND user has no phone
-Phase 3: "application"      ← partner details form (seller / rider, depending on route)
-Phase 4: "submitted"        ← "Application received — admin will review" success screen
+Phase 1: "auth"             ← Single "Continue with Google" button (no redundant email/password forms)
+Phase 2: "application"      ← Unified onboarding form:
+                               • Section 1: Business Profile (Seller) / Vehicle Details (Rider) + Required Mobile Number
+                               • Section 2: Address & Location
+                               • Section 3: Payout Bank Account & Government ID
+                               • Section 4: Verification Documents Upload
+Phase 3: "submitted"        ← "Application received — admin will review" success screen
 ```
 
-The `google-phone` phase is a single-input screen that calls `PATCH /users/profile` to backfill the phone, then advances to the application phase. The application phase hits `POST /onboarding/seller` or `POST /onboarding/rider`, which creates a `PENDING` application. Phase 4 then sits on top of the success state — the user can sign out and wait for the admin review.
+**How phone and authentication work:**
+1. Unauthenticated partners click **Continue with Google** on `/seller/register` or `/delivery/register`.
+2. Once signed in, they immediately land on the application form (**Phase 2**).
+3. The partner's **Mobile Number \*** is captured directly in Section 1 alongside business or vehicle fields (no phone taken before registration, no phone taken after registration).
+4. Submitting the form validates the phone number (10 to 15 digits), updates the user's profile via `PATCH /users/profile`, and submits the application to `onboardingApi.apply()`.
+5. The user transitions to **Phase 3 ("submitted")** and waits for admin approval before panel access is enabled. Normal customer accounts (`USER` role) are unaffected and phone remains optional for them.
 
 ### Route guard (proxy.ts)
 

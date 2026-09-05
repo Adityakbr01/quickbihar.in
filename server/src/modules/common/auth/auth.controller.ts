@@ -97,20 +97,31 @@ export const logout = asyncHandler(async (req: Request, res: Response) => {
 export const refreshAccessToken = asyncHandler(async (req: Request, res: Response) => {
   const incomingRefreshToken = req.cookies?.refreshToken || req.body?.refreshToken;
 
-  const { user, accessToken, refreshToken } = await authService.refreshAccessToken(incomingRefreshToken);
-  const options = getCookieOptions();
+  try {
+    const { user, accessToken, refreshToken } = await authService.refreshAccessToken(incomingRefreshToken);
+    const options = getCookieOptions();
 
-  return res
-    .status(200)
-    .cookie("accessToken", accessToken, options)
-    .cookie("refreshToken", refreshToken, options)
-    .json(
-      new ApiResponse(
-        200,
-        { user, accessToken, refreshToken },
-        "Access token refreshed successfully"
-      )
-    );
+    return res
+      .status(200)
+      .cookie("accessToken", accessToken, options)
+      .cookie("refreshToken", refreshToken, options)
+      .json(
+        new ApiResponse(
+          200,
+          { user, accessToken, refreshToken },
+          "Access token refreshed successfully"
+        )
+      );
+  } catch (error) {
+    // ponytail: clear stale cookies on failed refresh so client doesn't retry infinitely with dead tokens
+    const clearOptions = getClearCookieOptions();
+    res
+      .clearCookie("accessToken", clearOptions)
+      .clearCookie("refreshToken", clearOptions)
+      .cookie("accessToken", "", clearOptions)
+      .cookie("refreshToken", "", clearOptions);
+    throw error;
+  }
 });
 
 // ── Phase 4 — Google OAuth + password reset handlers ─────────────

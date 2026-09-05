@@ -92,7 +92,7 @@ erDiagram
 | `username` | String | unique, lowercase, indexed |
 | `email` | String | unique, lowercase, indexed |
 | `fullName` | String | indexed |
-| `phone` | String | **Required** for partner (SELLER / RIDER) applicants — collected at `POST /auth/register` (Zod `^\+?\d{10,15}$`) or backfilled via `PATCH /users/profile` from the web `google-phone` sub-phase. Used by admins to verify the applicant's identity before approving the partner application. |
+| `phone` | String | **Required** for partner (SELLER / RIDER) applicants — collected directly at registration time in Section 1 of the onboarding application form and synced to `User` profile via `PATCH /users/profile` on submission. Plain USER customer sign-ups have an optional phone. Used by admins to verify the applicant's identity before approving the partner application. |
 | `avatar` | `{ url, fileId }` | ImageKit |
 | `fcmToken` | String | push ke liye (native FCM) |
 | `password` | String | **required**, bcrypt hash (10 rounds), pre-save hook |
@@ -105,7 +105,7 @@ erDiagram
 **Methods:** `isPasswordCorrect(pw)`, `generateAccessToken()` (`{_id,email,username,fullName}`, `1d`), `generateRefreshToken()` (`{_id}`, `ENV.REFRESH_TOKEN_EXPIRY`).
 **Hook:** `pre("save")` → agar password modified toh `bcrypt.hash(pw, 10)`.
 
-> **Phone is the verification key.** New users via `POST /auth/register` must supply `phone` (Zod-enforced). For Google sign-ups that didn't carry a `phone_number` claim, the web client walks through a `google-phone` sub-phase that calls `PATCH /users/profile` to backfill one before the partner application can be submitted. The admin then uses the persisted phone to call/verify the applicant before flipping the partner application to `APPROVED`. See [authentication.md → Admin verification gate](./../features/authentication.md#admin-verification-gate-login--dashboard).
+> **Phone is the verification key.** Partner onboarding requires a verified contact phone: **required** for SELLER / RIDER partners (collected in Section 1 of the onboarding registration form alongside business or vehicle fields), **optional** for USER customer sign-ups. On submitting the onboarding form, the phone is validated and synced via `PATCH /users/profile`. The admin uses that phone to call/verify the applicant before flipping the partner application to `APPROVED`. See [authentication.md → Admin verification gate](./../features/authentication.md#admin-verification-gate-login--dashboard).
 
 > **Single-role:** `roleId` ek hi field hai (array nahi). Detail: [09_Authorization_RBAC.md](./../features/authorization-rbac.md).
 

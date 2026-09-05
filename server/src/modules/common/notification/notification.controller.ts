@@ -776,7 +776,7 @@ export const markAsRead = asyncHandler(async (req: Request, res: Response) => {
     const updated = await Notification.findByIdAndUpdate(
       notificationId,
       { $inc: { deliveryCount: 1, openCount: 1 } },
-      { new: true }
+      { returnDocument: "after" }
     );
 
     if (updated) {
@@ -794,7 +794,7 @@ export const markAsRead = asyncHandler(async (req: Request, res: Response) => {
     const updated = await Notification.findByIdAndUpdate(
       notificationId,
       { $inc: { openCount: 1 } },
-      { new: true }
+      { returnDocument: "after" }
     );
 
     if (updated) {
@@ -876,7 +876,7 @@ export const markAllAsRead = asyncHandler(async (req: Request, res: Response) =>
         const updated = await Notification.findByIdAndUpdate(
           nId,
           { $inc: { deliveryCount: 1, openCount: 1 } },
-          { new: true }
+          { returnDocument: "after" }
         );
         if (updated) {
           socketService.emitToAdmins(SocketEvents.NOTIFICATION_STATUS_UPDATE, {
@@ -892,7 +892,7 @@ export const markAllAsRead = asyncHandler(async (req: Request, res: Response) =>
         const updated = await Notification.findByIdAndUpdate(
           nId,
           { $inc: { openCount: 1 } },
-          { new: true }
+          { returnDocument: "after" }
         );
         if (updated) {
           socketService.emitToAdmins(SocketEvents.NOTIFICATION_STATUS_UPDATE, {
@@ -937,7 +937,7 @@ export const reportDelivery = asyncHandler(async (req: Request, res: Response) =
     const updated = await Notification.findByIdAndUpdate(
       id,
       { $inc: { deliveryCount: 1 } },
-      { new: true }
+      { returnDocument: "after" }
     );
 
     if (updated) {
@@ -982,7 +982,7 @@ export const reportOpen = asyncHandler(async (req: Request, res: Response) => {
     const updated = await Notification.findByIdAndUpdate(
       id,
       { $inc: { deliveryCount: 1, openCount: 1 } },
-      { new: true }
+      { returnDocument: "after" }
     );
 
     if (updated) {
@@ -1000,7 +1000,7 @@ export const reportOpen = asyncHandler(async (req: Request, res: Response) => {
     const updated = await Notification.findByIdAndUpdate(
       id,
       { $inc: { openCount: 1 } },
-      { new: true }
+      { returnDocument: "after" }
     );
 
     if (updated) {

@@ -41,7 +41,7 @@ export class TimelineHelper {
       {
         $push: { timeline: event },
       },
-      { new: true }
+      { returnDocument: "after" }
     );
   }
 }

@@ -124,7 +124,7 @@ export const getPermissionsByRole = async (roleId: string): Promise<Record<strin
 // ⭐ USER-ROLE OPERATIONS ⭐
 
 export const assignUserToRole = async (userId: string, roleId: string): Promise<void> => {
-  const updatedUser = await User.findByIdAndUpdate(userId, { roleId }, { new: true });
+  const updatedUser = await User.findByIdAndUpdate(userId, { roleId }, { returnDocument: "after" });
   if (!updatedUser) throw new ApiError(404, "User not found");
 };
 

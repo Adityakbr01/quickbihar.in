@@ -4,19 +4,24 @@ import { z } from "zod";
  * Auth validation — post-OTP cutover.
  *
  *   • /auth/login        → email + password
- *   • /auth/register     → email + password + fullName + phone
+ *   • /auth/register     → email + password + fullName + optional role/phone
  *   • /auth/google       → Google idToken (+ optional client)
  *   • /auth/set-password → password (authenticated)
  *   • /auth/link-google  → Google idToken (authenticated)
  *   • /auth/request-reset → email
  *   • /auth/reset-password → reset JWT + new password
  *
- * Phone is part of the register payload for seller/rider sign-up so we can
- * (a) verify the applicant's identity up-front and (b) keep the rider
- * eligibility check (`riderProfileMissingFields`) satisfied without forcing
- * the user to fill in profile details after the fact. Customers signing up
- * for plain shopping still provide phone — it's the same one field, no
- * branching on the schema.
+ * Register accepts an optional `role` hint that controls the phone contract:
+ *
+ *   • role: "USER"     → phone OPTIONAL. Customer sign-up doesn't need
+ *     a phone; only verified users / Google flows will populate one.
+ *   • role: "SELLER"   → phone REQUIRED. Admin uses it to verify identity
+ *   • role: "RIDER"      before approving the partner application.
+ *
+ * Default is "USER" so the mobile customer register (which doesn't supply
+ * a role) keeps working without a schema change. Partners come through the
+ * web `/seller/register` and `/delivery/register` pages and pass role +
+ * phone explicitly.
  */
 
 const phoneSchema = z
@@ -32,12 +37,21 @@ export const authenticateSchema = z.object({
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
-export const registerSchema = z.object({
-  email: z.string().email("Invalid email address"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
-  fullName: z.string().min(2, "Full name must be at least 2 characters"),
-  phone: phoneSchema,
-});
+export const registerSchema = z
+  .object({
+    email: z.string().email("Invalid email address"),
+    password: z.string().min(8, "Password must be at least 8 characters"),
+    fullName: z.string().min(2, "Full name must be at least 2 characters"),
+    role: z.enum(["USER", "SELLER", "RIDER"]).default("USER"),
+    phone: phoneSchema.optional(),
+  })
+  .refine(
+    (data) => data.role === "USER" || !!data.phone,
+    {
+      message: "Phone number is required for seller and rider registrations.",
+      path: ["phone"],
+    },
+  );
 
 // ── Google OAuth + password reset schemas ─────────────────
 

@@ -14,28 +14,37 @@ export const loginSchema = z.object({
 export type LoginValues = z.infer<typeof loginSchema>;
 
 /**
- * Partner (seller / rider) self-registration.
- * Phase A: Phases 1 (mobile OTP) and 2 (OTP verify) are removed.
- * Phase 3: email + password + fullName, identity later linked to the role by admin approval.
- * Phone is required at sign-up so we can (a) verify the applicant's identity
- * up-front and (b) keep the rider eligibility check satisfied without forcing
- * them to fill in profile details after the fact.
+ * Self-registration. Optional `role` hint controls the phone contract:
+ *   • USER     → phone optional (default — customer sign-up)
+ *   • SELLER   → phone required (admin verification)
+ *   • RIDER    → phone required (admin verification)
+ *
+ * The mobile customer register uses role USER (phone optional). Web
+ * partner onboarding uses Google authentication and collects the required
+ * phone at registration time directly in the onboarding application form.
  */
-export const registerSchema = z.object({
-  email: z.string().email({ message: "Please enter a valid email address." }),
-  password: z
-    .string()
-    .min(8, { message: "Password must be at least 8 characters." }),
-  fullName: z
-    .string()
-    .min(2, { message: "Full name must be at least 2 characters." }),
-  phone: z
-    .string()
-    .trim()
-    .regex(/^\+?\d{10,15}$/, {
-      message: "Phone number must be 10 to 15 digits (optionally prefixed with +).",
-    }),
-});
+export const registerSchema = z
+  .object({
+    email: z.string().email({ message: "Please enter a valid email address." }),
+    password: z
+      .string()
+      .min(8, { message: "Password must be at least 8 characters." }),
+    fullName: z
+      .string()
+      .min(2, { message: "Full name must be at least 2 characters." }),
+    role: z.enum(["USER", "SELLER", "RIDER"]).default("USER"),
+    phone: z
+      .string()
+      .trim()
+      .regex(/^\+?\d{10,15}$/, {
+        message: "Phone number must be 10 to 15 digits (optionally prefixed with +).",
+      })
+      .optional(),
+  })
+  .refine((data) => data.role === "USER" || !!data.phone, {
+    message: "Phone number is required for seller and rider registrations.",
+    path: ["phone"],
+  });
 
 export type RegisterValues = z.infer<typeof registerSchema>;
 

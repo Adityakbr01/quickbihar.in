@@ -1,6 +1,6 @@
 # 00 — Project Overview
 
-> **Created:** 2026-08-01 · **Updated:** 2026-09-04 (sellers and riders now require admin approval before they can use their dashboards — phone is collected at sign-up for identity verification)
+> **Created:** 2026-08-01 · **Updated:** 2026-09-05 (sellers and riders require admin approval before they can use their dashboards — phone is required for SELLER/RIDER in their onboarding registration form, optional for normal USERs; partners authenticate via Google and register in a single streamlined step)
 > **File type:** Foundation doc
 > **Padhne ka time:** ~10 min
 

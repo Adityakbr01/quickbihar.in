@@ -11,7 +11,7 @@ export const createStoreConfigDAO = (type: StoreType, data: any) => {
 };
 
 export const updateStoreDAO = (id: string, data: UpdateQuery<IStore>) =>
-    Store.findByIdAndUpdate(id, data, { new: true });
+    Store.findByIdAndUpdate(id, data, { returnDocument: "after" });
 
 export const getStoreByIdDAO = (id: string) => Store.findById(id);
 

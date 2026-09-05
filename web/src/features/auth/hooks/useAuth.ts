@@ -75,8 +75,8 @@ const handleIncompletePartner = async (
     } else if (fallbackMessage) {
       toast.error(fallbackMessage);
     } else {
-      toast.error(
-        `Please complete ${partnerType === "RIDER" ? "delivery" : "seller"} registration first.`,
+      toast.info(
+        `Please complete your ${partnerType === "RIDER" ? "delivery" : "seller"} profile setup.`,
       );
     }
   } catch {

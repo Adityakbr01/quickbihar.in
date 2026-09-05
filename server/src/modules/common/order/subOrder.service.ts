@@ -1832,7 +1832,7 @@ export class SubOrderService {
         const returnRequest = await ReturnRequest.findOneAndUpdate(
             { subOrderObjectId: subOrder._id, status: "RETURN_APPROVED", riderId: { $exists: false } },
             { $set: { riderId: riderObjectId, status: "RETURN_PICKUP_SCHEDULED" } },
-            { new: true },
+            { returnDocument: "after" },
         );
         if (!returnRequest) {
             throw new ApiError(409, "This return pickup was already claimed by another rider");

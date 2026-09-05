@@ -223,8 +223,9 @@ describe("Authentication Routes (post-OTP cutover)", () => {
         expect(res.body.data.accessToken).toBeDefined();
     });
 
-    test("POST /api/v1/auth/logout (Requires Auth)", async () => {
+    test("POST /api/v1/auth/logout (Idempotent / Clears Session)", async () => {
         const res = await request(app).post("/api/v1/auth/logout");
-        expect(res.status).toBe(401);
+        expect(res.status).toBe(200);
+        expect(res.body.success).toBe(true);
     });
 });

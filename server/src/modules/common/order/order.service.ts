@@ -638,7 +638,7 @@ export class OrderService {
                     ),
                 },
             },
-            { new: true },
+            { returnDocument: "after" },
         );
 
         socketService.emitToUser(sellerUserId, SocketEvents.ORDER_STATUS_UPDATE, {
@@ -693,7 +693,7 @@ export class OrderService {
                     ),
                 },
             },
-            { new: true },
+            { returnDocument: "after" },
         );
 
         // Roll up: a single rejected sub-order rejects the whole parent order.

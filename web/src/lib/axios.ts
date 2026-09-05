@@ -74,18 +74,38 @@ const writePersistedToken = (token: string) => {
 
 const clearPersistedAuth = async () => {
   if (typeof window === "undefined") return;
-  window.localStorage.removeItem(AUTH_STORAGE_KEY);
-  // The accessToken / refreshToken are httpOnly cookies — document.cookie
-  // CANNOT delete them. The only thing that can is the server's /auth/logout
-  // endpoint, which sets Set-Cookie with Max-Age=0. We hit it before
-  // redirecting; if it fails, fall back to a plain document.cookie write
-  // (harmless for non-httpOnly fallbacks, no-op for the real ones).
+  // 1. Reset the in-memory Zustand store. Without this, the dashboard keeps
+  //    seeing isAuthenticated=true from the in-memory state even after
+  //    localStorage and the httpOnly cookie are cleared, so it remounts and
+  //    re-fires its queries — which 401/403 again — which re-enters this
+  //    handler — infinite reload loop. The proxy then bounces the user
+  //    between /delivery/dashboard and /delivery/login on every cycle.
   try {
-    await axios.post(
-      `${axiosInstance.defaults.baseURL}/auth/logout`,
-      {},
-      { withCredentials: true },
-    );
+    const { useAuthStore } = await import("@/features/auth/store/authStore");
+    useAuthStore.getState().clearAuth();
+  } catch {
+    // Module load failed (SSR, etc.) — still wipe localStorage as a fallback
+    window.localStorage.removeItem(AUTH_STORAGE_KEY);
+  }
+  // 2. Belt-and-braces: clear the persisted blob in case the store's
+  //    clearAuth didn't fully wipe it (e.g. if persist has hydrated a stale
+  //    snapshot mid-cycle).
+  window.localStorage.removeItem(AUTH_STORAGE_KEY);
+  // 3. The accessToken / refreshToken are httpOnly cookies — document.cookie
+  //    CANNOT delete them. The only thing that can is the server's /auth/logout
+  //    endpoint, which sets Set-Cookie with Max-Age=0. We hit it before
+  //    redirecting; if it fails, fall back to a plain document.cookie write
+  //    (harmless for non-httpOnly fallbacks, no-op for the real ones).
+  //    `fetch` is used instead of `axios` because the bare-axios call here
+  //    bypasses our interceptor stack and has more reliable CORS-preflight
+  //    handling on cross-origin logout calls.
+  try {
+    await fetch(`${axiosInstance.defaults.baseURL}/auth/logout`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      keepalive: true,
+    });
   } catch {
     try {
       document.cookie = "accessToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
@@ -128,17 +148,17 @@ const redirectToLogin = () => {
   if (typeof window === "undefined") return;
   const path = window.location.pathname;
   // Send each portal back to its own login; default to the admin login.
-  const loginPath = path.startsWith("/seller")
+  const loginBase = path.startsWith("/seller")
     ? "/seller/login"
     : path.startsWith("/delivery")
       ? "/delivery/login"
       : "/admin/login";
-  if (path !== loginPath) {
+  if (!path.startsWith(loginBase)) {
     toast.error("Your session has ended. Please sign in again.");
     // Use assign so the page fully reloads and React Query / zustand persist
-    // state is cleared. A router.replace alone would keep stale caches that
-    // could trigger the same 401/403 loop.
-    window.location.assign(loginPath);
+    // state is cleared. Append ?expired=true so proxy.ts knows never to bounce
+    // back to dashboard even if stale cookies linger.
+    window.location.assign(`${loginBase}?expired=true`);
   }
 };
 
@@ -172,7 +192,7 @@ axiosInstance.interceptors.response.use(
       return Promise.reject(new Error(authMessage));
     }
 
-    if (status === 401 && originalRequest && !originalRequest._retry) {
+    if (status === 401) {
       // A 401 from the refresh endpoint itself is terminal — log out.
       if (url.includes("/auth/refresh-token")) {
         await clearPersistedAuth();
@@ -180,50 +200,56 @@ axiosInstance.interceptors.response.use(
         return Promise.reject(new Error("Session expired"));
       }
 
-      // A refresh is already in flight — queue this request and replay it.
-      if (isRefreshing) {
-        return new Promise<string>((resolve, reject) => {
-          failedQueue.push({ resolve, reject });
-        }).then((token) => {
+      if (originalRequest && !originalRequest._retry) {
+        // A refresh is already in flight — queue this request and replay it.
+        if (isRefreshing) {
+          return new Promise<string>((resolve, reject) => {
+            failedQueue.push({ resolve, reject });
+          }).then((token) => {
+            originalRequest.headers = {
+              ...originalRequest.headers,
+              Authorization: `Bearer ${token}`,
+            };
+            return axiosInstance(originalRequest);
+          });
+        }
+
+        originalRequest._retry = true;
+        isRefreshing = true;
+
+        try {
+          // The refresh token rides along as an httpOnly cookie (withCredentials);
+          // no body needed. Use a bare axios call to skip these interceptors.
+          const response = await axios.post(
+            `${axiosInstance.defaults.baseURL}/auth/refresh-token`,
+            {},
+            { withCredentials: true },
+          );
+
+          const newToken: string = response.data?.data?.accessToken;
+          if (!newToken) throw new Error("No access token in refresh response");
+
+          writePersistedToken(newToken);
+          axiosInstance.defaults.headers.common["Authorization"] = `Bearer ${newToken}`;
           originalRequest.headers = {
             ...originalRequest.headers,
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${newToken}`,
           };
+
+          processQueue(null, newToken);
           return axiosInstance(originalRequest);
-        });
-      }
-
-      originalRequest._retry = true;
-      isRefreshing = true;
-
-      try {
-        // The refresh token rides along as an httpOnly cookie (withCredentials);
-        // no body needed. Use a bare axios call to skip these interceptors.
-        const response = await axios.post(
-          `${axiosInstance.defaults.baseURL}/auth/refresh-token`,
-          {},
-          { withCredentials: true },
-        );
-
-        const newToken: string = response.data?.data?.accessToken;
-        if (!newToken) throw new Error("No access token in refresh response");
-
-        writePersistedToken(newToken);
-        axiosInstance.defaults.headers.common["Authorization"] = `Bearer ${newToken}`;
-        originalRequest.headers = {
-          ...originalRequest.headers,
-          Authorization: `Bearer ${newToken}`,
-        };
-
-        processQueue(null, newToken);
-        return axiosInstance(originalRequest);
-      } catch (refreshError) {
-        processQueue(refreshError, null);
+        } catch (refreshError) {
+          processQueue(refreshError, null);
+          await clearPersistedAuth();
+          redirectToLoginDebounced();
+          return Promise.reject(refreshError);
+        } finally {
+          isRefreshing = false;
+        }
+      } else {
+        // Retried and still 401 -> session invalid
         await clearPersistedAuth();
         redirectToLoginDebounced();
-        return Promise.reject(refreshError);
-      } finally {
-        isRefreshing = false;
       }
     }
 

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
 import { Bike, CheckCircle2, FileUp, Loader2, MapPin, Store, ArrowLeft, X, FileText, UploadCloud, AlertCircle } from "lucide-react";
@@ -7,14 +8,14 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { registerRequest, googleAuthRequest } from "../api/auth.api";
+import { googleAuthRequest, updateProfileRequest } from "../api/auth.api";
 import { useAuthStore } from "../store/authStore";
-import { useRegister, useUpdateProfile } from "../hooks/useAuth";
+import { useAuthHydrated } from "../hooks/useAuthHydrated";
 import { onboardingApi, OnboardingApplication } from "@/features/onboarding/api/onboarding.api";
 import GoogleSignInButton from "./GoogleSignInButton";
 
 type PartnerMode = "SELLER" | "RIDER";
-type Phase = "auth" | "google-phone" | "application" | "submitted";
+type Phase = "auth" | "application" | "submitted";
 type RiderLocation = { latitude: number; longitude: number };
 
 const inputClass =
@@ -34,25 +35,12 @@ export default function PartnerRegisterForm({ mode }: { mode: PartnerMode }) {
   const router = useRouter();
   const isRider = mode === "RIDER";
   const { user, token, isAuthenticated, setAuth } = useAuthStore();
+  const hasHydrated = useAuthHydrated();
 
-  const { mutate: register, isPending: isRegistering } = useRegister();
-  const { mutate: updateProfile, isPending: isUpdatingProfile } = useUpdateProfile();
+  // ponytail: track status checking state so authenticated users never flash the auth screen
+  const [phase, setPhase] = useState<Phase>("auth");
+  const [isCheckingStatus, setIsCheckingStatus] = useState(true);
 
-  // Decide initial phase based on authentication state. Google-only users who
-  // don't have a phone on file land in the "google-phone" sub-phase first so
-  // we can capture a phone before letting them submit an application — admin
-  // can't verify identity without it.
-  const initialPhase: Phase = (() => {
-    if (!isAuthenticated) return "auth";
-    if (!user?.phone) return "google-phone";
-    return "application";
-  })();
-  const [phase, setPhase] = useState<Phase>(initialPhase);
-
-  const [authEmail, setAuthEmail] = useState(user?.email || "");
-  const [authPassword, setAuthPassword] = useState("");
-  const [authFullName, setAuthFullName] = useState(user?.fullName || "");
-  const [authPhone, setAuthPhone] = useState(user?.phone || "");
   const [files, setFiles] = useState<File[]>([]);
   const [status, setStatus] = useState<OnboardingApplication | null>(null);
   const [isBusy, setIsBusy] = useState(false);
@@ -62,6 +50,8 @@ export default function PartnerRegisterForm({ mode }: { mode: PartnerMode }) {
 
   // Form Fields State for Application
   const [formFields, setFormFields] = useState({
+    // Contact
+    phone: user?.phone || "",
     // Seller fields
     businessName: "",
     sellerType: "CLOTHING" as "CLOTHING" | "FOOD" | "JEWELERY",
@@ -91,15 +81,15 @@ export default function PartnerRegisterForm({ mode }: { mode: PartnerMode }) {
     : "bg-emerald-600 hover:bg-emerald-700";
 
   useEffect(() => {
-    if (!isAuthenticated || !token) return;
-    // If the user doesn't have a phone on file, we need to capture one before
-    // they can submit an application. Stay in (or move to) google-phone phase
-    // so the user can fill it in. The submit handler in that phase advances
-    // the user forward to "application" once the phone is persisted.
-    if (!user?.phone) {
-      setPhase("google-phone");
+    if (!hasHydrated) return;
+
+    if (!isAuthenticated || !token) {
+      setPhase("auth");
+      setIsCheckingStatus(false);
       return;
     }
+
+    setIsCheckingStatus(true);
     onboardingApi
       .status()
       .then((data) => {
@@ -115,8 +105,19 @@ export default function PartnerRegisterForm({ mode }: { mode: PartnerMode }) {
           setPhase("application");
         }
       })
-      .catch(() => undefined);
-  }, [isAuthenticated, isRider, router, token, user]);
+      .catch(() => {
+        setPhase("application");
+      })
+      .finally(() => {
+        setIsCheckingStatus(false);
+      });
+  }, [hasHydrated, isAuthenticated, isRider, router, token]);
+
+  useEffect(() => {
+    if (user?.phone && !formFields.phone) {
+      setFormFields((prev) => ({ ...prev, phone: user.phone || "" }));
+    }
+  }, [user?.phone, formFields.phone]);
 
   const updateField = (key: string, value: string) => {
     setFormFields((prev) => ({ ...prev, [key]: value }));
@@ -207,60 +208,17 @@ export default function PartnerRegisterForm({ mode }: { mode: PartnerMode }) {
       errs.aadhar = "Aadhaar number must be exactly 12 digits";
     }
 
+    const cleanPhone = (formFields.phone || "").replace(/[\s\-()]/g, "");
+    if (!/^\+?\d{10,15}$/.test(cleanPhone)) {
+      errs.phone = "Valid 10 to 15 digit mobile number is required";
+    }
+
     if (files.length === 0) {
       errs.files = "Please upload at least one required supporting document";
     }
 
     setErrors(errs);
     return Object.keys(errs).length === 0;
-  };
-
-  // Phase 1: register / sign in with email + password OR Google.
-  const submitAuth = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (!authEmail.includes("@")) {
-      toast.error("Please enter a valid email address.");
-      return;
-    }
-    if (authPassword.length < 8) {
-      toast.error("Password must be at least 8 characters.");
-      return;
-    }
-    if (authFullName.trim().length < 2) {
-      toast.error("Please enter your full name (min. 2 characters).");
-      return;
-    }
-    // Phone is required so admin can verify identity and the rider
-    // eligibility check (`Missing: Phone`) is satisfied out of the box.
-    const cleanPhone = authPhone.replace(/[\s\-()]/g, "");
-    if (!/^\+?\d{10,15}$/.test(cleanPhone)) {
-      toast.error("Please enter a valid mobile number (10 to 15 digits).");
-      return;
-    }
-    setIsBusy(true);
-    try {
-      const response = await registerRequest({
-        email: authEmail.trim(),
-        password: authPassword,
-        fullName: authFullName.trim(),
-        phone: cleanPhone,
-      });
-      const { user: authedUser, accessToken } = response.data;
-      setAuth(authedUser, accessToken);
-      toast.success("Account created! Continue with your partner details.");
-      setPhase("application");
-    } catch (error: any) {
-      // If the email is already registered, drop the user to the password sign-in
-      // path — they should use the Login form instead.
-      const msg = error?.message || "Could not create account.";
-      if (/already/i.test(msg)) {
-        toast.error("This email is already registered. Please sign in instead.");
-      } else {
-        toast.error(msg);
-      }
-    } finally {
-      setIsBusy(false);
-    }
   };
 
   const captureLocation = () => {
@@ -293,28 +251,6 @@ export default function PartnerRegisterForm({ mode }: { mode: PartnerMode }) {
     );
   };
 
-  // Captures a phone number from a Google-only user who signed in without one
-  // on file. Persists via PATCH /users/profile, refreshes the auth store, and
-  // advances to the application phase.
-  const submitGooglePhone = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const cleanPhone = authPhone.replace(/[\s\-()]/g, "");
-    if (!/^\+?\d{10,15}$/.test(cleanPhone)) {
-      toast.error("Please enter a valid mobile number (10 to 15 digits).");
-      return;
-    }
-    updateProfile(
-      { phone: cleanPhone },
-      {
-        onSuccess: () => {
-          toast.success("Mobile number saved. Continue with your partner details.");
-          setPhase("application");
-        },
-        onError: (err: Error) => toast.error(err.message || "Could not save mobile number."),
-      },
-    );
-  };
-
   const submitApplication = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!validateForm()) {
@@ -327,6 +263,18 @@ export default function PartnerRegisterForm({ mode }: { mode: PartnerMode }) {
     }
     setIsBusy(true);
     try {
+      const cleanPhone = (formFields.phone || "").replace(/[\s\-()]/g, "");
+      if (cleanPhone && cleanPhone !== user?.phone) {
+        try {
+          const profileRes = await updateProfileRequest({ phone: cleanPhone });
+          if (profileRes?.data?.user && token) {
+            setAuth(profileRes.data.user, token);
+          }
+        } catch (phoneErr: any) {
+          console.warn("Could not sync phone to user profile:", phoneErr);
+        }
+      }
+
       const documents = await onboardingApi.uploadDocuments(files);
       const address = {
         address: formFields.address.trim(),
@@ -386,6 +334,14 @@ export default function PartnerRegisterForm({ mode }: { mode: PartnerMode }) {
     }
   };
 
+  if (!hasHydrated || (isAuthenticated && (isCheckingStatus || phase === "auth"))) {
+    return (
+      <div className="relative z-10 flex min-h-[400px] w-full max-w-2xl items-center justify-center p-8">
+        <Loader2 className="h-8 w-8 animate-spin text-emerald-500" />
+      </div>
+    );
+  }
+
   return (
     <Card className="relative z-10 w-full max-w-2xl border-none bg-transparent py-4 shadow-none">
       <CardHeader className="space-y-1 text-center">
@@ -398,159 +354,67 @@ export default function PartnerRegisterForm({ mode }: { mode: PartnerMode }) {
       </CardHeader>
       <CardContent>
         {phase === "auth" && (
-          <div className="grid gap-5">
-            <GoogleSignInButton
-              label="Continue with Google"
-              onSuccess={async (idToken) => {
-                try {
-                  const response = await googleAuthRequest({ idToken });
-                  const { user, accessToken } = response.data;
-                  setAuth(user, accessToken);
-                  if (user?.phone) {
-                    toast.success("Signed in with Google. Continue with your partner details.");
-                    setPhase("application");
-                  } else {
-                    toast.success("Signed in with Google. Add a mobile number to continue.");
-                    setPhase("google-phone");
-                  }
-                } catch (err: any) {
-                  toast.error(err?.message || "Google sign-in failed.");
-                }
-              }}
-              onError={(msg) => toast.error(msg)}
-            />
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-white/10" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-[#121212] px-2 text-gray-500">
-                  or sign up with email
-                </span>
-              </div>
-            </div>
-            <form onSubmit={submitAuth} className="grid gap-4">
-              <div className="space-y-1">
-                <label className="text-sm font-medium text-gray-300">Full Name</label>
-                <Input
-                  value={authFullName}
-                  onChange={(event) => setAuthFullName(event.target.value)}
-                  placeholder="Enter your full name"
-                  required
-                  className={inputClass}
-                />
+          <div className="grid gap-6 text-center">
+            <div className="rounded-xl border border-white/10 bg-white/[0.02] p-6 sm:p-8 space-y-4">
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-white/5">
+                <Icon className={`h-7 w-7 ${isRider ? "text-cyan-400" : "text-emerald-400"}`} />
               </div>
               <div className="space-y-1">
-                <label className="text-sm font-medium text-gray-300">Email</label>
-                <Input
-                  value={authEmail}
-                  onChange={(event) => setAuthEmail(event.target.value)}
-                  placeholder="name@example.com"
-                  type="email"
-                  autoComplete="email"
-                  required
-                  className={inputClass}
-                />
-              </div>
-              <div className="space-y-1">
-                <label className="text-sm font-medium text-gray-300">Password</label>
-                <Input
-                  value={authPassword}
-                  onChange={(event) => setAuthPassword(event.target.value)}
-                  placeholder="At least 8 characters"
-                  type="password"
-                  autoComplete="new-password"
-                  minLength={8}
-                  required
-                  className={inputClass}
-                />
-              </div>
-              <div className="space-y-1">
-                <label className="text-sm font-medium text-gray-300">
-                  Mobile Number
-                </label>
-                <Input
-                  value={authPhone}
-                  onChange={(event) =>
-                    setAuthPhone(event.target.value.replace(/[^\d+\s\-()]/g, ""))
-                  }
-                  placeholder="e.g. 9876543210"
-                  type="tel"
-                  inputMode="tel"
-                  autoComplete="tel"
-                  required
-                  className={inputClass}
-                />
-                <p className="text-xs text-gray-500">
-                  We use this to verify your identity and to contact you about
-                  deliveries or payout updates.
+                <h3 className="text-lg font-semibold text-white">
+                  Continue with Google
+                </h3>
+                <p className="text-sm text-gray-400 max-w-sm mx-auto">
+                  Sign in with your Google account to start your {isRider ? "delivery partner" : "seller"} onboarding and set up your profile in one step.
                 </p>
               </div>
-              <Button
-                type="submit"
-                disabled={isBusy}
-                className={`${activeColorClass} font-semibold py-6`}
+
+              <div className="pt-2 max-w-sm mx-auto">
+                <GoogleSignInButton
+                  label="Continue with Google"
+                  onSuccess={async (idToken) => {
+                    try {
+                      const response = await googleAuthRequest({ idToken });
+                      const { user: authedUser, accessToken } = response.data;
+                      setAuth(authedUser, accessToken);
+                      toast.success(`Welcome, ${authedUser.fullName || "Partner"}!`);
+                      setIsCheckingStatus(true);
+                      try {
+                        const data = await onboardingApi.status();
+                        const app = (isRider
+                          ? data.latestRiderApplication
+                          : data.latestSellerApplication) || null;
+                        setStatus(app);
+                        if (app?.status === "APPROVED") {
+                          router.replace(isRider ? "/delivery/dashboard" : "/seller/dashboard");
+                        } else if (app?.status === "PENDING") {
+                          setPhase("submitted");
+                        } else {
+                          setPhase("application");
+                        }
+                      } catch {
+                        setPhase("application");
+                      } finally {
+                        setIsCheckingStatus(false);
+                      }
+                    } catch (err: any) {
+                      toast.error(err?.message || "Google sign-in failed.");
+                    }
+                  }}
+                  onError={(msg) => toast.error(msg)}
+                />
+              </div>
+            </div>
+
+            <div className="text-center text-sm text-gray-400">
+              Already registered?{" "}
+              <Link
+                href={isRider ? "/delivery/login" : "/seller/login"}
+                className={`font-medium ${isRider ? "text-cyan-400 hover:text-cyan-300" : "text-emerald-400 hover:text-emerald-300"} hover:underline`}
               >
-                {isBusy ? (
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                ) : (
-                  <Icon className="h-4 w-4 mr-2" />
-                )}
-                Create Account & Continue
-              </Button>
-            </form>
+                Sign in
+              </Link>
+            </div>
           </div>
-        )}
-
-        {phase === "google-phone" && (
-          <form onSubmit={submitGooglePhone} className="grid gap-5 animate-in fade-in-50">
-            <div className="rounded-lg bg-amber-500/10 border border-amber-500/20 p-3.5 text-xs text-amber-200 flex items-start gap-2">
-              <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
-              <div>
-                <p className="font-semibold text-amber-100 mb-0.5">
-                  One more step — add your mobile number
-                </p>
-                <p>
-                  Admin will use this number to verify your identity before
-                  approving your {isRider ? "delivery" : "seller"} application.
-                </p>
-              </div>
-            </div>
-
-            <div className="space-y-1">
-              <label className="text-sm font-medium text-gray-300">
-                Mobile Number
-              </label>
-              <Input
-                value={authPhone}
-                onChange={(event) =>
-                  setAuthPhone(event.target.value.replace(/[^\d+\s\-()]/g, ""))
-                }
-                placeholder="e.g. 9876543210"
-                type="tel"
-                inputMode="tel"
-                autoComplete="tel"
-                required
-                className={inputClass}
-              />
-              <p className="text-xs text-gray-500">
-                10 to 15 digits, with optional + country code.
-              </p>
-            </div>
-
-            <Button
-              type="submit"
-              disabled={isUpdatingProfile}
-              className={`${activeColorClass} font-semibold py-6`}
-            >
-              {isUpdatingProfile ? (
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-              ) : (
-                <Icon className="h-4 w-4 mr-2" />
-              )}
-              Save & Continue
-            </Button>
-          </form>
         )}
 
         {phase === "application" && (
@@ -668,7 +532,7 @@ function SellerFields({
       <h3 className="text-sm font-semibold text-emerald-400 tracking-wider uppercase">
         1. Business Profile
       </h3>
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2">
         <div>
           <label className="text-xs font-medium text-gray-300 block mb-1">
             Business Name *
@@ -697,6 +561,29 @@ function SellerFields({
             <option value="FOOD">Food & Grocery</option>
             <option value="JEWELERY">Jewelry & Luxury</option>
           </select>
+        </div>
+
+        <div>
+          <label className="text-xs font-medium text-gray-300 block mb-1">
+            Mobile Number *
+          </label>
+          <Input
+            value={formFields.phone}
+            onChange={(e) =>
+              updateField("phone", e.target.value.replace(/[^\d+\s\-()]/g, ""))
+            }
+            placeholder="e.g. 9876543210"
+            type="tel"
+            inputMode="tel"
+            className={errors.phone ? errorInputClass : inputClass}
+          />
+          {errors.phone ? (
+            <p className="text-xs text-red-400 mt-1">{errors.phone}</p>
+          ) : (
+            <p className="text-[11px] text-gray-500 mt-1">
+              Admin will verify this number before activating your store.
+            </p>
+          )}
         </div>
 
         <div>
@@ -739,7 +626,7 @@ function RiderFields({
       <h3 className="text-sm font-semibold text-cyan-400 tracking-wider uppercase">
         1. Vehicle & Driver Details
       </h3>
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2">
         <div>
           <label className="text-xs font-medium text-gray-300 block mb-1">
             Vehicle Type *
@@ -791,6 +678,29 @@ function RiderFields({
           />
           {errors.licenseNumber && (
             <p className="text-xs text-red-400 mt-1">{errors.licenseNumber}</p>
+          )}
+        </div>
+
+        <div>
+          <label className="text-xs font-medium text-gray-300 block mb-1">
+            Mobile Number *
+          </label>
+          <Input
+            value={formFields.phone}
+            onChange={(e) =>
+              updateField("phone", e.target.value.replace(/[^\d+\s\-()]/g, ""))
+            }
+            placeholder="e.g. 9876543210"
+            type="tel"
+            inputMode="tel"
+            className={errors.phone ? errorInputClass : inputClass}
+          />
+          {errors.phone ? (
+            <p className="text-xs text-red-400 mt-1">{errors.phone}</p>
+          ) : (
+            <p className="text-[11px] text-gray-500 mt-1">
+              Admin will verify this number before rider activation.
+            </p>
           )}
         </div>
       </div>
@@ -1126,9 +1036,7 @@ function phaseLabel(phase: Phase, status: OnboardingApplication | null) {
     return "Your partner account is approved";
   if (status?.status === "REJECTED")
     return "Your previous application needs attention";
-  if (phase === "google-phone")
-    return "Add a mobile number for identity verification";
   if (phase === "application")
     return "Submit partner details and documents for admin approval";
-  return "Create an account to start onboarding";
+  return "Sign in with Google to start onboarding";
 }

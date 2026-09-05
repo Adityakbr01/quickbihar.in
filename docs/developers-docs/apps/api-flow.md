@@ -1,6 +1,6 @@
 # 06 — API Flow
 
-> **Created:** 2026-08-01 · **Updated:** 2026-09-04 (added admin-verification gate + phone-on-`/auth/register`)
+> **Created:** 2026-08-01 · **Updated:** 2026-09-05 (admin-verification gate; streamlined partner registration: partners sign in via Google and submit required phone at registration time in Section 1 of the onboarding application form, optional for normal USERs)
 > **File type:** App deep-dive
 > **Padhne ka time:** ~20 min
 
@@ -64,9 +64,9 @@ Koi bhi error `errorHandler` (global middleware) se guzarta hai aur yeh shape ba
 
 ---
 
-## FLOW — A partner applies (end-to-end: `POST /auth/register` → application → admin approval)
+## FLOW — A partner applies (end-to-end: Google sign-in → application → admin approval)
 
-This is the most behavior-rich flow in the system right now — it touches `/auth/register`, `/users/profile`, `/onboarding/*`, the RBAC auto-upgrade, and the dashboard gate. Everything below is verified against the source.
+This is the most behavior-rich flow in the system right now — it touches `/auth/google`, `/users/profile`, `/onboarding/*`, the RBAC auto-upgrade, and the dashboard gate. Everything below is verified against the source.
 
 ```mermaid
 sequenceDiagram
@@ -76,26 +76,27 @@ sequenceDiagram
     participant DB as MongoDB
     participant A as Admin
 
-    U->>W: Fill PartnerRegisterForm (Phase 1: auth)
-    W->>S: POST /auth/register { email, password, fullName, phone }
-    S->>DB: User.create({ role: USER, isVerified: true, phone })
-    S-->>W: 201 { user, accessToken, refreshToken }
-    W->>W: setAuth(user, accessToken) → redirect to /seller/register
-    Note over U,W: Google sign-in path: if Google didn't return a phone,<br/>Phase 2 ("google-phone") runs PATCH /users/profile { phone }<br/>before Phase 3 (application) is shown.
+    U->>W: Click "Continue with Google" (Phase 1)
+    W->>S: POST /auth/google { idToken }
+    S->>DB: User.findOrCreate({ role: USER, isVerified: true })
+    S-->>W: 200 { user, accessToken, refreshToken }
+    W->>W: setAuth(user, accessToken) → Phase 2 (application form)
 
-    U->>W: Phase 3 — fill seller details, submit
-    W->>S: POST /onboarding/seller { storeName, gst, address, docs, ... }
-    S->>DB: SellerApplication.create({ userId, status: PENDING })
+    U->>W: Phase 2 — fill details, docs, & phone (in Section 1), submit
+    W->>S: PATCH /users/profile { phone }
+    S->>DB: User.updateOne({ _id: userId }, { phone })
+    W->>S: POST /onboarding/apply { type: SELLER, documents, details }
+    S->>DB: OnboardingApplication.create({ userId, status: PENDING })
     S-->>W: 201 { application }
-    W->>U: Phase 4 — "Application received" success screen
+    W->>U: Phase 3 — "Application received" success screen
 
     Note over A,DB: --- async: admin reviews ---
-    A->>S: PATCH /onboarding/seller/:id  { status: APPROVED }
-    S->>DB: SellerApplication.status = APPROVED, Seller.create({ ... })
+    A->>S: POST /onboarding/:id/review  { status: APPROVED }
+    S->>DB: OnboardingApplication.status = APPROVED, SellerProfile.create({ ... })
     S->>DB: User.roleId = SELLER (next /me call auto-upgrades via ensureAuthRole)
 
     U->>W: (next day) /seller/login
-    W->>S: POST /auth/login
+    W->>S: POST /auth/login or /auth/google
     S-->>W: { user (now SELLER), accessToken }
     W->>S: GET /onboarding/status  (handleIncompletePartner)
     S-->>W: { sellerProfile, applications: [{ status: APPROVED }] }

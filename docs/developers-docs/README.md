@@ -1,6 +1,6 @@
 # QuickBihar.in — Developer Documentation
 
-> **Last updated:** 2026-09-04 (added: phone-at-`/auth/register` for partner onboarding; admin-verification gate on seller + rider login + dashboard; `google-phone` sub-phase in the partner register form)
+> **Last updated:** 2026-09-05 (streamlined partner registration: sellers and riders register via Google and provide their required mobile number directly in the onboarding registration form alongside business/vehicle details; phone is optional for normal USERs; admin-verification gate on seller + rider login + dashboard)
 > **Audience:** New developers, senior engineers, and anyone onboarding to this codebase.
 > **Tone:** English-first, code-anchored. Every claim is verified against the actual source.
 

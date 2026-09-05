@@ -104,7 +104,7 @@ export const permissionDao = {
   },
 
   async update(id: string, update: any): Promise<any> {
-    const updated = await Permission.findByIdAndUpdate(id, update, { new: true }).lean();
+    const updated = await Permission.findByIdAndUpdate(id, update, { returnDocument: "after" }).lean();
     if (updated) await this.invalidateCacheIfRoleExists(id);
     return updated;
   },
@@ -137,7 +137,7 @@ export const roleDao = {
   },
 
   async update(id: string, update: any): Promise<any> {
-    const updated = await Role.findByIdAndUpdate(id, update, { new: true }).lean();
+    const updated = await Role.findByIdAndUpdate(id, update, { returnDocument: "after" }).lean();
     if (updated) await rolePermissionDao.invalidateCache(id);
     return updated;
   },

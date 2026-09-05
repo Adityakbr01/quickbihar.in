@@ -22,16 +22,31 @@ import { User } from "@/modules/common/user/user.model";
  * Checks for existing verified users, assigns a default security role,
  * generates a temp unverified user record, and triggers an email verification OTP.
  *
- * @param registerData - Payload containing registration details (email, password, fullName).
+ * Phone contract is role-conditional (enforced by `registerSchema.refine`):
+ *   • role: "USER"     → phone optional (default — customer sign-up)
+ *   • role: "SELLER"   → phone required (admin verification pre-approval)
+ *   • role: "RIDER"    → phone required (admin verification pre-approval)
+ *
+ * The `role` field on the payload is a hint used only for phone validation;
+ * actual role assignment always starts as `USER`. Partners (SELLER / RIDER)
+ * are upgraded via `ensureAuthRole` once their onboarding application is
+ * admin-approved. On web, partners authenticate via Google and provide their
+ * required phone number directly in the onboarding registration form.
+ *
+ * @param registerData - Payload containing registration details (email, password, fullName, role?, phone?).
  * @returns Object containing a success message and the serialized, newly-registered user.
  * @throws {ApiError} 409 if user exists and is already verified.
- * @throws {ApiError} 400 if payload validation fails.
+ * @throws {ApiError} 400 if payload validation fails (incl. missing phone for SELLER/RIDER).
  * @throws {ApiError} 500 if database registration fails.
  */
 export async function register(registerData: any) {
   try {
     const validatedData: RegisterBody = registerSchema.parse(registerData);
     const { email, password, fullName, phone } = validatedData;
+    // `role` is read off the parsed payload via `RegisterBody.role` but
+    // intentionally not destructured here — it's only used by Zod to gate
+    // the phone-required rule. Actual role assignment stays USER until
+    // admin approval flips the partner profile.
 
     // 1. Check if user already exists
     let user = await UserDAO.findByUsernameOrEmail(undefined, email);

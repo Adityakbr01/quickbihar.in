@@ -10,9 +10,10 @@ This document describes how a caller proves their identity to the QuickBihar ser
 
 Email is the natural linking key. A single user can have a Google sign-in, a password sign-in, or both, attached to the same `identities[]` array on the `User` record.
 
-Phone number is **not** an authentication credential (you cannot sign in with it), but it is now a **required** profile field for any user who registers as a **seller** or **rider**. The web partner-register form collects it in the auth phase, and Google-only sign-ups that didn't supply a phone are routed through a `google-phone` sub-phase to capture one before they can submit a partner application. Server backfills a phone from Google's `phone_number` claim when available, and the `PATCH /users/profile` endpoint also accepts a phone update. The phone is what an admin cross-checks before approving a partner application, so the platform never has an unverified seller or rider hitting dashboards.
+Phone number is **not** an authentication credential (you cannot sign in with it), but it is a **required** verification field for any partner registering as a **seller** or **rider**. For standard customer accounts (`role: USER`), the phone number is completely **optional**.
+For sellers and riders, phone is collected **at registration time like any other field** directly in Section 1 of the onboarding registration form (`1. Business Profile` for sellers, `1. Vehicle & Driver Details` for riders) — **not** before registration (no preliminary email/password form) and **not** after registration (no interstitial phone screen). When the partner submits their application, the mobile number is validated (10 to 15 digits) and synced to their user profile via `PATCH /users/profile`. Admin cross-checks this phone before approving the application.
 
-> **Why "phone at registration, not at checkout"** — admin verification needs to know who they're approving *before* the seller starts listing products or the rider starts taking offers. Collecting the phone up front (and persisting it on the `User` record at sign-up) means the partner application can be reviewed in one step instead of bouncing the applicant back to fill in profile details later.
+> **Why "phone at registration time like other fields"** — partners authenticate with Google in one click, and then fill their business/vehicle details, required contact mobile number, bank account, and documents in one unified form. This eliminates redundant multi-screen signups while ensuring the admin always has a validated phone number to review before activating the partner. Phone is **required** for `role: SELLER | RIDER` and **optional** for `role: USER` (customer sign-up).
 
 ---
 
@@ -40,7 +41,7 @@ All routes are mounted under `/api/v1/auth` in [server/src/modules/common/auth/a
 
 | Method | Path | Auth | Rate limit | Purpose |
 |--------|------|------|-----------|---------|
-| `POST` | `/register` | public | `authRateLimiter` | Email + password + fullName + **phone** (required). New users get `USER` role and start as ACTIVE. Phone is persisted on the `User` record so partner applications can be reviewed by an admin without asking the applicant to fill in profile details later. |
+| `POST` | `/register` | public | `authRateLimiter` | `{ email, password, fullName, role?: "USER" \| "SELLER" \| "RIDER", phone? }`. New users get `USER` role and start as ACTIVE. **Phone contract is role-conditional** — required for SELLER / RIDER, optional for USER (default). On web, sellers and riders authenticate via Google and fill their required phone number directly at registration time in Section 1 of the onboarding application form. |
 | `POST` | `/login` | public | `authRateLimiter` | Email/username + password. Sets `accessToken` + `refreshToken` cookies (web). |
 | `POST` | `/google` | public | `authRateLimiter` | Body: `{ idToken, client: "web" \| "mobile" }`. Verifies Google ID token, finds-or-creates the user, returns a token pair. Web path also sets cookies. |
 | `POST` | `/set-password` | required | `strictAuthRateLimiter` | Set a password on the currently-authenticated user. Idempotent — overwrites. Adds a `"password"` identity row. |
@@ -48,7 +49,7 @@ All routes are mounted under `/api/v1/auth` in [server/src/modules/common/auth/a
 | `POST` | `/request-reset` | public | `authRateLimiter` | Email-only. Always returns the same response to prevent account enumeration. Sends a 15-minute reset link via Resend. |
 | `POST` | `/reset-password` | public | `strictAuthRateLimiter` | Body: `{ token, newPassword }`. Consumes the reset JWT, marks it as used in Redis. |
 | `POST` | `/refresh-token` | public | `authRateLimiter` | Exchanges a valid `refreshToken` (cookie or body) for a new token pair. Old refresh token is invalidated. |
-| `POST` | `/logout` | required | — | Clears the refresh token server-side and clears the cookies. |
+| `POST` | `/logout` | optional/auth | — | Clears the refresh token server-side and clears the cookies. |
 
 ### Rate limits
 
@@ -75,23 +76,29 @@ Defined in `server/src/middlewares/rateLimit.middleware.ts` and applied in `auth
    - **Existing user with the same email** → append a `google` identity row (unless the email is already linked to a *different* Google `sub` — that returns `409`).
    - **Avatar promotion** — if Google has a picture and the user has none, use the Google one.
    - **Legacy OTP merge** — if `legacyOtpOnly` is true, flip it to false.
-   - **Phone backfill** — if Google's `id_token` payload includes a `phoneNumber` / `phone_number` claim **and** the user record has no phone, persist it. This is best-effort; most Google accounts don't expose the claim, so the web client falls through to a phone-capture sub-phase (see "Google phone-capture sub-phase" below).
+   - **Phone backfill** — if Google's `id_token` payload includes a `phoneNumber` / `phone_number` claim **and** the user record has no phone, persist it.
 5. **Server issues a token pair** and, on the web path, sets `accessToken` + `refreshToken` httpOnly cookies. Mobile clients read the tokens from the JSON body.
 
-### Google phone-capture sub-phase (Google-only sign-ups)
+### Partner onboarding flow (`PartnerRegisterForm.tsx`)
 
-A Google sign-in almost never provides a phone number. The partner-register form runs through four phases:
+Sellers and riders follow a streamlined, single-step onboarding flow without duplicate registration screens:
 
 ```
-Phase 1: "auth"             ← email + password sign-up (or "Sign in with Google")
-Phase 2: "google-phone"     ← only if Phase 1 ended with a Google sign-in AND user has no phone
-Phase 3: "application"      ← partner application form (seller / rider details)
-Phase 4: "submitted"        ← "Application received" success screen
+Phase 1: "auth"             ← Single "Continue with Google" sign-in card (no redundant email/password forms)
+Phase 2: "application"      ← Unified onboarding form:
+                               • Section 1: Business Profile (Seller) / Vehicle Details (Rider) + Required Mobile Number
+                               • Section 2: Address & Location
+                               • Section 3: Payout Bank Account & Government ID
+                               • Section 4: Verification Documents Upload
+Phase 3: "submitted"        ← "Application received — admin will review" status screen
 ```
 
-The `google-phone` phase is gated on `isAuthenticated && !user?.phone`. It calls `PATCH /users/profile` with `{ phone }` (a Zod-validated `^\+?\d{10,15}$`), then transitions to the application phase. This guarantees that by the time the partner application is submitted, the `User` record has a phone the admin can call/verify.
-
-> **Why a separate phase instead of just adding the field to the application form?** The application form is a *business* record (store details / vehicle / documents). The phone is an *identity* record on the `User`. Splitting them lets the server enforce phone-required at the auth layer (Zod on `registerSchema`) and partner-data at the onboarding layer (Zod on the partner application schema) without one validating the other.
+**Mobile number at registration time:**
+- Unauthenticated partners click **Continue with Google** to sign in.
+- They immediately land in **Phase 2 ("application")** where `Mobile Number *` is captured directly in Section 1 alongside business or vehicle fields.
+- There is **no phone prompt before registration** (no email signup form) and **no phone prompt after registration** (no intermediate modal).
+- On submitting the application, the form validates the phone number (10 to 15 digits), syncs it to the user profile via `PATCH /users/profile`, and posts the onboarding payload to `onboardingApi.apply()`.
+- Normal customer accounts (`USER` role) are unaffected: phone numbers remain **optional** for customers.
 
 ### Audience check (why three Client IDs)
 
@@ -115,7 +122,7 @@ This way the same `/auth/google` route accepts tokens issued for the Web, Androi
 
 `POST /auth/login` accepts `{ email, password }` (or `{ phone, password }` for backwards-compatible identifier resolution — but the model is email-first). It checks `isPasswordCorrect` (bcrypt compare) and, on success, issues a token pair. There is **no** `isVerified` gate — a user who knows the password is the user.
 
-New users self-register with `POST /auth/register` (`{ email, password, fullName, phone }`) and are immediately ACTIVE. **Phone is required** at the Zod layer (`^\+?\d{10,15}$`) — the auth phase of `PartnerRegisterForm` renders a `Phone` field that the user cannot submit without. The server persists `phone` on create and, on the update path, only writes it when the user doesn't already have one (so re-registering with a different phone never overwrites a verified number).
+New users self-register with `POST /auth/register` (`{ email, password, fullName, role?, phone? }`) and are immediately ACTIVE. **Phone is required for `role: SELLER | RIDER`** at the Zod layer (a `.refine` enforces the conditional rule); **optional for `role: USER`** (the default — customer sign-up). On the web, sellers and riders authenticate with Google and submit their phone number at onboarding registration time alongside their business/vehicle details. The server persists `phone` on create *if provided* and, on the update path (`PATCH /users/profile`), updates the user's verified contact number.
 
 ### Linking a password to a Google-only account
 
@@ -216,7 +223,7 @@ The web client (`web/src/lib/axios.ts`) and mobile client (`mobile/src/api/axios
 | `password` | `String` (optional) | Bcrypt 10 rounds (pre-save hook). Optional — Google-only users have no password. |
 | `identities[]` | `[{ provider, providerId, email, linkedAt }]` | All credentials attached to this account. Compound unique index on `(provider, providerId)` prevents the same Google `sub` from being linked twice. |
 | `roleId` | `ObjectId → Role` | Required. See [authorization-rbac.md](./authorization-rbac.md). Auto-upgraded from `USER` → `SELLER` / `DELIVERY` on the next request after the partner application is admin-approved. |
-| `phone` | `String` | Required for partner (SELLER / RIDER) applicants — collected at sign-up or backfilled via Google's `phone_number` claim or the `google-phone` sub-phase. Validated `^\+?\d{10,15}$`. Used by admins to verify the applicant's identity before approval. |
+| `phone` | `String` | Required for partner (SELLER / RIDER) applicants — collected at `POST /auth/register` (Zod `.refine` enforces the conditional rule) or backfilled via `PATCH /users/profile` from the web `google-phone` sub-phase (used by Google partner sign-ups). Optional for plain USER (customer) sign-ups. Validated `^\+?\d{10,15}$`. Used by admins to verify the applicant's identity before approval. |
 | `isVerified` | `Boolean` | Defaults to `false`. Set to `true` on registration and on Google sign-in. **Not** used as a login gate anymore — see the "Admin verification gate" section below for the SELLER / RIDER approval flow. |
 | `isBlocked` | `Boolean` | Admin can flip this; `POST /auth/login` returns 403 when true. |
 | `legacyOtpOnly` | `Boolean` | True for users whose email is a synthetic `<phone>@quickbihar.local`. They must add a real email before using email-password auth. Cleared automatically on first Google sign-in. |
@@ -249,7 +256,7 @@ See [authorization-rbac.md](./authorization-rbac.md) for the full permission mat
 `server/src/modules/common/auth/auth.validation.ts` defines Zod schemas:
 
 - `authenticateSchema` — `{ email, password }`
-- `registerSchema` — `{ email, password, fullName, phone }` (password min 8 chars, phone `^\+?\d{10,15}$`) — phone is required so partner applications have an identity the admin can verify.
+- `registerSchema` — `{ email, password, fullName, role?: "USER" \| "SELLER" \| "RIDER", phone? }` (password min 8 chars, phone `^\+?\d{10,15}$` when present) with a `.refine` that requires `phone` whenever `role` is `SELLER` or `RIDER`. Password partner sign-ups collect it in the auth form; Google partner sign-ups use `PATCH /users/profile` from the `google-phone` sub-phase.
 - `googleAuthSchema` — `{ idToken, client: "web" | "mobile", legacyPhone? }`
 - `setPasswordSchema` — `{ password, currentPassword? }` (currentPassword required when a password identity already exists — server-side enforced)
 - `linkGoogleSchema` — `{ idToken }`
