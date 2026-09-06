@@ -20,6 +20,7 @@ import {
   getPublicProductsRequest,
   getTrendingProductsRequest,
 } from "../../product/api/product.api";
+import { IProduct } from "../../product/types/product.types";
 
 const arrowLottie = require("@/assets/lottie/arrow.json");
 const CARD_WIDTH = 240;
@@ -48,18 +49,29 @@ const TopSellingSection = ({ category }: { category?: string } = {}) => {
     // ratings + trending flag) and fall back to the public feed with
     // isTrending=true when there aren't enough sales-ranked products.
     queryFn: async () => {
-      const primary = await getTrendingProductsRequest(
-        category ? { category } : undefined,
-      );
+      const [primaryRes, fallbackRes] = await Promise.allSettled([
+        getTrendingProductsRequest(category ? { category } : undefined),
+        getPublicProductsRequest({
+          limit: 10,
+          sortBy: "trending",
+          category: category || undefined,
+          isTrending: "true",
+        }),
+      ]);
+
+      const primary: { data: IProduct[]; total: number } =
+        primaryRes.status === "fulfilled"
+          ? primaryRes.value
+          : { data: [], total: 0 };
       if (primary.data.length >= 6) return primary;
 
-      const fallback = await getPublicProductsRequest({
-        limit: 10,
-        sortBy: "trending",
-        category: category || undefined,
-        isTrending: "true",
-      });
-      if (fallback.data.length > primary.data.length) return fallback;
+      const fallback: { data: IProduct[]; total: number } =
+        fallbackRes.status === "fulfilled"
+          ? fallbackRes.value
+          : { data: [], total: 0 };
+      if (fallback.data.length > primary.data.length) {
+        return fallback;
+      }
       return primary;
     },
   });
