@@ -22,6 +22,10 @@ jobs:
             context: ./web
             file: ./web/Dockerfile
             image: quickbihar-web
+          - name: mobile-web
+            context: ./mobile
+            file: ./mobile/Dockerfile
+            image: quickbihar-mobile-web
 
     steps:
       - name: Checkout code

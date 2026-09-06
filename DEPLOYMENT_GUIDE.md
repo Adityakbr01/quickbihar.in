@@ -11,14 +11,18 @@ This guide details the complete production setup for **QuickBihar** on your Orac
   ├── Ports Exposed: 22 (SSH), 80 (HTTP), 443 (HTTPS)
   │
   ├── Global Host Nginx (/etc/nginx/)
-  │    ├── sites-available/voiceact.conf  -> 127.0.0.1:3001 (Web), 127.0.0.1:5001 (Backend)
-  │    └── sites-available/quickbihar.conf -> 127.0.0.1:3002 (Web & Landing), 127.0.0.1:5002 (Backend API & Sockets)
+  │    ├── sites-available/voiceact.conf   -> 127.0.0.1:3001 (Web), 127.0.0.1:5001 (Backend)
+  │    └── sites-available/quickbihar.conf -> 
+  │         ├── quickbihar.in            -> 127.0.0.1:7001 (Expo Web Customer App)
+  │         ├── dashboard.quickbihar.in  -> 127.0.0.1:3002 (Partner Next.js Portals)
+  │         └── /api/ & /socket.io/      -> 127.0.0.1:5002 (Backend API & Sockets)
   │
   ├── Docker Engine (Isolated Localhost Containers)
   │    ├── VoiceAct App Network (voiceact-network)
   │    └── QuickBihar App Network (quickbihar-network)
   │         ├── quickbihar-server     (127.0.0.1:5002 -> 8000)
-  │         ├── quickbihar-web        (127.0.0.1:3002 -> 3000) [Landing Page + Dashboards]
+  │         ├── quickbihar-web        (127.0.0.1:3002 -> 3000) [Admin/Seller/Delivery Portals]
+  │         ├── quickbihar-mobile-web (127.0.0.1:7001 -> 80)   [Customer Storefront SPA]
   │         └── quickbihar-redis      (redis:6379)
   │
   └── GitHub Self-Hosted Runners
@@ -35,7 +39,8 @@ This guide details the complete production setup for **QuickBihar** on your Orac
 | **VoiceAct** | Frontend Web | `voiceact-web` | `127.0.0.1:3001` | `3000` | `voiceact-network` |
 | **VoiceAct** | Backend API | `voiceact-backend` | `127.0.0.1:5001` | `5000` | `voiceact-network` |
 | **QuickBihar** | Backend API & Sockets | `quickbihar-server` | `127.0.0.1:5002` | `8000` | `quickbihar-network` |
-| **QuickBihar** | Next.js Landing & Portals | `quickbihar-web` | `127.0.0.1:3002` | `3000` | `quickbihar-network` |
+| **QuickBihar** | Partner Next.js Portals | `quickbihar-web` | `127.0.0.1:3002` | `3000` | `quickbihar-network` |
+| **QuickBihar** | Customer Storefront Web | `quickbihar-mobile-web` | `127.0.0.1:7001` | `80` | `quickbihar-network` |
 | **QuickBihar** | Redis Queues & Cache | `quickbihar-redis` | Internal | `6379` | `quickbihar-network` |
 
 > [!NOTE]
@@ -102,119 +107,36 @@ sudo ./svc.sh start
 ```
 
 ### Step 4.3: Configure Host Nginx Site
-Copy the Nginx site configuration to `/etc/nginx/sites-available/quickbihar.conf`:
+Copy the tracked Nginx configuration from `vps-nginx/quickbihar.conf` directly to `/etc/nginx/sites-available/quickbihar.conf`:
 
 ```bash
-# Option A: Copy directly from repo or create the file manually
-sudo nano /etc/nginx/sites-available/quickbihar.conf
-```
-
-Paste the contents of `vps-nginx/quickbihar.conf`:
-
-```nginx
-upstream quickbihar_backend {
-    server 127.0.0.1:5002;
-    keepalive 32;
-}
-
-upstream quickbihar_web {
-    server 127.0.0.1:3002;
-    keepalive 32;
-}
-
-server {
-    listen 80;
-    listen [::]:80;
-
-    server_name quickbihar.in www.quickbihar.in _;
-
-    client_max_body_size 50m;
-
-    add_header X-Frame-Options "SAMEORIGIN" always;
-    add_header X-XSS-Protection "1; mode=block" always;
-    add_header X-Content-Type-Options "nosniff" always;
-    add_header Referrer-Policy "no-referrer-when-downgrade" always;
-
-    gzip on;
-    gzip_proxied any;
-    gzip_comp_level 6;
-    gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript image/svg+xml;
-
-    # 1. REST API Endpoints
-    location /api/ {
-        proxy_pass http://quickbihar_backend;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_cache_bypass $http_upgrade;
-        proxy_read_timeout 90s;
-        proxy_send_timeout 90s;
-    }
-
-    # 2. Realtime WebSockets
-    location /socket.io/ {
-        proxy_pass http://quickbihar_backend;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_read_timeout 86400s;
-        proxy_send_timeout 86400s;
-    }
-
-    # 3. Next.js Static Assets
-    location ^~ /_next/ {
-        proxy_pass http://quickbihar_web;
-        proxy_http_version 1.1;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_cache_bypass $http_upgrade;
-    }
-
-    # 4. Landing Page and All Portal Routes (/admin, /seller, /delivery, etc.)
-    location / {
-        proxy_pass http://quickbihar_web;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_cache_bypass $http_upgrade;
-    }
-}
-```
-
-Enable the Nginx site configuration via symlink:
-
-```bash
+sudo cp ~/apps/quickbihar/vps-nginx/quickbihar.conf /etc/nginx/sites-available/quickbihar.conf
 sudo ln -sf /etc/nginx/sites-available/quickbihar.conf /etc/nginx/sites-enabled/
-sudo nginx -t
-sudo systemctl reload nginx
 ```
 
-### Step 4.4: Add Domain & Certbot SSL (When Domain is Ready)
-Once your DNS `A` records point to your VPS IP:
+### Step 4.4: Configure Hostinger DNS & Provision SSL with Certbot
 
-```bash
-# Update server_name in /etc/nginx/sites-available/quickbihar.conf:
-# server_name quickbihar.in www.quickbihar.in;
+1. **Configure DNS in Hostinger DNS Zone Editor**:
+   Add or update these records for `quickbihar.in`:
+   
+   | Record Type | Name / Host | Target / Points to | TTL | Purpose |
+   | :--- | :--- | :--- | :--- | :--- |
+   | **A** | `@` | `<YOUR_VPS_PUBLIC_IP>` | 300 | Routes `quickbihar.in` (Customer App) |
+   | **CNAME** | `www` | `quickbihar.in` | 300 | 301 redirects to apex domain |
+   | **CNAME** (or **A**) | `dashboard` | `quickbihar.in` | 300 | Routes `dashboard.quickbihar.in` (Partner App) |
 
-# Obtain SSL Certificate
-sudo certbot --nginx -d quickbihar.in -d www.quickbihar.in
-```
+2. **Issue Multi-Domain SSL Certificate with Certbot**:
+   Once DNS records propagate to your VPS IP:
+   ```bash
+   sudo certbot --nginx -d quickbihar.in -d www.quickbihar.in -d dashboard.quickbihar.in
+   ```
+   Certbot will validate all three hostnames via ACME challenge and install the unified certificate at `/etc/letsencrypt/live/quickbihar.in/`.
 
-Certbot will automatically generate SSL certificates and update the `/etc/nginx/sites-available/quickbihar.conf` file with HTTPS redirects.
+3. **Verify and Reload Nginx**:
+   ```bash
+   sudo nginx -t
+   sudo systemctl reload nginx
+   ```
 
 ---
 
@@ -249,18 +171,25 @@ Configure the following secrets in GitHub Repository → **Settings** → **Secr
    ```
    *Expected output*: `quickbihar-server`, `quickbihar-web`, `quickbihar-mobile-web` all showing status `healthy` or `running`.
 
-2. **Verify Localhost Port Binding**:
+2. **Verify Localhost Port Bindings**:
    ```bash
-   curl -I http://127.0.0.1:5002/api/v1/health
-   curl -I http://127.0.0.1:3002
-   curl -I http://127.0.0.1:7001
+   curl -I http://127.0.0.1:5002/api/v1/health   # Backend API
+   curl -I http://127.0.0.1:3002                  # Partner Dashboard (Next.js)
+   curl -I http://127.0.0.1:7001                  # Customer App (Expo Web)
    ```
 
-3. **Verify Host Nginx Routing**:
+3. **Verify Public Endpoints (via Nginx & SSL)**:
    ```bash
-   curl -I http://localhost/
-   curl -I http://localhost/api/
-   curl -I http://localhost/_next/
+   # Customer App (Expo Web)
+   curl -IL https://quickbihar.in
+   curl -IL https://www.quickbihar.in             # Should 301 redirect to https://quickbihar.in
+
+   # Partner Dashboard (Admin, Seller, Delivery)
+   curl -IL https://dashboard.quickbihar.in
+
+   # API & WebSocket Health
+   curl -IL https://quickbihar.in/api/v1/health
+   curl -IL https://dashboard.quickbihar.in/api/v1/health
    ```
 
 4. **Verify VoiceAct Coexistence**:

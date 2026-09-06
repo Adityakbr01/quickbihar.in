@@ -13,9 +13,24 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: "QuickBihar.in | Bihar's #1 Fashion & Instant Delivery App",
+  metadataBase: new URL("https://dashboard.quickbihar.in"),
+  title: {
+    default: "QuickBihar Partner Dashboard | Admin, Seller & Delivery Portals",
+    template: "%s | QuickBihar Dashboard",
+  },
   description:
-    "Shop trending fashion from local stores with 30-min delivery across Bihar.",
+    "Partner portal for QuickBihar — manage orders, inventory, deliveries, and catalog across Bihar.",
+  alternates: {
+    canonical: "https://dashboard.quickbihar.in",
+  },
+  openGraph: {
+    title: "QuickBihar Partner Dashboard",
+    description: "Manage stores, inventory, and instant deliveries across Bihar.",
+    url: "https://dashboard.quickbihar.in",
+    siteName: "QuickBihar Dashboard",
+    locale: "en_IN",
+    type: "website",
+  },
 };
 
 export default function RootLayout({

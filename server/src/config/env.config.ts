@@ -81,7 +81,7 @@ const envSchema = z.object({
 
   // EMAIL
   RESEND_API_KEY: optionalString,
-  RESEND_FROM_EMAIL: z.string().default("Quick Bihar <noreply@voiceact.tech>"),
+  RESEND_FROM_EMAIL: z.string().default("Quick Bihar <noreply@quickbihar.in>"),
 
   // ── Google OAuth (added during auth redesign, Phase 2) ──────────
   // Required for the new ID-token verification flow.
