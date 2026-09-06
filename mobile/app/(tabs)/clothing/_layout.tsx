@@ -10,7 +10,6 @@ import {
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import * as Haptics from "expo-haptics";
 import { Tabs, useRouter } from "expo-router";
-import React from "react";
 import { Platform } from "react-native";
 
 const TABS_CONFIG = [
@@ -78,8 +77,6 @@ export default function TabsLayout() {
             bottom: 0,
             left: "0%",
             right: "0%",
-            borderWidth: 1,
-            borderColor: theme.border,
             alignSelf: "center",
           }),
         },
