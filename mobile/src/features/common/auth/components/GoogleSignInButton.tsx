@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
 import * as Haptics from "expo-haptics";
 import React, { useState } from "react";
 import {
@@ -127,10 +128,12 @@ export const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({
         <ActivityIndicator color={theme.text} size="small" />
       ) : (
         <View style={styles.row}>
-          {/* The "G" mark — a 22pt Google brand circle so the
-              button reads as a Google button even without an asset. */}
           <View style={styles.gBadge}>
-            <Text style={styles.gBadgeText}>G</Text>
+            <Image
+              source={require("@/assets/svg/google-icon-logo.svg")}
+              style={{ width: 18, height: 18 }}
+              contentFit="contain"
+            />
           </View>
           <Text style={[styles.label, { color: theme.text }]}>{label}</Text>
           <Ionicons

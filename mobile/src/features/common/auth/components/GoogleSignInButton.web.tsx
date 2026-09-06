@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
 import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -175,7 +176,11 @@ export const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({
         ) : (
           <View style={styles.row}>
             <View style={styles.gBadge}>
-              <Text style={styles.gBadgeText}>G</Text>
+              <Image
+                source={require("@/assets/svg/google-icon-logo.svg")}
+                style={{ width: 18, height: 18 }}
+                contentFit="contain"
+              />
             </View>
             <Text style={[styles.label, { color: theme.text }]}>{label}</Text>
             <Ionicons

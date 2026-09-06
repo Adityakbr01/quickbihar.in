@@ -209,13 +209,21 @@ export default function GoogleSignInButton({
           className="w-full flex items-center justify-center h-[44px] rounded-md bg-white text-gray-800 border border-gray-300 font-medium text-sm shadow-sm transition-all select-none"
           style={{ minHeight: "44px" }}
         >
-          <Loader2 className="mr-2 h-4 w-4 animate-spin text-gray-500" />
+          {busy ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin text-gray-500" />
+          ) : (
+            <img
+              src="/google-icon-logo.svg"
+              alt="Google"
+              className="mr-2.5 h-4 w-4"
+            />
+          )}
           <span>
             {busy
               ? "Signing in with Google..."
               : !clientId
               ? "Configuring Google Sign-In..."
-              : "Loading Google Sign-In..."}
+              : label || "Continue with Google"}
           </span>
         </div>
       )}

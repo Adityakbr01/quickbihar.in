@@ -12,13 +12,27 @@ const app = express();
 // Security headers — applied before the request logger so the body dump gate
 // stays effective. CSP is intentionally permissive for now (server returns
 // only JSON; any UI CSP belongs to the web/mobile apps).
-app.use(helmet());
+app.use(
+  helmet({
+    crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" },
+  })
+);
 
 app.use(loggerMiddleware);
 
-const allowedCorsOrigins = Array.isArray(ENV.CORS_ORIGIN)
+const productionDomains = [
+  "https://quickbihar.in",
+  "https://www.quickbihar.in",
+  "https://dashboard.quickbihar.in",
+];
+
+const envCors = Array.isArray(ENV.CORS_ORIGIN)
   ? ENV.CORS_ORIGIN
-  : [ENV.CORS_ORIGIN];
+  : (ENV.CORS_ORIGIN || "").split(",").map((s) => s.trim());
+
+const allowedCorsOrigins = Array.from(
+  new Set([...productionDomains, ...envCors])
+);
 
 app.use(
   cors({
