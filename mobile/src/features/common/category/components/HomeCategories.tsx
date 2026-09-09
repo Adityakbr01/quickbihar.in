@@ -136,35 +136,6 @@ const HomeCategories = ({ rootSlug = "clothing" }: { rootSlug?: string }) => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.headerRow}>
-        <Text
-          accessibilityRole="header"
-          aria-level={2}
-          {...({ role: "heading" } as any)}
-          style={[styles.sectionTitle, { color: theme.text }]}
-        >
-          Categories
-        </Text>
-        {totalCount > 5 && (
-          <TouchableOpacity
-            style={styles.toggleBtn}
-            activeOpacity={0.7}
-            onPress={() => {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              setShowAll((prev) => !prev);
-            }}
-          >
-            <Text style={[styles.toggleText, { color: theme.primary }]}>
-              {showAll ? "Show 5" : `View All (${totalCount})`}
-            </Text>
-            <Ionicons
-              name={showAll ? "chevron-up" : "chevron-forward"}
-              size={13}
-              color={theme.primary}
-            />
-          </TouchableOpacity>
-        )}
-      </View>
       <FlashList
         className="gap-28"
         data={visibleCategories}
