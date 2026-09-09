@@ -83,6 +83,11 @@ export async function findBySlug(slug: string) {
     return await Category.findOne({ slug });
 }
 
+/** Public slug lookup: active categories only (SEO canonical taxonomy URLs, plan §26 A1). */
+export async function findPublicBySlug(slug: string) {
+    return await Category.findOne({ slug: String(slug || "").toLowerCase().trim(), isActive: true });
+}
+
 /** Apply a partial update and return the fresh document. */
 export async function updateById(id: string, data: UpdateCategoryBody & { slug?: string }) {
     return await Category.findByIdAndUpdate(id, data as any, { returnDocument: "after" });

@@ -26,9 +26,14 @@ const productionDomains = [
   "https://dashboard.quickbihar.in",
 ];
 
-const envCors = Array.isArray(ENV.CORS_ORIGIN)
+// ENV.CORS_ORIGIN is already split+trimmed to string[] by env.config.ts —
+// this just stays tolerant if the schema ever goes back to a raw string.
+const envCors: string[] = Array.isArray(ENV.CORS_ORIGIN)
   ? ENV.CORS_ORIGIN
-  : (ENV.CORS_ORIGIN || "").split(",").map((s) => s.trim());
+  : String(ENV.CORS_ORIGIN || "")
+      .split(",")
+      .map((s: string) => s.trim())
+      .filter(Boolean);
 
 const allowedCorsOrigins = Array.from(
   new Set([...productionDomains, ...envCors])
@@ -81,6 +86,8 @@ import mallRouter from "./modules/common/mall/mall.router";
 import deliveryRouter from "./modules/common/delivery/delivery.router";
 import fulfillmentEventRouter from "./modules/common/fulfillment/fulfillmentEvent.router";
 import notificationRouter from "./modules/common/notification/notification.router";
+import contentRouter from "./modules/common/content/content.router";
+import seoRouter from "./modules/common/seo/seo.router";
 import { ApiResponse } from "./utils/ApiResponse";
 
 // Routes Declaration
@@ -113,6 +120,12 @@ app.use("/api/v1/cart", cartRouter);
 app.use("/api/v1/wishlist", wishlistRouter);
 app.use("/api/v1/app-config", appConfigRouter);
 app.use("/api/v1/refund-policies", refundPolicyRouter);
+app.use("/api/v1/content", contentRouter);
+
+// Storefront discovery files at conventional root paths (plan §17–§18).
+// Mounted after /api/v1 so API routes keep precedence; no path conflicts
+// (this router only serves /sitemap*.xml and /robots.txt).
+app.use("/", seoRouter);
 
 
 

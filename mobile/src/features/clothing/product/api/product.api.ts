@@ -56,6 +56,15 @@ export const getProductByIdRequest = async (id: string): Promise<IProduct> => {
 };
 
 /**
+ * Fetch a single product by slug (canonical SEO lookup, plan §26 A1).
+ * Returns the same IProduct shape (including _id + slug) as the id lookup.
+ */
+export const getProductBySlugRequest = async (slug: string): Promise<IProduct> => {
+  const response = await axiosInstance.get(`/products/slug/${encodeURIComponent(slug)}`);
+  return response.data.data;
+};
+
+/**
  * Fetch similar products by product ID (uses tags, category, brand matching)
  */
 export const getSimilarProductsRequest = async (id: string, limit = 10): Promise<IProduct[]> => {

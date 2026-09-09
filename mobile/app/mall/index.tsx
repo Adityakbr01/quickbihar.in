@@ -17,6 +17,8 @@ import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import SafeViewWrapper from "@/src/provider/SafeViewWrapper";
 import { usePublicMalls } from "@/src/features/clothing/home/hooks/useMalls";
 import { LinearGradient } from "expo-linear-gradient";
+import { SeoHead } from "@/src/components/seo/SeoHead";
+import { staticPageMeta } from "@/src/lib/seo";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 
@@ -85,6 +87,14 @@ export default function AllMallsScreen() {
 
   return (
     <SafeViewWrapper>
+      <SeoHead
+        meta={staticPageMeta({
+          title: "Fashion Malls in Bihar | Stores, Offers & Reviews | QuickBihar",
+          description:
+            "Explore fashion malls across Bihar — stores, collections, ratings and reviews on QuickBihar.",
+          path: "/mall",
+        })}
+      />
       <View style={{ flex: 1, backgroundColor: theme.background }}>
         <Stack.Screen
           options={{
@@ -134,7 +144,7 @@ export default function AllMallsScreen() {
           <TouchableOpacity
             activeOpacity={0.9}
             style={[styles.card, { backgroundColor: theme.secondaryBackground, borderColor: theme.border }]}
-            onPress={() => router.push(`/mall/${item.id || item._id}` as any)}
+            onPress={() => router.push(`/mall/${item.slug || item.id || item._id}` as any)}
           >
             <Image source={{ uri: item.image }} style={styles.cardImage} />
             

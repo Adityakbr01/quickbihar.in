@@ -1,11 +1,14 @@
 import { Stack } from "expo-router";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
+import { NoIndexHead } from "@/src/components/seo/SeoHead";
 
 export default function AccountLayout() {
   const theme = useTheme();
 
   return (
-    <Stack
+    <>
+      <NoIndexHead />
+      <Stack
       screenOptions={{
         headerStyle: {
           backgroundColor: theme.background,
@@ -53,6 +56,7 @@ export default function AccountLayout() {
           headerShown: false,
         }}
       />
-    </Stack>
+      </Stack>
+    </>
   );
 }

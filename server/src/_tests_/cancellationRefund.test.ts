@@ -54,8 +54,8 @@ describe("SubOrderService — Cancellation Auto-Refund", () => {
             save: mock(() => Promise.resolve()),
         };
 
-        // Mock parent order retrieval
-        SubOrderService.parentOrderOf = mock(() =>
+        // Mock parent order retrieval (cast: stubbing private helpers, test-only)
+        (SubOrderService as any).parentOrderOf = mock(() =>
             Promise.resolve({
                 orderId: "QB-4114272318",
                 userId: "6a8968fdc3e5c8d64eeb9a2a",
@@ -64,8 +64,8 @@ describe("SubOrderService — Cancellation Auto-Refund", () => {
                 },
             })
         );
-        SubOrderService.syncParentOrderStatus = mock(() => Promise.resolve());
-        SubOrderService.publishUpdate = mock(() => Promise.resolve());
+        (SubOrderService as any).syncParentOrderStatus = mock(() => Promise.resolve());
+        (SubOrderService as any).publishUpdate = mock(() => Promise.resolve());
 
         const result = await SubOrderService.processCancellationRefund(
             mockSubOrder,
@@ -114,16 +114,16 @@ describe("SubOrderService — Cancellation Auto-Refund", () => {
             save: mock(() => Promise.resolve()),
         };
 
-        // Mock COD parent order (no razorpayPaymentId)
-        SubOrderService.parentOrderOf = mock(() =>
+        // Mock COD parent order (no razorpayPaymentId) (cast: stubbing private helpers, test-only)
+        (SubOrderService as any).parentOrderOf = mock(() =>
             Promise.resolve({
                 orderId: "QB-4114272319",
                 userId: "6a8968fdc3e5c8d64eeb9a2a",
                 paymentInfo: {},
             })
         );
-        SubOrderService.syncParentOrderStatus = mock(() => Promise.resolve());
-        SubOrderService.publishUpdate = mock(() => Promise.resolve());
+        (SubOrderService as any).syncParentOrderStatus = mock(() => Promise.resolve());
+        (SubOrderService as any).publishUpdate = mock(() => Promise.resolve());
 
         const result = await SubOrderService.processCancellationRefund(
             mockSubOrder,

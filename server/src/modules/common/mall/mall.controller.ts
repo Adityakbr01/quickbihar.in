@@ -11,6 +11,7 @@ import * as MallService from "./mall.service";
  */
 export const listPublic = asyncHandler(async (_req: Request, res: Response) => {
     const malls = await MallService.listPublicMalls();
+    res.set("Cache-Control", "public, max-age=300");
     return res.status(200).json(new ApiResponse(200, malls, "Malls fetched successfully"));
 });
 
@@ -22,6 +23,7 @@ export const listPublic = asyncHandler(async (_req: Request, res: Response) => {
  */
 export const top = asyncHandler(async (_req: Request, res: Response) => {
     const malls = await MallService.getTopMalls(10);
+    res.set("Cache-Control", "public, max-age=300");
     return res.status(200).json(new ApiResponse(200, malls, "Top malls fetched successfully"));
 });
 
@@ -33,7 +35,20 @@ export const top = asyncHandler(async (_req: Request, res: Response) => {
  */
 export const getDetail = asyncHandler(async (req: Request, res: Response) => {
     const data = await MallService.getMallDetail(req.params.id as string);
+    res.set("Cache-Control", "public, max-age=300");
     // console.log("[SERVER_DEBUG] Mall details response data:", JSON.stringify(data, null, 2));
+    return res.status(200).json(new ApiResponse(200, data, "Mall details fetched successfully"));
+});
+
+/**
+ * Returns the full detail view for a single mall looked up by slug.
+ *
+ * @route GET /api/v1/malls/slug/:slug
+ * @access Public
+ */
+export const getDetailBySlug = asyncHandler(async (req: Request, res: Response) => {
+    const data = await MallService.getMallDetailBySlug(req.params.slug as string);
+    res.set("Cache-Control", "public, max-age=300");
     return res.status(200).json(new ApiResponse(200, data, "Mall details fetched successfully"));
 });
 

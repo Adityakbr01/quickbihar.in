@@ -36,7 +36,7 @@ export const SimilarProducts = ({ products, theme }: SimilarProductsProps) => {
             onPress={() =>
               router.push({
                 pathname: "/product/[id]",
-                params: { id: item._id },
+                params: { id: (item as any).slug || item._id },
               })
             }
           >

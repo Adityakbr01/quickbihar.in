@@ -26,6 +26,7 @@ import {
   useUpdateProfile,
 } from "@/src/features/common/auth/hooks/useAuth";
 import { getRoleLandingRoute } from "@/src/features/common/auth/store/authStore";
+import { NoIndexHead } from "@/src/components/seo/SeoHead";
 
 /**
  * Forced email-capture screen for legacy OTP users.
@@ -151,6 +152,7 @@ export default function LegacyEmailCaptureScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
+      <NoIndexHead />
       <View style={styles.oceanContainer} pointerEvents="none">
         <LivingPixelOcean />
         <LinearGradient

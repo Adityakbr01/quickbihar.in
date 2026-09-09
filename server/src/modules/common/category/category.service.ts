@@ -66,6 +66,15 @@ export async function getCategoryById(id: string) {
     return category;
 }
 
+/** Fetch a PUBLIC (active-only) category by slug or fail with 404 (plan §26 A1). */
+export async function getCategoryBySlug(slug: string) {
+    const category = await CategoryDAO.findPublicBySlug(slug);
+    if (!category) {
+        throw new ApiError(404, "Category not found");
+    }
+    return category;
+}
+
 /** Validate a partial update; re-derives the slug whenever the title changes. */
 export async function updateCategory(id: string, data: any) {
     try {

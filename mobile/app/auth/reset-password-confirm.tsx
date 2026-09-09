@@ -21,6 +21,7 @@ import LivingPixelOcean from "@/src/components/LivingPixelOcean";
 import { TextInput } from "@/src/theme/components/TextInput";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { useResetPassword } from "@/src/features/common/auth/hooks/useAuth";
+import { NoIndexHead } from "@/src/components/seo/SeoHead";
 
 /**
  * Reset-password confirmation screen.
@@ -119,6 +120,7 @@ export default function ResetPasswordConfirmScreen() {
           },
         ]}
       >
+        <NoIndexHead />
         <View style={styles.successCard}>
           <View style={styles.successIconCircle}>
             <Ionicons name="checkmark-circle-outline" size={54} color="#22c55e" />
@@ -146,6 +148,7 @@ export default function ResetPasswordConfirmScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
+      <NoIndexHead />
       <View style={styles.oceanContainer} pointerEvents="none">
         <LivingPixelOcean />
         <LinearGradient

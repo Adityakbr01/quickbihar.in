@@ -18,9 +18,14 @@ export async function create(data: any) {
 
 /**
  * Find all products matching a query, with filtering, searching, sorting, and pagination.
+ *
+ * `options.limit` is defensively clamped to 1..50 (plan §26 A5); callers pass pre-clamped
+ * values from the service layer. Returns additive `page/limit/totalPages` (backwards compatible).
  */
-export async function findAll(query: any = {}, options: { skip?: number; limit?: number } = {}) {
-    const { skip = 0, limit = 10 } = options;
+export async function findAll(query: any = {}, options: { skip?: number; limit?: number; page?: number } = {}) {
+    const limit = Math.min(50, Math.max(1, options.limit ?? 10));
+    const skip = Math.max(0, options.skip ?? 0);
+    const page = Math.max(1, options.page ?? (Math.floor(skip / limit) + 1));
 
     const finalQuery: any = { isDeleted: false };
 
@@ -154,7 +159,7 @@ export async function findAll(query: any = {}, options: { skip?: number; limit?:
         Product.countDocuments(finalQuery),
     ]);
 
-    return { data, total };
+    return { data, total, page, limit, totalPages: Math.max(1, Math.ceil(total / limit)) };
 }
 
 /**
@@ -214,13 +219,14 @@ export async function softDeleteById(id: string) {
 }
 
 /**
- * Find similar products based on overlapping category, tags, or brand.
+ * Find similar products based on overlapping category, tags, or brand (limit clamped 1..50).
  */
 export async function findSimilar(
     productId: string,
     { category, tags, brand }: { category?: string; tags?: string[]; brand?: string },
     limit = 10
 ) {
+    const safeLimit = Math.min(50, Math.max(1, Number(limit) || 10));
     const orConditions: any[] = [];
 
     if (category) {
@@ -250,7 +256,7 @@ export async function findSimilar(
         $or: orConditions,
     })
         .sort({ isTrending: -1, createdAt: -1 })
-        .limit(limit)
+        .limit(safeLimit)
         .lean({ virtuals: true });
 }
 
@@ -308,6 +314,7 @@ export async function restoreStock(productId: string, sku: string, quantity: num
  * to rated/trending products if the list has fewer than the requested limit.
  */
 export async function getTopSellingProducts(limit = 10, category?: string, vertical: string = "CLOTHING") {
+    const safeLimit = Math.min(50, Math.max(1, Number(limit) || 10));
     let Order: any;
     try {
         const mongoose = require("mongoose");
@@ -381,7 +388,7 @@ export async function getTopSellingProducts(limit = 10, category?: string, verti
         _id: { $in: productIds },
     }).lean({ virtuals: true });
 
-    const fallbackLimit = limit - productsWithSales.length;
+    const fallbackLimit = safeLimit - productsWithSales.length;
     let fallbackProducts: any[] = [];
     if (fallbackLimit > 0) {
         fallbackProducts = await Product.find({
@@ -432,6 +439,6 @@ export async function getTopSellingProducts(limit = 10, category?: string, verti
         return dateB - dateA;
     });
 
-    const finalProducts = allProducts.slice(0, limit);
+    const finalProducts = allProducts.slice(0, safeLimit);
     return { data: finalProducts, total: finalProducts.length };
 }

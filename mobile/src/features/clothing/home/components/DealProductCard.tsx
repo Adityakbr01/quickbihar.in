@@ -131,7 +131,7 @@ export const DealProductCard = ({ product, width }: DealProductCardProps) => {
     <TouchableOpacity
       activeOpacity={0.9}
       onPress={() => {
-        const id = (product as IProduct)._id || 'mock';
+        const id = (product as IProduct).slug || (product as IProduct)._id || 'mock';
         router.push({ pathname: "/product/[id]", params: { id } });
       }}
       style={[

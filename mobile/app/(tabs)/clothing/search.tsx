@@ -17,6 +17,8 @@ import SearchHeader from "@/src/features/clothing/search/components/SearchHeader
 import RecentSearches from "@/src/features/clothing/search/components/RecentSearches";
 import TrendingSection from "@/src/features/clothing/search/components/TrendingSection";
 import SearchResults from "@/src/features/clothing/search/components/SearchResults";
+import { SeoHead } from "@/src/components/seo/SeoHead";
+import { staticPageMeta } from "@/src/lib/seo";
 
 const TRENDING_ITEMS = categoriesData.map((c) => c.title);
 
@@ -125,6 +127,14 @@ const SearchScreen = () => {
 
   return (
     <SafeViewWrapper>
+      <SeoHead
+        meta={staticPageMeta({
+          title: "Search Fashion Online in Bihar | QuickBihar",
+          description:
+            "Search clothes, ethnic wear and accessories from local Bihar stores on QuickBihar.",
+          path: "/clothing/search",
+        })}
+      />
       <View style={[styles.container, { backgroundColor: theme.background }]}>
         <SearchHeader
           query={query}

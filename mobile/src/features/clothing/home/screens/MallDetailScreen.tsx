@@ -14,10 +14,13 @@ import {
 } from "react-native";
 import { FlashList } from "@shopify/flash-list";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { useRouter, Link } from "expo-router";
+import { Image as ExpoImage } from "expo-image";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import SafeViewWrapper from "@/src/provider/SafeViewWrapper";
 import { useMallDetail, useSubmitMallReview } from "../hooks/useMalls";
+import { SeoHead } from "@/src/components/seo/SeoHead";
+import { breadcrumbJsonLd, mallJsonLd, mallMeta } from "@/src/lib/seo";
 import { LinearGradient } from "expo-linear-gradient";
 import Toast from "react-native-toast-message";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
@@ -73,6 +76,17 @@ const MallDetailScreen: React.FC<MallDetailScreenProps> = ({ id }) => {
   }
 
   const { mall, products, reviews, matchingMalls } = data;
+
+  // ── SEO (web head tags; null-render on native) ──
+  const seoMeta = mallMeta(mall);
+  const seoJsonLd = [
+    mallJsonLd(mall, seoMeta.canonical),
+    breadcrumbJsonLd(seoMeta.canonical, [
+      { name: "Home", path: "/" },
+      { name: "Malls", path: "/mall" },
+      { name: mall?.name || "Mall" },
+    ]),
+  ];
 
   const handleShare = async () => {
     try {
@@ -130,6 +144,7 @@ const MallDetailScreen: React.FC<MallDetailScreenProps> = ({ id }) => {
 
   return (
     <SafeViewWrapper>
+      <SeoHead meta={seoMeta} jsonLd={seoJsonLd} />
       <ScrollView style={[styles.container, { backgroundColor: theme.background }]} showsVerticalScrollIndicator={false}>
         {/* Cover Image Slider & Header */}
         <View style={styles.heroContainer}>
@@ -145,12 +160,18 @@ const MallDetailScreen: React.FC<MallDetailScreenProps> = ({ id }) => {
               const index = Math.round(event.nativeEvent.contentOffset.x / slideSize);
               setActiveImageIndex(index);
             }}
-            renderItem={({ item }: { item: any }) => (
-              <Image source={{ uri: item.url }} style={[styles.coverImage, { width: SCREEN_WIDTH }]} resizeMode="cover" />
+            renderItem={({ item, index }: { item: any; index?: number }) => (
+              <ExpoImage
+                source={{ uri: item.url }}
+                style={[styles.coverImage, { width: SCREEN_WIDTH }]}
+                contentFit="cover"
+                alt={`${mall.name} — cover photo`}
+                priority={index === 0 ? "high" : "normal"}
+              />
             )}
           />
           <LinearGradient colors={["rgba(0,0,0,0.4)", "rgba(0,0,0,0.0)", "rgba(0,0,0,0.85)"]} style={styles.gradientOverlay} pointerEvents="none" />
-          
+
           {/* Header Actions */}
           <View style={styles.headerRow}>
             <TouchableOpacity onPress={() => router.back()} style={styles.navIconBtn}>
@@ -197,6 +218,20 @@ const MallDetailScreen: React.FC<MallDetailScreenProps> = ({ id }) => {
 
         {/* Mall Details Block */}
         <View style={styles.detailBlock}>
+          {/* Breadcrumb trail (visible match for BreadcrumbList JSON-LD) */}
+          <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 8 }}>
+            <Link href="/" style={{ color: theme.secondaryText, fontSize: 12 }}>
+              Home
+            </Link>
+            <Text style={{ color: theme.secondaryText, fontSize: 12 }}>{"  ›  "}</Text>
+            <Link href="/mall" style={{ color: theme.secondaryText, fontSize: 12 }}>
+              Malls
+            </Link>
+            <Text style={{ color: theme.secondaryText, fontSize: 12 }}>{"  ›  "}</Text>
+            <Text numberOfLines={1} style={{ color: theme.secondaryText, fontSize: 12, flex: 1 }}>
+              {mall.name}
+            </Text>
+          </View>
           <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
             <View style={[styles.locationContainer, { marginBottom: 0, flex: 1, marginRight: 8 }]}>
               <Ionicons name="location-outline" size={18} color={theme.primary} />
@@ -226,8 +261,8 @@ const MallDetailScreen: React.FC<MallDetailScreenProps> = ({ id }) => {
           </View>
 
           {mall.isMobileVisible !== false && !!mall.mobileNumber && (
-            <TouchableOpacity 
-              onPress={() => Linking.openURL(`tel:${mall.mobileNumber}`).catch(() => {})}
+            <TouchableOpacity
+              onPress={() => Linking.openURL(`tel:${mall.mobileNumber}`).catch(() => { })}
               style={{ flexDirection: "row", alignItems: "center", marginBottom: 12 }}
             >
               <Ionicons name="call-outline" size={16} color={theme.primary} style={{ marginRight: 6 }} />

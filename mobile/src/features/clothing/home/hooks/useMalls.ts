@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { getMallDetailRequest, postMallReviewRequest, getPublicMallsRequest } from "../api/mall.api";
+import { getMallDetailBySlugRequest, getMallDetailRequest, postMallReviewRequest, getPublicMallsRequest } from "../api/mall.api";
 
 export const usePublicMalls = () => {
   return useQuery<any[], Error>({
@@ -13,6 +13,17 @@ export const useMallDetail = (id: string) => {
     queryKey: ["mall", id],
     queryFn: () => getMallDetailRequest(id),
     enabled: !!id,
+  });
+};
+
+/**
+ * Fetch mall detail by slug (canonical SEO lookup, plan §26 A2).
+ */
+export const useMallDetailBySlug = (slug: string) => {
+  return useQuery<any, Error>({
+    queryKey: ["mall", "slug", slug],
+    queryFn: () => getMallDetailBySlugRequest(slug),
+    enabled: !!slug,
   });
 };
 

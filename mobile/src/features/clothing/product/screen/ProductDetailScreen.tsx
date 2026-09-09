@@ -21,7 +21,8 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import { socketClient } from "@/src/lib/socket";
 import { SocketEvents } from "@/src/constants/socketEvents";
-import { useRouter } from "expo-router";
+import { useRouter, Link } from "expo-router";
+import { Image as ExpoImage } from "expo-image";
 import { IProduct } from "../types/product.types";
 import Animated, {
   FadeIn,
@@ -38,6 +39,8 @@ import ProductDetailSkeleton from "./ProductDetail/components/ProductDetailSkele
 import SizeChartModal from "../components/modals/SizeChartModal";
 import { WriteReviewModal } from "../components/modals/WriteReviewModal";
 import SafeViewWrapper from "@/src/provider/SafeViewWrapper";
+import { SeoHead } from "@/src/components/seo/SeoHead";
+import { breadcrumbJsonLd, productJsonLd, productMeta } from "@/src/lib/seo";
 import { useWishlistStore } from "@/src/features/common/wishlist/store/wishlistStore";
 import { useCartStore } from "@/src/features/common/cart/store/cartStore";
 import * as Haptics from "expo-haptics";
@@ -285,8 +288,16 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
     );
   }
 
+  // ── SEO (web head tags; null-render on native) ──
+  const seoMeta = productMeta(product);
+  const seoJsonLd = [
+    productJsonLd(product, seoMeta.canonical),
+    breadcrumbJsonLd(seoMeta.canonical, [{ name: "Home", path: "/" }, { name: product?.title || "Product" }]),
+  ];
+
   return (
     <SafeViewWrapper>
+      <SeoHead meta={seoMeta} jsonLd={seoJsonLd} />
       <ScrollView
         style={s.scrollView}
         showsVerticalScrollIndicator={false}
@@ -303,11 +314,13 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
             data={images}
             scrollAnimationDuration={300}
             onSnapToItem={setCarouselIndex}
-            renderItem={({ item }) => (
-              <Image
+            renderItem={({ item, index }) => (
+              <ExpoImage
                 source={{ uri: item.url }}
                 style={s.galleryImage}
-                resizeMode="cover"
+                contentFit="cover"
+                alt={dp.title || "Product image"}
+                priority={index === 0 ? "high" : "normal"}
               />
             )}
           />
@@ -444,6 +457,19 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
             PRODUCT INFO
         ═══════════════════════════════════════════ */}
         <View style={[s.infoSection, { backgroundColor: theme.background }]}>
+          {/* Breadcrumb trail (visible match for BreadcrumbList JSON-LD) */}
+          <View
+            style={{ flexDirection: "row", alignItems: "center", marginBottom: 8 }}
+            accessibilityRole="list"
+          >
+            <Link href="/" style={{ color: theme.secondaryText, fontSize: 12 }}>
+              Home
+            </Link>
+            <Text style={{ color: theme.secondaryText, fontSize: 12 }}>{"  ›  "}</Text>
+            <Text numberOfLines={1} style={{ color: theme.secondaryText, fontSize: 12, flex: 1 }}>
+              {dp.title}
+            </Text>
+          </View>
           {/* Brand */}
           <Animated.Text
             entering={FadeIn.delay(100)}
@@ -1064,10 +1090,10 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
                   const avatarColor = AVATAR_COLORS[idx % AVATAR_COLORS.length];
                   const formattedDate = review.createdAt
                     ? new Date(review.createdAt).toLocaleDateString("en-IN", {
-                        day: "numeric",
-                        month: "short",
-                        year: "numeric",
-                      })
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                    })
                     : review.date || "Verified Purchase";
 
                   return (
@@ -1274,8 +1300,8 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
                   backgroundColor: isInCart
                     ? theme.primary
                     : buttonDisabled
-                    ? theme.secondaryText || "#9ca3af"
-                    : theme.primary,
+                      ? theme.secondaryText || "#9ca3af"
+                      : theme.primary,
                   opacity: isAddingToCart ? 0.7 : 1
                 }
               ]}

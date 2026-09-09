@@ -274,20 +274,23 @@ export async function createProduct(data: any, files: any[], requesterId: string
 
 /**
  * Query products with pagination support.
+ *
+ * Page is floored at 1; limit is clamped to 1..50 (SEO/crawler abuse guard, plan §26 A5).
+ * Returns additive `page/limit/totalPages` alongside legacy `data/total` (backwards compatible).
  */
 export async function getProducts(query: any = {}) {
-    const page = parseInt(query.page as string) || 1;
-    const limit = parseInt(query.limit as string) || 10;
+    const page = Math.max(1, parseInt(query.page as string) || 1);
+    const limit = Math.min(50, Math.max(1, parseInt(query.limit as string) || 10));
     const skip = (page - 1) * limit;
 
-    return await ProductDAO.findAll(query, { skip, limit });
+    return await ProductDAO.findAll(query, { skip, limit, page });
 }
 
 /**
- * Fetch top trending/selling products.
+ * Fetch top trending/selling products (limit clamped 1..50, plan §26 A5).
  */
 export async function getTrendingProducts(query: any = {}) {
-    const limit = Number(query.limit) || 10;
+    const limit = Math.min(50, Math.max(1, Number(query.limit) || 10));
     const category = typeof query.category === "string" ? query.category : undefined;
     const vertical = typeof query.vertical === "string" ? query.vertical : "CLOTHING";
     return await ProductDAO.getTopSellingProducts(limit, category, vertical);
@@ -494,6 +497,7 @@ export async function deleteProduct(id: string, sellerId: string, role: string) 
  * Find similar products using source product specs.
  */
 export async function getSimilarProducts(productId: string, limit = 10) {
+    const safeLimit = Math.min(50, Math.max(1, Number(limit) || 10));
     const product = await ProductDAO.findById(productId);
     if (!product) throw new ApiError(404, "Product not found");
 
@@ -504,7 +508,7 @@ export async function getSimilarProducts(productId: string, limit = 10) {
             tags: product.tags,
             brand: product.brand || undefined,
         },
-        limit
+        safeLimit
     );
 
     return similar;

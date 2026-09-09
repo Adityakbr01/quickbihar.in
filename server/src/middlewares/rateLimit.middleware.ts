@@ -45,3 +45,33 @@ export const onboardingRateLimiter: RateLimitRequestHandler = rateLimit({
     error: "Too many partner onboarding attempts. Please wait a few minutes before trying again.",
   },
 });
+
+/**
+ * Public catalog rate limiter — generous bucket for storefront browsing + crawlers.
+ * 120 req/min/IP across public product/category/mall reads. Does not affect auth flows.
+ */
+export const publicCatalogRateLimiter: RateLimitRequestHandler = rateLimit({
+  windowMs: 60 * 1000,
+  max: 120,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    statusCode: 429,
+    error: "Too many catalog requests. Please slow down and try again shortly.",
+  },
+});
+
+/**
+ * SEO sitemap rate limiter — for /sitemap.xml + shards + /robots.txt (added in plan §18).
+ * 60 req/min/IP is ample for crawlers (sitemap cached 1h server-side).
+ */
+export const seoSitemapRateLimiter: RateLimitRequestHandler = rateLimit({
+  windowMs: 60 * 1000,
+  max: 60,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    statusCode: 429,
+    error: "Too many sitemap requests. Please slow down and try again shortly.",
+  },
+});

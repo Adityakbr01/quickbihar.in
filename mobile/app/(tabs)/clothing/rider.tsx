@@ -5,6 +5,7 @@ import {
   useAuthStore,
 } from "@/src/features/common/auth/store/authStore";
 import { Redirect } from "expo-router";
+import { NoIndexHead } from "@/src/components/seo/SeoHead";
 import RiderWorkspaceScreen from "@/src/features/Delivery/screens/RiderWorkspaceScreen";
 import React from "react";
 
@@ -17,5 +18,10 @@ export default function RiderTabScreen() {
     return <Redirect href="/(tabs)/clothing/home" />;
   }
 
-  return <RiderWorkspaceScreen />;
+  return (
+    <>
+      <NoIndexHead />
+      <RiderWorkspaceScreen />
+    </>
+  );
 }

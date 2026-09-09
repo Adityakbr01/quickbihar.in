@@ -458,7 +458,7 @@ const ProductGridCard: React.FC<ProductGridCardProps> = React.memo(
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       router.push({
         pathname: "/product/[id]",
-        params: { id: product._id },
+        params: { id: product.slug || product._id },
       });
     };
 

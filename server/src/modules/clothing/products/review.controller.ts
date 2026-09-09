@@ -108,7 +108,7 @@ export const getProductReviews = asyncHandler(async (req: Request, res: Response
             : false,
     }));
 
-    return res.status(200).json(
+    return res.status(200).set("Cache-Control", "public, max-age=60").json(
         new ApiResponse(
             200,
             {

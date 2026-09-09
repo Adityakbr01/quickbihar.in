@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   getProductByIdRequest,
+  getProductBySlugRequest,
   getSimilarProductsRequest,
   getProductReviewsRequest,
   createProductReviewRequest,
@@ -16,6 +17,17 @@ export const useProductById = (id: string) => {
     queryKey: ["product", id],
     queryFn: () => getProductByIdRequest(id),
     enabled: !!id && id !== 'mock', // Don't fetch if id is missing or mock
+  });
+};
+
+/**
+ * Hook for fetching a single product by slug (canonical SEO lookup, plan §26 A1).
+ */
+export const useProductBySlug = (slug: string) => {
+  return useQuery<IProduct, Error>({
+    queryKey: ["product", "slug", slug],
+    queryFn: () => getProductBySlugRequest(slug),
+    enabled: !!slug && slug !== 'mock',
   });
 };
 

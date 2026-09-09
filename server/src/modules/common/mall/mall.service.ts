@@ -79,8 +79,40 @@ export async function getMallDetail(mallId: string) {
         throw new ApiError(404, "Mall not found");
     }
 
+    return assembleMallDetail(mall);
+}
+
+/**
+ * Builds the full detail view for a single mall looked up by slug.
+ * Same enriched payload as {@link getMallDetail} — canonical SEO lookup (plan §26 A2).
+ *
+ * @param slug - URL-safe mall slug (case-insensitive).
+ * @throws {ApiError} 404 if no matching public mall exists.
+ */
+export async function getMallDetailBySlug(slug: string) {
+    const normalized = String(slug || "").toLowerCase().trim();
+    if (!normalized) {
+        throw new ApiError(404, "Mall not found");
+    }
+
+    const mall = await Mall.findOne({
+        slug: normalized,
+        ...publicMallFilter,
+    }).lean();
+
+    if (!mall) {
+        throw new ApiError(404, "Mall not found");
+    }
+
+    return assembleMallDetail(mall);
+}
+
+/**
+ * Shared detail assembler for id- and slug-based lookups (single source of truth).
+ */
+async function assembleMallDetail(mall: any) {
     const formattedMall = (await withSellerCounts([mall]))[0];
-    const mallObjectId = new Types.ObjectId(mallId);
+    const mallObjectId = new Types.ObjectId(mall._id);
 
     const sellers = await Seller.find({ mallId: mallObjectId }).select("userId").lean();
     const sellerUserIds = sellers.map((seller: any) => seller.userId).filter(Boolean);

@@ -317,7 +317,7 @@ export default function OrderDetailScreen() {
   };
 
   const handleNavigateToProduct = (item: any) => {
-    const prodId = item.productId?._id || item.productId || item._id;
+    const prodId = item.productId?.slug || item.productId?._id || item.productId || item._id;
     if (prodId && typeof prodId === "string") {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       router.push({

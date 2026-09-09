@@ -37,6 +37,17 @@ router.get(
     checkServiceabilityController
 );
 
+// 🔐 SELLER ROUTE — must be registered BEFORE "/:id" (Express matches in order;
+// "/:id" would otherwise swallow "my-stores" and 404 on the ObjectId regex).
+// Plan §26 A8 fix for the previously unreachable handler.
+router.get(
+    "/my-stores",
+    verifyJWT,
+    isSellerOrAdmin,
+    requirePermission([PERMISSIONS.VIEW_STORE.code]),
+    getSellerStoresController
+);
+
 // 🔐 PROTECTED ROUTES (Seller/Admin)
 router.get("/:id", (req, res, next) => {
     if (/^[0-9a-fA-F]{24}$/.test(req.params.id || "")) {
@@ -75,12 +86,6 @@ router.patch(
     requirePermission([PERMISSIONS.VERIFY_STORE.code]),
     validate(verifyStoreSchema),
     verifyStoreController
-);
-
-router.get(
-    "/my-stores",
-    requirePermission([PERMISSIONS.VIEW_STORE.code]),
-    getSellerStoresController
 );
 
 // 🟢 PUBLIC ROUTES (Must be at the bottom to avoid catching specific routes like /my-stores)

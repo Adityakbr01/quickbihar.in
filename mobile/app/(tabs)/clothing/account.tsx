@@ -4,6 +4,7 @@ import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import AccountMain from "@/src/features/common/account/screens/AccountMain";
 import SafeViewWrapper from "@/src/provider/SafeViewWrapper";
+import { NoIndexHead } from "@/src/components/seo/SeoHead";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 
@@ -66,6 +67,7 @@ const AccountScreen = () => {
   if (isInitialized && !isAuthenticated) {
     return (
       <SafeViewWrapper>
+        <NoIndexHead />
         <View style={[styles.centerContainer, { backgroundColor: theme.background }]}>
           <View style={[styles.errorIconBadge, { backgroundColor: "rgba(59, 130, 246, 0.15)" }]}>
             <Ionicons name="person-circle-outline" size={48} color="#3b82f6" />
@@ -87,6 +89,7 @@ const AccountScreen = () => {
 
   return (
     <SafeViewWrapper>
+      <NoIndexHead />
       <AccountErrorBoundary theme={theme} onReset={() => router.replace("/(tabs)/clothing/home")}>
         <AccountMain />
       </AccountErrorBoundary>

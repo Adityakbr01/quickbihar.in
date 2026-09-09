@@ -54,19 +54,22 @@ export const getAllProducts = asyncHandler(async (req: Request, res: Response) =
 
 /**
  * Handle GET /public - Public storefront endpoint for active products.
+ * Short public cache (60s) — list changes often; CDN/Varnish may cache per query string.
  */
 export const getPublicProducts = asyncHandler(async (req: Request, res: Response) => {
     const products = await ProductService.getProducts({ ...req.query, isActive: true, publicOnly: true });
+    res.set("Cache-Control", "public, max-age=60");
     return res
         .status(200)
         .json(new ApiResponse(200, products, "Public products fetched successfully"));
 });
 
 /**
- * Handle GET /trending - Retrieve trending products.
+ * Handle GET /trending - Retrieve trending products (public cache 60s).
  */
 export const getTrendingProducts = asyncHandler(async (req: Request, res: Response) => {
     const products = await ProductService.getTrendingProducts(req.query);
+    res.set("Cache-Control", "public, max-age=60");
     return res
         .status(200)
         .json(new ApiResponse(200, products, "Trending products fetched successfully"));
@@ -79,6 +82,8 @@ export const getTrendingProducts = asyncHandler(async (req: Request, res: Respon
  */
 export const getLocalProducts = asyncHandler(async (req: Request, res: Response) => {
     const result = await ProductService.getLocalProducts(req.query);
+    // Personalized by pincode/GPS — private cache only, never shared (plan §26 A6).
+    res.set("Cache-Control", "private, max-age=30");
     res.ok(
         result,
         result.serviceable ? "Local products fetched successfully" : "Service is not available in your area yet",
@@ -86,20 +91,22 @@ export const getLocalProducts = asyncHandler(async (req: Request, res: Response)
 });
 
 /**
- * Handle GET /slug/:slug - Fetch a specific product by slug.
+ * Handle GET /slug/:slug - Fetch a specific product by slug (public cache 5min).
  */
 export const getProductBySlug = asyncHandler(async (req: Request, res: Response) => {
     const product = await ProductService.getProductBySlug(req.params.slug as unknown as string);
+    res.set("Cache-Control", "public, max-age=300");
     return res
         .status(200)
         .json(new ApiResponse(200, product, "Product fetched successfully"));
 });
 
 /**
- * Handle GET /:id - Fetch a specific product by database ID.
+ * Handle GET /:id - Fetch a specific product by database ID (public cache 5min).
  */
 export const getProductById = asyncHandler(async (req: Request, res: Response) => {
     const product = await ProductService.getProductById(req.params.id as unknown as string);
+    res.set("Cache-Control", "public, max-age=300");
     return res
         .status(200)
         .json(new ApiResponse(200, product, "Product fetched successfully"));
@@ -136,8 +143,9 @@ export const deleteProduct = asyncHandler(async (req: Request, res: Response) =>
  * Handle GET /:id/similar - Retrieve similar products based on tags, brand, and category.
  */
 export const getSimilarProducts = asyncHandler(async (req: Request, res: Response) => {
-    const limit = parseInt(req.query.limit as string) || 10;
+    const limit = Math.min(50, Math.max(1, parseInt(req.query.limit as string) || 10));
     const similar = await ProductService.getSimilarProducts(req.params.id as string, limit);
+    res.set("Cache-Control", "public, max-age=300");
 
     return res
         .status(200)

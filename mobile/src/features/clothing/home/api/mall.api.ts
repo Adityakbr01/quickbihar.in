@@ -3,6 +3,8 @@ import axiosInstance from "@/src/api/axiosInstance";
 export interface TopMall {
   _id?: string;
   id: string;
+  /** Canonical mall slug (unique, lowercase). Present on all malls created via current APIs. */
+  slug?: string;
   name: string;
   location: string;
   rating: number;
@@ -30,6 +32,15 @@ export const getPublicMallsRequest = async (): Promise<TopMall[]> => {
 
 export const getMallDetailRequest = async (id: string): Promise<any> => {
   const response = await axiosInstance.get(`/malls/${id}`);
+  return response.data.data;
+};
+
+/**
+ * Fetch mall detail by slug (canonical SEO lookup, plan §26 A2).
+ * Same enriched payload ({ mall, products, reviews, matchingMalls }) as the id lookup.
+ */
+export const getMallDetailBySlugRequest = async (slug: string): Promise<any> => {
+  const response = await axiosInstance.get(`/malls/slug/${encodeURIComponent(slug)}`);
   return response.data.data;
 };
 

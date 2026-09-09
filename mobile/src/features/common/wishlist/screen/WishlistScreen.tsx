@@ -92,6 +92,8 @@ const WishlistScreen = () => {
               {items.map((item: any) => {
                 const product = item.product || item;
                 const pId = String(product._id || product.id || "");
+                // Canonical slug URL for navigation (store keys stay id-based for server sync).
+                const navId = String(product.slug || product._id || product.id || "");
                 if (!pId) return null;
 
                 const imageUrl =
@@ -117,7 +119,7 @@ const WishlistScreen = () => {
                     onPress={() =>
                       router.push({
                         pathname: "/product/[id]",
-                        params: { id: pId },
+                        params: { id: navId },
                       })
                     }
                   >

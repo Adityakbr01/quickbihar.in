@@ -94,6 +94,12 @@ export class UserController {
             throw new ApiError(400, "FCM Token is required");
         }
 
+        // Shape guard: FCM registration tokens are ~150-200 chars. Reject blobs
+        // so unauthenticated callers cannot stuff the DeviceToken collection.
+        if (typeof fcmToken !== "string" || fcmToken.length > 512) {
+            throw new ApiError(400, "Invalid FCM Token");
+        }
+
         // Try to decode optional JWT token to link FCM to user if authenticated
         let userId: string | undefined = undefined;
         try {

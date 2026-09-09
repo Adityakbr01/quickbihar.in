@@ -112,7 +112,8 @@ export const ProductCard = ({ item }: ProductCardProps) => {
   return (
     <TouchableOpacity
       onPress={() => {
-        router.push({ pathname: "/product/[id]", params: { id } });
+        // Canonical slug URL for navigation (wishlist/cart keys above stay id-based).
+        router.push({ pathname: "/product/[id]", params: { id: (item as IProduct).slug || id } });
       }}
       style={[
         styles.card,

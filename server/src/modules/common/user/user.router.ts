@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { verifyJWT, isAdmin, validatePermission } from "@/middlewares/auth.middleware";
+import { authRateLimiter } from "@/middlewares/rateLimit.middleware";
 import { upload } from "@/middlewares/multer.middleware";
 import { UserController } from "./user.controller";
 import { PERMISSIONS } from "@/modules/common/rbac/rbac.constants";
@@ -7,7 +8,10 @@ import { PERMISSIONS } from "@/modules/common/rbac/rbac.constants";
 const router = Router();
 
 // ⭐ PUBLIC ROUTES
-router.patch("/fcm-token", UserController.updateFcmToken);
+// Intentionally public: guest devices register push tokens pre-login; the handler
+// links the token to a user only when a valid JWT is presented. Abuse-guarded by
+// rate limit + token shape validation in the controller (plan §33 disposition).
+router.patch("/fcm-token", authRateLimiter, UserController.updateFcmToken);
 
 // ⭐ PROTECTED ROUTES (Requires Login)
 router.use(verifyJWT);

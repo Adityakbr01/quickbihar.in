@@ -19,6 +19,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useLocationTracking } from "@/src/features/common/trackOrder/hooks/useLocationTracking";
 import { useOrderTracking } from "@/src/features/common/trackOrder/hooks/useOrderTracking";
 import { authStorage } from "@/src/lib/authStorage";
+import { NoIndexHead } from "@/src/components/seo/SeoHead";
 import { useSocketStore } from "@/src/store/useSocketStore";
 import { SocketEvents } from "@/src/constants/socketEvents";
 
@@ -191,6 +192,7 @@ export default function TrackOrderScreen() {
 
   return (
     <View style={styles.container}>
+      <NoIndexHead />
       <Stack.Screen
         options={{
           headerShown: true,

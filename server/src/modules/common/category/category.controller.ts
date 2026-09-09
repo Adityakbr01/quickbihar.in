@@ -12,9 +12,10 @@ import * as CategoryService from "./category.service";
 import { uploadToImageKit, deleteFromImageKit } from "@/utils/imagekit.util";
 import { ApiError } from "@/utils/ApiError";
 
-/** GET /public — active storefront categories. */
+/** GET /public — active storefront categories (public cache 5min; small taxonomy). */
 export const getAllCategories = asyncHandler(async (req: Request, res: Response) => {
     const categories = await CategoryService.getAllCategories(false, req.query);
+    res.set("Cache-Control", "public, max-age=300");
     return res
         .status(200)
         .json(new ApiResponse(200, categories, "Categories fetched successfully"));
@@ -56,9 +57,19 @@ export const getAllCategoriesAdmin = asyncHandler(async (req: Request, res: Resp
         .json(new ApiResponse(200, categories, "Categories fetched successfully"));
 });
 
-/** GET /:id — single category. */
+/** GET /:id — single category (public cache 5min). */
 export const getCategoryById = asyncHandler(async (req: Request, res: Response) => {
     const category = await CategoryService.getCategoryById(req.params.id as unknown as string);
+    res.set("Cache-Control", "public, max-age=300");
+    return res
+        .status(200)
+        .json(new ApiResponse(200, category, "Category fetched successfully"));
+});
+
+/** GET /slug/:slug — single ACTIVE category by slug (public cache 5min, plan §26 A1). */
+export const getCategoryBySlug = asyncHandler(async (req: Request, res: Response) => {
+    const category = await CategoryService.getCategoryBySlug(req.params.slug as unknown as string);
+    res.set("Cache-Control", "public, max-age=300");
     return res
         .status(200)
         .json(new ApiResponse(200, category, "Category fetched successfully"));

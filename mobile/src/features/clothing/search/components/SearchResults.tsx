@@ -87,7 +87,7 @@ const SearchResults = ({
               marginRight: index % 2 === 0 ? 8 : 0,
             },
           ]}
-          onPress={() => onItemPress(item._id)}
+          onPress={() => onItemPress(item.slug || item._id)}
         >
           <View style={styles.imageContainer}>
             <ExpoImage
