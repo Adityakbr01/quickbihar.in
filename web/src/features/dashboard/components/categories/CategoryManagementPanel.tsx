@@ -182,6 +182,8 @@ export function CategoryManagementPanel() {
                   <TableHead className="px-4 text-gray-400">Category</TableHead>
                   <TableHead className="text-gray-400">Parent</TableHead>
                   <TableHead className="text-gray-400">Sort</TableHead>
+                  <TableHead className="text-gray-400">Home</TableHead>
+                  <TableHead className="text-gray-400">Pos</TableHead>
                   <TableHead className="text-gray-400">Status</TableHead>
                   <TableHead className="text-right text-gray-400">
                     Actions
@@ -203,10 +205,52 @@ export function CategoryManagementPanel() {
                       </div>
                     </TableCell>
                     <TableCell className="text-gray-300">
-                      {parentTitle(category.parentId)}
+                      {parentTitle(category.parentId) ? (
+                        <span className="inline-flex items-center rounded-md bg-white/10 px-2 py-0.5 text-xs text-gray-300">
+                          {parentTitle(category.parentId)}
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center rounded-md bg-emerald-500/10 px-2 py-0.5 text-xs text-emerald-400">
+                          Main Category
+                        </span>
+                      )}
                     </TableCell>
                     <TableCell className="text-gray-300">
                       {category.priority || 0} / {category.sortOrder || 0}
+                    </TableCell>
+                    <TableCell>
+                      <Switch
+                        checked={Boolean(category.isVisibleOnHome)}
+                        onCheckedChange={(checked) => {
+                          updateCategory.mutate({
+                            categoryId: category._id,
+                            payload: { isVisibleOnHome: checked },
+                          });
+                        }}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <input
+                        type="number"
+                        min="0"
+                        max="99"
+                        className="h-7 w-14 rounded border border-white/10 bg-white/5 px-1.5 text-center text-xs text-white focus:border-emerald-500 focus:outline-none"
+                        defaultValue={category.homePosition ?? 0}
+                        onBlur={(e) => {
+                          const val = Number(e.target.value);
+                          if (val !== (category.homePosition ?? 0)) {
+                            updateCategory.mutate({
+                              categoryId: category._id,
+                              payload: { homePosition: val },
+                            });
+                          }
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            (e.target as HTMLInputElement).blur();
+                          }
+                        }}
+                      />
                     </TableCell>
                     <TableCell>
                       <StatusBadge
@@ -282,6 +326,8 @@ function CategoryForm({
   const [banner, setBanner] = useState(category?.banner || "");
   const [isActive, setIsActive] = useState(category?.isActive ?? true);
   const [isFeatured, setIsFeatured] = useState(category?.isFeatured ?? false);
+  const [isVisibleOnHome, setIsVisibleOnHome] = useState(category?.isVisibleOnHome ?? true);
+  const [homePosition, setHomePosition] = useState(String(category?.homePosition ?? ""));
   const [seoTitle, setSeoTitle] = useState(category?.seo?.metaTitle || "");
   const [seoDescription, setSeoDescription] = useState(
     category?.seo?.metaDescription || "",
@@ -305,6 +351,8 @@ function CategoryForm({
         banner: optionalValue(banner),
         isActive,
         isFeatured,
+        isVisibleOnHome,
+        homePosition: numericOrUndefined(homePosition),
         seo: {
           metaTitle: optionalValue(seoTitle),
           metaDescription: optionalValue(seoDescription),
@@ -408,6 +456,20 @@ function CategoryForm({
           onCheckedChange={setIsFeatured}
         />
       </div>
+      <div className="flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-gray-300 h-9">
+        <span>Show on Home</span>
+        <Switch
+          checked={isVisibleOnHome}
+          onCheckedChange={setIsVisibleOnHome}
+        />
+      </div>
+      <Input
+        type="number"
+        value={homePosition}
+        onChange={(event) => setHomePosition(event.target.value)}
+        placeholder="Home Position (1-5)"
+        className={inputClass}
+      />
       <div className="flex gap-2 md:col-span-4 mt-2">
         <Button type="submit" disabled={isPending || (!category && !image && !imageUrl.trim())}>
           {isPending ? (
@@ -455,37 +517,54 @@ function CategoryTree({ categories }: { categories: AdminCategory[] }) {
     <Card className="border-white/10 bg-[#1c1c1c]">
       <CardHeader className="border-b border-white/10">
         <CardTitle className="text-base text-white">
-          Category Tree View
+          Category &amp; Subcategory Hierarchy
         </CardTitle>
       </CardHeader>
-      <CardContent className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
+      <CardContent className="grid gap-3 md:grid-cols-2 xl:grid-cols-3 pt-4">
         {!roots.length && (
           <div className="text-sm text-gray-400">No categories available.</div>
         )}
-        {roots.map((category) => (
-          <div
-            key={category._id}
-            className="rounded-lg border border-white/10 bg-white/[0.03] p-3"
-          >
-            <div className="flex items-center justify-between gap-3">
-              <div className="font-medium text-white">{category.title}</div>
-              <StatusBadge
-                active={Boolean(category.isActive)}
-                label={category.isActive ? "Active" : "Inactive"}
-              />
-            </div>
-            <div className="mt-2 grid gap-1">
-              {(childrenByParent.get(category._id) || []).map((child) => (
-                <div
-                  key={child._id}
-                  className="rounded-md bg-white/5 px-2 py-1 text-xs text-gray-300"
-                >
-                  {child.title}
+        {roots.map((category) => {
+          const children = childrenByParent.get(category._id) || [];
+          return (
+            <div
+              key={category._id}
+              className="rounded-lg border border-white/10 bg-white/[0.03] p-3.5 space-y-2.5"
+            >
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold text-white">{category.title}</span>
+                  {category.isVisibleOnHome && (
+                    <span className="rounded bg-emerald-500/20 px-1.5 py-0.5 text-[10px] font-medium text-emerald-400">
+                      Home #{category.homePosition || 0}
+                    </span>
+                  )}
                 </div>
-              ))}
+                <StatusBadge
+                  active={Boolean(category.isActive)}
+                  label={category.isActive ? "Active" : "Inactive"}
+                />
+              </div>
+              <div className="text-xs text-gray-400">
+                {children.length} {children.length === 1 ? "subcategory" : "subcategories"}
+              </div>
+              {children.length > 0 ? (
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  {children.map((child) => (
+                    <span
+                      key={child._id}
+                      className="inline-flex items-center rounded-md bg-white/5 border border-white/5 px-2 py-1 text-xs text-gray-300"
+                    >
+                      {child.title}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-xs text-gray-500 italic">No subcategories yet</div>
+              )}
             </div>
-          </div>
-        ))}
+          );
+        })}
       </CardContent>
     </Card>
   );

@@ -37,13 +37,13 @@ export async function findAll(query: any = {}) {
     if (query.status === "inactive") filter.isActive = false;
     if (query.parentId) filter.parentId = query.parentId;
 
-    const sortField = ["priority", "sortOrder", "title", "createdAt"].includes(query.sortBy)
+    const sortField = ["priority", "sortOrder", "homePosition", "title", "createdAt"].includes(query.sortBy)
         ? query.sortBy
         : "priority";
     const sortOrder = query.sortOrder === "asc" ? 1 : -1;
 
     if (!hasQuery) {
-        return await Category.find(filter).populate("parentId", "title slug").sort({ priority: -1, title: 1 });
+        return await Category.find(filter).populate("parentId", "title slug").sort({ homePosition: 1, priority: -1, title: 1 });
     }
 
     const [data, total] = await Promise.all([
@@ -64,13 +64,16 @@ export async function findAll(query: any = {}) {
     };
 }
 
-/** Public-facing categories: active only, ordered by priority then title. */
+/** Public-facing categories: active only, ordered by homePosition then priority then title. */
 export async function findActive(query: any = {}) {
     const filter: any = { isActive: true };
     if (query.vertical) {
         filter.vertical = query.vertical;
     }
-    return await Category.find(filter).sort({ priority: -1, title: 1 });
+    if (query.isVisibleOnHome === "true" || query.isVisibleOnHome === true) {
+        filter.isVisibleOnHome = true;
+    }
+    return await Category.find(filter).sort({ homePosition: 1, priority: -1, title: 1 });
 }
 
 /** Fetch a single category by id. */

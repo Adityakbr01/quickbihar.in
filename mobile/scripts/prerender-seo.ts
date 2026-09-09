@@ -181,19 +181,30 @@ async function main() {
     title: "Top Selling Fashion & Clothing in Bihar | QuickBihar",
     description: "Browse best-selling styles, trending clothing, and top-rated local fashion on QuickBihar.",
     path: "/top-selling",
+    image: `${siteBase}/assets/images/icons/splash-icon.png`,
     indexable: true,
   });
-  writeStaticHtml("top-selling.html", injectMetadata(baseHtml, topSellingMeta));
-  generatedCount++;
+  const topSellingBreadcrumbs = breadcrumbJsonLd(topSellingMeta.canonical, [
+    { name: "Home", path: "/" },
+    { name: "Top Selling", path: "/top-selling" },
+  ]);
+  writeStaticHtml("top-selling.html", injectMetadata(baseHtml, topSellingMeta, [topSellingBreadcrumbs]));
+  writeStaticHtml("top-selling/index.html", injectMetadata(baseHtml, topSellingMeta, [topSellingBreadcrumbs]));
+  generatedCount += 2;
 
   const mallHubMeta = staticPageMeta({
     title: "Shopping Malls in Bihar | Directory, Stores & Offers | QuickBihar",
     description: "Explore top shopping malls, store directories, and exclusive local offers across Bihar on QuickBihar.",
     path: "/mall",
+    image: `${siteBase}/assets/images/icons/splash-icon.png`,
     indexable: true,
   });
-  writeStaticHtml("mall.html", injectMetadata(baseHtml, mallHubMeta));
-  writeStaticHtml("mall/index.html", injectMetadata(baseHtml, mallHubMeta));
+  const mallBreadcrumbs = breadcrumbJsonLd(mallHubMeta.canonical, [
+    { name: "Home", path: "/" },
+    { name: "Malls", path: "/mall" },
+  ]);
+  writeStaticHtml("mall.html", injectMetadata(baseHtml, mallHubMeta, [mallBreadcrumbs]));
+  writeStaticHtml("mall/index.html", injectMetadata(baseHtml, mallHubMeta, [mallBreadcrumbs]));
   generatedCount += 2;
 
   // 3. Dynamic Template Fallbacks (for client-side routing)

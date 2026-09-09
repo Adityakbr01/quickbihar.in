@@ -377,6 +377,8 @@ export interface AdminCategory {
   sortOrder?: number;
   isActive?: boolean;
   isFeatured?: boolean;
+  isVisibleOnHome?: boolean;
+  homePosition?: number;
   seo?: {
     metaTitle?: string;
     metaDescription?: string;
@@ -393,6 +395,8 @@ export interface CategoryPayload {
   sortOrder?: number;
   isActive?: boolean;
   isFeatured?: boolean;
+  isVisibleOnHome?: boolean;
+  homePosition?: number;
   image?: string;
   banner?: string;
   seo?: {
@@ -465,6 +469,8 @@ const categoryFormData = (payload: CategoryPayload, image?: File) => {
   appendOptional(formData, "sortOrder", payload.sortOrder);
   appendOptional(formData, "isActive", payload.isActive);
   appendOptional(formData, "isFeatured", payload.isFeatured);
+  appendOptional(formData, "isVisibleOnHome", payload.isVisibleOnHome);
+  appendOptional(formData, "homePosition", payload.homePosition);
   appendOptional(formData, "image", payload.image);
   appendOptional(formData, "banner", payload.banner);
   appendOptional(formData, "seo", payload.seo);

@@ -54,6 +54,16 @@ const categorySchema = new Schema<ICategory>(
             type: Boolean,
             default: false,
         },
+        isVisibleOnHome: {
+            type: Boolean,
+            default: true,
+            index: true,
+        },
+        homePosition: {
+            type: Number,
+            default: 0,
+            index: true,
+        },
         vertical: {
             type: String,
             enum: ["CLOTHING", "FOOD", "JEWELERY", "GLOBAL"],

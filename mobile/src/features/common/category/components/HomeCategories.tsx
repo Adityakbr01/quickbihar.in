@@ -14,10 +14,12 @@ import { Category } from "../types/category.types";
 import CategorySkeleton from "./CategorySkeleton";
 import { useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
+import { Ionicons } from "@expo/vector-icons";
 
 const HomeCategories = ({ rootSlug = "clothing" }: { rootSlug?: string }) => {
   const theme = useTheme() as any;
   const router = useRouter();
+  const [showAll, setShowAll] = React.useState(false);
   const { data: rawCategories, isLoading, error } = useCategories({ vertical: "CLOTHING" });
 
   const renderItem = ({ item }: { item: Category }) => (
@@ -51,8 +53,8 @@ const HomeCategories = ({ rootSlug = "clothing" }: { rootSlug?: string }) => {
     </TouchableOpacity>
   );
 
-  const displayedCategories = React.useMemo(() => {
-    if (!rawCategories || rawCategories.length === 0) return [];
+  const { visibleCategories, totalCount } = React.useMemo(() => {
+    if (!rawCategories || rawCategories.length === 0) return { visibleCategories: [], totalCount: 0 };
 
     // Filter only clothing categories (exclude Jewellery, etc.)
     const categories = rawCategories.filter((cat) => {
@@ -71,7 +73,7 @@ const HomeCategories = ({ rootSlug = "clothing" }: { rootSlug?: string }) => {
       );
     });
 
-    // Find the root category (e.g. "clothing")
+    // Find the root category (e.g. "clothing") if specified
     const targetSlug = (rootSlug || "clothing").toLowerCase();
     const rootCat = categories.find(
       (cat) =>
@@ -79,33 +81,39 @@ const HomeCategories = ({ rootSlug = "clothing" }: { rootSlug?: string }) => {
         cat.title?.toLowerCase() === targetSlug
     );
 
+    let eligible: Category[];
     if (rootCat) {
       const childCategories = categories.filter((cat) => {
         const pId = typeof cat.parentId === "object" ? (cat.parentId as any)?._id : cat.parentId;
         return pId && pId.toString() === rootCat._id.toString();
       });
-      if (childCategories.length > 0) {
-        return childCategories;
-      }
+      eligible = childCategories.length > 0 ? childCategories : categories.filter((cat) => !cat.parentId);
+    } else {
+      eligible = categories.filter((cat) => !cat.parentId);
     }
 
-    // Fallback: all subcategories (having a parentId)
-    const subCategories = categories.filter((cat) => Boolean(cat.parentId));
-    if (subCategories.length > 0) {
-      return subCategories;
-    }
+    // Filter out categories explicitly marked as not visible on home
+    const homeEligible = eligible.filter((cat) => cat.isVisibleOnHome !== false);
 
-    const featured = categories.filter((cat) => cat.isFeatured || cat.isFeature);
-    if (featured.length > 0) return featured;
+    // Sort by homePosition (1, 2, 3...) then priority (descending)
+    homeEligible.sort((a, b) => {
+      const posA = a.homePosition && a.homePosition > 0 ? a.homePosition : 999;
+      const posB = b.homePosition && b.homePosition > 0 ? b.homePosition : 999;
+      if (posA !== posB) return posA - posB;
+      return (b.priority || 0) - (a.priority || 0);
+    });
 
-    return categories;
-  }, [rawCategories, rootSlug]);
+    const totalCount = homeEligible.length;
+    const visibleCategories = showAll ? homeEligible : homeEligible.slice(0, 5);
+
+    return { visibleCategories, totalCount };
+  }, [rawCategories, rootSlug, showAll]);
 
   if (isLoading) {
     return (
       <View style={styles.container}>
         <FlashList
-          data={[1, 2, 3, 4, 5, 6]}
+          data={[1, 2, 3, 4, 5]}
           renderItem={() => <CategorySkeleton />}
           keyExtractor={(item) => item.toString()}
           horizontal
@@ -116,15 +124,37 @@ const HomeCategories = ({ rootSlug = "clothing" }: { rootSlug?: string }) => {
     );
   }
 
-  if (error || !rawCategories) {
+  if (error || !rawCategories || visibleCategories.length === 0) {
     return null;
   }
 
   return (
     <View style={styles.container}>
+      <View style={styles.headerRow}>
+        <Text style={[styles.sectionTitle, { color: theme.text }]}>Categories</Text>
+        {totalCount > 5 && (
+          <TouchableOpacity
+            style={styles.toggleBtn}
+            activeOpacity={0.7}
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              setShowAll((prev) => !prev);
+            }}
+          >
+            <Text style={[styles.toggleText, { color: theme.primary }]}>
+              {showAll ? "Show 5" : `View All (${totalCount})`}
+            </Text>
+            <Ionicons
+              name={showAll ? "chevron-up" : "chevron-forward"}
+              size={13}
+              color={theme.primary}
+            />
+          </TouchableOpacity>
+        )}
+      </View>
       <FlashList
         className="gap-28"
-        data={displayedCategories}
+        data={visibleCategories}
         renderItem={renderItem}
         keyExtractor={(item) => item._id}
         horizontal
@@ -141,6 +171,30 @@ export default HomeCategories;
 const styles = StyleSheet.create({
   container: {
     marginVertical: spacing.md,
+  },
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: spacing.m,
+    marginBottom: spacing.xs,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    letterSpacing: -0.3,
+  },
+  toggleBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 2,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 12,
+  },
+  toggleText: {
+    fontSize: 12,
+    fontWeight: "600",
   },
   listContent: {
     paddingHorizontal: spacing.m,

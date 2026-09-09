@@ -107,8 +107,8 @@ export const useMoreDealsLogic = () => {
     queryFn: () => getPublicCategoriesRequest({ vertical: "CLOTHING" }),
   });
 
-  // 2. Extract direct clothing subcategories (skip root "Clothing" node)
-  const categoryOptions = useMemo(() => {
+  // 2. Structured Category & Subcategory Groups (Clothing vertical)
+  const categoryGroups = useMemo(() => {
     if (!rawCategories || rawCategories.length === 0) return [];
 
     const cleanCats = rawCategories.filter((cat) => {
@@ -126,42 +126,66 @@ export const useMoreDealsLogic = () => {
       );
     });
 
-    // Find root "Clothing" node (no parentId, slug/title = "clothing")
-    const rootCat = cleanCats.find((cat) => {
+    // Root categories: those without a parentId, excluding a generic "Clothing" node if any
+    const roots = cleanCats.filter((cat) => {
       const hasParent = Boolean(
         typeof cat.parentId === "object" ? (cat.parentId as any)?._id : cat.parentId,
       );
       return (
         !hasParent &&
-        (cat.title.toLowerCase() === "clothing" || cat.slug?.toLowerCase() === "clothing")
+        cat.title.toLowerCase() !== "clothing" &&
+        cat.slug?.toLowerCase() !== "clothing"
       );
     });
 
-    let subCats: typeof cleanCats;
-    if (rootCat) {
-      subCats = cleanCats.filter((cat) => {
+    // Sort roots by homePosition (1, 2, 3...) then priority (descending)
+    roots.sort((a, b) => {
+      const posA = a.homePosition && a.homePosition > 0 ? a.homePosition : 999;
+      const posB = b.homePosition && b.homePosition > 0 ? b.homePosition : 999;
+      if (posA !== posB) return posA - posB;
+      return (b.priority || 0) - (a.priority || 0);
+    });
+
+    return roots.map((parent) => {
+      const pIdStr = parent._id.toString();
+      const subCats = cleanCats.filter((cat) => {
         const pId = typeof cat.parentId === "object" ? (cat.parentId as any)?._id : cat.parentId;
-        return pId && pId.toString() === rootCat._id.toString();
+        return pId && pId.toString() === pIdStr;
       });
-    } else {
-      // Fallback: all categories that have any parentId
-      subCats = cleanCats.filter((cat) =>
-        Boolean(typeof cat.parentId === "object" ? (cat.parentId as any)?._id : cat.parentId),
-      );
-    }
 
-    // Last resort: all non-root categories (flat store with no hierarchy)
-    const source =
-      subCats.length > 0
-        ? subCats
-        : cleanCats.filter((cat) => cat.title.toLowerCase() !== "clothing");
+      subCats.sort((a, b) => (b.priority || 0) - (a.priority || 0));
 
-    return source.map((cat) => ({
-      id: cat._id,
-      title: cat.title,
-      icon: getIconForCategory(cat.title),
-    }));
+      return {
+        id: parent._id,
+        title: parent.title,
+        slug: parent.slug,
+        icon: getIconForCategory(parent.title),
+        subCategories: subCats.map((sub) => ({
+          id: sub._id,
+          title: sub.title,
+          slug: sub.slug,
+          parentId: parent._id,
+          parentTitle: parent.title,
+          icon: getIconForCategory(sub.title),
+        })),
+      };
+    });
   }, [rawCategories]);
+
+  // Flat category options for search / legacy fallback
+  const categoryOptions = useMemo(() => {
+    return categoryGroups.flatMap((group) => [
+      { id: group.id, title: group.title, icon: group.icon, isParent: true },
+      ...group.subCategories.map((sub) => ({
+        id: sub.id,
+        title: sub.title,
+        icon: sub.icon,
+        parentId: group.id,
+        parentTitle: group.title,
+        isParent: false,
+      })),
+    ]);
+  }, [categoryGroups]);
 
   // 3. Infinite paginated products
   const {
@@ -187,9 +211,18 @@ export const useMoreDealsLogic = () => {
         search: effectiveSearchQuery || undefined,
       };
 
-      // Subcategory → server subCategory param
+      // Smart category & subcategory query handling
       if (selectedCategoryOptions.length > 0) {
-        params.subCategory = selectedCategoryOptions[0];
+        const selectedTitles = selectedCategoryOptions;
+        const matchingRoot = categoryGroups.find((g) => selectedTitles.includes(g.title));
+
+        if (matchingRoot && selectedTitles.length === 1) {
+          // Entire parent category selected (e.g. "Men's Wear")
+          params.category = matchingRoot.title;
+        } else {
+          // Specific subcategories selected (e.g. "Men's Shirts" or "Men's Shirts|Men's T-Shirts")
+          params.subCategory = selectedTitles.join("|");
+        }
       }
 
       // Campaign → server params
@@ -262,6 +295,7 @@ export const useMoreDealsLogic = () => {
     selectedCategoryOptions,
     handleApply,
     currentOptionsList,
+    categoryGroups,
     categoryPillLabel,
     genderPillLabel,
     cardWidth,
@@ -462,6 +496,7 @@ export const MoreDealsGrid = ({
   dropdownVisible,
   setDropdownVisible,
   currentOptionsList,
+  categoryGroups,
   selectedGenderOptions,
   selectedCategoryOptions,
   handleApply,
@@ -511,6 +546,7 @@ export const MoreDealsGrid = ({
         onClose={() => setDropdownVisible(false)}
         title={activeDropdownType}
         options={currentOptionsList}
+        categoryGroups={activeDropdownType === "Categories" ? categoryGroups : undefined}
         initialSelected={activeDropdownType === "Gender" ? selectedGenderOptions : selectedCategoryOptions}
         onApply={handleApply}
       />

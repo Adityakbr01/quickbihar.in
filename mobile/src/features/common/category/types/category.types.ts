@@ -8,6 +8,8 @@ export interface Category {
     isActive: boolean;
     isFeatured?: boolean;
     isFeature?: boolean;
+    isVisibleOnHome?: boolean;
+    homePosition?: number;
     parentId?: string;
     vertical?: "CLOTHING" | "FOOD" | "JEWELERY" | "GLOBAL" | string;
     createdAt: string;
