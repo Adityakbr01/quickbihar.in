@@ -66,7 +66,8 @@ const HomeCategories = ({ rootSlug = "clothing" }: { rootSlug?: string }) => {
         !lower.includes("earring") &&
         !lower.includes("ring") &&
         !lower.includes("food") &&
-        !lower.includes("grocery")
+        !lower.includes("grocery") &&
+        !lower.includes("accessori")
       );
     });
 

@@ -121,7 +121,8 @@ export const useMoreDealsLogic = () => {
         !lower.includes("bangle") &&
         !lower.includes("earring") &&
         !lower.includes("food") &&
-        !lower.includes("grocery")
+        !lower.includes("grocery") &&
+        !lower.includes("accessori")
       );
     });
 
