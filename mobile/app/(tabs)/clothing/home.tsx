@@ -5,10 +5,13 @@ import { SeoHead } from "@/src/components/seo/SeoHead";
 import { staticPageMeta } from "@/src/lib/seo";
 
 const HOME_META = staticPageMeta({
-  title: "QuickBihar | Shop Fashion Online in Bihar — Local Stores, Fast Delivery",
+  title: "QuickBihar | Shop Fashion & Clothing Online in Bihar",
   description:
-    "Shop trending fashion, ethnic wear and daily essentials from trusted local stores across Bihar with fast doorstep delivery, COD and easy returns.",
+    "Shop the latest fashion, ethnic wear, and daily essentials from trusted local stores in Bihar. Ultra-fast doorstep delivery.",
   path: "/",
+  keywords:
+    "QuickBihar, online shopping Bihar, clothing store Patna, ethnic wear Bihar, sarees Bihar, men clothing, women clothing, Bihar fast delivery, local stores Bihar",
+  image: "https://quickbihar.in/assets/images/icons/splash-icon.png",
 });
 
 const Home = () => {

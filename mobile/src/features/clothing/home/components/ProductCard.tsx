@@ -1,5 +1,6 @@
 import React from "react";
-import { View, Text, Image, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity } from "react-native";
+import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
@@ -97,8 +98,10 @@ export const ProductCard = ({ item }: ProductCardProps) => {
       return null;
     })();
 
+    const resolvedTitle = p.title || (item as MockProduct).name || "Fashion Product";
     return {
-      name: p.title || (item as MockProduct).name || "",
+      title: resolvedTitle,
+      name: resolvedTitle,
       image: p.images?.[0]?.url || (item as MockProduct).image || "",
       price: numPrice > 0 ? formatPrice(numPrice) : (typeof item.price === 'string' ? item.price : "₹0"),
       originalPrice: hasDiscount ? formatPrice(numOrig) : null,
@@ -111,6 +114,9 @@ export const ProductCard = ({ item }: ProductCardProps) => {
 
   return (
     <TouchableOpacity
+      accessibilityRole="link"
+      accessibilityLabel={productData.title}
+      {...({ title: `View ${productData.title} on QuickBihar` } as any)}
       onPress={() => {
         // Canonical slug URL for navigation (wishlist/cart keys above stay id-based).
         router.push({ pathname: "/product/[id]", params: { id: (item as IProduct).slug || id } });
@@ -126,7 +132,14 @@ export const ProductCard = ({ item }: ProductCardProps) => {
     >
       {/* Image & Overlays */}
       <View style={styles.imageContainer}>
-        <Image source={{ uri: productData.image }} style={styles.image} />
+        <Image
+          source={{ uri: productData.image }}
+          style={styles.image}
+          contentFit="cover"
+          alt={`${productData.title} - Shop Online in Bihar`}
+          accessibilityLabel={productData.title}
+          {...({ title: `${productData.title} | QuickBihar` } as any)}
+        />
 
         {productData.discount ? (
           <View style={styles.discountBadge}>

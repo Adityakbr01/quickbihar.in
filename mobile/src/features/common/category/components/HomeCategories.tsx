@@ -26,6 +26,9 @@ const HomeCategories = ({ rootSlug = "clothing" }: { rootSlug?: string }) => {
     <TouchableOpacity
       style={styles.categoryItem}
       activeOpacity={0.7}
+      accessibilityRole="link"
+      accessibilityLabel={`Shop ${item.title}`}
+      {...({ title: `Shop ${item.title} on QuickBihar` } as any)}
       onPress={() => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
         router.push({
@@ -45,6 +48,9 @@ const HomeCategories = ({ rootSlug = "clothing" }: { rootSlug?: string }) => {
           style={styles.image}
           contentFit="cover"
           transition={200}
+          alt={`${item.title} - Clothing Category in Bihar`}
+          accessibilityLabel={`${item.title} Category`}
+          {...({ title: `${item.title} | QuickBihar Online Shopping` } as any)}
         />
       </View>
       <Text style={[styles.title, { color: theme.text }]} numberOfLines={1}>
@@ -131,7 +137,14 @@ const HomeCategories = ({ rootSlug = "clothing" }: { rootSlug?: string }) => {
   return (
     <View style={styles.container}>
       <View style={styles.headerRow}>
-        <Text style={[styles.sectionTitle, { color: theme.text }]}>Categories</Text>
+        <Text
+          accessibilityRole="header"
+          aria-level={2}
+          {...({ role: "heading" } as any)}
+          style={[styles.sectionTitle, { color: theme.text }]}
+        >
+          Categories
+        </Text>
         {totalCount > 5 && (
           <TouchableOpacity
             style={styles.toggleBtn}

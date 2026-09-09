@@ -6,7 +6,8 @@ import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
 import LottieView from "lottie-react-native";
 import React from "react";
-import { Image, Text, TouchableOpacity, View } from "react-native";
+import { Text, TouchableOpacity, View } from "react-native";
+import { Image } from "expo-image";
 import Toast from "react-native-toast-message";
 import { useCartStore } from "@/src/features/common/cart/store/cartStore";
 import { useWishlistStore } from "@/src/features/common/wishlist/store/wishlistStore";
@@ -129,6 +130,9 @@ export const DealProductCard = ({ product, width }: DealProductCardProps) => {
 
   return (
     <TouchableOpacity
+      accessibilityRole="link"
+      accessibilityLabel={productData.title}
+      {...({ title: `Shop ${productData.title} on QuickBihar` } as any)}
       activeOpacity={0.9}
       onPress={() => {
         const id = (product as IProduct).slug || (product as IProduct)._id || 'mock';
@@ -145,7 +149,14 @@ export const DealProductCard = ({ product, width }: DealProductCardProps) => {
     >
       {/* Image & Overlays */}
       <View style={styles.productImageContainer}>
-        <Image source={{ uri: productData.image }} style={styles.productImage} />
+        <Image 
+          source={{ uri: productData.image }} 
+          style={styles.productImage}
+          contentFit="cover"
+          alt={`${productData.title} - Fashion Deal in Bihar`}
+          accessibilityLabel={productData.title}
+          {...({ title: `${productData.title} - QuickBihar Deals` } as any)}
+        />
 
         {/* Top-Left Discount Badge */}
         {productData.discount ? (

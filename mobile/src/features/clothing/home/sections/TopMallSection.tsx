@@ -69,7 +69,14 @@ const TopMallSection = () => {
     <View style={styles.container}>
       <View style={styles.header}>
         <View style={localStyles.titleContainer}>
-          <Text style={styles.title}>Top 10 Malls </Text>
+          <Text
+            accessibilityRole="header"
+            aria-level={2}
+            {...({ role: "heading" } as any)}
+            style={styles.title}
+          >
+            Top 10 Malls{" "}
+          </Text>
           <View style={localStyles.lottieWrapper}>
             <LottieView
               key={theme.text}
@@ -95,6 +102,9 @@ const TopMallSection = () => {
         </View>
         <TouchableOpacity
           style={styles.seeAllBtn}
+          accessibilityRole="link"
+          accessibilityLabel="Explore all malls"
+          {...({ title: "Explore top shopping malls and stores in Bihar" } as any)}
           onPress={() => router.push("/mall" as any)}
         >
           <Text style={styles.seeAll}>Explore All</Text>

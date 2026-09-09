@@ -1,12 +1,12 @@
 import React from "react";
 import {
-  Image,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { CAMPAIGNS } from "../lib/dealsConfig";
 
@@ -44,7 +44,12 @@ export const MoreDealsHeader = ({
 
   return (
     <View style={[styles.container, { paddingBottom: 0 }]}>
-      <Text style={[styles.headerText, { color: theme?.text || "#000" }]}>
+      <Text
+        accessibilityRole="header"
+        aria-level={2}
+        {...({ role: "heading" } as any)}
+        style={[styles.headerText, { color: theme?.text || "#000" }]}
+      >
         Explore More Deals
       </Text>
       <ScrollView
@@ -54,10 +59,14 @@ export const MoreDealsHeader = ({
       >
         {CAMPAIGNS.map((camp) => {
           const isActive = activeId === camp.id;
+          const imageUri = typeof camp.image === "string" ? camp.image : undefined;
           return (
             <TouchableOpacity
               key={camp.id}
               activeOpacity={0.85}
+              accessibilityRole="button"
+              accessibilityLabel={`View ${camp.title} Deals`}
+              {...({ title: `Explore ${camp.title} Deals on QuickBihar` } as any)}
               onPress={() => handlePress(camp.id)}
             >
               <LinearGradient
@@ -80,12 +89,15 @@ export const MoreDealsHeader = ({
                 </Text>
                 <Image
                   source={
-                    typeof camp.image === "string"
-                      ? { uri: camp.image }
+                    imageUri
+                      ? { uri: imageUri }
                       : camp.image
                   }
                   style={styles.campaignImage}
-                  resizeMode="contain"
+                  contentFit="contain"
+                  alt={`${camp.title} Deals in Bihar`}
+                  accessibilityLabel={`${camp.title} campaign`}
+                  {...({ title: `${camp.title} | QuickBihar Deals` } as any)}
                 />
               </LinearGradient>
             </TouchableOpacity>

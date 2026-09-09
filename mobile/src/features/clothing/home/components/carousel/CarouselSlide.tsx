@@ -1,5 +1,6 @@
 import React from "react";
-import { View, Pressable, Image, StyleSheet } from "react-native";
+import { View, Pressable, StyleSheet } from "react-native";
+import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
 import * as Haptics from "expo-haptics";
@@ -60,6 +61,9 @@ const CarouselSlide = ({ item }: CarouselSlideProps) => {
     <View style={styles.slide}>
       <Pressable
         onPress={handlePress}
+        accessibilityRole="link"
+        accessibilityLabel={item.title || "QuickBihar Fashion Sale Banner"}
+        {...({ title: item.title || "QuickBihar Online Fashion Offer" } as any)}
         style={({ pressed }) => [
           {
             width: "100%",
@@ -70,7 +74,14 @@ const CarouselSlide = ({ item }: CarouselSlideProps) => {
           pressed && { opacity: 0.85 },
         ]}
       >
-        <Image source={{ uri: item.image }} style={styles.slideImage} />
+        <Image
+          source={{ uri: item.image }}
+          style={styles.slideImage}
+          contentFit="cover"
+          alt={item.title || "QuickBihar Fashion Sale Banner"}
+          accessibilityLabel={item.title || "Fashion Sale Banner"}
+          {...({ title: item.title || "QuickBihar Online Fashion Deals" } as any)}
+        />
       </Pressable>
     </View>
   );

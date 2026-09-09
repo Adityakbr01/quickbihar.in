@@ -25,10 +25,15 @@ export function canonicalUrl(path: string): string {
 export function truncateText(value: string | undefined | null, max: number): string {
   const text = String(value || "").replace(/\s+/g, " ").trim();
   if (!text || text.length <= max) return text;
-  return `${text.slice(0, max - 1).trim()}…`;
+  const cut = text.slice(0, max);
+  const lastSpace = cut.lastIndexOf(" ");
+  if (lastSpace > max * 0.6) {
+    return cut.slice(0, lastSpace).trim();
+  }
+  return cut.trim();
 }
 
-export const seoTitle = (value: string | undefined | null) => truncateText(value, 60);
+export const seoTitle = (value: string | undefined | null) => truncateText(value, 65);
 export const seoDescription = (value: string | undefined | null) => truncateText(value, 160);
 
 /** Strip HTML-ish noise from descriptions before using them as meta content. */
@@ -82,6 +87,9 @@ export interface PageMeta {
   title: string;
   description: string;
   canonical: string;
+  keywords?: string;
+  author?: string;
+  publisher?: string;
   image?: string;
   robots: "index, follow" | "noindex, nofollow";
   type?: "website" | "product" | "article";
@@ -90,12 +98,16 @@ export interface PageMeta {
 export function productMeta(product: any): PageMeta {
   const indexable = isIndexableProduct(product);
   const brand = product?.brand ? ` — ${product.brand}` : "";
+  const title = `${product?.title || "Product"}${brand}`;
   return {
-    title: seoTitle(`${product?.title || "Product"}${brand} | Buy Online in Bihar | QuickBihar`),
+    title: seoTitle(`${title} | Buy Online in Bihar | QuickBihar`),
     description:
       plainDescription(product?.shortDescription || product?.description) ||
       seoDescription(`${product?.title || "Product"} available on QuickBihar. Shop from local Bihar stores.`),
     canonical: canonicalUrl(`/product/${product?.slug || product?._id || ""}`),
+    keywords: `${product?.title || "Product"}, ${product?.category?.title || "Fashion"}, buy online Bihar, QuickBihar`,
+    author: "QuickBihar",
+    publisher: "QuickBihar",
     image: Array.isArray(product?.images) ? product.images[0]?.url : undefined,
     robots: robotsFor(indexable),
     type: "product",
@@ -104,12 +116,16 @@ export function productMeta(product: any): PageMeta {
 
 export function categoryMeta(category: any): PageMeta {
   const indexable = isIndexableCategory(category);
+  const catTitle = category?.title || "Category";
   return {
-    title: seoTitle(`${category?.title || "Category"} | Shop Online in Bihar | QuickBihar`),
+    title: seoTitle(`${catTitle} | Shop Online in Bihar | QuickBihar`),
     description:
       plainDescription(category?.seo?.metaDescription || category?.description) ||
-      seoDescription(`Shop ${category?.title || "products"} from local Bihar stores on QuickBihar.`),
+      seoDescription(`Shop ${catTitle} from local Bihar stores on QuickBihar. Fast doorstep delivery & easy returns.`),
     canonical: canonicalUrl(`/category/${category?.slug || ""}`),
+    keywords: `${catTitle} Bihar, buy ${catTitle} online, ${catTitle} Patna, local clothing Bihar, QuickBihar`,
+    author: "QuickBihar",
+    publisher: "QuickBihar",
     image: category?.image || category?.banner || undefined,
     robots: robotsFor(indexable),
   };
@@ -124,6 +140,9 @@ export function mallMeta(mall: any): PageMeta {
       plainDescription(mall?.description) ||
       seoDescription(`${mall?.name || "Mall"}${city} — stores, collections and reviews on QuickBihar.`),
     canonical: canonicalUrl(`/mall/${mall?.slug || mall?._id || mall?.id || ""}`),
+    keywords: `${mall?.name || "Mall"} Bihar, shopping mall ${city || "Bihar"}, stores in Bihar, QuickBihar`,
+    author: "QuickBihar",
+    publisher: "QuickBihar",
     image: mall?.coverImageUrl || mall?.logoUrl || (Array.isArray(mall?.images) ? mall.images[0]?.url : undefined),
     robots: robotsFor(indexable),
   };
@@ -133,6 +152,9 @@ export function staticPageMeta(input: {
   title: string;
   description: string;
   path: string;
+  keywords?: string;
+  author?: string;
+  publisher?: string;
   image?: string;
   indexable?: boolean;
 }): PageMeta {
@@ -141,6 +163,11 @@ export function staticPageMeta(input: {
     title: seoTitle(input.title),
     description: seoDescription(input.description),
     canonical: canonicalUrl(input.path),
+    keywords:
+      input.keywords ||
+      "QuickBihar, online shopping Bihar, clothing store Patna, ethnic wear Bihar, sarees Bihar, local store delivery Bihar",
+    author: input.author || "QuickBihar",
+    publisher: input.publisher || "QuickBihar",
     image: input.image,
     robots: robotsFor(indexable),
   };

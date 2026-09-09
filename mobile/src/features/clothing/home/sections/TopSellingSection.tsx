@@ -108,7 +108,14 @@ const TopSellingSection = ({ category }: { category?: string } = {}) => {
     <View style={styles.container}>
       <View style={styles.header}>
         <View style={localStyles.titleContainer}>
-          <Text style={styles.title}>Top Selling</Text>
+          <Text
+            accessibilityRole="header"
+            aria-level={2}
+            {...({ role: "heading" } as any)}
+            style={styles.title}
+          >
+            Top Selling
+          </Text>
           <View
             style={[
               localStyles.lottieWrapper,
@@ -146,6 +153,9 @@ const TopSellingSection = ({ category }: { category?: string } = {}) => {
         </View>
         <TouchableOpacity
           style={styles.seeAllBtn}
+          accessibilityRole="link"
+          accessibilityLabel="See all top selling clothing"
+          {...({ title: "See all top selling clothing and fashion in Bihar" } as any)}
           onPress={handleSeeAll}
           activeOpacity={0.7}
         >

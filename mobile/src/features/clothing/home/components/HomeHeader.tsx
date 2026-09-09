@@ -31,7 +31,12 @@ const HomeHeader: React.FC<HomeHeaderProps> = () => {
   return (
     <View style={styles.header}>
       <View style={localStyles.headerLeftContainer}>
-        <Text style={[localStyles.brandText, { color: theme.text }]}>
+        <Text
+          accessibilityRole="header"
+          aria-level={1}
+          {...({ role: "heading" } as any)}
+          style={[localStyles.brandText, { color: theme.text }]}
+        >
           Quick Bihar
         </Text>
       </View>
@@ -44,6 +49,9 @@ const HomeHeader: React.FC<HomeHeaderProps> = () => {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
             router.push("/account/notifications");
           }}
+          accessibilityRole="button"
+          accessibilityLabel="Notifications"
+          {...({ title: "View notifications" } as any)}
           style={[
             styles.notifBtn,
             { backgroundColor: theme.tertiaryBackground },
