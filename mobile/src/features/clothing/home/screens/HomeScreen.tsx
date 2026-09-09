@@ -20,7 +20,6 @@ import {
 } from "../sections/MoreDealsSection";
 import TopMallSection from "../sections/TopMallSection";
 import TopSellingSection from "../sections/TopSellingSection";
-import HomeDeliveryLocations from "../components/HomeDeliveryLocations";
 
 const HomeScreen = ({ rootSlug }: { rootSlug?: string }) => {
   const menuOpen = useSharedValue(0);
@@ -93,9 +92,6 @@ const HomeScreen = ({ rootSlug }: { rootSlug?: string }) => {
           <View style={{ minHeight: Dimensions.get("window").height * 0.7 }}>
             <MoreDealsGrid {...moreDealsState} />
           </View>
-
-          {/* Child 3: Local Delivery Hubs & Buxar SEO Navigation */}
-          <HomeDeliveryLocations />
         </ScrollView>
       </View>
     </SafeViewWrapper>

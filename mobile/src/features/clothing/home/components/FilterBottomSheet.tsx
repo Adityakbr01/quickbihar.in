@@ -379,8 +379,8 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
                         backgroundColor: isActiveTab
                           ? theme.primary
                           : hasSelection
-                          ? theme.primary + "15"
-                          : theme.secondaryBackground,
+                            ? theme.primary + "15"
+                            : theme.secondaryBackground,
                       }}
                     >
                       {group.icon && (
@@ -768,6 +768,7 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
             shadowOpacity: 0.2,
             shadowRadius: 8,
             elevation: 4,
+
           }}
           onPress={handleApply}
         >
@@ -775,7 +776,7 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
             style={{
               fontSize: 16,
               fontWeight: "700",
-              color: "#000",
+              color: "#fff",
             }}
           >
             Apply{tempOptions.length > 0 ? ` (${tempOptions.length})` : ""}

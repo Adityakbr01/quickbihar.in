@@ -353,6 +353,7 @@ function injectCrawlerBodyFallback(
         <a href="/" title="QuickBihar Home — Online Shopping in Bihar" style="color: #4F46E5; font-weight: 600;">Home</a> &bull;
         <a href="/top-selling" title="Top Selling Fashion in Bihar" style="color: #4F46E5; font-weight: 600;">Top Selling</a> &bull;
         <a href="/mall" title="Shopping Malls in Bihar" style="color: #4F46E5; font-weight: 600;">Shopping Malls</a> &bull;
+        <a href="/instant-delivery" title="Instant Fashion Delivery in Bihar" style="color: #4F46E5; font-weight: 600;">Instant Delivery</a> &bull;
         <a href="/locations/bihar/buxar" title="Fashion &amp; Instant Delivery in Buxar" style="color: #4F46E5; font-weight: 600;">Buxar Hub</a>
       </nav>
     </header>
@@ -678,6 +679,28 @@ async function main() {
   });
   writeStaticHtml("mall.html", mallHubHtml);
   writeStaticHtml("mall/index.html", mallHubHtml);
+  generatedCount += 2;
+
+  // 3b. Instant Delivery Hub
+  const instantDeliveryMeta = staticPageMeta({
+    title: "Instant Fashion & Clothes Delivery in Bihar | QuickBihar",
+    description: "Check same day & instant doorstep delivery coverage for fashion, kurtis, sarees, shirts & kids clothing across Buxar, Dumraon and Bihar.",
+    path: "/instant-delivery",
+    image: `${siteBase}/assets/images/icons/splash-icon.png`,
+    indexable: true,
+  });
+  const instantDeliveryBreadcrumbs = breadcrumbJsonLd(instantDeliveryMeta.canonical, [
+    { name: "Home", path: "/" },
+    { name: "Instant Delivery", path: "/instant-delivery" },
+  ]);
+  let instantDeliveryHtml = injectMetadata(baseHtml, instantDeliveryMeta, [instantDeliveryBreadcrumbs]);
+  instantDeliveryHtml = injectCrawlerBodyFallback(instantDeliveryHtml, {
+    h1Title: "Instant Fashion & Clothes Delivery in Bihar",
+    description: "Check same day & instant doorstep delivery coverage for fashion, kurtis, sarees, shirts & kids clothing across Buxar, Dumraon and Bihar.",
+    categories,
+  });
+  writeStaticHtml("instant-delivery.html", instantDeliveryHtml);
+  writeStaticHtml("instant-delivery/index.html", instantDeliveryHtml);
   generatedCount += 2;
 
   // 4. Dynamic Template Fallbacks (for client-side routing)

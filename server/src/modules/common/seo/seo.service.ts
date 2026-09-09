@@ -21,7 +21,7 @@ const SITE_BASE = "https://quickbihar.in";
 const SHARD_LIMIT = 5000;
 
 /** Static hub paths included in every sitemap (always indexable, no DB needed). */
-const STATIC_PATHS = ["/", "/clothing/home", "/clothing/search", "/top-selling", "/mall"];
+const STATIC_PATHS = ["/", "/clothing/home", "/clothing/search", "/top-selling", "/mall", "/instant-delivery"];
 
 /* ── Internal helpers ── */
 
