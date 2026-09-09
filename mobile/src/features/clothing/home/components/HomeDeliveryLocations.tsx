@@ -1,12 +1,13 @@
 import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
-import { Link } from "expo-router";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { BUXAR_BLOCKS, type BuxarLocation } from "@/src/constants/locations/buxar";
 
 export const HomeDeliveryLocations: React.FC = () => {
   const theme = useTheme();
+  const router = useRouter();
 
   // Priority towns for quick-chips
   const keyLocations = [
@@ -37,69 +38,79 @@ export const HomeDeliveryLocations: React.FC = () => {
           </Text>
         </View>
 
-        <Link href={"/locations/bihar/buxar" as any} asChild>
-          <Pressable
-            style={[styles.districtBtn, { backgroundColor: "#EEF2FF" }]}
-            accessibilityRole="link"
-            accessibilityLabel="Explore Buxar District Delivery Hub"
-          >
-            <Text style={styles.districtBtnText}>All Buxar Hubs</Text>
-            <Ionicons name="arrow-forward" size={14} color="#4F46E5" />
-          </Pressable>
-        </Link>
+        <TouchableOpacity
+          style={styles.districtBtn}
+          accessibilityRole="link"
+          accessibilityLabel="Explore Buxar District Delivery Hub"
+          {...({ href: "/locations/bihar/buxar", title: "Explore Buxar District Delivery Hub" } as any)}
+          onPress={() => router.push("/locations/bihar/buxar" as any)}
+        >
+          <Text style={styles.districtBtnText}>All Buxar Hubs</Text>
+          <Ionicons name="arrow-forward" size={14} color="#4F46E5" />
+        </TouchableOpacity>
       </View>
 
-      {/* Town Grid Chips with Accessible Links */}
+      {/* Town Grid Chips */}
       <View style={styles.chipsGrid}>
         {keyLocations.map((loc) => {
-          const href = `/locations/bihar/buxar/${loc.slug}` as any;
+          const path = `/locations/bihar/buxar/${loc.slug}` as const;
           return (
-            <Link key={loc.slug} href={href} asChild>
-              <Pressable
-                style={[
-                  styles.locationCard,
-                  {
-                    backgroundColor: theme.secondaryBackground || "#F8FAFC",
-                    borderColor: theme.border || "#E2E8F0",
-                  },
-                ]}
-                accessibilityRole="link"
-                accessibilityLabel={`Shop clothing & fashion in ${loc.name}, Buxar PIN ${loc.pin}`}
-              >
-                <View style={styles.cardTop}>
-                  <Ionicons name="location-sharp" size={14} color="#4F46E5" />
-                  <Text style={[styles.cardTitle, { color: theme.text }]} numberOfLines={1}>
-                    {loc.name}
-                  </Text>
-                </View>
-                <View style={styles.cardBottom}>
-                  <Text style={[styles.pinText, { color: theme.secondaryText }]}>
-                    PIN {loc.pin}
-                  </Text>
-                  <Text style={styles.timingBadge}>{loc.timing}</Text>
-                </View>
-              </Pressable>
-            </Link>
+            <TouchableOpacity
+              key={loc.slug}
+              style={[
+                styles.locationCard,
+                {
+                  backgroundColor: theme.secondaryBackground || "#F8FAFC",
+                  borderColor: theme.border || "#E2E8F0",
+                },
+              ]}
+              accessibilityRole="link"
+              accessibilityLabel={`Shop clothing & fashion in ${loc.name}, Buxar PIN ${loc.pin}`}
+              {...({ href: path, title: `Fashion store in ${loc.name}` } as any)}
+              onPress={() => router.push(path as any)}
+            >
+              <View style={styles.cardTop}>
+                <Ionicons name="location-sharp" size={14} color="#4F46E5" />
+                <Text style={[styles.cardTitle, { color: theme.text }]} numberOfLines={1}>
+                  {loc.name}
+                </Text>
+              </View>
+              <View style={styles.cardBottom}>
+                <Text style={[styles.pinText, { color: theme.secondaryText }]}>
+                  PIN {loc.pin}
+                </Text>
+                <Text style={styles.timingBadge}>{loc.timing}</Text>
+              </View>
+            </TouchableOpacity>
           );
         })}
       </View>
 
-      {/* SEO Natural Text & All 11 Blocks Breadcrumb Links */}
+      {/* SEO Natural Text & All 11 Blocks Links */}
       <View style={[styles.footerSeoWrap, { borderTopColor: theme.border || "#F1F5F9" }]}>
         <Text style={[styles.seoPara, { color: theme.secondaryText }]}>
           Serving Buxar Sadar & Dumraon Subdivisions:{" "}
-          {BUXAR_BLOCKS.map((b: BuxarLocation, idx: number) => (
-            <React.Fragment key={b.slug}>
-              <Link
-                href={`/locations/bihar/buxar/${b.slug}` as any}
-                style={[styles.inlineLink, { color: "#4F46E5" }]}
-              >
-                {b.name}
-              </Link>
-              {idx < BUXAR_BLOCKS.length - 1 ? " • " : ""}
-            </React.Fragment>
-          ))}
         </Text>
+        <View style={styles.linksRow}>
+          {BUXAR_BLOCKS.map((b: BuxarLocation, idx: number) => {
+            const blockPath = `/locations/bihar/buxar/${b.slug}` as const;
+            return (
+              <React.Fragment key={b.slug}>
+                <TouchableOpacity
+                  accessibilityRole="link"
+                  {...({ href: blockPath, title: `Delivery in ${b.name}` } as any)}
+                  onPress={() => router.push(blockPath as any)}
+                  style={styles.linkTouch}
+                >
+                  <Text style={styles.inlineLinkText}>{b.name}</Text>
+                </TouchableOpacity>
+                {idx < BUXAR_BLOCKS.length - 1 && (
+                  <Text style={[styles.bullet, { color: theme.secondaryText }]}>•</Text>
+                )}
+              </React.Fragment>
+            );
+          })}
+        </View>
       </View>
     </View>
   );
@@ -155,6 +166,7 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
     borderRadius: 20,
     alignSelf: "flex-start",
+    backgroundColor: "#EEF2FF",
   },
   districtBtnText: {
     fontSize: 12,
@@ -209,10 +221,26 @@ const styles = StyleSheet.create({
   seoPara: {
     fontSize: 11,
     lineHeight: 18,
+    marginBottom: 4,
   },
-  inlineLink: {
+  linksRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    alignItems: "center",
+    gap: 4,
+  },
+  linkTouch: {
+    paddingVertical: 2,
+  },
+  inlineLinkText: {
+    fontSize: 11,
     fontWeight: "600",
+    color: "#4F46E5",
     textDecorationLine: "underline",
+  },
+  bullet: {
+    fontSize: 11,
+    marginHorizontal: 2,
   },
 });
 
