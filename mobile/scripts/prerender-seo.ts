@@ -36,6 +36,25 @@ function cleanBaseHtml(html: string): string {
     .replace(/<!-- (Primary Meta Tags|Open Graph \/ Facebook|Twitter|JSON-LD Structured Data) -->\s*/gi, "")
     .replace(/<script type="application\/ld\+json">[\s\S]*?<\/script>\s*/gi, "");
 
+  // Reset body to standard Expo SPA structure: clean <noscript>, clean <div id="root"></div>, and entry script tag
+  const scriptMatch = cleaned.match(/<script\b[^>]*src="[^"]*\/_expo\/static\/js\/web\/[^"]*"[^>]*><\/script>/i);
+  const scriptTag = scriptMatch ? scriptMatch[0] : "";
+
+  const bodyStart = cleaned.indexOf("<body>");
+  const bodyEnd = cleaned.indexOf("</body>");
+  if (bodyStart !== -1 && bodyEnd !== -1 && scriptTag) {
+    const cleanBody = `<body>
+    <!-- Use static rendering with Expo Router to support running without JavaScript. -->
+    <noscript>
+      You need to enable JavaScript to run this app.
+    </noscript>
+    <!-- The root element for your Expo app. -->
+    <div id="root"></div>
+    ${scriptTag}
+  `;
+    cleaned = cleaned.slice(0, bodyStart) + cleanBody + cleaned.slice(bodyEnd);
+  }
+
   // Add descriptive title attributes to head link tags so link-checkers don't warn about links without title
   cleaned = cleaned.replace(/<link rel="icon" href="([^"]*)"(?![^>]*title=)([^>]*)>/gi, '<link rel="icon" href="$1" title="QuickBihar Favicon"$2>');
   cleaned = cleaned.replace(/<link rel="preload" href="([^"]*)" as="style"(?![^>]*title=)([^>]*)>/gi, '<link rel="preload" href="$1" as="style" title="QuickBihar Stylesheet Preload"$2>');
@@ -43,6 +62,108 @@ function cleanBaseHtml(html: string): string {
 
   return cleaned;
 }
+
+const APP_SHELL_SKELETON = `
+    <div id="root">
+      <div style="max-width:480px;margin:0 auto;background:#ffffff;min-height:100vh;width:100%;display:flex;flex-direction:column;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;box-sizing:border-box;">
+        <style>
+          @keyframes qb-shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+          }
+          .qb-skel {
+            background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 37%, #f1f5f9 63%);
+            background-size: 400% 100%;
+            animation: qb-shimmer 1.4s ease infinite;
+          }
+        </style>
+
+        <!-- Top Header: Brand/Location & Search Bar Skeleton -->
+        <div style="padding:14px 16px 10px;border-bottom:1px solid #f1f5f9;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <div class="qb-skel" style="width:34px;height:34px;border-radius:10px;"></div>
+              <div style="display:flex;flex-direction:column;gap:4px;">
+                <div class="qb-skel" style="width:85px;height:12px;border-radius:4px;"></div>
+                <div class="qb-skel" style="width:130px;height:10px;border-radius:4px;"></div>
+              </div>
+            </div>
+            <div class="qb-skel" style="width:34px;height:34px;border-radius:17px;"></div>
+          </div>
+          <!-- Search Bar Skeleton -->
+          <div class="qb-skel" style="height:42px;border-radius:10px;width:100%;"></div>
+        </div>
+
+        <!-- Hero Carousel Banner Skeleton -->
+        <div style="padding:12px 16px 6px;">
+          <div class="qb-skel" style="height:150px;border-radius:14px;width:100%;"></div>
+        </div>
+
+        <!-- Categories Shimmer Row -->
+        <div style="padding:12px 16px;">
+          <div class="qb-skel" style="width:120px;height:14px;border-radius:4px;margin-bottom:12px;"></div>
+          <div style="display:flex;justify-content:space-between;gap:6px;">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+              <div class="qb-skel" style="width:54px;height:54px;border-radius:27px;"></div>
+              <div class="qb-skel" style="width:44px;height:8px;border-radius:4px;"></div>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+              <div class="qb-skel" style="width:54px;height:54px;border-radius:27px;"></div>
+              <div class="qb-skel" style="width:44px;height:8px;border-radius:4px;"></div>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+              <div class="qb-skel" style="width:54px;height:54px;border-radius:27px;"></div>
+              <div class="qb-skel" style="width:44px;height:8px;border-radius:4px;"></div>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+              <div class="qb-skel" style="width:54px;height:54px;border-radius:27px;"></div>
+              <div class="qb-skel" style="width:44px;height:8px;border-radius:4px;"></div>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+              <div class="qb-skel" style="width:54px;height:54px;border-radius:27px;"></div>
+              <div class="qb-skel" style="width:44px;height:8px;border-radius:4px;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2-Column Product Grid Skeleton -->
+        <div style="padding:8px 16px;flex:1;">
+          <div class="qb-skel" style="width:140px;height:14px;border-radius:4px;margin-bottom:12px;"></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div style="background:#fafafa;padding:8px;border-radius:12px;border:1px solid #f1f5f9;">
+              <div class="qb-skel" style="height:125px;border-radius:8px;width:100%;margin-bottom:8px;"></div>
+              <div class="qb-skel" style="width:80%;height:10px;border-radius:4px;margin-bottom:6px;"></div>
+              <div class="qb-skel" style="width:45%;height:12px;border-radius:4px;"></div>
+            </div>
+            <div style="background:#fafafa;padding:8px;border-radius:12px;border:1px solid #f1f5f9;">
+              <div class="qb-skel" style="height:125px;border-radius:8px;width:100%;margin-bottom:8px;"></div>
+              <div class="qb-skel" style="width:80%;height:10px;border-radius:4px;margin-bottom:6px;"></div>
+              <div class="qb-skel" style="width:45%;height:12px;border-radius:4px;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sticky Bottom Navigation Bar Skeleton -->
+        <div style="position:sticky;bottom:0;background:#ffffff;border-top:1px solid #f1f5f9;padding:10px 24px;display:flex;justify-content:space-between;align-items:center;">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+            <div class="qb-skel" style="width:22px;height:22px;border-radius:6px;"></div>
+            <div class="qb-skel" style="width:28px;height:6px;border-radius:3px;"></div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+            <div class="qb-skel" style="width:22px;height:22px;border-radius:6px;"></div>
+            <div class="qb-skel" style="width:28px;height:6px;border-radius:3px;"></div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+            <div class="qb-skel" style="width:22px;height:22px;border-radius:6px;"></div>
+            <div class="qb-skel" style="width:28px;height:6px;border-radius:3px;"></div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+            <div class="qb-skel" style="width:22px;height:22px;border-radius:6px;"></div>
+            <div class="qb-skel" style="width:28px;height:6px;border-radius:3px;"></div>
+          </div>
+        </div>
+      </div>
+    </div>`;
 
 function injectMetadata(
   templateHtml: string,
@@ -111,10 +232,20 @@ function injectMetadata(
   }
 
   const headSnippet = `\n    ${tags.join("\n    ")}\n  `;
-  return html.replace("</head>", `${headSnippet}</head>`);
+  html = html.replace("</head>", `${headSnippet}</head>`);
+
+  // Inject branded skeleton into #root for instant 0ms shimmer placeholder on initial load and reload
+  if (html.includes('<div id="root"></div>')) {
+    html = html.replace('<div id="root"></div>', APP_SHELL_SKELETON.trim());
+  }
+
+  return html;
 }
 
-/** Injects semantic crawler-accessible HTML inside #root so non-JS and simple crawlers find H1, H2, images with alt/title, and links with title */
+/**
+ * ponytail: Isolate crawler semantic HTML inside <noscript> so non-JS crawlers find H1, H2,
+ * and links, while real users on reload see the branded App Shell loader without raw HTML flash.
+ */
 function injectCrawlerBodyFallback(
   html: string,
   options: {
@@ -214,9 +345,7 @@ function injectCrawlerBodyFallback(
       <nav aria-label="Main Site Navigation" style="font-size: 13px;">
         <a href="/" title="QuickBihar Home — Online Shopping in Bihar" style="color: #4F46E5; font-weight: 600;">Home</a> &bull;
         <a href="/top-selling" title="Top Selling Fashion in Bihar" style="color: #4F46E5; font-weight: 600;">Top Selling</a> &bull;
-        <a href="/mall" title="Shopping Malls in Bihar" style="color: #4F46E5; font-weight: 600;">Shopping Malls</a> &bull;
-        <a href="/robots.txt" title="QuickBihar Robots.txt" style="color: #4F46E5;">Robots.txt</a> &bull;
-        <a href="/sitemap.xml" title="QuickBihar Sitemap.xml" style="color: #4F46E5;">Sitemap.xml</a>
+        <a href="/mall" title="Shopping Malls in Bihar" style="color: #4F46E5; font-weight: 600;">Shopping Malls</a>
       </nav>
     </header>
     <main style="padding: 16px 20px;">
@@ -229,9 +358,18 @@ function injectCrawlerBodyFallback(
     </footer>
   `;
 
-  if (html.includes('<div id="root"></div>')) {
-    return html.replace('<div id="root"></div>', `<div id="root">${fallbackBody}</div>`);
+  // Inject semantic fallback inside <noscript> so non-JS crawlers find it without real users seeing it
+  if (html.includes("<noscript>")) {
+    html = html.replace(/<noscript>[\s\S]*?<\/noscript>/i, `<noscript>\n${fallbackBody}\n    </noscript>`);
+  } else {
+    html = html.replace("<body>", `<body>\n    <noscript>\n${fallbackBody}\n    </noscript>`);
   }
+
+  // Ensure #root has the branded skeleton if not already injected
+  if (html.includes('<div id="root"></div>')) {
+    html = html.replace('<div id="root"></div>', APP_SHELL_SKELETON.trim());
+  }
+
   return html;
 }
 
