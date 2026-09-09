@@ -17,6 +17,7 @@ router.get("/sitemap-static.xml", seoSitemapRateLimiter, SeoController.getStatic
 router.get("/sitemap-products.xml", seoSitemapRateLimiter, SeoController.getProductsSitemap);
 router.get("/sitemap-taxonomy.xml", seoSitemapRateLimiter, SeoController.getTaxonomySitemap);
 router.get("/sitemap-malls.xml", seoSitemapRateLimiter, SeoController.getMallsSitemap);
+router.get("/sitemap-locations.xml", seoSitemapRateLimiter, SeoController.getLocationsSitemap);
 router.get("/robots.txt", seoSitemapRateLimiter, SeoController.getRobotsTxt);
 
 export default router;

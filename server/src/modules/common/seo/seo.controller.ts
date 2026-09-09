@@ -47,6 +47,11 @@ export const getMallsSitemap = asyncHandler(async (_req: Request, res: Response)
     sendXml(res, await SeoService.buildMallsSitemap());
 });
 
+/** Handle GET /sitemap-locations.xml - Buxar district and block URLs. */
+export const getLocationsSitemap = asyncHandler(async (_req: Request, res: Response) => {
+    sendXml(res, await SeoService.buildLocationsSitemap());
+});
+
 /** Handle GET /robots.txt - Environment-aware crawler rules. */
 export const getRobotsTxt = asyncHandler(async (_req: Request, res: Response) => {
     res.set("Content-Type", "text/plain; charset=utf-8");

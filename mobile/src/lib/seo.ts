@@ -279,3 +279,72 @@ export function breadcrumbJsonLd(canonical: string, trail: Array<{ name: string;
     })),
   };
 }
+
+export function locationMeta(loc: {
+  title: string;
+  metaDescription: string;
+  keywords?: string[];
+  path: string;
+  image?: string;
+}): PageMeta {
+  return staticPageMeta({
+    title: loc.title,
+    description: loc.metaDescription,
+    keywords: loc.keywords?.join(", "),
+    path: loc.path,
+    image: loc.image || `${getSiteBase()}/assets/images/icons/splash-icon.png`,
+    indexable: true,
+  });
+}
+
+export function locationJsonLd(loc: {
+  name: string;
+  canonical: string;
+  pins: string[];
+  subdivision?: string;
+  description: string;
+  image?: string;
+}): Record<string, any> {
+  return {
+    "@context": "https://schema.org",
+    "@type": "ClothingStore",
+    name: `QuickBihar — ${loc.name}`,
+    url: loc.canonical,
+    description: loc.description,
+    image: loc.image || `${getSiteBase()}/assets/images/icons/splash-icon.png`,
+    priceRange: "₹₹",
+    paymentAccepted: ["Cash", "Credit Card", "Debit Card", "UPI"],
+    currenciesAccepted: "INR",
+    address: {
+      "@type": "PostalAddress",
+      addressLocality: loc.name,
+      addressRegion: "Bihar",
+      postalCode: loc.pins[0] || "802101",
+      addressCountry: "IN",
+    },
+    areaServed: loc.pins.map((pin) => ({
+      "@type": "PostalAddress",
+      postalCode: pin,
+      addressLocality: loc.name,
+      addressRegion: "Bihar",
+      addressCountry: "IN",
+    })),
+  };
+}
+
+export function faqJsonLd(faqs: Array<{ question: string; answer: string }>): Record<string, any> | null {
+  if (!Array.isArray(faqs) || faqs.length === 0) return null;
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqs.map((faq) => ({
+      "@type": "Question",
+      name: faq.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: faq.answer,
+      },
+    })),
+  };
+}
+

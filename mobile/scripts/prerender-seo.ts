@@ -11,8 +11,16 @@ import {
   itemListJsonLd,
   mallJsonLd,
   breadcrumbJsonLd,
+  locationMeta,
+  locationJsonLd,
+  faqJsonLd,
   type PageMeta,
 } from "../src/lib/seo";
+import {
+  ALL_BUXAR_PAGES,
+  BUXAR_DISTRICT_HUB,
+  type BuxarLocation,
+} from "../src/constants/locations/buxar";
 
 const DIST_DIR = path.resolve(__dirname, "../dist");
 const INDEX_HTML_PATH = path.resolve(DIST_DIR, "index.html");
@@ -29,12 +37,11 @@ function escapeHtml(str: string | undefined | null): string {
 
 function cleanBaseHtml(html: string): string {
   let cleaned = html
-    .replace(/<meta name="(title|description|keywords|author|publisher|robots|twitter:[^"]+)"[^>]*>\s*/gi, "")
-    .replace(/<meta property="(og:[^"]+)"[^>]*>\s*/gi, "")
-    .replace(/<link rel="(canonical|publisher)"[^>]*>\s*/gi, "")
-    .replace(/<title>[\s\S]*?<\/title>\s*/gi, "")
+    .replace(/<meta\b[^>]+(?:name|property)="(title|description|keywords|author|publisher|robots|twitter:[^"]+|og:[^"]+)"[^>]*>\s*/gi, "")
+    .replace(/<link\b[^>]+rel="(canonical|publisher)"[^>]*>\s*/gi, "")
+    .replace(/<title\b[^>]*>[\s\S]*?<\/title>\s*/gi, "")
     .replace(/<!-- (Primary Meta Tags|Open Graph \/ Facebook|Twitter|JSON-LD Structured Data) -->\s*/gi, "")
-    .replace(/<script type="application\/ld\+json">[\s\S]*?<\/script>\s*/gi, "");
+    .replace(/<script\b[^>]*type="application\/ld\+json"[^>]*>[\s\S]*?<\/script>\s*/gi, "");
 
   // Reset body to standard Expo SPA structure: clean <noscript>, clean <div id="root"></div>, and entry script tag
   const scriptMatch = cleaned.match(/<script\b[^>]*src="[^"]*\/_expo\/static\/js\/web\/[^"]*"[^>]*><\/script>/i);
@@ -345,13 +352,29 @@ function injectCrawlerBodyFallback(
       <nav aria-label="Main Site Navigation" style="font-size: 13px;">
         <a href="/" title="QuickBihar Home — Online Shopping in Bihar" style="color: #4F46E5; font-weight: 600;">Home</a> &bull;
         <a href="/top-selling" title="Top Selling Fashion in Bihar" style="color: #4F46E5; font-weight: 600;">Top Selling</a> &bull;
-        <a href="/mall" title="Shopping Malls in Bihar" style="color: #4F46E5; font-weight: 600;">Shopping Malls</a>
+        <a href="/mall" title="Shopping Malls in Bihar" style="color: #4F46E5; font-weight: 600;">Shopping Malls</a> &bull;
+        <a href="/locations/bihar/buxar" title="Fashion &amp; Instant Delivery in Buxar" style="color: #4F46E5; font-weight: 600;">Buxar Hub</a>
       </nav>
     </header>
     <main style="padding: 16px 20px;">
       ${categoriesHtml}
       ${productsHtml}
       ${mallsHtml}
+      <section aria-labelledby="loc-heading" style="margin-top: 28px;">
+        <h2 id="loc-heading">Instant Fashion &amp; Clothing Delivery in Buxar</h2>
+        <p style="font-size: 13px; color: #555; margin-bottom: 12px;">Doorstep delivery of kurtis, sarees, shirts, jeans, and kids clothing across Buxar Sadar &amp; Dumraon subdivisions:</p>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px; font-size: 12px;">
+          <a href="/locations/bihar/buxar" title="Buxar District Hub" style="padding: 6px 12px; background: #eef2ff; color: #4338ca; border-radius: 6px; text-decoration: none; font-weight: bold;">All Buxar Hubs (26 PINs)</a>
+          <a href="/locations/bihar/buxar/buxar-city" title="Fashion in Buxar City 802101" style="padding: 6px 12px; background: #f8fafc; color: #334155; border: 1px solid #e2e8f0; border-radius: 6px; text-decoration: none;">Buxar City (802101)</a>
+          <a href="/locations/bihar/buxar/dumraon" title="Fashion in Dumraon 802119" style="padding: 6px 12px; background: #f8fafc; color: #334155; border: 1px solid #e2e8f0; border-radius: 6px; text-decoration: none;">Dumraon (802119)</a>
+          <a href="/locations/bihar/buxar/chausa" title="Fashion in Chausa 802114" style="padding: 6px 12px; background: #f8fafc; color: #334155; border: 1px solid #e2e8f0; border-radius: 6px; text-decoration: none;">Chausa (802114)</a>
+          <a href="/locations/bihar/buxar/itarhi" title="Fashion in Itarhi 802123" style="padding: 6px 12px; background: #f8fafc; color: #334155; border: 1px solid #e2e8f0; border-radius: 6px; text-decoration: none;">Itarhi (802123)</a>
+          <a href="/locations/bihar/buxar/rajpur" title="Fashion in Rajpur 802113" style="padding: 6px 12px; background: #f8fafc; color: #334155; border: 1px solid #e2e8f0; border-radius: 6px; text-decoration: none;">Rajpur (802113)</a>
+          <a href="/locations/bihar/buxar/brahampur" title="Fashion in Brahampur 802112" style="padding: 6px 12px; background: #f8fafc; color: #334155; border: 1px solid #e2e8f0; border-radius: 6px; text-decoration: none;">Brahampur (802112)</a>
+          <a href="/locations/bihar/buxar/nawanagar" title="Fashion in Nawanagar 802129" style="padding: 6px 12px; background: #f8fafc; color: #334155; border: 1px solid #e2e8f0; border-radius: 6px; text-decoration: none;">Nawanagar (802129)</a>
+          <a href="/locations/bihar/buxar/simri" title="Fashion in Simri 802118" style="padding: 6px 12px; background: #f8fafc; color: #334155; border: 1px solid #e2e8f0; border-radius: 6px; text-decoration: none;">Simri (802118)</a>
+        </div>
+      </section>
     </main>
     <footer style="padding: 20px; border-top: 1px solid #eee; margin-top: 32px; font-size: 12px; color: #777;">
       <p>&copy; ${new Date().getFullYear()} QuickBihar. Local Fashion, Clothing &amp; Daily Essentials with Fast Doorstep Delivery across Bihar.</p>
@@ -366,6 +389,108 @@ function injectCrawlerBodyFallback(
   }
 
   // Ensure #root has the branded skeleton if not already injected
+  if (html.includes('<div id="root"></div>')) {
+    html = html.replace('<div id="root"></div>', APP_SHELL_SKELETON.trim());
+  }
+
+  return html;
+}
+
+function injectLocationCrawlerFallback(
+  html: string,
+  loc: BuxarLocation,
+  categories: any[] = []
+): string {
+  const pagePath =
+    loc.slug === "buxar"
+      ? "/locations/bihar/buxar"
+      : `/locations/bihar/buxar/${loc.slug}`;
+
+  const faqsHtml = loc.faqs
+    .map(
+      (f) => `
+      <div style="margin-bottom: 12px;">
+        <h3 style="font-size: 14px; font-weight: 700; margin: 0 0 4px 0;">${escapeHtml(f.question)}</h3>
+        <p style="font-size: 13px; color: #555; margin: 0;">${escapeHtml(f.answer)}</p>
+      </div>`
+    )
+    .join("\n");
+
+  const categoriesHtml = (categories.length > 0 ? categories.slice(0, 8) : [
+    { title: "Sarees", slug: "sarees" },
+    { title: "Kurtis & Suits", slug: "kurtis-suits" },
+    { title: "Men's Wear", slug: "mens-wear" },
+    { title: "Jeans", slug: "jeans" },
+    { title: "Kids Wear", slug: "kids-wear" },
+  ])
+    .map(
+      (cat) => `
+      <a href="/category/${cat.slug}" title="Shop ${escapeHtml(cat.title)} in ${escapeHtml(loc.name)}" style="display: inline-block; margin: 4px 8px 4px 0; padding: 4px 10px; background: #EEF2FF; color: #4338CA; border-radius: 6px; text-decoration: none; font-size: 12px; font-weight: 600;">
+        ${escapeHtml(cat.title)}
+      </a>`
+    )
+    .join("\n");
+
+  const localitiesHtml = loc.localities
+    .map(
+      (n) => `
+      <span style="display: inline-block; margin: 4px 6px 4px 0; padding: 3px 8px; background: #F3F4F6; color: #374151; border-radius: 4px; font-size: 11px;">
+        ${escapeHtml(n)}
+      </span>`
+    )
+    .join("\n");
+
+  const pinsHtml = loc.pins
+    .map(
+      (pin) => `
+      <span style="display: inline-block; margin: 4px 6px 4px 0; padding: 3px 8px; background: #FEF3C7; color: #92400E; border-radius: 4px; font-size: 11px; font-weight: 700;">
+        PIN ${escapeHtml(pin)}
+      </span>`
+    )
+    .join("\n");
+
+  const fallbackBody = `
+    <header style="padding: 16px 20px; border-bottom: 1px solid #eee;">
+      <h1 style="font-size: 22px; font-weight: 900; margin: 0 0 8px 0;">Online Fashion & Clothes Delivery in ${escapeHtml(loc.name)}, Buxar</h1>
+      <p style="font-size: 14px; color: #555; margin: 0 0 12px 0;">${escapeHtml(loc.metaDescription)}</p>
+      <div style="font-size: 12px; color: #4F46E5; font-weight: 700; margin-bottom: 8px;">
+        ⚡ ${escapeHtml(loc.deliveryTime)} &bull; Subdivision: ${escapeHtml(loc.subdivision)} &bull; Block: ${escapeHtml(loc.block)}
+      </div>
+      <nav aria-label="Main Site Navigation" style="font-size: 13px;">
+        <a href="/" title="QuickBihar Home" style="color: #4F46E5; font-weight: 600;">Home</a> &bull;
+        <a href="/locations/bihar/buxar" title="Buxar District Fashion Delivery" style="color: #4F46E5; font-weight: 600;">Buxar District</a> &bull;
+        <a href="/top-selling" title="Top Selling Fashion in Bihar" style="color: #4F46E5; font-weight: 600;">Top Selling</a>
+      </nav>
+    </header>
+    <main style="padding: 16px 20px;">
+      <section style="margin-top: 20px;">
+        <h2 style="font-size: 16px; font-weight: 700; margin-bottom: 8px;">Popular Clothing Categories in ${escapeHtml(loc.name)}</h2>
+        <div>${categoriesHtml}</div>
+      </section>
+      <section style="margin-top: 20px;">
+        <h2 style="font-size: 16px; font-weight: 700; margin-bottom: 8px;">Areas & Localities Covered in ${escapeHtml(loc.name)}</h2>
+        <div>${localitiesHtml}</div>
+      </section>
+      <section style="margin-top: 20px;">
+        <h2 style="font-size: 16px; font-weight: 700; margin-bottom: 8px;">PIN Codes Served</h2>
+        <div>${pinsHtml}</div>
+      </section>
+      <section style="margin-top: 24px;">
+        <h2 style="font-size: 16px; font-weight: 700; margin-bottom: 12px;">Frequently Asked Questions (FAQs)</h2>
+        ${faqsHtml}
+      </section>
+    </main>
+    <footer style="padding: 20px; border-top: 1px solid #eee; margin-top: 32px; font-size: 12px; color: #777;">
+      <p>&copy; ${new Date().getFullYear()} QuickBihar. Local Fashion, Clothing &amp; Daily Essentials with Fast Doorstep Delivery across Buxar, Bihar.</p>
+    </footer>
+  `;
+
+  if (html.includes("<noscript>")) {
+    html = html.replace(/<noscript>[\s\S]*?<\/noscript>/i, `<noscript>\n${fallbackBody}\n    </noscript>`);
+  } else {
+    html = html.replace("<body>", `<body>\n    <noscript>\n${fallbackBody}\n    </noscript>`);
+  }
+
   if (html.includes('<div id="root"></div>')) {
     html = html.replace('<div id="root"></div>', APP_SHELL_SKELETON.trim());
   }
@@ -687,6 +812,68 @@ async function main() {
     if (id && id !== slug) {
       writeStaticHtml(`mall/${id}.html`, mallHtml);
       writeStaticHtml(`mall/${id}/index.html`, mallHtml);
+      generatedCount += 2;
+    }
+  }
+
+  // 9. Buxar Local SEO Landing Pages (District Hub + All 11 Blocks)
+  console.log(`[prerender-seo] Prerendering ${ALL_BUXAR_PAGES.length} Buxar location pages...`);
+  for (const loc of ALL_BUXAR_PAGES) {
+    const pagePath =
+      loc.slug === "buxar"
+        ? "/locations/bihar/buxar"
+        : `/locations/bihar/buxar/${loc.slug}`;
+
+    const meta = locationMeta({
+      title: loc.title,
+      metaDescription: loc.metaDescription,
+      keywords: loc.keywords,
+      path: pagePath,
+    });
+
+    const schemas: Record<string, any>[] = [];
+    schemas.push(
+      locationJsonLd({
+        name: loc.name,
+        canonical: canonicalUrl(pagePath),
+        pins: loc.pins,
+        subdivision: loc.subdivision,
+        description: loc.metaDescription,
+      })
+    );
+
+    schemas.push(
+      breadcrumbJsonLd(
+        canonicalUrl(pagePath),
+        loc.slug === "buxar"
+          ? [
+              { name: "Home", path: "/" },
+              { name: "Locations", path: "/locations/bihar/buxar" },
+              { name: "Bihar", path: "/locations/bihar/buxar" },
+              { name: "Buxar", path: pagePath },
+            ]
+          : [
+              { name: "Home", path: "/" },
+              { name: "Locations", path: "/locations/bihar/buxar" },
+              { name: "Buxar", path: "/locations/bihar/buxar" },
+              { name: loc.name, path: pagePath },
+            ]
+      )
+    );
+
+    const faqSchema = faqJsonLd(loc.faqs);
+    if (faqSchema) schemas.push(faqSchema);
+
+    let locHtml = injectMetadata(baseHtml, meta, schemas);
+    locHtml = injectLocationCrawlerFallback(locHtml, loc, categories);
+
+    if (loc.slug === "buxar") {
+      writeStaticHtml("locations/bihar/buxar.html", locHtml);
+      writeStaticHtml("locations/bihar/buxar/index.html", locHtml);
+      generatedCount += 2;
+    } else {
+      writeStaticHtml(`locations/bihar/buxar/${loc.slug}.html`, locHtml);
+      writeStaticHtml(`locations/bihar/buxar/${loc.slug}/index.html`, locHtml);
       generatedCount += 2;
     }
   }

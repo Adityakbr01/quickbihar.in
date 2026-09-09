@@ -54,13 +54,46 @@ function isSitemapProduct(product: any): boolean {
     return true;
 }
 
+/** Master list of Buxar district and block SEO slugs. */
+const BUXAR_LOCATION_SLUGS = [
+    "buxar",
+    "buxar-city",
+    "dumraon",
+    "chausa",
+    "itarhi",
+    "rajpur",
+    "nawanagar",
+    "brahampur",
+    "kesath",
+    "chakki",
+    "chaugain",
+    "simri",
+];
+
 /* ── Exported service functions ── */
 
 /** Sitemap index listing every shard ( Crawlers fetch this from /sitemap.xml ). */
 export async function buildSitemapIndex(): Promise<string> {
-    const shards = ["sitemap-static.xml", "sitemap-products.xml", "sitemap-taxonomy.xml", "sitemap-malls.xml"];
+    const shards = [
+        "sitemap-static.xml",
+        "sitemap-products.xml",
+        "sitemap-taxonomy.xml",
+        "sitemap-malls.xml",
+        "sitemap-locations.xml",
+    ];
     const urls = shards.map((shard) => `  <sitemap>\n    <loc>${SITE_BASE}/${shard}</loc>\n  </sitemap>`).join("\n");
     return `<?xml version="1.0" encoding="UTF-8"?>\n<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</sitemapindex>`;
+}
+
+/** Locations shard — Buxar district, subdivisions, and block landing pages. */
+export async function buildLocationsSitemap(): Promise<string> {
+    const today = new Date().toISOString().slice(0, 10);
+    const urls = BUXAR_LOCATION_SLUGS.map((slug) => {
+        const path = slug === "buxar" ? "/locations/bihar/buxar" : `/locations/bihar/buxar/${slug}`;
+        const priority = slug === "buxar" || slug === "buxar-city" ? "0.9" : "0.8";
+        return `  <url>\n    <loc>${SITE_BASE}${path}</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>${priority}</priority>\n  </url>`;
+    }).join("\n");
+    return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>`;
 }
 
 /** Static hubs shard — always present even with an empty catalog. */
