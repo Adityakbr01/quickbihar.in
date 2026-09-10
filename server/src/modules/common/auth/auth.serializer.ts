@@ -56,6 +56,13 @@ export const serializeAuthUser = async (user: any) => {
     fullName: user.fullName,
     phone: user.phone,
     role: serializeRole(role),
+    // Avatar + createdAt must travel with the user: the mobile store and the
+    // profile screens render `user.avatar` / `createdAt` directly, and
+    // avatar-update responses go through setAuth (a missing key would wipe it).
+    avatar: user.avatar?.url
+      ? { url: user.avatar.url, fileId: user.avatar.fileId }
+      : undefined,
+    createdAt: user.createdAt ?? undefined,
   };
 };
 

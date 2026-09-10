@@ -81,7 +81,10 @@ export class UserController {
         // 3. Update User record
         const updatedUser = await UserDAO.updateById(userId, { avatar: uploadResult });
 
-        return res.status(200).json(new ApiResponse(200, updatedUser, "Avatar updated successfully"));
+        // Serialize so the response carries `role` (not raw `roleId`) plus the
+        // new avatar — the mobile client feeds this straight into setAuth.
+        const serialized = await serializeAuthUser(updatedUser);
+        return res.status(200).json(new ApiResponse(200, serialized, "Avatar updated successfully"));
     });
 
     /**
@@ -139,7 +142,11 @@ export class UserController {
     static getProfile = asyncHandler(async (req, res) => {
         const userId = (req as any).user._id;
         const user = await UserDAO.findById(userId);
-        return res.status(200).json(new ApiResponse(200, user, "Profile fetched successfully"));
+        if (!user) throw new ApiError(404, "User not found");
+        // Serialize so the profile carries `role` (not raw `roleId`), matching
+        // the login/register payloads the mobile store already understands.
+        const serialized = await serializeAuthUser(user);
+        return res.status(200).json(new ApiResponse(200, serialized, "Profile fetched successfully"));
     });
 
     // ⭐ Management (Admin Only) ⭐

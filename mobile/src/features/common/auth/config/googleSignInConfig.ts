@@ -1,4 +1,5 @@
 import Constants from "expo-constants";
+import { Platform } from "react-native";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
 
 /**
@@ -52,3 +53,25 @@ export const configureGoogleSignIn = () => {
 };
 
 export { GoogleSignin };
+
+/**
+ * Clears the native Google SDK's cached account (mobile only, no-op on web).
+ *
+ * The native SDK remembers the last signed-in Google account. If we don't
+ * sign out of it, the next `GoogleSignin.signIn()` silently reuses that
+ * account instead of showing the "choose an account" picker. Call this on
+ * logout AND before every sign-in attempt so the user always sees all
+ * their Google accounts and can pick a different one.
+ *
+ * Never throws — auth flows must succeed even if the Google cache clear fails.
+ */
+export const signOutGoogleNative = async (): Promise<void> => {
+  if (Platform.OS === "web") return;
+  try {
+    if (await GoogleSignin.hasPreviousSignIn()) {
+      await GoogleSignin.signOut();
+    }
+  } catch (err) {
+    console.warn("[googleSignInConfig] Google native sign-out failed:", err);
+  }
+};

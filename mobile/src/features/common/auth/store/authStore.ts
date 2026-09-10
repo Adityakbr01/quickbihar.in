@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { authStorage } from "@/src/lib/authStorage";
+import { signOutGoogleNative } from "../config/googleSignInConfig";
 
 export enum RoleEnum {
   USER = "USER",
@@ -61,6 +62,7 @@ interface User {
   avatar?: { url: string; fileId: string };
   phone?: string;
   isVerified?: boolean;
+  createdAt?: string;
 }
 
 interface AuthState {
@@ -105,6 +107,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     } catch (error) {
       console.warn("Storage error clearing auth:", error);
     }
+    // Also drop the native Google SDK's cached account (mobile only,
+    // no-op on web). Without this the next GoogleSignin.signIn() silently
+    // reuses the last account instead of showing the account picker.
+    // Awaiting it here covers every logout path (manual logout, 401
+    // auto-logout, Jewelery signOut) since they all funnel through clearAuth.
+    await signOutGoogleNative();
   },
 
   initializeAuth: async () => {

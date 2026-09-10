@@ -37,12 +37,15 @@ import { useAccountStore } from "../store/accountStore";
  *  • The primary CTA uses WHITE text on the brand primary colour. The
  *    brand primary is a bright lime-green; dark text on it fails
  *    contrast and looks like an inverted button.
- *  • The email field is NOT pre-filled — placeholder explicitly tells
- *    the user to add their email.
+ *  • The email field is pre-filled with the logged-in account's email and is
+ *    READ-ONLY — only the password is editable here. The single exception is
+ *    legacy OTP accounts carrying a synthetic `<phone>@quickbihar.local`
+ *    email (or no email at all): they must type a real address once, so the
+ *    field stays editable until a real email is saved.
  */
 const PasswordEmailSetupSheet = () => {
   const theme = useTheme() as any;
-  const { token, refreshToken, setAuth } = useAuthStore();
+  const { user, token, refreshToken, setAuth } = useAuthStore();
   const isVisible = useAccountStore((state) => state.isPasswordSheetVisible);
   const setVisible = useAccountStore((state) => state.setPasswordSheetVisible);
   const sheet = useSheet();
@@ -58,11 +61,15 @@ const PasswordEmailSetupSheet = () => {
 
   const confirmRef = useRef<any>(null);
 
-  // Reset all fields whenever the sheet is (re-)opened so a previous
-  // half-filled form never leaks into the next open.
+  // Reset fields whenever the sheet is (re-)opened so a previous half-filled
+  // form never leaks into the next open — but pre-fill the logged-in
+  // account's email (still editable). Synthetic legacy-OTP emails
+  // (`<phone>@quickbihar.local`) are skipped so the user types a real one.
   useEffect(() => {
     if (isVisible) {
-      setEmail("");
+      const current = typeof user?.email === "string" ? user.email.trim() : "";
+      const isSynthetic = /^\d{10}@quickbihar\.local$/i.test(current);
+      setEmail(isSynthetic ? "" : current);
       setPassword("");
       setConfirmPassword("");
       setShowPassword(false);
@@ -70,7 +77,7 @@ const PasswordEmailSetupSheet = () => {
       setError("");
       setSuccess(false);
     }
-  }, [isVisible]);
+  }, [isVisible, user?.email]);
 
   // Imperative present/dismiss driven by the store flag.
   useEffect(() => {
@@ -162,6 +169,14 @@ const PasswordEmailSetupSheet = () => {
 
   const strength = getStrength();
 
+  // Email is locked: users may only set a password here. Exception — legacy
+  // OTP accounts with a synthetic `<phone>@quickbihar.local` email (or no
+  // email) must enter a real address once, so it stays editable for them.
+  const storedEmail = typeof user?.email === "string" ? user.email.trim() : "";
+  const hasRealEmail =
+    storedEmail !== "" && !/^\d{10}@quickbihar\.local$/i.test(storedEmail);
+  const isEmailLocked = hasRealEmail;
+
   // Theme tokens (re-derived so they're obvious in the JSX below)
   const inputBg = theme.secondaryBackground; // subtle surface, works in both modes
   const inputBorder = theme.border;
@@ -248,7 +263,11 @@ const PasswordEmailSetupSheet = () => {
                 <View
                   style={[
                     styles.inputRow,
-                    { backgroundColor: inputBg, borderColor: inputBorder },
+                    {
+                      backgroundColor: inputBg,
+                      borderColor: inputBorder,
+                      opacity: isEmailLocked ? 0.6 : 1,
+                    },
                   ]}
                 >
                   <Ionicons
@@ -267,8 +286,29 @@ const PasswordEmailSetupSheet = () => {
                     onChangeText={setEmail}
                     returnKeyType="next"
                     onSubmitEditing={() => confirmRef.current?.focus()}
+                    editable={!isEmailLocked}
+                    selectTextOnFocus={!isEmailLocked}
                   />
+                  {isEmailLocked ? (
+                    <Ionicons
+                      name="lock-closed-outline"
+                      size={16}
+                      color={theme.secondaryText}
+                    />
+                  ) : null}
                 </View>
+                {isEmailLocked ? (
+                  <Text
+                    style={{
+                      color: theme.tertiaryText,
+                      fontSize: 12,
+                      marginTop: 6,
+                    }}
+                  >
+                    Email is linked to your account and can&apos;t be changed
+                    here.
+                  </Text>
+                ) : null}
               </View>
 
               {/* ── Field: New Password ──────────────────────────────── */}

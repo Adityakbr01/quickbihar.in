@@ -45,6 +45,12 @@ export default function AccountLayout() {
         }}
       />
       <Stack.Screen
+        name="orders"
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
         name="reset-password"
         options={{
           headerShown: false,

@@ -7,8 +7,9 @@ import {
   RefreshControl,
 } from "react-native";
 import { FlashList } from "@shopify/flash-list";
-import { useRouter, Stack } from "expo-router";
+import { useRouter } from "expo-router";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import * as Haptics from "expo-haptics";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { getMyOrdersRequest } from "../api/order.api";
 import { socketClient } from "@/src/lib/socket";
@@ -171,14 +172,17 @@ const OrderListScreen = () => {
 
   const renderEmpty = () => (
     <View style={styles.emptyContainer}>
-      <MaterialCommunityIcons
-        name="shopping-outline"
-        size={100}
-        color={theme.tertiaryBackground}
-      />
+      <View
+        style={[
+          styles.emptyIconWrap,
+          { backgroundColor: theme.primary + "15" },
+        ]}
+      >
+        <Ionicons name="bag-handle-outline" size={52} color={theme.primary} />
+      </View>
       <Text style={styles.emptyTitle}>No Orders Yet</Text>
       <Text style={styles.emptySubtitle}>
-        You hasn't placed any orders yet. Start shopping to see them here!
+        You haven&apos;t placed any orders yet. Start shopping to see them here!
       </Text>
       <TouchableOpacity
         style={styles.shopButton}
@@ -199,23 +203,33 @@ const OrderListScreen = () => {
 
   return (
     <SafeViewWrapper>
-      <Stack.Screen
-        options={{
-          headerShown: false, // Fix: Hide the native header to prevent duplicates
-        }}
-      />
-
       <View style={styles.container}>
-        {/* Custom Premium Header */}
-        <View style={styles.header}>
+        {/* Top app bar (same language as Notifications) */}
+        <View style={styles.appBar}>
           <TouchableOpacity
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(
+                () => null,
+              );
+              if (router.canGoBack()) router.back();
+              else router.replace("/(tabs)/clothing/home");
+            }}
             style={styles.backButton}
-            onPress={() => router.back()}
+            activeOpacity={0.7}
           >
             <Ionicons name="chevron-back" size={22} color={theme.text} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>My Orders</Text>
-          <View style={{ width: 44 }} />
+
+          <View style={styles.appBarTitleWrap}>
+            <Text style={styles.appBarTitle}>My Orders</Text>
+            <Text style={styles.appBarSubtitle}>
+              {orders.length > 0
+                ? `${orders.length} order${orders.length === 1 ? "" : "s"}`
+                : "Track and manage your orders"}
+            </Text>
+          </View>
+
+          <View style={{ width: 40 }} />
         </View>
 
         <FlashList

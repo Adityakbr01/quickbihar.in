@@ -45,8 +45,10 @@ const SearchScreen = () => {
   const [filters, setFilters] = useState<SearchFilters>(
     categoryName || subCategory || categoryId
       ? {
-          category: categoryName || (categoryId ? categoryId : undefined),
+          category: categoryName || undefined,
           subCategory: subCategory || undefined,
+          categoryId: categoryId || undefined,
+          categoryName: categoryName || undefined,
         }
       : {},
   );
@@ -90,8 +92,10 @@ const SearchScreen = () => {
       setDebouncedQuery(active);
       setFilters((prev) => ({
         ...prev,
-        category: categoryName || (categoryId ? categoryId : undefined),
+        category: categoryName || undefined,
         subCategory: subCategory || undefined,
+        categoryId: categoryId || undefined,
+        categoryName: categoryName || undefined,
       }));
       onSearchTrigger(active);
     }

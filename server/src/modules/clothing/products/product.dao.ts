@@ -7,6 +7,10 @@
 
 import { Product } from "./product.model";
 
+/* ── Internal helpers ── */
+
+const escapeRx = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
 /* ── Exported DAO functions ── */
 
 /**
@@ -31,7 +35,7 @@ export async function findAll(query: any = {}, options: { skip?: number; limit?:
 
     // 1. Handle Text Search
     if (query.search && typeof query.search === "string" && query.search.trim()) {
-        const searchPattern = new RegExp(query.search.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), "i");
+        const searchPattern = new RegExp(escapeRx(query.search.trim()), "i");
         finalQuery.$or = [
             ...(finalQuery.$or || []),
             { title: searchPattern },
@@ -77,25 +81,54 @@ export async function findAll(query: any = {}, options: { skip?: number; limit?:
         finalQuery.storeId = { $in: query.storeIds };
     }
 
-    if (query.category && query.subCategory && query.category.trim().toLowerCase() !== query.subCategory.trim().toLowerCase()) {
-        const catRegex = new RegExp(query.category.trim(), "i");
-        const subCatRegex = new RegExp(query.subCategory.trim(), "i");
+    // Category scoping — matches ALL products related to the tapped category by
+    // id (service resolves `categoryId` to `categoryNames`: own title + active
+    // children) and/or by name, using escaped partial regex across the
+    // category, subCategory and tags fields. When a free-text search is also
+    // present, the category group is ANDed so results stay inside the category
+    // instead of widening the search.
+    const categoryTokenOr = (token: string) => {
+        const rx = new RegExp(escapeRx(token), "i");
+        return [{ category: rx }, { subCategory: rx }, { tags: rx }];
+    };
+    const cat = typeof query.category === "string" ? query.category.trim() : "";
+    const sub = typeof query.subCategory === "string" ? query.subCategory.trim() : "";
+    const extraTokens: string[] = [];
+    if (typeof query.categoryName === "string" && query.categoryName.trim()) {
+        extraTokens.push(query.categoryName.trim());
+    }
+    if (Array.isArray(query.categoryNames)) {
+        for (const name of query.categoryNames) {
+            if (typeof name === "string" && name.trim()) extraTokens.push(name.trim());
+        }
+    }
+
+    if (cat && sub && cat.toLowerCase() !== sub.toLowerCase()) {
         finalQuery.$and = [
             ...(finalQuery.$and || []),
-            { $or: [{ category: catRegex }, { subCategory: catRegex }] },
-            { $or: [{ category: subCatRegex }, { subCategory: subCatRegex }] },
+            { $or: categoryTokenOr(cat) },
+            { $or: categoryTokenOr(sub) },
         ];
-    } else if (query.category || query.subCategory) {
-        const catValue = (query.category || query.subCategory).trim();
-        const catRegex = new RegExp(catValue, "i");
-        finalQuery.$or = [
-            ...(finalQuery.$or || []),
-            { category: catRegex },
-            { subCategory: catRegex },
-            { tags: catRegex },
-        ];
-    } else if (finalQuery.vertical === "CLOTHING") {
-        finalQuery.category = { $not: /jewel|necklace|ring|earring|pendant|bangle|food|grocery|beverage|snack/i };
+    } else {
+        const seen = new Set<string>();
+        const anyTokens: string[] = [];
+        for (const token of [...(cat ? [cat] : []), ...(!cat && sub ? [sub] : []), ...extraTokens]) {
+            const key = token.toLowerCase();
+            if (!seen.has(key)) {
+                seen.add(key);
+                anyTokens.push(token);
+            }
+        }
+        if (anyTokens.length) {
+            const categoryOr = anyTokens.flatMap(categoryTokenOr);
+            if (finalQuery.$or && finalQuery.$or.length) {
+                finalQuery.$and = [...(finalQuery.$and || []), { $or: categoryOr }];
+            } else {
+                finalQuery.$or = [...(finalQuery.$or || []), ...categoryOr];
+            }
+        } else if (finalQuery.vertical === "CLOTHING") {
+            finalQuery.category = { $not: /jewel|necklace|ring|earring|pendant|bangle|food|grocery|beverage|snack/i };
+        }
     }
 
     if (query.gender) {
@@ -107,7 +140,7 @@ export async function findAll(query: any = {}, options: { skip?: number; limit?:
     }
 
     if (query.brand) {
-        finalQuery.brand = { $regex: new RegExp(query.brand, "i") };
+        finalQuery.brand = { $regex: new RegExp(escapeRx(query.brand), "i") };
     }
 
     if (query.minPrice || query.maxPrice) {
@@ -135,19 +168,35 @@ export async function findAll(query: any = {}, options: { skip?: number; limit?:
     }
 
     // 3. Handle Sorting
+    // Relevance = trending first, then top rated, then most reviewed
+    // (ratings.count is the closest stored proxy for units sold), then newest.
+    // This is the default for text search AND category browsing so top-selling
+    // / top-rated products surface at the top of category pages.
+    const relevanceSort = {
+        isTrending: -1,
+        "ratings.average": -1,
+        "ratings.count": -1,
+        createdAt: -1,
+    };
+    const hasCategoryIntent =
+        Boolean(cat || sub) ||
+        (typeof query.categoryName === "string" && query.categoryName.trim() !== "") ||
+        (typeof query.categoryId === "string" && query.categoryId.trim() !== "") ||
+        (Array.isArray(query.categoryNames) && query.categoryNames.length > 0);
     let sortOption: any = { createdAt: -1 };
     if (query.sortBy) {
         switch (query.sortBy) {
             case "price_low": sortOption = { price: 1 }; break;
             case "price_high": sortOption = { price: -1 }; break;
-            case "rating": sortOption = { "ratings.average": -1 }; break;
+            case "rating": sortOption = { "ratings.average": -1, "ratings.count": -1 }; break;
             case "newest": sortOption = { createdAt: -1 }; break;
             case "oldest": sortOption = { createdAt: 1 }; break;
             case "discount": sortOption = { discountPercentage: -1, price: 1 }; break;
-            case "trending": sortOption = { isTrending: -1, "ratings.average": -1, createdAt: -1 }; break;
+            case "relevance": sortOption = { ...relevanceSort }; break;
+            case "trending": sortOption = { isTrending: -1, "ratings.average": -1, "ratings.count": -1, createdAt: -1 }; break;
         }
-    } else if (query.search) {
-        sortOption = { isTrending: -1, "ratings.average": -1, createdAt: -1 };
+    } else if (query.search || hasCategoryIntent) {
+        sortOption = { ...relevanceSort };
     }
 
     const [data, total] = await Promise.all([
@@ -230,16 +279,16 @@ export async function findSimilar(
     const orConditions: any[] = [];
 
     if (category) {
-        orConditions.push({ category: { $regex: new RegExp(category, "i") } });
+        orConditions.push({ category: { $regex: new RegExp(escapeRx(category), "i") } });
     }
 
     if (tags && tags.length > 0) {
-        const tagPatterns = tags.map(tag => ({ tags: { $regex: new RegExp(tag.trim(), "i") } }));
+        const tagPatterns = tags.map(tag => ({ tags: { $regex: new RegExp(escapeRx(tag.trim()), "i") } }));
         orConditions.push(...tagPatterns);
     }
 
     if (brand) {
-        orConditions.push({ brand: { $regex: new RegExp(brand.trim(), "i") } });
+        orConditions.push({ brand: { $regex: new RegExp(escapeRx(brand.trim()), "i") } });
     }
 
     if (orConditions.length === 0) return [];
@@ -373,11 +422,15 @@ export async function getTopSellingProducts(limit = 10, category?: string, verti
     }
 
     if (category && typeof category === "string" && category.trim()) {
+        // Partial, escaped regex (not exact ^$ match) so "Jeans" also matches
+        // "Men Jeans", and values with regex chars can't break the query.
+        const categoryPattern = new RegExp(escapeRx(category.trim()), "i");
         baseFilter.$and = [
             {
                 $or: [
-                    { category: { $regex: new RegExp(`^${category.trim()}$`, "i") } },
-                    { subCategory: { $regex: new RegExp(`^${category.trim()}$`, "i") } },
+                    { category: categoryPattern },
+                    { subCategory: categoryPattern },
+                    { tags: categoryPattern },
                 ]
             }
         ];

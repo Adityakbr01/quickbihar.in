@@ -4,6 +4,8 @@ import { getPublicProductsRequest } from "../../product/api/product.api";
 export interface SearchFilters {
   category?: string;
   subCategory?: string;
+  categoryId?: string;
+  categoryName?: string;
   minPrice?: number;
   maxPrice?: number;
   brand?: string;

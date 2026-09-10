@@ -15,6 +15,10 @@ const queryClient = new QueryClient({
   },
 });
 
+// Shared instance so auth flows (login/logout) can purge per-user cached
+// queries outside of React components.
+export { queryClient };
+
 const asyncStoragePersister = createAsyncStoragePersister({
   storage: AsyncStorage,
 });

@@ -11,9 +11,13 @@ export const useProfile = () => {
   const refreshToken = useAuthStore((state) => state.refreshToken);
 
   const { data: profile, isLoading, error } = useQuery({
-    queryKey: ["userProfile"],
+    // Scoped per user: a static key served the PREVIOUS account's cached
+    // (persisted!) profile after switching accounts, so the 2nd login showed
+    // the 1st account's avatar. `enabled` also stops the logged-out 401 noise.
+    queryKey: ["userProfile", user?._id],
     queryFn: getProfileRequest,
     select: (response) => response.data,
+    enabled: !!token && !!user?._id,
   });
 
   const updateProfile = useMutation({

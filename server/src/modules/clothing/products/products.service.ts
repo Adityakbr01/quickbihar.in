@@ -277,13 +277,43 @@ export async function createProduct(data: any, files: any[], requesterId: string
  *
  * Page is floored at 1; limit is clamped to 1..50 (SEO/crawler abuse guard, plan §26 A5).
  * Returns additive `page/limit/totalPages` alongside legacy `data/total` (backwards compatible).
+ *
+ * A `categoryId` query param is resolved to the category title plus all active
+ * child-category titles and forwarded as `categoryNames`, because products
+ * store category/subCategory as plain strings — an id alone matches nothing.
  */
 export async function getProducts(query: any = {}) {
     const page = Math.max(1, parseInt(query.page as string) || 1);
     const limit = Math.min(50, Math.max(1, parseInt(query.limit as string) || 10));
     const skip = (page - 1) * limit;
 
-    return await ProductDAO.findAll(query, { skip, limit, page });
+    const resolved = await resolveCategoryNames(query);
+    return await ProductDAO.findAll({ ...query, ...resolved }, { skip, limit, page });
+}
+
+/**
+ * Expand a `categoryId` into matchable names (own title + active children titles).
+ * Never throws — an unknown/invalid id simply contributes no names and the
+ * remaining name filters still apply.
+ */
+async function resolveCategoryNames(query: any): Promise<{ categoryNames?: string[] }> {
+    const rawId = typeof query.categoryId === "string" ? query.categoryId.trim() : "";
+    if (!rawId || !/^[0-9a-fA-F]{24}$/.test(rawId)) return {};
+    try {
+        const doc = await Category.findOne({ _id: rawId, isActive: true }).lean();
+        if (!doc) return {};
+        const names = new Set<string>();
+        if ((doc as any).title) names.add((doc as any).title);
+        const children = await Category.find({ parentId: (doc as any)._id, isActive: true })
+            .select("title")
+            .lean();
+        for (const child of children) {
+            if ((child as any).title) names.add((child as any).title);
+        }
+        return names.size ? { categoryNames: [...names] } : {};
+    } catch {
+        return {};
+    }
 }
 
 /**

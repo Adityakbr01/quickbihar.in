@@ -15,6 +15,7 @@ import {
   statusCodes,
 } from "@react-native-google-signin/google-signin";
 
+import { signOutGoogleNative } from "../config/googleSignInConfig";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 
 interface GoogleSignInButtonProps {
@@ -61,6 +62,12 @@ export const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({
       } catch {
         // iOS will throw here, which is fine.
       }
+
+      // Force the account chooser: drop any cached Google session first so
+      // signIn() always shows ALL accounts instead of silently reusing the
+      // last one (e.g. stale cache from a logout before this fix shipped).
+      // Never throws — safe to run on every tap.
+      await signOutGoogleNative();
 
       const response = await GoogleSignin.signIn();
       // Native returns { type: "success", data: User }; web returns

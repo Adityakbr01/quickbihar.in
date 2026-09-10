@@ -14,6 +14,7 @@ import {
 } from "../api/auth.api";
 import { getRoleLandingRoute, useAuthStore } from "../store/authStore";
 import { useCartStore } from "@/src/features/common/cart/store/cartStore";
+import { queryClient } from "@/src/provider/QueryProvider";
 
 /**
  * Runs after any successful auth response (login, register, Google).
@@ -30,6 +31,11 @@ const finalizeAuth = async (
   }
   const { user, accessToken, refreshToken } = data;
   await setAuth(user, accessToken, refreshToken);
+
+  // Drop any cached profile from a previous account so the new session never
+  // renders the old account's avatar/name (per-user query keys already
+  // isolate caches; this is belt-and-suspenders for the same-user case).
+  queryClient.removeQueries({ queryKey: ["userProfile"] });
 
   try {
     await useCartStore.getState().syncLocalCart();
@@ -188,6 +194,7 @@ export const useLogout = () => {
     mutationFn: logoutRequest,
     onSettled: async () => {
       await clearAuth();
+      queryClient.removeQueries({ queryKey: ["userProfile"] });
       useCartStore.getState().clearCart();
       router.replace("/auth");
     },
