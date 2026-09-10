@@ -3,13 +3,14 @@ import {
   View,
   Text,
   TouchableOpacity,
-  ActivityIndicator,
   RefreshControl,
+  ScrollView,
 } from "react-native";
 import { FlashList } from "@shopify/flash-list";
 import { useRouter } from "expo-router";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
+import { OrderCardSkeleton } from "../components/OrderCardSkeleton";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { getMyOrdersRequest } from "../api/order.api";
 import { socketClient } from "@/src/lib/socket";
@@ -193,13 +194,16 @@ const OrderListScreen = () => {
     </View>
   );
 
-  if (isLoading && !isRefreshing) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={theme.primary} />
-      </View>
-    );
-  }
+  const renderSkeletons = () => (
+    <ScrollView
+      contentContainerStyle={styles.listContent}
+      showsVerticalScrollIndicator={false}
+    >
+      {[0, 1, 2, 3].map((i) => (
+        <OrderCardSkeleton key={i} />
+      ))}
+    </ScrollView>
+  );
 
   return (
     <SafeViewWrapper>
@@ -232,22 +236,26 @@ const OrderListScreen = () => {
           <View style={{ width: 40 }} />
         </View>
 
-        <FlashList
-          data={orders}
-          renderItem={renderOrderItem}
-          keyExtractor={(item) => item._id}
-          contentContainerStyle={styles.listContent}
-          showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl
-              refreshing={isRefreshing}
-              onRefresh={handleRefresh}
-              tintColor={theme.primary}
-              colors={[theme.primary]}
-            />
-          }
-          ListEmptyComponent={renderEmpty}
-        />
+        {isLoading && !isRefreshing ? (
+          renderSkeletons()
+        ) : (
+          <FlashList
+            data={orders}
+            renderItem={renderOrderItem}
+            keyExtractor={(item) => item._id}
+            contentContainerStyle={styles.listContent}
+            showsVerticalScrollIndicator={false}
+            refreshControl={
+              <RefreshControl
+                refreshing={isRefreshing}
+                onRefresh={handleRefresh}
+                tintColor={theme.primary}
+                colors={[theme.primary]}
+              />
+            }
+            ListEmptyComponent={renderEmpty}
+          />
+        )}
       </View>
     </SafeViewWrapper>
   );

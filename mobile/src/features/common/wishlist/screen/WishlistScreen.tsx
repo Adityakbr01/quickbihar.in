@@ -5,7 +5,6 @@ import {
   Image,
   TouchableOpacity,
   ScrollView,
-  ActivityIndicator,
   RefreshControl,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -15,6 +14,7 @@ import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { createWishlistStyles } from "../styles/wishlistStyles";
 import { useWishlist } from "../hooks/useWishlist";
 import { useWishlistStore } from "../store/wishlistStore";
+import { WishlistCardSkeleton } from "../components/WishlistCardSkeleton";
 import SafeViewWrapper from "@/src/provider/SafeViewWrapper";
 
 const WishlistScreen = () => {
@@ -23,56 +23,79 @@ const WishlistScreen = () => {
   const router = useRouter();
   const { data: items = [], isLoading, refetch } = useWishlist();
   const toggleWishlist = useWishlistStore((state) => state.toggleItem);
-  const wishlistIds = useWishlistStore((state) => state.items);
 
   const handleRemove = (productId: string) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     toggleWishlist(productId);
   };
 
-  if (isLoading && items.length === 0 && wishlistIds.length > 0) {
-    return (
-      <SafeViewWrapper>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={theme.primary} />
-        </View>
-      </SafeViewWrapper>
-    );
-  }
+  const handleBack = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => null);
+    if (router.canGoBack()) router.back();
+    else router.replace("/(tabs)/clothing/home");
+  };
+
+  const renderSkeletons = () => (
+    <ScrollView
+      contentContainerStyle={styles.list}
+      showsVerticalScrollIndicator={false}
+    >
+      <View style={styles.grid}>
+        {[0, 1, 2, 3, 4, 5].map((i) => (
+          <WishlistCardSkeleton key={i} />
+        ))}
+      </View>
+    </ScrollView>
+  );
 
   return (
     <SafeViewWrapper>
       <View style={styles.container}>
-        {/* Header */}
-        <View style={styles.header}>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-            <TouchableOpacity
-              onPress={() => router.back()}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            >
-              <Ionicons name="arrow-back" size={24} color={theme.text} />
-            </TouchableOpacity>
-            <Text style={styles.headerTitle}>My Wishlist</Text>
+        {/* Top app bar (same language as Notifications) */}
+        <View style={styles.appBar}>
+          <TouchableOpacity
+            onPress={handleBack}
+            style={styles.backButton}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="chevron-back" size={22} color={theme.text} />
+          </TouchableOpacity>
+
+          <View style={styles.appBarTitleWrap}>
+            <Text style={styles.appBarTitle}>My Wishlist</Text>
+            <Text style={styles.appBarSubtitle}>
+              {items.length > 0
+                ? `${items.length} item${items.length === 1 ? "" : "s"} saved`
+                : "Items you love, saved for later"}
+            </Text>
           </View>
-          <Text style={styles.itemCount}>
-            {items.length} {items.length === 1 ? "Item" : "Items"}
-          </Text>
+
+          <View style={{ width: 40 }} />
         </View>
 
-        {items.length === 0 ? (
+        {isLoading && items.length === 0 ? (
+          renderSkeletons()
+        ) : items.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <Ionicons name="heart-dislike-outline" size={80} color={theme.border} />
+            <View
+              style={[
+                styles.emptyIconWrap,
+                { backgroundColor: theme.primary + "15" },
+              ]}
+            >
+              <Ionicons name="heart-outline" size={52} color={theme.primary} />
+            </View>
             <Text style={styles.emptyTitle}>Your Wishlist is Empty</Text>
             <Text style={styles.emptySubtitle}>
-              Save items you love here and they'll be waiting for you when you're
-              ready to buy.
+              Save items you love here and they&apos;ll be waiting for you when
+              you&apos;re ready to buy.
             </Text>
             <TouchableOpacity
               style={styles.shopBtn}
               onPress={() => router.push("/")}
               activeOpacity={0.8}
             >
-              <Text style={styles.shopBtnText}>CONTINUE SHOPPING</Text>
+              <Text style={styles.shopBtnText}>Continue Shopping</Text>
             </TouchableOpacity>
           </View>
         ) : (

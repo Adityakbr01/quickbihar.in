@@ -23,7 +23,7 @@ export default function AccountLayout() {
       <Stack.Screen
         name="addresses"
         options={{
-          headerTitle: "Saved Addresses",
+          headerShown: false,
         }}
       />
       <Stack.Screen

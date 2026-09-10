@@ -4,19 +4,21 @@ import {
   Text,
   ScrollView,
   TouchableOpacity,
-  ActivityIndicator,
-  Alert
+  RefreshControl
 } from "react-native";
 import { useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
-import { MapPinPlusIcon, Location01Icon } from "@hugeicons/core-free-icons";
+import { Ionicons } from "@expo/vector-icons";
+import { MapPinPlusIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { createAddressStyles } from "../style/addressStyles";
 import { useAddresses, useAddressActions } from "../hooks/useAddress";
 import AddressCard from "../components/AddressCard";
+import { AddressCardSkeleton } from "../components/AddressCardSkeleton";
 import { IAddress } from "../schema/address.schema";
 import IOSAlertDialog, { AlertButton } from "@/src/components/ui/IOSAlertDialog";
+import SafeViewWrapper from "@/src/provider/SafeViewWrapper";
 import { useState } from "react";
 
 const SavedAddressesScreen = () => {
@@ -24,7 +26,7 @@ const SavedAddressesScreen = () => {
   const styles = createAddressStyles(theme);
   const router = useRouter();
 
-  const { data: addresses, isLoading, error } = useAddresses();
+  const { data: addresses, isLoading, refetch } = useAddresses();
   const { deleteAddress, setDefaultAddress } = useAddressActions();
 
   const [alertConfig, setAlertConfig] = useState<{
@@ -84,26 +86,69 @@ const SavedAddressesScreen = () => {
       await setDefaultAddress.mutateAsync(id);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch (err) {
-      Alert.alert("Error", "Failed to set default address");
+      setAlertConfig({
+        visible: true,
+        title: "Error",
+        message: "Failed to set default address.",
+        buttons: [{ text: "OK" }]
+      });
     }
   };
 
-  if (isLoading) {
-    return (
-      <View style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
-        <ActivityIndicator size="large" color={theme.primary} />
-      </View>
-    );
-  }
+  const handleBack = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => null);
+    if (router.canGoBack()) router.back();
+    else router.replace("/(tabs)/clothing/home");
+  };
+
+  const renderSkeletons = () => (
+    <View>
+      {[0, 1, 2].map((i) => (
+        <AddressCardSkeleton key={i} />
+      ))}
+    </View>
+  );
 
   return (
+    <SafeViewWrapper>
     <View style={styles.container}>
+      {/* Top app bar (same language as Notifications) */}
+      <View style={styles.appBar}>
+        <TouchableOpacity
+          onPress={handleBack}
+          style={styles.backButton}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="chevron-back" size={22} color={theme.text} />
+        </TouchableOpacity>
+
+        <View style={styles.appBarTitleWrap}>
+          <Text style={styles.appBarTitle}>Saved Addresses</Text>
+          <Text style={styles.appBarSubtitle}>
+            {addresses && addresses.length > 0
+              ? `${addresses.length} address${addresses.length === 1 ? "" : "es"} saved`
+              : "Manage your delivery addresses"}
+          </Text>
+        </View>
+
+        <View style={{ width: 40 }} />
+      </View>
+
       <View style={styles.mainWrapper}>
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={false}
+              onRefresh={refetch}
+              tintColor={theme.primary}
+            />
+          }
         >
-          {addresses && addresses.length > 0 ? (
+          {isLoading ? (
+            renderSkeletons()
+          ) : addresses && addresses.length > 0 ? (
             addresses.map((address) => (
               <AddressCard
                 key={address._id}
@@ -117,14 +162,22 @@ const SavedAddressesScreen = () => {
             ))
           ) : (
             <View style={styles.emptyContainer}>
-              <HugeiconsIcon icon={Location01Icon} size={80} color={theme.tertiaryText} />
+              <View
+                style={[
+                  styles.emptyIconWrap,
+                  { backgroundColor: theme.primary + "15" },
+                ]}
+              >
+                <Ionicons name="location-outline" size={52} color={theme.primary} />
+              </View>
               <Text style={styles.emptyTitle}>No Saved Addresses</Text>
               <Text style={styles.emptySubtitle}>
-                Add your delivery address to enjoy faster checkout experience.
+                Add your delivery address to enjoy a faster checkout experience.
               </Text>
               <TouchableOpacity
-                style={[styles.submitButton, { width: 200, marginTop: 30 }]}
+                style={[styles.submitButton, { width: 220, marginTop: 20, height: 50 }]}
                 onPress={handleAddAddress}
+                activeOpacity={0.85}
               >
                 <Text style={styles.submitButtonText}>Add New Address</Text>
               </TouchableOpacity>
@@ -150,6 +203,7 @@ const SavedAddressesScreen = () => {
         onClose={() => setAlertConfig(prev => ({ ...prev, visible: false }))}
       />
     </View>
+    </SafeViewWrapper>
   );
 };
 
