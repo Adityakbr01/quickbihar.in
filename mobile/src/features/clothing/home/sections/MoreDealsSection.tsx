@@ -207,7 +207,10 @@ export const useMoreDealsLogic = () => {
       const params: any = {
         page: pageParam,
         limit: 10,
-        gender: selectedGenderOptions.length > 0 ? selectedGenderOptions[0] : undefined,
+        // Send EVERY selected gender (backend $in-matches + always includes
+        // Unisex). Previously only [0] was sent, so multi-select showed just
+        // the first gender's products.
+        gender: selectedGenderOptions.length > 0 ? [...selectedGenderOptions] : undefined,
         search: effectiveSearchQuery || undefined,
       };
 
@@ -262,6 +265,12 @@ export const useMoreDealsLogic = () => {
     else if (activeDropdownType === "Categories") setSelectedCategoryOptions(selected);
   };
 
+  // One-tap reset for the pills row — clears gender + category selections.
+  const clearFilterSelections = useCallback(() => {
+    setSelectedGenderOptions([]);
+    setSelectedCategoryOptions([]);
+  }, []);
+
   const currentOptionsList = activeDropdownType === "Gender" ? GENDER_OPTIONS : categoryOptions;
 
   // Dynamic pill labels
@@ -294,6 +303,7 @@ export const useMoreDealsLogic = () => {
     selectedGenderOptions,
     selectedCategoryOptions,
     handleApply,
+    clearFilterSelections,
     currentOptionsList,
     categoryGroups,
     categoryPillLabel,
@@ -324,6 +334,7 @@ export const MoreDealsFilters = ({
   selectedGenderOptions,
   categoryPillLabel,
   genderPillLabel,
+  clearFilterSelections,
 }: any) => {
   const [isListening, setIsListening] = useState(false);
   const [speechError, setSpeechError] = useState<string | null>(null);
@@ -482,6 +493,25 @@ export const MoreDealsFilters = ({
             </TouchableOpacity>
           );
         })}
+
+        {/* One-tap reset — only when gender/category selections are active */}
+        {(selectedGenderOptions.length > 0 || selectedCategoryOptions.length > 0) && (
+          <TouchableOpacity
+            onPress={() => clearFilterSelections?.()}
+            style={[
+              styles.filterPill,
+              {
+                borderColor: theme.border,
+                backgroundColor: theme.secondaryBackground,
+              },
+            ]}
+          >
+            <Ionicons name="close-circle-outline" size={14} color={theme.secondaryText} />
+            <Text style={[styles.filterText, { color: theme.secondaryText }]}>
+              Reset
+            </Text>
+          </TouchableOpacity>
+        )}
       </ScrollView>
     </View>
   );

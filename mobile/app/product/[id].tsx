@@ -1,8 +1,11 @@
 import ProductDetailScreen from "@/src/features/clothing/product/screen/ProductDetailScreen";
-import { Stack, useLocalSearchParams, Link } from "expo-router";
+import ProductDetailSkeleton from "@/src/features/clothing/product/screen/ProductDetail/components/ProductDetailSkeleton";
+import { Stack, useLocalSearchParams, Link, useRouter } from "expo-router";
 import React from "react";
-import { ActivityIndicator, Text, View } from "react-native";
+import { Text, View } from "react-native";
 import { useProductBySlug } from "@/src/features/clothing/product/hooks/useProducts";
+import { useTheme } from "@/src/theme/Provider/ThemeProvider";
+import SafeViewWrapper from "@/src/provider/SafeViewWrapper";
 
 /** Mongo ObjectId detector — ids stay id-fetched; anything else is treated as a canonical slug. */
 const isObjectId = (value: string) => /^[0-9a-fA-F]{24}$/.test(value || "");
@@ -18,6 +21,8 @@ export default function ProductRoute() {
   const param = (Array.isArray(id) ? id[0] : id) as string;
   const isId = isObjectId(param || "");
   const slugQuery = useProductBySlug(!isId ? param || "" : "");
+  const theme = useTheme() as any;
+  const router = useRouter();
 
   if (isId || !param) {
     return (
@@ -28,13 +33,15 @@ export default function ProductRoute() {
     );
   }
 
+  // Slug → id resolution shows the SAME skeleton the detail screen uses,
+  // so tapping a product goes skeleton → product with no blank spinner stage.
   if (slugQuery.isLoading) {
     return (
       <>
         <Stack.Screen options={{ headerShown: false }} />
-        <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-          <ActivityIndicator />
-        </View>
+        <SafeViewWrapper>
+          <ProductDetailSkeleton theme={theme} onBack={() => router.back()} />
+        </SafeViewWrapper>
       </>
     );
   }

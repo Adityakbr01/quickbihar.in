@@ -410,6 +410,7 @@ export const VariantSelectorBottomSheet = ({
                                 : theme.text,
                           },
                         ]}
+                        numberOfLines={1}
                       >
                         {v.size}
                       </Text>
@@ -615,21 +616,24 @@ const s = StyleSheet.create({
     gap: 12,
   },
   sizeCircle: {
-    width: 48,
+    minWidth: 48,
     height: 48,
+    paddingHorizontal: 14,
     borderRadius: 24,
     borderWidth: 1,
     justifyContent: "center",
     alignItems: "center",
     position: "relative",
     overflow: "hidden",
+    flexShrink: 0,
   },
   sizeCircleOOS: {
     opacity: 0.6,
   },
   sizeText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: "700",
+    textAlign: "center",
   },
   oosLine: {
     position: "absolute",

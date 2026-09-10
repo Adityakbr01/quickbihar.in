@@ -52,7 +52,7 @@ const TopSellingSection = ({ category }: { category?: string } = {}) => {
       const [primaryRes, fallbackRes] = await Promise.allSettled([
         getTrendingProductsRequest(category ? { category } : undefined),
         getPublicProductsRequest({
-          limit: 10,
+          limit: 5,
           sortBy: "trending",
           category: category || undefined,
           isTrending: "true",
@@ -63,7 +63,7 @@ const TopSellingSection = ({ category }: { category?: string } = {}) => {
         primaryRes.status === "fulfilled"
           ? primaryRes.value
           : { data: [], total: 0 };
-      if (primary.data.length >= 6) return primary;
+      if (primary.data.length >= 5) return primary;
 
       const fallback: { data: IProduct[]; total: number } =
         fallbackRes.status === "fulfilled"
@@ -76,7 +76,7 @@ const TopSellingSection = ({ category }: { category?: string } = {}) => {
     },
   });
 
-  const products = (trendingProducts?.data || []).slice(0, 10);
+  const products = (trendingProducts?.data || []).slice(0, 5);
 
   if (isLoading) {
     return (

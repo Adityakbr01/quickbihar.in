@@ -639,6 +639,7 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
                         },
                         oos && s.sizeTextOOS,
                       ]}
+                      numberOfLines={1}
                     >
                       {v.size}
                     </Text>

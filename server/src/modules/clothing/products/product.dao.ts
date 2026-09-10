@@ -84,35 +84,42 @@ export async function findAll(query: any = {}, options: { skip?: number; limit?:
     // Category scoping — matches ALL products related to the tapped category by
     // id (service resolves `categoryId` to `categoryNames`: own title + active
     // children) and/or by name, using escaped partial regex across the
-    // category, subCategory and tags fields. When a free-text search is also
-    // present, the category group is ANDed so results stay inside the category
-    // instead of widening the search.
+    // category, subCategory and tags fields. Multi-values arrive pipe-joined
+    // ("Shirts|T-Shirts") and are split BEFORE escaping so each alternative
+    // matches. When a free-text search is also present, the category group is
+    // ANDed so results stay inside the category instead of widening the search.
+    const splitTokens = (value: unknown): string[] =>
+        typeof value === "string"
+            ? value.split("|").map((part) => part.trim()).filter(Boolean)
+            : [];
     const categoryTokenOr = (token: string) => {
         const rx = new RegExp(escapeRx(token), "i");
         return [{ category: rx }, { subCategory: rx }, { tags: rx }];
     };
-    const cat = typeof query.category === "string" ? query.category.trim() : "";
-    const sub = typeof query.subCategory === "string" ? query.subCategory.trim() : "";
+    const catTokens = splitTokens(query.category);
+    const subTokens = splitTokens(query.subCategory);
     const extraTokens: string[] = [];
-    if (typeof query.categoryName === "string" && query.categoryName.trim()) {
-        extraTokens.push(query.categoryName.trim());
-    }
+    if (typeof query.categoryName === "string") extraTokens.push(...splitTokens(query.categoryName));
     if (Array.isArray(query.categoryNames)) {
-        for (const name of query.categoryNames) {
-            if (typeof name === "string" && name.trim()) extraTokens.push(name.trim());
-        }
+        for (const name of query.categoryNames) extraTokens.push(...splitTokens(name));
     }
 
-    if (cat && sub && cat.toLowerCase() !== sub.toLowerCase()) {
+    const singleSame =
+        catTokens.length === 1 &&
+        subTokens.length === 1 &&
+        (catTokens[0] as string).toLowerCase() === (subTokens[0] as string).toLowerCase();
+
+    if (catTokens.length && subTokens.length && !singleSame) {
         finalQuery.$and = [
             ...(finalQuery.$and || []),
-            { $or: categoryTokenOr(cat) },
-            { $or: categoryTokenOr(sub) },
+            { $or: catTokens.flatMap(categoryTokenOr) },
+            { $or: subTokens.flatMap(categoryTokenOr) },
         ];
     } else {
         const seen = new Set<string>();
         const anyTokens: string[] = [];
-        for (const token of [...(cat ? [cat] : []), ...(!cat && sub ? [sub] : []), ...extraTokens]) {
+        const pool = catTokens.length ? [...catTokens, ...extraTokens] : [...subTokens, ...extraTokens];
+        for (const token of pool) {
             const key = token.toLowerCase();
             if (!seen.has(key)) {
                 seen.add(key);
@@ -132,10 +139,14 @@ export async function findAll(query: any = {}, options: { skip?: number; limit?:
     }
 
     if (query.gender) {
-        if (Array.isArray(query.gender)) {
-            finalQuery.gender = { $in: query.gender };
-        } else {
-            finalQuery.gender = query.gender;
+        // Gender is inclusive: "Unisex" products (the schema default — most
+        // catalog items) belong to EVERY gender filter. Exact-match here made
+        // Men/Women/Kids return nearly nothing, looking like broken filters.
+        const requested = (Array.isArray(query.gender) ? query.gender : [query.gender])
+            .map((g: any) => String(g).trim())
+            .filter(Boolean);
+        if (requested.length) {
+            finalQuery.gender = { $in: [...new Set([...requested, "Unisex"])] };
         }
     }
 
@@ -179,7 +190,8 @@ export async function findAll(query: any = {}, options: { skip?: number; limit?:
         createdAt: -1,
     };
     const hasCategoryIntent =
-        Boolean(cat || sub) ||
+        catTokens.length > 0 ||
+        subTokens.length > 0 ||
         (typeof query.categoryName === "string" && query.categoryName.trim() !== "") ||
         (typeof query.categoryId === "string" && query.categoryId.trim() !== "") ||
         (Array.isArray(query.categoryNames) && query.categoryNames.length > 0);

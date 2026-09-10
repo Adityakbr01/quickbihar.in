@@ -51,7 +51,7 @@ const MallSchema = new Schema(
         },
         rating: {
             type: Number,
-            default: 4.5,
+            default: 0,
             min: 0,
             max: 5,
         },

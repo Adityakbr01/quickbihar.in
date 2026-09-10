@@ -9,10 +9,14 @@
 
 import { Types } from "mongoose";
 import { ApiError } from "@/utils/ApiError";
+import { User } from "@/modules/common/user/user.model";
 import { Product } from "@/modules/clothing/products/product.model";
 import { Seller } from "@/modules/common/seller/seller.model";
 import { Mall } from "./mall.model";
 import { MallReview } from "./mallReview.model";
+
+// Prevent tree-shaking of User model needed by Mongoose populate
+void User;
 
 const DEFAULT_MALL_IMAGE = "https://images.unsplash.com/photo-1519501025264-65ba15a82390?w=600&q=80";
 const DEFAULT_PRODUCT_IMAGE = "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=500&q=80";

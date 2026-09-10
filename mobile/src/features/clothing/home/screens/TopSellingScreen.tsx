@@ -11,20 +11,16 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { Image as ExpoImage } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import * as Haptics from "expo-haptics";
-import Toast from "react-native-toast-message";
-import Animated, { FadeInDown } from "react-native-reanimated";
 
 import SafeViewWrapper from "@/src/provider/SafeViewWrapper";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { IProduct } from "@/src/features/clothing/product/types/product.types";
 import { getPublicProductsRequest } from "@/src/features/clothing/product/api/product.api";
-import { useWishlistStore } from "@/src/features/common/wishlist/store/wishlistStore";
-import { useCartStore } from "@/src/features/common/cart/store/cartStore";
+import { DealProductCard } from "../components/DealProductCard";
 import {
   Sheet,
   SheetHeader,
@@ -130,8 +126,8 @@ const TopSellingScreen: React.FC<TopSellingScreenProps> = ({ category }) => {
   const total = data?.pages?.[0]?.total ?? 0;
 
   const onRefresh = useCallback(async () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setRefreshing(true);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => null);
     try {
       await refetch();
     } finally {
@@ -140,24 +136,27 @@ const TopSellingScreen: React.FC<TopSellingScreenProps> = ({ category }) => {
   }, [refetch]);
 
   const handleSortSelect = (key: SortKey) => {
-    Haptics.selectionAsync();
+    // State first, haptics second (guarded): on web haptics can throw, and it
+    // must never block the filter from applying.
     setSortBy(key);
+    Haptics.selectionAsync().catch(() => null);
     sortSheet.current?.dismiss();
   };
 
   const handleGenderSelect = (g: GenderFilter) => {
-    Haptics.selectionAsync();
     setGender(g);
+    Haptics.selectionAsync().catch(() => null);
   };
 
   const handleOpenSort = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => null);
     sortSheet.current?.present();
   };
 
   const handleBack = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    router.back();
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => null);
+    if (router.canGoBack()) router.back();
+    else router.replace("/(tabs)/clothing/home" as any);
   };
 
   const renderHeader = () => (
@@ -277,9 +276,9 @@ const TopSellingScreen: React.FC<TopSellingScreenProps> = ({ category }) => {
         </Text>
         <TouchableOpacity
           onPress={() => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
             setGender("ALL");
             setSortBy("trending");
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => null);
           }}
           style={[styles.emptyResetBtn, { backgroundColor: theme.primary }]}
           activeOpacity={0.8}
@@ -332,7 +331,7 @@ const TopSellingScreen: React.FC<TopSellingScreenProps> = ({ category }) => {
           ListFooterComponent={renderFooter}
           onEndReached={() => {
             if (hasNextPage && !isFetchingNextPage) {
-              Haptics.selectionAsync();
+              Haptics.selectionAsync().catch(() => null);
               fetchNextPage();
             }
           }}
@@ -346,8 +345,8 @@ const TopSellingScreen: React.FC<TopSellingScreenProps> = ({ category }) => {
               progressBackgroundColor={theme.secondaryBackground}
             />
           }
-          renderItem={({ item, index }) => (
-            <ProductGridCard product={item} index={index} />
+          renderItem={({ item }) => (
+            <DealProductCard product={item} width={CARD_WIDTH} />
           )}
         />
 
@@ -361,7 +360,7 @@ const TopSellingScreen: React.FC<TopSellingScreenProps> = ({ category }) => {
           <SheetHeader
             title="Sort By"
             onClose={() => {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => null);
               sortSheet.current?.dismiss();
             }}
           />
@@ -426,263 +425,6 @@ const TopSellingScreen: React.FC<TopSellingScreenProps> = ({ category }) => {
     </SafeViewWrapper>
   );
 };
-
-interface ProductGridCardProps {
-  product: IProduct;
-  index: number;
-}
-
-const ProductGridCard: React.FC<ProductGridCardProps> = React.memo(
-  ({ product, index }) => {
-    const theme = useTheme();
-    const router = useRouter();
-    const toggleWishlist = useWishlistStore((s) => s.toggleItem);
-    const isWishlisted = useWishlistStore((s) =>
-      s.items.includes(product._id),
-    );
-    const addItem = useCartStore((s) => s.addItem);
-
-    const imageUri = product.images?.[0]?.url;
-    const hasDiscount =
-      product.originalPrice && product.originalPrice > product.price;
-    const discountPct = hasDiscount
-      ? Math.round(
-          ((product.originalPrice - product.price) / product.originalPrice) *
-            100,
-        )
-      : 0;
-    const rating = Number(product.ratings?.average ?? 0);
-    const ratingCount = Number(product.ratings?.count ?? 0);
-
-    const handlePress = () => {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      router.push({
-        pathname: "/product/[id]",
-        params: { id: product.slug || product._id },
-      });
-    };
-
-    const handleWishlist = (e: any) => {
-      e?.stopPropagation?.();
-      Haptics.impactAsync(
-        isWishlisted
-          ? Haptics.ImpactFeedbackStyle.Light
-          : Haptics.ImpactFeedbackStyle.Medium,
-      );
-      toggleWishlist(product._id, product);
-      Toast.show({
-        type: isWishlisted ? "info" : "success",
-        text1: isWishlisted ? "Removed from wishlist" : "Added to wishlist",
-        text2: product.title,
-        position: "bottom",
-        visibilityTime: 1500,
-      });
-    };
-
-    const handleQuickAdd = (e: any) => {
-      e?.stopPropagation?.();
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      const sku = product.variants?.[0]?.sku || product._id;
-      addItem(product, sku, 1);
-      Toast.show({
-        type: "success",
-        text1: "Added to Cart",
-        text2: product.title,
-        position: "bottom",
-        visibilityTime: 1500,
-      });
-    };
-
-    return (
-      <Animated.View
-        entering={FadeInDown.delay(Math.min(index * 40, 400))
-          .springify()
-          .damping(18)}
-        style={[styles.cardOuter, { width: CARD_WIDTH }]}
-      >
-        <TouchableOpacity
-          activeOpacity={0.85}
-          onPress={handlePress}
-          style={[
-            styles.card,
-            {
-              backgroundColor: theme.background,
-              borderColor: theme.border,
-            },
-          ]}
-        >
-          {/* Image */}
-          <View
-            style={[
-              styles.imageWrap,
-              { backgroundColor: theme.secondaryBackground },
-            ]}
-          >
-            {imageUri ? (
-              <ExpoImage
-                source={{ uri: imageUri }}
-                style={styles.image}
-                contentFit="cover"
-                transition={250}
-              />
-            ) : (
-              <View
-                style={[
-                  styles.image,
-                  {
-                    backgroundColor: theme.tertiaryBackground,
-                    alignItems: "center",
-                    justifyContent: "center",
-                  },
-                ]}
-              >
-                <Ionicons
-                  name="image-outline"
-                  size={32}
-                  color={theme.tertiaryText}
-                />
-              </View>
-            )}
-
-            {/* Discount badge */}
-            {discountPct > 0 && (
-              <View
-                style={[
-                  styles.discountBadge,
-                  { backgroundColor: theme.primary },
-                ]}
-              >
-                <Text style={styles.discountText}>
-                  {discountPct}% OFF
-                </Text>
-              </View>
-            )}
-
-            {/* Trending badge */}
-            {product.isTrending && (
-              <View style={styles.trendingBadge}>
-                <Ionicons name="flame" size={10} color="#fff" />
-                <Text style={styles.trendingText}>Trending</Text>
-              </View>
-            )}
-
-            {/* Wishlist heart */}
-            <TouchableOpacity
-              onPress={handleWishlist}
-              style={[
-                styles.wishlistBtn,
-                { backgroundColor: "rgba(255,255,255,0.92)" },
-              ]}
-              hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
-              activeOpacity={0.7}
-            >
-              <Ionicons
-                name={isWishlisted ? "heart" : "heart-outline"}
-                size={16}
-                color={isWishlisted ? "#ef4444" : "#374151"}
-              />
-            </TouchableOpacity>
-
-            {/* Quick add */}
-            {product.totalStock > 0 && (
-              <TouchableOpacity
-                onPress={handleQuickAdd}
-                style={[
-                  styles.quickAddBtn,
-                  { backgroundColor: theme.primary },
-                ]}
-                activeOpacity={0.8}
-                hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
-              >
-                <Ionicons name="add" size={18} color="#fff" />
-              </TouchableOpacity>
-            )}
-          </View>
-
-          {/* Info */}
-          <View style={styles.info}>
-            {product.brand ? (
-              <Text
-                style={[styles.brand, { color: theme.tertiaryText }]}
-                numberOfLines={1}
-              >
-                {product.brand.toUpperCase()}
-              </Text>
-            ) : null}
-
-            <Text
-              style={[styles.title, { color: theme.text }]}
-              numberOfLines={2}
-            >
-              {product.title}
-            </Text>
-
-            {/* Price row */}
-            <View style={styles.priceRow}>
-              <Text style={[styles.price, { color: theme.text }]}>
-                ₹{product.price.toLocaleString("en-IN")}
-              </Text>
-              {hasDiscount && (
-                <Text
-                  style={[
-                    styles.originalPrice,
-                    { color: theme.tertiaryText },
-                  ]}
-                >
-                  ₹{product.originalPrice.toLocaleString("en-IN")}
-                </Text>
-              )}
-            </View>
-
-            {/* Rating */}
-            {rating > 0 && (
-              <View style={styles.ratingRow}>
-                <View
-                  style={[
-                    styles.ratingPill,
-                    { backgroundColor: theme.secondaryBackground },
-                  ]}
-                >
-                  <Ionicons name="star" size={10} color="#f59e0b" />
-                  <Text style={[styles.ratingText, { color: theme.text }]}>
-                    {rating.toFixed(1)}
-                  </Text>
-                </View>
-                {ratingCount > 0 && (
-                  <Text
-                    style={[styles.ratingCount, { color: theme.tertiaryText }]}
-                  >
-                    ({ratingCount})
-                  </Text>
-                )}
-              </View>
-            )}
-
-            {/* Delivery pill */}
-            {product.deliveryInfo?.isExpressAvailable && (
-              <View
-                style={[
-                  styles.deliveryPill,
-                  { backgroundColor: theme.primary + "15" },
-                ]}
-              >
-                <Ionicons
-                  name="flash"
-                  size={9}
-                  color={theme.primary}
-                />
-                <Text style={[styles.deliveryText, { color: theme.primary }]}>
-                  30-Min
-                </Text>
-              </View>
-            )}
-          </View>
-        </TouchableOpacity>
-      </Animated.View>
-    );
-  },
-);
-ProductGridCard.displayName = "ProductGridCard";
 
 const styles = StyleSheet.create({
   headerWrap: {
@@ -777,145 +519,6 @@ const styles = StyleSheet.create({
   columnWrapper: {
     gap: COLUMN_GAP,
     marginBottom: COLUMN_GAP,
-  },
-  cardOuter: {},
-  card: {
-    borderRadius: 14,
-    borderWidth: 1,
-    overflow: "hidden",
-  },
-  imageWrap: {
-    width: "100%",
-    aspectRatio: 0.78,
-    position: "relative",
-    overflow: "hidden",
-  },
-  image: {
-    width: "100%",
-    height: "100%",
-  },
-  discountBadge: {
-    position: "absolute",
-    top: 8,
-    left: 8,
-    paddingHorizontal: 6,
-    paddingVertical: 3,
-    borderRadius: 5,
-  },
-  discountText: {
-    color: "#fff",
-    fontSize: 10,
-    fontWeight: "800",
-    letterSpacing: 0.2,
-  },
-  trendingBadge: {
-    position: "absolute",
-    top: 8,
-    right: 8,
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 6,
-    paddingVertical: 3,
-    borderRadius: 5,
-    backgroundColor: "rgba(239, 68, 68, 0.92)",
-    gap: 2,
-  },
-  trendingText: {
-    color: "#fff",
-    fontSize: 9,
-    fontWeight: "800",
-    letterSpacing: 0.2,
-  },
-  wishlistBtn: {
-    position: "absolute",
-    bottom: 8,
-    left: 8,
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  quickAddBtn: {
-    position: "absolute",
-    bottom: 8,
-    right: 8,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: "#000",
-    shadowOpacity: 0.15,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  info: {
-    padding: 10,
-  },
-  brand: {
-    fontSize: 10,
-    fontWeight: "700",
-    letterSpacing: 0.5,
-    marginBottom: 2,
-  },
-  title: {
-    fontSize: 13,
-    fontWeight: "600",
-    lineHeight: 17,
-    minHeight: 34,
-  },
-  priceRow: {
-    flexDirection: "row",
-    alignItems: "baseline",
-    marginTop: 6,
-    gap: 6,
-  },
-  price: {
-    fontSize: 15,
-    fontWeight: "800",
-  },
-  originalPrice: {
-    fontSize: 11,
-    textDecorationLine: "line-through",
-  },
-  ratingRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 4,
-    gap: 4,
-  },
-  ratingPill: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 5,
-    paddingVertical: 2,
-    borderRadius: 6,
-    gap: 2,
-  },
-  ratingText: {
-    fontSize: 10,
-    fontWeight: "700",
-  },
-  ratingCount: {
-    fontSize: 10,
-    fontWeight: "500",
-  },
-  deliveryPill: {
-    flexDirection: "row",
-    alignItems: "center",
-    alignSelf: "flex-start",
-    marginTop: 6,
-    paddingHorizontal: 5,
-    paddingVertical: 2,
-    borderRadius: 4,
-    gap: 2,
-  },
-  deliveryText: {
-    fontSize: 9,
-    fontWeight: "800",
-    letterSpacing: 0.2,
   },
   emptyWrap: {
     flex: 1,
