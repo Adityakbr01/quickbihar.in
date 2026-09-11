@@ -1,5 +1,13 @@
+import dns from "node:dns";
 import { ENV } from "@/config/env.config";
 import { ApiError } from "@/utils/ApiError";
+
+// Prefer IPv4 so connection matches the whitelisted IPv4 address in MSG91
+try {
+  dns.setDefaultResultOrder("ipv4first");
+} catch {
+  // Ignore in environments where not supported
+}
 
 /**
  * Normalize phone to international format expected by MSG91.
@@ -73,12 +81,20 @@ export async function sendWhatsAppOtp(phone: string, code: string): Promise<void
 
     const data = (await res.json().catch(() => null)) as Msg91Response | null;
 
+    if (data?.apiError === "418") {
+      const techMsg = `MSG91 IP Whitelist Blocked (apiError 418): Requesting IP is not whitelisted in MSG91 dashboard. Response: ${JSON.stringify(data)}`;
+      const userMsg = "WhatsApp verification service is temporarily unavailable due to server security settings. Please contact support.";
+      console.error(`[MSG91 IP Blocked] Technical: ${techMsg} | User Message: ${userMsg}`);
+      throw new ApiError(502, userMsg);
+    }
+
     if (!res.ok || data?.apiError || data?.type === "error") {
       const techMsg = `MSG91 API error: HTTP ${res.status} (${res.statusText}) - Response: ${JSON.stringify(data ?? {})}`;
       const userMsg = "Unable to send verification code on WhatsApp. Please check your phone number and ensure WhatsApp is active.";
       console.error(`[MSG91 API Error] Technical: ${techMsg} | User Message: ${userMsg}`);
       throw new ApiError(502, userMsg);
     }
+
   } catch (err: any) {
     if (err instanceof ApiError) throw err;
     const techMsg = `MSG91 network/fetch failure: ${err?.message || err}`;
