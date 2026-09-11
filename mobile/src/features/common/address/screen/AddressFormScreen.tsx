@@ -8,6 +8,7 @@ import {
   MapPinCheckIcon,
   UserIcon
 } from "@hugeicons/core-free-icons";
+import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import * as Location from "expo-location";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -272,18 +273,50 @@ const AddressFormScreen = () => {
     }
   };
 
+  const handleBack = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => null);
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace("/account/addresses" as any);
+    }
+  };
+
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      style={styles.container}
-    >
-      <ScrollView
-        contentContainerStyle={styles.formContainer}
-        showsVerticalScrollIndicator={false}
+    <View style={styles.container}>
+      {/* Top app bar (same style as Notifications & Saved Addresses) */}
+      <View style={styles.appBar}>
+        <TouchableOpacity
+          onPress={handleBack}
+          style={styles.backButton}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="chevron-back" size={22} color={theme.text} />
+        </TouchableOpacity>
+
+        <View style={styles.appBarTitleWrap}>
+          <Text style={styles.appBarTitle}>
+            {isEditing ? "Edit Address" : "Add Address"}
+          </Text>
+          <Text style={styles.appBarSubtitle}>
+            {isEditing
+              ? "Update your delivery location details"
+              : "Add a new pin & delivery location"}
+          </Text>
+        </View>
+
+        <View style={{ width: 40 }} />
+      </View>
+
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        style={styles.mainWrapper}
       >
-        <Text style={[styles.nameText, { marginBottom: 24 }]}>
-          {isEditing ? "Edit Delivery Address" : "Add New Delivery Address"}
-        </Text>
+        <ScrollView
+          contentContainerStyle={styles.formContainer}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
 
         <AddressInput
           control={control}
@@ -320,7 +353,7 @@ const AddressFormScreen = () => {
         {isPhoneVerified ? (
           <View style={{ flexDirection: "row", alignItems: "center", gap: 10, marginTop: 6 }}>
             <View style={styles.verifiedBadge}>
-              <Text style={{ fontSize: 13 }}>✅</Text>
+              <Ionicons name="shield-checkmark" size={14} color="#16a34a" />
               <Text style={styles.verifiedBadgeText}>Number Verified</Text>
             </View>
             <TouchableOpacity
@@ -337,7 +370,8 @@ const AddressFormScreen = () => {
             style={styles.verifyButton}
             onPress={() => setOtpSheetVisible(true)}
           >
-            <Text style={styles.verifyButtonText}>📲 Verify via WhatsApp</Text>
+            <Ionicons name="logo-whatsapp" size={15} color={theme.primary} />
+            <Text style={styles.verifyButtonText}>Verify via WhatsApp</Text>
           </TouchableOpacity>
         )}
 
@@ -438,28 +472,29 @@ const AddressFormScreen = () => {
           )}
         </TouchableOpacity>
       </ScrollView>
-
-      <IOSAlertDialog
-        visible={alertConfig.visible}
-        title={alertConfig.title}
-        message={alertConfig.message}
-        buttons={alertConfig.buttons}
-        onClose={() => setAlertConfig(prev => ({ ...prev, visible: false }))}
-      />
-
-      {/* Phone OTP verification sheet */}
-      <PhoneOtpSheet
-        visible={otpSheetVisible}
-        initialPhone={phoneValue || storeUser?.phone || ""}
-        onVerified={(verifiedPhone) => {
-          setValue("phone", verifiedPhone);
-          setIsPhoneVerified(true);
-          setOtpSheetVisible(false);
-          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        }}
-        onClose={() => setOtpSheetVisible(false)}
-      />
     </KeyboardAvoidingView>
+
+    <IOSAlertDialog
+      visible={alertConfig.visible}
+      title={alertConfig.title}
+      message={alertConfig.message}
+      buttons={alertConfig.buttons}
+      onClose={() => setAlertConfig(prev => ({ ...prev, visible: false }))}
+    />
+
+    {/* Phone OTP verification sheet */}
+    <PhoneOtpSheet
+      visible={otpSheetVisible}
+      initialPhone={phoneValue || storeUser?.phone || ""}
+      onVerified={(verifiedPhone) => {
+        setValue("phone", verifiedPhone);
+        setIsPhoneVerified(true);
+        setOtpSheetVisible(false);
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      }}
+      onClose={() => setOtpSheetVisible(false)}
+    />
+  </View>
   );
 };
 

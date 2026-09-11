@@ -419,19 +419,25 @@ const CheckoutScreen = () => {
                 </Text>
                 <Text style={styles.addressPhone}>{selectedAddress.phone}</Text>
                 {selectedAddress.isPhoneVerified ? (
-                  <Text style={{ fontSize: 11, color: "#00C853", fontWeight: "700", marginTop: 4 }}>
-                    ✅ Verified Number
-                  </Text>
-                ) : (
-                  <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginTop: 4 }}>
-                    <Text style={{ fontSize: 11, color: "#FF9800", fontWeight: "600" }}>
-                      ⚠️ Phone not verified
+                  <View style={{ flexDirection: "row", alignItems: "center", gap: 5, marginTop: 5 }}>
+                    <Ionicons name="shield-checkmark" size={13} color="#16a34a" />
+                    <Text style={{ fontSize: 11, color: "#16a34a", fontWeight: "700" }}>
+                      Verified Number
                     </Text>
+                  </View>
+                ) : (
+                  <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginTop: 5 }}>
+                    <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+                      <Ionicons name="alert-circle" size={13} color="#ea580c" />
+                      <Text style={{ fontSize: 11, color: "#ea580c", fontWeight: "600" }}>
+                        Phone not verified
+                      </Text>
+                    </View>
                     <TouchableOpacity
                       onPress={() => setOtpSheetVisible(true)}
                       style={{
                         paddingHorizontal: 8,
-                        paddingVertical: 2,
+                        paddingVertical: 2.5,
                         borderRadius: 6,
                         backgroundColor: theme.primary + "18",
                         borderWidth: 1,
@@ -700,9 +706,12 @@ const CheckoutScreen = () => {
               <Text style={{ fontSize: 12, color: "#7f1d1d", lineHeight: 18 }}>
                 {quoteError}
               </Text>
-              <Text style={{ fontSize: 11, color: "#991b1b", marginTop: 2 }}>
-                💡 Try changing your delivery address or contact the seller.
-              </Text>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 2 }}>
+                <Ionicons name="information-circle-outline" size={13} color="#991b1b" />
+                <Text style={{ fontSize: 11, color: "#991b1b" }}>
+                  Try changing your delivery address or contact the seller.
+                </Text>
+              </View>
             </View>
           ) : null}
 

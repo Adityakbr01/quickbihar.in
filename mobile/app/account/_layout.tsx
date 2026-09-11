@@ -35,7 +35,7 @@ export default function AccountLayout() {
       <Stack.Screen
         name="address-form"
         options={{
-          headerTitle: "Delivery Address",
+          headerShown: false,
         }}
       />
       <Stack.Screen

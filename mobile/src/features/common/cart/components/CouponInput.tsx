@@ -82,6 +82,11 @@ const CouponInput = () => {
     removeCoupon(couponCode);
   };
 
+  // Do not render the Offers & Benefits section if no offers are available and none are applied
+  if (availableCoupons.length === 0 && appliedCoupons.length === 0) {
+    return null;
+  }
+
   return (
     <View style={styles.couponContainer}>
       {/* Header: title always visible; "View offers" only when no coupon is applied */}

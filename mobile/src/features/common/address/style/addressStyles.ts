@@ -166,8 +166,9 @@ export const createAddressStyles = (theme: Theme) => StyleSheet.create({
   },
   // Form Styles
   formContainer: {
-    padding: 24,
-    marginBottom: 100,
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 40,
   },
   inputGroup: {
     marginBottom: 20,
@@ -335,20 +336,20 @@ export const createAddressStyles = (theme: Theme) => StyleSheet.create({
   verifiedBadge: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "rgba(0, 200, 83, 0.12)",
-    paddingHorizontal: 10,
+    backgroundColor: "rgba(22, 163, 74, 0.1)",
+    paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: 8,
-    gap: 4,
+    borderRadius: 6,
+    gap: 5,
     borderWidth: 1,
-    borderColor: "rgba(0, 200, 83, 0.3)",
+    borderColor: "rgba(22, 163, 74, 0.25)",
     alignSelf: "flex-start",
     marginTop: 6,
   },
   verifiedBadgeText: {
     fontSize: 12,
     fontWeight: "700",
-    color: "#00C853",
+    color: "#16a34a",
   },
   verifyButton: {
     flexDirection: "row",
@@ -359,7 +360,7 @@ export const createAddressStyles = (theme: Theme) => StyleSheet.create({
     backgroundColor: "rgba(0, 122, 255, 0.08)",
     borderWidth: 1,
     borderColor: "rgba(0, 122, 255, 0.25)",
-    gap: 4,
+    gap: 6,
     alignSelf: "flex-start",
     marginTop: 6,
   },

@@ -1,5 +1,6 @@
 import React from "react";
 import { View, Text, TextInput, TouchableOpacity, ActivityIndicator } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { Controller } from "react-hook-form";
 import { Theme } from "@/src/theme/Provider/ThemeProvider";
 
@@ -92,13 +93,19 @@ const ProfileEditForm: React.FC<ProfileEditFormProps> = ({
           )}
         </View>
         {isPhoneVerified ? (
-          <Text style={{ color: "#00C853", fontSize: 12, fontWeight: "700", marginTop: 4 }}>
-            ✅ Verified
-          </Text>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 5, marginTop: 5 }}>
+            <Ionicons name="shield-checkmark" size={14} color="#16a34a" />
+            <Text style={{ color: "#16a34a", fontSize: 12, fontWeight: "700" }}>
+              Verified
+            </Text>
+          </View>
         ) : phoneChanged ? (
-          <Text style={{ color: "#FF9800", fontSize: 12, marginTop: 4 }}>
-            ⚠️ Please verify this number before saving
-          </Text>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 5 }}>
+            <Ionicons name="alert-circle" size={14} color="#ea580c" />
+            <Text style={{ color: "#ea580c", fontSize: 12, fontWeight: "600" }}>
+              Please verify this number before saving
+            </Text>
+          </View>
         ) : null}
         {errors.phone && (
           <Text style={styles.errorText}>{errors.phone.message}</Text>

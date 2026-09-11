@@ -12,6 +12,7 @@ import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Cancel01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
+import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { createAccountStyles } from "../styles/accountStyles";
@@ -210,13 +211,19 @@ const EditProfileModal = () => {
               </TouchableOpacity>
             </View>
             {isPhoneVerified ? (
-              <Text style={{ color: "#00C853", fontSize: 12, fontWeight: "700", marginTop: 4 }}>
-                ✅ Verified
-              </Text>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 5, marginTop: 5 }}>
+                <Ionicons name="shield-checkmark" size={14} color="#16a34a" />
+                <Text style={{ color: "#16a34a", fontSize: 12, fontWeight: "700" }}>
+                  Verified
+                </Text>
+              </View>
             ) : phoneChanged ? (
-              <Text style={{ color: "#FF9800", fontSize: 12, marginTop: 4 }}>
-                ⚠️ Please verify this number before saving
-              </Text>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 5 }}>
+                <Ionicons name="alert-circle" size={14} color="#ea580c" />
+                <Text style={{ color: "#ea580c", fontSize: 12, fontWeight: "600" }}>
+                  Please verify this number before saving
+                </Text>
+              </View>
             ) : null}
             {errors.phone && (
               <Text style={styles.errorText}>{errors.phone.message}</Text>
