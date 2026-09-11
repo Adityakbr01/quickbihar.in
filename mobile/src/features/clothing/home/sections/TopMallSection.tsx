@@ -8,7 +8,7 @@ import {
   Platform,
   ScrollView,
 } from "react-native";
-import LottieView from "lottie-react-native";
+import LazyLottie from "@/src/components/common/LazyLottie";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
@@ -60,13 +60,13 @@ const TopMallSection = () => {
   }
 
   const malls = topMalls || [];
-  // Never promise "Top 10" with fewer than 10 malls — dynamic, honest heading.
+  // Never promise "Top 10" with fewer than 10 malls — dynamic, honest heading. (todo fix that in future)
   const heading =
     malls.length >= 10
       ? "Top 10 Malls"
       : malls.length > 1
-        ? "Featured Malls in Bihar"
-        : "Featured Mall in Bihar";
+        ? "Top 10 Malls"
+        : "Top 10 Malls";
 
   if (!malls.length) {
     return null;
@@ -85,7 +85,7 @@ const TopMallSection = () => {
             {heading}{" "}
           </Text>
           <View style={localStyles.lottieWrapper}>
-            <LottieView
+            <LazyLottie
               key={theme.text}
               source={fireLottie}
               autoPlay
@@ -94,9 +94,9 @@ const TopMallSection = () => {
               style={[
                 localStyles.fireLottie,
                 Platform.OS === "web" &&
-                  ({
-                    filter: theme.text === "#ffffff" ? "invert(1)" : "none",
-                  } as any),
+                ({
+                  filter: theme.text === "#ffffff" ? "invert(1)" : "none",
+                } as any),
               ]}
               colorFilters={[
                 {

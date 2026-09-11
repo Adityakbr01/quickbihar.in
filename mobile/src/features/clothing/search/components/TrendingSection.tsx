@@ -7,7 +7,7 @@ import {
   Pressable,
   Platform,
 } from "react-native";
-import LottieView from "lottie-react-native";
+import LazyLottie from "@/src/components/common/LazyLottie";
 import * as Haptics from "expo-haptics";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 
@@ -25,13 +25,12 @@ const TrendingSection = ({ trendingItems, onSelect }: TrendingSectionProps) => {
     <View style={styles.container}>
       <View style={styles.header}>
         <View style={styles.lottieContainer}>
-          <LottieView
+          <LazyLottie
             key={theme.text}
             source={fireLottie}
             autoPlay
             loop
             style={styles.fireLottie}
-            renderMode="SOFTWARE"
             resizeMode="contain"
           />
         </View>

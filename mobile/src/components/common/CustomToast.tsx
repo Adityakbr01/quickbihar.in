@@ -10,7 +10,7 @@ import {
 import { ToastConfig } from 'react-native-toast-message';
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
-import LottieView from 'lottie-react-native';
+import LazyLottie from "@/src/components/common/LazyLottie";
 import { useTheme } from '@/src/theme/Provider/ThemeProvider';
 import Check from '@/assets/lottie/Check.json';
 import successConfetti from '@/assets/lottie/successConfetti.json';
@@ -24,7 +24,7 @@ const IOSToast = ({ props, icon, color, isSuccess }: any) => {
   const isDark = scheme === 'dark';
 
 
-  const lottieRef = React.useRef<LottieView>(null);
+  const lottieRef = React.useRef<any>(null);
   const [lottieSource, setLottieSource] = useState<any>(successConfetti);
 
   // ✅ FIX: Always trigger animation on new toast
@@ -64,7 +64,7 @@ const IOSToast = ({ props, icon, color, isSuccess }: any) => {
         {/* ✅ SUCCESS LOTTIE */}
         {isSuccess ? (
           <View style={styles.lottieWrapper}>
-            <LottieView
+            <LazyLottie
               ref={lottieRef}
               source={lottieSource}
               loop={false}

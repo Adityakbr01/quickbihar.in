@@ -1,7 +1,7 @@
 import React, { useRef } from "react";
 import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import { useRouter } from "expo-router";
-import LottieView from "lottie-react-native";
+import LazyLottie from "@/src/components/common/LazyLottie";
 import * as Haptics from "expo-haptics";
 import { SharedValue } from "react-native-reanimated";
 
@@ -24,7 +24,7 @@ const HomeHeader: React.FC<HomeHeaderProps> = () => {
 
   const { data: notifications = [] } = useNotifications();
   const hasUnread = notifications.some((n) => !n.isRead);
-  const lottieRef = useRef<LottieView>(null);
+  const lottieRef = useRef<any>(null);
 
   const webPressableStyle = isWeb ? ({ cursor: "pointer" } as any) : {};
 
@@ -58,14 +58,13 @@ const HomeHeader: React.FC<HomeHeaderProps> = () => {
             webPressableStyle,
           ]}
         >
-          <LottieView
+          <LazyLottie
             ref={lottieRef}
             key={theme.text + "_" + hasUnread}
             source={bellLottie}
             autoPlay={hasUnread}
             loop={hasUnread}
             resizeMode="cover"
-            renderMode="SOFTWARE"
             style={[
               localStyles.bellLottie,
               Platform.OS === 'web' && { filter: theme.text === '#ffffff' ? 'invert(1)' : 'none' } as any

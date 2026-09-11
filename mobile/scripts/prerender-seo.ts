@@ -545,6 +545,32 @@ function writeStaticHtml(targetRelPath: string, content: string) {
   fs.writeFileSync(fullPath, content, "utf-8");
 }
 
+/**
+ * OG/social images referenced by absolute URL in meta tags
+ * (/assets/images/icons/*.png) are NOT emitted by `expo export` (only
+ * `require()`d assets are bundled), so without this copy every page's
+ * og:image/twitter:image would 404. Copies the pre-optimized files from
+ * assets/images/og/ to their stable dist URLs. Native builds are untouched
+ * (app.json keeps pointing at the full-size sources in assets/images/icons/).
+ */
+const OG_IMAGE_FILES = ["splash-icon.png", "ios-icon-default.png"];
+
+function copyOgImages() {
+  const ogSrcDir = path.resolve(__dirname, "../assets/images/og");
+  const ogDestDir = path.resolve(DIST_DIR, "assets/images/icons");
+  fs.mkdirSync(ogDestDir, { recursive: true });
+  for (const file of OG_IMAGE_FILES) {
+    const src = path.resolve(ogSrcDir, file);
+    const dest = path.resolve(ogDestDir, file);
+    if (!fs.existsSync(src)) {
+      console.warn(`[prerender-seo] OG source missing, skipping: ${src}`);
+      continue;
+    }
+    fs.copyFileSync(src, dest);
+    console.log(`[prerender-seo] OG image copied: assets/images/icons/${file}`);
+  }
+}
+
 async function safeFetchJson<T>(url: string): Promise<T | null> {
   try {
     const controller = new AbortController();
@@ -572,6 +598,9 @@ async function main() {
   const baseHtml = fs.readFileSync(INDEX_HTML_PATH, "utf-8");
   const siteBase = getSiteBase();
   console.log(`[prerender-seo] Site base: ${siteBase}`);
+
+  // Stable-URL OG images (see copyOgImages) must exist before pages reference them.
+  copyOgImages();
 
   let generatedCount = 0;
 

@@ -312,8 +312,8 @@ function HeritageSection() {
   const colors = useColors();
   return (
     <View style={[styles.heritageSection, { backgroundColor: colors.pearl }]}>
-      <Image
-        source={require("@/assets/images/jewelery/collection_bridal.png")}
+        <Image
+          source={undefined} // jewelery inactive — asset removed, see git history
         style={styles.heritageImage}
         resizeMode="cover"
       />

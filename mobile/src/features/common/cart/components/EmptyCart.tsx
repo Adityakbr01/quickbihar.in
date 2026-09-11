@@ -2,7 +2,7 @@ import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
-import LottieView from "lottie-react-native";
+import LazyLottie from "@/src/components/common/LazyLottie";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { createCartStyles } from "../styles/cartStyles";
 
@@ -22,12 +22,11 @@ const EmptyCart = () => {
 
   return (
     <View style={styles.emptyContainer}>
-      <LottieView
+      <LazyLottie
         source={cartLottie}
         autoPlay
         loop
         style={{ width: 200, height: 200 }}
-        renderMode="SOFTWARE"
         resizeMode="contain"
       />
       <Text style={styles.emptyTitle}>Your cart is empty</Text>

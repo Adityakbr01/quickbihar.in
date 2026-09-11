@@ -17,27 +17,27 @@ export const CAMPAIGNS = [
   {
     id: "1",
     title: "For You",
-    image: require("@/assets/images/campaigns/heart.png"),
+    image: require("@/assets/images/campaigns/heart.webp"),
   },
   {
     id: "2",
     title: "What's New",
-    image: require("@/assets/images/campaigns/bag.png"),
+    image: require("@/assets/images/campaigns/bag.webp"),
   },
   {
     id: "3",
     title: "Deal of the Day",
-    image: require("@/assets/images/campaigns/DiscountTag.png"),
+    image: require("@/assets/images/campaigns/DiscountTag.webp"),
   },
   {
     id: "4",
     title: "Express Delivery",
-    image: require("@/assets/images/campaigns/DeliveryCar.png"),
+    image: require("@/assets/images/campaigns/DeliveryCar.webp"),
   },
   {
     id: "5",
     title: "Get Notify",
-    image: require("@/assets/images/campaigns/bell.png"),
+    image: require("@/assets/images/campaigns/bell.webp"),
   },
 ];
 

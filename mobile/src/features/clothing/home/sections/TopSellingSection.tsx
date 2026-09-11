@@ -1,5 +1,5 @@
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
-import LottieView from "lottie-react-native";
+import LazyLottie from "@/src/components/common/LazyLottie";
 import React, { useRef } from "react";
 import {
   Platform,
@@ -125,13 +125,12 @@ const TopSellingSection = ({ category }: { category?: string } = {}) => {
                 } as any),
             ]}
           >
-            <LottieView
+            <LazyLottie
               key={theme.text}
               source={arrowLottie}
               autoPlay
               loop
               resizeMode="contain"
-              renderMode="SOFTWARE"
               style={[
                 localStyles.arrowLottie,
                 Platform.OS === "web" &&

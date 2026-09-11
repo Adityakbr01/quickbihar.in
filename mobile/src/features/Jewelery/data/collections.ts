@@ -14,7 +14,7 @@ export const collections: Collection[] = [
     tagline: "Because you've imagined this moment since you were seven.",
     mood: "Sacred, heirloom, forever",
     pieceCount: 48,
-    image: require("@/assets/images/jewelery/collection_bridal.png"),
+    image: null, // jewelery inactive — asset removed, see git history
   },
   {
     id: "everyday",
@@ -22,7 +22,7 @@ export const collections: Collection[] = [
     tagline: "The piece you forget you're wearing — until someone asks.",
     mood: "Quiet, wearable, modern",
     pieceCount: 62,
-    image: require("@/assets/images/jewelery/collection_everyday.png"),
+    image: null,
   },
   {
     id: "festive",
@@ -30,7 +30,7 @@ export const collections: Collection[] = [
     tagline: "For the nights that smell like agarbatti and feel like magic.",
     mood: "Celebratory, warm, alive",
     pieceCount: 35,
-    image: require("@/assets/images/jewelery/collection_festive.png"),
+    image: null,
   },
   {
     id: "statement",
@@ -38,7 +38,7 @@ export const collections: Collection[] = [
     tagline: "Not subtle. Not sorry.",
     mood: "Bold, artistic, confident",
     pieceCount: 27,
-    image: require("@/assets/images/jewelery/collection_statement.png"),
+    image: null,
   },
   {
     id: "contemporary",
@@ -46,7 +46,7 @@ export const collections: Collection[] = [
     tagline: "Your grandmother's craft. Your generation's confidence.",
     mood: "Fashion-forward, hybrid",
     pieceCount: 41,
-    image: require("@/assets/images/jewelery/collection_everyday.png"),
+    image: null,
   },
 ];
 

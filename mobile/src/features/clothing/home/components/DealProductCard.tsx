@@ -4,7 +4,7 @@ import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
-import LottieView from "lottie-react-native";
+import LazyLottie from "@/src/components/common/LazyLottie";
 import React from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 import { Image } from "expo-image";
@@ -268,7 +268,7 @@ export const DealProductCard = ({ product, width }: DealProductCardProps) => {
         {productData.delivery ? (
           <View style={styles.deliveryRow}>
             {productData.delivery.toLowerCase().includes("express") ? (
-              <LottieView
+              <LazyLottie
                 source={cyclerLottie}
                 autoPlay
                 loop
@@ -279,7 +279,6 @@ export const DealProductCard = ({ product, width }: DealProductCardProps) => {
                   marginRight: -2,
                 }}
                 resizeMode="contain"
-                renderMode="SOFTWARE"
               />
             ) : (
               <Ionicons

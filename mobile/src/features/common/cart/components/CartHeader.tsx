@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Text } from "react-native";
-import LottieView from "lottie-react-native";
+import LazyLottie from "@/src/components/common/LazyLottie";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { createCartStyles } from "../styles/cartStyles";
 
@@ -26,12 +26,11 @@ const CartHeader = ({ productsCount, totalUnits }: CartHeaderProps) => {
           {productsCount} {productLabel} · {totalUnits} {itemLabel}
         </Text>
       </View>
-      <LottieView
+      <LazyLottie
         source={walletLottie}
         autoPlay
         loop
         style={styles.walletLottie}
-        renderMode="SOFTWARE"
       />
     </View>
   );

@@ -35,7 +35,7 @@ interface HeroSlide {
 const slides: HeroSlide[] = [
   {
     id: "s1",
-    image: require("@/assets/images/jewelery/hero.png"),
+    image: null,
     label: "NEW ARRIVALS — SUMMER EDIT",
     headline: "For the woman\nwho wears gold\nlike a second skin.",
     body: "Handcrafted fine jewellery rooted in Indian tradition.",
@@ -45,7 +45,7 @@ const slides: HeroSlide[] = [
   },
   {
     id: "s2",
-    image: require("@/assets/images/jewelery/collection_bridal.png"),
+    image: null,
     label: "BRIDAL 2026",
     headline: "Because you've\nimagined this moment\nsince you were seven.",
     body: "Sacred. Heirloom. Forever. Our bridal collection awaits.",
@@ -55,7 +55,7 @@ const slides: HeroSlide[] = [
   },
   {
     id: "s3",
-    image: require("@/assets/images/jewelery/collection_festive.png"),
+    image: null,
     label: "FESTIVE EDIT",
     headline: "For the nights that\nsmell like agarbatti\nand feel like magic.",
     body: "Kundan, polki and gold — curated for every celebration.",
@@ -64,7 +64,7 @@ const slides: HeroSlide[] = [
   },
   {
     id: "s4",
-    image: require("@/assets/images/jewelery/collection_statement.png"),
+    image: null,
     label: "STATEMENT PIECES",
     headline: "Not subtle.\nNot sorry.\nJust gold.",
     body: "Bold artisan pieces for the woman who commands attention.",

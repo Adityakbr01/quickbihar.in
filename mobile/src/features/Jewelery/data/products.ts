@@ -23,10 +23,12 @@ export interface Product {
   tryOn?: ProductTryOnConfig;
 }
 
-const img1 = require("@/assets/images/jewelery/product_1.png");
-const img2 = require("@/assets/images/jewelery/product_2.png");
-const img3 = require("@/assets/images/jewelery/product_3.png");
-const img4 = require("@/assets/images/jewelery/product_4.png");
+// Jewelery module inactive: product images removed from assets (see git history
+// mobile/assets/images/jewelery/). Restore the PNGs and these requires to reactivate.
+const img1: any = null;
+const img2: any = null;
+const img3: any = null;
+const img4: any = null;
 
 export const products: Product[] = [
   {

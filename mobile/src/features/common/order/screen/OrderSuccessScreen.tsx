@@ -10,7 +10,7 @@ import {
   Platform
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import LottieView from "lottie-react-native";
+import LazyLottie from "@/src/components/common/LazyLottie";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { createOrderStyles } from "../style/orderStyles";
@@ -103,7 +103,7 @@ const OrderSuccessScreen = () => {
         showsVerticalScrollIndicator={false}
       >
         <View style={{ alignItems: "center" }}>
-          <LottieView
+          <LazyLottie
             source={require("@/assets/lottie/successConfetti.json")}
             autoPlay
             loop={false}

@@ -12,7 +12,7 @@ import Animated, {
   withSpring,
   withTiming,
 } from "react-native-reanimated";
-import LottieView from "lottie-react-native";
+import LazyLottie from "@/src/components/common/LazyLottie";
 import * as Haptics from "expo-haptics";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import {
@@ -21,7 +21,7 @@ import {
   GestureHandlerRootView,
 } from "react-native-gesture-handler";
 
-const AnimatedLottieView = Animated.createAnimatedComponent(LottieView);
+const AnimatedLottieView = Animated.createAnimatedComponent(LazyLottie);
 const fireLottie = require("@/assets/lottie/LoadingCat.json");
 const REFRESH_THRESHOLD = 90;
 const MAX_PULL = 150;
@@ -39,7 +39,7 @@ export default function SnapchatPullToRefresh({
   stickyHeaderIndices,
 }: SnapchatPullToRefreshProps) {
   const theme = useTheme() as any;
-  const lottieRef = useRef<LottieView>(null);
+  const lottieRef = useRef<any>(null);
   const [isRefreshingState, setIsRefreshingState] = useState(false);
   const scrollY = useSharedValue(0);
   const pullOffset = useSharedValue(0);
