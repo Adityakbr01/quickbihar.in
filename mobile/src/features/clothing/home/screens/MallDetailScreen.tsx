@@ -360,7 +360,7 @@ const MallDetailScreen: React.FC<MallDetailScreenProps> = ({ id }) => {
                 <TouchableOpacity
                   key={item.id}
                   style={[styles.productCard, { backgroundColor: theme.tertiaryBackground }]}
-                  onPress={() => router.push(`/product/${item.id}` as any)}
+                  onPress={() => router.push(`/product/${item.slug || item.id}` as any)}
                 >
                   <Image source={{ uri: item.image }} style={styles.productImage} resizeMode="cover" />
                   {item.discount && (

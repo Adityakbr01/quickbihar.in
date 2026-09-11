@@ -21,25 +21,90 @@ export function canonicalUrl(path: string): string {
   return `${getSiteBase()}${noTrailing}`;
 }
 
-/** Truncate display strings to search-result limits without cutting words harshly. */
-export function truncateText(value: string | undefined | null, max: number): string {
-  const text = String(value || "").replace(/\s+/g, " ").trim();
-  if (!text || text.length <= max) return text;
-  const cut = text.slice(0, max);
-  const lastSpace = cut.lastIndexOf(" ");
-  if (lastSpace > max * 0.6) {
-    return cut.slice(0, lastSpace).trim();
-  }
-  return cut.trim();
+/** Decode common HTML entities so length is measured on raw text, not encoded form. */
+export function decodeHtmlEntities(value: string | undefined | null): string {
+  let text = String(value || "");
+  // Named entities (most common in meta content)
+  text = text
+    .replace(/&amp;/gi, "&")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;|&apos;|&#x27;/gi, "'")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&rsquo;|&#8217;/gi, "’")
+    .replace(/&lsquo;|&#8216;/gi, "‘")
+    .replace(/&rdquo;|&#8221;/gi, "”")
+    .replace(/&ldquo;|&#8220;/gi, "“")
+    .replace(/&ndash;|&#8211;/gi, "–")
+    .replace(/&mdash;|&#8212;/gi, "—")
+    .replace(/&hellip;|&#8230;/gi, "…");
+  // Numeric decimal entities &#123;
+  text = text.replace(/&#(\d+);/g, (_m, code) => {
+    try {
+      return String.fromCharCode(Number(code));
+    } catch {
+      return "";
+    }
+  });
+  // Numeric hex entities &#x1F;
+  text = text.replace(/&#x([0-9a-fA-F]+);/g, (_m, hex) => {
+    try {
+      return String.fromCharCode(parseInt(hex, 16));
+    } catch {
+      return "";
+    }
+  });
+  return text;
 }
 
-export const seoTitle = (value: string | undefined | null) => truncateText(value, 65);
-export const seoDescription = (value: string | undefined | null) => truncateText(value, 160);
+/** Strip trailing separators/particles left behind by truncation or empty fields. */
+export function stripTrailingSeparators(value: string): string {
+  let out = String(value || "").replace(/\s+/g, " ").trim();
+  // Repeatedly strip trailing | - – — : ; , / \ ( [ { " ' ' " “ ‘ … . ! ? & + etc.
+  let prev = "";
+  while (prev !== out) {
+    prev = out;
+    out = out.replace(/[\s|‐-‒–—:;,/\\([{ "'\"“”‘’«»… .!?&+–-]+$/u, "").trim();
+  }
+  return out;
+}
+
+/** Truncate display strings to search-result limits without cutting words harshly. */
+export function truncateText(
+  value: string | undefined | null,
+  max: number,
+  opts?: { ellipsis?: boolean }
+): string {
+  const decoded = decodeHtmlEntities(String(value || "").replace(/\s+/g, " ").trim());
+  const text = decoded.replace(/\s+/g, " ").trim();
+  if (!text || text.length <= max) return stripTrailingSeparators(text);
+  const ellipsis = opts?.ellipsis ?? false;
+  // Reserve 1 char for "…" so total stays within max+1.
+  const budget = ellipsis ? Math.max(0, max - 1) : max;
+  const cut = text.slice(0, budget);
+  const lastSpace = cut.lastIndexOf(" ");
+  let out: string;
+  if (lastSpace > budget * 0.6) {
+    out = cut.slice(0, lastSpace).trim();
+  } else {
+    out = cut.trim();
+  }
+  out = stripTrailingSeparators(out);
+  return ellipsis ? `${out}…` : out;
+}
+
+export const seoTitle = (value: string | undefined | null) => truncateText(value, 60);
+export const seoDescription = (value: string | undefined | null) =>
+  truncateText(value, 155, { ellipsis: true });
 
 /** Strip HTML-ish noise from descriptions before using them as meta content. */
 export function plainDescription(value: string | undefined | null, fallback = ""): string {
-  const text = String(value || fallback || "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
-  return seoDescription(text);
+  const raw = String(value || fallback || "")
+    .replace(/<[^>]*>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  return seoDescription(decodeHtmlEntities(raw));
 }
 
 /* ── Indexability gates (mirror of plan §12 — entity must pass ALL checks) ── */
@@ -97,15 +162,34 @@ export interface PageMeta {
 
 export function productMeta(product: any): PageMeta {
   const indexable = isIndexableProduct(product);
-  const brand = product?.brand ? ` — ${product.brand}` : "";
-  const title = `${product?.title || "Product"}${brand}`;
+  const name = String(product?.title || "Product").trim();
+  const categoryName =
+    typeof product?.category === "string"
+      ? product.category
+      : String(product?.category?.title || product?.subCategory || "").trim();
+  // Audit spec: "{Product Name} – {Category} | QuickBihar Buxar" (category omitted when empty/dup).
+  const needsCategory =
+    categoryName && !name.toLowerCase().includes(categoryName.toLowerCase());
+  const titleBase = needsCategory ? `${name} – ${categoryName} | QuickBihar Buxar` : `${name} | QuickBihar Buxar`;
+  const priceNum = Number(product?.price);
+  const pricePart = Number.isFinite(priceNum) && priceNum > 0 ? ` at ₹${priceNum}` : "";
+  const baseDesc =
+    plainDescription(product?.shortDescription || product?.description) ||
+    seoDescription(`${name} available on QuickBihar. Shop from local Bihar stores.`);
+  // Ensure buyer-intent description carries price + hyperlocal delivery promise.
+  let description = baseDesc;
+  const deliveryPromise = "delivered in 60–120 min in Buxar";
+  if (!/60[–-]120|same-day|doorstep delivery/i.test(description)) {
+    const withOffer = `${name}${pricePart} — ${deliveryPromise}. ${baseDesc}`;
+    description = seoDescription(withOffer);
+  } else if (pricePart && !description.includes("₹")) {
+    description = seoDescription(`${name}${pricePart}. ${baseDesc}`);
+  }
   return {
-    title: seoTitle(`${title} | Buy Online in Bihar | QuickBihar`),
-    description:
-      plainDescription(product?.shortDescription || product?.description) ||
-      seoDescription(`${product?.title || "Product"} available on QuickBihar. Shop from local Bihar stores.`),
+    title: seoTitle(titleBase),
+    description,
     canonical: canonicalUrl(`/product/${product?.slug || product?._id || ""}`),
-    keywords: `${product?.title || "Product"}, ${product?.category?.title || "Fashion"}, buy online Bihar, QuickBihar`,
+    keywords: `${name}, ${categoryName || "Fashion"}, buy online Buxar, buy online Bihar, QuickBihar`,
     author: "QuickBihar",
     publisher: "QuickBihar",
     image: Array.isArray(product?.images) ? product.images[0]?.url : undefined,
@@ -126,21 +210,26 @@ export function categoryMeta(category: any): PageMeta {
     keywords: `${catTitle} Bihar, buy ${catTitle} online, ${catTitle} Patna, local clothing Bihar, QuickBihar`,
     author: "QuickBihar",
     publisher: "QuickBihar",
-    image: category?.image || category?.banner || undefined,
+    // Category hero when present (unique OG per category); site fallback otherwise.
+    image: category?.image || category?.banner || `${getSiteBase()}/assets/images/icons/splash-icon.png`,
     robots: robotsFor(indexable),
   };
 }
 
 export function mallMeta(mall: any): PageMeta {
   const indexable = isIndexableMall(mall);
-  const city = mall?.address?.city ? `, ${mall.address.city}` : "";
+  const name = String(mall?.name || "Mall").trim();
+  const city = String(mall?.address?.city || mall?.location || "").trim();
+  // Build title from non-empty segments only — never emit dangling separators.
+  const place = city && !name.toLowerCase().includes(city.toLowerCase()) ? `${name}, ${city}` : name;
+  const titleBase = `${place} | Stores, Offers & Reviews | QuickBihar`;
   return {
-    title: seoTitle(`${mall?.name || "Mall"}${city} | Stores, Offers & Reviews | QuickBihar`),
+    title: seoTitle(titleBase),
     description:
       plainDescription(mall?.description) ||
-      seoDescription(`${mall?.name || "Mall"}${city} — stores, collections and reviews on QuickBihar.`),
+      seoDescription(`${place} — stores, collections and reviews on QuickBihar.`),
     canonical: canonicalUrl(`/mall/${mall?.slug || mall?._id || mall?.id || ""}`),
-    keywords: `${mall?.name || "Mall"} Bihar, shopping mall ${city || "Bihar"}, stores in Bihar, QuickBihar`,
+    keywords: `${name} Bihar, shopping mall ${city || "Bihar"}, stores in Bihar, QuickBihar`,
     author: "QuickBihar",
     publisher: "QuickBihar",
     image: mall?.coverImageUrl || mall?.logoUrl || (Array.isArray(mall?.images) ? mall.images[0]?.url : undefined),
@@ -292,7 +381,9 @@ export function locationMeta(loc: {
     description: loc.metaDescription,
     keywords: loc.keywords?.join(", "),
     path: loc.path,
-    image: loc.image || `${getSiteBase()}/assets/images/icons/splash-icon.png`,
+    // Per-location banner when provided; otherwise a location-specific default
+    // distinct from the homepage splash so OG URLs differ by page type.
+    image: loc.image || `${getSiteBase()}/assets/images/icons/ios-icon-default.png`,
     indexable: true,
   });
 }
@@ -311,7 +402,7 @@ export function locationJsonLd(loc: {
     name: `QuickBihar — ${loc.name}`,
     url: loc.canonical,
     description: loc.description,
-    image: loc.image || `${getSiteBase()}/assets/images/icons/splash-icon.png`,
+    image: loc.image || `${getSiteBase()}/assets/images/icons/ios-icon-default.png`,
     priceRange: "₹₹",
     paymentAccepted: ["Cash", "Credit Card", "Debit Card", "UPI"],
     currenciesAccepted: "INR",

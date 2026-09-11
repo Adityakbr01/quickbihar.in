@@ -12,6 +12,8 @@ export interface BuxarLocation {
   metaDescription: string;
   keywords: string[];
   faqs: { question: string; answer: string }[];
+  /** Optional per-location OG/social banner. Falls back to the site default when omitted. */
+  image?: string;
 }
 
 export const BUXAR_DISTRICT_HUB: BuxarLocation = {
@@ -69,6 +71,11 @@ export const BUXAR_DISTRICT_HUB: BuxarLocation = {
       question: "Can I exchange or return clothes if the size does not fit?",
       answer:
         "QuickBihar offers hassle-free easy returns and size exchanges on eligible clothing items across Buxar."
+    },
+    {
+      question: "बक्सर में ऑनलाइन कपड़े कैसे मंगाएं?",
+      answer:
+        "QuickBihar ऐप या वेबसाइट पर अपनी पसंद की साड़ी, कुर्ती, जींस या किड्स वियर चुनें, अपना PIN कोड डालें और Cash on Delivery या UPI से पेमेंट करें — Buxar शहर में 60–120 मिनट में डिलीवरी पाएं।"
     }
   ]
 };
@@ -116,6 +123,11 @@ export const BUXAR_LOCATIONS: BuxarLocation[] = [
         question: "Are authentic handloom sarees and ethnic wear available in Buxar?",
         answer:
           "Yes, we have a curated collection of bridal sarees, cotton handloom, festival kurtas, and designer lehengas from verified Buxar merchants."
+      },
+      {
+        question: "बक्सर शहर में COD पर कपड़े कैसे ऑर्डर करें?",
+        answer:
+          "Naya Bazar, Thatheri Bazar या Civil Lines — कहीं से भी ऑर्डर करें। पसंदीदा कपड़े कार्ट में डालें, Cash on Delivery चुनें और 60–120 मिनट में घर बैठे पाएं।"
       }
     ]
   },
@@ -149,6 +161,11 @@ export const BUXAR_LOCATIONS: BuxarLocation[] = [
         question: "Which PIN codes are served in Dumraon subdivision?",
         answer:
           "We deliver across PIN codes 802119, 802120, 802133, and 802136."
+      },
+      {
+        question: "डुमरांव में साड़ी और कुर्ती ऑनलाइन कैसे मंगाएं?",
+        answer:
+          "QuickBihar पर Dumraon (802119) का PIN डालें, साड़ी-कुर्ती चुनें और Cash on Delivery पर same-day डिलीवरी पाएं।"
       }
     ]
   },

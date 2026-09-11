@@ -293,9 +293,15 @@ function injectCrawlerBodyFallback(
 
   let mallsHtml = "";
   if (malls.length > 0) {
+    const mallHeading =
+      malls.length >= 10
+        ? "Top 10 Shopping Malls in Bihar"
+        : malls.length > 1
+          ? "Featured Shopping Malls in Bihar"
+          : "Featured Shopping Mall in Bihar";
     mallsHtml = `
       <section aria-labelledby="mall-heading" style="margin-top: 24px;">
-        <h2 id="mall-heading">Top 10 Shopping Malls in Bihar</h2>
+        <h2 id="mall-heading">${mallHeading}</h2>
         <div style="display: flex; flex-wrap: wrap; gap: 16px; margin-top: 12px;">
           ${malls
             .slice(0, 6)
@@ -400,7 +406,8 @@ function injectCrawlerBodyFallback(
 function injectLocationCrawlerFallback(
   html: string,
   loc: BuxarLocation,
-  categories: any[] = []
+  categories: any[] = [],
+  products: any[] = []
 ): string {
   const pagePath =
     loc.slug === "buxar"
@@ -450,10 +457,42 @@ function injectLocationCrawlerFallback(
     )
     .join("\n");
 
+  // Direct product links so crawlers discover PDPs from location hubs in one hop.
+  let trendingHtml = "";
+  if (products.length > 0) {
+    trendingHtml = `
+      <section style="margin-top: 20px;">
+        <h2 style="font-size: 16px; font-weight: 700; margin-bottom: 8px;">Trending Fashion for ${escapeHtml(loc.name)}</h2>
+        <div style="display: flex; flex-wrap: wrap; gap: 12px;">
+          ${products
+            .slice(0, 6)
+            .map((p) => {
+              const id = p.slug || p._id || p.id;
+              const title = p.title || "Fashion Product";
+              const img = p.images?.[0]?.url || "https://quickbihar.in/assets/images/icons/splash-icon.png";
+              if (!id) return "";
+              return `
+            <div style="width: 130px;">
+              <a href="/product/${id}" title="Shop ${escapeHtml(title)} in ${escapeHtml(loc.name)}" style="text-decoration: none; color: inherit;">
+                <img src="${escapeHtml(img)}" alt="${escapeHtml(title)} — delivery in ${escapeHtml(loc.name)}" width="130" height="150" style="border-radius: 8px; object-fit: cover;" />
+                <div style="font-size: 12px; font-weight: 600; margin-top: 4px;">${escapeHtml(title)}</div>
+              </a>
+            </div>`;
+            })
+            .join("\n")}
+        </div>
+        <div style="margin-top: 10px; font-size: 13px;">
+          <a href="/top-selling" title="Top selling fashion in Bihar" style="color: #4F46E5; font-weight: 600;">View all top-selling fashion →</a>
+        </div>
+      </section>
+    `;
+  }
+
   const fallbackBody = `
     <header style="padding: 16px 20px; border-bottom: 1px solid #eee;">
       <h1 style="font-size: 22px; font-weight: 900; margin: 0 0 8px 0;">Online Fashion & Clothes Delivery in ${escapeHtml(loc.name)}, Buxar</h1>
-      <p style="font-size: 14px; color: #555; margin: 0 0 12px 0;">${escapeHtml(loc.metaDescription)}</p>
+      <p style="font-size: 14px; color: #555; margin: 0 0 8px 0;">${escapeHtml(loc.metaDescription)}</p>
+      <p lang="hi" style="font-size: 13px; color: #1E3A8A; margin: 0 0 12px 0; background: #EFF6FF; padding: 8px 10px; border-radius: 8px;">${escapeHtml(loc.name)} में ऑनलाइन कपड़े मंगाना अब आसान — साड़ी, कुर्ती, जींस और किड्स वियर Cash on Delivery के साथ घर बैठे पाएं।</p>
       <div style="font-size: 12px; color: #4F46E5; font-weight: 700; margin-bottom: 8px;">
         ⚡ ${escapeHtml(loc.deliveryTime)} &bull; Subdivision: ${escapeHtml(loc.subdivision)} &bull; Block: ${escapeHtml(loc.block)}
       </div>
@@ -468,6 +507,7 @@ function injectLocationCrawlerFallback(
         <h2 style="font-size: 16px; font-weight: 700; margin-bottom: 8px;">Popular Clothing Categories in ${escapeHtml(loc.name)}</h2>
         <div>${categoriesHtml}</div>
       </section>
+      ${trendingHtml}
       <section style="margin-top: 20px;">
         <h2 style="font-size: 16px; font-weight: 700; margin-bottom: 8px;">Areas & Localities Covered in ${escapeHtml(loc.name)}</h2>
         <div>${localitiesHtml}</div>
@@ -612,6 +652,10 @@ async function main() {
       name: "QuickBihar",
       url: siteBase,
       logo: `${siteBase}/assets/images/icons/ios-icon-default.png`,
+      areaServed: [
+        { "@type": "State", name: "Bihar", addressCountry: "IN" },
+        { "@type": "AdministrativeArea", name: "Buxar District, Bihar", addressCountry: "IN" },
+      ],
       contactPoint: {
         "@type": "ContactPoint",
         contactType: "customer service",
@@ -629,13 +673,75 @@ async function main() {
     products: rawProducts,
   });
 
-  // Write home HTML across root and clothing/home path variations
+  // Write home HTML across root and clothing/home path variations.
+  // NOTE: /clothing/home is a duplicate of / — the root stays indexable while
+  // the alias variants are noindex with canonical → / so crawlers consolidate
+  // instead of indexing two identical pages.
   writeStaticHtml("index.html", homeHtml);
-  writeStaticHtml("clothing/home.html", homeHtml);
-  writeStaticHtml("clothing/home/index.html", homeHtml);
-  writeStaticHtml("(tabs)/clothing/home.html", homeHtml);
-  writeStaticHtml("(tabs)/clothing/home/index.html", homeHtml);
+  const homeAliasMeta = staticPageMeta({
+    title: homeTitle,
+    description: homeDesc,
+    keywords: homeKeywords,
+    path: "/",
+    image: `${siteBase}/assets/images/icons/splash-icon.png`,
+    indexable: false,
+  });
+  let homeAliasHtml = injectMetadata(baseHtml, homeAliasMeta);
+  homeAliasHtml = injectCrawlerBodyFallback(homeAliasHtml, {
+    h1Title: homeTitle,
+    description: homeDesc,
+    categories,
+    malls,
+    products: rawProducts,
+  });
+  writeStaticHtml("clothing/home.html", homeAliasHtml);
+  writeStaticHtml("clothing/home/index.html", homeAliasHtml);
+  writeStaticHtml("(tabs)/clothing/home.html", homeAliasHtml);
+  writeStaticHtml("(tabs)/clothing/home/index.html", homeAliasHtml);
   generatedCount += 5;
+
+  // 2b. Search hub (clean path only — query variants stay noindex + robots-blocked).
+  const searchHubMeta = staticPageMeta({
+    title: "Search Fashion Online in Bihar | QuickBihar",
+    description: "Search clothes, ethnic wear and accessories from local Bihar stores on QuickBihar.",
+    path: "/clothing/search",
+    image: `${siteBase}/assets/images/icons/splash-icon.png`,
+    indexable: true,
+  });
+  const searchBreadcrumbs = breadcrumbJsonLd(searchHubMeta.canonical, [
+    { name: "Home", path: "/" },
+    { name: "Search", path: "/clothing/search" },
+  ]);
+  let searchHubHtml = injectMetadata(baseHtml, searchHubMeta, [searchBreadcrumbs]);
+  searchHubHtml = injectCrawlerBodyFallback(searchHubHtml, {
+    h1Title: "Search Fashion Online in Bihar",
+    description: "Search clothes, ethnic wear and accessories from local Bihar stores on QuickBihar.",
+    categories,
+    products: rawProducts,
+  });
+  writeStaticHtml("clothing/search.html", searchHubHtml);
+  writeStaticHtml("clothing/search/index.html", searchHubHtml);
+  writeStaticHtml("(tabs)/clothing/search.html", searchHubHtml);
+  writeStaticHtml("(tabs)/clothing/search/index.html", searchHubHtml);
+  generatedCount += 4;
+
+  // 2c. Functional/private shells — noindex so they never serve homepage-duplicate indexable HTML.
+  const privateShell = (pageTitle: string, desc: string, pagePath: string) =>
+    injectMetadata(
+      baseHtml,
+      staticPageMeta({ title: pageTitle, description: desc, path: pagePath, indexable: false })
+    );
+  writeStaticHtml(
+    "clothing/cart.html",
+    privateShell("Cart | QuickBihar", "Your QuickBihar shopping cart.", "/clothing/cart")
+  );
+  writeStaticHtml(
+    "clothing/cart/index.html",
+    privateShell("Cart | QuickBihar", "Your QuickBihar shopping cart.", "/clothing/cart")
+  );
+  writeStaticHtml("auth.html", privateShell("Sign In | QuickBihar", "Sign in to QuickBihar.", "/auth"));
+  writeStaticHtml("auth/index.html", privateShell("Sign In | QuickBihar", "Sign in to QuickBihar.", "/auth"));
+  generatedCount += 4;
 
   // 3. Hub Pages
   const topSellingMeta = staticPageMeta({
@@ -795,8 +901,16 @@ async function main() {
       generatedCount += 2;
     }
     if (id && id !== slug) {
-      writeStaticHtml(`product/${id}.html`, prodHtml);
-      writeStaticHtml(`product/${id}/index.html`, prodHtml);
+      // Legacy ID URL: noindex + canonical → slug so link equity consolidates.
+      const idMeta: PageMeta = { ...meta, robots: "noindex, nofollow" };
+      let idHtml = injectMetadata(baseHtml, idMeta);
+      idHtml = injectCrawlerBodyFallback(idHtml, {
+        h1Title: prod.title || "Fashion Product",
+        description: meta.description,
+        categories,
+      });
+      writeStaticHtml(`product/${id}.html`, idHtml);
+      writeStaticHtml(`product/${id}/index.html`, idHtml);
       generatedCount += 2;
     }
   }
@@ -833,8 +947,16 @@ async function main() {
       generatedCount += 2;
     }
     if (id && id !== slug) {
-      writeStaticHtml(`mall/${id}.html`, mallHtml);
-      writeStaticHtml(`mall/${id}/index.html`, mallHtml);
+      // Legacy ID URL: noindex + canonical → slug so link equity consolidates.
+      const idMeta: PageMeta = { ...meta, robots: "noindex, nofollow" };
+      let idHtml = injectMetadata(baseHtml, idMeta);
+      idHtml = injectCrawlerBodyFallback(idHtml, {
+        h1Title: `${mall.name || "Mall"} in ${mall.location || "Bihar"}`,
+        description: meta.description,
+        malls,
+      });
+      writeStaticHtml(`mall/${id}.html`, idHtml);
+      writeStaticHtml(`mall/${id}/index.html`, idHtml);
       generatedCount += 2;
     }
   }
@@ -852,6 +974,7 @@ async function main() {
       metaDescription: loc.metaDescription,
       keywords: loc.keywords,
       path: pagePath,
+      image: (loc as BuxarLocation).image,
     });
 
     const schemas: Record<string, any>[] = [];
@@ -862,6 +985,7 @@ async function main() {
         pins: loc.pins,
         subdivision: loc.subdivision,
         description: loc.metaDescription,
+        image: (loc as BuxarLocation).image,
       })
     );
 
@@ -888,7 +1012,7 @@ async function main() {
     if (faqSchema) schemas.push(faqSchema);
 
     let locHtml = injectMetadata(baseHtml, meta, schemas);
-    locHtml = injectLocationCrawlerFallback(locHtml, loc, categories);
+    locHtml = injectLocationCrawlerFallback(locHtml, loc, categories, rawProducts);
 
     if (loc.slug === "buxar") {
       writeStaticHtml("locations/bihar/buxar.html", locHtml);

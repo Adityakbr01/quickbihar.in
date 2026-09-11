@@ -5,6 +5,8 @@ import { staticPageMeta } from "@/src/lib/seo";
 
 export default function TopSellingRoute() {
   const { category } = useLocalSearchParams<{ category?: string }>();
+  // Filtered ?category= variants are thin duplicates — canonicalize to the clean
+  // hub and keep only the clean hub indexable.
   const meta = staticPageMeta({
     title: category
       ? `Top Selling ${category} | QuickBihar`
@@ -14,6 +16,7 @@ export default function TopSellingRoute() {
       : "Discover the most loved products from local Bihar stores — top rated, trending and best sellers on QuickBihar.",
     path: "/top-selling",
   });
+  if (category) meta.robots = "noindex, nofollow";
 
   return (
     <>

@@ -21,7 +21,7 @@ const SITE_BASE = "https://quickbihar.in";
 const SHARD_LIMIT = 5000;
 
 /** Static hub paths included in every sitemap (always indexable, no DB needed). */
-const STATIC_PATHS = ["/", "/clothing/home", "/clothing/search", "/top-selling", "/mall", "/instant-delivery"];
+const STATIC_PATHS = ["/", "/clothing/search", "/top-selling", "/mall", "/instant-delivery"];
 
 /* ── Internal helpers ── */
 
@@ -179,8 +179,15 @@ export function buildRobotsTxt(nodeEnv: string | undefined): string {
             "Disallow: /order/",
             "Disallow: /track-order/",
             "Disallow: /rider",
+            "Disallow: /clothing/cart",
+            "Disallow: /clothing/search?*",
             "Disallow: /*?*pincode*",
             "Disallow: /*?*lat*",
+            "Disallow: /*?*lng*",
+            "Disallow: /*?*q=*",
+            "Disallow: /*?*query=*",
+            "Disallow: /*?*categoryId=*",
+            "Disallow: /*?*category=*",
             "Sitemap: https://quickbihar.in/sitemap.xml",
             "",
         ].join("\n");

@@ -132,12 +132,20 @@ const SearchScreen = () => {
   return (
     <SafeViewWrapper>
       <SeoHead
-        meta={staticPageMeta({
-          title: "Search Fashion Online in Bihar | QuickBihar",
-          description:
-            "Search clothes, ethnic wear and accessories from local Bihar stores on QuickBihar.",
-          path: "/clothing/search",
-        })}
+        meta={(() => {
+          // Query-param variants (?q, ?categoryId, …) create infinite thin/duplicate
+          // URLs — keep them crawlable for users but out of the index, canonicalized
+          // to the clean hub. Only the clean hub shell is indexable.
+          const hasQueryParams = Boolean(initialQuery || categoryId || categoryName || subCategory);
+          const base = staticPageMeta({
+            title: "Search Fashion Online in Bihar | QuickBihar",
+            description:
+              "Search clothes, ethnic wear and accessories from local Bihar stores on QuickBihar.",
+            path: "/clothing/search",
+          });
+          if (hasQueryParams) base.robots = "noindex, nofollow";
+          return base;
+        })()}
       />
       <View style={[styles.container, { backgroundColor: theme.background }]}>
         <SearchHeader

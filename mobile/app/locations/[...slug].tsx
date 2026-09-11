@@ -56,6 +56,7 @@ export default function LocationScreen() {
     metaDescription: location.metaDescription,
     keywords: location.keywords,
     path: pagePath,
+    image: location.image,
   });
 
   const schemas: Record<string, any>[] = [];
@@ -66,6 +67,7 @@ export default function LocationScreen() {
     pins: location.pins,
     subdivision: location.subdivision,
     description: location.metaDescription,
+    image: location.image,
   });
   schemas.push(storeSchema);
 
@@ -147,6 +149,9 @@ export default function LocationScreen() {
             Online Fashion & Clothes Delivery in {location.name}
           </Text>
           <Text style={styles.heroSubtitle}>{location.metaDescription}</Text>
+          <Text style={styles.hindiNote}>
+            {location.name} में ऑनलाइन कपड़े मंगाना अब आसान — साड़ी, कुर्ती, जींस और किड्स वियर Cash on Delivery के साथ घर बैठे पाएं।
+          </Text>
 
           <TouchableOpacity
             style={styles.shopNowBtn}
@@ -388,7 +393,16 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#4B5563",
     lineHeight: 20,
+    marginBottom: 8,
+  },
+  hindiNote: {
+    fontSize: 13,
+    color: "#1E3A8A",
+    lineHeight: 19,
     marginBottom: 16,
+    backgroundColor: "#EFF6FF",
+    padding: 10,
+    borderRadius: 8,
   },
   shopNowBtn: {
     flexDirection: "row",

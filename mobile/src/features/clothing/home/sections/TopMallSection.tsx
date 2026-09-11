@@ -60,6 +60,13 @@ const TopMallSection = () => {
   }
 
   const malls = topMalls || [];
+  // Never promise "Top 10" with fewer than 10 malls — dynamic, honest heading.
+  const heading =
+    malls.length >= 10
+      ? "Top 10 Malls"
+      : malls.length > 1
+        ? "Featured Malls in Bihar"
+        : "Featured Mall in Bihar";
 
   if (!malls.length) {
     return null;
@@ -75,7 +82,7 @@ const TopMallSection = () => {
             {...({ role: "heading" } as any)}
             style={styles.title}
           >
-            Top 10 Malls{" "}
+            {heading}{" "}
           </Text>
           <View style={localStyles.lottieWrapper}>
             <LottieView
