@@ -17,6 +17,7 @@ export interface ISavedAddress extends Document {
     landmark?: string;
     addressType: AddressType;
     isDefault: boolean;
+    isPhoneVerified?: boolean;
     latitude: number;
     longitude: number;
 }
@@ -47,6 +48,7 @@ const savedAddressSchema = new Schema<ISavedAddress>(
         },
         latitude: { type: Number, required: true },
         longitude: { type: Number, required: true },
+        isPhoneVerified: { type: Boolean, default: false },
     },
     {
         timestamps: true,

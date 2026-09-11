@@ -24,5 +24,10 @@ router.route("/logout").post(verifyOptionalJWT, authController.logout);
 router.route("/set-password").post(verifyJWT, strictAuthRateLimiter, authController.setPassword);
 router.route("/link-google").post(verifyJWT, strictAuthRateLimiter, authController.linkGoogle);
 
+// ── Phone OTP verification (MSG91 WhatsApp) ──────────────────────
+router.route("/verify-phone/send").post(verifyJWT, strictAuthRateLimiter, authController.sendPhoneOtp);
+router.route("/verify-phone/confirm").post(verifyJWT, strictAuthRateLimiter, authController.confirmPhoneOtp);
+
 export default router;
+
 

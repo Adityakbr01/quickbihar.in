@@ -62,6 +62,7 @@ interface User {
   avatar?: { url: string; fileId: string };
   phone?: string;
   isVerified?: boolean;
+  isPhoneVerified?: boolean;
   createdAt?: string;
 }
 
@@ -74,6 +75,7 @@ interface AuthState {
   setAuth: (user: User, token: string, refreshToken: string) => Promise<void>;
   clearAuth: () => Promise<void>;
   initializeAuth: () => Promise<void>;
+  updateUser: (fields: Partial<User>) => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -83,7 +85,20 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   isAuthenticated: false,
   isInitialized: false,
 
+  updateUser: async (fields: Partial<User>) => {
+    const current = get().user;
+    if (!current) return;
+    const updated = { ...current, ...fields };
+    set({ user: updated });
+    try {
+      await authStorage.setItemAsync("userData", JSON.stringify(updated));
+    } catch (error) {
+      console.warn("Storage error updating user:", error);
+    }
+  },
+
   setAuth: async (user, token, refreshToken) => {
+
     // 1. Immediately set in-memory state so all hooks and components see the authenticated user
     set({ user, token, refreshToken, isAuthenticated: true, isInitialized: true });
     // 2. Persist to storage in background

@@ -25,3 +25,15 @@ export const setDefaultAddressRequest = async (id: string) => {
   const response = await axiosInstance.patch(`/addresses/${id}/default`);
   return response.data;
 };
+
+// ── Phone OTP verification (hits auth routes) ─────────────────────
+
+export const sendPhoneOtpRequest = async (phone: string) => {
+  const response = await axiosInstance.post("/auth/verify-phone/send", { phone });
+  return response.data;
+};
+
+export const verifyPhoneOtpRequest = async (phone: string, otp: string) => {
+  const response = await axiosInstance.post("/auth/verify-phone/confirm", { phone, otp });
+  return response.data;
+};

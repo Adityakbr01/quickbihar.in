@@ -24,6 +24,7 @@ export interface IUser extends Document {
   roleId: Types.ObjectId;
   isVerified?: boolean;
   isBlocked?: boolean;
+  isPhoneVerified?: boolean;
   /** Set to true for users originally created by the OTP flow whose email is a synthetic `<phone>@quickbihar.local`. They must add a real email before using email-password auth. */
   legacyOtpOnly?: boolean;
   /** All credentials attached to this account (Google sub, password fingerprint). Email is the natural linking key. */
@@ -85,6 +86,7 @@ const userSchema = new Schema<IUser>(
     },
     isVerified: { type: Boolean, default: false, index: true },
     isBlocked: { type: Boolean, default: false, index: true },
+    isPhoneVerified: { type: Boolean, default: false, index: true },
     legacyOtpOnly: { type: Boolean, default: false, index: true },
     identities: {
       type: [

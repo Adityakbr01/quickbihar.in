@@ -21,6 +21,7 @@ import ProfileAvatar from "../components/ProfileAvatar";
 import ProfileDetailsView from "../components/ProfileDetailsView";
 import ProfileEditForm from "../components/ProfileEditForm";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
+import PhoneOtpSheet from "@/src/features/common/address/components/PhoneOtpSheet";
 
 const ProfileInfoScreen = () => {
   const theme = useTheme();
@@ -28,6 +29,12 @@ const ProfileInfoScreen = () => {
   const { profile, isLoading, updateProfile, updateAvatar, isUpdating } = useProfile();
   const userFromStore = useAuthStore((state) => state.user);
   const [isEditing, setIsEditing] = useState(false);
+  const [otpSheetVisible, setOtpSheetVisible] = useState(false);
+
+  // Track verified phone in this editing session
+  const [verifiedPhone, setVerifiedPhone] = useState<string | null>(
+    userFromStore?.isPhoneVerified ? (userFromStore.phone ?? null) : null
+  );
 
   const [alertConfig, setAlertConfig] = useState<{
     visible: boolean;
@@ -54,6 +61,8 @@ const ProfileInfoScreen = () => {
     control,
     handleSubmit,
     reset,
+    setValue,
+    watch,
     formState: { errors },
   } = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
@@ -63,12 +72,20 @@ const ProfileInfoScreen = () => {
     },
   });
 
+  const currentPhone = watch("phone");
+  const originalPhone = displayUser?.phone || "";
+  const phoneChanged = currentPhone !== originalPhone;
+  const isPhoneVerified = verifiedPhone !== null && verifiedPhone === currentPhone;
+
   useEffect(() => {
     if (displayUser) {
       reset({
         fullName: displayUser.fullName,
         phone: displayUser.phone || "",
       });
+      setVerifiedPhone(
+        userFromStore?.isPhoneVerified ? (userFromStore.phone ?? null) : null
+      );
     }
   }, [displayUser, reset]);
 
@@ -77,6 +94,15 @@ const ProfileInfoScreen = () => {
   };
 
   const onSave = async (data: ProfileFormValues) => {
+    // Block if phone changed but not verified
+    if (phoneChanged && !isPhoneVerified) {
+      showAlert(
+        "Phone Not Verified",
+        "Please verify your new phone number via WhatsApp OTP before saving."
+      );
+      return;
+    }
+
     try {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
       await updateProfile.mutateAsync(data);
@@ -144,6 +170,11 @@ const ProfileInfoScreen = () => {
               isLoading={isUpdating}
               theme={theme}
               styles={styles}
+              // Phone OTP props passed down
+              currentPhone={currentPhone}
+              isPhoneVerified={isPhoneVerified}
+              phoneChanged={phoneChanged}
+              onRequestPhoneVerify={() => setOtpSheetVisible(true)}
             />
           ) : (
             <ProfileDetailsView
@@ -172,6 +203,19 @@ const ProfileInfoScreen = () => {
         message={alertConfig.message}
         onClose={() => setAlertConfig({ ...alertConfig, visible: false })}
         buttons={[{ text: "OK", style: "default" }]}
+      />
+
+      {/* OTP sheet for phone verification in profile edit */}
+      <PhoneOtpSheet
+        visible={otpSheetVisible}
+        initialPhone={currentPhone || ""}
+        onVerified={(phone) => {
+          setValue("phone", phone);
+          setVerifiedPhone(phone);
+          setOtpSheetVisible(false);
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        }}
+        onClose={() => setOtpSheetVisible(false)}
       />
     </KeyboardAvoidingView>
   );

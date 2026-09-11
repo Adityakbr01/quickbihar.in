@@ -211,3 +211,53 @@ export const getAuthConfig = asyncHandler(async (_req: Request, res: Response) =
   );
 });
 
+/**
+ * POST /api/v1/auth/verify-phone/send  (auth required)
+ * Generate a 6-digit OTP and send it to the user's WhatsApp.
+ * Body: { phone: string }
+ */
+export const sendPhoneOtp = asyncHandler(async (req: Request, res: Response) => {
+  const userId = (req as any).user?._id?.toString();
+  if (!userId) {
+    const techMsg = "sendPhoneOtp attempted without authentication token";
+    const userMsg = "Please sign in to verify your mobile number.";
+    console.error(`[auth.controller sendPhoneOtp] Technical: ${techMsg} | User Message: ${userMsg}`);
+    throw new ApiError(401, userMsg);
+  }
+  const { phone } = req.body;
+  if (!phone) {
+    const techMsg = "sendPhoneOtp missing phone parameter in request body";
+    const userMsg = "Please provide your mobile number.";
+    console.error(`[auth.controller sendPhoneOtp] Technical: ${techMsg} | User Message: ${userMsg}`);
+    throw new ApiError(400, userMsg);
+  }
+  const result = await authService.sendPhoneOtp(userId, phone);
+  return res.status(200).json(new ApiResponse(200, result, result.message));
+});
+
+/**
+ * POST /api/v1/auth/verify-phone/confirm  (auth required)
+ * Validate the OTP; on success mark user.isPhoneVerified = true.
+ * Body: { phone: string, otp: string }
+ */
+export const confirmPhoneOtp = asyncHandler(async (req: Request, res: Response) => {
+  const userId = (req as any).user?._id?.toString();
+  if (!userId) {
+    const techMsg = "confirmPhoneOtp attempted without authentication token";
+    const userMsg = "Please sign in to verify your mobile number.";
+    console.error(`[auth.controller confirmPhoneOtp] Technical: ${techMsg} | User Message: ${userMsg}`);
+    throw new ApiError(401, userMsg);
+  }
+  const { phone, otp } = req.body;
+  if (!phone || !otp) {
+    const techMsg = `confirmPhoneOtp missing required fields: phone=${phone}, otp=${otp}`;
+    const userMsg = "Please enter both your mobile number and the 6-digit verification code.";
+    console.error(`[auth.controller confirmPhoneOtp] Technical: ${techMsg} | User Message: ${userMsg}`);
+    throw new ApiError(400, userMsg);
+  }
+  const result = await authService.confirmPhoneOtp(userId, phone, otp);
+  return res.status(200).json(new ApiResponse(200, result, result.message || "Phone number verified successfully."));
+});
+
+
+

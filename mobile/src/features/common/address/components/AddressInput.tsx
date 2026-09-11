@@ -36,21 +36,28 @@ const AddressInput: React.FC<AddressInputProps> = ({
       <Controller
         control={control}
         name={name}
-        render={({ field: { onChange, onBlur, value } }) => (
-          <TextInput
-            style={[
-              styles.input,
-              options.multiline && styles.textArea,
-              errors[name] && { borderColor: theme.error },
-            ]}
-            onBlur={onBlur}
-            onChangeText={onChange}
-            value={value?.toString()}
-            placeholder={placeholder}
-            placeholderTextColor={theme.tertiaryText}
-            {...options}
-          />
-        )}
+        render={({ field: { onChange, onBlur, value } }) => {
+          // Compose caller's onChangeText with RHF onChange so both fire.
+          const { onChangeText: callerOnChangeText, ...restOptions } = options;
+          return (
+            <TextInput
+              style={[
+                styles.input,
+                options.multiline && styles.textArea,
+                errors[name] && { borderColor: theme.error },
+              ]}
+              onBlur={onBlur}
+              onChangeText={(v) => {
+                onChange(v);
+                callerOnChangeText?.(v);
+              }}
+              value={value?.toString()}
+              placeholder={placeholder}
+              placeholderTextColor={theme.tertiaryText}
+              {...restOptions}
+            />
+          );
+        }}
       />
       {errors[name] && (
         <Text style={styles.errorText}>{errors[name]?.message as string}</Text>

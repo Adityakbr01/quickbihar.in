@@ -16,6 +16,7 @@ import { useForm, useWatch } from "react-hook-form";
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
+  Linking,
   Platform,
   ScrollView,
   Text,
@@ -25,15 +26,24 @@ import {
 import AddressInput from "../components/AddressInput";
 import AddressTypeSelector from "../components/AddressTypeSelector";
 import LocationFetchButton from "../components/LocationFetchButton";
+import PhoneOtpSheet from "../components/PhoneOtpSheet";
 import { useAddressActions } from "../hooks/useAddress";
 import { AddressFormValues, addressSchema, AddressType } from "../schema/address.schema";
 import { createAddressStyles } from "../style/addressStyles";
+import { useAuthStore } from "@/src/features/common/auth/store/authStore";
 
 const AddressFormScreen = () => {
   const theme = useTheme();
   const [isLocating, setIsLocating] = useState(false);
   const styles = createAddressStyles(theme);
   const router = useRouter();
+  const storeUser = useAuthStore((s) => s.user);
+
+  // Phone verification state — seeded from the auth store so re-visits don't re-verify
+  const [isPhoneVerified, setIsPhoneVerified] = useState(
+    storeUser?.isPhoneVerified ?? false
+  );
+  const [otpSheetVisible, setOtpSheetVisible] = useState(false);
   const { id, data } = useLocalSearchParams<{ id?: string, data?: string }>();
   const isEditing = !!id;
   const [alertConfig, setAlertConfig] = useState<{
@@ -63,7 +73,7 @@ const AddressFormScreen = () => {
     resolver: zodResolver(addressSchema),
     defaultValues: {
       fullName: "",
-      phone: "",
+      phone: storeUser?.phone || "",
       street: "",
       city: "",
       state: "",
@@ -83,6 +93,8 @@ const AddressFormScreen = () => {
 
   const latitude = useWatch({ control, name: "latitude" });
   const longitude = useWatch({ control, name: "longitude" });
+  // ponytail: useWatch at component level (not inside JSX) to satisfy rules-of-hooks
+  const phoneValue = useWatch({ control, name: "phone" });
 
   const handleFetchLocation = async () => {
     try {
@@ -94,7 +106,10 @@ const AddressFormScreen = () => {
         showAlert(
           "Location Disabled",
           "Location services are turned off. Please enable them in your device settings.",
-          [{ text: "OK", style: "default" }]
+          [
+            { text: "Cancel", style: "cancel" },
+            { text: "Open Settings", style: "default", onPress: () => Linking.openSettings() },
+          ]
         );
         return;
       }
@@ -103,8 +118,11 @@ const AddressFormScreen = () => {
       if (status !== "granted") {
         showAlert(
           "Permission Denied",
-          "Please enable location permissions in settings to use this feature.",
-          [{ text: "Settings", onPress: () => Platform.OS === 'ios' ? Location.requestForegroundPermissionsAsync() : null }]
+          "QuickBihar needs location access to auto-fill your address. Please allow location in app settings.",
+          [
+            { text: "Cancel", style: "cancel" },
+            { text: "Open Settings", style: "default", onPress: () => Linking.openSettings() },
+          ]
         );
         return;
       }
@@ -173,11 +191,35 @@ const AddressFormScreen = () => {
           latitude: addressData.latitude || 0,
           longitude: addressData.longitude || 0,
         });
+        const cleanAddrPhone = (addressData.phone || "").replace(/\D/g, "").slice(-10);
+        const cleanUserPhone = (storeUser?.phone || "").replace(/\D/g, "").slice(-10);
+        const isAddrVerified = Boolean(
+          addressData.isPhoneVerified ||
+          (storeUser?.isPhoneVerified && cleanUserPhone && cleanAddrPhone === cleanUserPhone)
+        );
+        setIsPhoneVerified(isAddrVerified);
       } catch (err) {
         console.error("Failed to parse address data", err);
       }
+    } else if (!isEditing && storeUser?.phone) {
+      setValue("phone", storeUser.phone);
+      setIsPhoneVerified(Boolean(storeUser.isPhoneVerified));
     }
-  }, [isEditing, data, reset]);
+  }, [isEditing, data, reset, setValue, storeUser]);
+
+  // Auto-request location when adding a new address so the user is prompted
+  // immediately rather than needing to tap the button manually.
+  useEffect(() => {
+    if (!isEditing) {
+      Location.requestForegroundPermissionsAsync().then(({ status }) => {
+        if (status === "granted") {
+          handleFetchLocation();
+        }
+        // If denied: user can tap the button later; no alert spam on mount.
+      });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);  // ponytail: empty deps — run once on mount only
 
   const onSubmit = async (formData: AddressFormValues) => {
     try {
@@ -195,6 +237,18 @@ const AddressFormScreen = () => {
         return;
       }
 
+      if (!isPhoneVerified) {
+        showAlert(
+          "Mobile Verification Required",
+          "Please verify your mobile number via WhatsApp OTP before saving this address.",
+          [
+            { text: "Cancel", style: "cancel" },
+            { text: "Verify Now", style: "default", onPress: () => setOtpSheetVisible(true) },
+          ]
+        );
+        return;
+      }
+
       if (isEditing && id) {
         await updateAddress.mutateAsync({ id, data: formData });
       } else {
@@ -206,6 +260,7 @@ const AddressFormScreen = () => {
       showAlert("Save Failed", error.message || "Failed to save address");
     }
   };
+
 
   const onInvalidSubmit = (formErrors: Record<string, any>) => {
     if (formErrors.latitude || formErrors.longitude) {
@@ -241,6 +296,7 @@ const AddressFormScreen = () => {
           styles={styles}
         />
 
+        {/* ── Phone Number field with OTP verification ─────────────── */}
         <AddressInput
           control={control}
           name="phone"
@@ -250,8 +306,40 @@ const AddressFormScreen = () => {
           errors={errors}
           theme={theme}
           styles={styles}
-          options={{ keyboardType: "phone-pad" }}
+          options={{
+            keyboardType: "phone-pad",
+            // Always editable — typing a new number clears verification
+            onChangeText: (v: string) => {
+              const cleanV = v.replace(/\D/g, "").slice(-10);
+              const cleanUser = (storeUser?.phone || "").replace(/\D/g, "").slice(-10);
+              const isMatch = Boolean(storeUser?.isPhoneVerified && cleanUser && cleanV === cleanUser);
+              setIsPhoneVerified(isMatch);
+            },
+          }}
         />
+        {isPhoneVerified ? (
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 10, marginTop: 6 }}>
+            <View style={styles.verifiedBadge}>
+              <Text style={{ fontSize: 13 }}>✅</Text>
+              <Text style={styles.verifiedBadgeText}>Number Verified</Text>
+            </View>
+            <TouchableOpacity
+              onPress={() => {
+                setIsPhoneVerified(false);
+                setOtpSheetVisible(true);
+              }}
+            >
+              <Text style={{ fontSize: 12, color: theme.primary, fontWeight: "600" }}>Change</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <TouchableOpacity
+            style={styles.verifyButton}
+            onPress={() => setOtpSheetVisible(true)}
+          >
+            <Text style={styles.verifyButtonText}>📲 Verify via WhatsApp</Text>
+          </TouchableOpacity>
+        )}
 
         <LocationFetchButton
           isLocating={isLocating}
@@ -357,6 +445,19 @@ const AddressFormScreen = () => {
         message={alertConfig.message}
         buttons={alertConfig.buttons}
         onClose={() => setAlertConfig(prev => ({ ...prev, visible: false }))}
+      />
+
+      {/* Phone OTP verification sheet */}
+      <PhoneOtpSheet
+        visible={otpSheetVisible}
+        initialPhone={phoneValue || storeUser?.phone || ""}
+        onVerified={(verifiedPhone) => {
+          setValue("phone", verifiedPhone);
+          setIsPhoneVerified(true);
+          setOtpSheetVisible(false);
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        }}
+        onClose={() => setOtpSheetVisible(false)}
       />
     </KeyboardAvoidingView>
   );

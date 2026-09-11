@@ -95,6 +95,11 @@ const envSchema = z.object({
   // Reset-password JWT — separate from REFRESH_TOKEN_SECRET so a leak in one
   // doesn't compromise the other. Defaults to REFRESH_TOKEN_SECRET if unset.
   RESET_PASSWORD_JWT_SECRET: optionalString,
+
+  // MSG91 — WhatsApp OTP for phone number verification
+  MSG91_AUTH_KEY: optionalString,
+  MSG91_WHATSAPP_NUMBER: optionalString,
+  MSG91_WHATSAPP_TEMPLATE: optionalString,
 });
 
 const parsed = envSchema.safeParse(process.env);

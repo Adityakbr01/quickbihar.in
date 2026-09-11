@@ -11,6 +11,11 @@ interface ProfileEditFormProps {
   isLoading: boolean;
   theme: Theme;
   styles: any;
+  // Phone OTP verification props
+  currentPhone?: string;
+  isPhoneVerified?: boolean;
+  phoneChanged?: boolean;
+  onRequestPhoneVerify?: () => void;
 }
 
 const ProfileEditForm: React.FC<ProfileEditFormProps> = ({
@@ -21,6 +26,10 @@ const ProfileEditForm: React.FC<ProfileEditFormProps> = ({
   isLoading,
   theme,
   styles,
+  currentPhone,
+  isPhoneVerified,
+  phoneChanged,
+  onRequestPhoneVerify,
 }) => {
   return (
     <View style={styles.infoCard}>
@@ -48,26 +57,49 @@ const ProfileEditForm: React.FC<ProfileEditFormProps> = ({
         )}
       </View>
 
+      {/* Phone — read-only, must verify via OTP to change */}
       <View style={styles.inputGroup}>
         <Text style={styles.inputLabel}>Phone Number</Text>
-        <Controller
-          control={control}
-          name="phone"
-          render={({ field: { onChange, onBlur, value } }) => (
-            <TextInput
-              style={[
-                styles.input,
-                errors.phone && { borderColor: theme.error },
-              ]}
-              onBlur={onBlur}
-              onChangeText={onChange}
-              value={value}
-              placeholder="Phone Number"
-              placeholderTextColor={theme.tertiaryText}
-              keyboardType="phone-pad"
-            />
+        <View style={{ flexDirection: "row", gap: 8, alignItems: "center" }}>
+          <TextInput
+            style={[
+              styles.input,
+              { flex: 1 },
+              errors.phone && { borderColor: theme.error },
+            ]}
+            value={currentPhone}
+            placeholder="Tap Verify to add"
+            placeholderTextColor={theme.tertiaryText}
+            editable={false}
+            keyboardType="phone-pad"
+          />
+          {onRequestPhoneVerify && (
+            <TouchableOpacity
+              onPress={onRequestPhoneVerify}
+              style={{
+                paddingHorizontal: 14,
+                paddingVertical: 10,
+                borderRadius: 10,
+                backgroundColor: theme.primary + "18",
+                borderWidth: 1,
+                borderColor: theme.primary + "44",
+              }}
+            >
+              <Text style={{ color: theme.primary, fontWeight: "700", fontSize: 13 }}>
+                {isPhoneVerified ? "Change" : "Verify"}
+              </Text>
+            </TouchableOpacity>
           )}
-        />
+        </View>
+        {isPhoneVerified ? (
+          <Text style={{ color: "#00C853", fontSize: 12, fontWeight: "700", marginTop: 4 }}>
+            ✅ Verified
+          </Text>
+        ) : phoneChanged ? (
+          <Text style={{ color: "#FF9800", fontSize: 12, marginTop: 4 }}>
+            ⚠️ Please verify this number before saving
+          </Text>
+        ) : null}
         {errors.phone && (
           <Text style={styles.errorText}>{errors.phone.message}</Text>
         )}

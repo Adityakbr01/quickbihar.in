@@ -501,3 +501,106 @@ export async function consumePasswordReset(token: string, newPassword: string) {
 
   return { ok: true };
 }
+
+// ── Phone OTP verification (MSG91 WhatsApp) ──────────────────────
+
+import { sendWhatsAppOtp } from "@/utils/msg91.service";
+
+const PHONE_OTP_TTL = 5 * 60; // 5 minutes
+const PHONE_OTP_PREFIX = "phone_otp:";
+
+/**
+ * Generate a 6-digit OTP, store in Redis, and send via WhatsApp.
+ * Key: `phone_otp:{userId}:{phone}` — ties the OTP to both the user
+ * and the exact phone they entered so a phone change invalidates it.
+ */
+export async function sendPhoneOtp(userId: string, phone: string) {
+  const cleaned = phone.trim().replace(/\D/g, "");
+  if (!cleaned || cleaned.length < 10) {
+    const techMsg = `Invalid phone provided: "${phone}", cleaned: "${cleaned}"`;
+    const userMsg = "Please enter a valid 10-digit mobile number.";
+    console.error(`[Auth sendPhoneOtp] Technical: ${techMsg} | User Message: ${userMsg}`);
+    throw new ApiError(400, userMsg);
+  }
+
+  // Rate-limit: block re-send if a valid OTP already exists (prevents spam).
+  const existingKey = `${PHONE_OTP_PREFIX}${userId}:${cleaned}`;
+  const existing = await redis.get(existingKey);
+  if (existing) {
+    const ttl = await redis.ttl(existingKey);
+    if (ttl > 240) {
+      // Block if less than 60 s have passed since the last send
+      const techMsg = `Rate limit hit: userId=${userId}, phone=${cleaned}, TTL=${ttl}s remaining`;
+      const userMsg = "A verification code was recently sent. Please wait a minute before requesting a new one.";
+      console.error(`[Auth sendPhoneOtp] Technical: ${techMsg} | User Message: ${userMsg}`);
+      throw new ApiError(429, userMsg);
+    }
+  }
+
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  await redis.set(existingKey, otp, "EX", PHONE_OTP_TTL);
+
+  try {
+    await sendWhatsAppOtp(cleaned, otp);
+  } catch (err: any) {
+    // If WhatsApp delivery fails, delete cached OTP so user isn't locked out of retrying
+    await redis.del(existingKey);
+    const techMsg = `WhatsApp delivery failed for phone ${cleaned}: ${err?.message || err}`;
+    const userMsg = err?.message || "Failed to deliver WhatsApp verification code. Please try again.";
+    console.error(`[Auth sendPhoneOtp] Technical: ${techMsg} | User Message: ${userMsg}`);
+    throw (err instanceof ApiError ? err : new ApiError(502, userMsg));
+  }
+
+  return { message: "Verification code sent to your WhatsApp number." };
+}
+
+/**
+ * Validate the OTP submitted by the user.
+ * On success: marks user.isPhoneVerified = true and saves user.phone.
+ */
+export async function confirmPhoneOtp(userId: string, phone: string, otp: string) {
+  const cleaned = phone.trim().replace(/\D/g, "");
+  const key = `${PHONE_OTP_PREFIX}${userId}:${cleaned}`;
+
+  const stored = await redis.get(key);
+  if (!stored) {
+    const techMsg = `OTP expired or missing in Redis for key "${key}"`;
+    const userMsg = "The verification code has expired. Please tap 'Resend' to receive a new code.";
+    console.error(`[Auth confirmPhoneOtp] Technical: ${techMsg} | User Message: ${userMsg}`);
+    throw new ApiError(400, userMsg);
+  }
+  if (stored !== otp.trim()) {
+    const techMsg = `Invalid OTP attempt for userId ${userId}: expected "${stored}", got "${otp}"`;
+    const userMsg = "Invalid verification code. Please check the code sent to your WhatsApp and try again.";
+    console.error(`[Auth confirmPhoneOtp] Technical: ${techMsg} | User Message: ${userMsg}`);
+    throw new ApiError(400, userMsg);
+  }
+
+  // Consume the OTP immediately (one-time use).
+  await redis.del(key);
+
+  const user = await User.findById(userId);
+  if (!user) {
+    const techMsg = `User not found in DB with id ${userId}`;
+    const userMsg = "User account not found. Please sign in again.";
+    console.error(`[Auth confirmPhoneOtp] Technical: ${techMsg} | User Message: ${userMsg}`);
+    throw new ApiError(404, userMsg);
+  }
+
+  // Check if this phone is already taken by another account.
+  const conflict = await User.findOne({ phone: cleaned, _id: { $ne: user._id } });
+  if (conflict) {
+    const techMsg = `Phone conflict: "${cleaned}" already taken by user "${conflict._id}"`;
+    const userMsg = "This mobile number is already linked to another account. Please use a different number.";
+    console.error(`[Auth confirmPhoneOtp] Technical: ${techMsg} | User Message: ${userMsg}`);
+    throw new ApiError(409, userMsg);
+  }
+
+  user.phone = cleaned;
+  user.isPhoneVerified = true;
+  await user.save({ validateBeforeSave: false });
+
+  return { ok: true, phone: cleaned, message: "Mobile number verified successfully!" };
+}
+
+

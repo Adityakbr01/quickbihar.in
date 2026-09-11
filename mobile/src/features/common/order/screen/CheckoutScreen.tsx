@@ -1,7 +1,7 @@
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
+import { useFocusEffect, useRouter } from "expo-router";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -12,7 +12,8 @@ import {
   View,
 } from "react-native";
 import Toast from "react-native-toast-message";
-import { getAddressesRequest } from "../../address/api/address.api";
+import { getAddressesRequest, updateAddressRequest } from "../../address/api/address.api";
+import PhoneOtpSheet from "../../address/components/PhoneOtpSheet";
 import { useCartStore } from "../../cart/store/cartStore";
 import {
   createOrderRequest,
@@ -59,6 +60,8 @@ const CheckoutScreen = () => {
   const [isQuoteLoading, setIsQuoteLoading] = useState(false);
   const [quoteError, setQuoteError] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<"ONLINE" | "COD">("ONLINE");
+  const [otpSheetVisible, setOtpSheetVisible] = useState(false);
+
 
   // Alert Configuration
   const [alertConfig, setAlertConfig] = useState<{
@@ -108,8 +111,16 @@ const CheckoutScreen = () => {
       && !(latitude === 0 && longitude === 0);
   };
 
+  // Refetch addresses every time the checkout screen comes into focus
+  // so a newly-added address is never stale (the root cause of the bug).
+  useFocusEffect(
+    useCallback(() => {
+      fetchAddresses();
+    }, [])
+  );
+
   useEffect(() => {
-    fetchAddresses();
+    fetchShippingConfig();
   }, []);
 
   const buildOrderData = () => ({
@@ -182,9 +193,20 @@ const CheckoutScreen = () => {
       const addrList = response.data || [];
       setAddresses(addrList);
 
-      // Set default address or first address
-      const defaultAddr = addrList.find((a: any) => a.isDefault) || addrList[0];
-      setSelectedAddress(defaultAddr);
+      // Prioritize verified default address, then any verified address, then default, then first
+      const defaultAddr =
+        addrList.find((a: any) => a.isDefault && a.isPhoneVerified) ||
+        addrList.find((a: any) => a.isPhoneVerified) ||
+        addrList.find((a: any) => a.isDefault) ||
+        addrList[0];
+
+      setSelectedAddress((prev: any) => {
+        if (prev) {
+          const fresh = addrList.find((a: any) => a._id === prev._id);
+          if (fresh) return fresh;
+        }
+        return defaultAddr;
+      });
     } catch (error) {
       console.error("Failed to fetch addresses:", error);
       Toast.show({
@@ -225,6 +247,24 @@ const CheckoutScreen = () => {
       );
       return;
     }
+
+    // Block order if address phone is not verified
+    if (!selectedAddress.isPhoneVerified) {
+      showAlert(
+        "Phone Verification Required",
+        "Please verify the phone number on your delivery address via WhatsApp OTP before placing your order.",
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Verify Now",
+            style: "default",
+            onPress: () => setOtpSheetVisible(true),
+          },
+        ],
+      );
+      return;
+    }
+
 
     try {
       setIsProcessingPayment(true);
@@ -378,6 +418,32 @@ const CheckoutScreen = () => {
                   {selectedAddress.state} - {selectedAddress.pincode}
                 </Text>
                 <Text style={styles.addressPhone}>{selectedAddress.phone}</Text>
+                {selectedAddress.isPhoneVerified ? (
+                  <Text style={{ fontSize: 11, color: "#00C853", fontWeight: "700", marginTop: 4 }}>
+                    ✅ Verified Number
+                  </Text>
+                ) : (
+                  <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginTop: 4 }}>
+                    <Text style={{ fontSize: 11, color: "#FF9800", fontWeight: "600" }}>
+                      ⚠️ Phone not verified
+                    </Text>
+                    <TouchableOpacity
+                      onPress={() => setOtpSheetVisible(true)}
+                      style={{
+                        paddingHorizontal: 8,
+                        paddingVertical: 2,
+                        borderRadius: 6,
+                        backgroundColor: theme.primary + "18",
+                        borderWidth: 1,
+                        borderColor: theme.primary + "44",
+                      }}
+                    >
+                      <Text style={{ fontSize: 11, color: theme.primary, fontWeight: "700" }}>
+                        Verify Now
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
               </View>
             </View>
           ) : (
@@ -706,6 +772,33 @@ const CheckoutScreen = () => {
         message={alertConfig.message}
         buttons={alertConfig.buttons}
       />
+
+      {/* Phone OTP verification sheet for checkout */}
+      {selectedAddress && (
+        <PhoneOtpSheet
+          visible={otpSheetVisible}
+          initialPhone={selectedAddress.phone || user?.phone || ""}
+          onVerified={async (verifiedPhone) => {
+            setOtpSheetVisible(false);
+            try {
+              await updateAddressRequest(selectedAddress._id, {
+                ...selectedAddress,
+                phone: verifiedPhone,
+              });
+              await fetchAddresses();
+              Toast.show({
+                type: "success",
+                text1: "Phone Verified",
+                text2: "Your delivery address phone has been verified!",
+              });
+            } catch (e) {
+              console.error("Failed to update address after verification:", e);
+              await fetchAddresses();
+            }
+          }}
+          onClose={() => setOtpSheetVisible(false)}
+        />
+      )}
     </View>
   );
 };

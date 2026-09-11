@@ -28,6 +28,7 @@ export type AddressFormValues = z.infer<typeof addressSchema>;
 export interface IAddress extends AddressFormValues {
   _id: string;
   userId: string;
+  isPhoneVerified?: boolean;
   createdAt: string;
   updatedAt: string;
 }

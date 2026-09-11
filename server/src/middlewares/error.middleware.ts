@@ -23,11 +23,10 @@ export const errorHandler = (
     error = new ApiError(statusCode, message, errors, err.stack);
   }
 
-  // Log error to console for server visibility
-  console.error(`[ERROR] ${error.statusCode} - ${error.message}`);
-  if (error.stack) {
-    console.error(error.stack);
-  }
+  // Log both user-facing message and technical details to console for server visibility
+  const technicalDetails = err?.stack || err?.message || JSON.stringify(err);
+  console.error(`[SERVER ERROR ${error.statusCode}] User Message: "${error.message}" | Technical: ${technicalDetails}`);
+
 
   const response = {
     ...error,
