@@ -105,8 +105,8 @@ Do **not** submit: `/auth`, `/clothing/cart`, `/account/*`, `/checkout`,
 
 | Symptom in GSC | Cause on this stack | Fix |
 |---|---|---|
-| Sitemap `Couldn't fetch` / is HTML | nginx served Expo fallback, not backend | Confirm `location = /sitemap.xml` precedes `location /`; `proxy_pass` → backend :5002 |
-| `Robots.txt unreachable` | non-production `NODE_ENV` serves `Disallow: /` | Server env must be `NODE_ENV=production` on VPS |
+| Sitemap `Couldn't fetch` / is HTML | Host nginx served Expo fallback, not backend. **CI does NOT reload host nginx** — `vps-nginx/quickbihar.conf` must be synced to the VPS and reloaded manually | On VPS: copy conf → `sudo nginx -t && sudo systemctl reload nginx`; re-run §4 curls (expect `application/xml`, not `text/html`) |
+| `Robots.txt unreachable` / shows SPA HTML | Same host-nginx cause (verified live Sep 2026: `/robots.txt` returned homepage HTML) | Same fix as above; non-prod `NODE_ENV` also serves `Disallow: /` — VPS env must be `production` |
 | Product page `Excluded: noindex` | prerender emitted generic fallback (0 products fetched at build) | Rebuild with `EXPO_PUBLIC_API_ORIGIN` reachable; re-check §4 |
 | `Duplicate without user-selected canonical` on `/clothing/home` or `/product/:id` | Expected — aliases canonicalize to `/` / slug URL | No action; confirm canonical tag points at the primary |
 | `Crawled — currently not indexed` on new PDPs | Normal for a new domain; budget-limited | Keep sitemap fresh (automatic), build internal links + reviews; re-request after content grows |

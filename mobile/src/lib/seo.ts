@@ -58,16 +58,24 @@ export function decodeHtmlEntities(value: string | undefined | null): string {
   return text;
 }
 
+/** Trailing particles stripped after truncation (plain string scan — no `u`-flag
+ * regex, which Bun rejects for escapes like `\"`). Covers | - – — : ; , / \ brackets,
+ * quotes, ellipsis, sentence punctuation, &, +. */
+const TRAILING_PARTICLES = "|–—-:;,/\\()[]{}'\"“”‘’«».!?&+…‐-‒";
+
 /** Strip trailing separators/particles left behind by truncation or empty fields. */
 export function stripTrailingSeparators(value: string): string {
   let out = String(value || "").replace(/\s+/g, " ").trim();
-  // Repeatedly strip trailing | - – — : ; , / \ ( [ { " ' ' " “ ‘ … . ! ? & + etc.
-  let prev = "";
-  while (prev !== out) {
-    prev = out;
-    out = out.replace(/[\s|‐-‒–—:;,/\\([{ "'\"“”‘’«»… .!?&+–-]+$/u, "").trim();
+  let changed = true;
+  while (changed && out.length > 0) {
+    changed = false;
+    const last = out.charAt(out.length - 1);
+    if (last === " " || TRAILING_PARTICLES.indexOf(last) !== -1) {
+      out = out.slice(0, -1);
+      changed = true;
+    }
   }
-  return out;
+  return out.trim();
 }
 
 /** Truncate display strings to search-result limits without cutting words harshly. */
