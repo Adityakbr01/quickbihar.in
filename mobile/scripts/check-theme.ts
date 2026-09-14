@@ -16,11 +16,10 @@ const t = (ok: boolean, name: string) => {
 
 const provider = read("src/theme/Provider/ThemeProvider.tsx");
 t(provider.includes("localStorage?.getItem"), "provider sync-reads storage (0ms web refresh)");
-t(/useState<ThemeMode \| null>\(getStoredMode\)/.test(provider), "no manual choice until user touches toggle");
-t(provider.includes("useColorScheme()"), "system theme followed on all platforms");
-t(provider.includes("manual ?? (systemScheme"), "manual choice wins, system fallback, dark last resort");
-t(provider.includes("followSystem") && provider.includes("removeItem(STORAGE_KEY)"), "reset-to-system clears storage");
-t(!provider.includes("toggleMode"), "no dead toggleMode API");
+t(provider.includes("getStoredMode") && provider.includes('"dark"'), "default dark + ready flag for splash gate");
+t(provider.includes("toggleMode"), "provider has toggleMode API");
+t(!provider.includes("useColorScheme"), "no system follow dependency (pure manual toggle)");
+t(!provider.includes("followSystem"), "no dead followSystem API");
 t(fs.existsSync(path.join(ROOT, "src/components/common/ThemeToggle.tsx")), "toggle lives in reusable common UI");
 t(!fs.existsSync(path.join(ROOT, "src/features/common/account/components/ThemeToggle.tsx")), "no duplicate toggle copy");
 
@@ -31,9 +30,8 @@ t(!layout.includes("useColorScheme") && !layout.includes("#0f0f0f"), "layout fol
 const account = read("src/features/common/account/screens/AccountMain.tsx");
 t(
   account.includes("@/src/components/common/ThemeToggle") &&
-    account.includes("theme.setMode(") &&
-    account.includes("theme.followSystem()"),
-  "account tab reuses common toggle (manual set + Auto reset)"
+    account.includes("theme.toggleMode()"),
+  "account tab reuses common toggle (toggleMode)"
 );
 
 for (const f of [

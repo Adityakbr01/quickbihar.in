@@ -158,24 +158,12 @@ const AccountMain = () => {
               </View>
               <Text style={styles.optionLabel}>
                 {theme.isDark ? "Dark Mode" : "Light Mode"}
-                {theme.source === "system" ? " · Auto" : ""}
               </Text>
-              {theme.source === "manual" && (
-                <Text
-                  onPress={() => {
-                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                    theme.followSystem();
-                  }}
-                  style={{ color: theme.primary, fontSize: 13, fontWeight: "700", marginRight: 10 }}
-                >
-                  Auto
-                </Text>
-              )}
               <ThemeToggle
                 value={theme.isDark}
                 onToggle={() => {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                  theme.setMode(theme.isDark ? "light" : "dark");
+                  theme.toggleMode();
                 }}
               />
             </View>
