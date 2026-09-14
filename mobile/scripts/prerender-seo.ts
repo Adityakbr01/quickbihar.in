@@ -539,6 +539,113 @@ function injectLocationCrawlerFallback(
   return html;
 }
 
+/**
+ * Product-detail crawler fallback — the acceptance bar for /product/:slug is
+ * visible product name + price + description text in the raw HTML body (no JS).
+ * Renders the offer (price/MRP/COD) with the primary image and a canonical
+ * category link so crawlers can follow the PDP → taxonomy edge.
+ */
+function injectProductCrawlerFallback(
+  html: string,
+  product: any,
+  meta: PageMeta
+): string {
+  const title = String(product?.title || "Fashion Product");
+  const categoryName =
+    typeof product?.category === "string"
+      ? product.category
+      : String(product?.category?.title || product?.subCategory || "Fashion");
+  const categorySlug =
+    typeof product?.category === "object" && product?.category?.slug
+      ? String(product.category.slug)
+      : "";
+  const img =
+    (Array.isArray(product?.images) ? product.images[0]?.url : "") ||
+    "https://quickbihar.in/assets/images/icons/splash-icon.png";
+  const priceNum = Number(product?.price);
+  const mrpNum = Number(product?.originalPrice ?? product?.mrp);
+  const priceText =
+    Number.isFinite(priceNum) && priceNum > 0 ? `₹${priceNum}` : "See price on QuickBihar";
+  const mrpText =
+    Number.isFinite(mrpNum) && mrpNum > priceNum ? ` <s style="color:#999;">₹${mrpNum}</s>` : "";
+  const desc = String(
+    product?.shortDescription || product?.description || meta.description || ""
+  )
+    .replace(/\s+/g, " ")
+    .trim();
+  const codText = product?.deliveryInfo?.isCodAvailable === false
+    ? "UPI & card payments accepted."
+    : "Cash on Delivery available.";
+  const ratingNum = Number(product?.ratings?.average);
+  const ratingCount = Number(product?.ratings?.count);
+  const ratingText =
+    Number.isFinite(ratingNum) && ratingNum > 0 && Number.isFinite(ratingCount) && ratingCount > 0
+      ? `<p style="font-size:13px;color:#B45309;margin:0 0 12px 0;">Rated ${ratingNum} / 5 from ${ratingCount} verified review${ratingCount === 1 ? "" : "s"}.</p>`
+      : "";
+
+  const fallbackBody = `
+    <header style="padding: 16px 20px; border-bottom: 1px solid #eee;">
+      <nav aria-label="Breadcrumb" style="font-size: 13px; margin-bottom: 8px;">
+        <a href="/" title="QuickBihar Home — Online Shopping in Bihar" style="color: #4F46E5; font-weight: 600;">Home</a> &bull;
+        ${categorySlug ? `<a href="/category/${escapeHtml(categorySlug)}" title="Shop ${escapeHtml(categoryName)} online in Bihar" style="color: #4F46E5; font-weight: 600;">${escapeHtml(categoryName)}</a> &bull;` : `<span style="color:#4F46E5;font-weight:600;">${escapeHtml(categoryName)}</span> &bull;`}
+        <span style="color:#555;">${escapeHtml(title)}</span>
+      </nav>
+      <h1 style="font-size: 22px; font-weight: 900; margin: 0 0 8px 0;">${escapeHtml(title)}</h1>
+      <p style="font-size: 18px; font-weight: 800; color: #111827; margin: 0 0 4px 0;">${escapeHtml(priceText)}${mrpText}</p>
+      <p style="font-size: 13px; color: #047857; font-weight: 600; margin: 0 0 8px 0;">60–120 min doorstep delivery in Buxar &amp; across Bihar. ${escapeHtml(codText)}</p>
+      ${ratingText}
+    </header>
+    <main style="padding: 16px 20px;">
+      <img src="${escapeHtml(img)}" alt="${escapeHtml(title)} — buy online in Bihar" title="${escapeHtml(title)} | QuickBihar" width="400" height="480" style="border-radius: 12px; object-fit: cover; max-width: 100%;" />
+      <h2 style="font-size: 16px; font-weight: 700; margin: 16px 0 8px 0;">Product Description</h2>
+      <p style="font-size: 14px; color: #333; line-height: 21px; margin: 0 0 12px 0;">${escapeHtml(desc)}</p>
+      <p style="font-size: 13px; margin: 0;">
+        <a href="/top-selling" title="Top selling fashion in Bihar" style="color: #4F46E5; font-weight: 600;">Shop more top-selling fashion →</a>
+      </p>
+    </main>
+    <footer style="padding: 20px; border-top: 1px solid #eee; margin-top: 32px; font-size: 12px; color: #777;">
+      <p>&copy; ${new Date().getFullYear()} QuickBihar. Local Fashion, Clothing &amp; Daily Essentials with Fast Doorstep Delivery across Bihar.</p>
+    </footer>
+  `;
+
+  if (html.includes("<noscript>")) {
+    html = html.replace(/<noscript>[\s\S]*?<\/noscript>/i, `<noscript>\n${fallbackBody}\n    </noscript>`);
+  } else {
+    html = html.replace("<body>", `<body>\n    <noscript>\n${fallbackBody}\n    </noscript>`);
+  }
+
+  if (html.includes('<div id="root"></div>')) {
+    html = html.replace('<div id="root"></div>', APP_SHELL_SKELETON.trim());
+  }
+
+  return html;
+}
+
+/**
+ * Unwrap a list payload from the backend's ApiResponse envelope.
+ *
+ * Shapes seen in the wild:
+ *   - { statusCode, data: [...] }                    (categories, malls)
+ *   - { statusCode, data: { data: [...] } }          (paginated products)
+ *   - { statusCode, data: { products: [...] } }      (product service variant)
+ *   - { statusCode, data: { items: [...] } }         (generic paginated variant)
+ *   - [...]                                          (bare array)
+ */
+function unwrapList(payload: any): any[] {
+  if (Array.isArray(payload)) return payload;
+  const data = payload?.data;
+  if (Array.isArray(data)) return data;
+  if (data && typeof data === "object") {
+    if (Array.isArray((data as any).data)) return (data as any).data;
+    if (Array.isArray((data as any).products)) return (data as any).products;
+    if (Array.isArray((data as any).items)) return (data as any).items;
+    if (Array.isArray((data as any).results)) return (data as any).results;
+  }
+  if (Array.isArray(payload?.products)) return payload.products;
+  if (Array.isArray(payload?.items)) return payload.items;
+  return [];
+}
+
 function writeStaticHtml(targetRelPath: string, content: string) {
   const fullPath = path.resolve(DIST_DIR, targetRelPath);
   fs.mkdirSync(path.dirname(fullPath), { recursive: true });
@@ -609,11 +716,7 @@ async function main() {
 
   // 1a. Categories
   const catRes = await safeFetchJson<any>(`${siteBase}/api/v1/categories/public`);
-  let categories: any[] = Array.isArray(catRes?.data)
-    ? catRes.data
-    : Array.isArray(catRes)
-    ? catRes
-    : [];
+  let categories: any[] = unwrapList(catRes);
 
   // Default core clothing categories fallback
   if (categories.length === 0) {
@@ -631,20 +734,24 @@ async function main() {
   }
   console.log(`[prerender-seo] Prerendering ${categories.length} categories.`);
 
-  // 1b. Products
-  const prodRes = await safeFetchJson<{ data?: { products?: any[] } | any[] }>(
-    `${siteBase}/api/v1/products/public?vertical=CLOTHING&limit=100`
+  // 1b. Products (paginated ApiResponse nests the array at data.data —
+  // a previous revision only unwrapped data/products and silently generated
+  // ZERO product pages, leaving every /product/:slug on the generic noindex
+  // fallback).
+  const prodRes = await safeFetchJson<any>(
+    `${siteBase}/api/v1/products/public?vertical=CLOTHING&limit=500`
   );
-  const rawProducts = Array.isArray(prodRes?.data)
-    ? prodRes!.data
-    : Array.isArray((prodRes?.data as any)?.products)
-    ? (prodRes?.data as any).products
-    : [];
+  const rawProducts = unwrapList(prodRes);
   console.log(`[prerender-seo] Fetched ${rawProducts.length} public products.`);
+  if (rawProducts.length === 0) {
+    console.warn(
+      "[prerender-seo] WARNING: 0 products fetched — /product/:slug pages will fall back to the generic noindex template. Check the products/public response shape."
+    );
+  }
 
   // 1c. Malls
-  const mallRes = await safeFetchJson<{ data?: any[] }>(`${siteBase}/api/v1/malls`);
-  const malls: any[] = Array.isArray(mallRes?.data) ? mallRes!.data : [];
+  const mallRes = await safeFetchJson<any>(`${siteBase}/api/v1/malls`);
+  const malls: any[] = unwrapList(mallRes);
   console.log(`[prerender-seo] Fetched ${malls.length} malls.`);
 
   // 2. Home / Storefront Root Pre-rendering
@@ -755,21 +862,39 @@ async function main() {
   generatedCount += 4;
 
   // 2c. Functional/private shells — noindex so they never serve homepage-duplicate indexable HTML.
+  // Without an explicit file, nginx falls through to index.html (index,follow)
+  // for these client-side routes, which reads as duplicate homepage content.
   const privateShell = (pageTitle: string, desc: string, pagePath: string) =>
     injectMetadata(
       baseHtml,
       staticPageMeta({ title: pageTitle, description: desc, path: pagePath, indexable: false })
     );
-  writeStaticHtml(
-    "clothing/cart.html",
-    privateShell("Cart | QuickBihar", "Your QuickBihar shopping cart.", "/clothing/cart")
-  );
-  writeStaticHtml(
-    "clothing/cart/index.html",
-    privateShell("Cart | QuickBihar", "Your QuickBihar shopping cart.", "/clothing/cart")
-  );
-  writeStaticHtml("auth.html", privateShell("Sign In | QuickBihar", "Sign in to QuickBihar.", "/auth"));
-  writeStaticHtml("auth/index.html", privateShell("Sign In | QuickBihar", "Sign in to QuickBihar.", "/auth"));
+  const privateRoutes: Array<{ file: string; title: string; desc: string; path: string }> = [
+    { file: "clothing/cart", title: "Cart | QuickBihar", desc: "Your QuickBihar shopping cart.", path: "/clothing/cart" },
+    { file: "clothing/checkout", title: "Checkout | QuickBihar", desc: "Complete your QuickBihar order securely.", path: "/clothing/checkout" },
+    { file: "clothing/account", title: "My Account | QuickBihar", desc: "Manage your QuickBihar account and orders.", path: "/clothing/account" },
+    { file: "auth", title: "Sign In | QuickBihar", desc: "Sign in to QuickBihar.", path: "/auth" },
+    { file: "checkout", title: "Checkout | QuickBihar", desc: "Complete your QuickBihar order securely.", path: "/checkout" },
+    { file: "order-detail", title: "Order Details | QuickBihar", desc: "View your QuickBihar order details.", path: "/order-detail" },
+    { file: "order-success", title: "Order Confirmed | QuickBihar", desc: "Your QuickBihar order is confirmed.", path: "/order-success" },
+    { file: "track-order", title: "Track Order | QuickBihar", desc: "Track your QuickBihar delivery.", path: "/track-order" },
+    { file: "account", title: "My Account | QuickBihar", desc: "Manage your QuickBihar account and orders.", path: "/account" },
+    { file: "rider", title: "Delivery Partner | QuickBihar", desc: "QuickBihar delivery partner portal.", path: "/rider" },
+    { file: "Onboarding", title: "Welcome | QuickBihar", desc: "Get started with QuickBihar.", path: "/Onboarding" },
+  ];
+  for (const route of privateRoutes) {
+    const shell = privateShell(route.title, route.desc, route.path);
+    writeStaticHtml(`${route.file}.html`, shell);
+    writeStaticHtml(`${route.file}/index.html`, shell);
+    generatedCount += 2;
+  }
+  // Expo-router group-segment URL variants that resolve to the same screens.
+  const cartAlias = privateShell("Cart | QuickBihar", "Your QuickBihar shopping cart.", "/clothing/cart");
+  writeStaticHtml("(tabs)/clothing/cart.html", cartAlias);
+  writeStaticHtml("(tabs)/clothing/cart/index.html", cartAlias);
+  const checkoutAlias = privateShell("Checkout | QuickBihar", "Complete your QuickBihar order securely.", "/clothing/checkout");
+  writeStaticHtml("(tabs)/clothing/checkout.html", checkoutAlias);
+  writeStaticHtml("(tabs)/clothing/checkout/index.html", checkoutAlias);
   generatedCount += 4;
 
   // 3. Hub Pages
@@ -886,11 +1011,17 @@ async function main() {
     ]);
 
     let catHtml = injectMetadata(baseHtml, meta, [breadcrumbs]);
+    // Products carry category as either a populated object or a plain title
+    // string — match both so the noscript fallback links PDPs by canonical slug.
+    const catTitle = String(cat.title || "").toLowerCase();
     catHtml = injectCrawlerBodyFallback(catHtml, {
       h1Title: `${cat.title || slug} — Shop Online in Bihar`,
       description: `Shop trending ${cat.title || slug} from top local stores across Bihar on QuickBihar. Fast delivery and COD available.`,
       categories,
-      products: rawProducts.filter((p: any) => p?.category?.title?.toLowerCase() === cat.title?.toLowerCase()),
+      products: rawProducts.filter((p: any) => {
+        const pCat = typeof p?.category === "string" ? p.category : p?.category?.title;
+        return String(pCat || "").toLowerCase() === catTitle;
+      }),
     });
 
     writeStaticHtml(`category/${slug}.html`, catHtml);
@@ -912,17 +1043,19 @@ async function main() {
 
     const breadcrumbs = breadcrumbJsonLd(meta.canonical, [
       { name: "Home", path: "/" },
-      { name: prod?.category?.title || "Fashion", path: "/" },
+      {
+        name:
+          (typeof prod?.category === "string"
+            ? prod.category
+            : prod?.category?.title) || "Fashion",
+        path: "/",
+      },
       { name: prod.title || "Product", path: meta.canonical },
     ]);
     schemas.push(breadcrumbs);
 
     let prodHtml = injectMetadata(baseHtml, meta, schemas);
-    prodHtml = injectCrawlerBodyFallback(prodHtml, {
-      h1Title: prod.title || "Fashion Product",
-      description: meta.description,
-      categories,
-    });
+    prodHtml = injectProductCrawlerFallback(prodHtml, prod, meta);
 
     if (slug) {
       writeStaticHtml(`product/${slug}.html`, prodHtml);
@@ -933,11 +1066,7 @@ async function main() {
       // Legacy ID URL: noindex + canonical → slug so link equity consolidates.
       const idMeta: PageMeta = { ...meta, robots: "noindex, nofollow" };
       let idHtml = injectMetadata(baseHtml, idMeta);
-      idHtml = injectCrawlerBodyFallback(idHtml, {
-        h1Title: prod.title || "Fashion Product",
-        description: meta.description,
-        categories,
-      });
+      idHtml = injectProductCrawlerFallback(idHtml, prod, meta);
       writeStaticHtml(`product/${id}.html`, idHtml);
       writeStaticHtml(`product/${id}/index.html`, idHtml);
       generatedCount += 2;

@@ -51,15 +51,21 @@ import { useSizeChart, useSizeCharts } from "@/src/features/clothing/sizeChart/h
 
 interface ProductDetailProps {
   id: string;
+  /** Build-time manifest data for SSG — used for the initial SeoHead render
+   * before useProductById resolves. Never affects interactive UI behaviour. */
+  initialProduct?: Partial<IProduct>;
 }
 
 const AVATAR_COLORS = ["#3B82F6", "#10B981", "#8B5CF6", "#F59E0B", "#EC4899", "#6366F1"];
 
-const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
+const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct }) => {
   const router = useRouter();
   const theme = useTheme() as any;
   const isDark = theme.text === "#ffffff" || theme.background === "#0f0f0f";
   const { data: product, isLoading, isError } = useProductById(id);
+  // Use manifest seed for the initial SSG pass; live query takes over post-hydration.
+  // ponytail: single guard here rather than per-caller; initialProduct is SSG-only.
+  const seoProduct = (product || initialProduct) as IProduct | undefined;
   const { data: similarProducts } = useSimilarProducts(id);
   const { data: reviewsData } = useProductReviews(id);
 
@@ -279,25 +285,28 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
   const storeObj = typeof dp.storeId === "object" ? dp.storeId : null;
   const sellerObj = typeof dp.sellerId === "object" ? dp.sellerId : null;
 
+  // ── SEO (web head tags; null-render on native) ──
+  // Computed ABOVE the loading guard so SeoHead renders at SSG time even when
+  // product is undefined (initialProduct is the manifest seed at that point).
+  const seoMeta = seoProduct ? productMeta(seoProduct) : null;
+  const seoJsonLd = seoMeta ? [
+    productJsonLd(seoProduct, seoMeta.canonical),
+    breadcrumbJsonLd(seoMeta.canonical, [{ name: "Home", path: "/" }, { name: seoProduct?.title || "Product" }]),
+  ] : [];
+
   // ── Loading State ──
   if (isLoading || !product) {
     return (
       <SafeViewWrapper>
+        {seoMeta && <SeoHead meta={seoMeta} jsonLd={seoJsonLd} />}
         <ProductDetailSkeleton theme={theme} onBack={() => router.back()} />
       </SafeViewWrapper>
     );
   }
 
-  // ── SEO (web head tags; null-render on native) ──
-  const seoMeta = productMeta(product);
-  const seoJsonLd = [
-    productJsonLd(product, seoMeta.canonical),
-    breadcrumbJsonLd(seoMeta.canonical, [{ name: "Home", path: "/" }, { name: product?.title || "Product" }]),
-  ];
-
   return (
     <SafeViewWrapper>
-      <SeoHead meta={seoMeta} jsonLd={seoJsonLd} />
+      {seoMeta && <SeoHead meta={seoMeta} jsonLd={seoJsonLd} />}
       <ScrollView
         style={s.scrollView}
         showsVerticalScrollIndicator={false}

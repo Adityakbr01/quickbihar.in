@@ -29,14 +29,19 @@ const SCREEN_WIDTH = Dimensions.get("window").width;
 
 interface MallDetailScreenProps {
   id: string;
+  /** Build-time manifest data for SSG — used for the initial SeoHead render
+   * before useMallDetail resolves. Never affects interactive UI behaviour. */
+  initialMall?: any;
 }
 
-const MallDetailScreen: React.FC<MallDetailScreenProps> = ({ id }) => {
+const MallDetailScreen: React.FC<MallDetailScreenProps> = ({ id, initialMall }) => {
   const router = useRouter();
   const theme = useTheme() as any;
   const { data, isLoading, isError } = useMallDetail(id);
   const submitReviewMutation = useSubmitMallReview(id);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  // Use manifest seed for the initial SSG pass; live query takes over post-hydration.
+  const seoMall = (data?.mall || initialMall);
 
   React.useEffect(() => {
     if (data) {
@@ -50,43 +55,51 @@ const MallDetailScreen: React.FC<MallDetailScreenProps> = ({ id }) => {
   const [comment, setComment] = useState("");
   const [activeImageIndex, setActiveImageIndex] = useState(0);
 
+  // ── SEO (web head tags; null-render on native) ──
+  // seoMall: manifest seed at SSG time, live data?.mall post-hydration.
+  // Computed ABOVE guards so SeoHead renders even during the loading/error state at SSG.
+  const seoMeta = seoMall ? mallMeta(seoMall) : null;
+  const seoJsonLd = seoMeta ? [
+    mallJsonLd(seoMall, seoMeta.canonical),
+    breadcrumbJsonLd(seoMeta.canonical, [
+      { name: "Home", path: "/" },
+      { name: "Malls", path: "/mall" },
+      { name: seoMall?.name || "Mall" },
+    ]),
+  ] : [];
+
   if (isLoading) {
     return (
-      <View style={[styles.loadingContainer, { backgroundColor: theme.background }]}>
-        <ActivityIndicator size="large" color={theme.primary} />
-        <Text style={[styles.loadingText, { color: theme.secondaryText }]}>
-          Loading Mall details...
-        </Text>
-      </View>
+      <>
+        {seoMeta && <SeoHead meta={seoMeta} jsonLd={seoJsonLd} />}
+        <View style={[styles.loadingContainer, { backgroundColor: theme.background }]}>
+          <ActivityIndicator size="large" color={theme.primary} />
+          <Text style={[styles.loadingText, { color: theme.secondaryText }]}>
+            Loading Mall details...
+          </Text>
+        </View>
+      </>
     );
   }
 
   if (isError || !data) {
     return (
-      <View style={[styles.errorContainer, { backgroundColor: theme.background }]}>
-        <Ionicons name="alert-circle-outline" size={60} color={theme.primary} />
-        <Text style={[styles.errorText, { color: theme.text }]}>
-          Could not load mall information.
-        </Text>
-        <TouchableOpacity style={[styles.backBtn, { backgroundColor: theme.primary }]} onPress={() => router.back()}>
-          <Text style={styles.backBtnText}>Go Back</Text>
-        </TouchableOpacity>
-      </View>
+      <>
+        {seoMeta && <SeoHead meta={seoMeta} jsonLd={seoJsonLd} />}
+        <View style={[styles.errorContainer, { backgroundColor: theme.background }]}>
+          <Ionicons name="alert-circle-outline" size={60} color={theme.primary} />
+          <Text style={[styles.errorText, { color: theme.text }]}>
+            Could not load mall information.
+          </Text>
+          <TouchableOpacity style={[styles.backBtn, { backgroundColor: theme.primary }]} onPress={() => router.back()}>
+            <Text style={styles.backBtnText}>Go Back</Text>
+          </TouchableOpacity>
+        </View>
+      </>
     );
   }
 
   const { mall, products, reviews, matchingMalls } = data;
-
-  // ── SEO (web head tags; null-render on native) ──
-  const seoMeta = mallMeta(mall);
-  const seoJsonLd = [
-    mallJsonLd(mall, seoMeta.canonical),
-    breadcrumbJsonLd(seoMeta.canonical, [
-      { name: "Home", path: "/" },
-      { name: "Malls", path: "/mall" },
-      { name: mall?.name || "Mall" },
-    ]),
-  ];
 
   const handleShare = async () => {
     try {
@@ -144,7 +157,7 @@ const MallDetailScreen: React.FC<MallDetailScreenProps> = ({ id }) => {
 
   return (
     <SafeViewWrapper>
-      <SeoHead meta={seoMeta} jsonLd={seoJsonLd} />
+      {seoMeta && <SeoHead meta={seoMeta} jsonLd={seoJsonLd} />}
       <ScrollView style={[styles.container, { backgroundColor: theme.background }]} showsVerticalScrollIndicator={false}>
         {/* Cover Image Slider & Header */}
         <View style={styles.heroContainer}>

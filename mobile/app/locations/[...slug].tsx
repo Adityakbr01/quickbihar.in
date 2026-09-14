@@ -24,6 +24,25 @@ import {
   type BuxarLocation,
 } from "@/src/constants/locations/buxar";
 
+/**
+ * generateStaticParams — emits one HTML file per Buxar location page.
+ * Reads from the static ALL_BUXAR_PAGES constant — no API call or manifest needed.
+ *   /locations/bihar/buxar            → slug: ["bihar", "buxar"]
+ *   /locations/bihar/buxar/<block>    → slug: ["bihar", "buxar", "<block>"]
+ */
+export async function generateStaticParams(): Promise<Array<{ slug: string[] }>> {
+  const params: Array<{ slug: string[] }> = [
+    // District hub
+    { slug: ["bihar", "buxar"] },
+    // All block/town pages
+    ...BUXAR_LOCATIONS.map((loc) => ({ slug: ["bihar", "buxar", loc.slug] })),
+  ];
+  console.log(`[locations/[...slug]] Generating static pages for ${params.length} location slugs.`);
+  return params;
+}
+
+
+
 export default function LocationScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{ slug?: string | string[] }>();

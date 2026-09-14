@@ -50,6 +50,7 @@ jobs:
             NEXT_PUBLIC_API_URL=/api/v1
             NEXT_PUBLIC_SOCKET_URL=/
             NEXT_PUBLIC_GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID || '183149129805-vf8pkq6h066lcapjanjv1271g36jvij4.apps.googleusercontent.com' }}
+            EXPO_PUBLIC_API_ORIGIN=https://quickbihar.in
           tags: |
             ${{ secrets.DOCKER_USER }}/${{ matrix.service.image }}:prod
             ${{ secrets.DOCKER_USER }}/${{ matrix.service.image }}:${{ github.sha }}

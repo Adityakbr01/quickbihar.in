@@ -82,20 +82,23 @@ services:
     build:
       context: ./mobile
       dockerfile: Dockerfile
+      args:
+        # Build-time only — used by generate:manifest to fetch products/malls during
+        # `expo export`. Has no effect at runtime (nginx serves pre-built static files).
+        EXPO_PUBLIC_API_ORIGIN: https://quickbihar.in
     container_name: quickbihar-mobile-web
     restart: unless-stopped
     ports:
       - "127.0.0.1:7001:80"
     environment:
       - NODE_ENV=production
-      - EXPO_PUBLIC_API_ORIGIN=https://quickbihar.in
     env_file:
       - path: ./mobile/.env
         required: false
     networks:
       - quickbihar-network
     healthcheck:
-      test: ["CMD-SHELL", "wget -q --spider http://localhost:80/ || exit 1"]
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:80/ || exit 1"]
       interval: 30s
       timeout: 5s
       retries: 3

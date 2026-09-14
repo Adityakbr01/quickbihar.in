@@ -1,5 +1,6 @@
 import ProductDetailScreen from "@/src/features/clothing/product/screen/ProductDetailScreen";
 import ProductDetailSkeleton from "@/src/features/clothing/product/screen/ProductDetail/components/ProductDetailSkeleton";
+import { manifestToStaticParams } from "@/src/lib/staticManifest";
 import { Stack, useLocalSearchParams, Link, useRouter } from "expo-router";
 import React from "react";
 import { Text, View } from "react-native";
@@ -9,6 +10,21 @@ import SafeViewWrapper from "@/src/provider/SafeViewWrapper";
 
 /** Mongo ObjectId detector — ids stay id-fetched; anything else is treated as a canonical slug. */
 const isObjectId = (value: string) => /^[0-9a-fA-F]{24}$/.test(value || "");
+
+let productsManifest: Record<string, any> = {};
+try {
+  productsManifest = require("@/src/data/products-static.json");
+} catch {
+  productsManifest = {};
+}
+
+/**
+ * generateStaticParams — emits one HTML file per product slug at build time.
+ * Hard-fails if manifest is empty to prevent silent zero-page deploys.
+ */
+export async function generateStaticParams() {
+  return manifestToStaticParams(productsManifest, "id", "product/[id]");
+}
 
 /**
  * /product/:param — accepts a legacy Mongo id OR a canonical slug (plan §13).
@@ -23,6 +39,9 @@ export default function ProductRoute() {
   const slugQuery = useProductBySlug(!isId ? param || "" : "");
   const theme = useTheme() as any;
   const router = useRouter();
+
+  // Manifest seed for the initial SSG render — undefined on native/client.
+  const initialProduct = !isId && param ? productsManifest[param] : undefined;
 
   if (isId || !param) {
     return (
@@ -62,7 +81,7 @@ export default function ProductRoute() {
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
-      <ProductDetailScreen id={resolvedId} />
+      <ProductDetailScreen id={resolvedId} initialProduct={initialProduct} />
     </>
   );
 }
