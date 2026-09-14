@@ -1,6 +1,7 @@
 // ponytail: one runnable check for theme wiring. Fails if anyone
 // re-hardcodes dark mode or drops the toggle/persist path.
 // Run: bun scripts/check-theme.ts
+/// <reference types="node" />
 import fs from "fs";
 import path from "path";
 
@@ -55,10 +56,11 @@ for (const f of [
 ]) {
   const src = read(f);
   const raws = src.split("\n").filter(
-    (l) => /backgroundColor:\s*"#(?:FFFFFF|F9FAFB|FAFAFA|F3F4F6|F5F5F5|F0F0F0|FDF9F4|FFF0E6|FFF9E6|F0FFF4|EEF2FF|FEF3C7|EFF6FF|FFF1F2|FFE4E6|FDF3D1|FFFEFA|F1F5F9)"|backgroundColor:\s*"white"/.test(l)
-      && !l.includes("isDark")
+    (l: string) =>
+      /backgroundColor:\s*"#(?:FFFFFF|F9FAFB|FAFAFA|F3F4F6|F5F5F5|F0F0F0|FDF9F4|FFF0E6|FFF9E6|F0FFF4|EEF2FF|FEF3C7|EFF6FF|FFF1F2|FFE4E6|FDF3D1|FFFEFA|F1F5F9)"|backgroundColor:\s*"white"/.test(l) &&
+      !l.includes("isDark")
   );
-  t(raws.length === 0, `no raw light surfaces ${f}${raws.length ? " → " + raws.map((l) => l.trim()).join(" | ") : ""}`);
+  t(raws.length === 0, `no raw light surfaces ${f}${raws.length ? " → " + raws.map((l: string) => l.trim()).join(" | ") : ""}`);
 }
 
 process.exit(fail ? 1 : 0);

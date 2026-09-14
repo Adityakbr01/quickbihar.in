@@ -16,6 +16,7 @@
 
 import fs from "fs";
 import path from "path";
+/// <reference types="node" />
 import { unwrapList, safeFetchJson } from "../src/lib/fetchUtils";
 
 const OUT_DIR = path.resolve(__dirname, "../src/data");

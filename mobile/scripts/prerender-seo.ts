@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+/// <reference types="node" />
 import {
   getSiteBase,
   canonicalUrl,
