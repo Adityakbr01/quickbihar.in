@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { SeoHead } from "@/src/components/seo/SeoHead";
 import {
   locationMeta,
@@ -47,6 +48,11 @@ export default function LocationScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{ slug?: string | string[] }>();
   const [expandedFaq, setExpandedFaq] = useState<number | null>(0);
+  const theme = useTheme() as any;
+  const isDark = theme.isDark ?? theme.text === "#ffffff";
+  // Lighter brand indigo on dark surfaces for readable contrast.
+  const brand = isDark ? "#A5B4FC" : "#4F46E5";
+  const styles = useMemo(() => getStyles(isDark, theme), [isDark, theme]);
 
   // Normalize slug array: e.g. ["bihar", "buxar", "dumraon"] or ["bihar", "buxar"]
   const slugParts = Array.isArray(params.slug)
@@ -123,7 +129,7 @@ export default function LocationScreen() {
           accessibilityRole="button"
           accessibilityLabel="Back to Home"
         >
-          <Ionicons name="arrow-back" size={20} color="#1E1B4B" />
+          <Ionicons name="arrow-back" size={20} color={isDark ? theme.text : "#1E1B4B"} />
         </TouchableOpacity>
         <Text style={styles.topBarTitle} numberOfLines={1}>
           {location.name} • QuickBihar
@@ -159,7 +165,7 @@ export default function LocationScreen() {
               <Text style={styles.subdivisionBadgeText}>{location.subdivision}</Text>
             </View>
             <View style={styles.deliveryBadge}>
-              <Ionicons name="flash" size={12} color="#4F46E5" />
+              <Ionicons name="flash" size={12} color={isDark ? "#FCD34D" : "#4F46E5"} />
               <Text style={styles.deliveryBadgeText}>{location.deliveryTime}</Text>
             </View>
           </View>
@@ -203,7 +209,7 @@ export default function LocationScreen() {
                 onPress={() => router.push(`/category/${cat.slug}` as any)}
                 accessibilityRole="button"
               >
-                <Ionicons name={cat.icon as any} size={16} color="#4F46E5" />
+                <Ionicons name={cat.icon as any} size={16} color={brand} />
                 <Text style={styles.catChipText}>{cat.title}</Text>
               </TouchableOpacity>
             ))}
@@ -219,7 +225,7 @@ export default function LocationScreen() {
           <View style={styles.chipsWrap}>
             {location.localities.map((loc, idx) => (
               <View key={idx} style={styles.locChip}>
-                <Ionicons name="location-outline" size={13} color="#4B5563" />
+                <Ionicons name="location-outline" size={13} color={isDark ? theme.secondaryText : "#4B5563"} />
                 <Text style={styles.locChipText}>{loc}</Text>
               </View>
             ))}
@@ -256,7 +262,7 @@ export default function LocationScreen() {
                     <Ionicons
                       name={isExpanded ? "chevron-up" : "chevron-down"}
                       size={18}
-                      color="#4B5563"
+                      color={isDark ? theme.secondaryText : "#4B5563"}
                     />
                   </TouchableOpacity>
                   {isExpanded && (
@@ -301,10 +307,13 @@ export default function LocationScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (isDark: boolean, theme: any) => {
+  // Lighter brand indigo on dark surfaces for readable contrast.
+  const brand = isDark ? "#A5B4FC" : "#4F46E5";
+  return StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F9FAFB",
+    backgroundColor: isDark ? theme.background : "#F9FAFB",
     maxWidth: Platform.OS === "web" ? 480 : undefined,
     width: "100%",
     alignSelf: "center",
@@ -314,15 +323,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: isDark ? theme.secondaryBackground : "#FFFFFF",
     borderBottomWidth: 1,
-    borderBottomColor: "#E5E7EB",
+    borderBottomColor: isDark ? theme.border : "#E5E7EB",
   },
   backButton: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: "#F3F4F6",
+    backgroundColor: isDark ? theme.tertiaryBackground : "#F3F4F6",
     alignItems: "center",
     justifyContent: "center",
     marginRight: 12,
@@ -330,7 +339,7 @@ const styles = StyleSheet.create({
   topBarTitle: {
     fontSize: 16,
     fontWeight: "700",
-    color: "#1E1B4B",
+    color: isDark ? theme.text : "#1E1B4B",
     flex: 1,
   },
   scroll: {
@@ -344,30 +353,30 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 16,
     paddingVertical: 10,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: isDark ? theme.secondaryBackground : "#FFFFFF",
     borderBottomWidth: 1,
-    borderBottomColor: "#F3F4F6",
+    borderBottomColor: isDark ? theme.border : "#F3F4F6",
   },
   breadcrumbLink: {
     fontSize: 12,
-    color: "#4F46E5",
+    color: brand,
     fontWeight: "600",
   },
   breadcrumbSeparator: {
     fontSize: 12,
-    color: "#9CA3AF",
+    color: isDark ? theme.tertiaryText : "#9CA3AF",
     marginHorizontal: 6,
   },
   breadcrumbCurrent: {
     fontSize: 12,
-    color: "#4B5563",
+    color: isDark ? theme.secondaryText : "#4B5563",
     fontWeight: "500",
   },
   heroCard: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: isDark ? theme.secondaryBackground : "#FFFFFF",
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: "#E5E7EB",
+    borderBottomColor: isDark ? theme.border : "#E5E7EB",
   },
   badgeRow: {
     flexDirection: "row",
@@ -377,7 +386,7 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
   },
   subdivisionBadge: {
-    backgroundColor: "#EEF2FF",
+    backgroundColor: isDark ? "rgba(79,70,229,0.20)" : "#EEF2FF",
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
@@ -385,13 +394,13 @@ const styles = StyleSheet.create({
   subdivisionBadgeText: {
     fontSize: 11,
     fontWeight: "700",
-    color: "#4F46E5",
+    color: brand,
   },
   deliveryBadge: {
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
-    backgroundColor: "#FEF3C7",
+    backgroundColor: isDark ? "rgba(245,158,11,0.20)" : "#FEF3C7",
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
@@ -399,27 +408,27 @@ const styles = StyleSheet.create({
   deliveryBadgeText: {
     fontSize: 11,
     fontWeight: "700",
-    color: "#92400E",
+    color: isDark ? "#FCD34D" : "#92400E",
   },
   heroTitle: {
     fontSize: 20,
     fontWeight: "800",
-    color: "#111827",
+    color: isDark ? theme.text : "#111827",
     lineHeight: 28,
     marginBottom: 8,
   },
   heroSubtitle: {
     fontSize: 14,
-    color: "#4B5563",
+    color: isDark ? theme.secondaryText : "#4B5563",
     lineHeight: 20,
     marginBottom: 8,
   },
   hindiNote: {
     fontSize: 13,
-    color: "#1E3A8A",
+    color: isDark ? "#BFDBFE" : "#1E3A8A",
     lineHeight: 19,
     marginBottom: 16,
-    backgroundColor: "#EFF6FF",
+    backgroundColor: isDark ? "rgba(59,130,246,0.16)" : "#EFF6FF",
     padding: 10,
     borderRadius: 8,
   },
@@ -439,21 +448,21 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   section: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: isDark ? theme.secondaryBackground : "#FFFFFF",
     marginTop: 12,
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: "#E5E7EB",
+    borderBottomColor: isDark ? theme.border : "#E5E7EB",
   },
   sectionTitle: {
     fontSize: 16,
     fontWeight: "700",
-    color: "#111827",
+    color: isDark ? theme.text : "#111827",
     marginBottom: 4,
   },
   sectionSubtitle: {
     fontSize: 13,
-    color: "#6B7280",
+    color: isDark ? theme.secondaryText : "#6B7280",
     marginBottom: 14,
   },
   catGrid: {
@@ -465,18 +474,18 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
-    backgroundColor: "#F9FAFB",
+    backgroundColor: isDark ? theme.tertiaryBackground : "#F9FAFB",
     paddingHorizontal: 12,
     paddingVertical: 10,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: "#E5E7EB",
+    borderColor: isDark ? theme.border : "#E5E7EB",
     width: "48%",
   },
   catChipText: {
     fontSize: 12,
     fontWeight: "600",
-    color: "#1F2937",
+    color: isDark ? theme.text : "#1F2937",
     flex: 1,
   },
   chipsWrap: {
@@ -488,27 +497,27 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
-    backgroundColor: "#F3F4F6",
+    backgroundColor: isDark ? theme.tertiaryBackground : "#F3F4F6",
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 6,
   },
   locChipText: {
     fontSize: 12,
-    color: "#374151",
+    color: isDark ? theme.text : "#374151",
     fontWeight: "500",
   },
   pinChip: {
-    backgroundColor: "#EEF2FF",
+    backgroundColor: isDark ? "rgba(79,70,229,0.20)" : "#EEF2FF",
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: "#C7D2FE",
+    borderColor: isDark ? "rgba(79,70,229,0.45)" : "#C7D2FE",
   },
   pinChipText: {
     fontSize: 12,
-    color: "#4338CA",
+    color: isDark ? "#A5B4FC" : "#4338CA",
     fontWeight: "700",
   },
   faqList: {
@@ -516,10 +525,10 @@ const styles = StyleSheet.create({
   },
   faqCard: {
     borderWidth: 1,
-    borderColor: "#E5E7EB",
+    borderColor: isDark ? theme.border : "#E5E7EB",
     borderRadius: 8,
     padding: 12,
-    backgroundColor: "#FAFAFA",
+    backgroundColor: isDark ? theme.tertiaryBackground : "#FAFAFA",
   },
   faqHeader: {
     flexDirection: "row",
@@ -529,28 +538,28 @@ const styles = StyleSheet.create({
   faqQuestion: {
     fontSize: 13,
     fontWeight: "600",
-    color: "#1F2937",
+    color: isDark ? theme.text : "#1F2937",
     flex: 1,
     paddingRight: 8,
   },
   faqAnswer: {
     fontSize: 12,
-    color: "#4B5563",
+    color: isDark ? theme.secondaryText : "#4B5563",
     lineHeight: 18,
     marginTop: 8,
     borderTopWidth: 1,
-    borderTopColor: "#E5E7EB",
+    borderTopColor: isDark ? theme.border : "#E5E7EB",
     paddingTop: 8,
   },
   otherLocBtn: {
-    backgroundColor: "#F3F4F6",
+    backgroundColor: isDark ? theme.tertiaryBackground : "#F3F4F6",
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 8,
   },
   otherLocBtnText: {
     fontSize: 12,
-    color: "#4F46E5",
+    color: brand,
     fontWeight: "600",
   },
   footerNote: {
@@ -559,8 +568,9 @@ const styles = StyleSheet.create({
   },
   footerNoteText: {
     fontSize: 11,
-    color: "#9CA3AF",
+    color: isDark ? theme.tertiaryText : "#9CA3AF",
     textAlign: "center",
     lineHeight: 16,
   },
-});
+  });
+};

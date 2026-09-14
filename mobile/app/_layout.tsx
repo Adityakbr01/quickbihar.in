@@ -5,7 +5,7 @@ import { configureGoogleSignIn } from "@/src/features/common/auth/config/googleS
 import { usePushNotifications } from "@/src/hooks/usePushNotifications";
 import { QueryProvider } from "@/src/provider/QueryProvider";
 import { SocketListenerProvider } from "@/src/provider/SocketListenerProvider";
-import { ThemeProvider } from "@/src/theme/Provider/ThemeProvider";
+import { ThemeProvider, useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { TrueSheetProvider } from "@lodev09/react-native-true-sheet";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
@@ -13,10 +13,46 @@ import { useEffect } from "react";
 import { View, Platform } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
+import * as SplashScreen from "expo-splash-screen";
 
 function AppNotificationsInit() {
   usePushNotifications();
   return null;
+}
+
+// ponytail: splash stays until the persisted theme paints first frame —
+// otherwise light-mode users eat one dark frame on native cold start.
+if (Platform.OS !== "web") {
+  SplashScreen.preventAutoHideAsync().catch(() => {});
+}
+
+/** StatusBar + web shell background follow the app theme (not device setting). */
+function ThemedChrome() {
+  const theme = useTheme();
+
+  useEffect(() => {
+    if (Platform.OS !== "web" && theme.ready) {
+      SplashScreen.hideAsync().catch(() => {});
+    }
+  }, [theme.ready]);
+  return (
+    <>
+      {Platform.OS === "web" && (
+        <style dangerouslySetInnerHTML={{ __html: `
+          html, body, #root {
+            height: 100dvh !important;
+            min-height: 100dvh !important;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: ${theme.background};
+            color-scheme: ${theme.isDark ? "dark" : "light"};
+          }
+        `}} />
+      )}
+      <StatusBar style={theme.isDark ? "light" : "dark"} />
+    </>
+  );
 }
 
 export default function RootLayout() {
@@ -37,34 +73,19 @@ export default function RootLayout() {
     prepare();
   }, [initializeAuth]);
 
-  const fallbackBgColor = "#0f0f0f";
-
   return (
-    <View style={{ flex: 1, backgroundColor: fallbackBgColor }}>
-      {Platform.OS === "web" && (
-        <style dangerouslySetInnerHTML={{ __html: `
-          html, body, #root {
-            height: 100dvh !important;
-            min-height: 100dvh !important;
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
-            background-color: ${fallbackBgColor};
-          }
-        `}} />
-      )}
+    <View style={{ flex: 1 }}>
       <SafeAreaProvider>
         <QueryProvider>
           <AppNotificationsInit />
-          <StatusBar style="light" />
           <ThemeProvider>
+            <ThemedChrome />
             <TrueSheetProvider>
               <SheetProvider>
                 <SocketListenerProvider>
                   <Stack
                     screenOptions={{
                       headerShown: false,
-                      contentStyle: { backgroundColor: "#0f0f0f" },
                     }}
                   />
                   <Toast config={toastConfig} />

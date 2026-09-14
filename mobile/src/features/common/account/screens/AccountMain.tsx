@@ -2,6 +2,9 @@ import React, { useMemo } from "react";
 import { View, ScrollView, Text, Linking } from "react-native";
 import * as Haptics from "expo-haptics";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
+import { HugeiconsIcon } from "@hugeicons/react-native";
+import { Moon02Icon, Sun03Icon } from "@hugeicons/core-free-icons";
+import { ThemeToggle } from "../components/ThemeToggle";
 import { createAccountStyles } from "../styles/accountStyles";
 import AccountHeader from "../components/AccountHeader";
 import AccountOption from "../components/AccountOption";
@@ -141,8 +144,32 @@ const AccountMain = () => {
             </View>
           ))}
 
-          {/* Logout Section */}
-          <View style={[styles.logoutRow, isLoggingOut && { opacity: 0.7 }]}>
+          {/* Appearance Section */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Appearance</Text>
+            <View style={styles.optionRow}>
+              <View style={styles.iconContainer}>
+                <HugeiconsIcon
+                  icon={theme.isDark ? Moon02Icon : Sun03Icon}
+                  size={22}
+                  color={theme.primary}
+                  strokeWidth={1.5}
+                />
+              </View>
+              <Text style={styles.optionLabel}>
+                {theme.isDark ? "Dark Mode" : "Light Mode"}
+              </Text>
+              <ThemeToggle
+                value={theme.isDark}
+                onToggle={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                  theme.toggleMode();
+                }}
+              />
+            </View>
+          </View>
+
+          {/* Logout Section */}          <View style={[styles.logoutRow, isLoggingOut && { opacity: 0.7 }]}>
             <AccountOption
               theme={theme}
               styles={styles}

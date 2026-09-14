@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { formatDistance } from "../utils/geoUtils";
+import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 
 const { width } = Dimensions.get("window");
 
@@ -40,6 +41,9 @@ export const TrackingInfoCard: React.FC<TrackingInfoCardProps> = ({
   cancelButtonLoading,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const theme = useTheme() as any;
+  const isDark = theme.isDark ?? theme.text === "#ffffff";
+  const styles = getStyles(isDark, theme);
 
   const handleCall = () => {
     if (riderPhone) {
@@ -83,7 +87,7 @@ export const TrackingInfoCard: React.FC<TrackingInfoCardProps> = ({
             </Text>
           </View>
           <View style={styles.distanceBox}>
-            <Ionicons name="location-outline" size={14} color="#666" />
+            <Ionicons name="location-outline" size={14} color={isDark ? theme.secondaryText : "#666"} />
             <Text style={styles.distanceText}>{formatDistance(distance)}</Text>
           </View>
         </View>
@@ -94,7 +98,7 @@ export const TrackingInfoCard: React.FC<TrackingInfoCardProps> = ({
         {!isFinished && (
           <View style={styles.riderRow}>
             <View style={styles.avatar}>
-              <Ionicons name="person" size={24} color="#666" />
+              <Ionicons name="person" size={24} color={isDark ? theme.secondaryText : "#666"} />
             </View>
             <View style={styles.riderInfo}>
               <Text style={styles.riderName}>
@@ -233,9 +237,18 @@ export const TrackingInfoCard: React.FC<TrackingInfoCardProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (isDark: boolean, theme: any) => {
+  // Brand accents (orange/green/red) read fine on both modes — only
+  // surfaces and text adapt. Light branch keeps the original hex values.
+  const ink = isDark ? theme.text : "#333";
+  const subInk = isDark ? theme.secondaryText : "#666";
+  const faintInk = isDark ? theme.tertiaryText : "#999";
+  const surface = isDark ? theme.secondaryBackground : "white";
+  const chip = isDark ? theme.tertiaryBackground : "#F5F5F5";
+  const line = isDark ? theme.border : "#F0F0F0";
+  return StyleSheet.create({
   cardContainer: {
-    backgroundColor: "white",
+    backgroundColor: surface,
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
     padding: 20,
@@ -253,7 +266,7 @@ const styles = StyleSheet.create({
   grabber: {
     width: 40,
     height: 4,
-    backgroundColor: "#EEE",
+    backgroundColor: isDark ? theme.border : "#EEE",
     borderRadius: 2,
     alignSelf: "center",
     marginBottom: 15,
@@ -277,12 +290,12 @@ const styles = StyleSheet.create({
   etaLabel: {
     fontSize: 20,
     fontWeight: "bold",
-    color: "#333",
+    color: ink,
   },
   distanceBox: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#F5F5F5",
+    backgroundColor: chip,
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 12,
@@ -290,12 +303,12 @@ const styles = StyleSheet.create({
   distanceText: {
     fontSize: 12,
     fontWeight: "bold",
-    color: "#666",
+    color: subInk,
     marginLeft: 4,
   },
   divider: {
     height: 1,
-    backgroundColor: "#F0F0F0",
+    backgroundColor: line,
     marginBottom: 15,
     marginTop: 5,
   },
@@ -308,7 +321,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: "#F5F5F5",
+    backgroundColor: chip,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -319,7 +332,7 @@ const styles = StyleSheet.create({
   riderName: {
     fontSize: 16,
     fontWeight: "bold",
-    color: "#333",
+    color: ink,
   },
   ratingRow: {
     flexDirection: "row",
@@ -328,7 +341,7 @@ const styles = StyleSheet.create({
   },
   ratingText: {
     fontSize: 12,
-    color: "#999",
+    color: faintInk,
     marginLeft: 4,
   },
   callButton: {
@@ -349,7 +362,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: 8,
-    backgroundColor: "#FFF0E6",
+    backgroundColor: isDark ? "rgba(255,107,0,0.16)" : "#FFF0E6",
     borderRadius: 12,
     marginBottom: 15,
   },
@@ -364,17 +377,17 @@ const styles = StyleSheet.create({
   },
   otpSection: {
     alignItems: "center",
-    backgroundColor: "#FDF9F4",
+    backgroundColor: isDark ? theme.tertiaryBackground : "#FDF9F4",
     padding: 15,
     borderRadius: 15,
     borderWidth: 1,
-    borderColor: "#FFEEDD",
+    borderColor: isDark ? "rgba(255,107,0,0.35)" : "#FFEEDD",
     marginBottom: 15,
   },
   otpTitle: {
     fontSize: 12,
     fontWeight: "bold",
-    color: "#996633",
+    color: isDark ? "#E8B86D" : "#996633",
     textTransform: "uppercase",
     marginBottom: 10,
   },
@@ -390,7 +403,7 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: "#FF6B00",
     borderRadius: 8,
-    backgroundColor: "white",
+    backgroundColor: surface,
     justifyContent: "center",
     alignItems: "center",
     marginHorizontal: 4,
@@ -398,11 +411,11 @@ const styles = StyleSheet.create({
   otpDigitText: {
     fontSize: 22,
     fontWeight: "bold",
-    color: "#333",
+    color: ink,
   },
   otpSubtext: {
     fontSize: 11,
-    color: "#996633",
+    color: isDark ? "#E8B86D" : "#996633",
     textAlign: "center",
     lineHeight: 15,
   },
@@ -413,7 +426,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 14,
     fontWeight: "bold",
-    color: "#333",
+    color: ink,
     marginBottom: 12,
   },
   timelineItem: {
@@ -428,7 +441,7 @@ const styles = StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: "#CCC",
+    backgroundColor: isDark ? theme.border : "#CCC",
     marginTop: 4,
   },
   timelineNodeActive: {
@@ -442,7 +455,7 @@ const styles = StyleSheet.create({
   timelineVerticalLine: {
     width: 2,
     flex: 1,
-    backgroundColor: "#E0E0E0",
+    backgroundColor: isDark ? theme.border : "#E0E0E0",
     marginVertical: 4,
   },
   timelineContent: {
@@ -459,7 +472,7 @@ const styles = StyleSheet.create({
   timelineStatus: {
     fontSize: 12,
     fontWeight: "bold",
-    color: "#666",
+    color: subInk,
     textTransform: "capitalize",
   },
   timelineStatusActive: {
@@ -467,11 +480,11 @@ const styles = StyleSheet.create({
   },
   timelineTime: {
     fontSize: 10,
-    color: "#999",
+    color: faintInk,
   },
   timelineDesc: {
     fontSize: 12,
-    color: "#666",
+    color: subInk,
     lineHeight: 16,
   },
   timelineReason: {
@@ -483,16 +496,16 @@ const styles = StyleSheet.create({
   cancellationRequestedBadge: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#FFF9E6",
+    backgroundColor: isDark ? "rgba(255,159,0,0.14)" : "#FFF9E6",
     padding: 10,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: "#FFEBAA",
+    borderColor: isDark ? "rgba(255,159,0,0.35)" : "#FFEBAA",
     marginBottom: 15,
   },
   cancellationRequestedText: {
     fontSize: 12,
-    color: "#B27D00",
+    color: isDark ? "#F5C044" : "#B27D00",
     marginLeft: 8,
     fontWeight: "600",
   },
@@ -512,7 +525,7 @@ const styles = StyleSheet.create({
   footer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#F0FFF4",
+    backgroundColor: isDark ? "rgba(0,200,83,0.12)" : "#F0FFF4",
     padding: 10,
     borderRadius: 12,
   },
@@ -522,4 +535,5 @@ const styles = StyleSheet.create({
     color: "#00C853",
     marginLeft: 8,
   },
-});
+  });
+};

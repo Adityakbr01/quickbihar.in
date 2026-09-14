@@ -45,6 +45,7 @@ export const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({
   disabled = false,
 }) => {
   const theme = useTheme() as any;
+  const isDark = theme.isDark ?? theme.text === "#ffffff";
   const [loading, setLoading] = useState(false);
 
   const handlePress = async () => {
@@ -125,8 +126,8 @@ export const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({
       style={({ pressed }) => [
         styles.container,
         {
-          backgroundColor: theme.cardBackground || "rgba(255,255,255,0.08)",
-          borderColor: "rgba(255,255,255,0.18)",
+          backgroundColor: isDark ? "rgba(255,255,255,0.08)" : "#FFFFFF",
+          borderColor: isDark ? "rgba(255,255,255,0.18)" : theme.border || "#E5E7EB",
           opacity: disabled ? 0.5 : pressed ? 0.85 : 1,
         },
       ]}

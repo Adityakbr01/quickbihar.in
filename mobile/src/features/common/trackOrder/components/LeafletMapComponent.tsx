@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useState, useCallback } from "react";
 import { StyleSheet, View, ActivityIndicator, TouchableOpacity } from "react-native";
 import { WebView } from "react-native-webview";
 import { Ionicons } from "@expo/vector-icons";
+import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 
 interface LatLng {
   latitude: number;
@@ -24,6 +25,13 @@ export const LeafletMapComponent: React.FC<LeafletMapComponentProps> = ({
 }) => {
   const webViewRef = useRef<WebView>(null);
   const [isWebViewLoaded, setIsWebViewLoaded] = useState(false);
+  const theme = useTheme() as any;
+  // ponytail: dark basemap tiles (CARTO, free) instead of a CSS filter —
+  // filters blur markers and cost GPU on every frame.
+  const isDark = theme.isDark ?? theme.text === "#ffffff";
+  const tileUrl = isDark
+    ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+    : "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
 
   // Send update to WebView helper
   const sendUpdate = useCallback((loc: LatLng | null, head: number) => {
@@ -56,7 +64,7 @@ export const LeafletMapComponent: React.FC<LeafletMapComponentProps> = ({
         <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
         <style>
           * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
-          html, body { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; background: #e5e3df; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+          html, body { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; background: ${isDark ? "#0f0f0f" : "#e5e3df"}; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
           #map { height: 100%; width: 100%; }
 
           /* Animated Rider Marker */
@@ -131,10 +139,12 @@ export const LeafletMapComponent: React.FC<LeafletMapComponentProps> = ({
             attributionControl: false
           }).setView(currentRiderCoords || destCoords, 15);
           
-          // Free OpenStreetMap Tiles
-          L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          // Free tiles: OSM standard (light) / CARTO dark_matter (dark).
+          // Both require © OpenStreetMap credit; CARTO additionally © CARTO.
+          L.tileLayer('${tileUrl}', {
             maxZoom: 19,
-            subdomains: ['a', 'b', 'c']
+            subdomains: 'abcd',
+            attribution: '&copy; OpenStreetMap contributors${isDark ? " &copy; CARTO" : ""}'
           }).addTo(map);
 
           // 1. Destination Marker (Customer House)

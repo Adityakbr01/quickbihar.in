@@ -17,10 +17,11 @@ import HomeDeliveryLocations from "@/src/features/clothing/home/components/HomeD
 import { ALL_BUXAR_PAGES } from "@/src/constants/locations/buxar";
 
 export default function InstantDeliveryRoute() {
-  const theme = useTheme();
+  const theme = useTheme() as any;
   const router = useRouter();
   const [pinQuery, setPinQuery] = useState("");
   const [pinResult, setPinResult] = useState<string | null>(null);
+  const isDark = theme.isDark ?? theme.text === "#ffffff";
 
   const meta = staticPageMeta({
     title: "Instant Fashion & Clothes Delivery in Bihar | QuickBihar",
@@ -106,15 +107,17 @@ export default function InstantDeliveryRoute() {
           showsVerticalScrollIndicator={false}
         >
           {/* Hero Banner */}
-          <View style={[styles.heroCard, { backgroundColor: "#EEF2FF", borderColor: "#C7D2FE" }]}>
-            <View style={styles.flashBadge}>
-              <Ionicons name="flash" size={14} color="#4F46E5" />
-              <Text style={styles.flashBadgeText}>60–120 MINS EXPRESS</Text>
+          <View style={[styles.heroCard, isDark
+            ? { backgroundColor: "#1E1B4B", borderColor: "rgba(129,140,248,0.45)" }
+            : { backgroundColor: "#EEF2FF", borderColor: "#C7D2FE" }]}>
+            <View style={[styles.flashBadge, isDark && { backgroundColor: "rgba(255,255,255,0.14)" }]}>
+              <Ionicons name="flash" size={14} color={isDark ? "#C7D2FE" : "#4F46E5"} />
+              <Text style={[styles.flashBadgeText, isDark && { color: "#C7D2FE" }]}>60–120 MINS EXPRESS</Text>
             </View>
-            <Text style={styles.heroHeading}>
+            <Text style={[styles.heroHeading, isDark && { color: "#FFFFFF" }]}>
               Instant Fashion &amp; Clothes Delivery in Bihar
             </Text>
-            <Text style={styles.heroSub}>
+            <Text style={[styles.heroSub, isDark && { color: "#C7D2FE" }]}>
               Discover trendy ethnic wear, kurtis, sarees, shirts, and jeans delivered straight to your doorstep from trusted local stores in your area.
             </Text>
           </View>
@@ -159,8 +162,8 @@ export default function InstantDeliveryRoute() {
             </View>
 
             {pinResult && (
-              <View style={styles.resultBox}>
-                <Text style={styles.resultText}>{pinResult}</Text>
+              <View style={[styles.resultBox, isDark && { backgroundColor: theme.tertiaryBackground }]}>
+                <Text style={[styles.resultText, isDark && { color: theme.text }]}>{pinResult}</Text>
               </View>
             )}
           </View>

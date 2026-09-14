@@ -13,7 +13,8 @@ const MOCK_FOOD_ITEMS = [
 ];
 
 export const FoodHomeScreen = () => {
-  const theme = useTheme();
+  const theme = useTheme() as any;
+  const isDark = theme.isDark ?? theme.text === "#ffffff";
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
@@ -27,11 +28,13 @@ export const FoodHomeScreen = () => {
     <SafeViewWrapper>
       <HomeHeader />
       <ScrollView contentContainerStyle={styles.container}>
-        <View style={[styles.banner, { backgroundColor: "#FFF1F2", borderColor: "#FECDD3" }]}>
+        <View style={[styles.banner, isDark
+          ? { backgroundColor: "rgba(225,29,72,0.14)", borderColor: "rgba(225,29,72,0.40)" }
+          : { backgroundColor: "#FFF1F2", borderColor: "#FECDD3" }]}>
           <Ionicons name="fast-food" size={40} color="#E11D48" />
           <View style={styles.bannerTextContainer}>
-            <Text style={[styles.bannerTitle, { color: "#9F1239" }]}>Quick Bihar Food Market 🍔</Text>
-            <Text style={[styles.bannerSub, { color: "#BE123C" }]}>Hot & fresh meals delivered in 20 mins</Text>
+            <Text style={[styles.bannerTitle, { color: isDark ? "#FDA4AF" : "#9F1239" }]}>Quick Bihar Food Market 🍔</Text>
+            <Text style={[styles.bannerSub, { color: isDark ? "#FB7185" : "#BE123C" }]}>Hot & fresh meals delivered in 20 mins</Text>
           </View>
         </View>
 
@@ -51,7 +54,7 @@ export const FoodHomeScreen = () => {
                   { backgroundColor: theme.secondaryBackground, borderColor: theme.border },
                 ]}
               >
-                <View style={[styles.iconContainer, { backgroundColor: "#FFE4E6" }]}>
+                <View style={[styles.iconContainer, { backgroundColor: isDark ? "rgba(225,29,72,0.18)" : "#FFE4E6" }]}>
                   <Ionicons name={item.icon as any} size={28} color="#E11D48" />
                 </View>
                 <Text style={[styles.cardTitle, { color: theme.text }]}>{item.title}</Text>

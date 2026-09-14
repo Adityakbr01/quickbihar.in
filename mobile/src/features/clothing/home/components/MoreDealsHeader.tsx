@@ -20,6 +20,12 @@ export const MoreDealsHeader = ({
   );
 
   const activeId = activeCampaign ?? internalActiveId;
+  // ponytail: festive active gradient is brand candy (same both modes);
+  // only the idle-cream card adapts so it doesn't glow on dark.
+  const isDark = theme?.isDark ?? theme?.text === "#ffffff";
+  const idleGradient = (isDark
+    ? [theme?.tertiaryBackground || "#2c2c2e", theme?.secondaryBackground || "#1c1c1e"]
+    : ["#FDF3D1", "#FFFEFA"]) as [string, string];
 
   const handlePress = (id: string) => {
     if (setActiveCampaign) {
@@ -71,17 +77,21 @@ export const MoreDealsHeader = ({
             >
               <LinearGradient
                 colors={
-                  isActive ? ["#F15E48", "#FDCE7F"] : ["#FDF3D1", "#FFFEFA"]
+                  isActive ? ["#F15E48", "#FDCE7F"] : idleGradient
                 }
                 style={[
                   styles.campaignCard,
-                  isActive && { borderColor: "#F15E48" },
+                  isActive
+                    ? { borderColor: "#F15E48" }
+                    : { borderColor: isDark ? "rgba(222,132,16,0.45)" : "#DE8410" },
                 ]}
               >
                 <Text
                   style={[
                     styles.campaignTitle,
-                    isActive && { color: "#FFFFFF" },
+                    isActive
+                      ? { color: "#FFFFFF" }
+                      : { color: isDark ? "#F5B04C" : "#E08616" },
                   ]}
                   numberOfLines={2}
                 >
