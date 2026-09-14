@@ -55,6 +55,29 @@ function ThemedChrome() {
   );
 }
 
+function ThemedApp() {
+  const theme = useTheme();
+
+  return (
+    <View style={{ flex: 1, backgroundColor: theme.background }}>
+      <ThemedChrome />
+      <TrueSheetProvider>
+        <SheetProvider>
+          <SocketListenerProvider>
+            <Stack
+              screenOptions={{
+                headerShown: false,
+                contentStyle: { backgroundColor: theme.background },
+              }}
+            />
+            <Toast config={toastConfig} />
+          </SocketListenerProvider>
+        </SheetProvider>
+      </TrueSheetProvider>
+    </View>
+  );
+}
+
 export default function RootLayout() {
   const initializeAuth = useAuthStore((state) => state.initializeAuth);
 
@@ -74,27 +97,13 @@ export default function RootLayout() {
   }, [initializeAuth]);
 
   return (
-    <View style={{ flex: 1 }}>
-      <SafeAreaProvider>
-        <QueryProvider>
-          <AppNotificationsInit />
-          <ThemeProvider>
-            <ThemedChrome />
-            <TrueSheetProvider>
-              <SheetProvider>
-                <SocketListenerProvider>
-                  <Stack
-                    screenOptions={{
-                      headerShown: false,
-                    }}
-                  />
-                  <Toast config={toastConfig} />
-                </SocketListenerProvider>
-              </SheetProvider>
-            </TrueSheetProvider>
-          </ThemeProvider>
-        </QueryProvider>
-      </SafeAreaProvider>
-    </View>
+    <SafeAreaProvider>
+      <QueryProvider>
+        <AppNotificationsInit />
+        <ThemeProvider>
+          <ThemedApp />
+        </ThemeProvider>
+      </QueryProvider>
+    </SafeAreaProvider>
   );
 }

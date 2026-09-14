@@ -1,5 +1,6 @@
 // src/theme/ThemeProvider.tsx
 import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { Platform } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { lightTheme, darkTheme, Theme } from "../colors";
 
@@ -8,10 +9,10 @@ export { Theme };
 export type ThemeMode = "light" | "dark";
 
 interface ThemeContextValue extends Theme {
-  /** Active mode: "dark" or "light". Default is "dark". Manual toggle only — no system-follow. */
+  /** Active mode: "dark" or "light". Default is "dark". Manual toggle only. */
   mode: ThemeMode;
   isDark: boolean;
-  /** False until the persisted choice is restored — gate splash-hide on this. */
+  /** False until persisted choice is restored on native — gate splash-hide on this. */
   ready: boolean;
   /** Persisted manual choice from the Profile toggle. */
   setMode: (mode: ThemeMode) => void;
@@ -21,22 +22,29 @@ interface ThemeContextValue extends Theme {
 
 const STORAGE_KEY = "quickbihar-theme-mode-v1";
 
-// ponytail: web reads localStorage synchronously in the initializer, so a
-// reload paints the saved theme on the very first frame (0ms flash).
-// Native restores async in the effect below while the splash screen covers it.
+// ponytail: on web, read localStorage synchronously in the initializer so a
+// page reload paints the saved theme on the very first frame (0ms flash).
+// On native (Android/iOS), async restoration runs in useEffect while the splash screen covers it.
 function getStoredMode(): ThemeMode {
-  try {
-    const saved = typeof window !== "undefined" ? window.localStorage?.getItem(STORAGE_KEY) : null;
-    if (saved === "light" || saved === "dark") return saved;
-  } catch {}
+  if (Platform.OS === "web" && typeof window !== "undefined") {
+    try {
+      const saved = window.localStorage?.getItem(STORAGE_KEY);
+      if (saved === "light" || saved === "dark") return saved;
+    } catch {}
+  }
   return "dark";
 }
 
 function persistMode(next: ThemeMode) {
-  AsyncStorage.setItem(STORAGE_KEY, next).catch(() => {});
-  try {
-    if (typeof window !== "undefined") window.localStorage?.setItem(STORAGE_KEY, next);
-  } catch {}
+  AsyncStorage.setItem(STORAGE_KEY, next).catch((err: unknown) => {
+    console.warn("AsyncStorage theme write error:", err);
+  });
+  if (Platform.OS === "web" && typeof window !== "undefined") {
+    try {
+      window.localStorage?.setItem(STORAGE_KEY, next);
+      document.cookie = `${STORAGE_KEY}=${next}; path=/; max-age=31536000; SameSite=Lax`;
+    } catch {}
+  }
 }
 
 const fallbackValue: ThemeContextValue = {
@@ -50,18 +58,30 @@ const fallbackValue: ThemeContextValue = {
 
 const ThemeContext = createContext<ThemeContextValue>(fallbackValue);
 
-export const ThemeProvider = ({ children }: any) => {
+export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
   const [mode, setModeState] = useState<ThemeMode>(getStoredMode);
-  const [ready, setReady] = useState(() => typeof window !== "undefined");
+  const [ready, setReady] = useState(() => Platform.OS === "web");
 
   useEffect(() => {
-    if (typeof window !== "undefined") return; // already restored synchronously
+    let active = true;
     AsyncStorage.getItem(STORAGE_KEY)
       .then((saved) => {
-        if (saved === "light" || saved === "dark") setModeState(saved);
+        if (active && (saved === "light" || saved === "dark")) {
+          setModeState(saved);
+        }
       })
-      .catch(() => {})
-      .finally(() => setReady(true));
+      .catch((err: unknown) => {
+        console.warn("AsyncStorage theme read error:", err);
+      })
+      .finally(() => {
+        if (active) {
+          setReady(true);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
   }, []);
 
   const setMode = useCallback((next: ThemeMode) => {
