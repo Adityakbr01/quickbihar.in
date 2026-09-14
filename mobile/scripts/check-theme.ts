@@ -15,21 +15,25 @@ const t = (ok: boolean, name: string) => {
 
 const provider = read("src/theme/Provider/ThemeProvider.tsx");
 t(provider.includes("localStorage?.getItem"), "provider sync-reads storage (0ms web refresh)");
-t(/useState<ThemeMode>\(getInitialMode\)/.test(provider), "provider initial state is restored mode, not hardcoded");
-t(provider.includes('"dark"') && provider.includes("setReady(true)"), "default dark + ready flag for splash gate");
-t(
-  (provider.match(/quickbihar-theme-mode-v1/g) || []).length === 1 &&
-    provider.includes("getItem(STORAGE_KEY)") &&
-    provider.includes("setItem(STORAGE_KEY, next)"),
-  "single storage key defined once, used for read + write"
-);
+t(/useState<ThemeMode \| null>\(getStoredMode\)/.test(provider), "no manual choice until user touches toggle");
+t(provider.includes("useColorScheme()"), "system theme followed on all platforms");
+t(provider.includes("manual ?? (systemScheme"), "manual choice wins, system fallback, dark last resort");
+t(provider.includes("followSystem") && provider.includes("removeItem(STORAGE_KEY)"), "reset-to-system clears storage");
+t(!provider.includes("toggleMode"), "no dead toggleMode API");
+t(fs.existsSync(path.join(ROOT, "src/components/common/ThemeToggle.tsx")), "toggle lives in reusable common UI");
+t(!fs.existsSync(path.join(ROOT, "src/features/common/account/components/ThemeToggle.tsx")), "no duplicate toggle copy");
 
 const layout = read("app/_layout.tsx");
 t(layout.includes("preventAutoHideAsync") && layout.includes("hideAsync"), "splash gated on theme ready");
 t(!layout.includes("useColorScheme") && !layout.includes("#0f0f0f"), "layout follows theme, not device/hardcoded");
 
 const account = read("src/features/common/account/screens/AccountMain.tsx");
-t(account.includes("ThemeToggle") && account.includes("toggleMode"), "account tab has working toggle");
+t(
+  account.includes("@/src/components/common/ThemeToggle") &&
+    account.includes("theme.setMode(") &&
+    account.includes("theme.followSystem()"),
+  "account tab reuses common toggle (manual set + Auto reset)"
+);
 
 for (const f of [
   "app/locations/[...slug].tsx",
