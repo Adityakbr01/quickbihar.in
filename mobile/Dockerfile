@@ -13,6 +13,7 @@ COPY . .
 # production origin so prerender fetches and inlined config never bake "undefined".
 ARG EXPO_PUBLIC_API_ORIGIN=https://quickbihar.in
 ENV EXPO_PUBLIC_API_ORIGIN=${EXPO_PUBLIC_API_ORIGIN}
+ENV EXPO_ROUTER_DISABLE_RN_NAVIGATION_CHECK=1
 RUN bun run build:web
 
 # Serve Stage

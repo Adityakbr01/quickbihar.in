@@ -7,7 +7,7 @@ import {
   createProductReviewRequest,
   voteHelpfulReviewRequest,
 } from "../api/product.api";
-import { IProduct, IReviewsResponse } from "../types/product.types";
+import { IProduct, IReview, IReviewsResponse } from "../types/product.types";
 
 /**
  * Hook for fetching a single product by ID

@@ -4,16 +4,23 @@ import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { createCartStyles } from "../styles/cartStyles";
-import { CartItem as CartItemType } from "../lib/cartData";
 import { AnimatedPrice } from "@/src/components/common/AnimatedPrice";
 
-interface ExtendedCartItem extends CartItemType {
+export interface CartItemDisplayItem {
+  id: string;
+  name: string;
+  price?: number;
   unitPrice?: number;
   originalPrice?: number;
+  image?: string;
+  quantity: number;
+  sku: string;
+  selectedSize?: string;
+  selectedColor?: string;
 }
 
 interface CartItemProps {
-  item: ExtendedCartItem;
+  item: CartItemDisplayItem;
   onUpdateQuantity: (id: string, delta: number) => void;
   onRemove: (id: string) => void;
 }
@@ -22,12 +29,11 @@ const CartItem = ({ item, onUpdateQuantity, onRemove }: CartItemProps) => {
   const theme = useTheme();
   const styles = createCartStyles(theme);
 
-  // Extract raw numeric price
   const numericPrice = typeof item.unitPrice === "number"
     ? item.unitPrice
     : (typeof item.price === "number"
       ? item.price
-      : Number(String(item.price).replace(/[^0-9.]/g, "")) || 0);
+      : 0);
 
   const itemTotal = numericPrice * item.quantity;
   const isMinQuantity = item.quantity <= 1;

@@ -124,7 +124,7 @@ const CartContent = () => {
                 sku: item.sku,
                 selectedSize: item.selectedSize,
                 selectedColor: item.selectedColor
-              } as any}
+              }}
               onUpdateQuantity={(id, delta) => handleUpdateQuantity(item.sku, delta)}
               onRemove={() => handleRemoveItem(item.sku)}
             />

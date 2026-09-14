@@ -5,6 +5,7 @@ import {
   TextInput,
   Platform,
   View,
+  Text,
 } from "react-native";
 import Animated, {
   useSharedValue,
@@ -66,6 +67,21 @@ export const AnimatedPrice: React.FC<AnimatedPriceProps> = ({
   freeText = "FREE",
   noPulse = false,
 }) => {
+  if ((Platform.OS as string) === "web") {
+    if (freeOnZero && value === 0) {
+      return <Text style={style}>{freeText}</Text>;
+    }
+    const current = integer
+      ? Math.round(value)
+      : Number(value.toFixed(decimals));
+    const formatted = current.toLocaleString(undefined, {
+      maximumFractionDigits: decimals,
+      minimumFractionDigits: integer ? 0 : decimals,
+    });
+    const sign = showMinus && value > 0 ? "-" : "";
+    return <Text style={style}>{`${sign}${prefix}${formatted}`}</Text>;
+  }
+
   const animated = useSharedValue(value);
   const pulse = useSharedValue(0);
   const previous = useRef(value);
@@ -128,7 +144,7 @@ export const AnimatedPrice: React.FC<AnimatedPriceProps> = ({
           {
             padding: 0,
             margin: 0,
-            ...(Platform.OS === "web" ? { outline: "none" } : {}),
+            ...((Platform.OS as string) === "web" ? { outline: "none" } : {}),
           },
           style as any,
         ]}

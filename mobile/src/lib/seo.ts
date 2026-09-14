@@ -197,7 +197,18 @@ export function productMeta(product: any): PageMeta {
     title: seoTitle(titleBase),
     description,
     canonical: canonicalUrl(`/product/${product?.slug || product?._id || ""}`),
-    keywords: `${name}, ${categoryName || "Fashion"}, buy online Buxar, buy online Bihar, QuickBihar`,
+    keywords: [
+      name,
+      categoryName,
+      product?.brand,
+      `buy ${name} online`,
+      `${name} price in Bihar`,
+      "online shopping Bihar",
+      "buy online Buxar",
+      "buy online Patna",
+      "fastest delivery Bihar",
+      "QuickBihar",
+    ].filter(Boolean).join(", "),
     author: "QuickBihar",
     publisher: "QuickBihar",
     image: Array.isArray(product?.images) ? product.images[0]?.url : undefined,
@@ -215,7 +226,17 @@ export function categoryMeta(category: any): PageMeta {
       plainDescription(category?.seo?.metaDescription || category?.description) ||
       seoDescription(`Shop ${catTitle} from local Bihar stores on QuickBihar. Fast doorstep delivery & easy returns.`),
     canonical: canonicalUrl(`/category/${category?.slug || ""}`),
-    keywords: `${catTitle} Bihar, buy ${catTitle} online, ${catTitle} Patna, local clothing Bihar, QuickBihar`,
+    keywords: [
+      catTitle,
+      `${catTitle} Bihar`,
+      `buy ${catTitle} online`,
+      `${catTitle} Patna`,
+      `${catTitle} Buxar`,
+      `best ${catTitle} collection`,
+      "local clothing stores Bihar",
+      "same day delivery Bihar",
+      "QuickBihar",
+    ].filter(Boolean).join(", "),
     author: "QuickBihar",
     publisher: "QuickBihar",
     // Category hero when present (unique OG per category); site fallback otherwise.
@@ -237,13 +258,24 @@ export function mallMeta(mall: any): PageMeta {
       plainDescription(mall?.description) ||
       seoDescription(`${place} — stores, collections and reviews on QuickBihar.`),
     canonical: canonicalUrl(`/mall/${mall?.slug || mall?._id || mall?.id || ""}`),
-    keywords: `${name} Bihar, shopping mall ${city || "Bihar"}, stores in Bihar, QuickBihar`,
+    keywords: [
+      name,
+      `${name} ${city || "Bihar"}`,
+      `shopping mall ${city || "Bihar"}`,
+      `stores in ${name}`,
+      "top shopping malls Bihar",
+      "local store delivery Bihar",
+      "QuickBihar",
+    ].filter(Boolean).join(", "),
     author: "QuickBihar",
     publisher: "QuickBihar",
     image: mall?.coverImageUrl || mall?.logoUrl || (Array.isArray(mall?.images) ? mall.images[0]?.url : undefined),
     robots: robotsFor(indexable),
   };
 }
+
+export const DEFAULT_SITE_KEYWORDS =
+  "QuickBihar, Quick Bihar, online shopping Bihar, clothing store Patna, ethnic wear Bihar, sarees Bihar, men clothing Bihar, women fashion Bihar, kids wear Bihar, local store delivery Bihar, buy clothes Buxar, fastest delivery app Bihar, Bihar ecommerce, same day delivery Bihar, cash on delivery Bihar";
 
 export function staticPageMeta(input: {
   title: string;
@@ -260,9 +292,7 @@ export function staticPageMeta(input: {
     title: seoTitle(input.title),
     description: seoDescription(input.description),
     canonical: canonicalUrl(input.path),
-    keywords:
-      input.keywords ||
-      "QuickBihar, online shopping Bihar, clothing store Patna, ethnic wear Bihar, sarees Bihar, local store delivery Bihar",
+    keywords: input.keywords || DEFAULT_SITE_KEYWORDS,
     author: input.author || "QuickBihar",
     publisher: input.publisher || "QuickBihar",
     image: input.image,

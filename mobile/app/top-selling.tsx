@@ -15,6 +15,8 @@ export default function TopSellingRoute() {
       ? `Discover the top selling ${category} products from local Bihar stores on QuickBihar.`
       : "Discover the most loved products from local Bihar stores — top rated, trending and best sellers on QuickBihar.",
     path: "/top-selling",
+    keywords:
+      "top selling clothes Bihar, best selling products Bihar, trending fashion Bihar, popular clothing Patna, best offers clothing Bihar, QuickBihar, buy trending fashion",
   });
   if (category) meta.robots = "noindex, nofollow";
 

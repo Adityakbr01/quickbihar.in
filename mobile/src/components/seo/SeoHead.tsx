@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import Head from "expo-router/head";
 import { Platform } from "react-native";
-import { getSiteBase, type PageMeta } from "@/src/lib/seo";
+import { getSiteBase, DEFAULT_SITE_KEYWORDS, type PageMeta } from "@/src/lib/seo";
 
 interface SeoHeadProps {
   meta: PageMeta;
@@ -63,11 +63,10 @@ export function SeoHead({ meta, jsonLd }: SeoHeadProps) {
       <meta
         data-rh="true"
         name="keywords"
-        content={
-          meta.keywords ||
-          "QuickBihar, online shopping Bihar, clothing store Patna, ethnic wear Bihar, sarees Bihar, local store delivery Bihar"
-        }
+        content={meta.keywords || DEFAULT_SITE_KEYWORDS}
       />
+      <meta data-rh="true" name="geo.region" content="IN-BR" />
+      <meta data-rh="true" name="geo.placename" content="Bihar, India" />
       <meta data-rh="true" name="author" content={meta.author || "QuickBihar"} />
       <meta data-rh="true" name="publisher" content={meta.publisher || "QuickBihar"} />
       <link data-rh="true" rel="canonical" href={meta.canonical} />

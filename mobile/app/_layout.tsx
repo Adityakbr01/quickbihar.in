@@ -1,4 +1,3 @@
-import { DarkTheme, ThemeProvider as NavigationThemeProvider } from "@react-navigation/native";
 import { toastConfig } from "@/src/components/common/CustomToast";
 import { SheetProvider } from "@/src/components/common/BottomSheet";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
@@ -19,18 +18,6 @@ function AppNotificationsInit() {
   usePushNotifications();
   return null;
 }
-
-const NavDarkTheme = {
-  ...DarkTheme,
-  colors: {
-    ...DarkTheme.colors,
-    background: "#0f0f0f",
-    card: "#0f0f0f",
-    text: "#ffffff",
-    border: "#424245",
-    primary: "#80c314ff",
-  },
-};
 
 export default function RootLayout() {
   const initializeAuth = useAuthStore((state) => state.initializeAuth);
@@ -71,21 +58,19 @@ export default function RootLayout() {
           <AppNotificationsInit />
           <StatusBar style="light" />
           <ThemeProvider>
-            <NavigationThemeProvider value={NavDarkTheme}>
-              <TrueSheetProvider>
-                <SheetProvider>
-                  <SocketListenerProvider>
-                    <Stack
-                      screenOptions={{
-                        headerShown: false,
-                        contentStyle: { backgroundColor: "#0f0f0f" },
-                      }}
-                    />
-                    <Toast config={toastConfig} />
-                  </SocketListenerProvider>
-                </SheetProvider>
-              </TrueSheetProvider>
-            </NavigationThemeProvider>
+            <TrueSheetProvider>
+              <SheetProvider>
+                <SocketListenerProvider>
+                  <Stack
+                    screenOptions={{
+                      headerShown: false,
+                      contentStyle: { backgroundColor: "#0f0f0f" },
+                    }}
+                  />
+                  <Toast config={toastConfig} />
+                </SocketListenerProvider>
+              </SheetProvider>
+            </TrueSheetProvider>
           </ThemeProvider>
         </QueryProvider>
       </SafeAreaProvider>

@@ -142,6 +142,8 @@ const SearchScreen = () => {
             description:
               "Search clothes, ethnic wear and accessories from local Bihar stores on QuickBihar.",
             path: "/clothing/search",
+            keywords:
+              "search clothing Bihar, search products QuickBihar, buy online Patna, buy online Buxar, ethnic wear Bihar, clothes shopping app, local stores delivery",
           });
           if (hasQueryParams) base.robots = "noindex, nofollow";
           return base;

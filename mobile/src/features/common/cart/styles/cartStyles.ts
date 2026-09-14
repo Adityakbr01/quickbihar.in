@@ -67,23 +67,27 @@ export const createCartStyles = (theme: Theme) => StyleSheet.create({
     justifyContent: "center",
     borderRadius: 16,
     backgroundColor: theme.background,
+    flexShrink: 0,
   },
   image: {
     width: 84,
     height: 108,
     borderRadius: 12,
     backgroundColor: theme.background,
+    flexShrink: 0,
   },
   itemDetails: {
     flex: 1,
     marginLeft: 12,
     justifyContent: "space-between",
+    minWidth: 0,
   },
   itemTopRow: {
     flexDirection: "row",
     alignItems: "flex-start",
     justifyContent: "space-between",
     gap: 8,
+    minWidth: 0,
   },
   itemName: {
     fontSize: 15,
@@ -91,6 +95,7 @@ export const createCartStyles = (theme: Theme) => StyleSheet.create({
     color: theme.text,
     lineHeight: 20,
     flex: 1,
+    minWidth: 0,
   },
   itemVariant: {
     fontSize: 12,
@@ -103,8 +108,12 @@ export const createCartStyles = (theme: Theme) => StyleSheet.create({
     alignItems: "flex-end",
     justifyContent: "space-between",
     marginTop: 10,
+    gap: 8,
+    minWidth: 0,
   },
   priceContainer: {
+    flex: 1,
+    minWidth: 0,
     justifyContent: "center",
   },
   price: {
@@ -143,6 +152,7 @@ export const createCartStyles = (theme: Theme) => StyleSheet.create({
     borderColor: theme.border,
     paddingHorizontal: 3,
     paddingVertical: 3,
+    flexShrink: 0,
   },
   qtyButton: {
     width: 30,
@@ -265,13 +275,15 @@ export const createCartStyles = (theme: Theme) => StyleSheet.create({
     borderTopColor: theme.border,
     zIndex: 1000,
     ...(Platform.OS === "web" && {
-      bottom: 55,
-      left: "auto",
-      right: "auto",
+      bottom: 70,
+      left: 0,
+      right: 0,
       width: "100%",
       maxWidth: 600,
-      borderWidth: 0,
-      borderColor: theme.border,
+      alignSelf: "center",
+      borderTopWidth: 1,
+      borderTopColor: theme.border,
+      paddingBottom: 12,
     }),
   },
   checkoutButton: {

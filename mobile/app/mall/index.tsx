@@ -91,8 +91,10 @@ export default function AllMallsScreen() {
         meta={staticPageMeta({
           title: "Fashion Malls in Bihar | Stores, Offers & Reviews | QuickBihar",
           description:
-            "Explore fashion malls across Bihar — stores, collections, ratings and reviews on QuickBihar.",
+            "Explore top shopping and fashion malls across Bihar including Aditya Fashion Mall — stores, collections, ratings, reviews, and fast delivery on QuickBihar.",
           path: "/mall",
+          keywords:
+            "fashion malls Bihar, shopping mall Bihar, Aditya Fashion Mall, shopping centers Bihar, stores in Bihar, mall shopping Patna, mall shopping Buxar, QuickBihar, buy clothes mall Bihar",
         })}
       />
       <View style={{ flex: 1, backgroundColor: theme.background }}>
