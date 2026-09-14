@@ -1,5 +1,6 @@
 # Build Stage
-FROM oven/bun:1 AS builder
+FROM node:20-bookworm-slim AS builder
+RUN npm install -g bun
 WORKDIR /app
 
 # Copy dependency files

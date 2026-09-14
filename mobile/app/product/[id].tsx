@@ -13,7 +13,7 @@ const isObjectId = (value: string) => /^[0-9a-fA-F]{24}$/.test(value || "");
 
 let productsManifest: Record<string, any> = {};
 try {
-  productsManifest = require("@/src/data/products-static.json");
+  productsManifest = require("../../src/data/products-static.json");
 } catch {
   productsManifest = {};
 }

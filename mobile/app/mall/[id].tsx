@@ -10,7 +10,7 @@ const isObjectId = (value: string) => /^[0-9a-fA-F]{24}$/.test(value || "");
 
 let mallsManifest: Record<string, any> = {};
 try {
-  mallsManifest = require("@/src/data/malls-static.json");
+  mallsManifest = require("../../src/data/malls-static.json");
 } catch {
   mallsManifest = {};
 }
