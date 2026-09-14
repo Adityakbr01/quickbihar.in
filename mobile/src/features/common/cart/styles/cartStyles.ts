@@ -48,6 +48,7 @@ export const createCartStyles = (theme: Theme) => StyleSheet.create({
     backgroundColor: theme.tertiaryBackground,
     borderWidth: 1,
     borderColor: theme.border,
+    overflow: "hidden",
     ...Platform.select({
       ios: {
         shadowColor: "#000",

@@ -4,6 +4,8 @@ import { verifyJWT } from "@/middlewares/auth.middleware";
 
 const router = Router();
 
+router.get("/reverse-geocode", SavedAddressController.reverseGeocode);
+
 router.use(verifyJWT);
 
 router.post("/", SavedAddressController.createAddress);

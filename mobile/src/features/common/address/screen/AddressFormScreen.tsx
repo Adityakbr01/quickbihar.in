@@ -29,6 +29,7 @@ import AddressTypeSelector from "../components/AddressTypeSelector";
 import LocationFetchButton from "../components/LocationFetchButton";
 import PhoneOtpSheet from "../components/PhoneOtpSheet";
 import { useAddressActions } from "../hooks/useAddress";
+import { reverseGeocodeRequest } from "../api/address.api";
 import { AddressFormValues, addressSchema, AddressType } from "../schema/address.schema";
 import { createAddressStyles } from "../style/addressStyles";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
@@ -143,33 +144,69 @@ const AddressFormScreen = () => {
       }
 
       const { latitude, longitude } = location.coords;
-      setValue("latitude", latitude);
-      setValue("longitude", longitude);
+      setValue("latitude", latitude, { shouldValidate: true, shouldDirty: true });
+      setValue("longitude", longitude, { shouldValidate: true, shouldDirty: true });
 
-      const [address] = await Location.reverseGeocodeAsync({
-        latitude,
-        longitude,
-      });
+      let street: string | undefined;
+      let city: string | undefined;
+      let state: string | undefined;
+      let pincode: string | undefined;
 
-      if (address) {
-        if (address.street && address.name) {
-          setValue("street", `${address.name}, ${address.street}`);
-        }
-        if (address.city || address.district) {
-          setValue("city", address.city || address.district || "");
-        }
-        if (address.region) {
-          setValue("state", address.region);
-        }
-        if (address.postalCode) {
-          setValue("pincode", address.postalCode);
+      // On native mobile (iOS/Android), attempt native reverse geocoding first
+      if (Platform.OS !== "web") {
+        try {
+          const [address] = await Location.reverseGeocodeAsync({
+            latitude,
+            longitude,
+          });
+
+          if (address) {
+            const streetParts = [address.name, address.street].filter(Boolean);
+            street = streetParts.length > 0
+              ? Array.from(new Set(streetParts)).join(", ")
+              : (address.subregion || address.district || undefined);
+            city = address.city || address.district || address.subregion || undefined;
+            state = address.region || undefined;
+            pincode = address.postalCode || undefined;
+          }
+        } catch (nativeGeocodeErr: unknown) {
+          console.log("Native reverse geocoding failed, trying API fallback...", nativeGeocodeErr);
         }
       }
 
+      // On web (where expo-location reverse geocoding is unsupported) or if native geocoding is incomplete:
+      if (!city || !state || !street || !pincode) {
+        try {
+          const apiAddress = await reverseGeocodeRequest(latitude, longitude);
+          if (apiAddress) {
+            if (!street && apiAddress.street) street = apiAddress.street;
+            if (!city && apiAddress.city) city = apiAddress.city;
+            if (!state && apiAddress.state) state = apiAddress.state;
+            if (!pincode && apiAddress.pincode) pincode = apiAddress.pincode;
+          }
+        } catch (apiErr: unknown) {
+          console.log("API reverse geocode failed:", apiErr);
+        }
+      }
+
+      if (street) {
+        setValue("street", street, { shouldValidate: true, shouldDirty: true });
+      }
+      if (city) {
+        setValue("city", city, { shouldValidate: true, shouldDirty: true });
+      }
+      if (state) {
+        setValue("state", state, { shouldValidate: true, shouldDirty: true });
+      }
+      if (pincode && /^\d{6}$/.test(pincode)) {
+        setValue("pincode", pincode, { shouldValidate: true, shouldDirty: true });
+      }
+
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Location Error:", error);
-      showAlert("Location Error", error.message || "Could not fetch your real-time location.");
+      const message = error instanceof Error ? error.message : "Could not fetch your real-time location.";
+      showAlert("Location Error", message);
     } finally {
       setIsLocating(false);
     }
@@ -257,13 +294,14 @@ const AddressFormScreen = () => {
       }
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       router.back();
-    } catch (error: any) {
-      showAlert("Save Failed", error.message || "Failed to save address");
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Failed to save address";
+      showAlert("Save Failed", message);
     }
   };
 
 
-  const onInvalidSubmit = (formErrors: Record<string, any>) => {
+  const onInvalidSubmit = (formErrors: Record<string, unknown>) => {
     if (formErrors.latitude || formErrors.longitude) {
       showAlert(
         "Location Pin Required",
