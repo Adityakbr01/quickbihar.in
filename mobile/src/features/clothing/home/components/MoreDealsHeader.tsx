@@ -48,7 +48,7 @@ export const MoreDealsHeader = ({
         accessibilityRole="header"
         aria-level={2}
         {...({ role: "heading" } as any)}
-        style={[styles.headerText, { color: theme?.text || "#000" }]}
+        style={[styles.headerText, { color: theme?.text || "#fff" }]}
       >
         Explore More Deals
       </Text>

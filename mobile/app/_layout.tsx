@@ -1,3 +1,4 @@
+import { DarkTheme, ThemeProvider as NavigationThemeProvider } from "@react-navigation/native";
 import { toastConfig } from "@/src/components/common/CustomToast";
 import { SheetProvider } from "@/src/components/common/BottomSheet";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
@@ -10,7 +11,7 @@ import { TrueSheetProvider } from "@lodev09/react-native-true-sheet";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
-import { useColorScheme, View, Platform } from "react-native";
+import { View, Platform } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 
@@ -19,8 +20,19 @@ function AppNotificationsInit() {
   return null;
 }
 
+const NavDarkTheme = {
+  ...DarkTheme,
+  colors: {
+    ...DarkTheme.colors,
+    background: "#0f0f0f",
+    card: "#0f0f0f",
+    text: "#ffffff",
+    border: "#424245",
+    primary: "#80c314ff",
+  },
+};
+
 export default function RootLayout() {
-  const scheme = useColorScheme();
   const initializeAuth = useAuthStore((state) => state.initializeAuth);
 
   useEffect(() => {
@@ -38,11 +50,10 @@ export default function RootLayout() {
     prepare();
   }, [initializeAuth]);
 
-  const isDark = scheme === "dark";
-  const fallbackBgColor = isDark ? "#0f0f0f" : "#ffffff";
+  const fallbackBgColor = "#0f0f0f";
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{ flex: 1, backgroundColor: fallbackBgColor }}>
       {Platform.OS === "web" && (
         <style dangerouslySetInnerHTML={{ __html: `
           html, body, #root {
@@ -58,20 +69,23 @@ export default function RootLayout() {
       <SafeAreaProvider>
         <QueryProvider>
           <AppNotificationsInit />
-          <StatusBar style={scheme === "dark" ? "light" : "dark"} />
+          <StatusBar style="light" />
           <ThemeProvider>
-            <TrueSheetProvider>
-              <SheetProvider>
-                <SocketListenerProvider>
-                  <Stack
-                    screenOptions={{
-                      headerShown: false,
-                    }}
-                  />
-                  <Toast config={toastConfig} />
-                </SocketListenerProvider>
-              </SheetProvider>
-            </TrueSheetProvider>
+            <NavigationThemeProvider value={NavDarkTheme}>
+              <TrueSheetProvider>
+                <SheetProvider>
+                  <SocketListenerProvider>
+                    <Stack
+                      screenOptions={{
+                        headerShown: false,
+                        contentStyle: { backgroundColor: "#0f0f0f" },
+                      }}
+                    />
+                    <Toast config={toastConfig} />
+                  </SocketListenerProvider>
+                </SheetProvider>
+              </TrueSheetProvider>
+            </NavigationThemeProvider>
           </ThemeProvider>
         </QueryProvider>
       </SafeAreaProvider>

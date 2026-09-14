@@ -322,8 +322,8 @@ export const useMoreDealsLogic = () => {
 // ─────────────────────────────────────────────
 
 export const MoreDealsFilters = ({
-  theme,
-  styles,
+  theme: propTheme,
+  styles: propStyles,
   activeFilter,
   setActiveFilter,
   setActiveDropdownType,
@@ -336,6 +336,12 @@ export const MoreDealsFilters = ({
   genderPillLabel,
   clearFilterSelections,
 }: any) => {
+  const hookTheme = useTheme();
+  const theme = propTheme || hookTheme;
+  const styles = React.useMemo(
+    () => propStyles || createMoreDealsSectionStyles(theme),
+    [propStyles, theme],
+  );
   const [isListening, setIsListening] = useState(false);
   const [speechError, setSpeechError] = useState<string | null>(null);
   const speechModule = useMemo(() => getSpeechRecognitionModule(), []);
@@ -520,7 +526,7 @@ export const MoreDealsFilters = ({
 // ─────────────────────────────────────────────
 
 export const MoreDealsGrid = ({
-  styles,
+  styles: propStyles,
   cardWidth,
   activeDropdownType,
   dropdownVisible,
@@ -535,9 +541,14 @@ export const MoreDealsGrid = ({
   hasNextPage,
   isFetchingNextPage,
   isLoading,
-  theme,
-}: any) => (
-  <View style={styles.productGrid}>
+  theme: propTheme,
+}: any) => {
+  const hookTheme = useTheme();
+  const theme = propTheme || hookTheme;
+  const styles = propStyles || createMoreDealsSectionStyles(theme);
+
+  return (
+    <View style={styles.productGrid}>
     {isLoading && !allProducts.length ? (
       [1, 2, 3, 4, 5, 6].map((key) => <DealProductSkeleton key={key} width={cardWidth} />)
     ) : allProducts.length > 0 ? (
@@ -582,7 +593,8 @@ export const MoreDealsGrid = ({
       />
     )}
   </View>
-);
+  );
+};
 
 // Fallback for legacy imports
 const MoreDealsSection = () => (
