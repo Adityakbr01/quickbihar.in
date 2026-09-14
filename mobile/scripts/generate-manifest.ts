@@ -62,7 +62,8 @@ async function main() {
 
   // ── Products ──────────────────────────────────────────────────────────────
   const prodRes = await safeFetchJson<any>(
-    `${ORIGIN}/api/v1/products/public?vertical=CLOTHING&limit=500`
+    `${ORIGIN}/api/v1/products/public?vertical=CLOTHING&limit=500`,
+    { retries: 3 }
   );
   const products: ProductManifestEntry[] = unwrapList(prodRes);
   console.log(`[manifest] Fetched ${products.length} products.`);
@@ -108,7 +109,7 @@ async function main() {
   console.log(`[manifest] ✓ Wrote products-static.json (${Object.keys(productMap).length} slugs)`);
 
   // ── Malls ─────────────────────────────────────────────────────────────────
-  const mallRes = await safeFetchJson<any>(`${ORIGIN}/api/v1/malls`);
+  const mallRes = await safeFetchJson<any>(`${ORIGIN}/api/v1/malls`, { retries: 3 });
   const malls: MallManifestEntry[] = unwrapList(mallRes);
   console.log(`[manifest] Fetched ${malls.length} malls.`);
 

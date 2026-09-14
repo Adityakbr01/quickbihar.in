@@ -11,7 +11,10 @@ import { unwrapList, safeFetchJson } from "@/src/lib/fetchUtils";
  */
 export async function generateStaticParams(): Promise<Array<{ slug: string }>> {
   const origin = (process.env.EXPO_PUBLIC_API_ORIGIN || "https://quickbihar.in").replace(/\/+$/, "");
-  const json = await safeFetchJson<any>(`${origin}/api/v1/categories/public?vertical=CLOTHING`);
+  const json = await safeFetchJson<any>(
+    `${origin}/api/v1/categories/public?vertical=CLOTHING`,
+    { retries: 3 }
+  );
   const list: Array<{ slug?: string }> = unwrapList(json);
   const slugs = list.map((c) => String(c?.slug || "").trim()).filter(Boolean);
   requireNonEmpty(

@@ -31,16 +31,31 @@ export function unwrapList(payload: any): any[] {
 }
 
 /** Fetch JSON with a 6-second timeout; returns null on any error. */
-export async function safeFetchJson<T>(url: string): Promise<T | null> {
-  try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 6000);
-    const res = await fetch(url, { signal: controller.signal });
-    clearTimeout(timeout);
-    if (!res.ok) return null;
-    return (await res.json()) as T;
-  } catch (err: any) {
-    console.warn(`[fetchUtils] Fetch failed for ${url}: ${err?.message || err}`);
-    return null;
+export async function safeFetchJson<T>(
+  url: string,
+  opts?: { retries?: number; timeoutMs?: number }
+): Promise<T | null> {
+  // ponytail: retries are opt-in (default single attempt) so runtime callers
+  // keep exact current behavior; build-time callers pass retries because a
+  // transient 502 mid-export must not fail a 3-minute Docker build.
+  const timeoutMs = opts?.timeoutMs ?? 6000;
+  const retries = opts?.retries ?? 0;
+  for (let attempt = 0; ; attempt++) {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), timeoutMs);
+      const res = await fetch(url, { signal: controller.signal });
+      clearTimeout(timeout);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return (await res.json()) as T;
+    } catch (err: any) {
+      if (attempt >= retries) {
+        console.warn(`[fetchUtils] Fetch failed for ${url}: ${err?.message || err}`);
+        return null;
+      }
+      const backoff = Math.min(1000 * 2 ** attempt, 8000);
+      console.warn(`[fetchUtils] Retry ${attempt + 1}/${retries} for ${url} in ${backoff}ms (${err?.message || err})`);
+      await new Promise((r) => setTimeout(r, backoff));
+    }
   }
 }
