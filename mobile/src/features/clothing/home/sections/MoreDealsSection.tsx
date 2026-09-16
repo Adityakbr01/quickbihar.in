@@ -429,6 +429,7 @@ export const MoreDealsFilters = ({
                 borderRadius: 20,
                 marginTop: 8,
                 paddingBottom: 16,
+                paddingTop: 16,
                 shadowColor: theme.shadow,
                 shadowOffset: { width: 0, height: 6 },
                 shadowOpacity: 0.1,
@@ -439,20 +440,11 @@ export const MoreDealsFilters = ({
         },
       ]}
     >
-      {/* Search bar */}
+      {/* Search bar — mobile only. Desktop uses the navbar search;
+          the deals card keeps filters alone. */}
+      {!isDesktop && (
       <View
-        style={
-          isDesktop
-            ? {
-                paddingHorizontal: 20,
-                marginBottom: 16,
-                marginTop: 18,
-                width: "100%",
-                maxWidth: 680,
-                alignSelf: "center",
-              }
-            : { paddingHorizontal: spacing.lg, marginBottom: 18, marginTop: 14 }
-        }
+        style={{ paddingHorizontal: spacing.lg, marginBottom: 18, marginTop: 14 }}
       >
         <View
           style={{
@@ -515,6 +507,7 @@ export const MoreDealsFilters = ({
           </Text>
         ) : null}
       </View>
+      )}
 
       {/* Filter pills */}
       <ScrollView

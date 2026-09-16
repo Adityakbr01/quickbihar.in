@@ -170,15 +170,18 @@ const HomeCategories = ({ rootSlug = "clothing" }: { rootSlug?: string }) => {
           .slice(0, 10);
     return (
       <View style={[styles.container, desktopStyles.wrap]}>
-        <Text style={[desktopStyles.heading, { color: theme.text }]}>
-          Shop by category
-        </Text>
+        {/* Left-aligned heading like mobile section headers. */}
+        <View style={desktopStyles.headingWrap}>
+          <Text style={[desktopStyles.heading, { color: theme.text }]}>
+            Shop by category
+          </Text>
+        </View>
         {/* Single scrollable rail — all tiles in one line, never wrapping. */}
         <View style={desktopStyles.railWrap}>
           <ScrollView
             ref={railRef}
             horizontal
-            showsHorizontalScrollIndicator
+            showsHorizontalScrollIndicator={false}
             scrollEventThrottle={16}
             onScroll={(e) => {
               railOffset.current = e.nativeEvent.contentOffset.x;
@@ -337,7 +340,13 @@ const styles = StyleSheet.create({
 // Desktop-only styles — never applied on native / mobile web.
 const desktopStyles = StyleSheet.create({
   wrap: { marginVertical: 28, paddingHorizontal: 24, alignItems: "center" },
-  heading: { fontSize: 24, fontWeight: "900", letterSpacing: -0.5, marginBottom: 20 },
+  headingWrap: {
+    width: "100%",
+    maxWidth: 1080,
+    alignItems: "flex-start",
+    paddingHorizontal: 24,
+  },
+  heading: { fontSize: 24, fontWeight: "900", letterSpacing: -0.5, marginBottom: 20, textAlign: "left" },
   // Single-line scrollable rail (replaces the old wrapping grid).
   railWrap: {
     position: "relative",

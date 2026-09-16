@@ -187,7 +187,7 @@ const TopSellingSection = ({ category }: { category?: string } = {}) => {
           <ScrollView
             ref={scrollRef}
             horizontal
-            showsHorizontalScrollIndicator
+            showsHorizontalScrollIndicator={false}
             scrollEventThrottle={16}
             onScroll={(e) => {
               railOffset.current = e.nativeEvent.contentOffset.x;

@@ -106,17 +106,20 @@ export const MoreDealsHeader = ({
   if (isDesktop) {
     return (
       <View style={[styles.container, { paddingBottom: 0, alignItems: "center" }]}>
-        <Text
-          accessibilityRole="header"
-          aria-level={2}
-          {...({ role: "heading" } as any)}
-          style={[styles.headerText, desktopStyles.heading, { color: theme?.text || "#fff" }]}
-        >
-          Explore More Deals
-        </Text>
-        <Text style={[desktopStyles.sub, { color: theme?.secondaryText }]}>
-          {"Curated festive picks from Bihar's top local stores"}
-        </Text>
+        {/* Left-aligned heading block like mobile section headers. */}
+        <View style={desktopStyles.headingWrap}>
+          <Text
+            accessibilityRole="header"
+            aria-level={2}
+            {...({ role: "heading" } as any)}
+            style={[styles.headerText, desktopStyles.heading, { color: theme?.text || "#fff" }]}
+          >
+            Explore More Deals
+          </Text>
+          <Text style={[desktopStyles.sub, { color: theme?.secondaryText }]}>
+            {"Curated festive picks from Bihar's top local stores"}
+          </Text>
+        </View>
         <View style={desktopStyles.grid}>
           {list.map((camp) => renderCard(camp))}
         </View>
@@ -248,8 +251,14 @@ const styles = StyleSheet.create({
 
 // Desktop-only: 5-up festive grid. Never used on mobile.
 const desktopStyles = StyleSheet.create({
-  heading: { fontSize: 28, marginBottom: 6 },
-  sub: { fontSize: 14, fontWeight: "500", marginBottom: 22 },
+  headingWrap: {
+    width: "100%",
+    maxWidth: 1080,
+    alignItems: "flex-start",
+    paddingHorizontal: 24,
+  },
+  heading: { fontSize: 28, marginBottom: 6, textAlign: "left" },
+  sub: { fontSize: 14, fontWeight: "500", marginBottom: 22, textAlign: "left" },
   grid: {
     flexDirection: "row",
     flexWrap: "wrap",
