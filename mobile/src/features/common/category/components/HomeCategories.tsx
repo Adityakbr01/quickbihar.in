@@ -31,7 +31,8 @@ const HomeCategories = ({ rootSlug = "clothing" }: { rootSlug?: string }) => {
   const railOffset = React.useRef(0);
   const scrollRail = (dir: 1 | -1) => {
     railRef.current?.scrollTo({
-      x: Math.max(0, railOffset.current + dir * 420),
+      // 112px tile + 18px gap per step × 3 tiles.
+      x: Math.max(0, railOffset.current + dir * 390),
       animated: true,
     });
   };
@@ -358,7 +359,7 @@ const desktopStyles = StyleSheet.create({
     width: "100%",
   },
   railContent: {
-    gap: 22,
+    gap: 18,
     // Generous end padding so the last tile scrolls fully into view.
     paddingHorizontal: 24,
     paddingBottom: 10,
@@ -390,7 +391,9 @@ const desktopStyles = StyleSheet.create({
     lineHeight: 30,
     marginTop: -3,
   },
-  tile: { alignItems: "center", width: 118 },
+  // 112px tiles: all 8 fit the 1080 rail (8×112 + 7×18 + 48 = 1070)
+  // with no clipping at rest; narrower windows scroll + arrows.
+  tile: { alignItems: "center", width: 112 },
   thumb: {
     width: 104,
     height: 104,
