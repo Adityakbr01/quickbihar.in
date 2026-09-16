@@ -9,23 +9,13 @@ import {
   useWindowDimensions,
 } from "react-native";
 import { usePathname, useRouter } from "expo-router";
+import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { useCartStore } from "@/src/features/common/cart/store/cartStore";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
 import { BREAKPOINTS, DESKTOP } from "@/src/utils/responsive";
-
-const QUICK_LINKS = [
-  "Men",
-  "Women",
-  "Kids",
-  "Saree",
-  "Kurta",
-  "Jeans",
-  "Dress",
-  "Shoes",
-];
 
 /**
  * Desktop-only top navbar for the clothing catalog (web >= 1024px).
@@ -139,9 +129,13 @@ export const DesktopNavbar = () => {
           accessibilityLabel="Quick Bihar home"
         >
           <View style={styles.brandRow}>
-            <View style={[styles.logoMark, { backgroundColor: theme.primary }]}>
-              <Text style={styles.logoText}>QB</Text>
-            </View>
+            <Image
+              source={require("@/assets/images/icons/splash-icon.png")}
+              style={styles.logoImage}
+              contentFit="contain"
+              alt="Quick Bihar logo"
+              accessibilityLabel="Quick Bihar logo"
+            />
             <View>
               <Text style={[styles.brandName, { color: theme.text }]}>
                 Quick Bihar
@@ -222,31 +216,6 @@ export const DesktopNavbar = () => {
           </Pressable>
         </View>
       </View>
-
-      {/* Category strip */}
-      <View style={[styles.strip, { borderTopColor: theme.border }]}>
-        <View style={styles.stripInner}>
-          <Text style={[styles.stripLabel, { color: theme.secondaryText }]}>
-            Shop:
-          </Text>
-          {QUICK_LINKS.map((c) => (
-            <Pressable
-              key={c}
-              onPress={() =>
-                go(`/(tabs)/clothing/search?query=${encodeURIComponent(c)}` as any)
-              }
-              style={Platform.OS === "web" ? ({ cursor: "pointer" } as any) : null}
-            >
-              <Text style={[styles.stripLink, { color: theme.text }]}>{c}</Text>
-            </Pressable>
-          ))}
-          <Pressable onPress={() => go("/mall" as any)}>
-            <Text style={[styles.stripLink, { color: theme.primary, fontWeight: "800" }]}>
-              Explore Malls →
-            </Text>
-          </Pressable>
-        </View>
-      </View>
     </View>
   );
 };
@@ -274,14 +243,11 @@ const styles = StyleSheet.create({
     gap: 24,
   },
   brandRow: { flexDirection: "row", alignItems: "center", gap: 10, minWidth: 190 },
-  logoMark: {
+  logoImage: {
     width: 42,
-    height: 42,
-    borderRadius: 13,
-    alignItems: "center",
-    justifyContent: "center",
+    height: 46,
+    borderRadius: 12,
   },
-  logoText: { color: "#fff", fontWeight: "900", fontSize: 16, letterSpacing: 0.5 },
   brandName: { fontSize: 19, fontWeight: "900", letterSpacing: -0.4, lineHeight: 22 },
   brandSub: { fontSize: 10, fontWeight: "800", letterSpacing: 1.6, marginTop: 1 },
   searchBar: {
@@ -328,20 +294,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  strip: { borderTopWidth: 1, width: "100%" },
-  stripInner: {
-    width: "100%",
-    maxWidth: DESKTOP.maxWidth,
-    alignSelf: "center",
-    marginHorizontal: "auto" as any,
-    paddingHorizontal: DESKTOP.gutter,
-    paddingVertical: 10,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 20,
-  },
-  stripLabel: { fontSize: 12, fontWeight: "700", letterSpacing: 0.6, textTransform: "uppercase" },
-  stripLink: { fontSize: 14, fontWeight: "600" },
 });
 
 export default DesktopNavbar;
