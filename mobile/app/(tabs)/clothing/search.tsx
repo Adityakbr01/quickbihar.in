@@ -69,7 +69,6 @@ const SearchScreen = () => {
     isFetchingNextPage,
     fetchNextPage,
     hasNextPage,
-    refetch,
   } = useSearchProducts(debouncedQuery, { ...filters, sortBy: selectedSort });
 
   // Flatten pages for SearchResults
@@ -89,6 +88,8 @@ const SearchScreen = () => {
   useEffect(() => {
     if (initialQuery || categoryId || categoryName || subCategory) {
       const active = categoryName || subCategory || initialQuery || "";
+      // Intentional URL-param → state sync when navigating from categories.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setQuery(active);
       setDebouncedQuery(active);
       setFilters((prev) => ({

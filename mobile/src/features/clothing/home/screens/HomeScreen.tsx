@@ -30,6 +30,8 @@ const HomeScreen = ({ rootSlug }: { rootSlug?: string }) => {
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const toggleMenu = useCallback(() => {
+    // Reanimated shared value — intentional mutation outside React state.
+    // eslint-disable-next-line react-hooks/immutability
     menuOpen.value = menuOpen.value === 0 ? 1 : 0;
   }, [menuOpen]);
 

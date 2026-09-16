@@ -79,9 +79,11 @@ export default function TabsLayout() {
           shadowOffset: { width: 0, height: isWeb ? 4 : -4 },
           shadowOpacity: 0.1,
           shadowRadius: 8,
-          height: isWeb ? 70 : Platform.OS === "ios" ? 88 : 90,
-          paddingBottom: isWeb ? 10 : Platform.OS === "ios" ? 28 : 35,
-          paddingTop: 10,
+          // Compact so small phones keep content visible (parent
+          // SafeViewWrapper already applies the bottom safe-area inset).
+          height: isWeb ? 64 : Platform.OS === "ios" ? 80 : 68,
+          paddingBottom: isWeb ? 8 : Platform.OS === "ios" ? 18 : 10,
+          paddingTop: 8,
           // Responsive Web Styles
           ...(isWeb && {
             position: "absolute",

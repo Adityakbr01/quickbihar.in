@@ -24,13 +24,15 @@ const HomeHeader: React.FC<HomeHeaderProps> = () => {
   const theme = useTheme();
   const router = useRouter();
 
+  // Hooks must run unconditionally — before any early return.
+  const { data: notifications = [] } = useNotifications();
+  const lottieRef = useRef<any>(null);
+
   // Desktop web uses the custom top DesktopNavbar — hide the mobile
   // brand row there so we don't render two headers. Mobile untouched.
   if (isWeb && width >= BREAKPOINTS.desktopMin) return null;
 
-  const { data: notifications = [] } = useNotifications();
   const hasUnread = notifications.some((n) => !n.isRead);
-  const lottieRef = useRef<any>(null);
 
   const webPressableStyle = isWeb ? ({ cursor: "pointer" } as any) : {};
 
@@ -101,8 +103,8 @@ const localStyles = StyleSheet.create({
     alignItems: "center",
   },
   bellLottie: {
-    width: 48,
-    height: 48,
+    width: 28,
+    height: 28,
   },
   brandText: {
     fontSize: 20,

@@ -26,7 +26,7 @@ export const DesktopFooter = () => {
         <View style={styles.brandCol}>
           <Text style={[styles.brandName, { color: theme.text }]}>Quick Bihar</Text>
           <Text style={[styles.brandTag, { color: theme.secondaryText }]}>
-            Bihar's own fashion mall — sarees, kurtas, jeans & more with super-fast doorstep delivery.
+            {"Bihar's own fashion mall — sarees, kurtas, jeans & more with super-fast doorstep delivery."}
           </Text>
           <View style={[styles.trustPill, { borderColor: theme.border }]}>
             <Text style={[styles.trustText, { color: theme.secondaryText }]}>

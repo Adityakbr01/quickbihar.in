@@ -55,9 +55,10 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
   // Active category tab for category hierarchy view
   const [selectedParentTab, setSelectedParentTab] = useState<string>("All");
 
-  // Sync internal state when opened
+  // Sync internal state when opened — intentional visible→state sync.
   useEffect(() => {
     if (visible) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setTempOptions(initialSelected);
       setSearchText("");
 
@@ -241,7 +242,7 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
             <View style={{ padding: spacing.xl, alignItems: "center" }}>
               <Ionicons name="search-outline" size={36} color={theme.tertiaryText} />
               <Text style={{ color: theme.secondaryText, marginTop: 10, fontSize: 14 }}>
-                No results for "{searchText}"
+                No results for {'"'}{searchText}{'"'}
               </Text>
             </View>
           ) : (

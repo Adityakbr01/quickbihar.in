@@ -115,7 +115,7 @@ export const MoreDealsHeader = ({
           Explore More Deals
         </Text>
         <Text style={[desktopStyles.sub, { color: theme?.secondaryText }]}>
-          Curated festive picks from Bihar's top local stores
+          {"Curated festive picks from Bihar's top local stores"}
         </Text>
         <View style={desktopStyles.grid}>
           {list.map((camp) => renderCard(camp))}

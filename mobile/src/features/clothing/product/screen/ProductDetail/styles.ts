@@ -1,5 +1,7 @@
 import { StyleSheet, Dimensions, Platform } from "react-native";
 
+// Legacy static export (kept for compat). Prefer useWindowDimensions()
+// in components so rotation / foldables / tablets update live.
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 export { SCREEN_WIDTH };
@@ -401,7 +403,9 @@ export const styles = StyleSheet.create({
     lineHeight: 17,
   },
 
-  // Bottom Bar
+  // Bottom Bar — compact so small phones keep content visible.
+  // Parent SafeViewWrapper already applies the bottom safe-area inset,
+  // so keep padding small and consistent across platforms.
   bottomBar: {
     position: "absolute",
     bottom: 0,
@@ -410,7 +414,7 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
     paddingHorizontal: 16,
     paddingTop: 12,
-    paddingBottom: Platform.OS === "ios" ? 32 : 14,
+    paddingBottom: 12,
     borderTopWidth: 1,
     gap: 12,
   },

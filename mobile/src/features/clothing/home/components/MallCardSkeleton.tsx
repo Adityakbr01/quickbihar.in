@@ -1,5 +1,5 @@
 import React from "react";
-import { View, StyleSheet, Platform } from "react-native";
+import { View, StyleSheet } from "react-native";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import Skeleton from "@/src/components/common/Skeleton";
 
@@ -23,7 +23,8 @@ export const MallCardSkeleton = () => {
 
 const styles = StyleSheet.create({
   card: {
-    width: Platform.OS === 'web' ? 300 : 260,
+    // Fills the parent cell (parent sets the responsive width).
+    width: "100%" as any,
     height: 200,
     borderRadius: 20,
     overflow: "hidden",

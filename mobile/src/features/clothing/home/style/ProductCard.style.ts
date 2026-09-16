@@ -3,7 +3,9 @@ import { StyleSheet, Platform } from "react-native";
 export const createProductCardStyles = (theme: any) =>
   StyleSheet.create({
     card: {
-      width: 240,
+      // Fills the parent cell — parents set the responsive width
+      // (240 on phones, narrower on foldables, 4-up on desktop).
+      width: "100%" as any,
       backgroundColor: theme.background,
       borderRadius: 16,
       borderWidth: 1,

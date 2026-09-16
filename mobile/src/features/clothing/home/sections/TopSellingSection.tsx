@@ -27,12 +27,15 @@ import { IProduct } from "../../product/types/product.types";
 const arrowLottie = require("@/assets/lottie/arrow.json");
 const CARD_WIDTH = 240;
 const GAP = 12;
-const ITEM_WIDTH = CARD_WIDTH + GAP;
 const TopSellingSection = ({ category }: { category?: string } = {}) => {
   const theme = useTheme() as any;
   const router = useRouter();
   const { width: windowWidth } = useWindowDimensions();
   const isDesktop = Platform.OS === "web" && windowWidth >= BREAKPOINTS.desktopMin;
+  // Mobile: 240px card but shrink on very small phones / foldables so at
+  // least a 48px peek of the next card stays visible (no overflow).
+  const mobileCardWidth = Math.min(CARD_WIDTH, Math.max(windowWidth - 96, 180));
+  const ITEM_WIDTH = mobileCardWidth + GAP;
   const scrollRef = useRef<ScrollView>(null);
   const styles = React.useMemo(
     () => createTopSellingSectionStyles(theme),
@@ -40,7 +43,7 @@ const TopSellingSection = ({ category }: { category?: string } = {}) => {
   );
   const desktopGap = 20;
   const desktopContainer = Math.min(windowWidth - DESKTOP.gutter * 2, DESKTOP.maxWidth - 48);
-  const desktopCardWidth = isDesktop ? (desktopContainer - desktopGap * 3) / 4 : CARD_WIDTH;
+  const desktopCardWidth = isDesktop ? (desktopContainer - desktopGap * 3) / 4 : mobileCardWidth;
 
   const handleSeeAll = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -98,7 +101,7 @@ const TopSellingSection = ({ category }: { category?: string } = {}) => {
           }}
         >
           {[1, 2, 3].map((key) => (
-            <View key={key} style={{ width: CARD_WIDTH }}>
+            <View key={key} style={{ width: mobileCardWidth }}>
               <ProductCardSkeleton />
             </View>
           ))}
@@ -203,7 +206,7 @@ const TopSellingSection = ({ category }: { category?: string } = {}) => {
           <View
             key={item._id || item.id}
             style={{
-              width: CARD_WIDTH,
+              width: mobileCardWidth,
               marginRight: index === products.length - 1 ? 0 : GAP,
             }}
           >

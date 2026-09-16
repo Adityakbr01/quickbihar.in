@@ -73,6 +73,8 @@ export default function SnapchatPullToRefresh({
         hasTriggeredHaptic.value = false;
       }, 320);
     }
+    // Shared values (.value) are Reanimated refs — not React deps.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [onRefresh]);
 
   const scrollHandler = useAnimatedScrollHandler({
@@ -112,6 +114,8 @@ export default function SnapchatPullToRefresh({
         hasTriggeredHaptic.value = false;
       }
     })
+    // Worklet: reading .value inside gesture handlers is the Reanimated pattern.
+    // eslint-disable-next-line react-hooks/refs
     .onEnd(() => {
       if (isRefreshing.value) {
         return;
@@ -196,7 +200,7 @@ export default function SnapchatPullToRefresh({
       <SafeViewWrapper>
         <GestureDetector gesture={composedGesture}>
           <Animated.View style={[styles.container, wrapperStyle]}>
-            <Animated.View style={headerStyle} pointerEvents="none">
+            <Animated.View style={[headerStyle, { pointerEvents: "none" }]}>
               <AnimatedLottieView
                 ref={lottieRef}
                 source={fireLottie}

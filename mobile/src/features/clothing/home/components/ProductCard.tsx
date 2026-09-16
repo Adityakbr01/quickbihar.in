@@ -65,7 +65,7 @@ export const ProductCard = ({ item, desktopWidth }: ProductCardProps) => {
         text2: `${productData.name} added successfully!`,
         props: { id: Date.now() }
       });
-    } catch (error) {
+    } catch {
       Toast.show({
         type: 'error',
         text1: 'Error',
@@ -75,44 +75,43 @@ export const ProductCard = ({ item, desktopWidth }: ProductCardProps) => {
     }
   };
 
-  // Helper to handle both Mock and Real Data mapping
-  const productData = React.useMemo(() => {
-    const p = item as IProduct;
-    const numPrice = typeof p.price === 'number' ? p.price : parseFloat(String(p.price || 0));
-    const numOrig = typeof p.originalPrice === 'number' ? p.originalPrice : parseFloat(String(p.originalPrice || 0));
-    const hasDiscount = numOrig > numPrice;
+  // Helper to handle both Mock and Real Data mapping.
+  // Computed during render (no manual memo) so React Compiler can optimize it.
+  const p = item as IProduct;
+  const numPrice = typeof p.price === 'number' ? p.price : parseFloat(String(p.price || 0));
+  const numOrig = typeof p.originalPrice === 'number' ? p.originalPrice : parseFloat(String(p.originalPrice || 0));
+  const hasDiscount = numOrig > numPrice;
 
-    const discount = (() => {
-      if (p.discountPercentage && Number(p.discountPercentage) > 0) {
-        return `${Math.round(Number(p.discountPercentage))}% OFF`;
+  const discount = (() => {
+    if (p.discountPercentage && Number(p.discountPercentage) > 0) {
+      return `${Math.round(Number(p.discountPercentage))}% OFF`;
+    }
+    if (hasDiscount && numOrig > 0) {
+      const pct = Math.round(((numOrig - numPrice) / numOrig) * 100);
+      if (pct > 0) return `${pct}% OFF`;
+    }
+    if (p.discountLabel) {
+      const num = parseFloat(p.discountLabel);
+      if (!isNaN(num) && num > 0 && !p.discountLabel.includes("%")) {
+        return `${Math.round(num)}% OFF`;
       }
-      if (hasDiscount && numOrig > 0) {
-        const pct = Math.round(((numOrig - numPrice) / numOrig) * 100);
-        if (pct > 0) return `${pct}% OFF`;
-      }
-      if (p.discountLabel) {
-        const num = parseFloat(p.discountLabel);
-        if (!isNaN(num) && num > 0 && !p.discountLabel.includes("%")) {
-          return `${Math.round(num)}% OFF`;
-        }
-        return p.discountLabel;
-      }
-      return null;
-    })();
+      return p.discountLabel;
+    }
+    return null;
+  })();
 
-    const resolvedTitle = p.title || (item as MockProduct).name || "Fashion Product";
-    return {
-      title: resolvedTitle,
-      name: resolvedTitle,
-      image: p.images?.[0]?.url || (item as MockProduct).image || "",
-      price: numPrice > 0 ? formatPrice(numPrice) : (typeof item.price === 'string' ? item.price : "₹0"),
-      originalPrice: hasDiscount ? formatPrice(numOrig) : null,
-      hasDiscount,
-      discount,
-      rating: Number(p.ratings?.average) || 0,
-      reviews: Number(p.ratings?.count) || 0,
-    };
-  }, [item]);
+  const resolvedTitle = p.title || (item as MockProduct).name || "Fashion Product";
+  const productData = {
+    title: resolvedTitle,
+    name: resolvedTitle,
+    image: p.images?.[0]?.url || (item as MockProduct).image || "",
+    price: numPrice > 0 ? formatPrice(numPrice) : (typeof item.price === 'string' ? item.price : "₹0"),
+    originalPrice: hasDiscount ? formatPrice(numOrig) : null,
+    hasDiscount,
+    discount,
+    rating: Number(p.ratings?.average) || 0,
+    reviews: Number(p.ratings?.count) || 0,
+  };
 
   return (
     <TouchableOpacity

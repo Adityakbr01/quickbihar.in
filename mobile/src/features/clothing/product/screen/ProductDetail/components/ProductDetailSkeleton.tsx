@@ -1,8 +1,8 @@
 import React from "react";
-import { View, Platform, TouchableOpacity } from "react-native";
+import { View, TouchableOpacity, useWindowDimensions } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import Skeleton from "@/src/components/common/Skeleton";
-import { styles as s, SCREEN_WIDTH } from "../styles";
+import { styles as s } from "../styles";
 
 interface ProductDetailSkeletonProps {
   theme: any;
@@ -11,7 +11,8 @@ interface ProductDetailSkeletonProps {
 
 const ProductDetailSkeleton: React.FC<ProductDetailSkeletonProps> = ({ theme, onBack }) => {
   const isDark = theme.text === "#ffffff" || theme.background === "#0f0f0f";
-  const galleryHeight = SCREEN_WIDTH * 1.2;
+  const { width: windowWidth } = useWindowDimensions();
+  const galleryHeight = Math.min(windowWidth * 1.2, 560);
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.background }}>

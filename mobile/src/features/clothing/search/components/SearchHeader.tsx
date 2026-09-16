@@ -1,8 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
-import React, { useRef, useEffect } from "react";
+import React, { useRef } from "react";
 import {
-  Keyboard,
   Platform,
   Pressable,
   StyleSheet,
@@ -33,7 +32,6 @@ const SearchHeader = ({
 }: SearchHeaderProps) => {
   const theme = useTheme();
   const inputRef = useRef<TextInput>(null);
-  const isWeb = Platform.OS === "web";
 
   // Animations
   const focusAnim = useSharedValue(0);
@@ -83,7 +81,7 @@ const SearchHeader = ({
           style={[styles.input, { color: theme.text }]}
           onFocus={handleFocus}
           onBlur={handleBlur}
-          autoFocus
+          autoFocus={false}
           returnKeyType="search"
           onSubmitEditing={onSubmit}
         />

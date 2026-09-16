@@ -3,11 +3,10 @@ import { IProduct } from "@/src/features/clothing/product/types/product.types";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
-import { Platform } from "react-native";
+import { Platform, Text, TouchableOpacity, View } from "react-native";
 import { useRouter } from "expo-router";
 import LazyLottie from "@/src/components/common/LazyLottie";
 import React from "react";
-import { Text, TouchableOpacity, View } from "react-native";
 import { Image } from "expo-image";
 import Toast from "react-native-toast-message";
 import { useCartStore } from "@/src/features/common/cart/store/cartStore";
@@ -39,14 +38,11 @@ export const DealProductCard = ({ product, width }: DealProductCardProps) => {
 
   const [isSheetVisible, setIsSheetVisible] = React.useState(false);
 
-  const variants = (product as IProduct).variants || [];
-  const uniqueColors = React.useMemo(() => {
-    return Array.from(new Set(variants.map(v => v.color?.trim()).filter(Boolean))) as string[];
-  }, [variants]);
-  
-  const uniqueSizes = React.useMemo(() => {
-    return Array.from(new Set(variants.map(v => v.size?.trim()).filter(Boolean))) as string[];
-  }, [variants]);
+  const productVariants = (product as IProduct).variants;
+  const variants = React.useMemo(
+    () => productVariants || [],
+    [productVariants],
+  );
 
   const isSelectionApplicable = variants.length > 0;
   const sku = variants[0]?.sku || (product as MockProduct).id || 'default-sku';
@@ -79,7 +75,7 @@ export const DealProductCard = ({ product, width }: DealProductCardProps) => {
         },
       });
 
-    } catch (error) {
+    } catch {
       Toast.show({
         type: 'error',
         text1: 'Error',
@@ -93,7 +89,7 @@ export const DealProductCard = ({ product, width }: DealProductCardProps) => {
 
   // Helper to handle both Mock and Real Data mapping
   const computedDiscount = React.useMemo(() => {
-    const p = product as IProduct;
+  const p = product as IProduct;
     if (p.discountPercentage && Number(p.discountPercentage) > 0) {
       return `${Math.round(Number(p.discountPercentage))}% OFF`;
     }
@@ -112,6 +108,9 @@ export const DealProductCard = ({ product, width }: DealProductCardProps) => {
   }, [product]);
 
   const p = product as IProduct;
+  // Narrow phones (≤320px ⇒ card <150px): shrink overlays so the
+  // rating pill and Add button never overlap.
+  const isNarrowCard = width < 150;
   const productData = {
     title: p.title || (product as MockProduct).title || "",
     image: p.images?.[0]?.url || (product as MockProduct).image || "",
@@ -215,13 +214,15 @@ export const DealProductCard = ({ product, width }: DealProductCardProps) => {
 
         {/* Real Rating Pill (Only shown if product has real ratings) */}
         {productData.reviews > 0 && productData.rating > 0 ? (
-          <View style={styles.ratingPill}>
-            <Ionicons name="star" size={11} color="#f59e0b" />
+          <View style={[styles.ratingPill, isNarrowCard && { paddingHorizontal: 5 }]}>
+            <Ionicons name="star" size={10} color="#f59e0b" />
             <Text style={styles.ratingText}>
-              {productData.rating.toFixed(1)}{" "}
-              <Text style={styles.ratingCount}>
-                | {productData.reviews}
-              </Text>
+              {productData.rating.toFixed(1)}
+              {!isNarrowCard && (
+                <Text style={styles.ratingCount}>
+                  {" "}| {productData.reviews}
+                </Text>
+              )}
             </Text>
           </View>
         ) : null}
@@ -233,7 +234,8 @@ export const DealProductCard = ({ product, width }: DealProductCardProps) => {
             <TouchableOpacity
               style={[
                 styles.addButton,
-                isInCart && { backgroundColor: theme.primary }
+                isInCart && { backgroundColor: theme.primary },
+                isNarrowCard && { paddingHorizontal: 8, paddingVertical: 6, right: 6 },
               ]}
               activeOpacity={0.8}
               onPress={(e) => {

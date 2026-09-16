@@ -43,7 +43,8 @@ export const ProductCardSkeleton = () => {
 
 const styles = StyleSheet.create({
   card: {
-    width: 240,
+    // Fills the parent cell like ProductCard (see ProductCard.style).
+    width: "100%" as any,
     borderRadius: 16,
     borderWidth: 1,
     overflow: "hidden",

@@ -99,9 +99,10 @@ export const VariantSelectorBottomSheet = ({
     ) as string[];
   }, [product.variants]);
 
-  // Set default color
+  // Set default color — intentional product→state sync when variants load.
   useEffect(() => {
     if (uniqueColors.length > 0 && !selectedColor) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSelectedColor(uniqueColors[0]);
     }
   }, [uniqueColors, selectedColor]);
@@ -115,9 +116,11 @@ export const VariantSelectorBottomSheet = ({
     );
   }, [product.variants, selectedColor]);
 
-  // Auto-select size if there's only one option
+  // Auto-select size if there's only one option; reset when color changes.
+  // Intentional variant→state sync.
   useEffect(() => {
     if (sizesForColor.length === 1) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSelectedSize(sizesForColor[0].size);
     } else {
       setSelectedSize(null);
@@ -196,7 +199,7 @@ export const VariantSelectorBottomSheet = ({
         props: { id: Date.now() },
       });
       onClose();
-    } catch (error) {
+    } catch {
       Toast.show({
         type: "error",
         text1: "Error",

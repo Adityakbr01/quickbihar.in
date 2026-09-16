@@ -6,8 +6,8 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Image,
-  Platform,
   Share,
+  useWindowDimensions,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
@@ -31,7 +31,7 @@ import Animated, {
 import Carousel from "react-native-reanimated-carousel";
 
 // --- Imports from modular structure ---
-import { styles as s, SCREEN_WIDTH } from "./ProductDetail/styles";
+import { styles as s } from "./ProductDetail/styles";
 import { ExpandableSection } from "./ProductDetail/components/ExpandableSection";
 import { RatingBar } from "./ProductDetail/components/RatingBar";
 import { SimilarProducts } from "./ProductDetail/components/SimilarProducts";
@@ -62,7 +62,7 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
   const router = useRouter();
   const theme = useTheme() as any;
   const isDark = theme.text === "#ffffff" || theme.background === "#0f0f0f";
-  const { data: product, isLoading, isError } = useProductById(id);
+  const { data: product, isLoading } = useProductById(id);
   // Use manifest seed for the initial SSG pass; live query takes over post-hydration.
   // ponytail: single guard here rather than per-caller; initialProduct is SSG-only.
   const seoProduct = (product || initialProduct) as IProduct | undefined;
@@ -150,9 +150,12 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
     return Array.from(new Set(dp.variants.map((v) => (v?.color ? String(v.color).trim() : "")).filter(Boolean)));
   }, [dp.variants]);
 
-  useMemo(() => {
-    if (uniqueColors.length > 0 && !selectedColor)
+  // Default to the first color once variants load (intentional prop→state sync).
+  useEffect(() => {
+    if (uniqueColors.length > 0 && !selectedColor) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSelectedColor(uniqueColors[0]);
+    }
   }, [uniqueColors, selectedColor]);
 
   const sizesForColor = useMemo(() => {
@@ -167,6 +170,22 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
       : (dp.originalPrice && dp.price
         ? Math.round((1 - dp.price / dp.originalPrice) * 100)
         : 0);
+
+  // Responsive gallery: fills screen width, caps height on tablets/desktop.
+  const { width: windowWidth } = useWindowDimensions();
+  const galleryWidth = windowWidth;
+  const galleryHeight = Math.min(windowWidth * 1.2, 560);
+
+  // Delivery estimate — memoized so render stays pure for React Compiler.
+  const deliveryDateLabel = useMemo(() => {
+    const days = dp.deliveryInfo?.estimatedDays || 3;
+    // eslint-disable-next-line react-hooks/purity
+    return new Date(Date.now() + days * 86400000).toLocaleDateString("en-IN", {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+    });
+  }, [dp.deliveryInfo?.estimatedDays]);
 
   const handleShare = useCallback(async () => {
     try {
@@ -227,7 +246,7 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
         text2: `${dp.title} has been added to your bag`,
         props: { id: Date.now() }
       });
-    } catch (error) {
+    } catch {
       Toast.show({
         type: "error",
         text1: "Error",
@@ -318,8 +337,8 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
         <View style={s.galleryContainer}>
           <Carousel
             loop={false}
-            width={SCREEN_WIDTH}
-            height={SCREEN_WIDTH * 1.2}
+            width={galleryWidth}
+            height={galleryHeight}
             data={images}
             scrollAnimationDuration={300}
             onSnapToItem={setCarouselIndex}
@@ -704,15 +723,7 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
               <Ionicons name="cube-outline" size={22} color={theme.primary} />
               <View style={s.deliveryCardText}>
                 <Text style={[s.deliveryCardTitle, { color: theme.text }]}>
-                  Get it by{" "}
-                  {new Date(
-                    Date.now() +
-                    (dp.deliveryInfo?.estimatedDays || 3) * 86400000
-                  ).toLocaleDateString("en-IN", {
-                    weekday: "short",
-                    month: "short",
-                    day: "numeric",
-                  })}
+                  Get it by {deliveryDateLabel}
                 </Text>
                 <Text style={[s.deliveryCardSub, { color: theme.secondaryText }]}>
                   Express hyperlocal delivery by QuickBihar

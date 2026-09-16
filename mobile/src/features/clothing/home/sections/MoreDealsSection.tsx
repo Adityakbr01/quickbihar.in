@@ -68,6 +68,8 @@ function getIconForCategory(title: string): any {
 const getSpeechRecognitionModule = () => {
   if (!(NativeModulesProxy as any)?.ExpoSpeechRecognition) return null;
   try {
+    // Dynamic import keeps the native module optional (Expo Go safe).
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const speech = require("expo-speech-recognition");
     return speech?.ExpoSpeechRecognitionModule ?? null;
   } catch {
@@ -347,7 +349,6 @@ export const MoreDealsFilters = ({
   genderPillLabel,
   clearFilterSelections,
   isDesktop: propIsDesktop,
-  isWide: propIsWide,
 }: any) => {
   const hookTheme = useTheme();
   const theme = propTheme || hookTheme;
@@ -357,7 +358,6 @@ export const MoreDealsFilters = ({
   );
   const { width: winW } = useWindowDimensions();
   const isDesktop = propIsDesktop ?? (Platform.OS === "web" && winW >= BREAKPOINTS.desktopMin);
-  const isWide = propIsWide ?? (Platform.OS === "web" && winW >= BREAKPOINTS.tabletMin);
   const [isListening, setIsListening] = useState(false);
   const [speechError, setSpeechError] = useState<string | null>(null);
   const speechModule = useMemo(() => getSpeechRecognitionModule(), []);
@@ -505,7 +505,7 @@ export const MoreDealsFilters = ({
             <Ionicons name="flash-outline" size={13} color={theme.primary} />
             <Text style={{ marginLeft: 6, fontSize: 12, color: theme.secondaryText, fontWeight: "500" }}>
               Showing results for{" "}
-              <Text style={{ color: theme.primary, fontWeight: "700" }}>"{searchQuery}"</Text>
+              <Text style={{ color: theme.primary, fontWeight: "700" }}>{'"'}{searchQuery}{'"'}</Text>
             </Text>
           </View>
         )}
@@ -639,7 +639,7 @@ export const MoreDealsGrid = ({
           No products found
         </Text>
         <Text style={{ marginTop: 8, fontSize: 14, color: theme.tertiaryText, textAlign: "center", paddingHorizontal: 40 }}>
-          Try adjusting your search or filters to find what you're looking for.
+          {"Try adjusting your search or filters to find what you're looking for."}
         </Text>
       </View>
     )}

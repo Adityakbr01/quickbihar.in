@@ -31,12 +31,17 @@ const TopMallSection = () => {
   const router = useRouter();
 
   const isDesktop = Platform.OS === "web" && windowWidth >= BREAKPOINTS.desktopMin;
-  const isWeb = windowWidth > 600;
+  const isWebMobile = Platform.OS === "web" && windowWidth > 600;
   const gap = isDesktop ? 20 : 16;
+  // Mobile widths stay 260 but shrink on very small phones / foldables
+  // so the card + 16px list padding never overflow. Native tablets in
+  // portrait keep the mobile card (desktop grid is web-only).
+  const mobileCardWidth = Math.min(260, Math.max(windowWidth - 64, 200));
+  const webMobileCardWidth = Math.min(300, Math.max(windowWidth - 64, 200));
   // Mobile widths byte-identical. Desktop uses a 3-col grid cell.
   const desktopContainer = Math.min(windowWidth - DESKTOP.gutter * 2, DESKTOP.maxWidth);
   const desktopCardWidth = (desktopContainer - gap * 2) / 3;
-  const cardWidth = isDesktop ? desktopCardWidth : isWeb ? 300 : 260;
+  const cardWidth = isDesktop ? desktopCardWidth : isWebMobile ? webMobileCardWidth : mobileCardWidth;
   const { data: topMalls, isLoading } = useQuery({
     queryKey: ["topMalls"],
     queryFn: getTopMallsRequest,

@@ -59,7 +59,10 @@ export const createMoreDealsSectionStyles = (theme: any) =>
       flexDirection: "row",
       flexWrap: "wrap",
       paddingHorizontal: spacing.md,
-      justifyContent: "space-between",
+      // flex-start + gap keeps full rows identical to space-between
+      // (cards exactly fill the row) while odd last rows stay left-aligned
+      // instead of stretching on small phones.
+      justifyContent: "flex-start",
       gap: spacing.sm,
       rowGap: spacing.lg,
     },

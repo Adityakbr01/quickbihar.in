@@ -5,7 +5,6 @@ import {
   Text,
   View,
   Pressable,
-  Dimensions,
   ActivityIndicator,
   useWindowDimensions,
 } from "react-native";
@@ -15,9 +14,6 @@ import { Image as ExpoImage } from "expo-image";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { BREAKPOINTS } from "@/src/utils/responsive";
 import { IProduct } from "../../product/types/product.types";
-
-const { width } = Dimensions.get("window");
-const COLUMN_WIDTH = (width - 48) / 2;
 
 interface SearchResultsProps {
   results: IProduct[];
@@ -39,11 +35,14 @@ const SearchResults = ({
   const isDesktop = Platform.OS === "web" && winW >= BREAKPOINTS.desktopMin;
   const isTablet = Platform.OS === "web" && winW >= BREAKPOINTS.tabletMin && !isDesktop;
   // Mobile stays exactly 2 columns; tablet 3, desktop 4.
+  // Column width is live (rotation / foldables / small phones safe):
+  // 16px list padding each side + 16px inter-column gap.
   const numColumns = isDesktop ? 4 : isTablet ? 3 : 2;
   const gap = isDesktop ? 20 : 16;
+  const listPadding = 32;
   const colWidth = isDesktop || isTablet
     ? (Math.min(winW - 48, 1280 - 48) - gap * (numColumns - 1)) / numColumns
-    : COLUMN_WIDTH;
+    : Math.max((winW - listPadding - gap / 2) / 2, 140);
 
   if (loading && results.length === 0) {
     return (
@@ -62,7 +61,7 @@ const SearchResults = ({
             key={i}
             style={[
               styles.skeletonItem,
-              (isDesktop || isTablet) && { width: colWidth },
+              { width: colWidth },
             ]}
           >
             <View style={[styles.skeletonImage, { backgroundColor: theme.tertiaryBackground }]} />
@@ -115,11 +114,11 @@ const SearchResults = ({
         <Pressable
           style={[
             styles.productCard,
+            { width: colWidth },
             (isDesktop || isTablet)
               ? {
                   backgroundColor: theme.background,
                   marginBottom: 24,
-                  width: colWidth,
                   marginLeft: (index % numColumns) === 0 ? 0 : gap / 2,
                   marginRight: (index % numColumns) === numColumns - 1 ? 0 : gap / 2,
                 }
@@ -179,7 +178,7 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   skeletonItem: {
-    width: COLUMN_WIDTH,
+    // Width is set dynamically from useWindowDimensions (see colWidth).
     marginBottom: 16,
   },
   skeletonImage: {
@@ -201,7 +200,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   productCard: {
-    width: COLUMN_WIDTH,
+    // Width is set dynamically from useWindowDimensions (see colWidth).
     borderRadius: 12,
     overflow: "hidden",
   },

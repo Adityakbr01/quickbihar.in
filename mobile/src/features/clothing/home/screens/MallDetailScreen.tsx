@@ -8,9 +8,9 @@ import {
   TextInput,
   ActivityIndicator,
   StyleSheet,
-  Dimensions,
   Share,
   Linking,
+  useWindowDimensions,
 } from "react-native";
 import { FlashList } from "@shopify/flash-list";
 import { Ionicons } from "@expo/vector-icons";
@@ -25,8 +25,6 @@ import { LinearGradient } from "expo-linear-gradient";
 import Toast from "react-native-toast-message";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
 
-const SCREEN_WIDTH = Dimensions.get("window").width;
-
 interface MallDetailScreenProps {
   id: string;
   /** Build-time manifest data for SSG — used for the initial SeoHead render
@@ -37,6 +35,8 @@ interface MallDetailScreenProps {
 const MallDetailScreen: React.FC<MallDetailScreenProps> = ({ id, initialMall }) => {
   const router = useRouter();
   const theme = useTheme() as any;
+  // Live width so rotation / foldables / small phones never overflow.
+  const { width: windowWidth } = useWindowDimensions();
   const { data, isLoading, isError } = useMallDetail(id);
   const submitReviewMutation = useSubmitMallReview(id);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -176,14 +176,14 @@ const MallDetailScreen: React.FC<MallDetailScreenProps> = ({ id, initialMall }) 
             renderItem={({ item, index }: { item: any; index?: number }) => (
               <ExpoImage
                 source={{ uri: item.url }}
-                style={[styles.coverImage, { width: SCREEN_WIDTH }]}
+                style={[styles.coverImage, { width: windowWidth }]}
                 contentFit="cover"
                 alt={`${mall.name} — cover photo`}
                 priority={index === 0 ? "high" : "normal"}
               />
             )}
           />
-          <LinearGradient colors={["rgba(0,0,0,0.4)", "rgba(0,0,0,0.0)", "rgba(0,0,0,0.85)"]} style={styles.gradientOverlay} pointerEvents="none" />
+          <LinearGradient colors={["rgba(0,0,0,0.4)", "rgba(0,0,0,0.0)", "rgba(0,0,0,0.85)"]} style={[styles.gradientOverlay, { pointerEvents: "none" }]} />
 
           {/* Header Actions */}
           <View style={styles.headerRow}>
@@ -372,7 +372,13 @@ const MallDetailScreen: React.FC<MallDetailScreenProps> = ({ id, initialMall }) 
               {products.map((item: any) => (
                 <TouchableOpacity
                   key={item.id}
-                  style={[styles.productCard, { backgroundColor: theme.tertiaryBackground }]}
+                  style={[
+                    styles.productCard,
+                    {
+                      backgroundColor: theme.tertiaryBackground,
+                      width: Math.max((windowWidth - 44) / 2, 140),
+                    },
+                  ]}
                   onPress={() => router.push(`/product/${item.slug || item.id}` as any)}
                 >
                   <Image source={{ uri: item.image }} style={styles.productImage} resizeMode="cover" />
@@ -711,11 +717,11 @@ const styles = StyleSheet.create({
   productsGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    justifyContent: "space-between",
+    justifyContent: "flex-start",
     gap: 12,
   },
   productCard: {
-    width: (SCREEN_WIDTH - 44) / 2,
+    // Width is set inline from useWindowDimensions (see usage above).
     borderRadius: 12,
     overflow: "hidden",
     position: "relative",

@@ -1,7 +1,6 @@
 import React, { useCallback, useMemo, useState } from "react";
 import {
   ActivityIndicator,
-  Dimensions,
   FlatList,
   Platform,
   RefreshControl,
@@ -10,6 +9,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  useWindowDimensions,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
@@ -27,10 +27,8 @@ import {
   useSheet,
 } from "@/src/components/common/BottomSheet";
 
-const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const COLUMN_GAP = 12;
 const HORIZONTAL_PADDING = 16;
-const CARD_WIDTH = (SCREEN_WIDTH - HORIZONTAL_PADDING * 2 - COLUMN_GAP) / 2;
 
 type SortKey = "trending" | "price-asc" | "price-desc" | "rating" | "newest";
 type GenderFilter = "ALL" | "Men" | "Women" | "Kids";
@@ -109,6 +107,12 @@ const TopSellingScreen: React.FC<TopSellingScreenProps> = ({ category }) => {
   const [sortBy, setSortBy] = useState<SortKey>("trending");
   const [gender, setGender] = useState<GenderFilter>("ALL");
   const [refreshing, setRefreshing] = useState(false);
+  // Live width so rotation / foldables / small phones never overflow.
+  const { width: windowWidth } = useWindowDimensions();
+  const cardWidth = Math.max(
+    (windowWidth - HORIZONTAL_PADDING * 2 - COLUMN_GAP) / 2,
+    140,
+  );
 
   const {
     data,
@@ -304,7 +308,7 @@ const TopSellingScreen: React.FC<TopSellingScreenProps> = ({ category }) => {
             style={[styles.footerEndDivider, { backgroundColor: theme.border }]}
           />
           <Text style={[styles.footerEndText, { color: theme.tertiaryText }]}>
-            You've seen it all 🎉
+            {"You've seen it all 🎉"}
           </Text>
           <View
             style={[styles.footerEndDivider, { backgroundColor: theme.border }]}
@@ -346,7 +350,7 @@ const TopSellingScreen: React.FC<TopSellingScreenProps> = ({ category }) => {
             />
           }
           renderItem={({ item }) => (
-            <DealProductCard product={item} width={CARD_WIDTH} />
+            <DealProductCard product={item} width={cardWidth} />
           )}
         />
 
