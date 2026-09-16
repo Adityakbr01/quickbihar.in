@@ -1,5 +1,5 @@
 import React from "react";
-import { Platform, View, Pressable, StyleSheet } from "react-native";
+import { View, Pressable, StyleSheet } from "react-native";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
@@ -73,37 +73,21 @@ const CarouselSlide = ({ item, desktop }: CarouselSlideProps) => {
             height: "100%",
             borderRadius: desktop ? 22 : 16,
             overflow: "hidden",
-            backgroundColor: desktop ? "#1c1c1e" : "transparent",
+            backgroundColor: desktop ? "#101012" : "transparent",
           },
           pressed && { opacity: 0.85 },
         ]}
       >
         {desktop ? (
-          <>
-            {/* Blurred fill so any creative aspect fills the wide frame. */}
-            <Image
-              source={{ uri: item.image }}
-              style={[
-                StyleSheet.absoluteFill,
-                { transform: [{ scale: 1.25 }] },
-                Platform.OS === "web"
-                  ? ({ filter: "blur(28px) brightness(0.85)" } as any)
-                  : null,
-            ]}
-              contentFit="cover"
-              blurRadius={Platform.OS === "web" ? undefined : 24}
-              accessibilityLabel=""
-            />
-            {/* Full creative, never cropped. */}
-            <Image
-              source={{ uri: item.image }}
-              style={styles.desktopFit}
-              contentFit="contain"
-              alt={item.title || "QuickBihar Fashion Sale Banner"}
-              accessibilityLabel={item.title || "Fashion Sale Banner"}
-              {...({ title: item.title || "QuickBihar Online Fashion Deals" } as any)}
-            />
-          </>
+          /* Full creative, fitted — solid dark backdrop, no blur fill. */
+          <Image
+            source={{ uri: item.image }}
+            style={styles.desktopFit}
+            contentFit="contain"
+            alt={item.title || "QuickBihar Fashion Sale Banner"}
+            accessibilityLabel={item.title || "Fashion Sale Banner"}
+            {...({ title: item.title || "QuickBihar Online Fashion Deals" } as any)}
+          />
         ) : (
           <Image
             source={{ uri: item.image }}

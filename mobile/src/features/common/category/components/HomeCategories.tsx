@@ -18,7 +18,6 @@ import { Category } from "../types/category.types";
 import CategorySkeleton from "./CategorySkeleton";
 import { useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
-import { Ionicons } from "@expo/vector-icons";
 
 const HomeCategories = ({ rootSlug = "clothing" }: { rootSlug?: string }) => {
   const theme = useTheme() as any;
@@ -27,6 +26,15 @@ const HomeCategories = ({ rootSlug = "clothing" }: { rootSlug?: string }) => {
   const isDesktop = Platform.OS === "web" && width >= BREAKPOINTS.desktopMin;
   const [showAll, setShowAll] = React.useState(false);
   const { data: rawCategories, isLoading, error } = useCategories({ vertical: "CLOTHING" });
+  // Desktop rail scroll position + arrow stepping (3 tiles per click).
+  const railRef = React.useRef<ScrollView>(null);
+  const railOffset = React.useRef(0);
+  const scrollRail = (dir: 1 | -1) => {
+    railRef.current?.scrollTo({
+      x: Math.max(0, railOffset.current + dir * 420),
+      animated: true,
+    });
+  };
 
   const renderItem = ({ item }: { item: Category }) => (
     <TouchableOpacity
@@ -166,12 +174,18 @@ const HomeCategories = ({ rootSlug = "clothing" }: { rootSlug?: string }) => {
           Shop by category
         </Text>
         {/* Single scrollable rail — all tiles in one line, never wrapping. */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={desktopStyles.rail}
-          contentContainerStyle={desktopStyles.railContent}
-        >
+        <View style={desktopStyles.railWrap}>
+          <ScrollView
+            ref={railRef}
+            horizontal
+            showsHorizontalScrollIndicator
+            scrollEventThrottle={16}
+            onScroll={(e) => {
+              railOffset.current = e.nativeEvent.contentOffset.x;
+            }}
+            style={desktopStyles.rail}
+            contentContainerStyle={desktopStyles.railContent}
+          >
           {desktopList.map((item: any) => (
             <TouchableOpacity
               key={item._id}
@@ -213,7 +227,34 @@ const HomeCategories = ({ rootSlug = "clothing" }: { rootSlug?: string }) => {
               </Text>
             </TouchableOpacity>
           ))}
-        </ScrollView>
+          </ScrollView>
+          <TouchableOpacity
+            onPress={() => scrollRail(-1)}
+            accessibilityRole="button"
+            accessibilityLabel="Scroll categories left"
+            activeOpacity={0.8}
+            style={[
+              desktopStyles.railArrow,
+              desktopStyles.railArrowLeft,
+              { backgroundColor: theme.background, borderColor: theme.border },
+            ]}
+          >
+            <Text style={[desktopStyles.railArrowText, { color: theme.text }]}>‹</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => scrollRail(1)}
+            accessibilityRole="button"
+            accessibilityLabel="Scroll categories right"
+            activeOpacity={0.8}
+            style={[
+              desktopStyles.railArrow,
+              desktopStyles.railArrowRight,
+              { backgroundColor: theme.background, borderColor: theme.border },
+            ]}
+          >
+            <Text style={[desktopStyles.railArrowText, { color: theme.text }]}>›</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     );
   }
@@ -298,15 +339,47 @@ const desktopStyles = StyleSheet.create({
   wrap: { marginVertical: 28, paddingHorizontal: 24, alignItems: "center" },
   heading: { fontSize: 24, fontWeight: "900", letterSpacing: -0.5, marginBottom: 20 },
   // Single-line scrollable rail (replaces the old wrapping grid).
-  rail: {
+  railWrap: {
+    position: "relative",
     width: "100%",
     maxWidth: 1080,
+    alignItems: "center",
+  },
+  rail: {
+    width: "100%",
   },
   railContent: {
     gap: 22,
-    paddingHorizontal: 4,
-    paddingBottom: 4,
+    // Generous end padding so the last tile scrolls fully into view.
+    paddingHorizontal: 24,
+    paddingBottom: 10,
     alignItems: "flex-start",
+  },
+  railArrow: {
+    position: "absolute",
+    top: 32,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 5,
+    ...Platform.select({
+      web: { cursor: "pointer", boxShadow: "0 4px 14px rgba(0,0,0,0.18)" } as any,
+    }),
+  },
+  railArrowLeft: {
+    left: 28,
+  },
+  railArrowRight: {
+    right: 28,
+  },
+  railArrowText: {
+    fontSize: 26,
+    fontWeight: "800",
+    lineHeight: 30,
+    marginTop: -3,
   },
   tile: { alignItems: "center", width: 118 },
   thumb: {
