@@ -173,21 +173,22 @@ const TopSellingSection = ({ category }: { category?: string } = {}) => {
       </View>
 
       {isDesktop ? (
-        <View
-          style={{
-            flexDirection: "row",
-            flexWrap: "wrap",
+        <ScrollView
+          ref={scrollRef}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{
             paddingHorizontal: 24,
+            paddingBottom: 8,
             gap: desktopGap,
-            rowGap: desktopGap,
           }}
         >
-          {products.slice(0, 4).map((item: any) => (
+          {products.slice(0, 5).map((item: any) => (
             <View key={item._id || item.id} style={{ width: desktopCardWidth }}>
               <ProductCard item={item} desktopWidth={desktopCardWidth} />
             </View>
           ))}
-        </View>
+        </ScrollView>
       ) : (
       <ScrollView
         ref={scrollRef}

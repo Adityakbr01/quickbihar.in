@@ -12,7 +12,6 @@ import {
   Linking,
   useWindowDimensions,
 } from "react-native";
-import { FlashList } from "@shopify/flash-list";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter, Link } from "expo-router";
 import { Image as ExpoImage } from "expo-image";
@@ -135,11 +134,29 @@ const MallDetailScreen: React.FC<MallDetailScreenProps> = ({ id, initialMall }) 
     );
   };
 
-  const mallImages = (mall.images && mall.images.length > 0)
-    ? mall.images
-    : [{ url: mall.image || mall.coverImageUrl || mall.logoUrl || "https://images.unsplash.com/photo-1519501025264-65ba15a82390?w=800" }];
+  const toImageUrl = (img: any): string =>
+    typeof img === "string" ? img : (img?.url || img?.uri || "");
 
-  console.log("[CLIENT_DEBUG] Computed mallImages array:", JSON.stringify(mallImages, null, 2));
+  // Cover first, then gallery — accepts [{url}] objects or plain strings,
+  // drops empties and dedupes so a missing shape can never blank the hero.
+  const mallImages: string[] = Array.from(
+    new Set(
+      [
+        mall.coverImageUrl,
+        ...(Array.isArray(mall.images) ? mall.images : []),
+        mall.image,
+        mall.logoUrl,
+      ]
+        .map(toImageUrl)
+        .map((u) => (typeof u === "string" ? u.trim() : ""))
+        .filter(Boolean),
+    ),
+  );
+
+  const heroImages =
+    mallImages.length > 0
+      ? mallImages
+      : ["https://images.unsplash.com/photo-1519501025264-65ba15a82390?w=800"];
 
   const handleGetDirections = () => {
     const { latitude, longitude } = mall.address || {};
@@ -161,28 +178,31 @@ const MallDetailScreen: React.FC<MallDetailScreenProps> = ({ id, initialMall }) 
       <ScrollView style={[styles.container, { backgroundColor: theme.background }]} showsVerticalScrollIndicator={false}>
         {/* Cover Image Slider & Header */}
         <View style={styles.heroContainer}>
-          <FlashList
-            data={mallImages}
+          {/* Plain ScrollView slider (not FlashList): with 1–5 covers a
+              virtualized list adds nothing but its web cell-measurement
+              can collapse to zero height and blank the hero. */}
+          <ScrollView
             horizontal
             pagingEnabled
             showsHorizontalScrollIndicator={false}
-            style={{ flex: 1 }}
-            keyExtractor={(item, index) => index.toString()}
+            style={styles.heroSlider}
             onMomentumScrollEnd={(event) => {
               const slideSize = event.nativeEvent.layoutMeasurement.width;
               const index = Math.round(event.nativeEvent.contentOffset.x / slideSize);
               setActiveImageIndex(index);
             }}
-            renderItem={({ item, index }: { item: any; index?: number }) => (
+          >
+            {heroImages.map((uri, index) => (
               <ExpoImage
-                source={{ uri: item.url }}
+                key={`${index}-${uri}`}
+                source={{ uri }}
                 style={[styles.coverImage, { width: windowWidth }]}
                 contentFit="cover"
-                alt={`${mall.name} — cover photo`}
+                alt={index === 0 ? `${mall.name} — cover photo` : `${mall.name} — photo ${index + 1}`}
                 priority={index === 0 ? "high" : "normal"}
               />
-            )}
-          />
+            ))}
+          </ScrollView>
           <LinearGradient colors={["rgba(0,0,0,0.4)", "rgba(0,0,0,0.0)", "rgba(0,0,0,0.85)"]} style={[styles.gradientOverlay, { pointerEvents: "none" }]} />
 
           {/* Header Actions */}
@@ -210,9 +230,9 @@ const MallDetailScreen: React.FC<MallDetailScreenProps> = ({ id, initialMall }) 
             <Text style={styles.mallNameText}>{mall.name}</Text>
             <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 4 }}>
               <Text style={[styles.taglineText, { flex: 1, marginRight: 8 }]} numberOfLines={1}>{mall.tagline}</Text>
-              {mallImages.length > 1 && (
+              {heroImages.length > 1 && (
                 <View style={{ flexDirection: "row", gap: 4 }}>
-                  {mallImages.map((_: any, idx: number) => (
+                  {heroImages.map((_: any, idx: number) => (
                     <View
                       key={idx}
                       style={{
@@ -524,6 +544,10 @@ const styles = StyleSheet.create({
     width: "100%",
     height: 300,
     position: "relative",
+  },
+  heroSlider: {
+    width: "100%",
+    height: "100%",
   },
   coverImage: {
     width: "100%",

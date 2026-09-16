@@ -104,7 +104,7 @@ const TopHomeCarousel = () => {
             gesture.activeOffsetX([-10, 10]);
           }}
           renderItem={({ item, index }) => (
-            <CarouselSlide item={item} index={index} />
+            <CarouselSlide item={item} index={index} desktop={isDesktop} />
           )}
         />
 

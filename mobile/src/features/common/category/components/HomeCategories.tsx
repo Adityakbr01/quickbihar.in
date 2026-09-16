@@ -4,6 +4,7 @@ import { BREAKPOINTS } from "@/src/utils/responsive";
 import React from "react";
 import {
   Platform,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -164,7 +165,13 @@ const HomeCategories = ({ rootSlug = "clothing" }: { rootSlug?: string }) => {
         <Text style={[desktopStyles.heading, { color: theme.text }]}>
           Shop by category
         </Text>
-        <View style={desktopStyles.grid}>
+        {/* Single scrollable rail — all tiles in one line, never wrapping. */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={desktopStyles.rail}
+          contentContainerStyle={desktopStyles.railContent}
+        >
           {desktopList.map((item: any) => (
             <TouchableOpacity
               key={item._id}
@@ -206,7 +213,7 @@ const HomeCategories = ({ rootSlug = "clothing" }: { rootSlug?: string }) => {
               </Text>
             </TouchableOpacity>
           ))}
-        </View>
+        </ScrollView>
       </View>
     );
   }
@@ -290,12 +297,16 @@ const styles = StyleSheet.create({
 const desktopStyles = StyleSheet.create({
   wrap: { marginVertical: 28, paddingHorizontal: 24, alignItems: "center" },
   heading: { fontSize: 24, fontWeight: "900", letterSpacing: -0.5, marginBottom: 20 },
-  grid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "center",
-    gap: 22,
+  // Single-line scrollable rail (replaces the old wrapping grid).
+  rail: {
+    width: "100%",
     maxWidth: 1080,
+  },
+  railContent: {
+    gap: 22,
+    paddingHorizontal: 4,
+    paddingBottom: 4,
+    alignItems: "flex-start",
   },
   tile: { alignItems: "center", width: 118 },
   thumb: {

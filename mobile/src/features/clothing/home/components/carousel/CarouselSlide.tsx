@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Pressable, StyleSheet } from "react-native";
+import { Platform, View, Pressable, StyleSheet } from "react-native";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
@@ -10,9 +10,12 @@ import { Banner } from "@/src/features/common/banner/types/banner.types";
 interface CarouselSlideProps {
   item: Banner;
   index: number;
+  /** Desktop frame is much wider than the uploaded creative — render the
+   * full image fitted (blurred fill behind) instead of cover-cropping it. */
+  desktop?: boolean;
 }
 
-const CarouselSlide = ({ item }: CarouselSlideProps) => {
+const CarouselSlide = ({ item, desktop }: CarouselSlideProps) => {
   const router = useRouter();
   const trackClick = useTrackClick();
 
@@ -68,20 +71,49 @@ const CarouselSlide = ({ item }: CarouselSlideProps) => {
           {
             width: "100%",
             height: "100%",
-            borderRadius: 16,
+            borderRadius: desktop ? 22 : 16,
             overflow: "hidden",
+            backgroundColor: desktop ? "#1c1c1e" : "transparent",
           },
           pressed && { opacity: 0.85 },
         ]}
       >
-        <Image
-          source={{ uri: item.image }}
-          style={styles.slideImage}
-          contentFit="cover"
-          alt={item.title || "QuickBihar Fashion Sale Banner"}
-          accessibilityLabel={item.title || "Fashion Sale Banner"}
-          {...({ title: item.title || "QuickBihar Online Fashion Deals" } as any)}
-        />
+        {desktop ? (
+          <>
+            {/* Blurred fill so any creative aspect fills the wide frame. */}
+            <Image
+              source={{ uri: item.image }}
+              style={[
+                StyleSheet.absoluteFill,
+                { transform: [{ scale: 1.25 }] },
+                Platform.OS === "web"
+                  ? ({ filter: "blur(28px) brightness(0.85)" } as any)
+                  : null,
+            ]}
+              contentFit="cover"
+              blurRadius={Platform.OS === "web" ? undefined : 24}
+              accessibilityLabel=""
+            />
+            {/* Full creative, never cropped. */}
+            <Image
+              source={{ uri: item.image }}
+              style={styles.desktopFit}
+              contentFit="contain"
+              alt={item.title || "QuickBihar Fashion Sale Banner"}
+              accessibilityLabel={item.title || "Fashion Sale Banner"}
+              {...({ title: item.title || "QuickBihar Online Fashion Deals" } as any)}
+            />
+          </>
+        ) : (
+          <Image
+            source={{ uri: item.image }}
+            style={styles.slideImage}
+            contentFit="cover"
+            alt={item.title || "QuickBihar Fashion Sale Banner"}
+            accessibilityLabel={item.title || "Fashion Sale Banner"}
+            {...({ title: item.title || "QuickBihar Online Fashion Deals" } as any)}
+          />
+        )}
       </Pressable>
     </View>
   );
@@ -98,6 +130,10 @@ const styles = StyleSheet.create({
     height: "100%",
     resizeMode: "cover",
     borderRadius: 16,
+  },
+  desktopFit: {
+    width: "100%",
+    height: "100%",
   },
 });
 
