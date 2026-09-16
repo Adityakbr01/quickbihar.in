@@ -45,6 +45,16 @@ const TopSellingSection = ({ category }: { category?: string } = {}) => {
   const desktopContainer = Math.min(windowWidth - DESKTOP.gutter * 2, DESKTOP.maxWidth - 48);
   const desktopCardWidth = isDesktop ? (desktopContainer - desktopGap * 3) / 4 : mobileCardWidth;
 
+  // Desktop rail position + arrow scrolling (2 cards per click).
+  const railOffset = useRef(0);
+  const scrollRail = (dir: 1 | -1) => {
+    const step = (desktopCardWidth + desktopGap) * 2;
+    scrollRef.current?.scrollTo({
+      x: Math.max(0, railOffset.current + dir * step),
+      animated: true,
+    });
+  };
+
   const handleSeeAll = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     router.push({
@@ -173,22 +183,61 @@ const TopSellingSection = ({ category }: { category?: string } = {}) => {
       </View>
 
       {isDesktop ? (
-        <ScrollView
-          ref={scrollRef}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{
-            paddingHorizontal: 24,
-            paddingBottom: 8,
-            gap: desktopGap,
-          }}
-        >
-          {products.slice(0, 5).map((item: any) => (
-            <View key={item._id || item.id} style={{ width: desktopCardWidth }}>
-              <ProductCard item={item} desktopWidth={desktopCardWidth} />
-            </View>
-          ))}
-        </ScrollView>
+        <View style={{ position: "relative" }}>
+          <ScrollView
+            ref={scrollRef}
+            horizontal
+            showsHorizontalScrollIndicator
+            scrollEventThrottle={16}
+            onScroll={(e) => {
+              railOffset.current = e.nativeEvent.contentOffset.x;
+            }}
+            contentContainerStyle={{
+              paddingHorizontal: 24,
+              paddingBottom: 8,
+              gap: desktopGap,
+            }}
+          >
+            {products.slice(0, 5).map((item: any) => (
+              <View key={item._id || item.id} style={{ width: desktopCardWidth }}>
+                <ProductCard item={item} desktopWidth={desktopCardWidth} />
+              </View>
+            ))}
+          </ScrollView>
+          {/* Desktop rail arrows — one line, scrollable both ways. */}
+          <TouchableOpacity
+            onPress={() => scrollRail(-1)}
+            accessibilityRole="button"
+            accessibilityLabel="Scroll top selling left"
+            activeOpacity={0.8}
+            style={[
+              localStyles.railArrow,
+              localStyles.railArrowLeft,
+              {
+                backgroundColor: theme.background,
+                borderColor: theme.border,
+              },
+            ]}
+          >
+            <Text style={[localStyles.railArrowText, { color: theme.text }]}>‹</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => scrollRail(1)}
+            accessibilityRole="button"
+            accessibilityLabel="Scroll top selling right"
+            activeOpacity={0.8}
+            style={[
+              localStyles.railArrow,
+              localStyles.railArrowRight,
+              {
+                backgroundColor: theme.background,
+                borderColor: theme.border,
+              },
+            ]}
+          >
+            <Text style={[localStyles.railArrowText, { color: theme.text }]}>›</Text>
+          </TouchableOpacity>
+        </View>
       ) : (
       <ScrollView
         ref={scrollRef}
@@ -236,6 +285,32 @@ const localStyles = StyleSheet.create({
   arrowLottie: {
     width: "100%",
     height: "100%",
+  },
+  railArrow: {
+    position: "absolute",
+    top: "38%",
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 5,
+    ...Platform.select({
+      web: { cursor: "pointer", boxShadow: "0 4px 14px rgba(0,0,0,0.18)" } as any,
+    }),
+  },
+  railArrowLeft: {
+    left: 28,
+  },
+  railArrowRight: {
+    right: 28,
+  },
+  railArrowText: {
+    fontSize: 26,
+    fontWeight: "800",
+    lineHeight: 30,
+    marginTop: -3,
   },
 });
 
