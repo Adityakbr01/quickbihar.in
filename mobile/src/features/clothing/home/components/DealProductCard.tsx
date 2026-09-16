@@ -3,6 +3,7 @@ import { IProduct } from "@/src/features/clothing/product/types/product.types";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
+import { Platform } from "react-native";
 import { useRouter } from "expo-router";
 import LazyLottie from "@/src/components/common/LazyLottie";
 import React from "react";
@@ -144,11 +145,32 @@ export const DealProductCard = ({ product, width }: DealProductCardProps) => {
           backgroundColor: theme.background,
           borderColor: theme.border,
           width,
+          ...(Platform.OS === "web" && width > 240
+            ? {
+                borderRadius: 18,
+                shadowColor: theme.shadow || "#000",
+                shadowOffset: { width: 0, height: 8 },
+                shadowOpacity: 0.12,
+                shadowRadius: 20,
+                elevation: 4,
+              }
+            : null),
         },
       ]}
     >
       {/* Image & Overlays */}
-      <View style={styles.productImageContainer}>
+      {/* Desktop: taller image proportional to the wider grid cell;
+          mobile keeps the legacy 180px height. */}
+      <View
+        style={[
+          styles.productImageContainer,
+          Platform.OS === "web" && width > 240
+            ? {
+                height: Math.min(300, Math.round(width * 0.92)),
+              }
+            : null,
+        ]}
+      >
         <Image 
           source={{ uri: productData.image }} 
           style={styles.productImage}

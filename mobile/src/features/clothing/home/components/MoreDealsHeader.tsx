@@ -1,14 +1,17 @@
 import React from "react";
 import {
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
+  useWindowDimensions,
 } from "react-native";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { CAMPAIGNS } from "../lib/dealsConfig";
+import { BREAKPOINTS } from "@/src/utils/responsive";
 
 export const MoreDealsHeader = ({
   theme,
@@ -20,6 +23,8 @@ export const MoreDealsHeader = ({
   );
 
   const activeId = activeCampaign ?? internalActiveId;
+  const { width } = useWindowDimensions();
+  const isDesktop = Platform.OS === "web" && width >= BREAKPOINTS.desktopMin;
   // ponytail: festive active gradient is brand candy (same both modes);
   // only the idle-cream card adapts so it doesn't glow on dark.
   const isDark = theme?.isDark ?? theme?.text === "#ffffff";
@@ -47,6 +52,77 @@ export const MoreDealsHeader = ({
     }
     return upper.split(" ").join("\n");
   };
+
+  const list = CAMPAIGNS;
+
+  const renderCard = (camp: (typeof CAMPAIGNS)[number], cardWidth?: number) => {
+    const isActive = activeId === camp.id;
+    const imageUri = typeof camp.image === "string" ? camp.image : undefined;
+    return (
+      <TouchableOpacity
+        key={camp.id}
+        activeOpacity={0.85}
+        accessibilityRole="button"
+        accessibilityLabel={`View ${camp.title} Deals`}
+        {...({ title: `Explore ${camp.title} Deals on QuickBihar` } as any)}
+        onPress={() => handlePress(camp.id)}
+      >
+        <LinearGradient
+          colors={isActive ? ["#F15E48", "#FDCE7F"] : idleGradient}
+          style={[
+            styles.campaignCard,
+            isDesktop && desktopStyles.card,
+            cardWidth ? { width: cardWidth } : null,
+            isActive
+              ? { borderColor: "#F15E48" }
+              : { borderColor: isDark ? "rgba(222,132,16,0.45)" : "#DE8410" },
+          ]}
+        >
+          <Text
+            style={[
+              styles.campaignTitle,
+              isDesktop && desktopStyles.title,
+              isActive
+                ? { color: "#FFFFFF" }
+                : { color: isDark ? "#F5B04C" : "#E08616" },
+            ]}
+            numberOfLines={2}
+          >
+            {formatTitle(camp.title)}
+          </Text>
+          <Image
+            source={imageUri ? { uri: imageUri } : camp.image}
+            style={[styles.campaignImage, isDesktop && desktopStyles.image]}
+            contentFit="contain"
+            alt={`${camp.title} Deals in Bihar`}
+            accessibilityLabel={`${camp.title} campaign`}
+            {...({ title: `${camp.title} | QuickBihar Deals` } as any)}
+          />
+        </LinearGradient>
+      </TouchableOpacity>
+    );
+  };
+
+  if (isDesktop) {
+    return (
+      <View style={[styles.container, { paddingBottom: 0, alignItems: "center" }]}>
+        <Text
+          accessibilityRole="header"
+          aria-level={2}
+          {...({ role: "heading" } as any)}
+          style={[styles.headerText, desktopStyles.heading, { color: theme?.text || "#fff" }]}
+        >
+          Explore More Deals
+        </Text>
+        <Text style={[desktopStyles.sub, { color: theme?.secondaryText }]}>
+          Curated festive picks from Bihar's top local stores
+        </Text>
+        <View style={desktopStyles.grid}>
+          {list.map((camp) => renderCard(camp))}
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={[styles.container, { paddingBottom: 0 }]}>
@@ -168,6 +244,22 @@ const styles = StyleSheet.create({
     textAlign: "center",
     zIndex: 10,
   },
+});
+
+// Desktop-only: 5-up festive grid. Never used on mobile.
+const desktopStyles = StyleSheet.create({
+  heading: { fontSize: 28, marginBottom: 6 },
+  sub: { fontSize: 14, fontWeight: "500", marginBottom: 22 },
+  grid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "center",
+    gap: 16,
+    maxWidth: 1080,
+  },
+  card: { width: 196, height: 132, borderRadius: 18 },
+  title: { fontSize: 16, lineHeight: 18 },
+  image: { width: 120, height: 120, bottom: -28, right: 22 },
 });
 
 export default MoreDealsHeader;

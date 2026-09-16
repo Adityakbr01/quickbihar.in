@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
-import { View, ScrollView, TouchableOpacity, Text, ActivityIndicator } from "react-native";
+import { Platform, View, ScrollView, TouchableOpacity, Text, ActivityIndicator, useWindowDimensions } from "react-native";
+import { BREAKPOINTS, DESKTOP } from "@/src/utils/responsive";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
@@ -57,6 +58,10 @@ const CartContent = () => {
 
   const router = useRouter();
   const { isAuthenticated } = useAuthStore();
+  const { width: winW } = useWindowDimensions();
+  // Desktop web (clothing catalog): wider centered column + footer docks
+  // to the viewport bottom since bottom tabs are hidden there.
+  const isDesktop = Platform.OS === "web" && winW >= BREAKPOINTS.desktopMin;
 
   const handleCheckout = () => {
     if (!isAuthenticated) {
@@ -103,7 +108,15 @@ const CartContent = () => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.mainWrapper}>
+      <View
+        style={[
+          styles.mainWrapper,
+          isDesktop && {
+            maxWidth: DESKTOP.narrowMaxWidth,
+            paddingHorizontal: DESKTOP.gutter,
+          },
+        ]}
+      >
         <CartHeader productsCount={productsCount} totalUnits={totalUnits} />
 
         <ScrollView
@@ -143,7 +156,15 @@ const CartContent = () => {
         </ScrollView>
 
         {/* Sticky Bottom Checkout CTA */}
-        <View style={styles.footer}>
+        <View
+          style={[
+            styles.footer,
+            isDesktop && {
+              bottom: 0,
+              maxWidth: DESKTOP.narrowMaxWidth - DESKTOP.gutter * 2,
+            },
+          ]}
+        >
           <TouchableOpacity
             style={[styles.checkoutButton, { backgroundColor: theme.primary }]}
             onPress={handleCheckout}

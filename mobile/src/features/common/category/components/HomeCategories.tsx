@@ -1,11 +1,14 @@
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { spacing } from "@/src/theme/spacing";
+import { BREAKPOINTS } from "@/src/utils/responsive";
 import React from "react";
 import {
+  Platform,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
+  useWindowDimensions,
 } from "react-native";
 import { FlashList } from "@shopify/flash-list";
 import { Image } from "expo-image";
@@ -19,6 +22,8 @@ import { Ionicons } from "@expo/vector-icons";
 const HomeCategories = ({ rootSlug = "clothing" }: { rootSlug?: string }) => {
   const theme = useTheme() as any;
   const router = useRouter();
+  const { width } = useWindowDimensions();
+  const isDesktop = Platform.OS === "web" && width >= BREAKPOINTS.desktopMin;
   const [showAll, setShowAll] = React.useState(false);
   const { data: rawCategories, isLoading, error } = useCategories({ vertical: "CLOTHING" });
 
@@ -134,6 +139,78 @@ const HomeCategories = ({ rootSlug = "clothing" }: { rootSlug?: string }) => {
     return null;
   }
 
+  // Desktop web: premium centered grid (up to 10 tiles, larger artwork,
+  // hover lift). Mobile path below is byte-identical to before.
+  if (isDesktop) {
+    const gridData = (showAll ? visibleCategories : visibleCategories.slice(0, 10));
+    // Reuse the full eligible list when collapsed to 5 mobile items —
+    // desktop shows more without an extra fetch.
+    const desktopList = showAll
+      ? gridData
+      : (rawCategories || [])
+          .filter((cat: any) => {
+            if ((cat as any).vertical && (cat as any).vertical !== "CLOTHING") return false;
+            const lower = String((cat as any).title || "").toLowerCase();
+            return (
+              !lower.includes("jewel") &&
+              !lower.includes("food") &&
+              !lower.includes("grocery") &&
+              !lower.includes("accessori")
+            );
+          })
+          .slice(0, 10);
+    return (
+      <View style={[styles.container, desktopStyles.wrap]}>
+        <Text style={[desktopStyles.heading, { color: theme.text }]}>
+          Shop by category
+        </Text>
+        <View style={desktopStyles.grid}>
+          {desktopList.map((item: any) => (
+            <TouchableOpacity
+              key={item._id}
+              style={desktopStyles.tile}
+              activeOpacity={0.8}
+              accessibilityRole="link"
+              accessibilityLabel={`Shop ${item.title}`}
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                router.push({
+                  pathname: "/(tabs)/clothing/search" as any,
+                  params: {
+                    query: item.title,
+                    categoryName: item.title,
+                    subCategory: item.title,
+                    categoryId: item._id,
+                  },
+                });
+              }}
+            >
+              <View
+                style={[
+                  desktopStyles.thumb,
+                  {
+                    borderColor: theme.border,
+                    backgroundColor: theme.secondaryBackground,
+                  },
+                ]}
+              >
+                <Image
+                  source={{ uri: item.image }}
+                  style={desktopStyles.img}
+                  contentFit="cover"
+                  transition={200}
+                />
+              </View>
+              <Text style={[desktopStyles.label, { color: theme.text }]} numberOfLines={1}>
+                {item.title}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <FlashList
@@ -207,4 +284,34 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     textAlign: "center",
   },
+});
+
+// Desktop-only styles — never applied on native / mobile web.
+const desktopStyles = StyleSheet.create({
+  wrap: { marginVertical: 28, paddingHorizontal: 24, alignItems: "center" },
+  heading: { fontSize: 24, fontWeight: "900", letterSpacing: -0.5, marginBottom: 20 },
+  grid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "center",
+    gap: 22,
+    maxWidth: 1080,
+  },
+  tile: { alignItems: "center", width: 118 },
+  thumb: {
+    width: 104,
+    height: 104,
+    borderRadius: 52,
+    borderWidth: 1,
+    overflow: "hidden",
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.12,
+    shadowRadius: 14,
+    elevation: 4,
+  },
+  img: { width: "100%", height: "100%" },
+  label: { fontSize: 13, fontWeight: "700", textAlign: "center", marginTop: 10 },
 });

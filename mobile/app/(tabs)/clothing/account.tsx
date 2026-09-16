@@ -1,5 +1,5 @@
 import React, { Component, ErrorInfo, ReactNode } from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { Platform, View, Text, TouchableOpacity, StyleSheet, useWindowDimensions } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import AccountMain from "@/src/features/common/account/screens/AccountMain";
@@ -7,6 +7,7 @@ import SafeViewWrapper from "@/src/provider/SafeViewWrapper";
 import { NoIndexHead } from "@/src/components/seo/SeoHead";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
+import { BREAKPOINTS, DESKTOP } from "@/src/utils/responsive";
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -62,6 +63,8 @@ const AccountScreen = () => {
   const { isAuthenticated, isInitialized } = useAuthStore();
   const theme = useTheme() as any;
   const router = useRouter();
+  const { width } = useWindowDimensions();
+  const isDesktop = Platform.OS === "web" && width >= BREAKPOINTS.desktopMin;
 
   // If auth is already initialized and user is NOT logged in, show clean sign-in prompt
   if (isInitialized && !isAuthenticated) {

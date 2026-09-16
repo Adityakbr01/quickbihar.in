@@ -3,14 +3,17 @@ import { useQueryClient } from "@tanstack/react-query";
 import React, { useCallback, useState } from "react";
 import {
   Dimensions,
+  Platform,
   RefreshControl,
   ScrollView,
   StyleSheet,
   View,
+  useWindowDimensions,
 } from "react-native";
 import { useSharedValue } from "react-native-reanimated";
 import HomeCategories from "@/src/features/common/category/components/HomeCategories";
 import HomeHeader from "../components/HomeHeader";
+import { DesktopFooter } from "../components/DesktopFooter";
 import { MoreDealsHeader } from "../components/MoreDealsHeader";
 import TopHomeCarousel from "../components/TopHomeCarousel";
 import {
@@ -20,6 +23,7 @@ import {
 } from "../sections/MoreDealsSection";
 import TopMallSection from "../sections/TopMallSection";
 import TopSellingSection from "../sections/TopSellingSection";
+import { BREAKPOINTS, DESKTOP } from "@/src/utils/responsive";
 
 const HomeScreen = ({ rootSlug }: { rootSlug?: string }) => {
   const menuOpen = useSharedValue(0);
@@ -55,13 +59,18 @@ const HomeScreen = ({ rootSlug }: { rootSlug?: string }) => {
     }
   }, [isRefreshing, queryClient]);
 
+  const { width } = useWindowDimensions();
+  const isDesktop = Platform.OS === "web" && width >= BREAKPOINTS.desktopMin;
+  const isWide = Platform.OS === "web" && width >= BREAKPOINTS.tabletMin;
+
   return (
     <SafeViewWrapper>
       <View style={localStyles.scrollView}>
         <ScrollView
           style={localStyles.scrollView}
+          contentContainerStyle={isWide ? localStyles.desktopContent : undefined}
           showsVerticalScrollIndicator={false}
-          stickyHeaderIndices={[1]}
+          stickyHeaderIndices={isDesktop ? undefined : [1]}
           refreshControl={
             <RefreshControl
               refreshing={isRefreshing}
@@ -70,10 +79,10 @@ const HomeScreen = ({ rootSlug }: { rootSlug?: string }) => {
           }
         >
           {/* Child 0: Everything before the Sticky Filter */}
-          <View style={localStyles.heroWrapper}>
+          <View style={[localStyles.heroWrapper, isWide && localStyles.desktopColumn]}>
             <HomeHeader menuOpen={menuOpen} toggleMenu={toggleMenu} />
 
-            <View style={{ marginTop: 12 }}>
+            <View style={{ marginTop: isDesktop ? 20 : 12, width: "100%" }}>
               {/* He is Done */}
               <TopHomeCarousel />
             </View>
@@ -85,13 +94,23 @@ const HomeScreen = ({ rootSlug }: { rootSlug?: string }) => {
             <MoreDealsHeader {...moreDealsState} />
           </View>
 
-          {/* Child 1: The Sticky Filter Tabs */}
-          <MoreDealsFilters {...moreDealsState} />
+          {/* Child 1: The Sticky Filter Tabs (sticky only on mobile; on
+              desktop the top DesktopNavbar is the persistent chrome) */}
+          <View style={isWide ? localStyles.desktopColumn : undefined}>
+            <MoreDealsFilters {...moreDealsState} />
+          </View>
 
           {/* Child 2: The Product Grid */}
-          <View style={{ minHeight: Dimensions.get("window").height * 0.7 }}>
+          <View
+            style={[
+              { minHeight: Dimensions.get("window").height * 0.7 },
+              isWide && localStyles.desktopColumn,
+            ]}
+          >
             <MoreDealsGrid {...moreDealsState} />
           </View>
+
+          {isDesktop ? <DesktopFooter /> : null}
         </ScrollView>
       </View>
     </SafeViewWrapper>
@@ -104,6 +123,17 @@ const localStyles = StyleSheet.create({
   },
   heroWrapper: {
     overflow: "hidden",
+  },
+  // Desktop-only: centered 1280px column. Never applied on mobile.
+  desktopContent: {
+    alignItems: "center",
+  },
+  desktopColumn: {
+    width: "100%",
+    maxWidth: DESKTOP.maxWidth,
+    alignSelf: "center",
+    marginHorizontal: "auto" as any,
+    paddingHorizontal: DESKTOP.gutter,
   },
 });
 

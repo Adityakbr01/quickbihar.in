@@ -34,9 +34,12 @@ export const createTopMallSectionStyles = (theme: any) =>
       paddingBottom: 16, // Room for shadow
     },
     // Mall Card Specific Styles
+    // Width is 100% of the parent cell — parents set 260 (native) /
+    // 300 (mobile web) / 3-col grid cell (desktop), so mobile pixels
+    // are identical while desktop can use wider cells.
     cardContainer: {
-      width: Platform.OS === "web" ? 300 : 260,
-      height: 200,
+      width: "100%" as any,
+      height: Platform.OS === "web" ? 220 : 200,
       borderRadius: 20,
       overflow: "hidden",
       backgroundColor: theme.background,

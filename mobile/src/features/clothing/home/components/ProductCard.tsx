@@ -17,9 +17,11 @@ import { formatPrice } from "@/src/utils/formatPrice";
 
 interface ProductCardProps {
   item: IProduct | MockProduct;
+  /** Desktop grid cell width — fills parent; mobile keeps legacy 240px. */
+  desktopWidth?: number;
 }
 
-export const ProductCard = ({ item }: ProductCardProps) => {
+export const ProductCard = ({ item, desktopWidth }: ProductCardProps) => {
   const theme = useTheme() as any;
   const styles = React.useMemo(() => createProductCardStyles(theme), [theme]);
   const router = useRouter();
@@ -126,6 +128,7 @@ export const ProductCard = ({ item }: ProductCardProps) => {
         {
           backgroundColor: theme.background,
           borderColor: theme.border,
+          ...(desktopWidth ? { width: "100%" as any } : null),
         },
       ]}
       activeOpacity={0.85}

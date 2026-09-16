@@ -8,7 +8,9 @@ import {
   Text,
   TouchableOpacity,
   View,
+  useWindowDimensions,
 } from "react-native";
+import { BREAKPOINTS, DESKTOP } from "@/src/utils/responsive";
 import { ProductCard } from "../components/ProductCard";
 import { ProductCardSkeleton } from "../components/ProductCardSkeleton";
 import { createTopSellingSectionStyles } from "../style/TopSellingSection.style";
@@ -29,11 +31,16 @@ const ITEM_WIDTH = CARD_WIDTH + GAP;
 const TopSellingSection = ({ category }: { category?: string } = {}) => {
   const theme = useTheme() as any;
   const router = useRouter();
+  const { width: windowWidth } = useWindowDimensions();
+  const isDesktop = Platform.OS === "web" && windowWidth >= BREAKPOINTS.desktopMin;
   const scrollRef = useRef<ScrollView>(null);
   const styles = React.useMemo(
     () => createTopSellingSectionStyles(theme),
     [theme],
   );
+  const desktopGap = 20;
+  const desktopContainer = Math.min(windowWidth - DESKTOP.gutter * 2, DESKTOP.maxWidth - 48);
+  const desktopCardWidth = isDesktop ? (desktopContainer - desktopGap * 3) / 4 : CARD_WIDTH;
 
   const handleSeeAll = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -162,6 +169,23 @@ const TopSellingSection = ({ category }: { category?: string } = {}) => {
         </TouchableOpacity>
       </View>
 
+      {isDesktop ? (
+        <View
+          style={{
+            flexDirection: "row",
+            flexWrap: "wrap",
+            paddingHorizontal: 24,
+            gap: desktopGap,
+            rowGap: desktopGap,
+          }}
+        >
+          {products.slice(0, 4).map((item: any) => (
+            <View key={item._id || item.id} style={{ width: desktopCardWidth }}>
+              <ProductCard item={item} desktopWidth={desktopCardWidth} />
+            </View>
+          ))}
+        </View>
+      ) : (
       <ScrollView
         ref={scrollRef}
         horizontal
@@ -187,6 +211,7 @@ const TopSellingSection = ({ category }: { category?: string } = {}) => {
           </View>
         ))}
       </ScrollView>
+      )}
     </View>
   );
 };

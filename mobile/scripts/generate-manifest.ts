@@ -68,88 +68,122 @@ async function main() {
   const products: ProductManifestEntry[] = unwrapList(prodRes);
   console.log(`[manifest] Fetched ${products.length} products.`);
 
+  const prodFilePath = path.join(OUT_DIR, "products-static.json");
   if (products.length === 0) {
-    console.error(
-      "[manifest] ERROR: 0 products returned from API. " +
-      "Refusing to write an empty manifest — this would generate zero product pages. " +
-      "Check /api/v1/products/public response shape and try again."
+    if (fs.existsSync(prodFilePath)) {
+      try {
+        const existing = JSON.parse(fs.readFileSync(prodFilePath, "utf-8"));
+        if (Object.keys(existing).length > 0) {
+          console.warn(
+            `[manifest] WARN: 0 products fetched from API (HTTP 502 or network error). Reusing existing products-static.json (${Object.keys(existing).length} slugs).`
+          );
+        } else {
+          throw new Error("Existing products-static.json is empty");
+        }
+      } catch {
+        console.error(
+          "[manifest] ERROR: 0 products returned from API and existing products-static.json is invalid."
+        );
+        process.exit(1);
+      }
+    } else {
+      console.error(
+        "[manifest] ERROR: 0 products returned from API and no existing products-static.json found."
+      );
+      process.exit(1);
+    }
+  } else {
+    // Key by slug; skip products without a slug (can't generate a canonical URL).
+    const productMap: Record<string, ProductManifestEntry> = {};
+    let skipped = 0;
+    for (const p of products) {
+      const slug = String(p?.slug || "").trim();
+      if (!slug) { skipped++; continue; }
+      productMap[slug] = {
+        _id: p._id,
+        slug,
+        title: p.title,
+        price: p.price,
+        shortDescription: p.shortDescription,
+        description: p.description,
+        category: p.category,
+        subCategory: p.subCategory,
+        images: Array.isArray(p.images) ? p.images.slice(0, 1) : undefined,
+        isActive: p.isActive,
+        isVerified: p.isVerified,
+      };
+    }
+    if (skipped > 0) {
+      console.warn(`[manifest] ${skipped} products skipped (no slug) — they will not get a static page.`);
+    }
+
+    fs.writeFileSync(
+      prodFilePath,
+      JSON.stringify(productMap, null, 2),
+      "utf-8"
     );
-    process.exit(1);
+    console.log(`[manifest] ✓ Wrote products-static.json (${Object.keys(productMap).length} slugs)`);
   }
-
-  // Key by slug; skip products without a slug (can't generate a canonical URL).
-  const productMap: Record<string, ProductManifestEntry> = {};
-  let skipped = 0;
-  for (const p of products) {
-    const slug = String(p?.slug || "").trim();
-    if (!slug) { skipped++; continue; }
-    productMap[slug] = {
-      _id: p._id,
-      slug,
-      title: p.title,
-      price: p.price,
-      shortDescription: p.shortDescription,
-      description: p.description,
-      category: p.category,
-      subCategory: p.subCategory,
-      images: Array.isArray(p.images) ? p.images.slice(0, 1) : undefined,
-      isActive: p.isActive,
-      isVerified: p.isVerified,
-    };
-  }
-  if (skipped > 0) {
-    console.warn(`[manifest] ${skipped} products skipped (no slug) — they will not get a static page.`);
-  }
-
-  fs.writeFileSync(
-    path.join(OUT_DIR, "products-static.json"),
-    JSON.stringify(productMap, null, 2),
-    "utf-8"
-  );
-  console.log(`[manifest] ✓ Wrote products-static.json (${Object.keys(productMap).length} slugs)`);
 
   // ── Malls ─────────────────────────────────────────────────────────────────
   const mallRes = await safeFetchJson<any>(`${ORIGIN}/api/v1/malls`, { retries: 3 });
   const malls: MallManifestEntry[] = unwrapList(mallRes);
   console.log(`[manifest] Fetched ${malls.length} malls.`);
 
+  const mallFilePath = path.join(OUT_DIR, "malls-static.json");
   if (malls.length === 0) {
-    console.error(
-      "[manifest] ERROR: 0 malls returned from API. " +
-      "Refusing to write an empty manifest — this would generate zero mall pages. " +
-      "Check /api/v1/malls response shape and try again."
+    if (fs.existsSync(mallFilePath)) {
+      try {
+        const existing = JSON.parse(fs.readFileSync(mallFilePath, "utf-8"));
+        if (Object.keys(existing).length > 0) {
+          console.warn(
+            `[manifest] WARN: 0 malls fetched from API (HTTP 502 or network error). Reusing existing malls-static.json (${Object.keys(existing).length} slugs).`
+          );
+        } else {
+          throw new Error("Existing malls-static.json is empty");
+        }
+      } catch {
+        console.error(
+          "[manifest] ERROR: 0 malls returned from API and existing malls-static.json is invalid."
+        );
+        process.exit(1);
+      }
+    } else {
+      console.error(
+        "[manifest] ERROR: 0 malls returned from API and no existing malls-static.json found."
+      );
+      process.exit(1);
+    }
+  } else {
+    const mallMap: Record<string, MallManifestEntry> = {};
+    let mallSkipped = 0;
+    for (const m of malls) {
+      const slug = String(m?.slug || m?._id || "").trim();
+      if (!slug) { mallSkipped++; continue; }
+      mallMap[slug] = {
+        _id: m._id,
+        slug: m.slug,
+        name: m.name,
+        description: m.description,
+        coverImageUrl: m.coverImageUrl,
+        logoUrl: m.logoUrl,
+        images: Array.isArray(m.images) ? m.images.slice(0, 1) : undefined,
+        address: m.address,
+        location: m.location,
+        isActive: m.isActive,
+      };
+    }
+    if (mallSkipped > 0) {
+      console.warn(`[manifest] ${mallSkipped} malls skipped (no slug or _id).`);
+    }
+
+    fs.writeFileSync(
+      mallFilePath,
+      JSON.stringify(mallMap, null, 2),
+      "utf-8"
     );
-    process.exit(1);
+    console.log(`[manifest] ✓ Wrote malls-static.json (${Object.keys(mallMap).length} slugs)`);
   }
-
-  const mallMap: Record<string, MallManifestEntry> = {};
-  let mallSkipped = 0;
-  for (const m of malls) {
-    const slug = String(m?.slug || m?._id || "").trim();
-    if (!slug) { mallSkipped++; continue; }
-    mallMap[slug] = {
-      _id: m._id,
-      slug: m.slug,
-      name: m.name,
-      description: m.description,
-      coverImageUrl: m.coverImageUrl,
-      logoUrl: m.logoUrl,
-      images: Array.isArray(m.images) ? m.images.slice(0, 1) : undefined,
-      address: m.address,
-      location: m.location,
-      isActive: m.isActive,
-    };
-  }
-  if (mallSkipped > 0) {
-    console.warn(`[manifest] ${mallSkipped} malls skipped (no slug or _id).`);
-  }
-
-  fs.writeFileSync(
-    path.join(OUT_DIR, "malls-static.json"),
-    JSON.stringify(mallMap, null, 2),
-    "utf-8"
-  );
-  console.log(`[manifest] ✓ Wrote malls-static.json (${Object.keys(mallMap).length} slugs)`);
 
   console.log("[manifest] Done. Ready for expo export --platform web.");
 }

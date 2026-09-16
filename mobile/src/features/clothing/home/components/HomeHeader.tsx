@@ -1,6 +1,7 @@
 import React, { useRef } from "react";
-import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
+import { Platform, Pressable, StyleSheet, Text, View, useWindowDimensions } from "react-native";
 import { useRouter } from "expo-router";
+import { BREAKPOINTS } from "@/src/utils/responsive";
 import LazyLottie from "@/src/components/common/LazyLottie";
 import * as Haptics from "expo-haptics";
 import { SharedValue } from "react-native-reanimated";
@@ -19,8 +20,13 @@ interface HomeHeaderProps {
 
 const HomeHeader: React.FC<HomeHeaderProps> = () => {
   const isWeb = Platform.OS === "web";
+  const { width } = useWindowDimensions();
   const theme = useTheme();
   const router = useRouter();
+
+  // Desktop web uses the custom top DesktopNavbar — hide the mobile
+  // brand row there so we don't render two headers. Mobile untouched.
+  if (isWeb && width >= BREAKPOINTS.desktopMin) return null;
 
   const { data: notifications = [] } = useNotifications();
   const hasUnread = notifications.some((n) => !n.isRead);

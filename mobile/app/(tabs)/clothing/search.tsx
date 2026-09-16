@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect } from "react";
-import { StyleSheet, View, ScrollView, Platform } from "react-native";
+import { StyleSheet, View, ScrollView, Platform, useWindowDimensions } from "react-native";
+import { BREAKPOINTS, DESKTOP } from "@/src/utils/responsive";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
 
@@ -109,6 +110,9 @@ const SearchScreen = () => {
     setFilters(newFilters);
   };
 
+  const { width: winW } = useWindowDimensions();
+  const isDesktop = Platform.OS === "web" && winW >= BREAKPOINTS.desktopMin;
+
   const onClearHistory = () => {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
     setHistory([]);
@@ -150,6 +154,8 @@ const SearchScreen = () => {
         })()}
       />
       <View style={[styles.container, { backgroundColor: theme.background }]}>
+        {/* Desktop: centered 1280px column; mobile renders edge-to-edge. */}
+        <View style={isDesktop ? styles.desktopColumn : styles.mobileFill}>
         <SearchHeader
           query={query}
           setQuery={setQuery}
@@ -202,6 +208,7 @@ const SearchScreen = () => {
             />
           )}
         </View>
+        </View>
       </View>
     </SafeViewWrapper>
   );
@@ -218,5 +225,18 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     paddingBottom: 20,
+  },
+  // Mobile passthrough keeps legacy layout identical.
+  mobileFill: {
+    flex: 1,
+  },
+  // Desktop-only: centered 1280px column. Never applied on mobile.
+  desktopColumn: {
+    width: "100%",
+    maxWidth: DESKTOP.maxWidth,
+    alignSelf: "center",
+    marginHorizontal: "auto" as any,
+    paddingHorizontal: DESKTOP.gutter,
+    flex: 1,
   },
 });

@@ -8,6 +8,7 @@ import {
   Platform,
   ScrollView,
 } from "react-native";
+import { BREAKPOINTS, DESKTOP } from "@/src/utils/responsive";
 import LazyLottie from "@/src/components/common/LazyLottie";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
@@ -29,9 +30,13 @@ const TopMallSection = () => {
   );
   const router = useRouter();
 
+  const isDesktop = Platform.OS === "web" && windowWidth >= BREAKPOINTS.desktopMin;
   const isWeb = windowWidth > 600;
-  const cardWidth = isWeb ? 300 : 260;
-  const gap = 16;
+  const gap = isDesktop ? 20 : 16;
+  // Mobile widths byte-identical. Desktop uses a 3-col grid cell.
+  const desktopContainer = Math.min(windowWidth - DESKTOP.gutter * 2, DESKTOP.maxWidth);
+  const desktopCardWidth = (desktopContainer - gap * 2) / 3;
+  const cardWidth = isDesktop ? desktopCardWidth : isWeb ? 300 : 260;
   const { data: topMalls, isLoading } = useQuery({
     queryKey: ["topMalls"],
     queryFn: getTopMallsRequest,
@@ -118,6 +123,23 @@ const TopMallSection = () => {
         </TouchableOpacity>
       </View>
 
+      {isDesktop ? (
+        <View
+          style={{
+            flexDirection: "row",
+            flexWrap: "wrap",
+            paddingHorizontal: 0,
+            gap,
+            rowGap: gap,
+          }}
+        >
+          {malls.slice(0, 6).map((item: any) => (
+            <View key={item.id} style={{ width: cardWidth }}>
+              <MallCard mall={item} />
+            </View>
+          ))}
+        </View>
+      ) : (
       <ScrollView
         ref={scrollRef}
         horizontal
@@ -142,6 +164,7 @@ const TopMallSection = () => {
           </View>
         ))}
       </ScrollView>
+      )}
     </View>
   );
 };

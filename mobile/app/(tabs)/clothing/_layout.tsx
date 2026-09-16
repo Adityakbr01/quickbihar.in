@@ -1,5 +1,7 @@
 import { getRoleName, RIDER_ROLE_ALIAS, RoleEnum, useAuthStore } from "@/src/features/common/auth/store/authStore";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
+import { DesktopNavbar } from "@/src/features/clothing/home/components/DesktopNavbar";
+import { BREAKPOINTS } from "@/src/utils/responsive";
 import {
   DeliveryTruck01Icon,
   Home01Icon,
@@ -10,7 +12,7 @@ import {
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import * as Haptics from "expo-haptics";
 import { Tabs, useRouter } from "expo-router";
-import { Platform } from "react-native";
+import { Platform, View, useWindowDimensions } from "react-native";
 
 const TABS_CONFIG = [
   {
@@ -43,6 +45,10 @@ export default function TabsLayout() {
   const isRider = roleName === RoleEnum.DELIVERY || roleName === RIDER_ROLE_ALIAS;
 
   const isWeb = Platform.OS === "web";
+  const { width } = useWindowDimensions();
+  // Desktop web (>=1024px) gets the custom top navbar; bottom tabs are
+  // hidden there. Mobile web + native keep the exact legacy bottom bar.
+  const isDesktop = isWeb && width >= BREAKPOINTS.desktopMin;
 
   const ALL_TABS = [
     ...TABS_CONFIG,
@@ -55,13 +61,17 @@ export default function TabsLayout() {
   ];
 
   return (
-    <Tabs
+    <View style={{ flex: 1, backgroundColor: theme.background }}>
+      {isDesktop ? <DesktopNavbar /> : null}
+      <Tabs
       screenOptions={{
         headerShown: false,
         sceneStyle: { backgroundColor: theme.background },
         tabBarActiveTintColor: theme.iconColor,
         tabBarInactiveTintColor: theme.tertiaryText,
-        tabBarStyle: {
+        tabBarStyle: isDesktop
+          ? { display: "none" }
+          : {
           backgroundColor: theme.background,
           borderTopWidth: 0,
           elevation: 8,
@@ -126,6 +136,7 @@ export default function TabsLayout() {
           href: null,
         }}
       />
-    </Tabs>
+      </Tabs>
+    </View>
   );
 }

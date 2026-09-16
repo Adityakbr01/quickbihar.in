@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet, View, useWindowDimensions } from "react-native";
+import { Platform, StyleSheet, View, useWindowDimensions } from "react-native";
 import Carousel from "react-native-reanimated-carousel";
 import { useSharedValue } from "react-native-reanimated";
 import { useBanners } from "@/src/features/common/banner/hooks/useBanners";
@@ -7,6 +7,7 @@ import { Banner } from "@/src/features/common/banner/types/banner.types";
 import DashIndicator from "./carousel/DashIndicator";
 import CarouselSlide from "./carousel/CarouselSlide";
 import Skeleton from "@/src/components/common/Skeleton";
+import { BREAKPOINTS, DESKTOP } from "@/src/utils/responsive";
 
 const MAX_WIDTH = 800;
 
@@ -16,24 +17,37 @@ const TopHomeCarousel = () => {
 
   const { data: banners, isLoading } = useBanners("home_top");
 
-  // Calculate responsive width and height
-  const carouselWidth = Math.min(windowWidth, MAX_WIDTH);
+  const isDesktop = Platform.OS === "web" && windowWidth >= BREAKPOINTS.desktopMin;
+  const isTablet = Platform.OS === "web" && windowWidth >= BREAKPOINTS.tabletMin;
+
+  // Mobile math is byte-identical to before. Desktop gets a wide
+  // cinematic banner inside the centered 1280px column.
+  const maxW = isDesktop ? DESKTOP.maxWidth - DESKTOP.gutter * 2 : isTablet ? 720 : MAX_WIDTH;
+  const carouselWidth = isDesktop || isTablet ? Math.min(windowWidth - (isDesktop ? DESKTOP.gutter * 2 : 32), maxW) : Math.min(windowWidth, MAX_WIDTH);
   const isSmallScreen = windowWidth < 600;
   // On small screens, keep 180 height. On larger, use a ~2:1 aspect ratio
-  const carouselHeight = isSmallScreen ? 180 : carouselWidth * 0.48;
+  const carouselHeight = isDesktop
+    ? Math.min(400, Math.max(300, carouselWidth * 0.3))
+    : isTablet
+      ? carouselWidth * 0.42
+      : isSmallScreen
+        ? 180
+        : carouselWidth * 0.48;
 
   if (isLoading) {
     return (
       <View
         style={[
           styles.container,
-          { width: windowWidth, paddingHorizontal: isSmallScreen ? 20 : 0 },
+          isDesktop || isTablet
+            ? { width: "100%", alignSelf: "center", paddingHorizontal: 0 }
+            : { width: windowWidth, paddingHorizontal: isSmallScreen ? 20 : 0 },
         ]}
       >
         <Skeleton
-          width={carouselWidth - (isSmallScreen ? 40 : 0)}
+          width={isDesktop || isTablet ? carouselWidth : carouselWidth - (isSmallScreen ? 40 : 0)}
           height={carouselHeight}
-          borderRadius={16}
+          borderRadius={isDesktop ? 22 : 16}
         />
       </View>
     );
@@ -44,8 +58,30 @@ const TopHomeCarousel = () => {
   }
 
   return (
-    <View style={[styles.container, { width: windowWidth }]}>
-      <View style={{ width: carouselWidth }}>
+    <View
+      style={[
+        styles.container,
+        isDesktop || isTablet
+          ? { width: "100%", alignSelf: "center", paddingHorizontal: 0 }
+          : { width: windowWidth },
+      ]}
+    >
+      <View
+        style={
+          isDesktop
+            ? {
+                width: carouselWidth,
+                borderRadius: 22,
+                overflow: "hidden",
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 12 },
+                shadowOpacity: 0.16,
+                shadowRadius: 28,
+                elevation: 8,
+              }
+            : { width: carouselWidth }
+        }
+      >
         <Carousel<Banner>
           width={carouselWidth}
           height={carouselHeight}

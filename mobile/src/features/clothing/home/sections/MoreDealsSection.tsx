@@ -1,5 +1,6 @@
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { spacing } from "@/src/theme/spacing";
+import { BREAKPOINTS, getGridCardWidth, useProductColumns } from "@/src/utils/responsive";
 import { Ionicons } from "@expo/vector-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { NativeModulesProxy } from "expo-modules-core";
@@ -286,7 +287,14 @@ export const useMoreDealsLogic = () => {
     return `Gender (${selectedGenderOptions.length})`;
   }, [selectedGenderOptions]);
 
-  const cardWidth = (width - spacing.md * 2 - spacing.sm) / 2;
+  const columns = useProductColumns();
+  const isDesktop = Platform.OS === "web" && width >= BREAKPOINTS.desktopMin;
+  const isWide = Platform.OS === "web" && width >= BREAKPOINTS.tabletMin;
+  // Mobile formula is byte-identical to before; desktop/tablet use the
+  // centered-column grid math so cards fill 3/4/5 columns.
+  const cardWidth = isWide
+    ? getGridCardWidth(width, columns, { gap: isDesktop ? 20 : 16 })
+    : (width - spacing.md * 2 - spacing.sm) / 2;
 
   return {
     theme,
@@ -309,6 +317,9 @@ export const useMoreDealsLogic = () => {
     categoryPillLabel,
     genderPillLabel,
     cardWidth,
+    columns,
+    isDesktop,
+    isWide,
     allProducts,
     fetchNextPage,
     hasNextPage,
@@ -335,6 +346,8 @@ export const MoreDealsFilters = ({
   categoryPillLabel,
   genderPillLabel,
   clearFilterSelections,
+  isDesktop: propIsDesktop,
+  isWide: propIsWide,
 }: any) => {
   const hookTheme = useTheme();
   const theme = propTheme || hookTheme;
@@ -342,6 +355,9 @@ export const MoreDealsFilters = ({
     () => propStyles || createMoreDealsSectionStyles(theme),
     [propStyles, theme],
   );
+  const { width: winW } = useWindowDimensions();
+  const isDesktop = propIsDesktop ?? (Platform.OS === "web" && winW >= BREAKPOINTS.desktopMin);
+  const isWide = propIsWide ?? (Platform.OS === "web" && winW >= BREAKPOINTS.tabletMin);
   const [isListening, setIsListening] = useState(false);
   const [speechError, setSpeechError] = useState<string | null>(null);
   const speechModule = useMemo(() => getSpeechRecognitionModule(), []);
@@ -398,9 +414,46 @@ export const MoreDealsFilters = ({
   );
 
   return (
-    <View style={[styles.filterWrapper, { backgroundColor: theme.background, paddingBottom: 12, zIndex: 10 }]}>
+    <View
+      style={[
+        styles.filterWrapper,
+        {
+          backgroundColor: theme.background,
+          paddingBottom: 12,
+          zIndex: 10,
+          // Desktop: floating filter card inside the centered column.
+          ...(isDesktop
+            ? {
+                borderWidth: 1,
+                borderColor: theme.border,
+                borderRadius: 20,
+                marginTop: 8,
+                paddingBottom: 16,
+                shadowColor: theme.shadow,
+                shadowOffset: { width: 0, height: 6 },
+                shadowOpacity: 0.1,
+                shadowRadius: 18,
+                elevation: 3,
+              }
+            : null),
+        },
+      ]}
+    >
       {/* Search bar */}
-      <View style={{ paddingHorizontal: spacing.lg, marginBottom: 18, marginTop: 14 }}>
+      <View
+        style={
+          isDesktop
+            ? {
+                paddingHorizontal: 20,
+                marginBottom: 16,
+                marginTop: 18,
+                width: "100%",
+                maxWidth: 680,
+                alignSelf: "center",
+              }
+            : { paddingHorizontal: spacing.lg, marginBottom: 18, marginTop: 14 }
+        }
+      >
         <View
           style={{
             flexDirection: "row",
@@ -464,7 +517,15 @@ export const MoreDealsFilters = ({
       </View>
 
       {/* Filter pills */}
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterList}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={
+          isDesktop
+            ? [styles.filterList, { paddingHorizontal: 20, gap: 12 }]
+            : styles.filterList
+        }
+      >
         {dynamicFilters.map((filter) => {
           const isActive = activeFilter.title === filter.title || filter.hasSelection;
           const isDropdown = filter.title === "Gender" || filter.title === "Categories";
@@ -542,13 +603,29 @@ export const MoreDealsGrid = ({
   isFetchingNextPage,
   isLoading,
   theme: propTheme,
+  isDesktop: propIsDesktop,
 }: any) => {
   const hookTheme = useTheme();
   const theme = propTheme || hookTheme;
   const styles = propStyles || createMoreDealsSectionStyles(theme);
+  const { width: winW } = useWindowDimensions();
+  const isDesktop = propIsDesktop ?? (Platform.OS === "web" && winW >= BREAKPOINTS.desktopMin);
 
   return (
-    <View style={styles.productGrid}>
+    <View
+      style={[
+        styles.productGrid,
+        // Desktop: airy 4–5 col grid; mobile keeps space-between 2-col.
+        isDesktop
+          ? {
+              paddingHorizontal: 0,
+              justifyContent: "flex-start",
+              gap: 20,
+              rowGap: 28,
+            }
+          : null,
+      ]}
+    >
     {isLoading && !allProducts.length ? (
       [1, 2, 3, 4, 5, 6].map((key) => <DealProductSkeleton key={key} width={cardWidth} />)
     ) : allProducts.length > 0 ? (

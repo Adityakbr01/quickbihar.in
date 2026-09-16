@@ -1,16 +1,19 @@
 import React from "react";
 import {
+  Platform,
   StyleSheet,
   Text,
   View,
   Pressable,
   Dimensions,
   ActivityIndicator,
+  useWindowDimensions,
 } from "react-native";
 import { FlashList } from "@shopify/flash-list";
 import { Ionicons } from "@expo/vector-icons";
 import { Image as ExpoImage } from "expo-image";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
+import { BREAKPOINTS } from "@/src/utils/responsive";
 import { IProduct } from "../../product/types/product.types";
 
 const { width } = Dimensions.get("window");
@@ -24,20 +27,44 @@ interface SearchResultsProps {
   isFetchingNextPage?: boolean;
 }
 
-const SearchResults = ({ 
-  results, 
-  loading, 
+const SearchResults = ({
+  results,
+  loading,
   onItemPress,
   onEndReached,
   isFetchingNextPage
 }: SearchResultsProps) => {
   const theme = useTheme();
+  const { width: winW } = useWindowDimensions();
+  const isDesktop = Platform.OS === "web" && winW >= BREAKPOINTS.desktopMin;
+  const isTablet = Platform.OS === "web" && winW >= BREAKPOINTS.tabletMin && !isDesktop;
+  // Mobile stays exactly 2 columns; tablet 3, desktop 4.
+  const numColumns = isDesktop ? 4 : isTablet ? 3 : 2;
+  const gap = isDesktop ? 20 : 16;
+  const colWidth = isDesktop || isTablet
+    ? (Math.min(winW - 48, 1280 - 48) - gap * (numColumns - 1)) / numColumns
+    : COLUMN_WIDTH;
 
   if (loading && results.length === 0) {
     return (
-      <View style={styles.skeletonContainer}>
-        {[1, 2, 3, 4, 5, 6].map((i) => (
-          <View key={i} style={styles.skeletonItem}>
+      <View
+        style={[
+          styles.skeletonContainer,
+          (isDesktop || isTablet) && {
+            maxWidth: 1280,
+            alignSelf: "center",
+            width: "100%",
+          },
+        ]}
+      >
+        {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+          <View
+            key={i}
+            style={[
+              styles.skeletonItem,
+              (isDesktop || isTablet) && { width: colWidth },
+            ]}
+          >
             <View style={[styles.skeletonImage, { backgroundColor: theme.tertiaryBackground }]} />
             <View style={[styles.skeletonText, { backgroundColor: theme.tertiaryBackground, width: "80%" }]} />
             <View style={[styles.skeletonText, { backgroundColor: theme.tertiaryBackground, width: "50%" }]} />
@@ -71,8 +98,16 @@ const SearchResults = ({
     <FlashList
       data={results}
       keyExtractor={(item) => item._id}
-      numColumns={2}
-      contentContainerStyle={styles.listContent}
+      numColumns={numColumns}
+      key={numColumns}
+      contentContainerStyle={[
+        styles.listContent,
+        (isDesktop || isTablet) && {
+          maxWidth: 1280,
+          alignSelf: "center",
+          width: "100%",
+        },
+      ]}
       onEndReached={onEndReached}
       onEndReachedThreshold={0.5}
       ListFooterComponent={renderFooter}
@@ -80,12 +115,20 @@ const SearchResults = ({
         <Pressable
           style={[
             styles.productCard,
-            {
-              backgroundColor: theme.background,
-              marginBottom: 16,
-              marginLeft: index % 2 === 0 ? 0 : 8,
-              marginRight: index % 2 === 0 ? 8 : 0,
-            },
+            (isDesktop || isTablet)
+              ? {
+                  backgroundColor: theme.background,
+                  marginBottom: 24,
+                  width: colWidth,
+                  marginLeft: (index % numColumns) === 0 ? 0 : gap / 2,
+                  marginRight: (index % numColumns) === numColumns - 1 ? 0 : gap / 2,
+                }
+              : {
+                  backgroundColor: theme.background,
+                  marginBottom: 16,
+                  marginLeft: index % 2 === 0 ? 0 : 8,
+                  marginRight: index % 2 === 0 ? 8 : 0,
+                },
           ]}
           onPress={() => onItemPress(item.slug || item._id)}
         >
