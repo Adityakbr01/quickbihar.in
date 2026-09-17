@@ -26,7 +26,7 @@ import {
   PaginationFooter,
   LoadingState,
   EmptyState,
-  StatusBadge,
+  SellerStatusBadge,
 } from "../shared/TableHelpers";
 import { selectClass, inputClass, formatDate } from "../../utils";
 import type { AdminListParams, ManagedPerson } from "../../api/adminManagement.api";
@@ -127,7 +127,7 @@ export function SellerManagementPanel() {
                       )}
                     </TableCell>
                     <TableCell>
-                      <StatusBadge active={(seller.sellerProfile?.status as string) === "ACTIVE"} label={seller.sellerProfile?.status || "INACTIVE"} />
+                      <SellerStatusBadge status={seller.sellerProfile?.status || "INACTIVE"} />
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground">
                       Rs. {seller.sellerProfile?.wallet?.availableBalance?.toLocaleString("en-IN") || 0}
@@ -144,7 +144,7 @@ export function SellerManagementPanel() {
                           <Edit className="h-3.5 w-3.5" />
                           Edit
                         </Button>
-                        {(seller.sellerProfile?.status as string) === "ACTIVE" && (
+                        {(seller.sellerProfile?.status as string) === "APPROVED" && (
                           <Button
                             size="sm"
                             variant="destructive"
@@ -238,7 +238,7 @@ function SellerForm({
   const [businessPhone, setBusinessPhone] = useState(seller?.sellerProfile?.businessPhone || seller?.phone || "");
   const [gstin, setGstin] = useState(seller?.sellerProfile?.gstNumber || seller?.sellerProfile?.gstin || "");
   const [pan, setPan] = useState(seller?.sellerProfile?.pan || "");
-  const [status, setStatus] = useState(seller?.sellerProfile?.status || "ACTIVE");
+  const [status, setStatus] = useState(seller?.sellerProfile?.status || "APPROVED");
 
   // Default Policy template configurations
   const [returnPolicyId, setReturnPolicyId] = useState(seller?.sellerProfile?.store?.policyRefs?.returnPolicy || "");
@@ -277,7 +277,7 @@ function SellerForm({
   return (
     <form onSubmit={submit} className="grid gap-4 pt-2">
       <section className="grid gap-2 border-b border-border pb-3">
-        <div className="text-xs font-semibold uppercase text-emerald-400 tracking-wide">Owner / User Account</div>
+        <div className="text-xs font-semibold uppercase text-primary tracking-wide">Owner / User Account</div>
         <div className="grid gap-3 md:grid-cols-2">
           <div className="grid gap-1">
             <span className="text-xs font-medium uppercase text-muted-foreground">Full Name</span>
@@ -308,7 +308,7 @@ function SellerForm({
       </section>
 
       <section className="grid gap-2 border-b border-border pb-3">
-        <div className="text-xs font-semibold uppercase text-emerald-400 tracking-wide">Business Profile</div>
+        <div className="text-xs font-semibold uppercase text-primary tracking-wide">Business Profile</div>
         <div className="grid gap-3 md:grid-cols-2">
           <div className="grid gap-1">
             <span className="text-xs font-medium uppercase text-muted-foreground">Business Name</span>
@@ -325,9 +325,10 @@ function SellerForm({
           <div className="grid gap-1">
             <span className="text-xs font-medium uppercase text-muted-foreground">Seller Status</span>
             <select value={status} onChange={(e) => setStatus(e.target.value)} className={selectClass}>
-              <option value="ACTIVE">Active Account</option>
-              <option value="PENDING_APPROVAL">Pending Verification</option>
-              <option value="INACTIVE">Deactivated Account</option>
+              <option value="APPROVED">Approved — live seller</option>
+              <option value="PENDING">Pending verification</option>
+              <option value="REJECTED">Rejected</option>
+              <option value="INACTIVE">Deactivated account</option>
             </select>
           </div>
           <div className="grid gap-1">
@@ -342,7 +343,7 @@ function SellerForm({
       </section>
 
       <section className="grid gap-2">
-        <div className="text-xs font-semibold uppercase text-emerald-400 tracking-wide">Default Store Policies</div>
+        <div className="text-xs font-semibold uppercase text-primary tracking-wide">Default Store Policies</div>
         <div className="text-xs text-muted-foreground pb-1">
           Select default policies for this seller's new store. Banners and products will reference these selections.
         </div>

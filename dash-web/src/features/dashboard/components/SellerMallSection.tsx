@@ -1,4 +1,4 @@
-import { type FormEvent, useState } from "react";
+import { type FormEvent, type ReactNode, useState } from "react";
 import {
   Building2,
   CheckCircle2,
@@ -41,6 +41,26 @@ import type {
   SellerMallRequest,
 } from "@/features/dashboard/api/adminManagement.api";
 
+function MallGroup({
+  title,
+  hint,
+  children,
+}: {
+  title: string;
+  hint?: string;
+  children: ReactNode;
+}) {
+  return (
+    <section aria-label={title}>
+      <div className="mb-2 flex flex-wrap items-baseline justify-between gap-1 px-0.5">
+        <h3 className="text-sm font-semibold text-foreground">{title}</h3>
+        {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
+      </div>
+      {children}
+    </section>
+  );
+}
+
 export function SellerMallSection({
   sellers,
   sellersLoading,
@@ -72,7 +92,7 @@ export function SellerMallSection({
           className={cn(
             "px-4 py-2.5 text-sm font-medium border-b-2 transition-colors",
             tab === "directory"
-              ? "border-emerald-500 text-emerald-400 font-semibold"
+              ? "border-primary text-primary font-semibold"
               : "border-transparent text-muted-foreground hover:text-foreground",
           )}
         >
@@ -83,32 +103,45 @@ export function SellerMallSection({
           className={cn(
             "px-4 py-2.5 text-sm font-medium border-b-2 transition-colors",
             tab === "sellers"
-              ? "border-emerald-500 text-emerald-400 font-semibold"
+              ? "border-primary text-primary font-semibold"
               : "border-transparent text-muted-foreground hover:text-foreground",
           )}
         >
-          Seller Accounts CRUD
+          Seller Accounts
         </button>
       </div>
 
       {tab === "directory" ? (
-        <div className="animate-in-fade-slide grid gap-4 xl:grid-cols-[380px_1fr]">
-          <MallCreatePanel />
-          <MallRequestsPanel
-            requests={mallRequests}
-            isLoading={mallRequestsLoading}
-          />
-          <MallCreationRequestsPanel
-            requests={mallCreationRequests}
-            isLoading={mallCreationRequestsLoading}
-          />
-          <TopMallsPanel malls={topMalls} />
-          <MallDirectory malls={malls} isLoading={mallsLoading} />
-          <SellerMallAssignments
-            sellers={sellers}
-            malls={malls}
-            isLoading={sellersLoading}
-          />
+        <div className="animate-in-fade-slide grid gap-5">
+          <MallGroup title="Requests inbox" hint="Approve or reject pending items">
+            <div className="grid gap-4 xl:grid-cols-2">
+              <MallRequestsPanel
+                requests={mallRequests}
+                isLoading={mallRequestsLoading}
+              />
+              <MallCreationRequestsPanel
+                requests={mallCreationRequests}
+                isLoading={mallCreationRequestsLoading}
+              />
+            </div>
+          </MallGroup>
+
+          <MallGroup title="Mall directory" hint="Every mall on QuickBihar — click a row to edit">
+            <MallDirectory malls={malls} isLoading={mallsLoading} />
+          </MallGroup>
+
+          <div className="grid gap-4 xl:grid-cols-[380px_1fr]">
+            <MallCreatePanel />
+            <TopMallsPanel malls={topMalls} />
+          </div>
+
+          <MallGroup title="Seller assignment" hint="Link sellers to their mall units">
+            <SellerMallAssignments
+              sellers={sellers}
+              malls={malls}
+              isLoading={sellersLoading}
+            />
+          </MallGroup>
         </div>
       ) : (
         <div className="animate-in-fade-slide">
@@ -133,7 +166,7 @@ function MallRequestsPanel({
       <CardHeader className="border-b border-border">
         <CardTitle className="flex items-center gap-2 text-base text-foreground">
           <CheckCircle2 className="h-4 w-4 text-emerald-700 dark:text-emerald-300" />
-          Mall Requests
+          Join Requests
         </CardTitle>
       </CardHeader>
       <CardContent className="px-0">
@@ -245,7 +278,7 @@ function MallCreationRequestsPanel({
       <CardHeader className="border-b border-border">
         <CardTitle className="flex items-center gap-2 text-base text-foreground">
           <Building2 className="h-4 w-4 text-emerald-700 dark:text-emerald-300" />
-          New Mall Requests
+          New Mall Proposals
         </CardTitle>
       </CardHeader>
       <CardContent className="px-0">

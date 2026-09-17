@@ -4,7 +4,6 @@ import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import babel from "@rolldown/plugin-babel";
-import { compression } from "vite-plugin-compression2";
 
 // Drops console.log/info/debug/trace statements in production builds while
 // keeping console.error/warn — the Vite 8 equivalent of the old Next.js
@@ -49,19 +48,6 @@ export default defineConfig(({ mode }) => {
         plugins: [["babel-plugin-react-compiler", {}]],
       }),
       ...(isProd ? [stripConsolePlugin()] : []),
-      // Pre-compress every emitted asset so nginx can serve .br / .gz
-      // directly (see nginx.conf: brotli_static / gzip_static).
-      // Brotli-11 is primary (smallest); gzip-9 stays as fallback.
-      ...(isProd
-        ? [
-            compression({
-              algorithms: ["brotliCompress", "gzip"],
-              exclude: [/\.(br|gz)$/, /\.(png|jpe?g|webp|avif|gif|ico|woff2?)$/],
-              threshold: 1024,
-              deleteOriginalAssets: false,
-            }),
-          ]
-        : []),
     ],
     resolve: {
       alias: {

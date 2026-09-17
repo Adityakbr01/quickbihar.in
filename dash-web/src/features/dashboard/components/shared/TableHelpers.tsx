@@ -1,5 +1,5 @@
 import React from "react";
-import { Search, RefreshCcw, Package, CheckCircle2, XCircle, Truck } from "lucide-react";
+import { Search, RefreshCcw, Package, CheckCircle2, XCircle, Clock, Truck } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -186,6 +186,39 @@ export function StatusBadge({ active, label }: { active: boolean; label: string 
         <XCircle className="h-3 w-3" />
       )}
       {label}
+    </Badge>
+  );
+}
+
+/**
+ * Seller onboarding lifecycle badge. APPROVED is a good state (green) —
+ * never judge it with a generic active/inactive boolean, which renders
+ * APPROVED red and confuses admins.
+ */
+export function SellerStatusBadge({ status }: { status?: string }) {
+  const approved = status === "APPROVED";
+  const pending =
+    status === "PENDING" || status === "PENDING_REVIEW" || status === "DRAFT";
+  const rejected = status === "REJECTED";
+  return (
+    <Badge
+      variant="outline"
+      className={cn(
+        "whitespace-nowrap",
+        approved && "border-emerald-400/30 text-emerald-700 dark:text-emerald-300",
+        pending && "border-amber-400/30 text-amber-700 dark:text-amber-300",
+        rejected && "border-red-400/30 text-red-700 dark:text-red-300",
+        !approved && !pending && !rejected && "border-border text-muted-foreground",
+      )}
+    >
+      {approved ? (
+        <CheckCircle2 className="h-3 w-3" />
+      ) : pending ? (
+        <Clock className="h-3 w-3" />
+      ) : (
+        <XCircle className="h-3 w-3" />
+      )}
+      {status || "INACTIVE"}
     </Badge>
   );
 }
