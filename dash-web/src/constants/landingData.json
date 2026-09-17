@@ -19,10 +19,9 @@
     "headlinePart2": "Across Bihar.",
     "subtitle": "Shop authentic apparel and footwear from local stores in Patna, Gaya, Muzaffarpur, Bhagalpur & 20+ districts with Cash on Delivery and Doorstep Size Exchange.",
     "ctaPlayStore": {
-      "subText": "",
-      "mainText": "Google Play"
+      "mainText": "quickbihar.in"
     },
-    "ctaQrText": "Scan QR Code",
+    "ctaQrText": "Android app updates",
     "partnerLinks": {
       "sellerText": "Sell on QuickBihar →",
       "sellerHref": "/seller/register",
@@ -75,8 +74,8 @@
     },
     {
       "value": "50k+",
-      "label": "Active App Users",
-      "sub": "4.9 ★ Play Store Rating",
+      "label": "Happy Shoppers",
+      "sub": "Loved across Bihar",
       "icon": "Users"
     }
   ],
@@ -163,8 +162,9 @@
           "Cash on Delivery & 7-day doorstep size exchange"
         ],
         "primaryCta": {
-          "label": "Get Mobile App",
-          "usePlayStoreLink": true
+          "label": "Shop on Web App",
+          "usePlayStoreLink": false,
+          "href": "https://quickbihar.in"
         },
         "secondaryCta": {
           "label": "Explore Features →",
@@ -240,9 +240,9 @@
     ]
   },
   "appDownload": {
-    "badge": "Instant Android App Download",
-    "title": "Shop Bihar's best fashion directly from your phone",
-    "subtitle": "Install the official QuickBihar App from Google Play Store. Unlock app-exclusive discounts, live GPS order tracking, and express 30-minute delivery.",
+    "badge": "Mobile App Launching Soon",
+    "title": "Shop Bihar's best fashion right from your phone",
+    "subtitle": "Shop instantly on the QuickBihar web app — no install needed. The Android app is launching soon with app-exclusive discounts and live order tracking.",
     "perks": [
       "30-min express local delivery",
       "Live real-time rider tracking on map",
@@ -251,20 +251,19 @@
       "7-day doorstep size exchange",
       "Curated boutique clothing stores"
     ],
-    "playStoreButtonLabel": "Available on",
-    "playStoreButtonTitle": "Google Play Store",
-    "ratingBadge": "4.9 / 5 Rating",
-    "usersBadge": "50,000+ Users",
-    "qrBadge": "Scan to Install",
-    "qrTitle": "Camera Scan QR",
-    "qrSubtitle": "Point your phone camera to open Play Store.",
-    "directDownloadText": "Direct Download Link →"
+    "playStoreButtonTitle": "QuickBihar Web App",
+    "ratingBadge": "No install needed",
+    "usersBadge": "Works on any phone",
+    "qrBadge": "Coming Soon",
+    "qrTitle": "Android App Launching Soon",
+    "qrSubtitle": "Chat with us on WhatsApp and we'll notify you at launch.",
+    "directDownloadText": "Notify me on WhatsApp"
   },
   "cta": {
-    "badge": "Download & Start Shopping Today",
+    "badge": "Live Now — Shop on the Web",
     "title": "Experience the fastest way to shop fashion in Bihar",
     "subtitle": "Get the latest fashion collections delivered in 30 minutes from top local boutiques, or partner with us to take your clothing business online.",
-    "playStoreButtonText": "Get App on Google Play",
+    "playStoreButtonText": "Open Web App",
     "sellerButtonText": "Sell on QuickBihar",
     "riderButtonText": "Join as Rider"
   },
@@ -315,7 +314,7 @@
   "footer": {
     "tagline": "Fashion & Fast Delivery",
     "description": "Bihar's hyper-local fashion commerce platform. Delivering clothing, ethnic wear & footwear in minutes from your favorite local boutiques.",
-    "playStoreButtonText": "Get App on Google Play →",
+    "playStoreButtonText": "Open Web App →",
     "columns": [
       {
         "title": "For Sellers (दुकानदार)",
@@ -390,8 +389,8 @@
         "icon": "Smartphone",
         "links": [
           {
-            "label": "Download Android App",
-            "href": "PLAY_STORE",
+            "label": "Open Web App",
+            "href": "https://quickbihar.in",
             "external": true,
             "highlight": true
           },

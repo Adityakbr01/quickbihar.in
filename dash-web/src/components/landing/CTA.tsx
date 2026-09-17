@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Mail, Phone, Smartphone, Store, Bike, ArrowRight } from "lucide-react";
+import { Mail, MessageCircle, Globe, Store, Bike, ArrowRight } from "lucide-react";
 import { APP_LINKS, landingData } from "@/constants/links";
 
 export default function CTA() {
@@ -39,14 +39,14 @@ export default function CTA() {
 
             {/* CTAs */}
             <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-              {/* Play Store CTA */}
+              {/* Web App CTA */}
               <a
-                href={APP_LINKS.PLAY_STORE}
+                href={APP_LINKS.WEB_APP}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2.5 rounded-full bg-white px-6 py-3 text-xs font-bold text-stone-900 shadow-md transition-transform hover:scale-[1.02] active:scale-[0.98]"
               >
-                <Smartphone className="h-4 w-4" />
+                <Globe className="h-4 w-4" />
                 <span>{cta.playStoreButtonText}</span>
               </a>
 
@@ -81,10 +81,12 @@ export default function CTA() {
               </a>
               <span className="hidden h-3 w-px bg-white/30 sm:block" aria-hidden="true" />
               <a
-                href={`tel:${APP_LINKS.SUPPORT_PHONE}`}
+                href={APP_LINKS.WHATSAPP}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="inline-flex items-center gap-1.5 opacity-90 transition-opacity hover:opacity-100"
               >
-                <Phone className="h-3.5 w-3.5" />
+                <MessageCircle className="h-3.5 w-3.5" />
                 {APP_LINKS.SUPPORT_PHONE}
               </a>
             </div>

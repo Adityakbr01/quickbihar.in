@@ -6,6 +6,7 @@ import {
   ShieldCheck,
   RotateCcw,
   ArrowRight,
+  Globe,
 } from "lucide-react";
 import { APP_LINKS, landingData } from "@/constants/links";
 
@@ -58,20 +59,16 @@ export default function Hero() {
 
             {/* CTAs */}
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3 lg:justify-start">
-              {/* Google Play Button */}
+              {/* Web App Button */}
               <a
-                href={APP_LINKS.PLAY_STORE}
+                href={APP_LINKS.WEB_APP}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="group flex items-center gap-3 rounded-2xl bg-foreground px-6 py-3 text-background shadow-md transition-all hover:shadow-lg active:scale-[0.98]"
               >
-                <svg className="h-7 w-7" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                  <path d="M3.609 1.814L13.792 12 3.61 22.186c-.368-.382-.61-.954-.61-1.686V3.5c0-.732.242-1.304.609-1.686zM15.207 13.414l2.586 2.586-12.793 7.38a1.986 1.986 0 01-1.12.336l11.327-10.302zm0-2.828L3.88 0.286A1.986 1.986 0 015 0.622l12.793 7.378-2.586 2.586zm1.414 1.414l3.771-2.176c1.066-.615 1.066-1.619 0-2.234l-3.771-2.176-2.828 2.828 2.828 2.828z" />
-                </svg>
+                <Globe className="h-7 w-7" aria-hidden="true" />
                 <div className="text-left">
-                  <div className="text-[10px] font-medium tracking-wider uppercase opacity-70">
-                    {hero.ctaPlayStore.subText}
-                  </div>
+                 
                   <div className="text-base leading-tight font-bold">
                     {hero.ctaPlayStore.mainText}
                   </div>

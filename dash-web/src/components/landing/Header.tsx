@@ -10,7 +10,7 @@ import {
   ShieldCheck,
   Bike,
   LayoutDashboard,
-  Smartphone,
+  Globe,
   LogOut,
   User as UserIcon,
 } from "lucide-react";
@@ -280,15 +280,15 @@ export default function Header() {
                 )}
               </div>
 
-              {/* Play Store CTA */}
+              {/* Web App CTA */}
               <a
-                href={APP_LINKS.PLAY_STORE}
+                href={APP_LINKS.WEB_APP}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-xs font-semibold text-on-primary shadow-xs transition-colors hover:bg-primary/90"
               >
-                <Smartphone className="h-4 w-4" />
-                <span>Get on Google Play</span>
+                <Globe className="h-4 w-4" />
+                <span>Open Web App</span>
               </a>
             </>
           )}
@@ -359,27 +359,27 @@ export default function Header() {
               </div>
 
               <a
-                href={APP_LINKS.PLAY_STORE}
+                href={APP_LINKS.WEB_APP}
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => setMobileOpen(false)}
                 className="flex w-full items-center justify-center gap-2 rounded-full bg-primary/10 py-2.5 text-xs font-semibold text-primary shadow-xs"
               >
-                <Smartphone className="h-4 w-4" />
-                Download QuickBihar App
+                <Globe className="h-4 w-4" />
+                Open Web App
               </a>
             </>
           ) : (
             <>
               <a
-                href={APP_LINKS.PLAY_STORE}
+                href={APP_LINKS.WEB_APP}
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => setMobileOpen(false)}
                 className="flex w-full items-center justify-center gap-2 rounded-full bg-primary py-2.5 text-xs font-semibold text-on-primary shadow-xs"
               >
-                <Smartphone className="h-4 w-4" />
-                Download QuickBihar App
+                <Globe className="h-4 w-4" />
+                Open Web App
               </a>
 
               <div className="space-y-1">

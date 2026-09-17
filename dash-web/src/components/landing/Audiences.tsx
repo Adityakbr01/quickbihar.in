@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { ArrowRight, Bike, CheckCircle2, ShoppingBag, Store, Smartphone } from "lucide-react";
+import { ArrowRight, Bike, CheckCircle2, ShoppingBag, Store, Globe } from "lucide-react";
 import { APP_LINKS, landingData } from "@/constants/links";
 import SectionHeader from "@/components/landing/SectionHeader";
 
@@ -23,7 +23,7 @@ export default function Audiences() {
           {audiences.items.map((aud) => {
             const Icon = iconMap[aud.icon] || ShoppingBag;
             const primaryHref = aud.primaryCta.usePlayStoreLink ? APP_LINKS.PLAY_STORE : aud.primaryCta.href || "#";
-            const isExternal = aud.primaryCta.usePlayStoreLink;
+            const isExternal = aud.primaryCta.usePlayStoreLink || /^https?:\/\//.test(primaryHref);
 
             return (
               <article
@@ -61,7 +61,7 @@ export default function Audiences() {
                         rel="noopener noreferrer"
                         className="flex w-full items-center justify-center gap-2 rounded-full bg-primary py-2.5 text-xs font-semibold text-on-primary shadow-xs transition-colors hover:bg-primary/90"
                       >
-                        <Smartphone className="h-4 w-4" />
+                        <Globe className="h-4 w-4" />
                         {aud.primaryCta.label}
                       </a>
                     ) : (

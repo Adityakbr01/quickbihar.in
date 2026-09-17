@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Mail, MapPin, Phone, Smartphone, ShieldCheck, Store, Bike } from "lucide-react";
+import { Mail, MapPin, MessageCircle, Smartphone, ShieldCheck, Store, Bike, Globe } from "lucide-react";
 import { APP_LINKS, landingData } from "@/constants/links";
 
 const iconMap: Record<string, typeof Store> = {
@@ -44,15 +44,15 @@ export default function Footer() {
               {footer.description}
             </p>
 
-            {/* Play Store Download Pill */}
+            {/* Web App Pill */}
             <div className="pt-1">
               <a
-                href={APP_LINKS.PLAY_STORE}
+                href={APP_LINKS.WEB_APP}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 rounded-full border border-border bg-muted px-4 py-2 text-xs font-semibold text-foreground transition-colors hover:bg-accent"
               >
-                <Smartphone className="h-4 w-4 text-primary" />
+                <Globe className="h-4 w-4 text-primary" />
                 <span>{footer.playStoreButtonText}</span>
               </a>
             </div>
@@ -70,9 +70,9 @@ export default function Footer() {
                 </a>
               </div>
               <div className="flex items-center gap-2">
-                <Phone className="h-3.5 w-3.5 shrink-0 text-primary" />
-                <a href={`tel:${APP_LINKS.SUPPORT_PHONE}`} className="transition-colors hover:text-foreground">
-                  {APP_LINKS.SUPPORT_PHONE}
+                <MessageCircle className="h-3.5 w-3.5 shrink-0 text-primary" />
+                <a href={APP_LINKS.WHATSAPP} target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-foreground">
+                  {APP_LINKS.SUPPORT_PHONE} (WhatsApp)
                 </a>
               </div>
             </div>
@@ -89,7 +89,7 @@ export default function Footer() {
                 </div>
                 <ul className="space-y-2">
                   {col.links.map((link: { label: string; href: string; highlight?: boolean; external?: boolean }) => {
-                    const href = link.href === "PLAY_STORE" ? APP_LINKS.PLAY_STORE : link.href;
+                    const href = link.href === "PLAY_STORE" ? APP_LINKS.WEB_APP : link.href;
                     const isExternal = Boolean(link.external);
                     const isHighlight = Boolean(link.highlight);
                     const linkClass = `text-xs transition-colors ${
