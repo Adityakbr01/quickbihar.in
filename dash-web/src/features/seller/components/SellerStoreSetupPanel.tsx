@@ -149,15 +149,15 @@ export function SellerStoreSetupPanel() {
         <StatusTile title="Availability" label={store?.isOpen ? "Open" : "Closed"} active={Boolean(store?.isOpen)} />
       </section>
 
-      <Card className="border-white/10 bg-[#1c1c1c]">
-        <CardHeader className="border-b border-white/10">
-          <CardTitle className="flex items-center justify-between gap-3 text-base text-white">
+      <Card className="border-border bg-card">
+        <CardHeader className="border-b border-border">
+          <CardTitle className="flex items-center justify-between gap-3 text-base text-foreground">
             <span>Store Configuration</span>
             {store && (
               <Button
                 size="sm"
                 variant="outline"
-                className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+                className="border-border bg-muted text-foreground hover:bg-muted"
                 onClick={() => toggleOpen.mutate(!store.isOpen)}
               >
                 {store.isOpen ? "Close Store" : "Open Store"}
@@ -205,21 +205,21 @@ export function SellerStoreSetupPanel() {
               <Field name="postalCode" label="Postal Code" defaultValue={store?.address?.postalCode} />
             </div>
 
-            <div className="grid gap-3 rounded-lg border border-white/10 bg-white/[0.03] p-3">
+            <div className="grid gap-3 rounded-lg border border-border bg-muted p-3">
               <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                 <div>
-                  <div className="flex items-center gap-2 text-sm font-medium text-white">
+                  <div className="flex items-center gap-2 text-sm font-medium text-foreground">
                     <MapPin className="h-4 w-4 text-emerald-300" />
                     Pickup GPS Location
                   </div>
-                  <div className="mt-1 text-xs text-gray-500">
+                  <div className="mt-1 text-xs text-muted-foreground">
                     Stand at the exact pickup gate or counter before capturing. Riders must pass this GPS check.
                   </div>
                 </div>
                 <Button
                   type="button"
                   variant="outline"
-                  className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+                  className="border-border bg-muted text-foreground hover:bg-muted"
                   onClick={captureStoreLocation}
                   disabled={isLocatingStore}
                 >
@@ -265,9 +265,9 @@ export function SellerStoreSetupPanel() {
               )}
             </div>
 
-            <div className="grid gap-3 rounded-lg border border-white/10 bg-white/[0.03] p-3">
-              <div className="text-sm font-medium text-white">Default Store Policies</div>
-              <div className="text-xs text-gray-500">
+            <div className="grid gap-3 rounded-lg border border-border bg-muted p-3">
+              <div className="text-sm font-medium text-foreground">Default Store Policies</div>
+              <div className="text-xs text-muted-foreground">
                 Select default policies. Product listings will inherit these options unless overridden.
               </div>
               <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">

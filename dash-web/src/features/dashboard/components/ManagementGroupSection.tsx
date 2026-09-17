@@ -19,7 +19,7 @@ export function ManagementGroupSection({
 }) {
   if (isLoading) {
     return (
-      <div className="py-10 text-sm text-gray-400">
+      <div className="py-10 text-sm text-muted-foreground">
         Loading management modules...
       </div>
     );
@@ -27,7 +27,7 @@ export function ManagementGroupSection({
 
   if (!group) {
     return (
-      <div className="py-10 text-sm text-gray-400">
+      <div className="py-10 text-sm text-muted-foreground">
         No management data found for {title}.
       </div>
     );
@@ -35,9 +35,9 @@ export function ManagementGroupSection({
 
   return (
     <div className="grid gap-4">
-      <Card className="border-white/10 bg-[#1c1c1c]">
-        <CardHeader className="border-b border-white/10">
-          <CardTitle className="text-base text-white">{group.title}</CardTitle>
+      <Card className="border-border bg-card">
+        <CardHeader className="border-b border-border">
+          <CardTitle className="text-base text-foreground">{group.title}</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
           {group.features.map((feature) => (
@@ -47,9 +47,9 @@ export function ManagementGroupSection({
       </Card>
 
       {quickLinks.length > 0 && onOpenSection && (
-        <Card className="border-white/10 bg-[#1c1c1c]">
-          <CardHeader className="border-b border-white/10">
-            <CardTitle className="text-base text-white">
+        <Card className="border-border bg-card">
+          <CardHeader className="border-b border-border">
+            <CardTitle className="text-base text-foreground">
               Live Operations
             </CardTitle>
           </CardHeader>
@@ -58,7 +58,7 @@ export function ManagementGroupSection({
               <Button
                 key={link.section}
                 variant="outline"
-                className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+                className="border-border bg-muted text-foreground hover:bg-muted"
                 onClick={() => onOpenSection(link.section)}
               >
                 {link.label}

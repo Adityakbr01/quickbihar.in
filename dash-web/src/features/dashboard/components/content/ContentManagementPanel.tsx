@@ -219,7 +219,7 @@ export function ContentManagementPanel() {
           )
         }
       />
-      <Card className="border-white/10 bg-[#1c1c1c]">
+      <Card className="border-border bg-card">
         <CardContent className="px-0">
           {currentQuery.isLoading && <LoadingState label="Loading content..." />}
           {!currentQuery.isLoading && !rows.length && (
@@ -228,31 +228,31 @@ export function ContentManagementPanel() {
           {!currentQuery.isLoading && Boolean(rows.length) && (
             <Table>
               <TableHeader>
-                <TableRow className="border-white/10 hover:bg-transparent">
-                  <TableHead className="px-4 text-gray-400">Title</TableHead>
-                  <TableHead className="text-gray-400">Status</TableHead>
-                  <TableHead className="text-gray-400">Updated</TableHead>
-                  <TableHead className="text-right text-gray-400">Actions</TableHead>
+                <TableRow className="border-border hover:bg-transparent">
+                  <TableHead className="px-4 text-muted-foreground">Title</TableHead>
+                  <TableHead className="text-muted-foreground">Status</TableHead>
+                  <TableHead className="text-muted-foreground">Updated</TableHead>
+                  <TableHead className="text-right text-muted-foreground">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {rows.map((item: any) => (
                   <TableRow
                     key={item._id}
-                    className="border-white/10 hover:bg-white/[0.03]"
+                    className="border-border hover:bg-muted"
                   >
                     <TableCell className="px-4">
-                      <div className="font-medium text-white">
+                      <div className="font-medium text-foreground">
                         {contentTitle(kind, item)}
                       </div>
-                      <div className="line-clamp-1 text-xs text-gray-500">
+                      <div className="line-clamp-1 text-xs text-muted-foreground">
                         {contentDescription(kind, item)}
                       </div>
                     </TableCell>
                     <TableCell>
                       <StatusBadge value={item.status} />
                     </TableCell>
-                    <TableCell className="text-sm text-gray-400">
+                    <TableCell className="text-sm text-muted-foreground">
                       {formatDate(item.updatedAt || item.createdAt)}
                     </TableCell>
                     <TableCell>
@@ -260,7 +260,7 @@ export function ContentManagementPanel() {
                         <Button
                           size="sm"
                           variant="outline"
-                          className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+                          className="border-border bg-muted text-foreground hover:bg-muted"
                           onClick={() => startEdit(item)}
                         >
                           <Edit className="h-3.5 w-3.5" />
@@ -293,7 +293,7 @@ export function ContentManagementPanel() {
         open={Boolean(Object.keys(draft).length)}
         onOpenChange={(open) => !open && closeDialog()}
       >
-        <DialogContent className="max-h-[90vh] overflow-y-auto border-white/10 bg-[#1c1c1c] text-white sm:max-w-2xl">
+        <DialogContent className="max-h-[90vh] overflow-y-auto border-border bg-card text-foreground sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>
               {editing ? "Edit" : "Create"} {contentLabel(kind)}
@@ -310,7 +310,7 @@ export function ContentManagementPanel() {
             <Button
               type="submit"
               disabled={isPending}
-              className="bg-white text-black hover:bg-gray-200"
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
             >
               {isPending ? (
                 <>

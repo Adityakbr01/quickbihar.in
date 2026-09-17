@@ -4,7 +4,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
-import { Loader2 } from "lucide-react";
+import { KeyRound, Loader2, TriangleAlert } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -27,6 +27,7 @@ import {
   ResetPasswordValues,
 } from "@/features/auth/schemas/auth.schema";
 import { useResetPassword } from "@/features/auth/hooks/useAuth";
+import AuthLayout from "@/features/auth/components/AuthLayout";
 
 function ResetPasswordForm() {
   const [searchParams] = useSearchParams();
@@ -45,57 +46,62 @@ function ResetPasswordForm() {
 
   if (!token) {
     return (
-      <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#121212] p-4">
-        <Card className="w-full max-w-sm border-none bg-transparent">
-          <CardHeader className="text-center">
-            <CardTitle className="text-white">Invalid reset link</CardTitle>
-            <CardDescription className="text-gray-400">
+      <AuthLayout>
+        <Card className="border-border bg-card text-center shadow-lg">
+          <CardHeader className="space-y-3">
+            <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-destructive/10 text-destructive">
+              <TriangleAlert className="h-6 w-6" />
+            </span>
+            <CardTitle className="text-2xl font-bold text-foreground">Invalid reset link</CardTitle>
+            <CardDescription className="text-muted-foreground">
               The reset link is missing or malformed.
             </CardDescription>
           </CardHeader>
-          <CardContent className="text-center">
+          <CardContent>
             <Link
               to="/auth/forgot-password"
-              className="text-sm text-emerald-300 hover:text-emerald-200"
+              className="text-sm font-medium text-primary hover:underline"
             >
               Request a new link
             </Link>
           </CardContent>
         </Card>
-      </div>
+      </AuthLayout>
     );
   }
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#121212] p-4">
-      <Card className="relative z-10 w-full max-w-sm border-none bg-transparent py-4 shadow-none">
-        <CardHeader className="space-y-1 text-center">
-          <CardTitle className="text-3xl font-extrabold tracking-tight text-white">
+    <AuthLayout>
+      <Card className="border-border bg-card shadow-lg">
+        <CardHeader className="space-y-3 text-center">
+          <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+            <KeyRound className="h-6 w-6" />
+          </span>
+          <CardTitle className="text-2xl font-bold tracking-tight text-foreground">
             Set a new password
           </CardTitle>
-          <CardDescription className="text-gray-400">
-            Choose a strong password you don't reuse anywhere else.
+          <CardDescription className="text-muted-foreground">
+            Choose a strong password you don&apos;t reuse anywhere else.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
                 control={form.control}
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-gray-300">New password</FormLabel>
+                    <FormLabel className="text-muted-foreground">New password</FormLabel>
                     <FormControl>
                       <Input
                         type="password"
                         autoComplete="new-password"
                         placeholder="At least 8 characters"
                         {...field}
-                        className="bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-emerald-500 transition-colors"
                       />
                     </FormControl>
-                    <FormMessage className="text-red-400" />
+                    <FormMessage />
                   </FormItem>
                 )}
               />
@@ -104,7 +110,7 @@ function ResetPasswordForm() {
                 name="confirmPassword"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-gray-300">
+                    <FormLabel className="text-muted-foreground">
                       Confirm new password
                     </FormLabel>
                     <FormControl>
@@ -113,16 +119,16 @@ function ResetPasswordForm() {
                         autoComplete="new-password"
                         placeholder="Repeat password"
                         {...field}
-                        className="bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-emerald-500 transition-colors"
                       />
                     </FormControl>
-                    <FormMessage className="text-red-400" />
+                    <FormMessage />
                   </FormItem>
                 )}
               />
               <Button
                 type="submit"
-                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-6 transition-all"
+                className="w-full font-semibold"
+                size="lg"
                 disabled={isPending}
               >
                 {isPending ? (
@@ -138,14 +144,14 @@ function ResetPasswordForm() {
           </Form>
         </CardContent>
       </Card>
-    </div>
+    </AuthLayout>
   );
 }
 
 export default function ResetPasswordPage() {
   useEffect(() => { document.title = "Reset Password | QuickBihar Dashboard"; }, []);
   return (
-    <Suspense fallback={<div className="min-h-screen bg-[#121212]" />}>
+    <Suspense fallback={<div className="min-h-screen bg-background" />}>
       <ResetPasswordForm />
     </Suspense>
   );

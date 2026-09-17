@@ -126,9 +126,9 @@ export function SellerSubmissionsSection() {
 
   return (
     <div className="grid gap-4">
-      <Card className="border-white/10 bg-[#1c1c1c]">
-        <CardHeader className="gap-4 border-b border-white/10 md:flex-row md:items-center md:justify-between">
-          <CardTitle className="flex items-center gap-2 text-base text-white">
+      <Card className="border-border bg-card">
+        <CardHeader className="gap-4 border-b border-border md:flex-row md:items-center md:justify-between">
+          <CardTitle className="flex items-center gap-2 text-base text-foreground">
             <ShieldCheck className="h-4 w-4 text-emerald-300" />
             Seller & Partner Review Queue
           </CardTitle>
@@ -163,7 +163,7 @@ export function SellerSubmissionsSection() {
             </select>
             <Button
               variant="outline"
-              className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+              className="border-border bg-muted text-foreground hover:bg-muted"
               onClick={() => submissionsQuery.refetch()}
             >
               <RefreshCcw className="h-4 w-4" />
@@ -181,27 +181,27 @@ export function SellerSubmissionsSection() {
         ) : (
           <CardContent className="px-0">
             {submissionsQuery.isLoading && (
-              <div className="px-4 py-10 text-sm text-gray-400">
+              <div className="px-4 py-10 text-sm text-muted-foreground">
                 Loading seller submissions...
               </div>
             )}
             {!submissionsQuery.isLoading && !submissions.length && (
-              <div className="px-4 py-10 text-sm text-gray-400">
+              <div className="px-4 py-10 text-sm text-muted-foreground">
                 No submissions found.
               </div>
             )}
             {!submissionsQuery.isLoading && Boolean(submissions.length) && (
               <Table>
                 <TableHeader>
-                  <TableRow className="border-white/10 hover:bg-transparent">
-                    <TableHead className="px-4 text-gray-400">
+                  <TableRow className="border-border hover:bg-transparent">
+                    <TableHead className="px-4 text-muted-foreground">
                       Submission
                     </TableHead>
-                    <TableHead className="text-gray-400">Seller</TableHead>
-                    <TableHead className="text-gray-400">Store</TableHead>
-                    <TableHead className="text-gray-400">Status</TableHead>
-                    <TableHead className="text-gray-400">Reason</TableHead>
-                    <TableHead className="text-right text-gray-400">
+                    <TableHead className="text-muted-foreground">Seller</TableHead>
+                    <TableHead className="text-muted-foreground">Store</TableHead>
+                    <TableHead className="text-muted-foreground">Status</TableHead>
+                    <TableHead className="text-muted-foreground">Reason</TableHead>
+                    <TableHead className="text-right text-muted-foreground">
                       Actions
                     </TableHead>
                   </TableRow>
@@ -210,25 +210,25 @@ export function SellerSubmissionsSection() {
                   {submissions.map((submission) => (
                     <TableRow
                       key={submission._id}
-                      className="border-white/10 hover:bg-white/[0.03]"
+                      className="border-border hover:bg-muted"
                     >
                       <TableCell className="px-4">
-                        <div className="font-medium text-white">
+                        <div className="font-medium text-foreground">
                           {submissionTitle(submission)}
                         </div>
-                        <div className="text-xs text-gray-500">
+                        <div className="text-xs text-muted-foreground">
                           {formatDate(submission.createdAt)}
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div className="text-sm text-white">
+                        <div className="text-sm text-foreground">
                           {submissionSeller(submission).name}
                         </div>
-                        <div className="text-xs text-gray-500">
+                        <div className="text-xs text-muted-foreground">
                           {submissionSeller(submission).email}
                         </div>
                       </TableCell>
-                      <TableCell className="text-gray-300">
+                      <TableCell className="text-muted-foreground">
                         {submissionStore(submission)}
                       </TableCell>
                       <TableCell>
@@ -293,13 +293,13 @@ export function SellerSubmissionsSection() {
           open={true}
           onOpenChange={(open) => !open && setBannerReviewItem(null)}
         >
-          <DialogContent className="border-white/10 bg-[#1c1c1c] text-white">
+          <DialogContent className="border-border bg-card text-foreground">
             <DialogHeader>
               <DialogTitle>Approve Banner Submission</DialogTitle>
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
-                <label className="text-sm font-medium text-gray-300">
+                <label className="text-sm font-medium text-muted-foreground">
                   Placement
                 </label>
                 <select
@@ -314,7 +314,7 @@ export function SellerSubmissionsSection() {
               </div>
 
               <div className="grid gap-2">
-                <label className="text-sm font-medium text-gray-300">
+                <label className="text-sm font-medium text-muted-foreground">
                   Priority
                 </label>
                 <Input
@@ -327,7 +327,7 @@ export function SellerSubmissionsSection() {
               </div>
 
               <div className="grid gap-2">
-                <label className="text-sm font-medium text-gray-300">
+                <label className="text-sm font-medium text-muted-foreground">
                   Start Date
                 </label>
                 <Input
@@ -339,7 +339,7 @@ export function SellerSubmissionsSection() {
               </div>
 
               <div className="grid gap-2">
-                <label className="text-sm font-medium text-gray-300">
+                <label className="text-sm font-medium text-muted-foreground">
                   End Date (Optional)
                 </label>
                 <Input
@@ -354,7 +354,7 @@ export function SellerSubmissionsSection() {
               <Button
                 variant="outline"
                 onClick={() => setBannerReviewItem(null)}
-                className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+                className="border-border bg-muted text-foreground hover:bg-muted"
               >
                 Cancel
               </Button>
@@ -390,22 +390,22 @@ function OnboardingApplicationsTable({
   return (
     <CardContent className="px-0">
       {applicationsQuery.isLoading && (
-        <div className="px-4 py-10 text-sm text-gray-400">Loading onboarding applications...</div>
+        <div className="px-4 py-10 text-sm text-muted-foreground">Loading onboarding applications...</div>
       )}
       {!applicationsQuery.isLoading && !applications.length && (
-        <div className="px-4 py-10 text-sm text-gray-400">No partner onboarding applications found.</div>
+        <div className="px-4 py-10 text-sm text-muted-foreground">No partner onboarding applications found.</div>
       )}
       {!applicationsQuery.isLoading && Boolean(applications.length) && (
         <Table>
           <TableHeader>
-            <TableRow className="border-white/10 hover:bg-transparent">
-              <TableHead className="px-4 text-gray-400">Applicant</TableHead>
-              <TableHead className="text-gray-400">Type & Business</TableHead>
-              <TableHead className="text-gray-400">Bank & Verification</TableHead>
-              <TableHead className="text-gray-400">Documents</TableHead>
-              <TableHead className="text-gray-400">Status</TableHead>
-              <TableHead className="text-gray-400">Reason</TableHead>
-              <TableHead className="text-right text-gray-400">Actions</TableHead>
+            <TableRow className="border-border hover:bg-transparent">
+              <TableHead className="px-4 text-muted-foreground">Applicant</TableHead>
+              <TableHead className="text-muted-foreground">Type & Business</TableHead>
+              <TableHead className="text-muted-foreground">Bank & Verification</TableHead>
+              <TableHead className="text-muted-foreground">Documents</TableHead>
+              <TableHead className="text-muted-foreground">Status</TableHead>
+              <TableHead className="text-muted-foreground">Reason</TableHead>
+              <TableHead className="text-right text-muted-foreground">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -416,11 +416,11 @@ function OnboardingApplicationsTable({
               const docs = app.documents || [];
 
               return (
-                <TableRow key={app._id} className="border-white/10 hover:bg-white/[0.03]">
+                <TableRow key={app._id} className="border-border hover:bg-muted">
                   <TableCell className="px-4">
-                    <div className="font-medium text-white">{user.fullName || user.username || "Applicant"}</div>
-                    <div className="text-xs text-gray-400">{user.email}</div>
-                    <div className="text-xs text-gray-500">{user.phone || "No phone"}</div>
+                    <div className="font-medium text-foreground">{user.fullName || user.username || "Applicant"}</div>
+                    <div className="text-xs text-muted-foreground">{user.email}</div>
+                    <div className="text-xs text-muted-foreground">{user.phone || "No phone"}</div>
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-1.5">
@@ -434,33 +434,33 @@ function OnboardingApplicationsTable({
                       >
                         {app.type}
                       </Badge>
-                      <span className="text-sm font-medium text-white">
+                      <span className="text-sm font-medium text-foreground">
                         {details.businessName || details.vehicleType || "-"}
                       </span>
                     </div>
                     {details.sellerType && (
-                      <div className="mt-1 text-xs text-gray-400">Category: {details.sellerType}</div>
+                      <div className="mt-1 text-xs text-muted-foreground">Category: {details.sellerType}</div>
                     )}
                     {details.gstNumber && (
-                      <div className="text-xs text-gray-400">GST: {details.gstNumber}</div>
+                      <div className="text-xs text-muted-foreground">GST: {details.gstNumber}</div>
                     )}
                     {details.address?.address && (
-                      <div className="text-xs text-gray-500">
+                      <div className="text-xs text-muted-foreground">
                         {details.address.address}, {details.address.city} ({details.address.pincode})
                       </div>
                     )}
                   </TableCell>
                   <TableCell>
                     {bank.bankName ? (
-                      <div className="text-xs text-gray-300 leading-relaxed">
-                        <div><span className="text-gray-500">Bank:</span> {bank.bankName}</div>
-                        <div><span className="text-gray-500">A/C:</span> {bank.accountNumber}</div>
-                        <div><span className="text-gray-500">IFSC:</span> {bank.ifsc}</div>
-                        {bank.pan && <div><span className="text-gray-500">PAN:</span> {bank.pan}</div>}
-                        {bank.aadhar && <div><span className="text-gray-500">Aadhaar:</span> {bank.aadhar}</div>}
+                      <div className="text-xs text-muted-foreground leading-relaxed">
+                        <div><span className="text-muted-foreground">Bank:</span> {bank.bankName}</div>
+                        <div><span className="text-muted-foreground">A/C:</span> {bank.accountNumber}</div>
+                        <div><span className="text-muted-foreground">IFSC:</span> {bank.ifsc}</div>
+                        {bank.pan && <div><span className="text-muted-foreground">PAN:</span> {bank.pan}</div>}
+                        {bank.aadhar && <div><span className="text-muted-foreground">Aadhaar:</span> {bank.aadhar}</div>}
                       </div>
                     ) : (
-                      <span className="text-xs text-gray-500">No bank details</span>
+                      <span className="text-xs text-muted-foreground">No bank details</span>
                     )}
                   </TableCell>
                   <TableCell>
@@ -480,7 +480,7 @@ function OnboardingApplicationsTable({
                         ))}
                       </div>
                     ) : (
-                      <span className="text-xs text-gray-500">No docs</span>
+                      <span className="text-xs text-muted-foreground">No docs</span>
                     )}
                   </TableCell>
                   <TableCell>

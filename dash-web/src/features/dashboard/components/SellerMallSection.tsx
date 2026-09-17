@@ -65,14 +65,14 @@ export function SellerMallSection({
 
   return (
     <div className="space-y-4 col-span-full">
-      <div className="flex border-b border-white/10 pb-px gap-2">
+      <div className="flex border-b border-border pb-px gap-2">
         <button
           onClick={() => setTab("directory")}
           className={cn(
             "px-4 py-2.5 text-sm font-medium border-b-2 transition-colors",
             tab === "directory"
               ? "border-emerald-500 text-emerald-400 font-semibold"
-              : "border-transparent text-gray-400 hover:text-white",
+              : "border-transparent text-muted-foreground hover:text-foreground",
           )}
         >
           Malls & Assignments
@@ -83,7 +83,7 @@ export function SellerMallSection({
             "px-4 py-2.5 text-sm font-medium border-b-2 transition-colors",
             tab === "sellers"
               ? "border-emerald-500 text-emerald-400 font-semibold"
-              : "border-transparent text-gray-400 hover:text-white",
+              : "border-transparent text-muted-foreground hover:text-foreground",
           )}
         >
           Seller Accounts CRUD
@@ -128,32 +128,32 @@ function MallRequestsPanel({
   const reviewMallRequest = useReviewMallRequest();
 
   return (
-    <Card className="border-white/10 bg-[#1c1c1c]">
-      <CardHeader className="border-b border-white/10">
-        <CardTitle className="flex items-center gap-2 text-base text-white">
+    <Card className="border-border bg-card">
+      <CardHeader className="border-b border-border">
+        <CardTitle className="flex items-center gap-2 text-base text-foreground">
           <CheckCircle2 className="h-4 w-4 text-emerald-300" />
           Mall Requests
         </CardTitle>
       </CardHeader>
       <CardContent className="px-0">
         {isLoading && (
-          <div className="px-4 py-10 text-sm text-gray-400">
+          <div className="px-4 py-10 text-sm text-muted-foreground">
             Loading mall requests...
           </div>
         )}
         {!isLoading && !requests.length && (
-          <div className="px-4 py-10 text-sm text-gray-400">
+          <div className="px-4 py-10 text-sm text-muted-foreground">
             No pending mall requests.
           </div>
         )}
         {!isLoading && Boolean(requests.length) && (
           <Table>
             <TableHeader>
-              <TableRow className="border-white/10 hover:bg-transparent">
-                <TableHead className="px-4 text-gray-400">Partner</TableHead>
-                <TableHead className="text-gray-400">Requested Mall</TableHead>
-                <TableHead className="text-gray-400">Unit</TableHead>
-                <TableHead className="text-right text-gray-400">
+              <TableRow className="border-border hover:bg-transparent">
+                <TableHead className="px-4 text-muted-foreground">Partner</TableHead>
+                <TableHead className="text-muted-foreground">Requested Mall</TableHead>
+                <TableHead className="text-muted-foreground">Unit</TableHead>
+                <TableHead className="text-right text-muted-foreground">
                   Actions
                 </TableHead>
               </TableRow>
@@ -162,28 +162,28 @@ function MallRequestsPanel({
               {requests.map((item) => (
                 <TableRow
                   key={item._id}
-                  className="border-white/10 hover:bg-white/[0.03]"
+                  className="border-border hover:bg-muted"
                 >
                   <TableCell className="px-4">
-                    <div className="font-medium text-white">
+                    <div className="font-medium text-foreground">
                       {item.businessName || item.fullName || "Seller"}
                     </div>
-                    <div className="text-xs text-gray-500">{item.email}</div>
+                    <div className="text-xs text-muted-foreground">{item.email}</div>
                     {item.request.message && (
-                      <div className="mt-1 max-w-52 text-xs text-gray-400">
+                      <div className="mt-1 max-w-52 text-xs text-muted-foreground">
                         {item.request.message}
                       </div>
                     )}
                   </TableCell>
                   <TableCell>
-                    <div className="text-sm text-white">
+                    <div className="text-sm text-foreground">
                       {item.request.mallName || "Mall"}
                     </div>
-                    <div className="text-xs text-gray-500">
+                    <div className="text-xs text-muted-foreground">
                       {formatDate(item.request.requestedAt)}
                     </div>
                   </TableCell>
-                  <TableCell className="text-gray-300">
+                  <TableCell className="text-muted-foreground">
                     {[item.request.mallUnit, item.request.mallFloor]
                       .filter(Boolean)
                       .join(" / ") || "-"}
@@ -193,7 +193,7 @@ function MallRequestsPanel({
                       <Button
                         size="sm"
                         variant="outline"
-                        className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+                        className="border-border bg-muted text-foreground hover:bg-muted"
                         onClick={() =>
                           reviewMallRequest.mutate({
                             sellerId: item.sellerId,
@@ -240,32 +240,32 @@ function MallCreationRequestsPanel({
   const reviewMallCreation = useReviewMallCreation();
 
   return (
-    <Card className="border-white/10 bg-[#1c1c1c]">
-      <CardHeader className="border-b border-white/10">
-        <CardTitle className="flex items-center gap-2 text-base text-white">
+    <Card className="border-border bg-card">
+      <CardHeader className="border-b border-border">
+        <CardTitle className="flex items-center gap-2 text-base text-foreground">
           <Building2 className="h-4 w-4 text-emerald-300" />
           New Mall Requests
         </CardTitle>
       </CardHeader>
       <CardContent className="px-0">
         {isLoading && (
-          <div className="px-4 py-10 text-sm text-gray-400">
+          <div className="px-4 py-10 text-sm text-muted-foreground">
             Loading new mall requests...
           </div>
         )}
         {!isLoading && !requests.length && (
-          <div className="px-4 py-10 text-sm text-gray-400">
+          <div className="px-4 py-10 text-sm text-muted-foreground">
             No pending mall creation requests.
           </div>
         )}
         {!isLoading && Boolean(requests.length) && (
           <Table>
             <TableHeader>
-              <TableRow className="border-white/10 hover:bg-transparent">
-                <TableHead className="px-4 text-gray-400">Mall</TableHead>
-                <TableHead className="text-gray-400">Seller</TableHead>
-                <TableHead className="text-gray-400">Unit</TableHead>
-                <TableHead className="text-right text-gray-400">
+              <TableRow className="border-border hover:bg-transparent">
+                <TableHead className="px-4 text-muted-foreground">Mall</TableHead>
+                <TableHead className="text-muted-foreground">Seller</TableHead>
+                <TableHead className="text-muted-foreground">Unit</TableHead>
+                <TableHead className="text-right text-muted-foreground">
                   Actions
                 </TableHead>
               </TableRow>
@@ -274,28 +274,28 @@ function MallCreationRequestsPanel({
               {requests.map((mall) => (
                 <TableRow
                   key={mall._id}
-                  className="border-white/10 hover:bg-white/[0.03]"
+                  className="border-border hover:bg-muted"
                 >
                   <TableCell className="px-4">
-                    <div className="font-medium text-white">{mall.name}</div>
-                    <div className="text-xs text-gray-500">
+                    <div className="font-medium text-foreground">{mall.name}</div>
+                    <div className="text-xs text-muted-foreground">
                       {mall.address?.city || "Fashion mall"}
                     </div>
                     {mall.request?.message && (
-                      <div className="mt-1 max-w-52 text-xs text-gray-400">
+                      <div className="mt-1 max-w-52 text-xs text-muted-foreground">
                         {mall.request.message}
                       </div>
                     )}
                   </TableCell>
                   <TableCell>
-                    <div className="text-sm text-white">
+                    <div className="text-sm text-foreground">
                       {mall.requestedBy?.fullName || "Seller"}
                     </div>
-                    <div className="text-xs text-gray-500">
+                    <div className="text-xs text-muted-foreground">
                       {mall.requestedBy?.email}
                     </div>
                   </TableCell>
-                  <TableCell className="text-gray-300">
+                  <TableCell className="text-muted-foreground">
                     {[mall.request?.mallUnit, mall.request?.mallFloor]
                       .filter(Boolean)
                       .join(" / ") || "-"}
@@ -305,7 +305,7 @@ function MallCreationRequestsPanel({
                       <Button
                         size="sm"
                         variant="outline"
-                        className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+                        className="border-border bg-muted text-foreground hover:bg-muted"
                         onClick={() =>
                           reviewMallCreation.mutate({
                             mallId: mall._id,
@@ -346,34 +346,34 @@ function TopMallsPanel({ malls }: { malls: Mall[] }) {
   const DEFAULT_MALL_IMAGE =
     "https://images.unsplash.com/photo-1519501025264-65ba15a82390?w=100&h=100&fit=crop&q=80";
   return (
-    <Card className="border-white/10 bg-[#1c1c1c]">
-      <CardHeader className="border-b border-white/10">
-        <CardTitle className="flex items-center gap-2 text-base text-white">
+    <Card className="border-border bg-card">
+      <CardHeader className="border-b border-border">
+        <CardTitle className="flex items-center gap-2 text-base text-foreground">
           <Building2 className="h-4 w-4 text-emerald-300" />
           Top 10 In App
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3 pt-3">
         {!malls.length && (
-          <div className="py-6 text-sm text-gray-400">
+          <div className="py-6 text-sm text-muted-foreground">
             No malls are marked for app display.
           </div>
         )}
         {malls.map((mall, index) => (
           <div
             key={mall._id}
-            className="flex items-center gap-3 border-b border-white/10 pb-3 last:border-0 last:pb-0"
+            className="flex items-center gap-3 border-b border-border pb-3 last:border-0 last:pb-0"
           >
             <img
               src={mall.logoUrl || mall.coverImageUrl || DEFAULT_MALL_IMAGE}
               alt={mall.name}
-              className="h-10 w-10 rounded-md object-cover border border-white/10 bg-white/5 shrink-0"
+              className="h-10 w-10 rounded-md object-cover border border-border bg-muted shrink-0"
             />
             <div className="flex-1 min-w-0">
-              <div className="text-sm font-medium text-white truncate">
+              <div className="text-sm font-medium text-foreground truncate">
                 {index + 1}. {mall.name}
               </div>
-              <div className="flex items-center gap-2 text-xs text-gray-500">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <span>{mall.address?.city || "Fashion mall"}</span>
                 <span>•</span>
                 <span className="text-amber-400">
@@ -383,7 +383,7 @@ function TopMallsPanel({ malls }: { malls: Mall[] }) {
             </div>
             <Badge
               variant="outline"
-              className="border-white/10 text-gray-300 shrink-0"
+              className="border-border text-muted-foreground shrink-0"
             >
               {mall.sellerCount || 0} sellers
             </Badge>
@@ -503,9 +503,9 @@ function MallCreatePanel() {
   };
 
   return (
-    <Card className="border-white/10 bg-[#1c1c1c]">
-      <CardHeader className="border-b border-white/10">
-        <CardTitle className="flex items-center gap-2 text-base text-white">
+    <Card className="border-border bg-card">
+      <CardHeader className="border-b border-border">
+        <CardTitle className="flex items-center gap-2 text-base text-foreground">
           <Building2 className="h-4 w-4 text-emerald-300" />
           Add Mall
         </CardTitle>
@@ -622,12 +622,12 @@ function MallCreatePanel() {
               className={inputClass}
               required
             />
-            <label className="flex items-center gap-2 text-xs text-gray-300 select-none cursor-pointer">
+            <label className="flex items-center gap-2 text-xs text-muted-foreground select-none cursor-pointer">
               <input
                 type="checkbox"
                 checked={isMobileVisible}
                 onChange={(event) => setIsMobileVisible(event.target.checked)}
-                className="h-4 w-4 rounded border-white/10 bg-white/5"
+                className="h-4 w-4 rounded border-border bg-muted"
               />
               Mobile Visible on App
             </label>
@@ -646,32 +646,32 @@ function MallCreatePanel() {
               className={inputClass}
             />
           </div>
-          <div className="grid grid-cols-2 gap-2 text-xs text-gray-400">
+          <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
             <div>
-              <label className="block mb-1 font-medium text-gray-300">
+              <label className="block mb-1 font-medium text-muted-foreground">
                 Upload Logo
               </label>
               <input
                 type="file"
                 accept="image/*"
                 onChange={(e) => setLogo(e.target.files?.[0] || null)}
-                className="w-full bg-white/5 border border-white/10 rounded px-2 py-1 text-white file:hidden"
+                className="w-full bg-muted border border-border rounded px-2 py-1 text-foreground file:hidden"
               />
             </div>
             <div>
-              <label className="block mb-1 font-medium text-gray-300">
+              <label className="block mb-1 font-medium text-muted-foreground">
                 Upload Cover
               </label>
               <input
                 type="file"
                 accept="image/*"
                 onChange={(e) => setCoverImage(e.target.files?.[0] || null)}
-                className="w-full bg-white/5 border border-white/10 rounded px-2 py-1 text-white file:hidden"
+                className="w-full bg-muted border border-border rounded px-2 py-1 text-foreground file:hidden"
               />
             </div>
           </div>
           <div>
-            <label className="block mb-1 font-medium text-xs text-gray-300">
+            <label className="block mb-1 font-medium text-xs text-muted-foreground">
               Upload Mall Photos (Required, 1-5 images)
             </label>
             <input
@@ -682,10 +682,10 @@ function MallCreatePanel() {
               onChange={(e) =>
                 setImages(e.target.files ? Array.from(e.target.files) : [])
               }
-              className="w-full bg-white/5 border border-white/10 rounded px-2 py-1 text-white text-xs file:hidden"
+              className="w-full bg-muted border border-border rounded px-2 py-1 text-foreground text-xs file:hidden"
             />
             {images.length > 0 && (
-              <span className="text-[10px] text-gray-400 mt-1 block">
+              <span className="text-[10px] text-muted-foreground mt-1 block">
                 Selected {images.length} file(s)
               </span>
             )}
@@ -708,34 +708,34 @@ function MallDirectory({
   isLoading: boolean;
 }) {
   return (
-    <Card className="border-white/10 bg-[#1c1c1c]">
-      <CardHeader className="border-b border-white/10">
-        <CardTitle className="text-base text-white">Mall Directory</CardTitle>
+    <Card className="border-border bg-card">
+      <CardHeader className="border-b border-border">
+        <CardTitle className="text-base text-foreground">Mall Directory</CardTitle>
       </CardHeader>
       <CardContent className="px-0">
         {isLoading && (
-          <div className="px-4 py-10 text-sm text-gray-400">
+          <div className="px-4 py-10 text-sm text-muted-foreground">
             Loading malls...
           </div>
         )}
         {!isLoading && !malls.length && (
-          <div className="px-4 py-10 text-sm text-gray-400">
+          <div className="px-4 py-10 text-sm text-muted-foreground">
             No malls found.
           </div>
         )}
         {!isLoading && Boolean(malls.length) && (
           <Table>
             <TableHeader>
-              <TableRow className="border-white/10 hover:bg-transparent">
-                <TableHead className="px-4 text-gray-400">Mall</TableHead>
-                <TableHead className="text-gray-400">City</TableHead>
-                <TableHead className="text-gray-400">Stores</TableHead>
-                <TableHead className="text-gray-400">Sellers</TableHead>
-                <TableHead className="text-gray-400">App Top</TableHead>
-                <TableHead className="text-gray-400">Rank</TableHead>
-                <TableHead className="text-gray-400">Rating</TableHead>
-                <TableHead className="text-gray-400">Status</TableHead>
-                <TableHead className="text-right text-gray-400">
+              <TableRow className="border-border hover:bg-transparent">
+                <TableHead className="px-4 text-muted-foreground">Mall</TableHead>
+                <TableHead className="text-muted-foreground">City</TableHead>
+                <TableHead className="text-muted-foreground">Stores</TableHead>
+                <TableHead className="text-muted-foreground">Sellers</TableHead>
+                <TableHead className="text-muted-foreground">App Top</TableHead>
+                <TableHead className="text-muted-foreground">Rank</TableHead>
+                <TableHead className="text-muted-foreground">Rating</TableHead>
+                <TableHead className="text-muted-foreground">Status</TableHead>
+                <TableHead className="text-right text-muted-foreground">
                   Actions
                 </TableHead>
               </TableRow>
@@ -878,13 +878,13 @@ function MallRow({ mall }: { mall: Mall }) {
 
   return (
     <>
-      <TableRow className="border-white/10 hover:bg-white/[0.03]">
+      <TableRow className="border-border hover:bg-muted">
         <TableCell className="px-4">
           <div className="flex items-center gap-3">
             <img
               src={mall.logoUrl || mall.coverImageUrl || DEFAULT_MALL_IMAGE}
               alt={mall.name}
-              className="h-10 w-10 rounded object-cover border border-white/10 shrink-0 bg-white/5"
+              className="h-10 w-10 rounded object-cover border border-border shrink-0 bg-muted"
             />
             <div className="flex-1 min-w-0">
               <Input
@@ -892,10 +892,10 @@ function MallRow({ mall }: { mall: Mall }) {
                 onChange={(event) => setName(event.target.value)}
                 className={cn(inputClass, "h-8 min-w-44")}
               />
-              <div className="mt-1 flex items-center gap-2 text-xs text-gray-500">
+              <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
                 <span className="truncate">{mall.slug}</span>
                 <span>•</span>
-                <span className="text-gray-400">
+                <span className="text-muted-foreground">
                   Reviews: {mall.reviewCount || 0}
                 </span>
               </div>
@@ -918,14 +918,14 @@ function MallRow({ mall }: { mall: Mall }) {
             className={cn(inputClass, "h-8 w-20")}
           />
         </TableCell>
-        <TableCell className="text-white">{mall.sellerCount || 0}</TableCell>
+        <TableCell className="text-foreground">{mall.sellerCount || 0}</TableCell>
         <TableCell>
-          <label className="inline-flex items-center gap-2 text-xs text-gray-300">
+          <label className="inline-flex items-center gap-2 text-xs text-muted-foreground">
             <input
               type="checkbox"
               checked={isFeatured}
               onChange={(event) => setIsFeatured(event.target.checked)}
-              className="h-4 w-4 rounded border-white/10 bg-white/5"
+              className="h-4 w-4 rounded border-border bg-muted"
             />
             Show
           </label>
@@ -963,7 +963,7 @@ function MallRow({ mall }: { mall: Mall }) {
             <Button
               size="sm"
               variant="outline"
-              className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+              className="border-border bg-muted text-foreground hover:bg-muted"
               onClick={() => setIsExpanded(!isExpanded)}
             >
               {isExpanded ? "Hide Detail" : "Show Detail"}
@@ -971,7 +971,7 @@ function MallRow({ mall }: { mall: Mall }) {
             <Button
               size="sm"
               variant="outline"
-              className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+              className="border-border bg-muted text-foreground hover:bg-muted"
               onClick={save}
               disabled={updateMall.isPending}
             >
@@ -991,7 +991,7 @@ function MallRow({ mall }: { mall: Mall }) {
               <Button
                 size="sm"
                 variant="outline"
-                className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+                className="border-border bg-muted text-foreground hover:bg-muted"
                 onClick={() =>
                   updateMall.mutate({
                     mallId: mall._id,
@@ -1007,7 +1007,7 @@ function MallRow({ mall }: { mall: Mall }) {
         </TableCell>
       </TableRow>
       {isExpanded && (
-        <TableRow className="border-white/10 bg-white/[0.01] hover:bg-white/[0.01]">
+        <TableRow className="border-border bg-muted hover:bg-muted">
           <TableCell colSpan={9} className="px-4 py-4">
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {/* Address details */}
@@ -1102,12 +1102,12 @@ function MallRow({ mall }: { mall: Mall }) {
                     className={inputClass}
                     required
                   />
-                  <label className="flex items-center gap-2 text-xs text-gray-300 select-none cursor-pointer">
+                  <label className="flex items-center gap-2 text-xs text-muted-foreground select-none cursor-pointer">
                     <input
                       type="checkbox"
                       checked={isMobileVisible}
                       onChange={(e) => setIsMobileVisible(e.target.checked)}
-                      className="h-4 w-4 rounded border-white/10 bg-white/5"
+                      className="h-4 w-4 rounded border-border bg-muted"
                     />
                     Mobile Visible on App
                   </label>
@@ -1139,14 +1139,14 @@ function MallRow({ mall }: { mall: Mall }) {
                     className={inputClass}
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-2 text-xs text-gray-400">
+                <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
                   <div>
                     <label className="block mb-0.5">Upload Logo</label>
                     <input
                       type="file"
                       accept="image/*"
                       onChange={(e) => setLogo(e.target.files?.[0] || null)}
-                      className="w-full bg-white/5 border border-white/10 rounded px-1.5 py-0.5 text-white file:hidden"
+                      className="w-full bg-muted border border-border rounded px-1.5 py-0.5 text-foreground file:hidden"
                     />
                   </div>
                   <div>
@@ -1157,7 +1157,7 @@ function MallRow({ mall }: { mall: Mall }) {
                       onChange={(e) =>
                         setCoverImage(e.target.files?.[0] || null)
                       }
-                      className="w-full bg-white/5 border border-white/10 rounded px-1.5 py-0.5 text-white file:hidden"
+                      className="w-full bg-muted border border-border rounded px-1.5 py-0.5 text-foreground file:hidden"
                     />
                   </div>
                 </div>
@@ -1165,14 +1165,14 @@ function MallRow({ mall }: { mall: Mall }) {
                 <div className="space-y-1.5 pt-1">
                   {existingImages.length > 0 && (
                     <div className="space-y-1">
-                      <label className="block text-[10px] text-gray-400 font-semibold uppercase">
+                      <label className="block text-[10px] text-muted-foreground font-semibold uppercase">
                         Existing Photos ({existingImages.length})
                       </label>
                       <div className="flex flex-wrap gap-1.5">
                         {existingImages.map((img: any, idx: number) => (
                           <div
                             key={idx}
-                            className="relative group border border-white/10 rounded overflow-hidden"
+                            className="relative group border border-border rounded overflow-hidden"
                           >
                             <img
                               src={img.url}
@@ -1196,7 +1196,7 @@ function MallRow({ mall }: { mall: Mall }) {
                     </div>
                   )}
                   <div>
-                    <label className="block text-[10px] text-gray-400 font-semibold uppercase">
+                    <label className="block text-[10px] text-muted-foreground font-semibold uppercase">
                       Upload New Photos (1-5 Total)
                     </label>
                     <input
@@ -1208,10 +1208,10 @@ function MallRow({ mall }: { mall: Mall }) {
                           e.target.files ? Array.from(e.target.files) : [],
                         )
                       }
-                      className="w-full bg-white/5 border border-white/10 rounded px-1.5 py-0.5 text-white text-xs file:hidden"
+                      className="w-full bg-muted border border-border rounded px-1.5 py-0.5 text-foreground text-xs file:hidden"
                     />
                     {newImages.length > 0 && (
-                      <span className="text-[9px] text-gray-400 block mt-0.5">
+                      <span className="text-[9px] text-muted-foreground block mt-0.5">
                         Selected {newImages.length} file(s)
                       </span>
                     )}
@@ -1236,34 +1236,34 @@ function SellerMallAssignments({
   isLoading: boolean;
 }) {
   return (
-    <Card className="border-white/10 bg-[#1c1c1c] xl:col-span-2">
-      <CardHeader className="border-b border-white/10">
-        <CardTitle className="flex items-center gap-2 text-base text-white">
+    <Card className="border-border bg-card xl:col-span-2">
+      <CardHeader className="border-b border-border">
+        <CardTitle className="flex items-center gap-2 text-base text-foreground">
           <Store className="h-4 w-4 text-emerald-300" />
           Seller Mall Assignment
         </CardTitle>
       </CardHeader>
       <CardContent className="px-0">
         {isLoading && (
-          <div className="px-4 py-10 text-sm text-gray-400">
+          <div className="px-4 py-10 text-sm text-muted-foreground">
             Loading sellers...
           </div>
         )}
         {!isLoading && !sellers.length && (
-          <div className="px-4 py-10 text-sm text-gray-400">
+          <div className="px-4 py-10 text-sm text-muted-foreground">
             No seller profiles found.
           </div>
         )}
         {!isLoading && Boolean(sellers.length) && (
           <Table>
             <TableHeader>
-              <TableRow className="border-white/10 hover:bg-transparent">
-                <TableHead className="px-4 text-gray-400">Seller</TableHead>
-                <TableHead className="text-gray-400">Business</TableHead>
-                <TableHead className="text-gray-400">Mall</TableHead>
-                <TableHead className="text-gray-400">Unit</TableHead>
-                <TableHead className="text-gray-400">Floor</TableHead>
-                <TableHead className="text-right text-gray-400">
+              <TableRow className="border-border hover:bg-transparent">
+                <TableHead className="px-4 text-muted-foreground">Seller</TableHead>
+                <TableHead className="text-muted-foreground">Business</TableHead>
+                <TableHead className="text-muted-foreground">Mall</TableHead>
+                <TableHead className="text-muted-foreground">Unit</TableHead>
+                <TableHead className="text-muted-foreground">Floor</TableHead>
+                <TableHead className="text-right text-muted-foreground">
                   Actions
                 </TableHead>
               </TableRow>
@@ -1310,16 +1310,16 @@ function SellerMallRow({
   };
 
   return (
-    <TableRow className="border-white/10 hover:bg-white/[0.03]">
+    <TableRow className="border-border hover:bg-muted">
       <TableCell className="px-4">
-        <div className="font-medium text-white">{seller.fullName}</div>
-        <div className="text-xs text-gray-500">{seller.email}</div>
+        <div className="font-medium text-foreground">{seller.fullName}</div>
+        <div className="text-xs text-muted-foreground">{seller.email}</div>
       </TableCell>
       <TableCell>
-        <div className="text-sm text-white">
+        <div className="text-sm text-foreground">
           {seller.sellerProfile?.businessName || "Seller"}
         </div>
-        <div className="text-xs text-gray-500">
+        <div className="text-xs text-muted-foreground">
           {seller.sellerProfile?.sellerType || "CLOTHING"}
         </div>
       </TableCell>
@@ -1359,7 +1359,7 @@ function SellerMallRow({
           <Button
             size="sm"
             variant="outline"
-            className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+            className="border-border bg-muted text-foreground hover:bg-muted"
             onClick={save}
             disabled={assignSellerMall.isPending}
           >

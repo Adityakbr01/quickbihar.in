@@ -204,11 +204,11 @@ export default function GoogleSignInButton({
       {/* Fallback / Loading / Busy Skeleton */}
       {(!rendered || busy) && (
         <div
-          className="w-full flex items-center justify-center h-[44px] rounded-md bg-white text-gray-800 border border-gray-300 font-medium text-sm shadow-sm transition-all select-none"
+          className="w-full flex items-center justify-center h-[44px] rounded-xl bg-card text-card-foreground border border-border font-medium text-sm shadow-xs transition-all select-none"
           style={{ minHeight: "44px" }}
         >
           {busy ? (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin text-gray-500" />
+            <Loader2 className="mr-2 h-4 w-4 animate-spin text-muted-foreground" />
           ) : (
             <img
               src="/google-icon-logo.svg"
@@ -228,7 +228,7 @@ export default function GoogleSignInButton({
 
       {/* Disabled overlay mask if parent marks it disabled */}
       {disabled && rendered && !busy && (
-        <div className="absolute inset-0 bg-white/50 dark:bg-black/50 cursor-not-allowed rounded-md z-10" />
+        <div className="absolute inset-0 bg-background/50 cursor-not-allowed rounded-xl z-10" />
       )}
     </div>
   );

@@ -28,8 +28,8 @@ function ErrorFallback({
   };
 
   return (
-    <main className="dark min-h-screen w-full bg-[#0e0e0e] text-white flex items-center justify-center p-6">
-      <div className="w-full max-w-md rounded-2xl border border-white/10 bg-[#181818] p-8 shadow-2xl">
+    <main className="min-h-screen w-full bg-background text-foreground flex items-center justify-center p-6">
+      <div className="w-full max-w-md rounded-2xl border border-border bg-background p-8 shadow-2xl">
         <div className="flex flex-col items-center text-center gap-4">
           <div className="flex h-14 w-14 items-center justify-center rounded-full bg-red-500/10 border border-red-500/30">
             <AlertTriangle className="h-7 w-7 text-red-400" />
@@ -38,7 +38,7 @@ function ErrorFallback({
             <h1 className="text-2xl font-semibold tracking-tight">
               Something went wrong
             </h1>
-            <p className="text-sm text-gray-400">
+            <p className="text-sm text-muted-foreground">
               {error?.message
                 ? error.message
                 : "We hit an unexpected error loading this page. Your session may have ended."}
@@ -51,7 +51,7 @@ function ErrorFallback({
                 onReset();
                 window.location.reload();
               }}
-              className="w-full bg-white text-black hover:bg-gray-200"
+              className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
             >
               <RefreshCcw className="h-4 w-4 mr-2" />
               Try again
@@ -59,7 +59,7 @@ function ErrorFallback({
             <Button
               onClick={handleBackToLogin}
               variant="ghost"
-              className="w-full text-gray-300 hover:bg-white/10 hover:text-white"
+              className="w-full text-muted-foreground hover:bg-muted hover:text-foreground"
             >
               <LogIn className="h-4 w-4 mr-2" />
               Back to sign in

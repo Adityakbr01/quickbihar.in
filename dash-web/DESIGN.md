@@ -407,6 +407,8 @@ Shadows provide tactile depth without visual clutter:
 ### 7.2 Cards & Surfaces (`src/components/ui/card.tsx` & `.card`)
 - Base surface: `bg-surface-container-lowest border border-outline rounded-lg p-4 shadow-md`.
 - Interactive hover: `transition: all 0.2s ease; hover:bg-surface-container-low hover:shadow-lg`.
+- No top accent bars/borders on cards — ever. Card hierarchy comes from
+  surface, border, icon tiles, and typography, not decorative top strips.
 
 ### 7.3 Data Tables (`src/components/ui/data-table.tsx`)
 - Powered by `@tanstack/react-table` v9 with animated row entrances via `framer-motion`.

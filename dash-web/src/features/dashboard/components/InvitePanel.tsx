@@ -35,9 +35,9 @@ export function InvitePanel() {
   };
 
   return (
-    <Card className="max-w-xl border-white/10 bg-[#1c1c1c]">
-      <CardHeader className="border-b border-white/10">
-        <CardTitle className="flex items-center gap-2 text-base text-white">
+    <Card className="max-w-xl border-border bg-card">
+      <CardHeader className="border-b border-border">
+        <CardTitle className="flex items-center gap-2 text-base text-foreground">
           <MailPlus className="h-4 w-4 text-emerald-300" />
           Invite
         </CardTitle>
@@ -72,7 +72,7 @@ export function InvitePanel() {
             value={message}
             onChange={(event) => setMessage(event.target.value)}
             placeholder="Message"
-            className="min-h-24 rounded-lg border border-white/10 bg-white/5 px-2.5 py-2 text-sm text-white outline-none placeholder:text-gray-500"
+            className="min-h-24 rounded-lg border border-border bg-muted px-2.5 py-2 text-sm text-foreground outline-none placeholder:text-muted-foreground"
           />
           <Button type="submit" disabled={sendInvite.isPending}>
             <MailPlus className="h-4 w-4" />

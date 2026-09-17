@@ -102,9 +102,9 @@ export function SystemSettingsPanel() {
         onChange={(value) => setTab(value as SystemKind)}
       />
       {tab === "config" && (
-        <Card className="border-white/10 bg-[#1c1c1c]">
+        <Card className="border-border bg-card">
           <CardHeader>
-            <CardTitle className="text-white">Secure Configuration</CardTitle>
+            <CardTitle className="text-foreground">Secure Configuration</CardTitle>
           </CardHeader>
           <CardContent>
             <form className="grid gap-4" onSubmit={saveConfig}>
@@ -290,7 +290,7 @@ export function SystemSettingsPanel() {
                 />
                 <Button
                   type="submit"
-                  className="bg-white text-black hover:bg-gray-200"
+                  className="bg-primary text-primary-foreground hover:bg-primary/90"
                 >
                   <Save className="h-4 w-4" />
                   Save Configuration
@@ -301,10 +301,10 @@ export function SystemSettingsPanel() {
         </Card>
       )}
       {tab === "logs" && (
-        <Card className="border-white/10 bg-[#1c1c1c]">
+        <Card className="border-border bg-card">
           <CardHeader>
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <CardTitle className="text-white">Activity & Audit Logs</CardTitle>
+              <CardTitle className="text-foreground">Activity & Audit Logs</CardTitle>
               <div className="flex gap-2">
                 <ToggleButton
                   active={logKind === "activity"}
@@ -327,31 +327,31 @@ export function SystemSettingsPanel() {
             {Boolean(logs.length) && (
               <Table>
                 <TableHeader>
-                  <TableRow className="border-white/10 hover:bg-transparent">
-                    <TableHead className="px-4 text-gray-400">Action</TableHead>
-                    <TableHead className="text-gray-400">Resource</TableHead>
-                    <TableHead className="text-gray-400">Actor</TableHead>
-                    <TableHead className="text-gray-400">Time</TableHead>
+                  <TableRow className="border-border hover:bg-transparent">
+                    <TableHead className="px-4 text-muted-foreground">Action</TableHead>
+                    <TableHead className="text-muted-foreground">Resource</TableHead>
+                    <TableHead className="text-muted-foreground">Actor</TableHead>
+                    <TableHead className="text-muted-foreground">Time</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {logs.map((log) => (
                     <TableRow
                       key={log._id}
-                      className="border-white/10 hover:bg-white/[0.03]"
+                      className="border-border hover:bg-muted"
                     >
-                      <TableCell className="px-4 text-sm text-white">
+                      <TableCell className="px-4 text-sm text-foreground">
                         {log.action}
                       </TableCell>
-                      <TableCell className="text-sm text-gray-300">
+                      <TableCell className="text-sm text-muted-foreground">
                         {log.resourceType}
                       </TableCell>
-                      <TableCell className="text-sm text-gray-400">
+                      <TableCell className="text-sm text-muted-foreground">
                         {typeof log.actorId === "object"
                           ? log.actorId.fullName || log.actorId.email
                           : "-"}
                       </TableCell>
-                      <TableCell className="text-sm text-gray-500">
+                      <TableCell className="text-sm text-muted-foreground">
                         {formatDate(log.createdAt)}
                       </TableCell>
                     </TableRow>
@@ -363,10 +363,10 @@ export function SystemSettingsPanel() {
         </Card>
       )}
       {tab === "backups" && (
-        <Card className="border-white/10 bg-[#1c1c1c]">
+        <Card className="border-border bg-card">
           <CardHeader>
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <CardTitle className="text-white">Backup & Restore</CardTitle>
+              <CardTitle className="text-foreground">Backup & Restore</CardTitle>
               <div className="flex gap-2">
                 <Input
                   className={inputClass}
@@ -375,7 +375,7 @@ export function SystemSettingsPanel() {
                   onChange={(event) => setBackupName(event.target.value)}
                 />
                 <Button
-                  className="bg-white text-black hover:bg-gray-200"
+                  className="bg-primary text-primary-foreground hover:bg-primary/90"
                   onClick={() =>
                     createBackup.mutate(
                       { name: backupName || undefined },
@@ -397,31 +397,31 @@ export function SystemSettingsPanel() {
             {Boolean(backupsQuery.data?.data?.length) && (
               <Table>
                 <TableHeader>
-                  <TableRow className="border-white/10 hover:bg-transparent">
-                    <TableHead className="px-4 text-gray-400">Backup</TableHead>
-                    <TableHead className="text-gray-400">Status</TableHead>
-                    <TableHead className="text-gray-400">Collections</TableHead>
-                    <TableHead className="text-right text-gray-400">Actions</TableHead>
+                  <TableRow className="border-border hover:bg-transparent">
+                    <TableHead className="px-4 text-muted-foreground">Backup</TableHead>
+                    <TableHead className="text-muted-foreground">Status</TableHead>
+                    <TableHead className="text-muted-foreground">Collections</TableHead>
+                    <TableHead className="text-right text-muted-foreground">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {backupsQuery.data?.data.map((backup) => (
                     <TableRow
                       key={backup._id}
-                      className="border-white/10 hover:bg-white/[0.03]"
+                      className="border-border hover:bg-muted"
                     >
                       <TableCell className="px-4">
-                        <div className="text-sm font-medium text-white">
+                        <div className="text-sm font-medium text-foreground">
                           {backup.name}
                         </div>
-                        <div className="text-xs text-gray-500">
+                        <div className="text-xs text-muted-foreground">
                           {formatDate(backup.createdAt)}
                         </div>
                       </TableCell>
                       <TableCell>
                         <StatusBadge value={backup.status} />
                       </TableCell>
-                      <TableCell className="text-sm text-gray-400">
+                      <TableCell className="text-sm text-muted-foreground">
                         {backup.collections?.length || 0}
                       </TableCell>
                       <TableCell>
@@ -429,7 +429,7 @@ export function SystemSettingsPanel() {
                           <Button
                             size="sm"
                             variant="outline"
-                            className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+                            className="border-border bg-muted text-foreground hover:bg-muted"
                             onClick={() => dryRunRestore.mutate(backup._id)}
                           >
                             Dry Run
@@ -475,7 +475,7 @@ function ToggleButton({
       className={
         active
           ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-200 hover:bg-emerald-400/20"
-          : "border-white/10 bg-white/5 text-gray-300 hover:bg-white/10"
+          : "border-border bg-muted text-muted-foreground hover:bg-muted"
       }
       onClick={onClick}
     >

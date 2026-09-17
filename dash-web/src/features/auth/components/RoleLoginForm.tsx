@@ -22,7 +22,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Loader2 } from "lucide-react";
+import { Bike, Loader2, ShieldCheck, Store } from "lucide-react";
 import { loginSchema, LoginValues } from "../schemas/auth.schema";
 import {
   useLogin,
@@ -44,13 +44,10 @@ interface RoleLoginFormProps {
 }
 
 interface ThemeConfig {
+  badge: string;
+  icon: typeof Store;
   title: string;
   description: string;
-  accentBg: string;
-  accentBgHover: string;
-  accentFocus: string;
-  accentText: string;
-  accentTextHover: string;
   registerHref: string;
   registerLabel: string;
   passwordCta: string;
@@ -63,13 +60,10 @@ interface ThemeConfig {
 
 const THEME: Record<ThemeKey, ThemeConfig> = {
   admin: {
-    title: "Admin Portal",
+    badge: "Admin Portal",
+    icon: ShieldCheck,
+    title: "Welcome back",
     description: "Sign in to manage the platform",
-    accentBg: "bg-blue-600",
-    accentBgHover: "hover:bg-blue-700",
-    accentFocus: "focus:border-blue-500",
-    accentText: "text-blue-300",
-    accentTextHover: "hover:text-blue-200",
     registerHref: "/admin/login",
     registerLabel: "",
     passwordCta: "Sign In to Dashboard",
@@ -80,13 +74,10 @@ const THEME: Record<ThemeKey, ThemeConfig> = {
     isAuthorized: isAdmin,
   },
   seller: {
-    title: "Seller Login",
+    badge: "Seller Portal",
+    icon: Store,
+    title: "Welcome back",
     description: "Sign in to your seller account",
-    accentBg: "bg-emerald-600",
-    accentBgHover: "hover:bg-emerald-700",
-    accentFocus: "focus:border-emerald-500",
-    accentText: "text-emerald-300",
-    accentTextHover: "hover:text-emerald-200",
     registerHref: "/seller/register",
     registerLabel: "New seller?",
     passwordCta: "Open Seller Dashboard",
@@ -97,13 +88,10 @@ const THEME: Record<ThemeKey, ThemeConfig> = {
     isAuthorized: isSeller,
   },
   delivery: {
-    title: "Delivery Login",
+    badge: "Rider Portal",
+    icon: Bike,
+    title: "Welcome back",
     description: "Sign in to your rider account",
-    accentBg: "bg-cyan-600",
-    accentBgHover: "hover:bg-cyan-700",
-    accentFocus: "focus:border-cyan-500",
-    accentText: "text-cyan-300",
-    accentTextHover: "hover:text-cyan-200",
     registerHref: "/delivery/register",
     registerLabel: "New delivery partner?",
     passwordCta: "Open Delivery Panel",
@@ -124,6 +112,9 @@ const THEME: Record<ThemeKey, ThemeConfig> = {
  *   3. Email + password form (secondary, mostly for admins and seeded accounts)
  *   4. Forgot-password link + register link (when applicable)
  *
+ * All styling uses src/index.css theme tokens (no per-role hardcoded
+ * colors) so the next-themes light/dark toggle works everywhere.
+ *
  * Mobile-OTP sign-in has been removed in Phase 7 — see auth.service.ts.
  */
 export default function RoleLoginForm({ theme }: RoleLoginFormProps) {
@@ -131,6 +122,7 @@ export default function RoleLoginForm({ theme }: RoleLoginFormProps) {
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuthStore();
   const hasHydrated = useAuthHydrated();
+  const BadgeIcon = config.icon;
 
   useEffect(() => {
     if (hasHydrated && isAuthenticated && config.isAuthorized(user)) {
@@ -170,12 +162,16 @@ export default function RoleLoginForm({ theme }: RoleLoginFormProps) {
   };
 
   return (
-    <Card className="relative z-10 w-full max-w-sm border-none bg-transparent py-4 shadow-none">
-      <CardHeader className="space-y-1 text-center">
-        <CardTitle className="text-3xl font-extrabold tracking-tight text-white">
+    <Card className="border-border bg-card shadow-lg">
+      <CardHeader className="space-y-3 text-center">
+        <span className="mx-auto inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-[11px] font-bold tracking-wider text-primary uppercase">
+          <BadgeIcon className="h-3.5 w-3.5" />
+          {config.badge}
+        </span>
+        <CardTitle className="text-2xl font-bold tracking-tight text-foreground">
           {config.title}
         </CardTitle>
-        <CardDescription className="text-gray-400">
+        <CardDescription className="text-muted-foreground">
           {config.description}
         </CardDescription>
       </CardHeader>
@@ -197,10 +193,10 @@ export default function RoleLoginForm({ theme }: RoleLoginFormProps) {
         {/* Divider */}
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-white/10" />
+            <div className="w-full border-t border-border" />
           </div>
           <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-[#0e0e0e] px-2 text-gray-500">
+            <span className="bg-card px-2 text-muted-foreground">
               or use email
             </span>
           </div>
@@ -210,24 +206,23 @@ export default function RoleLoginForm({ theme }: RoleLoginFormProps) {
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onPasswordSubmit)}
-            className="space-y-5"
+            className="space-y-4"
           >
             <FormField
               control={form.control}
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-gray-300">Email</FormLabel>
+                  <FormLabel className="text-muted-foreground">Email</FormLabel>
                   <FormControl>
                     <Input
                       type="email"
                       autoComplete="email"
                       placeholder={config.emailPlaceholder}
                       {...field}
-                      className={`bg-white/5 border-white/10 text-white placeholder:text-gray-500 ${config.accentFocus} transition-colors`}
                     />
                   </FormControl>
-                  <FormMessage className="text-red-400" />
+                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -237,10 +232,10 @@ export default function RoleLoginForm({ theme }: RoleLoginFormProps) {
               render={({ field }) => (
                 <FormItem>
                   <div className="flex items-center justify-between">
-                    <FormLabel className="text-gray-300">Password</FormLabel>
+                    <FormLabel className="text-muted-foreground">Password</FormLabel>
                     <Link
                       to="/auth/forgot-password"
-                      className={`text-xs ${config.accentText} ${config.accentTextHover}`}
+                      className="text-xs font-medium text-primary hover:underline"
                     >
                       Forgot password?
                     </Link>
@@ -251,16 +246,16 @@ export default function RoleLoginForm({ theme }: RoleLoginFormProps) {
                       autoComplete="current-password"
                       placeholder="••••••••"
                       {...field}
-                      className={`bg-white/5 border-white/10 text-white placeholder:text-gray-500 ${config.accentFocus} transition-colors`}
                     />
                   </FormControl>
-                  <FormMessage className="text-red-400" />
+                  <FormMessage />
                 </FormItem>
               )}
             />
             <Button
               type="submit"
-              className={`w-full ${config.accentBg} ${config.accentBgHover} text-white font-semibold py-6 transition-all`}
+              className="w-full font-semibold"
+              size="lg"
               disabled={isLoggingIn}
             >
               {isLoggingIn ? (
@@ -276,11 +271,11 @@ export default function RoleLoginForm({ theme }: RoleLoginFormProps) {
         </Form>
 
         {config.registerLabel && (
-          <div className="text-center text-sm text-gray-400">
+          <div className="text-center text-sm text-muted-foreground">
             {config.registerLabel}{" "}
             <Link
               to={config.registerHref}
-              className={`${config.accentText} ${config.accentTextHover}`}
+              className="font-medium text-primary hover:underline"
             >
               Register here
             </Link>

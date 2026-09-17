@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, ShieldCheck } from "lucide-react";
+import { CheckCircle2, Loader2, ShieldCheck } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -28,6 +28,7 @@ import {
 import { useSetPassword } from "@/features/auth/hooks/useAuth";
 import { useAuthStore } from "@/features/auth/store/authStore";
 import { useAuthHydrated } from "@/features/auth/hooks/useAuthHydrated";
+import AuthLayout from "@/features/auth/components/AuthLayout";
 
 /**
  * "Set a password" screen for Google-only accounts. Once they set a
@@ -62,13 +63,16 @@ export default function SetPasswordPage() {
   }
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#121212] p-4">
-      <Card className="relative z-10 w-full max-w-sm border-none bg-transparent py-4 shadow-none">
-        <CardHeader className="space-y-1 text-center">
-          <CardTitle className="text-3xl font-extrabold tracking-tight text-white">
+    <AuthLayout>
+      <Card className="border-border bg-card shadow-lg">
+        <CardHeader className="space-y-3 text-center">
+          <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+            {done ? <CheckCircle2 className="h-6 w-6" /> : <ShieldCheck className="h-6 w-6" />}
+          </span>
+          <CardTitle className="text-2xl font-bold tracking-tight text-foreground">
             Add a password
           </CardTitle>
-          <CardDescription className="text-gray-400">
+          <CardDescription className="text-muted-foreground">
             {user?.email
               ? `Set a password for ${user.email} so you can sign in without Google.`
               : "Set a password as a backup sign-in method."}
@@ -77,16 +81,14 @@ export default function SetPasswordPage() {
         <CardContent>
           {done ? (
             <div className="grid gap-4 text-center">
-              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-400">
-                <ShieldCheck className="h-6 w-6" />
-              </div>
-              <p className="text-sm text-gray-300">
+              <p className="text-sm leading-relaxed text-muted-foreground">
                 Password set. You can now sign in with either Google or your
                 email and password.
               </p>
               <Button
                 onClick={() => navigate(-1)}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-6"
+                className="w-full font-semibold"
+                size="lg"
               >
                 Done
               </Button>
@@ -95,24 +97,23 @@ export default function SetPasswordPage() {
             <Form {...form}>
               <form
                 onSubmit={form.handleSubmit(onSubmit)}
-                className="space-y-5"
+                className="space-y-4"
               >
                 <FormField
                   control={form.control}
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-gray-300">New password</FormLabel>
+                      <FormLabel className="text-muted-foreground">New password</FormLabel>
                       <FormControl>
                         <Input
                           type="password"
                           autoComplete="new-password"
                           placeholder="At least 8 characters"
                           {...field}
-                          className="bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-emerald-500 transition-colors"
                         />
                       </FormControl>
-                      <FormMessage className="text-red-400" />
+                      <FormMessage />
                     </FormItem>
                   )}
                 />
@@ -121,7 +122,7 @@ export default function SetPasswordPage() {
                   name="confirmPassword"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-gray-300">
+                      <FormLabel className="text-muted-foreground">
                         Confirm new password
                       </FormLabel>
                       <FormControl>
@@ -130,16 +131,16 @@ export default function SetPasswordPage() {
                           autoComplete="new-password"
                           placeholder="Repeat password"
                           {...field}
-                          className="bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-emerald-500 transition-colors"
                         />
                       </FormControl>
-                      <FormMessage className="text-red-400" />
+                      <FormMessage />
                     </FormItem>
                   )}
                 />
                 <Button
                   type="submit"
-                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-6 transition-all"
+                  className="w-full font-semibold"
+                  size="lg"
                   disabled={isPending}
                 >
                   {isPending ? (
@@ -151,10 +152,10 @@ export default function SetPasswordPage() {
                     "Save password"
                   )}
                 </Button>
-                <div className="text-center text-sm text-gray-400">
+                <div className="text-center text-sm text-muted-foreground">
                   <Link
                     to="/admin/login"
-                    className="text-emerald-300 hover:text-emerald-200"
+                    className="font-medium text-primary hover:underline"
                   >
                     Back to sign in
                   </Link>
@@ -164,6 +165,6 @@ export default function SetPasswordPage() {
           )}
         </CardContent>
       </Card>
-    </div>
+    </AuthLayout>
   );
 }

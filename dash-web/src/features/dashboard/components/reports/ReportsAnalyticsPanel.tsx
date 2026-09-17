@@ -38,7 +38,7 @@ export function ReportsAnalyticsPanel() {
         onAction={() => reportsQuery.data && exportReports(reportsQuery.data)}
         onRefresh={() => reportsQuery.refetch()}
       />
-      <Card className="border-white/10 bg-[#1c1c1c]">
+      <Card className="border-border bg-card">
         <CardContent className="grid gap-3 p-4 md:grid-cols-3">
           <DatePicker
             className={inputClass}
@@ -58,7 +58,7 @@ export function ReportsAnalyticsPanel() {
           />
           <Button
             variant="outline"
-            className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+            className="border-border bg-muted text-foreground hover:bg-muted"
             onClick={() => setParams({})}
           >
             <RefreshCcw className="h-4 w-4" />
@@ -142,20 +142,20 @@ function ReportTable<T>({
   render: (row: T) => Array<string | number>;
 }) {
   return (
-    <Card className="border-white/10 bg-[#1c1c1c]">
+    <Card className="border-border bg-card">
       <CardHeader>
-        <CardTitle className="text-white">{title}</CardTitle>
+        <CardTitle className="text-foreground">{title}</CardTitle>
       </CardHeader>
       <CardContent className="px-0">
         {!rows.length && <EmptyState label="No report rows found." />}
         {Boolean(rows.length) && (
           <Table>
             <TableHeader>
-              <TableRow className="border-white/10 hover:bg-transparent">
+              <TableRow className="border-border hover:bg-transparent">
                 {columns.map((column, index) => (
                   <TableHead
                     key={column}
-                    className={index === 0 ? "px-4 text-gray-400" : "text-gray-400"}
+                    className={index === 0 ? "px-4 text-muted-foreground" : "text-muted-foreground"}
                   >
                     {column}
                   </TableHead>
@@ -166,15 +166,15 @@ function ReportTable<T>({
               {rows.map((row, rowIndex) => (
                 <TableRow
                   key={rowIndex}
-                  className="border-white/10 hover:bg-white/[0.03]"
+                  className="border-border hover:bg-muted"
                 >
                   {render(row).map((value, index) => (
                     <TableCell
                       key={`${rowIndex}-${index}`}
                       className={
                         index === 0
-                          ? "px-4 text-sm font-medium text-white"
-                          : "text-sm text-gray-300"
+                          ? "px-4 text-sm font-medium text-foreground"
+                          : "text-sm text-muted-foreground"
                       }
                     >
                       {value}
@@ -200,16 +200,16 @@ function MetricCard({
   tone?: "normal" | "warning";
 }) {
   return (
-    <Card className="border-white/10 bg-[#1c1c1c]">
+    <Card className="border-border bg-card">
       <CardContent className="p-4">
-        <div className="text-xs uppercase tracking-normal text-gray-500">
+        <div className="text-xs uppercase tracking-normal text-muted-foreground">
           {label}
         </div>
         <div
           className={
             tone === "warning"
               ? "mt-2 text-2xl font-semibold text-amber-200"
-              : "mt-2 text-2xl font-semibold text-white"
+              : "mt-2 text-2xl font-semibold text-foreground"
           }
         >
           {value}

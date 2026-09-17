@@ -18,9 +18,9 @@ export function SellerReportsPanel() {
 
   return (
     <div className="grid gap-4">
-      <Card className="border-white/10 bg-[#1c1c1c]">
-        <CardHeader className="border-b border-white/10">
-          <CardTitle className="flex flex-col gap-3 text-base text-white md:flex-row md:items-center md:justify-between">
+      <Card className="border-border bg-card">
+        <CardHeader className="border-b border-border">
+          <CardTitle className="flex flex-col gap-3 text-base text-foreground md:flex-row md:items-center md:justify-between">
             <span>Reports</span>
             <div className="flex flex-wrap gap-2">
               <DatePicker

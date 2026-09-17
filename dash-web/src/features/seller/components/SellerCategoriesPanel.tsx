@@ -42,9 +42,9 @@ export function SellerCategoriesPanel() {
 
   return (
     <div className="grid gap-4 xl:grid-cols-[1fr_420px]">
-      <Card className="border-white/10 bg-[#1c1c1c]">
-        <CardHeader className="border-b border-white/10">
-          <CardTitle className="text-base text-white">Assigned Categories</CardTitle>
+      <Card className="border-border bg-card">
+        <CardHeader className="border-b border-border">
+          <CardTitle className="text-base text-foreground">Assigned Categories</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-3 pt-4">
           <StatusTile
@@ -71,9 +71,9 @@ export function SellerCategoriesPanel() {
         </CardContent>
       </Card>
 
-      <Card className="border-white/10 bg-[#1c1c1c]">
-        <CardHeader className="border-b border-white/10">
-          <CardTitle className="text-base text-white">Category Request</CardTitle>
+      <Card className="border-border bg-card">
+        <CardHeader className="border-b border-border">
+          <CardTitle className="text-base text-foreground">Category Request</CardTitle>
         </CardHeader>
         <CardContent className="pt-4">
           <form onSubmit={submitRequest} className="grid gap-3">
@@ -94,21 +94,21 @@ export function SellerCategoriesPanel() {
             <label className={labelClass}>
               <span className="flex items-center gap-2">
                 Subcategories
-                <span className="text-[10px] normal-case text-gray-500">Optional</span>
+                <span className="text-[10px] normal-case text-muted-foreground">Optional</span>
               </span>
-              <div className="grid max-h-44 gap-2 overflow-y-auto rounded-lg border border-white/10 bg-[#181818] p-2">
+              <div className="grid max-h-44 gap-2 overflow-y-auto rounded-lg border border-border bg-background p-2">
                 {availableCategories.length ? (
                   availableCategories.map((category) => (
                     <label
                       key={category._id}
-                      className="flex items-center gap-2 rounded border border-white/5 bg-white/[0.03] px-2 py-1.5 text-xs normal-case text-gray-300"
+                      className="flex items-center gap-2 rounded border border-border bg-muted px-2 py-1.5 text-xs normal-case text-muted-foreground"
                     >
                       <input type="checkbox" name="requestedSubcategories" value={category.title} />
                       {category.title}
                     </label>
                   ))
                 ) : (
-                  <div className="text-xs normal-case text-gray-500">No active categories available.</div>
+                  <div className="text-xs normal-case text-muted-foreground">No active categories available.</div>
                 )}
               </div>
             </label>

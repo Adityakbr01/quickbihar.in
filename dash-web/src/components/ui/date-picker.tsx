@@ -55,18 +55,18 @@ function DatePicker({
             type="button"
             variant="outline"
             className={cn(
-              "h-9 w-full justify-start border-white/10 bg-white/5 px-2.5 text-left font-normal text-white hover:bg-white/10",
-              !currentValue && "text-gray-500",
+              "h-9 w-full justify-start border-border bg-muted px-2.5 text-left font-normal text-foreground hover:bg-muted",
+              !currentValue && "text-muted-foreground",
               className
             )}
             aria-required={required}
           />
         }
       >
-        <CalendarIcon className="h-4 w-4 text-gray-400" />
+        <CalendarIcon className="h-4 w-4 text-muted-foreground" />
         <span className="truncate">{selected ? format(selected, "PP") : placeholder}</span>
       </PopoverTrigger>
-      <PopoverContent className="border-white/10 bg-[#1c1c1c] text-white" align="start">
+      <PopoverContent className="border-border bg-card text-foreground" align="start">
         <Calendar
           mode="single"
           selected={selected}
@@ -74,14 +74,14 @@ function DatePicker({
           defaultMonth={selected}
           disabled={disabled}
         />
-        <div className="flex justify-end border-t border-white/10 p-2">
+        <div className="flex justify-end border-t border-border p-2">
           <Button
             type="button"
             variant="ghost"
             size="sm"
             onClick={() => updateValue(undefined)}
             disabled={!currentValue || disabled}
-            className="text-gray-300 hover:bg-white/10 hover:text-white"
+            className="text-muted-foreground hover:bg-muted hover:text-foreground"
           >
             <XIcon className="h-3.5 w-3.5" />
             Clear

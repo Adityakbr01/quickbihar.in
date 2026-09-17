@@ -87,32 +87,32 @@ export function SellerManagementPanel() {
         }
       />
 
-      <Card className="border-white/10 bg-[#1c1c1c]">
+      <Card className="border-border bg-card">
         <CardContent className="px-0">
           {sellersQuery.isLoading && <LoadingState label="Loading sellers..." />}
           {!sellersQuery.isLoading && !sellers.length && <EmptyState label="No sellers found." />}
           {!sellersQuery.isLoading && Boolean(sellers.length) && (
             <Table>
               <TableHeader>
-                <TableRow className="border-white/10 hover:bg-transparent">
-                  <TableHead className="px-4 text-gray-400">Business / Owner</TableHead>
-                  <TableHead className="text-gray-400">Mall Address</TableHead>
-                  <TableHead className="text-gray-400">Status</TableHead>
-                  <TableHead className="text-gray-400">Wallet</TableHead>
-                  <TableHead className="text-gray-400">Created</TableHead>
-                  <TableHead className="text-right text-gray-400">Actions</TableHead>
+                <TableRow className="border-border hover:bg-transparent">
+                  <TableHead className="px-4 text-muted-foreground">Business / Owner</TableHead>
+                  <TableHead className="text-muted-foreground">Mall Address</TableHead>
+                  <TableHead className="text-muted-foreground">Status</TableHead>
+                  <TableHead className="text-muted-foreground">Wallet</TableHead>
+                  <TableHead className="text-muted-foreground">Created</TableHead>
+                  <TableHead className="text-right text-muted-foreground">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {sellers.map((seller: ManagedPerson) => (
-                  <TableRow key={seller._id} className="border-white/10 hover:bg-white/[0.03]">
+                  <TableRow key={seller._id} className="border-border hover:bg-muted">
                     <TableCell className="px-4">
-                      <div className="font-medium text-white">{seller.sellerProfile?.businessName || seller.email}</div>
-                      <div className="text-xs text-gray-500">
+                      <div className="font-medium text-foreground">{seller.sellerProfile?.businessName || seller.email}</div>
+                      <div className="text-xs text-muted-foreground">
                         {seller.fullName || "Owner"} · {seller.email}
                       </div>
                     </TableCell>
-                    <TableCell className="text-sm text-gray-300">
+                    <TableCell className="text-sm text-muted-foreground">
                       {seller.sellerProfile?.mallId ? (
                         <div className="flex items-center gap-1">
                           <Store className="h-3.5 w-3.5 text-cyan-300" />
@@ -127,16 +127,16 @@ export function SellerManagementPanel() {
                     <TableCell>
                       <StatusBadge active={(seller.sellerProfile?.status as string) === "ACTIVE"} label={seller.sellerProfile?.status || "INACTIVE"} />
                     </TableCell>
-                    <TableCell className="text-sm text-gray-300">
+                    <TableCell className="text-sm text-muted-foreground">
                       Rs. {seller.sellerProfile?.wallet?.availableBalance?.toLocaleString("en-IN") || 0}
                     </TableCell>
-                    <TableCell className="text-sm text-gray-400">{formatDate(seller.createdAt)}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground">{formatDate(seller.createdAt)}</TableCell>
                     <TableCell>
                       <div className="flex justify-end gap-2">
                         <Button
                           size="sm"
                           variant="outline"
-                          className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+                          className="border-border bg-muted text-foreground hover:bg-muted"
                           onClick={() => setEditing(seller)}
                         >
                           <Edit className="h-3.5 w-3.5" />
@@ -176,7 +176,7 @@ export function SellerManagementPanel() {
       />
 
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto border-white/10 bg-[#1c1c1c] text-white sm:max-w-2xl">
+        <DialogContent className="max-h-[90vh] overflow-y-auto border-border bg-card text-foreground sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>Add Seller Account</DialogTitle>
           </DialogHeader>
@@ -190,7 +190,7 @@ export function SellerManagementPanel() {
       </Dialog>
 
       <Dialog open={Boolean(editing)} onOpenChange={(open) => !open && setEditing(null)}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto border-white/10 bg-[#1c1c1c] text-white sm:max-w-2xl">
+        <DialogContent className="max-h-[90vh] overflow-y-auto border-border bg-card text-foreground sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>Edit Seller Account</DialogTitle>
           </DialogHeader>
@@ -274,23 +274,23 @@ function SellerForm({
 
   return (
     <form onSubmit={submit} className="grid gap-4 pt-2">
-      <section className="grid gap-2 border-b border-white/10 pb-3">
+      <section className="grid gap-2 border-b border-border pb-3">
         <div className="text-xs font-semibold uppercase text-emerald-400 tracking-wide">Owner / User Account</div>
         <div className="grid gap-3 md:grid-cols-2">
           <div className="grid gap-1">
-            <span className="text-xs font-medium uppercase text-gray-500">Full Name</span>
+            <span className="text-xs font-medium uppercase text-muted-foreground">Full Name</span>
             <Input required value={fullName} onChange={(e) => setFullName(e.target.value)} className={inputClass} placeholder="Aditya Kumar" />
           </div>
           <div className="grid gap-1">
-            <span className="text-xs font-medium uppercase text-gray-500">Login Email</span>
+            <span className="text-xs font-medium uppercase text-muted-foreground">Login Email</span>
             <Input required type="email" value={email} onChange={(e) => setEmail(e.target.value)} className={inputClass} placeholder="aditya@example.com" />
           </div>
           <div className="grid gap-1">
-            <span className="text-xs font-medium uppercase text-gray-500">Contact Phone</span>
+            <span className="text-xs font-medium uppercase text-muted-foreground">Contact Phone</span>
             <Input required value={phone} onChange={(e) => setPhone(e.target.value)} className={inputClass} placeholder="+91 9876543210" />
           </div>
           <div className="grid gap-1">
-            <span className="text-xs font-medium uppercase text-gray-500">
+            <span className="text-xs font-medium uppercase text-muted-foreground">
               {seller ? "Change Password (Optional)" : "Login Password"}
             </span>
             <Input
@@ -305,23 +305,23 @@ function SellerForm({
         </div>
       </section>
 
-      <section className="grid gap-2 border-b border-white/10 pb-3">
+      <section className="grid gap-2 border-b border-border pb-3">
         <div className="text-xs font-semibold uppercase text-emerald-400 tracking-wide">Business Profile</div>
         <div className="grid gap-3 md:grid-cols-2">
           <div className="grid gap-1">
-            <span className="text-xs font-medium uppercase text-gray-500">Business Name</span>
+            <span className="text-xs font-medium uppercase text-muted-foreground">Business Name</span>
             <Input required value={businessName} onChange={(e) => setBusinessName(e.target.value)} className={inputClass} placeholder="Bihar Apparel Co." />
           </div>
           <div className="grid gap-1">
-            <span className="text-xs font-medium uppercase text-gray-500">Business Email</span>
+            <span className="text-xs font-medium uppercase text-muted-foreground">Business Email</span>
             <Input required type="email" value={businessEmail} onChange={(e) => setBusinessEmail(e.target.value)} className={inputClass} placeholder="billing@biharapparel.com" />
           </div>
           <div className="grid gap-1">
-            <span className="text-xs font-medium uppercase text-gray-500">Business Phone</span>
+            <span className="text-xs font-medium uppercase text-muted-foreground">Business Phone</span>
             <Input required value={businessPhone} onChange={(e) => setBusinessPhone(e.target.value)} className={inputClass} placeholder="0612-2345678" />
           </div>
           <div className="grid gap-1">
-            <span className="text-xs font-medium uppercase text-gray-500">Seller Status</span>
+            <span className="text-xs font-medium uppercase text-muted-foreground">Seller Status</span>
             <select value={status} onChange={(e) => setStatus(e.target.value)} className={selectClass}>
               <option value="ACTIVE">Active Account</option>
               <option value="PENDING_APPROVAL">Pending Verification</option>
@@ -329,11 +329,11 @@ function SellerForm({
             </select>
           </div>
           <div className="grid gap-1">
-            <span className="text-xs font-medium uppercase text-gray-500">GSTIN</span>
+            <span className="text-xs font-medium uppercase text-muted-foreground">GSTIN</span>
             <Input value={gstin} onChange={(e) => setGstin(e.target.value)} className={inputClass} placeholder="10AAAAA1111A1Z1" />
           </div>
           <div className="grid gap-1">
-            <span className="text-xs font-medium uppercase text-gray-500">PAN Card Number</span>
+            <span className="text-xs font-medium uppercase text-muted-foreground">PAN Card Number</span>
             <Input value={pan} onChange={(e) => setPan(e.target.value)} className={inputClass} placeholder="ABCDE1234F" />
           </div>
         </div>
@@ -341,12 +341,12 @@ function SellerForm({
 
       <section className="grid gap-2">
         <div className="text-xs font-semibold uppercase text-emerald-400 tracking-wide">Default Store Policies</div>
-        <div className="text-xs text-gray-500 pb-1">
+        <div className="text-xs text-muted-foreground pb-1">
           Select default policies for this seller's new store. Banners and products will reference these selections.
         </div>
         <div className="grid gap-3 md:grid-cols-2">
           <div className="grid gap-1">
-            <span className="text-xs font-medium uppercase text-gray-500">Default Return Policy</span>
+            <span className="text-xs font-medium uppercase text-muted-foreground">Default Return Policy</span>
             <select value={returnPolicyId} onChange={(e) => setReturnPolicyId(e.target.value)} className={selectClass}>
               <option value="">No Return Policy</option>
               {policies
@@ -359,7 +359,7 @@ function SellerForm({
             </select>
           </div>
           <div className="grid gap-1">
-            <span className="text-xs font-medium uppercase text-gray-500">Default Refund Policy</span>
+            <span className="text-xs font-medium uppercase text-muted-foreground">Default Refund Policy</span>
             <select value={refundPolicyId} onChange={(e) => setRefundPolicyId(e.target.value)} className={selectClass}>
               <option value="">No Refund Policy</option>
               {policies
@@ -372,7 +372,7 @@ function SellerForm({
             </select>
           </div>
           <div className="grid gap-1">
-            <span className="text-xs font-medium uppercase text-gray-500">Default Shipping Policy</span>
+            <span className="text-xs font-medium uppercase text-muted-foreground">Default Shipping Policy</span>
             <select value={shippingPolicyId} onChange={(e) => setShippingPolicyId(e.target.value)} className={selectClass}>
               <option value="">No Shipping Policy</option>
               {policies
@@ -385,7 +385,7 @@ function SellerForm({
             </select>
           </div>
           <div className="grid gap-1">
-            <span className="text-xs font-medium uppercase text-gray-500">Default Terms Policy</span>
+            <span className="text-xs font-medium uppercase text-muted-foreground">Default Terms Policy</span>
             <select value={termsPolicyId} onChange={(e) => setTermsPolicyId(e.target.value)} className={selectClass}>
               <option value="">No Terms Policy</option>
               {policies
@@ -400,7 +400,7 @@ function SellerForm({
         </div>
       </section>
 
-      <DialogFooter className="gap-2 pt-2 border-t border-white/10 mt-2">
+      <DialogFooter className="gap-2 pt-2 border-t border-border mt-2">
         <Button type="button" variant="outline" onClick={onCancel} disabled={isPending}>
           Cancel
         </Button>

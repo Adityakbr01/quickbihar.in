@@ -1,7 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 
 import { FormEvent, useEffect, useState } from "react";
-import { Bike, CheckCircle2, FileUp, Loader2, MapPin, Store, ArrowLeft, X, FileText, UploadCloud, AlertCircle, LogOut } from "lucide-react";
+import { Bike, CheckCircle2, FileUp, Loader2, MapPin, Store, X, FileText, UploadCloud, AlertCircle, LogOut } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,13 +17,13 @@ type Phase = "auth" | "application" | "submitted";
 type RiderLocation = { latitude: number; longitude: number };
 
 const inputClass =
-  "border-white/10 bg-white/5 text-white placeholder:text-gray-500 focus:border-emerald-500 transition-colors";
+  "border-border bg-muted text-foreground placeholder:text-muted-foreground transition-colors";
 const errorInputClass =
-  "border-red-500/60 bg-red-500/5 text-white placeholder:text-gray-500 focus:border-red-500 transition-colors";
+  "border-destructive/60 bg-destructive/5 text-foreground placeholder:text-muted-foreground transition-colors";
 const selectClass =
-  "h-10 rounded-lg border border-white/10 bg-[#181818] px-3 text-sm text-white outline-none focus:border-emerald-500 transition-colors w-full";
+  "h-10 rounded-lg border border-border bg-background px-3 text-sm text-foreground outline-none focus:border-primary transition-colors w-full";
 const textareaClass =
-  "min-h-24 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none placeholder:text-gray-500 focus:border-emerald-500 transition-colors w-full";
+  "min-h-24 rounded-lg border border-border bg-muted px-3 py-2 text-sm text-foreground outline-none placeholder:text-muted-foreground focus:border-primary transition-colors w-full";
 
 interface CrossRoleConflict {
   role: string;
@@ -82,9 +82,7 @@ export default function PartnerRegisterForm({ mode }: { mode: PartnerMode }) {
 
   const title = isRider ? "Delivery Registration" : "Seller Registration";
   const Icon = isRider ? Bike : Store;
-  const activeColorClass = isRider
-    ? "bg-cyan-600 hover:bg-cyan-700"
-    : "bg-emerald-600 hover:bg-emerald-700";
+  const activeColorClass = "bg-primary hover:bg-primary/90";
 
   const handleLogout = async () => {
     if (isLoggingOut) return;
@@ -386,18 +384,18 @@ export default function PartnerRegisterForm({ mode }: { mode: PartnerMode }) {
   if (!hasHydrated || (isAuthenticated && (isCheckingStatus || phase === "auth"))) {
     return (
       <div className="relative z-10 flex min-h-[400px] w-full max-w-2xl items-center justify-center p-8">
-        <Loader2 className="h-8 w-8 animate-spin text-emerald-500" />
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <Card className="relative z-10 w-full max-w-2xl border-none bg-transparent py-4 shadow-none">
+    <Card className="w-full max-w-2xl border-border bg-card shadow-lg">
       <CardHeader className="space-y-1 text-center">
-        <CardTitle className="text-3xl font-extrabold tracking-tight text-white">
+        <CardTitle className="text-3xl font-extrabold tracking-tight text-foreground">
           {title}
         </CardTitle>
-        <CardDescription className="text-gray-400">
+        <CardDescription className="text-muted-foreground">
           {crossRoleConflict
             ? "A partner account already exists for your email or phone"
             : phaseLabel(phase, status)}
@@ -406,19 +404,19 @@ export default function PartnerRegisterForm({ mode }: { mode: PartnerMode }) {
       <CardContent>
         {crossRoleConflict ? (
           <div className="grid gap-6 text-center py-6 animate-in zoom-in-95">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-amber-500/10 text-amber-400">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-tertiary/10 text-tertiary">
               <AlertCircle className="h-8 w-8" />
             </div>
             <div className="space-y-2">
-              <div className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-300">
+              <div className="inline-flex items-center gap-1.5 rounded-full border border-tertiary/30 bg-tertiary/10 px-3 py-1 text-xs font-semibold text-tertiary">
                 Partner Account Notice
               </div>
-              <h3 className="text-xl font-bold text-white">
+              <h3 className="text-xl font-bold text-foreground">
                 Existing {crossRoleConflict.role} Account Found
               </h3>
-              <p className="text-sm text-gray-300 max-w-md mx-auto leading-relaxed">
-                Your account (<span className="text-white font-medium">{user?.email}</span>) already has an active{" "}
-                <span className="text-amber-300 font-semibold">{crossRoleConflict.role}</span> application/profile ({crossRoleConflict.status}). QuickBihar partner policy allows only one role (Rider or Seller) per individual account and phone number.
+              <p className="text-sm text-muted-foreground max-w-md mx-auto leading-relaxed">
+                Your account (<span className="text-foreground font-medium">{user?.email}</span>) already has an active{" "}
+                <span className="text-tertiary font-semibold">{crossRoleConflict.role}</span> application/profile ({crossRoleConflict.status}). QuickBihar partner policy allows only one role (Rider or Seller) per individual account and phone number.
               </p>
             </div>
 
@@ -427,13 +425,13 @@ export default function PartnerRegisterForm({ mode }: { mode: PartnerMode }) {
                 type="button"
                 variant="outline"
                 disabled={isLoggingOut}
-                className="border-white/20 bg-white/5 text-white hover:bg-white/10 w-full sm:w-auto cursor-pointer"
+                className="border-border bg-muted text-foreground hover:bg-muted w-full sm:w-auto cursor-pointer"
                 onClick={handleLogout}
               >
                 {isLoggingOut ? (
                   <Loader2 className="h-4 w-4 animate-spin mr-2" />
                 ) : (
-                  <LogOut className="h-4 w-4 mr-2 text-red-400" />
+                  <LogOut className="h-4 w-4 mr-2 text-destructive" />
                 )}
                 Log Out to Switch Account
               </Button>
@@ -441,7 +439,7 @@ export default function PartnerRegisterForm({ mode }: { mode: PartnerMode }) {
               {crossRoleConflict.status === "APPROVED" && crossRoleConflict.dashboardUrl && (
                 <Button
                   type="button"
-                  className={`${activeColorClass} text-white font-semibold w-full sm:w-auto cursor-pointer`}
+                  className={`${activeColorClass} text-on-primary font-semibold w-full sm:w-auto cursor-pointer`}
                   onClick={() => navigate(crossRoleConflict.dashboardUrl!)}
                 >
                   Go to {crossRoleConflict.role} Dashboard →
@@ -453,15 +451,15 @@ export default function PartnerRegisterForm({ mode }: { mode: PartnerMode }) {
           <>
             {phase === "auth" && (
               <div className="grid gap-6 text-center">
-                <div className="rounded-xl border border-white/10 bg-white/[0.02] p-6 sm:p-8 space-y-4">
-                  <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-white/5">
-                    <Icon className={`h-7 w-7 ${isRider ? "text-cyan-400" : "text-emerald-400"}`} />
+                <div className="rounded-xl border border-border bg-muted p-6 sm:p-8 space-y-4">
+                  <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-muted">
+                    <Icon className="h-7 w-7 text-primary" />
                   </div>
                   <div className="space-y-1">
-                    <h3 className="text-lg font-semibold text-white">
+                    <h3 className="text-lg font-semibold text-foreground">
                       Continue with Google
                     </h3>
-                    <p className="text-sm text-gray-400 max-w-sm mx-auto">
+                    <p className="text-sm text-muted-foreground max-w-sm mx-auto">
                       Sign in with your Google account to start your {isRider ? "delivery partner" : "seller"} onboarding and set up your profile in one step.
                     </p>
                   </div>
@@ -522,11 +520,11 @@ export default function PartnerRegisterForm({ mode }: { mode: PartnerMode }) {
                   </div>
                 </div>
 
-                <div className="text-center text-sm text-gray-400">
+                <div className="text-center text-sm text-muted-foreground">
                   Already registered?{" "}
                   <Link
                     to={isRider ? "/delivery/login" : "/seller/login"}
-                    className={`font-medium ${isRider ? "text-cyan-400 hover:text-cyan-300" : "text-emerald-400 hover:text-emerald-300"} hover:underline`}
+                    className="font-medium text-primary hover:underline"
                   >
                     Sign in
                   </Link>
@@ -537,33 +535,33 @@ export default function PartnerRegisterForm({ mode }: { mode: PartnerMode }) {
             {phase === "application" && (
               <form onSubmit={submitApplication} className="grid gap-5 animate-in fade-in-50">
                 {/* Authenticated user session header with in-page Logout */}
-                <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-white/10 bg-white/[0.03] px-4 py-2.5 text-xs text-gray-300">
+                <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-muted px-4 py-2.5 text-xs text-muted-foreground">
                   <div className="flex items-center gap-2 min-w-0">
-                    <span className="h-2 w-2 rounded-full bg-emerald-400 shrink-0" />
+                    <span className="h-2 w-2 rounded-full bg-primary shrink-0" />
                     <span className="truncate">
-                      Signed in as <strong className="text-white font-semibold">{user?.email}</strong>
+                      Signed in as <strong className="text-foreground font-semibold">{user?.email}</strong>
                     </span>
                   </div>
                   <button
                     type="button"
                     disabled={isLoggingOut}
                     onClick={handleLogout}
-                    className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium text-gray-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer disabled:opacity-50"
+                    className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer disabled:opacity-50"
                     title="Sign out and switch accounts"
                   >
                     {isLoggingOut ? (
                       <Loader2 className="h-3.5 w-3.5 animate-spin" />
                     ) : (
-                      <LogOut className="h-3.5 w-3.5 text-red-400" />
+                      <LogOut className="h-3.5 w-3.5 text-destructive" />
                     )}
                     <span>Log Out</span>
                   </button>
                 </div>
 
-                <div className="rounded-lg bg-emerald-500/10 border border-emerald-500/20 p-3.5 text-xs text-emerald-300 flex items-start gap-2">
+                <div className="rounded-lg bg-primary/10 border border-primary/25 p-3.5 text-xs text-muted-foreground flex items-start gap-2">
                   <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
                   <div>
-                    <p className="font-semibold text-emerald-200 mb-0.5">
+                    <p className="font-semibold text-primary mb-0.5">
                       Please provide accurate verification details
                     </p>
                     <p>
@@ -617,13 +615,13 @@ export default function PartnerRegisterForm({ mode }: { mode: PartnerMode }) {
 
             {phase === "submitted" && (
               <div className="grid gap-4 text-center py-6 animate-in zoom-in-95">
-                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-400/10 text-emerald-400">
+                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
                   <CheckCircle2 className="h-8 w-8" />
                 </div>
-                <div className="text-xl font-bold text-white">
+                <div className="text-xl font-bold text-foreground">
                   {status?.status || "Application received"}
                 </div>
-                <p className="text-sm text-gray-400 max-w-md mx-auto">
+                <p className="text-sm text-muted-foreground max-w-md mx-auto">
                   {status?.status === "APPROVED"
                     ? "Your application is approved. You can log in to the partner panel."
                     : status?.status === "REJECTED"
@@ -634,7 +632,7 @@ export default function PartnerRegisterForm({ mode }: { mode: PartnerMode }) {
                 {status?.status === "APPROVED" && (
                   <Button
                     type="button"
-                    className={`${activeColorClass} text-white font-semibold py-6 text-base shadow-lg cursor-pointer`}
+                    className={`${activeColorClass} text-on-primary font-semibold py-6 text-base shadow-lg cursor-pointer`}
                     onClick={() =>
                       navigate(isRider ? "/delivery/dashboard" : "/seller/dashboard")
                     }
@@ -646,7 +644,7 @@ export default function PartnerRegisterForm({ mode }: { mode: PartnerMode }) {
                   <Button
                     type="button"
                     variant="outline"
-                    className="border-white/10 bg-white/5 text-white hover:bg-white/10 cursor-pointer"
+                    className="border-border bg-muted text-foreground hover:bg-muted cursor-pointer"
                     onClick={() => setPhase("application")}
                   >
                     Submit Again
@@ -654,20 +652,20 @@ export default function PartnerRegisterForm({ mode }: { mode: PartnerMode }) {
                 )}
 
                 {/* Status screen account footer with Logout button */}
-                <div className="mt-4 pt-4 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-gray-400">
+                <div className="mt-4 pt-4 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-foreground">
                   <span className="truncate">
-                    Signed in as <strong className="text-gray-200">{user?.email}</strong>
+                    Signed in as <strong className="text-foreground">{user?.email}</strong>
                   </span>
                   <button
                     type="button"
                     disabled={isLoggingOut}
                     onClick={handleLogout}
-                    className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium text-gray-300 hover:text-white hover:bg-white/10 border border-white/10 transition-colors cursor-pointer disabled:opacity-50"
+                    className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted border border-border transition-colors cursor-pointer disabled:opacity-50"
                   >
                     {isLoggingOut ? (
                       <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" />
                     ) : (
-                      <LogOut className="h-3.5 w-3.5 text-red-400 mr-1" />
+                      <LogOut className="h-3.5 w-3.5 text-destructive mr-1" />
                     )}
                     Log Out & Switch Account
                   </button>
@@ -692,12 +690,12 @@ function SellerFields({
 }) {
   return (
     <div className="space-y-4">
-      <h3 className="text-sm font-semibold text-emerald-400 tracking-wider uppercase">
+      <h3 className="text-sm font-semibold text-primary tracking-wider uppercase">
         1. Business Profile
       </h3>
       <div className="grid gap-4 md:grid-cols-2">
         <div>
-          <label className="text-xs font-medium text-gray-300 block mb-1">
+          <label className="text-xs font-medium text-muted-foreground block mb-1">
             Business Name *
           </label>
           <Input
@@ -707,12 +705,12 @@ function SellerFields({
             className={errors.businessName ? errorInputClass : inputClass}
           />
           {errors.businessName && (
-            <p className="text-xs text-red-400 mt-1">{errors.businessName}</p>
+            <p className="text-xs text-destructive mt-1">{errors.businessName}</p>
           )}
         </div>
 
         <div>
-          <label className="text-xs font-medium text-gray-300 block mb-1">
+          <label className="text-xs font-medium text-muted-foreground block mb-1">
             Business Category *
           </label>
           <select
@@ -727,7 +725,7 @@ function SellerFields({
         </div>
 
         <div>
-          <label className="text-xs font-medium text-gray-300 block mb-1">
+          <label className="text-xs font-medium text-muted-foreground block mb-1">
             Mobile Number *
           </label>
           <Input
@@ -741,16 +739,16 @@ function SellerFields({
             className={errors.phone ? errorInputClass : inputClass}
           />
           {errors.phone ? (
-            <p className="text-xs text-red-400 mt-1">{errors.phone}</p>
+            <p className="text-xs text-destructive mt-1">{errors.phone}</p>
           ) : (
-            <p className="text-[11px] text-gray-500 mt-1">
+            <p className="text-[11px] text-muted-foreground mt-1">
               Admin will verify this number before activating your store.
             </p>
           )}
         </div>
 
         <div>
-          <label className="text-xs font-medium text-gray-300 block mb-1">
+          <label className="text-xs font-medium text-muted-foreground block mb-1">
             GST Number (Optional)
           </label>
           <Input
@@ -761,7 +759,7 @@ function SellerFields({
             className={errors.gstNumber ? errorInputClass : inputClass}
           />
           {errors.gstNumber && (
-            <p className="text-xs text-red-400 mt-1">{errors.gstNumber}</p>
+            <p className="text-xs text-destructive mt-1">{errors.gstNumber}</p>
           )}
         </div>
       </div>
@@ -786,12 +784,12 @@ function RiderFields({
 }) {
   return (
     <div className="space-y-4">
-      <h3 className="text-sm font-semibold text-cyan-400 tracking-wider uppercase">
+      <h3 className="text-sm font-semibold text-primary tracking-wider uppercase">
         1. Vehicle & Driver Details
       </h3>
       <div className="grid gap-4 md:grid-cols-2">
         <div>
-          <label className="text-xs font-medium text-gray-300 block mb-1">
+          <label className="text-xs font-medium text-muted-foreground block mb-1">
             Vehicle Type *
           </label>
           <select
@@ -799,7 +797,7 @@ function RiderFields({
             onChange={(e) => updateField("vehicleType", e.target.value)}
             className={
               errors.vehicleType
-                ? `${selectClass} border-red-500/60`
+                ? `${selectClass} border-destructive/60`
                 : selectClass
             }
           >
@@ -810,12 +808,12 @@ function RiderFields({
             <option value="CAR">Car / Van</option>
           </select>
           {errors.vehicleType && (
-            <p className="text-xs text-red-400 mt-1">{errors.vehicleType}</p>
+            <p className="text-xs text-destructive mt-1">{errors.vehicleType}</p>
           )}
         </div>
 
         <div>
-          <label className="text-xs font-medium text-gray-300 block mb-1">
+          <label className="text-xs font-medium text-muted-foreground block mb-1">
             Vehicle Number *
           </label>
           <Input
@@ -825,12 +823,12 @@ function RiderFields({
             className={errors.vehicleNumber ? errorInputClass : inputClass}
           />
           {errors.vehicleNumber && (
-            <p className="text-xs text-red-400 mt-1">{errors.vehicleNumber}</p>
+            <p className="text-xs text-destructive mt-1">{errors.vehicleNumber}</p>
           )}
         </div>
 
         <div>
-          <label className="text-xs font-medium text-gray-300 block mb-1">
+          <label className="text-xs font-medium text-muted-foreground block mb-1">
             Driving License Number *
           </label>
           <Input
@@ -840,12 +838,12 @@ function RiderFields({
             className={errors.licenseNumber ? errorInputClass : inputClass}
           />
           {errors.licenseNumber && (
-            <p className="text-xs text-red-400 mt-1">{errors.licenseNumber}</p>
+            <p className="text-xs text-destructive mt-1">{errors.licenseNumber}</p>
           )}
         </div>
 
         <div>
-          <label className="text-xs font-medium text-gray-300 block mb-1">
+          <label className="text-xs font-medium text-muted-foreground block mb-1">
             Mobile Number *
           </label>
           <Input
@@ -859,9 +857,9 @@ function RiderFields({
             className={errors.phone ? errorInputClass : inputClass}
           />
           {errors.phone ? (
-            <p className="text-xs text-red-400 mt-1">{errors.phone}</p>
+            <p className="text-xs text-destructive mt-1">{errors.phone}</p>
           ) : (
-            <p className="text-[11px] text-gray-500 mt-1">
+            <p className="text-[11px] text-muted-foreground mt-1">
               Admin will verify this number before rider activation.
             </p>
           )}
@@ -871,21 +869,21 @@ function RiderFields({
       <div
         className={`flex flex-wrap items-center justify-between gap-3 rounded-lg border ${
           errors.location
-            ? "border-red-500/60 bg-red-500/5"
-            : "border-white/10 bg-white/[0.03]"
+            ? "border-destructive/60 bg-destructive/5"
+            : "border-border bg-muted"
         } p-3.5`}
       >
         <div className="grid gap-1">
-          <span className="text-sm font-medium text-white">
+          <span className="text-sm font-medium text-foreground">
             Current Base Location *
           </span>
-          <span className="text-xs text-gray-400">
+          <span className="text-xs text-muted-foreground">
             {location
               ? `Lat: ${location.latitude.toFixed(5)}, Lng: ${location.longitude.toFixed(5)}`
               : "Location not captured yet"}
           </span>
           {errors.location && (
-            <p className="text-xs text-red-400">{errors.location}</p>
+            <p className="text-xs text-destructive">{errors.location}</p>
           )}
         </div>
         <Button
@@ -893,12 +891,12 @@ function RiderFields({
           variant="outline"
           disabled={isLocating}
           onClick={onCaptureLocation}
-          className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+          className="border-border bg-muted text-foreground hover:bg-muted"
         >
           {isLocating ? (
             <Loader2 className="h-4 w-4 animate-spin mr-1.5" />
           ) : (
-            <MapPin className="h-4 w-4 mr-1.5 text-cyan-400" />
+            <MapPin className="h-4 w-4 mr-1.5 text-primary" />
           )}
           {location ? "Update Location" : "Use Current Location"}
         </Button>
@@ -927,12 +925,12 @@ function CommonApplicationFields({
   return (
     <>
       <div className="space-y-3 pt-2">
-        <h3 className="text-sm font-semibold text-gray-300 tracking-wider uppercase">
+        <h3 className="text-sm font-semibold text-muted-foreground tracking-wider uppercase">
           2. Address & Location
         </h3>
         <div className="grid gap-4 md:grid-cols-3">
           <div>
-            <label className="text-xs font-medium text-gray-300 block mb-1">
+            <label className="text-xs font-medium text-muted-foreground block mb-1">
               City *
             </label>
             <Input
@@ -941,11 +939,11 @@ function CommonApplicationFields({
               placeholder="e.g. Patna"
               className={errors.city ? errorInputClass : inputClass}
             />
-            {errors.city && <p className="text-xs text-red-400 mt-1">{errors.city}</p>}
+            {errors.city && <p className="text-xs text-destructive mt-1">{errors.city}</p>}
           </div>
 
           <div>
-            <label className="text-xs font-medium text-gray-300 block mb-1">
+            <label className="text-xs font-medium text-muted-foreground block mb-1">
               State *
             </label>
             <Input
@@ -955,12 +953,12 @@ function CommonApplicationFields({
               className={errors.state ? errorInputClass : inputClass}
             />
             {errors.state && (
-              <p className="text-xs text-red-400 mt-1">{errors.state}</p>
+              <p className="text-xs text-destructive mt-1">{errors.state}</p>
             )}
           </div>
 
           <div>
-            <label className="text-xs font-medium text-gray-300 block mb-1">
+            <label className="text-xs font-medium text-muted-foreground block mb-1">
               Pincode *
             </label>
             <Input
@@ -971,13 +969,13 @@ function CommonApplicationFields({
               className={errors.pincode ? errorInputClass : inputClass}
             />
             {errors.pincode && (
-              <p className="text-xs text-red-400 mt-1">{errors.pincode}</p>
+              <p className="text-xs text-destructive mt-1">{errors.pincode}</p>
             )}
           </div>
         </div>
 
         <div>
-          <label className="text-xs font-medium text-gray-300 block mb-1">
+          <label className="text-xs font-medium text-muted-foreground block mb-1">
             Full Shop / Residence Address *
           </label>
           <textarea
@@ -986,23 +984,23 @@ function CommonApplicationFields({
             placeholder="Enter complete street address, landmark, building name, floor number..."
             className={
               errors.address
-                ? `${textareaClass} border-red-500/60 bg-red-500/5`
+                ? `${textareaClass} border-destructive/60 bg-destructive/5`
                 : textareaClass
             }
           />
           {errors.address && (
-            <p className="text-xs text-red-400 mt-1">{errors.address}</p>
+            <p className="text-xs text-destructive mt-1">{errors.address}</p>
           )}
         </div>
       </div>
 
       <div className="space-y-3 pt-2">
-        <h3 className="text-sm font-semibold text-gray-300 tracking-wider uppercase">
+        <h3 className="text-sm font-semibold text-muted-foreground tracking-wider uppercase">
           3. Payout Bank Account & Government ID
         </h3>
         <div className="grid gap-4 md:grid-cols-3">
           <div>
-            <label className="text-xs font-medium text-gray-300 block mb-1">
+            <label className="text-xs font-medium text-muted-foreground block mb-1">
               Account Number *
             </label>
             <Input
@@ -1014,12 +1012,12 @@ function CommonApplicationFields({
               className={errors.accountNumber ? errorInputClass : inputClass}
             />
             {errors.accountNumber && (
-              <p className="text-xs text-red-400 mt-1">{errors.accountNumber}</p>
+              <p className="text-xs text-destructive mt-1">{errors.accountNumber}</p>
             )}
           </div>
 
           <div>
-            <label className="text-xs font-medium text-gray-300 block mb-1">
+            <label className="text-xs font-medium text-muted-foreground block mb-1">
               IFSC Code *
             </label>
             <Input
@@ -1030,12 +1028,12 @@ function CommonApplicationFields({
               className={errors.ifsc ? errorInputClass : inputClass}
             />
             {errors.ifsc && (
-              <p className="text-xs text-red-400 mt-1">{errors.ifsc}</p>
+              <p className="text-xs text-destructive mt-1">{errors.ifsc}</p>
             )}
           </div>
 
           <div>
-            <label className="text-xs font-medium text-gray-300 block mb-1">
+            <label className="text-xs font-medium text-muted-foreground block mb-1">
               Bank Name *
             </label>
             <Input
@@ -1045,14 +1043,14 @@ function CommonApplicationFields({
               className={errors.bankName ? errorInputClass : inputClass}
             />
             {errors.bankName && (
-              <p className="text-xs text-red-400 mt-1">{errors.bankName}</p>
+              <p className="text-xs text-destructive mt-1">{errors.bankName}</p>
             )}
           </div>
         </div>
 
         <div className="grid gap-4 md:grid-cols-3">
           <div>
-            <label className="text-xs font-medium text-gray-300 block mb-1">
+            <label className="text-xs font-medium text-muted-foreground block mb-1">
               PAN Card Number *
             </label>
             <Input
@@ -1062,11 +1060,11 @@ function CommonApplicationFields({
               maxLength={10}
               className={errors.pan ? errorInputClass : inputClass}
             />
-            {errors.pan && <p className="text-xs text-red-400 mt-1">{errors.pan}</p>}
+            {errors.pan && <p className="text-xs text-destructive mt-1">{errors.pan}</p>}
           </div>
 
           <div>
-            <label className="text-xs font-medium text-gray-300 block mb-1">
+            <label className="text-xs font-medium text-muted-foreground block mb-1">
               Aadhaar Card Number *
             </label>
             <Input
@@ -1077,12 +1075,12 @@ function CommonApplicationFields({
               className={errors.aadhar ? errorInputClass : inputClass}
             />
             {errors.aadhar && (
-              <p className="text-xs text-red-400 mt-1">{errors.aadhar}</p>
+              <p className="text-xs text-destructive mt-1">{errors.aadhar}</p>
             )}
           </div>
 
           <div>
-            <label className="text-xs font-medium text-gray-300 block mb-1">
+            <label className="text-xs font-medium text-muted-foreground block mb-1">
               UPI ID (Optional)
             </label>
             <Input
@@ -1096,16 +1094,16 @@ function CommonApplicationFields({
       </div>
 
       <div className="space-y-3 pt-2">
-        <h3 className="text-sm font-semibold text-gray-300 tracking-wider uppercase">
+        <h3 className="text-sm font-semibold text-muted-foreground tracking-wider uppercase">
           4. Upload Verification Documents
         </h3>
 
-        <div className="rounded-lg border border-white/10 bg-white/[0.03] p-3.5 space-y-2">
-          <p className="text-xs font-semibold text-gray-200 flex items-center gap-1.5">
-            <UploadCloud className="h-4 w-4 text-emerald-400" /> Required
+        <div className="rounded-lg border border-border bg-muted p-3.5 space-y-2">
+          <p className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+            <UploadCloud className="h-4 w-4 text-primary" /> Required
             Verification Documents Checklist:
           </p>
-          <ul className="text-xs text-gray-400 space-y-1 pl-5 list-disc">
+          <ul className="text-xs text-muted-foreground space-y-1 pl-5 list-disc">
             {isRider ? (
               <>
                 <li>
@@ -1142,7 +1140,7 @@ function CommonApplicationFields({
         </div>
 
         <div>
-          <label className="text-xs font-medium text-gray-300 block mb-1.5">
+          <label className="text-xs font-medium text-muted-foreground block mb-1.5">
             Select Files to Upload (Images or PDF) *
           </label>
           <Input
@@ -1153,32 +1151,32 @@ function CommonApplicationFields({
             className={errors.files ? errorInputClass : inputClass}
           />
           {errors.files && (
-            <p className="text-xs text-red-400 mt-1">{errors.files}</p>
+            <p className="text-xs text-destructive mt-1">{errors.files}</p>
           )}
         </div>
 
         {files.length > 0 && (
           <div className="space-y-2 mt-2">
-            <p className="text-xs font-medium text-gray-400">
+            <p className="text-xs font-medium text-muted-foreground">
               Attached Documents ({files.length}):
             </p>
             <div className="grid gap-2 sm:grid-cols-2">
               {files.map((file, idx) => (
                 <div
                   key={idx}
-                  className="flex items-center justify-between gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs text-gray-200"
+                  className="flex items-center justify-between gap-2 rounded-lg border border-border bg-muted px-3 py-2 text-xs text-foreground"
                 >
                   <div className="flex items-center gap-2 truncate">
-                    <FileText className="h-4 w-4 text-emerald-400 shrink-0" />
+                    <FileText className="h-4 w-4 text-primary shrink-0" />
                     <span className="truncate">{file.name}</span>
-                    <span className="text-[10px] text-gray-400 shrink-0">
+                    <span className="text-[10px] text-muted-foreground shrink-0">
                       ({(file.size / 1024).toFixed(0)} KB)
                     </span>
                   </div>
                   <button
                     type="button"
                     onClick={() => onFileRemove(idx)}
-                    className="text-gray-400 hover:text-red-400 p-0.5 rounded transition-colors shrink-0"
+                    className="text-muted-foreground hover:text-destructive p-0.5 rounded transition-colors shrink-0"
                   >
                     <X className="h-4 w-4" />
                   </button>

@@ -22,6 +22,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuthStore } from "@/features/auth/store/authStore";
 import { useAuthHydrated } from "@/features/auth/hooks/useAuthHydrated";
 import { logoutRequest } from "@/features/auth/api/auth.api";
@@ -227,7 +228,7 @@ export default function DeliveryDashboardPage() {
   };
 
   if (!hasHydrated || !isAuthenticated) {
-    return <div className="min-h-screen bg-[#101214]" />;
+    return <div className="min-h-screen bg-background" />;
   }
 
   // Show a friendly "not a delivery partner" UI for authenticated users who
@@ -235,14 +236,14 @@ export default function DeliveryDashboardPage() {
   // dashboard's onboarding fallback instead of leaving a blank screen.
   if (!isDeliveryUser) {
     return (
-      <main className="min-h-screen bg-[#101214] flex items-center justify-center p-4">
-        <div className="max-w-md w-full rounded-2xl bg-white/5 border border-white/10 p-6 text-center space-y-5 shadow-2xl">
+      <main className="min-h-screen bg-background flex items-center justify-center p-4">
+        <div className="max-w-md w-full rounded-2xl bg-muted border border-border p-6 text-center space-y-5 shadow-2xl">
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-cyan-400/10 text-cyan-400">
             <Bike className="h-8 w-8" />
           </div>
           <div>
-            <h2 className="text-2xl font-bold text-white">Not a Delivery Partner</h2>
-            <p className="text-sm text-gray-400 mt-2">
+            <h2 className="text-2xl font-bold text-foreground">Not a Delivery Partner</h2>
+            <p className="text-sm text-muted-foreground mt-2">
               Your account isn't registered as a delivery partner. Apply to
               start accepting delivery jobs.
             </p>
@@ -261,7 +262,7 @@ export default function DeliveryDashboardPage() {
                 clearAuth();
                 window.location.assign("/delivery/login");
               }}
-              className="text-gray-400 hover:text-white"
+              className="text-muted-foreground hover:text-foreground"
             >
               <LogOut className="h-4 w-4 mr-2" />
               Sign out
@@ -290,7 +291,7 @@ export default function DeliveryDashboardPage() {
     riderApp?.status === "REJECTED";
 
   if (setupStatusQuery.isLoading || setupStatusQuery.isFetching) {
-    return <div className="min-h-screen bg-[#101214]" />;
+    return <div className="min-h-screen bg-background" />;
   }
 
   if (!isRiderApproved) {
@@ -313,16 +314,16 @@ export default function DeliveryDashboardPage() {
     const iconBg = isRiderRejected ? "bg-amber-400/10" : "bg-cyan-400/10";
 
     return (
-      <main className="min-h-screen bg-[#101214] flex items-center justify-center p-4">
-        <div className="max-w-md w-full rounded-2xl bg-white/5 border border-white/10 p-6 text-center space-y-5 shadow-2xl">
+      <main className="min-h-screen bg-background flex items-center justify-center p-4">
+        <div className="max-w-md w-full rounded-2xl bg-muted border border-border p-6 text-center space-y-5 shadow-2xl">
           <div className={`mx-auto flex h-16 w-16 items-center justify-center rounded-full ${iconBg} ${iconColor}`}>
             <Icon className={`h-8 w-8 ${isRiderPending ? "animate-pulse" : ""}`} />
           </div>
           <div>
-            <h2 className="text-2xl font-bold text-white">{heading}</h2>
-            <p className="text-sm text-gray-400 mt-2">{body}</p>
+            <h2 className="text-2xl font-bold text-foreground">{heading}</h2>
+            <p className="text-sm text-muted-foreground mt-2">{body}</p>
             {riderApp && (
-              <p className="text-xs text-gray-500 mt-2">
+              <p className="text-xs text-muted-foreground mt-2">
                 Application status: {riderApp.status}
               </p>
             )}
@@ -340,7 +341,7 @@ export default function DeliveryDashboardPage() {
               <Button
                 variant="outline"
                 onClick={() => navigate("/delivery/register")}
-                className="border-white/10 bg-white/5 text-white hover:bg-white/10 py-5"
+                className="border-border bg-muted text-foreground hover:bg-muted py-5"
               >
                 <FileText className="h-4 w-4 mr-2" />
                 {isRiderRejected ? "Update Application" : "Start Application"}
@@ -354,7 +355,7 @@ export default function DeliveryDashboardPage() {
                 webSocketClient.disconnect();
                 window.location.assign("/delivery/login");
               }}
-              className="text-gray-400 hover:text-white"
+              className="text-muted-foreground hover:text-foreground"
             >
               <LogOut className="h-4 w-4 mr-2" />
               Sign out
@@ -366,24 +367,24 @@ export default function DeliveryDashboardPage() {
   }
 
   return (
-    <main className="dark h-screen overflow-hidden bg-background text-foreground">
+    <main className="h-screen overflow-hidden bg-background text-foreground">
       <div className="flex h-screen overflow-hidden flex-col lg:flex-row">
         {/* Sidebar */}
-        <aside className="shrink-0 border-b border-white/10 bg-[#181818] lg:flex lg:h-screen lg:w-72 lg:flex-col lg:overflow-hidden lg:border-b-0 lg:border-r">
-          <div className="flex items-center gap-3 border-b border-white/10 px-4 py-4">
+        <aside className="shrink-0 border-b border-border bg-background lg:flex lg:h-screen lg:w-72 lg:flex-col lg:overflow-hidden lg:border-b-0 lg:border-r">
+          <div className="flex items-center gap-3 border-b border-border px-4 py-4">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-cyan-400/10 text-cyan-300">
               <Bike className="h-5 w-5" />
             </div>
             <div className="min-w-0">
-              <div className="truncate text-sm font-semibold text-white">QuickBihar</div>
-              <div className="truncate text-xs text-gray-500">Delivery Panel</div>
+              <div className="truncate text-sm font-semibold text-foreground">QuickBihar</div>
+              <div className="truncate text-xs text-muted-foreground">Delivery Panel</div>
             </div>
           </div>
 
           <nav className="scrollbar-none flex gap-2 overflow-x-auto px-3 py-3 lg:min-h-0 lg:flex-1 lg:flex-col lg:overflow-hidden">
             {deliveryNavigationGroups.map((group) => (
               <div key={group.title} className="flex shrink-0 gap-2 lg:flex-col">
-                <div className="hidden px-2 pt-2 text-[11px] font-semibold uppercase tracking-normal text-gray-500 lg:block">
+                <div className="hidden px-2 pt-2 text-[11px] font-semibold uppercase tracking-normal text-muted-foreground lg:block">
                   {group.title}
                 </div>
                 {group.items.map((tab) => (
@@ -393,8 +394,8 @@ export default function DeliveryDashboardPage() {
                     variant="ghost"
                     onClick={() => setActiveTab(tab.id)}
                     className={cn(
-                      "h-10 shrink-0 justify-start gap-2 text-gray-300 hover:bg-white/10 hover:text-white",
-                      activeTab === tab.id && "bg-white text-black hover:bg-white hover:text-black"
+                      "h-10 shrink-0 justify-start gap-2 text-muted-foreground hover:bg-muted hover:text-foreground",
+                      activeTab === tab.id && "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground"
                     )}
                   >
                     {tab.icon}
@@ -405,16 +406,16 @@ export default function DeliveryDashboardPage() {
             ))}
           </nav>
 
-          <div className="hidden border-t border-white/10 p-4 lg:block space-y-3">
+          <div className="hidden border-t border-border p-4 lg:block space-y-3">
             <div>
-              <div className="truncate text-sm font-medium text-white">
+              <div className="truncate text-sm font-medium text-foreground">
                 {profile?.fullName || user?.fullName || "Delivery Partner"}
               </div>
-              <div className="mt-2 flex items-center justify-between gap-3 text-xs text-gray-500">
+              <div className="mt-2 flex items-center justify-between gap-3 text-xs text-muted-foreground">
                 <span>Duty Status</span>
                 <Badge
                   variant="outline"
-                  className={cn("border-white/10 text-gray-300", profile?.isOnline && "border-emerald-400/30 text-emerald-300 bg-emerald-500/10")}
+                  className={cn("border-border text-muted-foreground", profile?.isOnline && "border-emerald-400/30 text-emerald-300 bg-emerald-500/10")}
                 >
                   {profile?.isOnline ? "Online" : "Offline"}
                 </Badge>
@@ -428,10 +429,10 @@ export default function DeliveryDashboardPage() {
                   <Coins className="h-3 w-3" />
                   COD Cash Liability
                 </div>
-                <div className="text-sm font-extrabold text-white">
+                <div className="text-sm font-extrabold text-foreground">
                   Rs. {formatAmount(profile.wallet.collectedCodLiability || 0)}
                 </div>
-                <div className="text-[9px] text-gray-500 leading-tight">
+                <div className="text-[9px] text-muted-foreground leading-tight">
                   Hand over collected cash to administrator to settle.
                 </div>
               </div>
@@ -441,16 +442,17 @@ export default function DeliveryDashboardPage() {
 
         {/* Workspace panel */}
         <section className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
-          <header className="shrink-0 flex flex-col gap-3 border-b border-white/10 bg-[#101214] px-4 py-4 md:flex-row md:items-center md:justify-between lg:px-6">
+          <header className="shrink-0 flex flex-col gap-3 border-b border-border bg-background px-4 py-4 md:flex-row md:items-center md:justify-between lg:px-6">
             <div>
-              <h1 className="text-2xl font-semibold tracking-tight text-white">Delivery Dashboard</h1>
-              <p className="text-sm text-gray-400">{deliverySectionLabels[activeTab]}</p>
+              <h1 className="text-2xl font-semibold tracking-tight text-foreground">Delivery Dashboard</h1>
+              <p className="text-sm text-muted-foreground">{deliverySectionLabels[activeTab]}</p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
+              <ThemeToggle />
               <Button
                 variant="outline"
                 onClick={refreshAll}
-                className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+                className="border-border bg-muted text-foreground hover:bg-muted"
               >
                 <RefreshCcw className="h-4 w-4" />
                 Refresh
@@ -471,7 +473,7 @@ export default function DeliveryDashboardPage() {
                   webSocketClient.disconnect();
                   navigate("/delivery/login", { replace: true });
                 }}
-                className="text-gray-300 hover:bg-white/10 hover:text-white"
+                className="text-muted-foreground hover:bg-muted hover:text-foreground"
               >
                 <LogOut className="h-4 w-4" />
                 Sign out
@@ -479,7 +481,7 @@ export default function DeliveryDashboardPage() {
             </div>
           </header>
 
-          <ScrollArea className="min-h-0 flex-1 bg-[#101214]">
+          <ScrollArea className="min-h-0 flex-1 bg-background">
             <div className="mx-auto grid w-full max-w-7xl gap-4 px-4 py-5 lg:px-6">
               {activeTab === "overview" && (
                 <OverviewPanel dashboard={dashboardQuery.data} loading={dashboardQuery.isLoading} onTab={setActiveTab} />
@@ -538,15 +540,15 @@ export default function DeliveryDashboardPage() {
       {/* Real-time Simultaneous Broadcast Job Offer Alert Modal */}
       {activeJobOffer && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-md p-4 animate-in fade-in-50 duration-150">
-          <div className="w-full max-w-md bg-[#181818] border-2 border-cyan-400/40 rounded-2xl shadow-[0_0_50px_rgba(34,211,238,0.15)] overflow-hidden animate-in zoom-in-95 duration-150">
+          <div className="w-full max-w-md bg-background border-2 border-cyan-400/40 rounded-2xl shadow-[0_0_50px_rgba(34,211,238,0.15)] overflow-hidden animate-in zoom-in-95 duration-150">
             {/* Pulsing indicator */}
-            <div className="bg-gradient-to-r from-cyan-500/20 to-purple-500/20 p-4 border-b border-white/10 flex items-center justify-between">
+            <div className="bg-gradient-to-r from-cyan-500/20 to-purple-500/20 p-4 border-b border-border flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="relative flex h-3 w-3">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-3 w-3 bg-cyan-500"></span>
                 </span>
-                <span className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+                <span className="text-sm font-bold text-foreground uppercase tracking-wider flex items-center gap-1.5">
                   <BellRing className="h-4 w-4 text-cyan-400 animate-bounce" />
                   Broadcast Job Request
                 </span>
@@ -556,30 +558,30 @@ export default function DeliveryDashboardPage() {
               </span>
             </div>
 
-            <div className="p-6 space-y-6 text-white">
+            <div className="p-6 space-y-6 text-foreground">
               <div className="text-center">
-                <div className="text-gray-400 text-xs uppercase tracking-wider font-semibold">Estimated Earnings</div>
+                <div className="text-muted-foreground text-xs uppercase tracking-wider font-semibold">Estimated Earnings</div>
                 <div className="text-4xl font-extrabold text-cyan-400 mt-1">Rs. {formatAmount(activeJobOffer.payoutAmount)}</div>
               </div>
 
-              <div className="space-y-3.5 bg-black/30 p-4 rounded-xl border border-white/5">
+              <div className="space-y-3.5 bg-muted p-4 rounded-xl border border-border">
                 <div className="flex items-start gap-2.5">
                   <PackageOpen className="h-4 w-4 text-cyan-400 shrink-0 mt-0.5" />
                   <div>
-                    <div className="text-xs font-semibold text-gray-300">Merchant Store</div>
-                    <div className="text-sm font-bold text-white mt-0.5">{activeJobOffer.storeName}</div>
-                    <div className="text-xs text-gray-500">{activeJobOffer.storeAddress?.line1}</div>
+                    <div className="text-xs font-semibold text-muted-foreground">Merchant Store</div>
+                    <div className="text-sm font-bold text-foreground mt-0.5">{activeJobOffer.storeName}</div>
+                    <div className="text-xs text-muted-foreground">{activeJobOffer.storeAddress?.line1}</div>
                   </div>
                 </div>
 
-                <div className="flex items-start gap-2.5 border-t border-white/5 pt-3">
+                <div className="flex items-start gap-2.5 border-t border-border pt-3">
                   <MapPin className="h-4 w-4 text-red-400 shrink-0 mt-0.5" />
                   <div>
-                    <div className="text-xs font-semibold text-gray-300">Delivery Distance</div>
-                    <div className="text-xs text-white mt-0.5">
+                    <div className="text-xs font-semibold text-muted-foreground">Delivery Distance</div>
+                    <div className="text-xs text-foreground mt-0.5">
                       Store distance: <span className="font-bold text-cyan-400">{activeJobOffer.riderDistanceToStoreKm} KM</span>
                     </div>
-                    <div className="text-xs text-white">
+                    <div className="text-xs text-foreground">
                       Fulfillment: <span className="font-bold text-cyan-400">{activeJobOffer.distanceKm} KM</span>
                     </div>
                   </div>
@@ -614,7 +616,7 @@ export default function DeliveryDashboardPage() {
                 </Button>
                 <Button
                   variant="ghost"
-                  className="flex-1 border border-white/10 hover:bg-white/5 text-gray-400 hover:text-white h-11"
+                  className="flex-1 border border-border hover:bg-muted text-muted-foreground hover:text-foreground h-11"
                   onClick={() => setActiveJobOffer(null)}
                   disabled={acceptJob.isPending}
                 >

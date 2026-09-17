@@ -14,6 +14,7 @@ import { useAuthStore } from "@/features/auth/store/authStore";
 import { useAuthHydrated } from "@/features/auth/hooks/useAuthHydrated";
 import { useLinkGoogle } from "@/features/auth/hooks/useAuth";
 import GoogleSignInButton from "@/features/auth/components/GoogleSignInButton";
+import AuthLayout from "@/features/auth/components/AuthLayout";
 
 /**
  * Page that lets a password-authenticated user link a Google account.
@@ -47,13 +48,16 @@ export default function LinkGooglePage() {
   if (!hasHydrated) return null;
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#121212] p-4">
-      <Card className="relative z-10 w-full max-w-sm border-none bg-transparent py-4 shadow-none">
-        <CardHeader className="space-y-1 text-center">
-          <CardTitle className="text-3xl font-extrabold tracking-tight text-white">
+    <AuthLayout>
+      <Card className="border-border bg-card shadow-lg">
+        <CardHeader className="space-y-3 text-center">
+          <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+            {done ? <CheckCircle2 className="h-6 w-6" /> : <ShieldCheck className="h-6 w-6" />}
+          </span>
+          <CardTitle className="text-2xl font-bold tracking-tight text-foreground">
             Link Google account
           </CardTitle>
-          <CardDescription className="text-gray-400">
+          <CardDescription className="text-muted-foreground">
             {user?.email
               ? `Link a Google account that uses ${user.email} to enable one-tap sign-in.`
               : "Link a Google account for one-tap sign-in."}
@@ -62,15 +66,12 @@ export default function LinkGooglePage() {
         <CardContent className="space-y-5">
           {done ? (
             <div className="grid gap-4 text-center">
-              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-400">
-                <CheckCircle2 className="h-6 w-6" />
-              </div>
-              <p className="text-sm text-gray-300">
+              <p className="text-sm leading-relaxed text-muted-foreground">
                 Google account linked. You can now sign in with either method.
               </p>
               <Link
                 to="/admin/dashboard"
-                className="text-sm text-emerald-300 hover:text-emerald-200"
+                className="text-sm font-medium text-primary hover:underline"
               >
                 Go to dashboard →
               </Link>
@@ -83,17 +84,17 @@ export default function LinkGooglePage() {
                 disabled={isPending}
                 label="Link Google account"
               />
-              <div className="rounded-lg border border-white/10 bg-white/[0.03] p-3 text-xs text-gray-400 flex items-start gap-2">
-                <ShieldCheck className="h-4 w-4 text-emerald-400 mt-0.5 shrink-0" />
+              <div className="rounded-xl border border-border bg-muted p-3 text-xs leading-relaxed text-muted-foreground flex items-start gap-2">
+                <ShieldCheck className="h-4 w-4 text-primary mt-0.5 shrink-0" />
                 <p>
                   For your protection, the Google account email must match
                   {user?.email ? ` ${user.email}` : " your account email"}.
                 </p>
               </div>
-              <div className="text-center text-sm text-gray-400">
+              <div className="text-center text-sm text-muted-foreground">
                 <Link
                   to="/admin/dashboard"
-                  className="text-emerald-300 hover:text-emerald-200"
+                  className="font-medium text-primary hover:underline"
                 >
                   Back to dashboard
                 </Link>
@@ -102,6 +103,6 @@ export default function LinkGooglePage() {
           )}
         </CardContent>
       </Card>
-    </div>
+    </AuthLayout>
   );
 }

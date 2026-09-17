@@ -41,9 +41,9 @@ export function ProfilePanel({
   };
 
   return (
-    <Card className="border-white/10 bg-[#1c1c1c]">
-      <CardHeader className="border-b border-white/10">
-        <CardTitle className="flex items-center gap-2 text-base text-white">
+    <Card className="border-border bg-card">
+      <CardHeader className="border-b border-border">
+        <CardTitle className="flex items-center gap-2 text-base text-foreground">
           <UserRound className="h-4 w-4 text-cyan-300" />
           Profile
         </CardTitle>

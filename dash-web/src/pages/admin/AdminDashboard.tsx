@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { LogOut, RefreshCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuthStore } from "@/features/auth/store/authStore";
 import { useAuthHydrated } from "@/features/auth/hooks/useAuthHydrated";
 import { logoutRequest } from "@/features/auth/api/auth.api";
@@ -161,11 +162,11 @@ export default function AdminDashboardPage() {
   };
 
   if (!hasHydrated || !isAuthenticated || !isAdminUser) {
-    return <div className="min-h-screen bg-[#121212]" />;
+    return <div className="min-h-screen bg-background" />;
   }
 
   return (
-    <main className="dark h-screen overflow-hidden bg-background text-foreground">
+    <main className="h-screen overflow-hidden bg-background text-foreground">
       <div className="flex h-screen overflow-hidden flex-col lg:flex-row">
         <AdminSidebar
           activeSection={activeSection}
@@ -188,20 +189,21 @@ export default function AdminDashboardPage() {
         />
 
         <section className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
-          <header className="shrink-0 flex flex-col gap-3 border-b border-white/10 bg-[#121212] px-4 py-4 md:flex-row md:items-center md:justify-between lg:px-6">
+          <header className="shrink-0 flex flex-col gap-3 border-b border-border bg-background px-4 py-4 md:flex-row md:items-center md:justify-between lg:px-6">
             <div>
-              <h1 className="text-2xl font-semibold tracking-tight text-white">
+              <h1 className="text-2xl font-semibold tracking-tight text-foreground">
                 Admin Dashboard
               </h1>
-              <p className="text-sm text-gray-400">
+              <p className="text-sm text-muted-foreground">
                 {sectionLabels[activeSection]}
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
+              <ThemeToggle />
               <Button
                 variant="outline"
                 onClick={refreshAll}
-                className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+                className="border-border bg-muted text-foreground hover:bg-muted"
               >
                 <RefreshCcw className="h-4 w-4" />
                 Refresh
@@ -213,7 +215,7 @@ export default function AdminDashboardPage() {
                   clearAuth();
                   navigate("/admin/login", { replace: true });
                 }}
-                className="text-gray-300 hover:bg-white/10 hover:text-white"
+                className="text-muted-foreground hover:bg-muted hover:text-foreground"
               >
                 <LogOut className="h-4 w-4" />
                 Sign out
@@ -221,7 +223,7 @@ export default function AdminDashboardPage() {
             </div>
           </header>
 
-          <ScrollArea className="min-h-0 flex-1 bg-[#121212]">
+          <ScrollArea className="min-h-0 flex-1 bg-background">
             <div className="mx-auto w-full max-w-7xl px-4 py-5 lg:px-6">
               {activeSection === "overview" && (
                 <div className="animate-in-fade-slide">

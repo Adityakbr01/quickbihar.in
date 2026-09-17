@@ -68,11 +68,11 @@ export const statusOptions = [
 ] as const;
 
 export const inputClass =
-  "border-white/10 bg-white/5 text-white placeholder:text-gray-500";
+  "border-border bg-muted text-foreground placeholder:text-muted-foreground";
 export const selectClass =
-  "h-8 rounded-lg border border-white/10 bg-[#181818] px-2 text-sm text-white outline-none";
+  "h-8 rounded-lg border border-border bg-background px-2 text-sm text-foreground outline-none";
 export const textareaClass =
-  "min-h-20 rounded-lg border border-white/10 bg-white/5 px-2.5 py-2 text-sm text-white outline-none placeholder:text-gray-500";
+  "min-h-20 rounded-lg border border-border bg-muted px-2.5 py-2 text-sm text-foreground outline-none placeholder:text-muted-foreground";
 
 export const sectionLabels: Record<AdminSection, string> = {
   overview: "Overview",

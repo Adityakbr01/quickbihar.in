@@ -3,6 +3,7 @@ import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { LogOut, RefreshCcw, Clock, AlertTriangle, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuthStore } from "@/features/auth/store/authStore";
 import { useAuthHydrated } from "@/features/auth/hooks/useAuthHydrated";
 import { logoutRequest } from "@/features/auth/api/auth.api";
@@ -87,14 +88,14 @@ export function SellerDashboardClient() {
   };
 
   if (!hasHydrated || !isAuthenticated) {
-    return <div className="min-h-screen bg-[#121212]" />;
+    return <div className="min-h-screen bg-background" />;
   }
 
   // Handle pending or unapproved seller onboarding applications
   if (!isSellerUser || isPendingApplication || isRejectedApplication) {
     return (
-      <main className="min-h-screen bg-[#121212] flex items-center justify-center p-4">
-        <div className="max-w-md w-full rounded-2xl bg-white/5 border border-white/10 p-6 text-center space-y-5 shadow-2xl">
+      <main className="min-h-screen bg-background flex items-center justify-center p-4">
+        <div className="max-w-md w-full rounded-2xl bg-muted border border-border p-6 text-center space-y-5 shadow-2xl">
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-400/10 text-emerald-400">
             {isRejectedApplication ? (
               <AlertTriangle className="h-8 w-8 text-amber-400" />
@@ -103,14 +104,14 @@ export function SellerDashboardClient() {
             )}
           </div>
           <div>
-            <h2 className="text-2xl font-bold text-white">
+            <h2 className="text-2xl font-bold text-foreground">
               {isRejectedApplication
                 ? "Application Needs Attention"
                 : isPendingApplication
                   ? "Application Under Review"
                   : "Seller Onboarding Status"}
             </h2>
-            <p className="text-sm text-gray-400 mt-2">
+            <p className="text-sm text-muted-foreground mt-2">
               {(setupQuery.data as any)?.message ||
                 "Your seller registration and documents have been received. Admin approval is required before dashboard access is unlocked."}
             </p>
@@ -130,7 +131,7 @@ export function SellerDashboardClient() {
               <Button
                 variant="outline"
                 onClick={() => navigate("/seller/register")}
-                className="border-white/10 bg-white/5 text-white hover:bg-white/10 py-5"
+                className="border-border bg-muted text-foreground hover:bg-muted py-5"
               >
                 <FileText className="h-4 w-4 mr-2" />
                 Update Application
@@ -144,7 +145,7 @@ export function SellerDashboardClient() {
                 clearAuth();
                 navigate("/seller/login", { replace: true });
               }}
-              className="text-gray-400 hover:text-white"
+              className="text-muted-foreground hover:text-foreground"
             >
               <LogOut className="h-4 w-4 mr-2" />
               Sign out
@@ -156,21 +157,22 @@ export function SellerDashboardClient() {
   }
 
   return (
-    <main className="dark min-h-screen h-screen overflow-hidden bg-[#121212] text-foreground">
+    <main className="min-h-screen h-screen overflow-hidden bg-background text-foreground">
       <div className="flex min-h-screen h-screen overflow-hidden flex-col lg:flex-row">
         <SellerSidebar activeSection={activeSection} onSectionChange={(section) => changeSection(section)} />
 
         <section className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
-          <header className="flex shrink-0 flex-col gap-3 border-b border-white/10 bg-[#121212] px-4 py-3 sm:flex-row sm:items-center sm:justify-between lg:px-6 lg:py-4">
+          <header className="flex shrink-0 flex-col gap-3 border-b border-border bg-background px-4 py-3 sm:flex-row sm:items-center sm:justify-between lg:px-6 lg:py-4">
             <div>
-              <h1 className="text-xl font-semibold tracking-tight text-white sm:text-2xl">Seller Panel</h1>
-              <p className="text-sm text-gray-400">{sectionLabels[activeSection]}</p>
+              <h1 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">Seller Panel</h1>
+              <p className="text-sm text-muted-foreground">{sectionLabels[activeSection]}</p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
+              <ThemeToggle />
               <Button
                 variant="outline"
                 onClick={() => setupQuery.refetch()}
-                className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+                className="border-border bg-muted text-foreground hover:bg-muted"
               >
                 <RefreshCcw className="h-4 w-4" />
                 Refresh
@@ -182,7 +184,7 @@ export function SellerDashboardClient() {
                   clearAuth();
                   navigate("/seller/login", { replace: true });
                 }}
-                className="text-gray-300 hover:bg-white/10 hover:text-white"
+                className="text-muted-foreground hover:bg-muted hover:text-foreground"
               >
                 <LogOut className="h-4 w-4" />
                 Sign out
@@ -190,7 +192,7 @@ export function SellerDashboardClient() {
             </div>
           </header>
 
-          <ScrollArea className="min-h-0 flex-1 bg-[#121212]">
+          <ScrollArea className="min-h-0 flex-1 bg-background">
             <div className="mx-auto w-full max-w-7xl px-3 py-4 sm:px-4 lg:px-6 lg:py-5">
               <SellerSectionRenderer
                 activeSection={activeSection}

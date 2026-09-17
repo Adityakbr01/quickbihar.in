@@ -69,8 +69,8 @@ export function SellerBannersPanel() {
           <div key={`${banner._id}-banner`} className="flex min-w-56 items-center gap-3">
             <img src={banner.image} alt={banner.title || "Banner"} className="h-10 w-16 rounded object-cover" />
             <div>
-              <div className="font-medium text-white">{banner.title || "Banner"}</div>
-              <div className="text-xs text-gray-500">{banner.subtitle || banner.externalUrl || "-"}</div>
+              <div className="font-medium text-foreground">{banner.title || "Banner"}</div>
+              <div className="text-xs text-muted-foreground">{banner.subtitle || banner.externalUrl || "-"}</div>
             </div>
           </div>,
           banner.placement || "home_top",
@@ -83,7 +83,7 @@ export function SellerBannersPanel() {
                 <Button
                   size="sm"
                   variant="outline"
-                  className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+                  className="border-border bg-muted text-foreground hover:bg-muted"
                 >
                   Edit
                 </Button>
@@ -165,7 +165,7 @@ function BannerDialog({
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger render={trigger as never} />
-      <DialogContent className="border-white/10 bg-[#1c1c1c] text-white sm:max-w-2xl">
+      <DialogContent className="border-border bg-card text-foreground sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>{banner ? "Edit Banner" : "Create Banner"}</DialogTitle>
         </DialogHeader>
@@ -207,7 +207,7 @@ function BannerDialog({
           {/* Conditional Redirect Options */}
           {redirectType === "external" && (
             <div className="grid gap-1">
-              <span className="text-xs font-medium uppercase text-gray-500">External URL</span>
+              <span className="text-xs font-medium uppercase text-muted-foreground">External URL</span>
               <Input
                 name="externalUrl"
                 value={externalUrl}
@@ -221,7 +221,7 @@ function BannerDialog({
 
           {redirectType === "product" && (
             <div className="grid gap-1">
-              <span className="text-xs font-medium uppercase text-gray-500">Select Product</span>
+              <span className="text-xs font-medium uppercase text-muted-foreground">Select Product</span>
               <select
                 value={redirectId}
                 onChange={(e) => setRedirectId(e.target.value)}
@@ -240,7 +240,7 @@ function BannerDialog({
 
           {redirectType === "category" && (
             <div className="grid gap-1">
-              <span className="text-xs font-medium uppercase text-gray-500">Select Category</span>
+              <span className="text-xs font-medium uppercase text-muted-foreground">Select Category</span>
               <select
                 value={redirectId}
                 onChange={(e) => setRedirectId(e.target.value)}
@@ -259,7 +259,7 @@ function BannerDialog({
 
           {redirectType === "collection" && (
             <div className="grid gap-1">
-              <span className="text-xs font-medium uppercase text-gray-500">Collection ID / Name</span>
+              <span className="text-xs font-medium uppercase text-muted-foreground">Collection ID / Name</span>
               <Input
                 value={redirectId}
                 onChange={(e) => setRedirectId(e.target.value)}
@@ -284,7 +284,7 @@ function BannerDialog({
             </label>
           </div>
 
-          <DialogFooter className="border-white/10 bg-white/[0.03] gap-2">
+          <DialogFooter className="border-border bg-muted gap-2">
             <Button
               type="button"
               variant="outline"

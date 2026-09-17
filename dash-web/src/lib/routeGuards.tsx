@@ -62,7 +62,7 @@ export function ProtectedRoute({
 }) {
   const { hasHydrated, authed } = useStoredSession();
   if (!hasHydrated || !authed) {
-    if (!hasHydrated) return <div className="min-h-screen bg-[#121212]" />;
+    if (!hasHydrated) return <div className="min-h-screen bg-background" />;
     return <Navigate to={loginTo} replace />;
   }
   return <>{children}</>;

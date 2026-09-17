@@ -159,13 +159,13 @@ export function PayoutsSection({
         />
       </section>
 
-      <Card className="border-white/10 bg-[#1c1c1c]">
+      <Card className="border-border bg-card">
         <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <div className="text-sm font-medium text-white">
+            <div className="text-sm font-medium text-foreground">
               Manual payout operations
             </div>
-            <div className="mt-1 text-xs text-gray-500">
+            <div className="mt-1 text-xs text-muted-foreground">
               Record seller or delivery rider payouts with method, reference,
               and internal note.
             </div>
@@ -181,7 +181,7 @@ export function PayoutsSection({
       </Card>
 
       <Dialog open={isRecordOpen} onOpenChange={setIsRecordOpen}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto border-white/10 bg-[#1c1c1c] text-white sm:max-w-2xl">
+        <DialogContent className="max-h-[90vh] overflow-y-auto border-border bg-card text-foreground sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>Record Payout</DialogTitle>
           </DialogHeader>
@@ -198,13 +198,13 @@ export function PayoutsSection({
         isLoading={payoutMethodsLoading}
       />
 
-      <Card className="border-white/10 bg-[#1c1c1c]">
-        <CardHeader className="gap-3 border-b border-white/10 lg:flex-row lg:items-center lg:justify-between">
+      <Card className="border-border bg-card">
+        <CardHeader className="gap-3 border-b border-border lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <CardTitle className="text-base text-white">
+            <CardTitle className="text-base text-foreground">
               Payout History
             </CardTitle>
-            <div className="mt-1 text-xs text-gray-500">
+            <div className="mt-1 text-xs text-muted-foreground">
               Showing {filteredPayouts.length} of {payouts.length} payouts
             </div>
           </div>
@@ -336,13 +336,13 @@ function PayoutPanel({
         })}
       </select>
       {selectedPartner && (
-        <div className="grid gap-2 rounded-lg border border-white/10 bg-white/[0.03] p-3">
+        <div className="grid gap-2 rounded-lg border border-border bg-muted p-3">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <div className="text-sm font-medium text-white">
+              <div className="text-sm font-medium text-foreground">
                 {selectedPartner.fullName}
               </div>
-              <div className="text-xs text-gray-500">
+              <div className="text-xs text-muted-foreground">
                 {selectedPartner.email}
               </div>
             </div>
@@ -368,18 +368,18 @@ function PayoutPanel({
               />
             )}
           </div>
-          <div className="flex flex-wrap items-center gap-2 text-xs text-gray-400">
+          <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
             <span>
               Methods: {selectedMethodSummary?.verified || 0} verified
             </span>
-            <span className="text-gray-600">/</span>
+            <span className="text-muted-foreground">/</span>
             <span>{selectedMethodSummary?.pending || 0} pending</span>
             {Number(selectedWallet?.availableBalance || 0) > 0 && (
               <Button
                 type="button"
                 size="sm"
                 variant="outline"
-                className="ml-auto h-7 border-white/10 bg-white/5 text-white hover:bg-white/10"
+                className="ml-auto h-7 border-border bg-muted text-foreground hover:bg-muted"
                 onClick={() =>
                   setAmount(String(selectedWallet?.availableBalance || ""))
                 }
@@ -442,7 +442,7 @@ function PayoutPanel({
         <Button
           type="button"
           variant="outline"
-          className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+          className="border-border bg-muted text-foreground hover:bg-muted"
           onClick={onCancel}
         >
           Cancel
@@ -473,14 +473,14 @@ function PayoutMethodReviewPanel({
   };
 
   return (
-    <Card className="border-white/10 bg-[#1c1c1c]">
-      <CardHeader className="gap-2 border-b border-white/10 sm:flex-row sm:items-center sm:justify-between">
+    <Card className="border-border bg-card">
+      <CardHeader className="gap-2 border-b border-border sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <CardTitle className="flex items-center gap-2 text-base text-white">
+          <CardTitle className="flex items-center gap-2 text-base text-foreground">
             <ShieldCheck className="h-4 w-4 text-emerald-300" />
             Verify Payout Methods
           </CardTitle>
-          <div className="mt-1 text-xs text-gray-500">
+          <div className="mt-1 text-xs text-muted-foreground">
             {methods.length} waiting for admin review
           </div>
         </div>
@@ -497,12 +497,12 @@ function PayoutMethodReviewPanel({
       </CardHeader>
       <CardContent className="px-0">
         {isLoading && (
-          <div className="px-4 py-8 text-sm text-gray-400">
+          <div className="px-4 py-8 text-sm text-muted-foreground">
             Loading payout methods...
           </div>
         )}
         {!isLoading && !methods.length && (
-          <div className="px-4 py-8 text-sm text-gray-400">
+          <div className="px-4 py-8 text-sm text-muted-foreground">
             No pending payout methods. New seller and rider methods will appear
             here for approval.
           </div>
@@ -510,11 +510,11 @@ function PayoutMethodReviewPanel({
         {!isLoading && Boolean(methods.length) && (
           <Table>
             <TableHeader>
-              <TableRow className="border-white/10 hover:bg-transparent">
-                <TableHead className="px-4 text-gray-400">Partner</TableHead>
-                <TableHead className="text-gray-400">Method</TableHead>
-                <TableHead className="text-gray-400">Submitted</TableHead>
-                <TableHead className="text-right text-gray-400">
+              <TableRow className="border-border hover:bg-transparent">
+                <TableHead className="px-4 text-muted-foreground">Partner</TableHead>
+                <TableHead className="text-muted-foreground">Method</TableHead>
+                <TableHead className="text-muted-foreground">Submitted</TableHead>
+                <TableHead className="text-right text-muted-foreground">
                   Actions
                 </TableHead>
               </TableRow>
@@ -523,16 +523,16 @@ function PayoutMethodReviewPanel({
               {methods.map((method) => (
                 <TableRow
                   key={method._id}
-                  className="border-white/10 hover:bg-white/[0.03]"
+                  className="border-border hover:bg-muted"
                 >
                   <TableCell className="px-4">
-                    <div className="font-medium text-white">
+                    <div className="font-medium text-foreground">
                       {method.businessName ||
                         method.sellerName ||
                         method.riderName ||
                         "Partner"}
                     </div>
-                    <div className="text-xs text-gray-500">
+                    <div className="text-xs text-muted-foreground">
                       {method.sellerEmail || method.riderEmail}
                     </div>
                     <div className="mt-2 flex flex-wrap gap-1">
@@ -553,12 +553,12 @@ function PayoutMethodReviewPanel({
                     </div>
                   </TableCell>
                   <TableCell>
-                    <div className="text-sm text-white">{method.type}</div>
-                    <div className="text-xs text-gray-500">
+                    <div className="text-sm text-foreground">{method.type}</div>
+                    <div className="text-xs text-muted-foreground">
                       {payoutMethodLabel(method)}
                     </div>
                   </TableCell>
-                  <TableCell className="text-gray-400">
+                  <TableCell className="text-muted-foreground">
                     {formatDate(method.createdAt)}
                   </TableCell>
                   <TableCell>
@@ -566,7 +566,7 @@ function PayoutMethodReviewPanel({
                       <Button
                         size="sm"
                         variant="outline"
-                        className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+                        className="border-border bg-muted text-foreground hover:bg-muted"
                         onClick={() =>
                           reviewPayoutMethod.mutate({
                             sellerId: method.sellerId,
@@ -625,11 +625,11 @@ function PayoutTable({
 
   if (isLoading)
     return (
-      <div className="px-4 py-8 text-sm text-gray-400">Loading payouts...</div>
+      <div className="px-4 py-8 text-sm text-muted-foreground">Loading payouts...</div>
     );
   if (!payouts.length)
     return (
-      <div className="px-4 py-8 text-sm text-gray-400">
+      <div className="px-4 py-8 text-sm text-muted-foreground">
         {isFiltered
           ? "No payouts match these filters."
           : "No payouts recorded."}
@@ -640,46 +640,46 @@ function PayoutTable({
     <>
       <Table>
         <TableHeader>
-          <TableRow className="border-white/10 hover:bg-transparent">
-            <TableHead className="px-4 text-gray-400">Partner</TableHead>
-            <TableHead className="text-gray-400">Amount</TableHead>
-            <TableHead className="text-gray-400">Status</TableHead>
-            <TableHead className="text-gray-400">Reference</TableHead>
-            <TableHead className="text-gray-400">Method</TableHead>
-            <TableHead className="text-gray-400">Created</TableHead>
-            <TableHead className="text-right text-gray-400">Actions</TableHead>
+          <TableRow className="border-border hover:bg-transparent">
+            <TableHead className="px-4 text-muted-foreground">Partner</TableHead>
+            <TableHead className="text-muted-foreground">Amount</TableHead>
+            <TableHead className="text-muted-foreground">Status</TableHead>
+            <TableHead className="text-muted-foreground">Reference</TableHead>
+            <TableHead className="text-muted-foreground">Method</TableHead>
+            <TableHead className="text-muted-foreground">Created</TableHead>
+            <TableHead className="text-right text-muted-foreground">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {payouts.map((payout) => (
             <TableRow
               key={payout._id}
-              className="border-white/10 hover:bg-white/[0.03]"
+              className="border-border hover:bg-muted"
             >
               <TableCell className="px-4">
-                <div className="font-medium text-white">
+                <div className="font-medium text-foreground">
                   {payoutPartnerName(payout)}
                 </div>
-                <div className="text-xs text-gray-500">
+                <div className="text-xs text-muted-foreground">
                   {payoutPartnerEmail(payout)}
                 </div>
                 <div className="mt-1">
                   <PayoutPartnerBadge type={payout.partnerType} />
                 </div>
               </TableCell>
-              <TableCell className="text-white">
+              <TableCell className="text-foreground">
                 Rs. {formatAmount(payout.amount)}
               </TableCell>
               <TableCell>
                 <PayoutStatusBadge status={payout.status} />
               </TableCell>
-              <TableCell className="text-gray-400">
+              <TableCell className="text-muted-foreground">
                 {payout.referenceId || "-"}
               </TableCell>
-              <TableCell className="text-gray-400">
+              <TableCell className="text-muted-foreground">
                 {payout.method || "-"}
               </TableCell>
-              <TableCell className="text-gray-400">
+              <TableCell className="text-muted-foreground">
                 {formatDate(payout.createdAt)}
               </TableCell>
               <TableCell>
@@ -687,7 +687,7 @@ function PayoutTable({
                   <Button
                     size="sm"
                     variant="outline"
-                    className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+                    className="border-border bg-muted text-foreground hover:bg-muted"
                     onClick={() => setViewingPayout(payout)}
                   >
                     <Eye className="h-3.5 w-3.5" />
@@ -697,7 +697,7 @@ function PayoutTable({
                     <Button
                       size="sm"
                       variant="outline"
-                      className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+                      className="border-border bg-muted text-foreground hover:bg-muted"
                       disabled={updatePayoutStatus.isPending}
                       onClick={() => updateStatus(payout, "PROCESSING")}
                     >
@@ -733,7 +733,7 @@ function PayoutTable({
                     <Button
                       size="sm"
                       variant="outline"
-                      className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+                      className="border-border bg-muted text-foreground hover:bg-muted"
                       disabled={updatePayoutStatus.isPending}
                       onClick={() => updateStatus(payout, "PROCESSING")}
                     >
@@ -741,7 +741,7 @@ function PayoutTable({
                     </Button>
                   )}
                   {payout.status === "PAID" && (
-                    <span className="text-xs text-gray-500">Settled</span>
+                    <span className="text-xs text-muted-foreground">Settled</span>
                   )}
                 </div>
               </TableCell>
@@ -786,17 +786,17 @@ function PayoutDetailDialog({
 }) {
   return (
     <Dialog open onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto border-white/10 bg-[#1c1c1c] text-white sm:max-w-2xl">
+      <DialogContent className="max-h-[90vh] overflow-y-auto border-border bg-card text-foreground sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>Payout Details</DialogTitle>
         </DialogHeader>
         <div className="grid gap-4">
-          <div className="flex flex-wrap items-start justify-between gap-3 rounded-lg border border-white/10 bg-white/[0.03] p-3">
+          <div className="flex flex-wrap items-start justify-between gap-3 rounded-lg border border-border bg-muted p-3">
             <div>
-              <div className="text-sm font-medium text-white">
+              <div className="text-sm font-medium text-foreground">
                 {payoutPartnerName(payout)}
               </div>
-              <div className="text-xs text-gray-500">
+              <div className="text-xs text-muted-foreground">
                 {payoutPartnerEmail(payout) || "No email"}
               </div>
             </div>
@@ -858,7 +858,7 @@ function PayoutPaidDialog({
 
   return (
     <Dialog open onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto border-white/10 bg-[#1c1c1c] text-white sm:max-w-2xl">
+      <DialogContent className="max-h-[90vh] overflow-y-auto border-border bg-card text-foreground sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>Mark Payout Paid</DialogTitle>
         </DialogHeader>
@@ -867,7 +867,7 @@ function PayoutPaidDialog({
             <div className="text-xs font-medium uppercase text-emerald-200">
               Settlement amount
             </div>
-            <div className="mt-1 text-2xl font-semibold text-white">
+            <div className="mt-1 text-2xl font-semibold text-foreground">
               Rs. {formatAmount(payout.amount)}
             </div>
           </div>
@@ -911,7 +911,7 @@ function PayoutPaidDialog({
             <Button
               type="button"
               variant="outline"
-              className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+              className="border-border bg-muted text-foreground hover:bg-muted"
               onClick={() => onOpenChange(false)}
             >
               Cancel

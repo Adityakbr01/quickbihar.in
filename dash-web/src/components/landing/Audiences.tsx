@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
-import { ArrowRight, Bike, CheckCircle2, ShoppingBag, Store, Smartphone, Sparkles } from "lucide-react";
+import { ArrowRight, Bike, CheckCircle2, ShoppingBag, Store, Smartphone } from "lucide-react";
 import { APP_LINKS, landingData } from "@/constants/links";
+import SectionHeader from "@/components/landing/SectionHeader";
 
 const iconMap: Record<string, typeof ShoppingBag> = {
   ShoppingBag,
@@ -12,41 +13,29 @@ export default function Audiences() {
   const { audiences } = landingData;
 
   return (
-    <section id="partners" className="relative scroll-mt-16 border-t border-border py-20 bg-background">
+    <section id="partners" className="relative scroll-mt-16 border-t border-border bg-background py-20 sm:py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        
-        {/* Section Header */}
-        <div className="mx-auto max-w-2xl text-center">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1 text-xs font-semibold text-card-foreground">
-            <Sparkles className="h-3.5 w-3.5 text-primary" />
-            {audiences.badge}
-          </span>
-          <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
-            {audiences.title}
-          </h2>
-          <p className="mt-3 text-sm text-muted-foreground sm:text-base">
-            {audiences.subtitle}
-          </p>
-        </div>
+
+        <SectionHeader badge={audiences.badge} title={audiences.title} subtitle={audiences.subtitle} />
 
         {/* 3 Audience Cards */}
-        <div className="mt-12 grid gap-6 lg:grid-cols-3">
+        <div className="mt-12 grid gap-5 lg:grid-cols-3">
           {audiences.items.map((aud) => {
             const Icon = iconMap[aud.icon] || ShoppingBag;
             const primaryHref = aud.primaryCta.usePlayStoreLink ? APP_LINKS.PLAY_STORE : aud.primaryCta.href || "#";
             const isExternal = aud.primaryCta.usePlayStoreLink;
 
             return (
-              <div
+              <article
                 key={aud.tag}
-                className="flex flex-col justify-between rounded-xl border border-border bg-card p-6 shadow-xs transition-all hover:bg-muted/40 hover:shadow-md"
+                className="group flex flex-col rounded-2xl border border-border bg-card shadow-xs transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
               >
-                <div>
+                <div className="flex flex-1 flex-col p-6">
                   <div className="flex items-center justify-between">
-                    <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                      <Icon className="h-5 w-5" />
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary transition-transform duration-300 group-hover:scale-110">
+                      <Icon className="h-6 w-6" />
                     </div>
-                    <span className="rounded-md bg-muted px-2.5 py-0.5 text-xs font-semibold text-muted-foreground">
+                    <span className="rounded-full bg-muted px-3 py-1 text-[11px] font-bold tracking-wide text-muted-foreground uppercase">
                       {aud.tag}
                     </span>
                   </div>
@@ -57,46 +46,46 @@ export default function Audiences() {
 
                   <ul className="mt-4 space-y-2.5">
                     {aud.points.map((point) => (
-                      <li key={point} className="flex items-start gap-2 text-xs sm:text-sm text-muted-foreground">
+                      <li key={point} className="flex items-start gap-2 text-xs text-muted-foreground sm:text-sm">
                         <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                         <span>{point}</span>
                       </li>
                     ))}
                   </ul>
-                </div>
 
-                <div className="mt-6 pt-5 border-t border-border space-y-2.5">
-                  {isExternal ? (
-                    <a
-                      href={primaryHref}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="w-full flex items-center justify-center gap-2 rounded-lg bg-primary py-2.5 text-xs font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 transition-colors"
-                    >
-                      <Smartphone className="h-4 w-4" />
-                      {aud.primaryCta.label}
-                    </a>
-                  ) : (
-                    <Link
-                      to={primaryHref}
-                      className="w-full flex items-center justify-center gap-2 rounded-lg bg-primary py-2.5 text-xs font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 transition-colors"
-                    >
-                      {aud.primaryCta.label}
-                      <ArrowRight className="h-4 w-4" />
-                    </Link>
-                  )}
+                  <div className="mt-6 space-y-2.5 border-t border-border pt-5">
+                    {isExternal ? (
+                      <a
+                        href={primaryHref}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex w-full items-center justify-center gap-2 rounded-full bg-primary py-2.5 text-xs font-semibold text-on-primary shadow-xs transition-colors hover:bg-primary/90"
+                      >
+                        <Smartphone className="h-4 w-4" />
+                        {aud.primaryCta.label}
+                      </a>
+                    ) : (
+                      <Link
+                        to={primaryHref}
+                        className="flex w-full items-center justify-center gap-2 rounded-full bg-primary py-2.5 text-xs font-semibold text-on-primary shadow-xs transition-colors hover:bg-primary/90"
+                      >
+                        {aud.primaryCta.label}
+                        <ArrowRight className="h-4 w-4" />
+                      </Link>
+                    )}
 
-                  <div className="text-center">
-                    <Link
-                      to={aud.secondaryCta.href}
-                      className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                      {aud.secondaryCta.label}
-                    </Link>
+                    <div className="text-center">
+                      <Link
+                        to={aud.secondaryCta.href}
+                        className="text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+                      >
+                        {aud.secondaryCta.label} →
+                      </Link>
+                    </div>
                   </div>
                 </div>
 
-              </div>
+              </article>
             );
           })}
         </div>

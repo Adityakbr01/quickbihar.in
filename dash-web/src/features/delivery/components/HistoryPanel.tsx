@@ -45,9 +45,9 @@ export function HistoryPanel({
   onSelect: (orderId: string) => void;
 }) {
   return (
-    <Card className="border-white/10 bg-[#1c1c1c]">
-      <CardHeader className="flex flex-col gap-3 border-b border-white/10 xl:flex-row xl:items-center xl:justify-between">
-        <CardTitle className="flex items-center gap-2 text-base text-white">
+    <Card className="border-border bg-card">
+      <CardHeader className="flex flex-col gap-3 border-b border-border xl:flex-row xl:items-center xl:justify-between">
+        <CardTitle className="flex items-center gap-2 text-base text-foreground">
           <History className="h-4 w-4 text-cyan-300" />
           Order History
         </CardTitle>
@@ -74,39 +74,39 @@ export function HistoryPanel({
         </div>
       </CardHeader>
       <CardContent className="px-0">
-        {loading && <div className="px-4 py-10 text-sm text-gray-400">Loading history...</div>}
-        {!loading && !orders.length && <div className="px-4 py-10 text-sm text-gray-400">No history found.</div>}
+        {loading && <div className="px-4 py-10 text-sm text-muted-foreground">Loading history...</div>}
+        {!loading && !orders.length && <div className="px-4 py-10 text-sm text-muted-foreground">No history found.</div>}
         {!loading && Boolean(orders.length) && (
           <Table>
             <TableHeader>
-              <TableRow className="border-white/10 hover:bg-transparent">
-                <TableHead className="px-4 text-gray-400">Order</TableHead>
-                <TableHead className="text-gray-400">Customer</TableHead>
-                <TableHead className="text-gray-400">Status</TableHead>
-                <TableHead className="text-gray-400">Payout</TableHead>
-                <TableHead className="text-gray-400">Updated</TableHead>
+              <TableRow className="border-border hover:bg-transparent">
+                <TableHead className="px-4 text-muted-foreground">Order</TableHead>
+                <TableHead className="text-muted-foreground">Customer</TableHead>
+                <TableHead className="text-muted-foreground">Status</TableHead>
+                <TableHead className="text-muted-foreground">Payout</TableHead>
+                <TableHead className="text-muted-foreground">Updated</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {orders.map((order) => (
-                <TableRow key={order._id} className="border-white/10 hover:bg-white/[0.03]">
+                <TableRow key={order._id} className="border-border hover:bg-muted">
                   <TableCell className="px-4">
                     <button
                       type="button"
                       onClick={() => onSelect(order._id)}
-                      className="font-medium text-white hover:text-cyan-300"
+                      className="font-medium text-foreground hover:text-cyan-300"
                     >
                       {order.orderId}
                     </button>
                   </TableCell>
-                  <TableCell className="text-gray-300">{order.shippingAddress.fullName}</TableCell>
+                  <TableCell className="text-muted-foreground">{order.shippingAddress.fullName}</TableCell>
                   <TableCell>
                     <DeliveryStatusBadge status={deliveryStatusOf(order)} />
                   </TableCell>
-                  <TableCell className="text-white">
+                  <TableCell className="text-foreground">
                     Rs. {formatAmount(order.delivery?.payoutAmount || 0)}
                   </TableCell>
-                  <TableCell className="text-gray-400">{formatDate(order.updatedAt)}</TableCell>
+                  <TableCell className="text-muted-foreground">{formatDate(order.updatedAt)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

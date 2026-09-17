@@ -10,14 +10,14 @@ export function PaginationFooter({
   onPage: (page: number) => void;
 }) {
   return (
-    <div className="flex items-center justify-between rounded-lg border border-white/10 bg-[#1c1c1c] px-4 py-3">
-      <div className="text-sm text-gray-400">
+    <div className="flex items-center justify-between rounded-lg border border-border bg-card px-4 py-3">
+      <div className="text-sm text-muted-foreground">
         Page {page} of {Math.max(totalPages, 1)}
       </div>
       <div className="flex gap-2">
         <Button
           variant="outline"
-          className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+          className="border-border bg-muted text-foreground hover:bg-muted"
           disabled={page <= 1}
           onClick={() => onPage(page - 1)}
         >
@@ -25,7 +25,7 @@ export function PaginationFooter({
         </Button>
         <Button
           variant="outline"
-          className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+          className="border-border bg-muted text-foreground hover:bg-muted"
           disabled={page >= totalPages}
           onClick={() => onPage(page + 1)}
         >

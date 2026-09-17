@@ -173,29 +173,30 @@ export function SellerSidebar({
   onSectionChange: (section: SellerSection) => void;
 }) {
   return (
-    <aside className="shrink-0 border-b border-white/10 bg-[#101010] lg:h-dvh lg:w-72 lg:overflow-hidden lg:border-b-0 lg:border-r">
+    <aside className="shrink-0 border-b border-border bg-background lg:h-dvh lg:w-72 lg:overflow-hidden lg:border-b-0 lg:border-r">
       <div className="flex h-full flex-col">
-        <div className="border-b border-white/10 px-4 py-3 lg:px-5 lg:py-5">
-          <div className="flex items-center gap-2 text-white">
-            <ShoppingBag className="h-5 w-5 text-emerald-300" />
+        <div className="border-b border-border px-4 py-3 lg:px-5 lg:py-5">
+          <div className="flex items-center gap-2 text-foreground">
+            <ShoppingBag className="h-5 w-5 text-primary" />
             <span className="text-base font-semibold lg:text-lg">Fashion Seller</span>
           </div>
-          <p className="mt-0.5 text-xs text-gray-500 lg:mt-1">QuickBihar Clothing</p>
+          <p className="mt-0.5 text-xs text-muted-foreground lg:mt-1">QuickBihar Clothing</p>
         </div>
 
         <nav className="scrollbar-none flex gap-2 overflow-x-auto px-3 py-3 lg:grid lg:min-h-0 lg:flex-1 lg:gap-5 lg:overflow-x-hidden lg:overflow-y-auto lg:p-4">
           {sellerNavigation.map((group) => (
             <div key={group.title} className="flex shrink-0 gap-2 lg:block">
-              <div className="mb-2 hidden px-2 text-xs font-medium uppercase text-gray-500 lg:block">{group.title}</div>
+              <div className="mb-2 hidden px-2 text-xs font-medium uppercase tracking-wider text-muted-foreground lg:block">{group.title}</div>
               <div className="flex gap-2 lg:grid lg:gap-1">
                 {group.items.map((item) => (
                   <button
                     key={item.id}
                     type="button"
                     onClick={() => onSectionChange(item.id)}
+                    aria-current={activeSection === item.id ? "page" : undefined}
                     className={cn(
-                      "flex min-h-10 shrink-0 items-center gap-2 whitespace-nowrap rounded-lg px-3 text-left text-sm text-gray-300 transition hover:bg-white/5 hover:text-white lg:w-full",
-                      activeSection === item.id && "bg-emerald-400/10 text-emerald-200 ring-1 ring-emerald-400/20",
+                      "flex min-h-10 shrink-0 items-center gap-2 whitespace-nowrap rounded-lg px-3 text-left text-sm text-muted-foreground transition hover:bg-muted hover:text-foreground lg:w-full",
+                      activeSection === item.id && "bg-primary font-medium text-primary-foreground shadow-xs hover:bg-primary hover:text-primary-foreground",
                     )}
                   >
                     {item.icon}

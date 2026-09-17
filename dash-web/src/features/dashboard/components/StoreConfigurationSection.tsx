@@ -8,10 +8,10 @@ import { useUpdateAppConfig } from "@/features/dashboard/hooks/useAdminManagemen
 import { inputClass, optionalValue, numericValue, selectClass } from "./utils";
 import type { AppConfig, ManagementGroup } from "@/features/dashboard/api/adminManagement.api";
 
-const configLabelClass = "grid gap-1 text-xs font-medium text-gray-300";
-const configHelperClass = "text-[11px] font-normal leading-4 text-gray-500";
+const configLabelClass = "grid gap-1 text-xs font-medium text-muted-foreground";
+const configHelperClass = "text-[11px] font-normal leading-4 text-muted-foreground";
 const configTextareaClass =
-  "min-h-24 rounded-lg border border-white/10 bg-white/5 px-2.5 py-2 text-sm text-white outline-none placeholder:text-gray-500";
+  "min-h-24 rounded-lg border border-border bg-muted px-2.5 py-2 text-sm text-foreground outline-none placeholder:text-muted-foreground";
 
 function ConfigField({
   label,
@@ -41,10 +41,10 @@ function ConfigSection({
   children: ReactNode;
 }) {
   return (
-    <section className="grid gap-3 rounded-lg border border-white/10 bg-white/[0.03] p-3">
+    <section className="grid gap-3 rounded-lg border border-border bg-muted p-3">
       <div>
-        <div className="text-sm font-semibold text-white">{title}</div>
-        {helper ? <div className="mt-1 text-xs text-gray-500">{helper}</div> : null}
+        <div className="text-sm font-semibold text-foreground">{title}</div>
+        {helper ? <div className="mt-1 text-xs text-muted-foreground">{helper}</div> : null}
       </div>
       <div className="grid gap-3 md:grid-cols-2">{children}</div>
     </section>
@@ -62,7 +62,7 @@ export function StoreConfigurationSection({
 }) {
   if (isLoading) {
     return (
-      <div className="py-10 text-sm text-gray-400">
+      <div className="py-10 text-sm text-muted-foreground">
         Loading store configuration...
       </div>
     );
@@ -259,9 +259,9 @@ function StoreConfigurationForm({
   };
 
   return (
-    <Card className="border-white/10 bg-[#1c1c1c]">
-      <CardHeader className="border-b border-white/10">
-        <CardTitle className="text-base text-white">
+    <Card className="border-border bg-card">
+      <CardHeader className="border-b border-border">
+        <CardTitle className="text-base text-foreground">
           Editable Store Configuration
         </CardTitle>
       </CardHeader>
@@ -593,7 +593,7 @@ function StoreConfigurationForm({
                 className={inputClass}
               />
             </ConfigField>
-            <label className="flex items-center gap-2 rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-sm text-gray-300">
+            <label className="flex items-center gap-2 rounded-lg border border-border bg-muted px-3 py-2 text-sm text-muted-foreground">
               <input
                 type="checkbox"
                 checked={taxEnabled}
@@ -601,7 +601,7 @@ function StoreConfigurationForm({
               />
               Tax enabled
             </label>
-            <label className="flex items-center gap-2 rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-sm text-gray-300">
+            <label className="flex items-center gap-2 rounded-lg border border-border bg-muted px-3 py-2 text-sm text-muted-foreground">
               <input
                 type="checkbox"
                 checked={taxInclusive}

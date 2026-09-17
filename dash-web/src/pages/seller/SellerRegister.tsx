@@ -1,16 +1,12 @@
 import { useEffect } from "react";
 import PartnerRegisterForm from "@/features/auth/components/PartnerRegisterForm";
+import AuthLayout from "@/features/auth/components/AuthLayout";
 
 export default function SellerRegisterPage() {
   useEffect(() => { document.title = "Seller Registration | QuickBihar Dashboard"; }, []);
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#121212] p-4">
-
+    <AuthLayout wide note="QuickBihar Seller Onboarding">
       <PartnerRegisterForm mode="SELLER" />
-      <div className="absolute bottom-10 left-0 right-0 text-center text-sm text-gray-500">
-        QuickBihar Seller Onboarding
-      </div>
-    </div>
+    </AuthLayout>
   );
 }
-

@@ -52,18 +52,18 @@ export function ActiveOrdersPanel({
     <section className="grid gap-6 xl:grid-cols-[1fr_380px]">
       <div className="space-y-4">
         {/* Header card with status filtering */}
-        <Card className="border-white/10 bg-[#1c1c1c] text-white">
-          <CardHeader className="flex flex-col gap-3 border-b border-white/10 md:flex-row md:items-center md:justify-between py-4">
-            <CardTitle className="flex items-center gap-2 text-base text-white">
+        <Card className="border-border bg-card text-foreground">
+          <CardHeader className="flex flex-col gap-3 border-b border-border md:flex-row md:items-center md:justify-between py-4">
+            <CardTitle className="flex items-center gap-2 text-base text-foreground">
               <Truck className="h-5 w-5 text-cyan-400" />
               Active Delivery Jobs
             </CardTitle>
             <div className="flex items-center gap-2">
-              <span className="text-xs text-gray-400">Filter status:</span>
+              <span className="text-xs text-muted-foreground">Filter status:</span>
               <select
                 value={statusFilter}
                 onChange={(event) => onStatusFilterChange(event.target.value)}
-                className="bg-black/40 border border-white/10 rounded-lg px-2.5 py-1 text-xs text-white outline-none focus:border-cyan-500"
+                className="bg-muted border border-border rounded-lg px-2.5 py-1 text-xs text-foreground outline-none focus:border-cyan-500"
               >
                 {/* Values are sent to the server as `?status=` and matched against
                     SubOrder.status (SubOrderStatus), so they stay in the RIDER_* vocabulary. */}
@@ -79,13 +79,13 @@ export function ActiveOrdersPanel({
           </CardHeader>
           <CardContent className="p-0">
             {loading ? (
-              <div className="p-8 text-center text-sm text-gray-400">Loading delivery jobs...</div>
+              <div className="p-8 text-center text-sm text-muted-foreground">Loading delivery jobs...</div>
             ) : activeOrders.length === 0 ? (
               <div className="p-8 text-center">
                 <EmptyState label="No active delivery jobs assigned to you." />
               </div>
             ) : (
-              <div className="divide-y divide-white/5 max-h-[600px] overflow-y-auto">
+              <div className="divide-y divide-border max-h-[600px] overflow-y-auto">
                 {activeOrders.map((order) => {
                   const currentStatus = order.delivery?.status || order.status;
                   const isSelected = order._id === selectedActiveOrder?._id;
@@ -94,16 +94,16 @@ export function ActiveOrdersPanel({
                       key={order._id}
                       onClick={() => onSelect(order._id)}
                       className={cn(
-                        "p-4 cursor-pointer transition-colors hover:bg-white/[0.02] flex items-center justify-between",
-                        isSelected && "bg-white/[0.03] border-l-4 border-cyan-400 pl-3"
+                        "p-4 cursor-pointer transition-colors hover:bg-muted flex items-center justify-between",
+                        isSelected && "bg-muted border-l-4 border-cyan-400 pl-3"
                       )}
                     >
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
-                          <span className="font-semibold text-white">{order.orderId}</span>
+                          <span className="font-semibold text-foreground">{order.orderId}</span>
                           <DeliveryStatusBadge status={currentStatus} />
                         </div>
-                        <div className="text-xs text-gray-400 flex items-center gap-1.5">
+                        <div className="text-xs text-muted-foreground flex items-center gap-1.5">
                           <MapPin className="h-3 w-3 text-red-400" />
                           <span>{order.shippingAddress?.fullName} • {order.shippingAddress?.city}</span>
                         </div>
@@ -116,7 +116,7 @@ export function ActiveOrdersPanel({
                       </div>
                       <div className="text-right">
                         <div className="text-sm font-semibold text-cyan-400">Rs. {formatAmount(order.delivery?.payoutAmount || 0)}</div>
-                        <div className="text-[10px] text-gray-500">{formatDate(order.createdAt)}</div>
+                        <div className="text-[10px] text-muted-foreground">{formatDate(order.createdAt)}</div>
                       </div>
                     </div>
                   );
@@ -250,10 +250,10 @@ function JobExecutionCard({ order }: { order: any }) {
     mCancel.isPending;
 
   return (
-    <Card className="border-white/10 bg-[#1c1c1c] text-white">
-      <CardHeader className="border-b border-white/10 py-4 flex flex-row items-center justify-between">
-        <CardTitle className="text-sm font-semibold text-gray-300">Fulfillment Verification Steps</CardTitle>
-        <span className="text-xs text-gray-500 font-mono">ID: {order.orderId}</span>
+    <Card className="border-border bg-card text-foreground">
+      <CardHeader className="border-b border-border py-4 flex flex-row items-center justify-between">
+        <CardTitle className="text-sm font-semibold text-muted-foreground">Fulfillment Verification Steps</CardTitle>
+        <span className="text-xs text-muted-foreground font-mono">ID: {order.orderId}</span>
       </CardHeader>
       <CardContent className="py-6 space-y-6">
         {isCancelMode ? (
@@ -262,14 +262,14 @@ function JobExecutionCard({ order }: { order: any }) {
               <AlertTriangle className="h-4 w-4" />
               Cancel Job Offer
             </div>
-            <p className="text-xs text-gray-400">
+            <p className="text-xs text-muted-foreground">
               Are you sure you want to decline this job? The order will be put back into matching pool for other delivery boys.
             </p>
             <Input
               value={cancelReason}
               onChange={(e) => setCancelReason(e.target.value)}
               placeholder="Reason (e.g. Vehicle breakdown, store far away)"
-              className="bg-black/30 border-white/10 text-white"
+              className="bg-muted border-border text-foreground"
             />
             <div className="flex gap-2">
               <Button size="sm" variant="destructive" onClick={handleCancel} disabled={isMutating}>
@@ -283,15 +283,15 @@ function JobExecutionCard({ order }: { order: any }) {
         ) : (
           <div className="space-y-5">
             {/* Status indicators */}
-            <div className="flex items-center justify-between bg-black/20 p-3 rounded-lg border border-white/5">
-              <div className="text-xs text-gray-400">Active Job Status</div>
+            <div className="flex items-center justify-between bg-muted p-3 rounded-lg border border-border">
+              <div className="text-xs text-muted-foreground">Active Job Status</div>
               <div className="text-sm font-bold text-cyan-400">{deliveryStatusLabel(currentStatus)}</div>
             </div>
 
             {/* Step 1: Assigned -> Arriving */}
             {currentStatus === "ASSIGNED" && (
               <div className="space-y-3">
-                <p className="text-xs text-gray-400">Step 1: Signal to the seller you are on the way to pick up the package.</p>
+                <p className="text-xs text-muted-foreground">Step 1: Signal to the seller you are on the way to pick up the package.</p>
                 <Button className="w-full bg-cyan-600 hover:bg-cyan-700" onClick={() => handleAction("ARRIVING")} disabled={isMutating}>
                   <Navigation className="h-4 w-4 mr-2" /> Mark Heading to Store
                 </Button>
@@ -301,8 +301,8 @@ function JobExecutionCard({ order }: { order: any }) {
             {/* Step 2: Arriving -> Reached Store */}
             {currentStatus === "ARRIVING_AT_STORE" && (
               <div className="space-y-3">
-                <p className="text-xs text-gray-400">Step 2: Check-in at store. The app verifies your GPS coordinate is within 100 meters boundary.</p>
-                <Button className="w-full bg-[#8A2BE2] hover:bg-[#7A1FA2]" onClick={() => handleAction("REACHED_STORE")} disabled={isMutating}>
+                <p className="text-xs text-muted-foreground">Step 2: Check-in at store. The app verifies your GPS coordinate is within 100 meters boundary.</p>
+                <Button className="w-full bg-primary hover:bg-primary/90" onClick={() => handleAction("REACHED_STORE")} disabled={isMutating}>
                   <MapPin className="h-4 w-4 mr-2" /> I Have Reached Store
                 </Button>
               </div>
@@ -312,19 +312,19 @@ function JobExecutionCard({ order }: { order: any }) {
             {currentStatus === "REACHED_STORE" && (
               <div className="space-y-4">
                 <div className="space-y-1">
-                  <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Step 3: Verification OTP & Package Photo</h4>
-                  <p className="text-[11px] text-gray-500">Ask the merchant for the 6-digit Pickup OTP. Upload a photo of the packed items.</p>
+                  <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Step 3: Verification OTP & Package Photo</h4>
+                  <p className="text-[11px] text-muted-foreground">Ask the merchant for the 6-digit Pickup OTP. Upload a photo of the packed items.</p>
                 </div>
                 <div className="grid gap-3">
                   <div>
-                    <label className="block text-xs text-gray-400 mb-1">Enter Pickup OTP</label>
+                    <label className="block text-xs text-muted-foreground mb-1">Enter Pickup OTP</label>
                     <Input
                       type="text"
                       maxLength={6}
                       value={pickupOtp}
                       onChange={(e) => setPickupOtp(e.target.value)}
                       placeholder="e.g. 123456"
-                      className="bg-black/30 border-white/10 text-white font-mono tracking-widest text-center"
+                      className="bg-muted border-border text-foreground font-mono tracking-widest text-center"
                     />
                   </div>
                   <ProofPhotoInput
@@ -344,7 +344,7 @@ function JobExecutionCard({ order }: { order: any }) {
             {/* Step 4: Picked Up -> In Transit */}
             {currentStatus === "PICKED_UP" && (
               <div className="space-y-3">
-                <p className="text-xs text-gray-400">Step 4: Pack details verified. Signal that you are departing for the customer location.</p>
+                <p className="text-xs text-muted-foreground">Step 4: Pack details verified. Signal that you are departing for the customer location.</p>
                 <Button className="w-full bg-cyan-600 hover:bg-cyan-700" onClick={() => handleAction("TRANSIT")} disabled={isMutating}>
                   <Navigation className="h-4 w-4 mr-2" /> Start Transit / Out for Delivery
                 </Button>
@@ -354,8 +354,8 @@ function JobExecutionCard({ order }: { order: any }) {
             {/* Step 5: In Transit -> Near Customer */}
             {currentStatus === "IN_TRANSIT" && (
               <div className="space-y-3">
-                <p className="text-xs text-gray-400">Step 5: Check-in when you arrive at customer address (verifies 100 meters radius).</p>
-                <Button className="w-full bg-[#8A2BE2] hover:bg-[#7A1FA2]" onClick={() => handleAction("NEAR_CUSTOMER")} disabled={isMutating}>
+                <p className="text-xs text-muted-foreground">Step 5: Check-in when you arrive at customer address (verifies 100 meters radius).</p>
+                <Button className="w-full bg-primary hover:bg-primary/90" onClick={() => handleAction("NEAR_CUSTOMER")} disabled={isMutating}>
                   <MapPin className="h-4 w-4 mr-2" /> I Have Arrived at Customer Location
                 </Button>
               </div>
@@ -365,28 +365,28 @@ function JobExecutionCard({ order }: { order: any }) {
             {currentStatus === "NEAR_CUSTOMER" && (
               <div className="space-y-4">
                 <div className="space-y-1">
-                  <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Step 6: Delivery Handshake Verification</h4>
-                  <p className="text-[11px] text-gray-500">Collect payment (if COD) and get the 6-digit Delivery OTP from the customer.</p>
+                  <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Step 6: Delivery Handshake Verification</h4>
+                  <p className="text-[11px] text-muted-foreground">Collect payment (if COD) and get the 6-digit Delivery OTP from the customer.</p>
                 </div>
                 {order.packageDetails?.isCod && (
                   <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg text-xs text-amber-400 flex items-start gap-2">
                     <Coins className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
                     <div>
                       <div className="font-bold">CASH PAYMENT TO COLLECT: Rs. {formatAmount(order.payableAmount)}</div>
-                      <div className="text-[10px] text-gray-400 mt-0.5">Collect the exact amount before handing over OTP or packages. This creates a cash liability.</div>
+                      <div className="text-[10px] text-muted-foreground mt-0.5">Collect the exact amount before handing over OTP or packages. This creates a cash liability.</div>
                     </div>
                   </div>
                 )}
                 <div className="grid gap-3">
                   <div>
-                    <label className="block text-xs text-gray-400 mb-1">Enter Delivery OTP (Customer App)</label>
+                    <label className="block text-xs text-muted-foreground mb-1">Enter Delivery OTP (Customer App)</label>
                     <Input
                       type="text"
                       maxLength={6}
                       value={deliveryOtp}
                       onChange={(e) => setDeliveryOtp(e.target.value)}
                       placeholder="e.g. 654321"
-                      className="bg-black/30 border-white/10 text-white font-mono tracking-widest text-center"
+                      className="bg-muted border-border text-foreground font-mono tracking-widest text-center"
                     />
                   </div>
                   <ProofPhotoInput
@@ -410,7 +410,7 @@ function JobExecutionCard({ order }: { order: any }) {
 
             {/* Cancel trigger */}
             {["ASSIGNED", "ARRIVING_AT_STORE", "REACHED_STORE"].includes(currentStatus) && (
-              <div className="pt-2 border-t border-white/5 flex justify-end">
+              <div className="pt-2 border-t border-border flex justify-end">
                 <Button type="button" variant="ghost" size="sm" className="text-red-400 hover:bg-red-500/10 hover:text-red-500" onClick={() => setIsCancelMode(true)}>
                   Decline Job
                 </Button>
@@ -427,7 +427,7 @@ function JobExecutionCard({ order }: { order: any }) {
 function OrderDetailPanel({ order }: { order: any | null }) {
   if (!order) {
     return (
-      <Card className="border-white/10 bg-[#1c1c1c] text-white">
+      <Card className="border-border bg-card text-foreground">
         <CardContent className="py-10">
           <EmptyState label="Select a delivery job to view specifications." />
         </CardContent>
@@ -443,51 +443,51 @@ function OrderDetailPanel({ order }: { order: any | null }) {
         )}`;
 
   return (
-    <Card className="border-white/10 bg-[#1c1c1c] text-white self-start">
-      <CardHeader className="border-b border-white/10 py-4 flex flex-row items-center gap-2">
+    <Card className="border-border bg-card text-foreground self-start">
+      <CardHeader className="border-b border-border py-4 flex flex-row items-center gap-2">
         <MapPin className="h-4 w-4 text-cyan-400" />
         <CardTitle className="text-sm font-semibold">Delivery Destinations</CardTitle>
       </CardHeader>
       <CardContent className="py-4 space-y-4 text-xs">
         <div>
-          <div className="font-semibold text-white">Store Details</div>
-          <div className="text-gray-400 mt-0.5">{order.storeId?.name || "Merchant Store"}</div>
-          <div className="text-gray-500">{order.storeId?.address?.line1 || "Store address not populated"}</div>
+          <div className="font-semibold text-foreground">Store Details</div>
+          <div className="text-muted-foreground mt-0.5">{order.storeId?.name || "Merchant Store"}</div>
+          <div className="text-muted-foreground">{order.storeId?.address?.line1 || "Store address not populated"}</div>
         </div>
 
-        <div className="border-t border-white/5 pt-3">
-          <div className="font-semibold text-white">Drop Destination</div>
-          <div className="text-gray-400 mt-0.5">{order.shippingAddress?.fullName}</div>
-          <div className="text-gray-500">{order.shippingAddress?.phone}</div>
-          <div className="mt-1.5 p-2 bg-black/20 rounded border border-white/5 text-gray-400">
+        <div className="border-t border-border pt-3">
+          <div className="font-semibold text-foreground">Drop Destination</div>
+          <div className="text-muted-foreground mt-0.5">{order.shippingAddress?.fullName}</div>
+          <div className="text-muted-foreground">{order.shippingAddress?.phone}</div>
+          <div className="mt-1.5 p-2 bg-muted rounded border border-border text-muted-foreground">
             {order.shippingAddress?.street}, {order.shippingAddress?.city}, {order.shippingAddress?.pincode}
           </div>
         </div>
 
-        <div className="border-t border-white/5 pt-3 flex flex-wrap gap-2">
+        <div className="border-t border-border pt-3 flex flex-wrap gap-2">
           <a
             href={mapHref}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-3 text-xs font-semibold text-white hover:bg-white/10"
+            className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-border bg-muted px-3 text-xs font-semibold text-foreground hover:bg-muted"
           >
             <Navigation className="h-3.5 w-3.5" />
             Navigation Map
           </a>
           <a
             href={`tel:${order.shippingAddress?.phone}`}
-            className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-3 text-xs font-semibold text-white hover:bg-white/10"
+            className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-border bg-muted px-3 text-xs font-semibold text-foreground hover:bg-muted"
           >
             <Phone className="h-3.5 w-3.5" />
             Call Customer
           </a>
         </div>
 
-        <div className="border-t border-white/5 pt-3">
-          <div className="font-semibold text-white mb-2">Package Contents</div>
+        <div className="border-t border-border pt-3">
+          <div className="font-semibold text-foreground mb-2">Package Contents</div>
           <div className="space-y-1.5">
             {order.items?.map((item: any, idx: number) => (
-              <div key={idx} className="flex items-center justify-between text-gray-400">
+              <div key={idx} className="flex items-center justify-between text-muted-foreground">
                 <span>{item.title}</span>
                 <span>x{item.quantity}</span>
               </div>
@@ -535,8 +535,8 @@ function ProofPhotoInput({
 
   return (
     <div>
-      <label className="block text-xs text-gray-400 mb-1">{label}</label>
-      <p className="text-[11px] text-gray-500 mb-1.5">{hint}</p>
+      <label className="block text-xs text-muted-foreground mb-1">{label}</label>
+      <p className="text-[11px] text-muted-foreground mb-1.5">{hint}</p>
       <input
         ref={inputRef}
         type="file"
@@ -550,7 +550,7 @@ function ProofPhotoInput({
           type="button"
           variant="outline"
           size="sm"
-          className="border-white/10 gap-2"
+          className="border-border gap-2"
           onClick={() => inputRef.current?.click()}
           disabled={uploading}
         >
@@ -565,7 +565,7 @@ function ProofPhotoInput({
       </div>
       {value && (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={value} alt={`${label} preview`} className="mt-2 h-24 w-24 rounded-md object-cover border border-white/10" />
+        <img src={value} alt={`${label} preview`} className="mt-2 h-24 w-24 rounded-md object-cover border border-border" />
       )}
     </div>
   );
@@ -674,7 +674,7 @@ function SignaturePad({
 
   return (
     <div>
-      <label className="block text-xs text-gray-400 mb-1 flex items-center justify-between">
+      <label className="block text-xs text-muted-foreground mb-1 flex items-center justify-between">
         <span>Customer Signature (optional)</span>
         {value && !dirty && (
           <span className="inline-flex items-center gap-1 text-[11px] text-emerald-400">
@@ -686,18 +686,18 @@ function SignaturePad({
         ref={canvasRef}
         width={320}
         height={120}
-        className="w-full h-[120px] rounded-md border border-white/10 bg-[#0a0a0a] touch-none cursor-crosshair"
+        className="w-full h-[120px] rounded-md border border-border bg-background touch-none cursor-crosshair"
         onPointerDown={startDraw}
         onPointerMove={moveDraw}
         onPointerUp={endDraw}
         onPointerLeave={endDraw}
       />
       <div className="mt-2 flex gap-2">
-        <Button type="button" variant="outline" size="sm" className="border-white/10 gap-2" onClick={save} disabled={uploading}>
+        <Button type="button" variant="outline" size="sm" className="border-border gap-2" onClick={save} disabled={uploading}>
           {uploading ? <Loader2 className="h-4 w-4 animate-spin text-cyan-400" /> : <PenTool className="h-4 w-4 text-cyan-400" />}
           Save Signature
         </Button>
-        <Button type="button" variant="ghost" size="sm" className="text-gray-400 gap-2" onClick={clear} disabled={uploading}>
+        <Button type="button" variant="ghost" size="sm" className="text-muted-foreground gap-2" onClick={clear} disabled={uploading}>
           <Eraser className="h-4 w-4" /> Clear
         </Button>
       </div>

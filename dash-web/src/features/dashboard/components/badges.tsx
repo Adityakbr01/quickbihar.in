@@ -26,7 +26,7 @@ export function RoleBadge({ role }: { role: string }) {
       className={
         isAdmin
           ? "border-cyan-400/30 text-cyan-300"
-          : "border-white/10 text-gray-300"
+          : "border-border text-muted-foreground"
       }
     >
       {isAdmin && <ShieldCheck className="h-3 w-3" />}

@@ -235,25 +235,25 @@ export function InventoryLogisticsPanel() {
         />
       )}
       {tab === "inventory" && Boolean(inventoryQuery.data?.movements?.length) && (
-        <Card className="border-white/10 bg-[#1c1c1c]">
+        <Card className="border-border bg-card">
           <CardHeader>
-            <CardTitle className="text-white">Recent Stock Movements</CardTitle>
+            <CardTitle className="text-foreground">Recent Stock Movements</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-2">
             {inventoryQuery.data?.movements.map((movement) => (
               <div
                 key={movement._id}
-                className="flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2"
+                className="flex items-center justify-between rounded-lg border border-border bg-muted px-3 py-2"
               >
                 <div>
-                  <div className="text-sm text-white">
+                  <div className="text-sm text-foreground">
                     {movement.sku} · {movement.movementType}
                   </div>
-                  <div className="text-xs text-gray-500">
+                  <div className="text-xs text-muted-foreground">
                     {movement.previousStock} to {movement.newStock} · {movement.reason}
                   </div>
                 </div>
-                <span className="text-xs text-gray-500">
+                <span className="text-xs text-muted-foreground">
                   {formatDate(movement.createdAt)}
                 </span>
               </div>
@@ -275,7 +275,7 @@ export function InventoryLogisticsPanel() {
           }
         }}
       >
-        <DialogContent className="border-white/10 bg-[#1c1c1c] text-white">
+        <DialogContent className="border-border bg-card text-foreground">
           <DialogHeader>
             <DialogTitle>
               {editingWarehouse ? "Edit" : "Add"} Warehouse
@@ -337,7 +337,7 @@ export function InventoryLogisticsPanel() {
             <Button
               type="submit"
               disabled={createWarehouse.isPending || updateWarehouse.isPending}
-              className="bg-white text-black hover:bg-gray-200"
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
             >
               {createWarehouse.isPending || updateWarehouse.isPending ? (
                 <>
@@ -363,7 +363,7 @@ export function InventoryLogisticsPanel() {
           }
         }}
       >
-        <DialogContent className="border-white/10 bg-[#1c1c1c] text-white">
+        <DialogContent className="border-border bg-card text-foreground">
           <DialogHeader>
             <DialogTitle>
               {editingProvider ? "Edit" : "Add"} Shipping Provider
@@ -490,7 +490,7 @@ export function InventoryLogisticsPanel() {
             <Button
               type="submit"
               disabled={createProvider.isPending || updateProvider.isPending}
-              className="bg-white text-black hover:bg-gray-200"
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
             >
               {createProvider.isPending || updateProvider.isPending ? (
                 <>
@@ -511,7 +511,7 @@ export function InventoryLogisticsPanel() {
         open={Boolean(stockDraft)}
         onOpenChange={(open) => !open && setStockDraft(null)}
       >
-        <DialogContent className="border-white/10 bg-[#1c1c1c] text-white">
+        <DialogContent className="border-border bg-card text-foreground">
           <DialogHeader>
             <DialogTitle>Update Stock</DialogTitle>
           </DialogHeader>
@@ -543,7 +543,7 @@ export function InventoryLogisticsPanel() {
               <Button
                 type="submit"
                 disabled={updateStock.isPending}
-                className="bg-white text-black hover:bg-gray-200"
+                className="bg-primary text-primary-foreground hover:bg-primary/90"
               >
                 {updateStock.isPending ? (
                   <>
@@ -579,10 +579,10 @@ function InventoryTable({
   onStock: (product: AdminInventoryProduct, sku: string, stock: number) => void;
 }) {
   return (
-    <Card className="border-white/10 bg-[#1c1c1c]">
+    <Card className="border-border bg-card">
       <CardHeader>
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <CardTitle className="text-white">Inventory</CardTitle>
+          <CardTitle className="text-foreground">Inventory</CardTitle>
           <div className="flex gap-2">
             <Badge variant="outline" className="border-amber-400/30 text-amber-200">
               {lowStock} low
@@ -599,26 +599,26 @@ function InventoryTable({
         {!isLoading && Boolean(products.length) && (
           <Table>
             <TableHeader>
-              <TableRow className="border-white/10 hover:bg-transparent">
-                <TableHead className="px-4 text-gray-400">Product</TableHead>
-                <TableHead className="text-gray-400">Variants</TableHead>
-                <TableHead className="text-gray-400">Stock</TableHead>
-                <TableHead className="text-right text-gray-400">Actions</TableHead>
+              <TableRow className="border-border hover:bg-transparent">
+                <TableHead className="px-4 text-muted-foreground">Product</TableHead>
+                <TableHead className="text-muted-foreground">Variants</TableHead>
+                <TableHead className="text-muted-foreground">Stock</TableHead>
+                <TableHead className="text-right text-muted-foreground">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {products.map((product) => (
                 <TableRow
                   key={product._id}
-                  className="border-white/10 hover:bg-white/[0.03]"
+                  className="border-border hover:bg-muted"
                 >
                   <TableCell className="px-4">
-                    <div className="font-medium text-white">{product.title}</div>
-                    <div className="text-xs text-gray-500">
+                    <div className="font-medium text-foreground">{product.title}</div>
+                    <div className="text-xs text-muted-foreground">
                       {product.category || "-"} · {sellerName(product.sellerId)}
                     </div>
                   </TableCell>
-                  <TableCell className="text-sm text-gray-300">
+                  <TableCell className="text-sm text-muted-foreground">
                     {product.variants?.length || 0}
                   </TableCell>
                   <TableCell>
@@ -627,7 +627,7 @@ function InventoryTable({
                       className={
                         (product.totalStock || 0) <= 10
                           ? "border-amber-400/30 text-amber-200"
-                          : "border-white/10 text-gray-300"
+                          : "border-border text-muted-foreground"
                       }
                     >
                       {product.totalStock || 0}
@@ -640,7 +640,7 @@ function InventoryTable({
                           key={variant.sku || `${variant.size}-${variant.color}`}
                           size="sm"
                           variant="outline"
-                          className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+                          className="border-border bg-muted text-foreground hover:bg-muted"
                           onClick={() =>
                             onStock(product, variant.sku || "", variant.stock)
                           }
@@ -736,9 +736,9 @@ function SimpleAdminTable<T extends { _id: string }>({
   onDelete: (row: T) => void;
 }) {
   return (
-    <Card className="border-white/10 bg-[#1c1c1c]">
+    <Card className="border-border bg-card">
       <CardHeader>
-        <CardTitle className="text-white">{title}</CardTitle>
+        <CardTitle className="text-foreground">{title}</CardTitle>
       </CardHeader>
       <CardContent className="px-0">
         {isLoading && <LoadingState label={`Loading ${title.toLowerCase()}...`} />}
@@ -748,31 +748,31 @@ function SimpleAdminTable<T extends { _id: string }>({
         {!isLoading && Boolean(rows.length) && (
           <Table>
             <TableHeader>
-              <TableRow className="border-white/10 hover:bg-transparent">
+              <TableRow className="border-border hover:bg-transparent">
                 {columns.map((column, index) => (
                   <TableHead
                     key={column}
-                    className={index === 0 ? "px-4 text-gray-400" : "text-gray-400"}
+                    className={index === 0 ? "px-4 text-muted-foreground" : "text-muted-foreground"}
                   >
                     {column}
                   </TableHead>
                 ))}
-                <TableHead className="text-right text-gray-400">Actions</TableHead>
+                <TableHead className="text-right text-muted-foreground">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {rows.map((row) => (
                 <TableRow
                   key={row._id}
-                  className="border-white/10 hover:bg-white/[0.03]"
+                  className="border-border hover:bg-muted"
                 >
                   {render(row).map((value, index) => (
                     <TableCell
                       key={`${row._id}-${index}`}
                       className={
                         index === 0
-                          ? "px-4 text-sm font-medium text-white"
-                          : "text-sm text-gray-300"
+                          ? "px-4 text-sm font-medium text-foreground"
+                          : "text-sm text-muted-foreground"
                       }
                     >
                       {value}
@@ -783,7 +783,7 @@ function SimpleAdminTable<T extends { _id: string }>({
                       <Button
                         size="sm"
                         variant="outline"
-                        className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+                        className="border-border bg-muted text-foreground hover:bg-muted"
                         onClick={() => onEdit(row)}
                       >
                         Edit

@@ -68,9 +68,9 @@ export function SellerPayoutsPanel({ setup }: { setup?: SellerSetupStatus }) {
 
   return (
     <div className="grid gap-4 xl:grid-cols-[380px_1fr]">
-      <Card className="border-white/10 bg-[#1c1c1c]">
-        <CardHeader className="border-b border-white/10">
-          <CardTitle className="text-base text-white">Wallet</CardTitle>
+      <Card className="border-border bg-card">
+        <CardHeader className="border-b border-border">
+          <CardTitle className="text-base text-foreground">Wallet</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-3 pt-4">
           <StatusTile
@@ -87,18 +87,18 @@ export function SellerPayoutsPanel({ setup }: { setup?: SellerSetupStatus }) {
         </CardContent>
       </Card>
 
-      <Card className="border-white/10 bg-[#1c1c1c]">
-        <CardHeader className="border-b border-white/10">
-          <CardTitle className="text-base text-white">Payout Methods</CardTitle>
+      <Card className="border-border bg-card">
+        <CardHeader className="border-b border-border">
+          <CardTitle className="text-base text-foreground">Payout Methods</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-3 pt-4 md:grid-cols-2">
           {methods.length ? (
             methods.map((method) => (
-              <div key={method._id} className="rounded-lg border border-white/10 bg-white/[0.03] p-3">
+              <div key={method._id} className="rounded-lg border border-border bg-muted p-3">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <div className="text-sm font-medium text-white">{method.type}</div>
-                    <div className="text-xs text-gray-500">{payoutMethodLabel(method)}</div>
+                    <div className="text-sm font-medium text-foreground">{method.type}</div>
+                    <div className="text-xs text-muted-foreground">{payoutMethodLabel(method)}</div>
                   </div>
                   <StatusBadge label={method.status} />
                 </div>
@@ -106,7 +106,7 @@ export function SellerPayoutsPanel({ setup }: { setup?: SellerSetupStatus }) {
                   <Button
                     size="sm"
                     variant="outline"
-                    className="mt-3 border-white/10 bg-white/5 text-white hover:bg-white/10"
+                    className="mt-3 border-border bg-muted text-foreground hover:bg-muted"
                     onClick={() => payoutMutations.setDefault.mutate(method._id)}
                   >
                     Set Default
@@ -120,9 +120,9 @@ export function SellerPayoutsPanel({ setup }: { setup?: SellerSetupStatus }) {
         </CardContent>
       </Card>
 
-      <Card className="border-white/10 bg-[#1c1c1c]">
-        <CardHeader className="border-b border-white/10">
-          <CardTitle className="text-base text-white">Add Method</CardTitle>
+      <Card className="border-border bg-card">
+        <CardHeader className="border-b border-border">
+          <CardTitle className="text-base text-foreground">Add Method</CardTitle>
         </CardHeader>
         <CardContent className="pt-4">
           <form onSubmit={submitMethod} className="grid gap-3">
@@ -155,9 +155,9 @@ export function SellerPayoutsPanel({ setup }: { setup?: SellerSetupStatus }) {
         </CardContent>
       </Card>
 
-      <Card className="border-white/10 bg-[#1c1c1c]">
-        <CardHeader className="border-b border-white/10">
-          <CardTitle className="text-base text-white">Payout Request</CardTitle>
+      <Card className="border-border bg-card">
+        <CardHeader className="border-b border-border">
+          <CardTitle className="text-base text-foreground">Payout Request</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-4 pt-4">
           <form onSubmit={submitPayout} className="grid gap-3">

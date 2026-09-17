@@ -570,7 +570,7 @@ export function NotificationManagementPanel() {
       case "HIGH":
         return "bg-rose-500/15 text-rose-400 border-rose-500/25 font-bold";
       case "LOW":
-        return "bg-gray-500/15 text-gray-400 border-gray-500/25";
+        return "bg-muted text-muted-foreground border-border";
       case "MEDIUM":
       default:
         return "bg-blue-500/15 text-blue-400 border-blue-500/25";
@@ -581,22 +581,22 @@ export function NotificationManagementPanel() {
     <div className="grid gap-6">
       {/* 📊 Analytics Dashboard Cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card className="border-white/5 bg-[#171717]/85 backdrop-blur shadow-xl text-white">
+        <Card className="border-border bg-background/85 backdrop-blur shadow-xl text-foreground">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs font-semibold uppercase tracking-wider text-gray-400">
+            <CardTitle className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Total Campaigns
             </CardTitle>
             <Bell className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{analytics.totalCampaigns}</div>
-            <p className="text-[10px] text-gray-500 mt-1">Dispatched notification runs</p>
+            <p className="text-[10px] text-muted-foreground mt-1">Dispatched notification runs</p>
           </CardContent>
         </Card>
 
-        <Card className="border-white/5 bg-[#171717]/85 backdrop-blur shadow-xl text-white">
+        <Card className="border-border bg-background/85 backdrop-blur shadow-xl text-foreground">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs font-semibold uppercase tracking-wider text-gray-400">
+            <CardTitle className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Total Dispatched
             </CardTitle>
             <Activity className="h-4 w-4 text-cyan-400" />
@@ -609,16 +609,16 @@ export function NotificationManagementPanel() {
           </CardContent>
         </Card>
 
-        <Card className="border-white/5 bg-[#171717]/85 backdrop-blur shadow-xl text-white">
+        <Card className="border-border bg-background/85 backdrop-blur shadow-xl text-foreground">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs font-semibold uppercase tracking-wider text-gray-400">
+            <CardTitle className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Delivery Rate
             </CardTitle>
             <BarChart2 className="h-4 w-4 text-emerald-400" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{analytics.deliveryRate}%</div>
-            <div className="w-full bg-white/5 h-1.5 rounded-full mt-2 overflow-hidden">
+            <div className="w-full bg-muted h-1.5 rounded-full mt-2 overflow-hidden">
               <div 
                 className="bg-emerald-500 h-full rounded-full transition-all duration-500" 
                 style={{ width: `${analytics.deliveryRate}%` }}
@@ -627,16 +627,16 @@ export function NotificationManagementPanel() {
           </CardContent>
         </Card>
 
-        <Card className="border-white/5 bg-[#171717]/85 backdrop-blur shadow-xl text-white">
+        <Card className="border-border bg-background/85 backdrop-blur shadow-xl text-foreground">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs font-semibold uppercase tracking-wider text-gray-400">
+            <CardTitle className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Open / Click Rate
             </CardTitle>
             <Eye className="h-4 w-4 text-blue-400" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{analytics.openRate}%</div>
-            <div className="w-full bg-white/5 h-1.5 rounded-full mt-2 overflow-hidden">
+            <div className="w-full bg-muted h-1.5 rounded-full mt-2 overflow-hidden">
               <div 
                 className="bg-blue-500 h-full rounded-full transition-all duration-500" 
                 style={{ width: `${analytics.openRate}%` }}
@@ -647,26 +647,26 @@ export function NotificationManagementPanel() {
       </div>
 
       {/* Toolbar filters */}
-      <div className="bg-[#121212] border border-white/5 p-4 rounded-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-background border border-border p-4 rounded-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex-1 max-w-sm">
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search campaigns..."
-            className="bg-[#1c1c1c] border-white/10 text-white placeholder-gray-500 h-9"
+            className="bg-card border-border text-foreground placeholder:text-muted-foreground h-9"
           />
         </div>
         
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex items-center gap-1.5">
-            <SlidersHorizontal className="h-3.5 w-3.5 text-gray-500" />
-            <span className="text-xs text-gray-400 font-medium">Filters:</span>
+            <SlidersHorizontal className="h-3.5 w-3.5 text-muted-foreground" />
+            <span className="text-xs text-muted-foreground font-medium">Filters:</span>
           </div>
 
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
-            className="bg-[#1c1c1c] border border-white/10 text-xs text-gray-300 rounded px-2.5 py-1.5 focus:outline-none"
+            className="bg-card border border-border text-xs text-muted-foreground rounded px-2.5 py-1.5 focus:outline-none"
           >
             <option value="all">All Statuses</option>
             <option value="PENDING">Pending</option>
@@ -680,7 +680,7 @@ export function NotificationManagementPanel() {
           <select
             value={filterPriority}
             onChange={(e) => setFilterPriority(e.target.value)}
-            className="bg-[#1c1c1c] border border-white/10 text-xs text-gray-300 rounded px-2.5 py-1.5 focus:outline-none"
+            className="bg-card border border-border text-xs text-muted-foreground rounded px-2.5 py-1.5 focus:outline-none"
           >
             <option value="all">All Priorities</option>
             <option value="HIGH">High</option>
@@ -691,7 +691,7 @@ export function NotificationManagementPanel() {
           <select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value)}
-            className="bg-[#1c1c1c] border border-white/10 text-xs text-gray-300 rounded px-2.5 py-1.5 focus:outline-none"
+            className="bg-card border border-border text-xs text-muted-foreground rounded px-2.5 py-1.5 focus:outline-none"
           >
             <option value="all">All Types</option>
             <option value="NORMAL">Normal</option>
@@ -701,7 +701,7 @@ export function NotificationManagementPanel() {
           <Button
             onClick={() => setSortOrder(sortOrder === "desc" ? "asc" : "desc")}
             variant="outline"
-            className="border-white/10 bg-[#1c1c1c] hover:bg-white/5 text-gray-300 text-xs h-9 px-3"
+            className="border-border bg-card hover:bg-muted text-muted-foreground text-xs h-9 px-3"
           >
             Sort: {sortOrder === "desc" ? "Newest" : "Oldest"}
           </Button>
@@ -712,7 +712,7 @@ export function NotificationManagementPanel() {
               analyticsQuery.refetch();
             }}
             variant="outline"
-            className="border-white/10 bg-[#1c1c1c] hover:bg-white/5 text-gray-300 h-9 w-9 p-0"
+            className="border-border bg-card hover:bg-muted text-muted-foreground h-9 w-9 p-0"
           >
             <RefreshCw className="h-3.5 w-3.5" />
           </Button>
@@ -742,7 +742,7 @@ export function NotificationManagementPanel() {
 
           <Button
             onClick={openCompose}
-            className="bg-primary hover:bg-primary/95 text-white h-9"
+            className="bg-primary hover:bg-primary/95 text-primary-foreground h-9"
           >
             <Plus className="mr-2 h-4 w-4" />
             Create Notification
@@ -751,7 +751,7 @@ export function NotificationManagementPanel() {
       </div>
 
       {/* Campaigns Table */}
-      <Card className="border-white/5 bg-[#171717]/90 text-white shadow-2xl overflow-hidden">
+      <Card className="border-border bg-background/90 text-foreground shadow-2xl overflow-hidden">
         <CardContent className="p-0">
           {notificationsQuery.isLoading && (
             <LoadingState label="Fetching campaigns history..." />
@@ -763,7 +763,7 @@ export function NotificationManagementPanel() {
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow className="border-white/5 hover:bg-transparent">
+                  <TableRow className="border-border hover:bg-transparent">
                     <TableHead className="w-[40px] pl-6 pr-0">
                       <input
                         type="checkbox"
@@ -774,17 +774,17 @@ export function NotificationManagementPanel() {
                           }
                         }}
                         onChange={handleSelectAll}
-                        className="rounded border-white/20 bg-white/5 text-primary focus:ring-0 cursor-pointer"
+                        className="rounded border-border bg-muted text-primary focus:ring-0 cursor-pointer"
                       />
                     </TableHead>
-                    <TableHead className="px-4 text-gray-400 font-semibold text-xs">Details</TableHead>
-                    <TableHead className="text-gray-400 font-semibold text-xs">Message</TableHead>
-                    <TableHead className="text-gray-400 font-semibold text-xs">Delivery Channel</TableHead>
-                    <TableHead className="text-gray-400 font-semibold text-xs">Target & Priority</TableHead>
-                    <TableHead className="text-gray-400 font-semibold text-xs">Delivery Progress</TableHead>
-                    <TableHead className="text-gray-400 font-semibold text-xs text-center">Status</TableHead>
-                    <TableHead className="text-gray-400 font-semibold text-xs">Dates</TableHead>
-                    <TableHead className="text-gray-400 font-semibold text-xs text-right pr-6">Actions</TableHead>
+                    <TableHead className="px-4 text-muted-foreground font-semibold text-xs">Details</TableHead>
+                    <TableHead className="text-muted-foreground font-semibold text-xs">Message</TableHead>
+                    <TableHead className="text-muted-foreground font-semibold text-xs">Delivery Channel</TableHead>
+                    <TableHead className="text-muted-foreground font-semibold text-xs">Target & Priority</TableHead>
+                    <TableHead className="text-muted-foreground font-semibold text-xs">Delivery Progress</TableHead>
+                    <TableHead className="text-muted-foreground font-semibold text-xs text-center">Status</TableHead>
+                    <TableHead className="text-muted-foreground font-semibold text-xs">Dates</TableHead>
+                    <TableHead className="text-muted-foreground font-semibold text-xs text-right pr-6">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -797,14 +797,14 @@ export function NotificationManagementPanel() {
                     return (
                       <TableRow
                         key={item._id}
-                        className={`border-white/5 hover:bg-white/[0.02] transition-colors ${isChecked ? "bg-white/[0.01]" : ""}`}
+                        className={`border-border hover:bg-muted transition-colors ${isChecked ? "bg-muted" : ""}`}
                       >
                         <TableCell className="pl-6 pr-0">
                           <input
                             type="checkbox"
                             checked={isChecked}
                             onChange={() => handleSelectCampaign(item._id)}
-                            className="rounded border-white/20 bg-white/5 text-primary focus:ring-0 cursor-pointer"
+                            className="rounded border-border bg-muted text-primary focus:ring-0 cursor-pointer"
                           />
                         </TableCell>
                         <TableCell className="px-4">
@@ -813,19 +813,19 @@ export function NotificationManagementPanel() {
                               <img
                                 src={item.imageUrl || item.richContent?.image}
                                 alt={item.title}
-                                className="h-10 w-10 rounded object-cover border border-white/10"
+                                className="h-10 w-10 rounded object-cover border border-border"
                               />
                             ) : (
-                              <div className="flex h-10 w-10 items-center justify-center rounded bg-white/5 border border-white/10 text-gray-400">
+                              <div className="flex h-10 w-10 items-center justify-center rounded bg-muted border border-border text-muted-foreground">
                                 {isSilent ? <VolumeX className="h-4 w-4" /> : <Bell className="h-4 w-4" />}
                               </div>
                             )}
                             <div className="min-w-0">
-                              <div className="font-bold text-white text-sm truncate max-w-[150px]" title={item.title}>
+                              <div className="font-bold text-foreground text-sm truncate max-w-[150px]" title={item.title}>
                                 {item.title}
                               </div>
-                              <div className="text-[10px] text-gray-500 flex items-center gap-1 mt-0.5">
-                                <Badge variant="outline" className="text-[9px] border-white/5 py-0 px-1 bg-white/5 scale-90 -ml-1">
+                              <div className="text-[10px] text-muted-foreground flex items-center gap-1 mt-0.5">
+                                <Badge variant="outline" className="text-[9px] border-border py-0 px-1 bg-muted scale-90 -ml-1">
                                   {item.notificationType}
                                 </Badge>
                                 <span>· {item.channel}</span>
@@ -834,13 +834,13 @@ export function NotificationManagementPanel() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <p className="text-xs text-gray-300 line-clamp-2 break-all max-w-[200px]" title={item.description}>
+                          <p className="text-xs text-muted-foreground line-clamp-2 break-all max-w-[200px]" title={item.description}>
                             {item.description}
                           </p>
                         </TableCell>
                         <TableCell>
                           <div className="flex flex-col gap-1 items-start">
-                            <span className="text-xs font-semibold text-gray-300">
+                            <span className="text-xs font-semibold text-muted-foreground">
                               {item.deliveryChannel === "BOTH" ? "Push & In-App" : item.deliveryChannel === "FCM" ? "Push Only" : "In-App Only"}
                             </span>
                             <span className="text-[10px] text-cyan-400 italic">
@@ -853,21 +853,21 @@ export function NotificationManagementPanel() {
                             <Badge variant="outline" className={`${getPriorityColor(item.priority)} text-[9px] py-0`}>
                               {item.priority}
                             </Badge>
-                            <span className="text-[10px] text-gray-400">
+                            <span className="text-[10px] text-muted-foreground">
                               Target: {item.targetType} {item.targetRole ? `(${item.targetRole})` : ""}
                             </span>
                           </div>
                         </TableCell>
                         <TableCell>
                           <div className="w-[120px] flex flex-col gap-1 text-[10px]">
-                            <div className="flex justify-between text-gray-400">
+                            <div className="flex justify-between text-muted-foreground">
                               <span>Delivered:</span>
                               <span className="font-semibold">{item.deliveryCount}/{item.sentCount} ({deliveryPct}%)</span>
                             </div>
-                            <div className="w-full bg-white/5 h-1 rounded-full overflow-hidden">
+                            <div className="w-full bg-muted h-1 rounded-full overflow-hidden">
                               <div className="bg-emerald-500 h-full rounded-full" style={{ width: `${deliveryPct}%` }} />
                             </div>
-                            <div className="flex justify-between text-gray-400 mt-0.5">
+                            <div className="flex justify-between text-muted-foreground mt-0.5">
                               <span>Opened:</span>
                               <span className="font-semibold">{item.openCount} ({openPct}%)</span>
                             </div>
@@ -885,7 +885,7 @@ export function NotificationManagementPanel() {
                             )}
                           </div>
                         </TableCell>
-                        <TableCell className="text-xs text-gray-400">
+                        <TableCell className="text-xs text-muted-foreground">
                           {item.scheduledAt ? (
                             <div className="flex items-center gap-1 text-amber-400" title={`Scheduled for ${formatDate(item.scheduledAt)}`}>
                               <Clock className="h-3 w-3" />
@@ -900,7 +900,7 @@ export function NotificationManagementPanel() {
                             <Button
                               onClick={() => openDetails(item)}
                               variant="outline"
-                              className="border-white/10 bg-white/5 text-gray-300 hover:bg-white/10 h-7 w-7 p-0"
+                              className="border-border bg-muted text-muted-foreground hover:bg-muted h-7 w-7 p-0"
                               title="View Details"
                             >
                               <Eye className="h-3.5 w-3.5" />
@@ -947,10 +947,10 @@ export function NotificationManagementPanel() {
 
           {/* Pagination Controls */}
           {!notificationsQuery.isLoading && notificationsData.totalPages > 1 && (
-            <div className="flex items-center justify-between border-t border-white/5 px-6 py-4 bg-[#141414]">
-              <span className="text-xs text-gray-400">
-                Showing <span className="font-semibold text-white">{history.length}</span> of{" "}
-                <span className="font-semibold text-white">{notificationsData.total}</span> campaigns (Page {page} of {notificationsData.totalPages})
+            <div className="flex items-center justify-between border-t border-border px-6 py-4 bg-background">
+              <span className="text-xs text-muted-foreground">
+                Showing <span className="font-semibold text-foreground">{history.length}</span> of{" "}
+                <span className="font-semibold text-foreground">{notificationsData.total}</span> campaigns (Page {page} of {notificationsData.totalPages})
               </span>
               
               <div className="flex items-center gap-2">
@@ -958,7 +958,7 @@ export function NotificationManagementPanel() {
                   onClick={() => setPage((prev) => Math.max(1, prev - 1))}
                   disabled={page === 1}
                   variant="outline"
-                  className="border-white/10 bg-[#1c1c1c] text-xs h-8 px-3 text-gray-300 disabled:opacity-40"
+                  className="border-border bg-card text-xs h-8 px-3 text-muted-foreground disabled:opacity-40"
                 >
                   Previous
                 </Button>
@@ -969,14 +969,14 @@ export function NotificationManagementPanel() {
                     const showEllipsis = index > 0 && p - array[index - 1] > 1;
                     return (
                       <React.Fragment key={p}>
-                        {showEllipsis && <span className="text-gray-600 text-xs px-1">...</span>}
+                        {showEllipsis && <span className="text-muted-foreground text-xs px-1">...</span>}
                         <Button
                           onClick={() => setPage(p)}
                           variant={p === page ? "default" : "outline"}
                           className={`h-8 w-8 p-0 text-xs font-semibold ${
                             p === page
-                              ? "bg-primary text-white"
-                              : "border-white/10 bg-[#1c1c1c] text-gray-300 hover:bg-white/5"
+                              ? "bg-primary text-primary-foreground"
+                              : "border-border bg-card text-muted-foreground hover:bg-muted"
                           }`}
                         >
                           {p}
@@ -989,7 +989,7 @@ export function NotificationManagementPanel() {
                   onClick={() => setPage((prev) => Math.min(notificationsData.totalPages, prev + 1))}
                   disabled={page === notificationsData.totalPages}
                   variant="outline"
-                  className="border-white/10 bg-[#1c1c1c] text-xs h-8 px-3 text-gray-300 disabled:opacity-40"
+                  className="border-border bg-card text-xs h-8 px-3 text-muted-foreground disabled:opacity-40"
                 >
                   Next
                 </Button>
@@ -1001,8 +1001,8 @@ export function NotificationManagementPanel() {
 
       {/* Compose Campaign Dialog */}
       <Dialog open={isSendOpen} onOpenChange={setIsSendOpen}>
-        <DialogContent className="border-white/10 bg-[#161616] text-white sm:max-w-[600px] max-h-[85vh] overflow-y-auto shadow-2xl">
-          <DialogHeader className="border-b border-white/5 pb-3">
+        <DialogContent className="border-border bg-background text-foreground sm:max-w-[600px] max-h-[85vh] overflow-y-auto shadow-2xl">
+          <DialogHeader className="border-b border-border pb-3">
             <DialogTitle className="flex items-center gap-2.5 text-xl font-bold">
               <Send className="h-5 w-5 text-primary" />
               Compose Notification Campaign
@@ -1012,7 +1012,7 @@ export function NotificationManagementPanel() {
           <form onSubmit={handleComposeSubmit} className="space-y-4 py-3">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1">
-                <label className="text-xs text-gray-400 font-semibold">Title</label>
+                <label className="text-xs text-muted-foreground font-semibold">Title</label>
                 <Input
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
@@ -1022,7 +1022,7 @@ export function NotificationManagementPanel() {
                 />
               </div>
               <div className="space-y-1">
-                <label className="text-xs text-gray-400 font-semibold">Channel</label>
+                <label className="text-xs text-muted-foreground font-semibold">Channel</label>
                 <select
                   value={channel}
                   onChange={(e) => setChannel(e.target.value)}
@@ -1037,7 +1037,7 @@ export function NotificationManagementPanel() {
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs text-gray-400 font-semibold">Summary / Description (Short)</label>
+              <label className="text-xs text-muted-foreground font-semibold">Summary / Description (Short)</label>
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
@@ -1049,7 +1049,7 @@ export function NotificationManagementPanel() {
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs text-gray-400 font-semibold">Message Body (Full HTML/Markdown text)</label>
+              <label className="text-xs text-muted-foreground font-semibold">Message Body (Full HTML/Markdown text)</label>
               <textarea
                 value={body}
                 onChange={(e) => setBody(e.target.value)}
@@ -1060,10 +1060,10 @@ export function NotificationManagementPanel() {
             </div>
 
             {/* Notification Type Toggle (Normal vs Rich) */}
-            <div className="space-y-2 border-t border-white/5 pt-3">
+            <div className="space-y-2 border-t border-border pt-3">
               <div className="flex justify-between items-center">
-                <label className="text-xs text-gray-400 font-semibold">Notification Type</label>
-                <div className="flex gap-2 bg-white/5 p-0.5 rounded border border-white/5">
+                <label className="text-xs text-muted-foreground font-semibold">Notification Type</label>
+                <div className="flex gap-2 bg-muted p-0.5 rounded border border-border">
                   <button
                     type="button"
                     onClick={() => {
@@ -1072,7 +1072,7 @@ export function NotificationManagementPanel() {
                       setImageFile(null);
                     }}
                     className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
-                      notificationType === "NORMAL" ? "bg-primary text-white" : "text-gray-400 hover:text-white"
+                      notificationType === "NORMAL" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-primary-foreground"
                     }`}
                   >
                     Normal
@@ -1081,7 +1081,7 @@ export function NotificationManagementPanel() {
                     type="button"
                     onClick={() => setNotificationType("RICH")}
                     className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
-                      notificationType === "RICH" ? "bg-primary text-white" : "text-gray-400 hover:text-white"
+                      notificationType === "RICH" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-primary-foreground"
                     }`}
                   >
                     Rich (Image attachment)
@@ -1090,15 +1090,15 @@ export function NotificationManagementPanel() {
               </div>
 
               {notificationType === "RICH" && (
-                <div className="space-y-2.5 bg-white/5 p-3 rounded-lg border border-white/5 animate-in-fade-slide">
+                <div className="space-y-2.5 bg-muted p-3 rounded-lg border border-border animate-in-fade-slide">
                   <div className="flex justify-between items-center">
-                    <span className="text-[11px] text-gray-400">Image Source</span>
+                    <span className="text-[11px] text-muted-foreground">Image Source</span>
                     <div className="flex gap-2">
                       <button
                         type="button"
                         onClick={() => setImageType("url")}
                         className={`px-2 py-0.5 rounded text-[10px] font-semibold transition-colors ${
-                          imageType === "url" ? "bg-primary text-white" : "bg-white/5 text-gray-400"
+                          imageType === "url" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
                         }`}
                       >
                         Image URL
@@ -1107,7 +1107,7 @@ export function NotificationManagementPanel() {
                         type="button"
                         onClick={() => setImageType("file")}
                         className={`px-2 py-0.5 rounded text-[10px] font-semibold transition-colors ${
-                          imageType === "file" ? "bg-primary text-white" : "bg-white/5 text-gray-400"
+                          imageType === "file" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
                         }`}
                       >
                         Upload Local
@@ -1128,14 +1128,14 @@ export function NotificationManagementPanel() {
                         type="file"
                         accept="image/*"
                         onChange={handleFileChange}
-                        className="border-white/10 bg-white/5 text-white file:bg-white/10 file:text-white file:border-0 file:rounded file:px-2 file:py-1 file:mr-2 text-xs h-9"
+                        className="border-border bg-muted text-foreground file:bg-muted file:text-foreground file:border-0 file:rounded file:px-2 file:py-1 file:mr-2 text-xs h-9"
                       />
                     </div>
                   )}
 
                   {/* Image Live Preview */}
                   {imageUrl && (
-                    <div className="mt-2.5 border border-white/10 rounded-lg overflow-hidden max-h-[140px] flex justify-center bg-black/30">
+                    <div className="mt-2.5 border border-border rounded-lg overflow-hidden max-h-[140px] flex justify-center bg-muted">
                       <img src={imageUrl} alt="Preview" className="h-full object-contain max-h-[140px]" />
                     </div>
                   )}
@@ -1144,9 +1144,9 @@ export function NotificationManagementPanel() {
             </div>
 
             {/* Delivery type alert, silent, live activity */}
-            <div className="grid grid-cols-2 gap-4 border-t border-white/5 pt-3">
+            <div className="grid grid-cols-2 gap-4 border-t border-border pt-3">
               <div className="space-y-1">
-                <label className="text-xs text-gray-400 font-semibold">Delivery Type</label>
+                <label className="text-xs text-muted-foreground font-semibold">Delivery Type</label>
                 <select
                   value={deliveryType}
                   onChange={(e) => setDeliveryType(e.target.value)}
@@ -1159,7 +1159,7 @@ export function NotificationManagementPanel() {
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs text-gray-400 font-semibold">Delivery Medium</label>
+                <label className="text-xs text-muted-foreground font-semibold">Delivery Medium</label>
                 <select
                   value={deliveryChannel}
                   onChange={(e) => setDeliveryChannel(e.target.value)}
@@ -1173,9 +1173,9 @@ export function NotificationManagementPanel() {
             </div>
 
             {/* Priority & Deep Link */}
-            <div className="grid grid-cols-2 gap-4 border-t border-white/5 pt-3">
+            <div className="grid grid-cols-2 gap-4 border-t border-border pt-3">
               <div className="space-y-1">
-                <label className="text-xs text-gray-400 font-semibold">Priority Level</label>
+                <label className="text-xs text-muted-foreground font-semibold">Priority Level</label>
                 <select
                   value={priority}
                   onChange={(e) => setPriority(e.target.value)}
@@ -1188,7 +1188,7 @@ export function NotificationManagementPanel() {
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs text-gray-400 font-semibold">Deep Link / Navigation Route</label>
+                <label className="text-xs text-muted-foreground font-semibold">Deep Link / Navigation Route</label>
                 <Input
                   value={deepLink}
                   onChange={(e) => setDeepLink(e.target.value)}
@@ -1199,8 +1199,8 @@ export function NotificationManagementPanel() {
             </div>
 
             {/* Action Button & Redirection Targets */}
-            <div className="space-y-3 border-t border-white/5 pt-3">
-              <label className="text-xs text-gray-400 font-semibold">Action Button & Redirection</label>
+            <div className="space-y-3 border-t border-border pt-3">
+              <label className="text-xs text-muted-foreground font-semibold">Action Button & Redirection</label>
               <div className="grid grid-cols-3 gap-3">
                 <div>
                   <select
@@ -1250,9 +1250,9 @@ export function NotificationManagementPanel() {
                         className={inputClass}
                       />
                       {redirectSearch.trim().length > 0 && !redirectId && (
-                        <div className="absolute z-50 left-0 right-0 max-h-[140px] overflow-y-auto rounded border border-white/10 bg-[#121212] divide-y divide-white/5 shadow-2xl">
+                        <div className="absolute z-50 left-0 right-0 max-h-[140px] overflow-y-auto rounded border border-border bg-background divide-y divide-border shadow-2xl">
                           {filteredRedirectTargets().length === 0 && (
-                            <p className="text-xs text-gray-500 p-2">No items found</p>
+                            <p className="text-xs text-muted-foreground p-2">No items found</p>
                           )}
                           {filteredRedirectTargets().map((item: any) => (
                             <button
@@ -1262,10 +1262,10 @@ export function NotificationManagementPanel() {
                                 setRedirectId(item._id);
                                 setRedirectSearch(item.title || item.name);
                               }}
-                              className="flex w-full items-center justify-between p-2 text-left text-xs text-gray-300 hover:bg-white/5 transition-colors"
+                              className="flex w-full items-center justify-between p-2 text-left text-xs text-muted-foreground hover:bg-muted transition-colors"
                             >
                               <span>{item.title || item.name}</span>
-                              <span className="text-[10px] text-gray-500">{item._id.slice(-6)}</span>
+                              <span className="text-[10px] text-muted-foreground">{item._id.slice(-6)}</span>
                             </button>
                           ))}
                         </div>
@@ -1277,7 +1277,7 @@ export function NotificationManagementPanel() {
 
               {redirectType !== "none" && (
                 <div className="flex flex-col gap-1">
-                  <label className="text-[10px] text-gray-500 font-semibold uppercase tracking-wider">Custom Action Button Text</label>
+                  <label className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider">Custom Action Button Text</label>
                   <Input
                     value={actionButtonText}
                     onChange={(e) => setActionButtonText(e.target.value)}
@@ -1289,9 +1289,9 @@ export function NotificationManagementPanel() {
             </div>
 
             {/* Target Audience Selectors */}
-            <div className="grid grid-cols-2 gap-4 border-t border-white/5 pt-3">
+            <div className="grid grid-cols-2 gap-4 border-t border-border pt-3">
               <div className="space-y-1">
-                <label className="text-xs text-gray-400 font-semibold">Target Audience</label>
+                <label className="text-xs text-muted-foreground font-semibold">Target Audience</label>
                 <select
                   value={targetType}
                   onChange={(e) => setTargetType(e.target.value)}
@@ -1305,7 +1305,7 @@ export function NotificationManagementPanel() {
 
               {targetType === "ROLE" && (
                 <div className="space-y-1 animate-in-fade-slide">
-                  <label className="text-xs text-gray-400 font-semibold">Target User Role</label>
+                  <label className="text-xs text-muted-foreground font-semibold">Target User Role</label>
                   <select
                     value={targetRole}
                     onChange={(e) => setTargetRole(e.target.value)}
@@ -1321,7 +1321,7 @@ export function NotificationManagementPanel() {
 
               {targetType === "SPECIFIC" && (
                 <div className="space-y-1 animate-in-fade-slide relative">
-                  <label className="text-xs text-gray-400 font-semibold">User Search (Name/Email/Phone)</label>
+                  <label className="text-xs text-muted-foreground font-semibold">User Search (Name/Email/Phone)</label>
                   <Input
                     value={userSearch}
                     onChange={(e) => {
@@ -1332,10 +1332,10 @@ export function NotificationManagementPanel() {
                     className={inputClass}
                   />
                   {userSearch.trim().length > 0 && !targetUser && (
-                    <div className="absolute z-50 left-0 right-0 max-h-[140px] overflow-y-auto rounded border border-white/10 bg-[#121212] divide-y divide-white/5 shadow-2xl">
-                      {peopleQuery.isLoading && <p className="text-xs text-gray-500 p-2">Searching...</p>}
+                    <div className="absolute z-50 left-0 right-0 max-h-[140px] overflow-y-auto rounded border border-border bg-background divide-y divide-border shadow-2xl">
+                      {peopleQuery.isLoading && <p className="text-xs text-muted-foreground p-2">Searching...</p>}
                       {!peopleQuery.isLoading && candidates.length === 0 && (
-                        <p className="text-xs text-gray-500 p-2">No users found</p>
+                        <p className="text-xs text-muted-foreground p-2">No users found</p>
                       )}
                       {candidates.map((person: any) => (
                         <button
@@ -1345,10 +1345,10 @@ export function NotificationManagementPanel() {
                             setTargetUser(person._id);
                             setUserSearch(`${person.fullName} (${person.email})`);
                           }}
-                          className="flex w-full flex-col p-2 text-left text-xs text-gray-300 hover:bg-white/5 transition-colors"
+                          className="flex w-full flex-col p-2 text-left text-xs text-muted-foreground hover:bg-muted transition-colors"
                         >
-                          <span className="font-semibold text-white">{person.fullName}</span>
-                          <span className="text-[10px] text-gray-500">{person.email} · {person.role}</span>
+                          <span className="font-semibold text-foreground">{person.fullName}</span>
+                          <span className="text-[10px] text-muted-foreground">{person.email} · {person.role}</span>
                         </button>
                       ))}
                     </div>
@@ -1358,9 +1358,9 @@ export function NotificationManagementPanel() {
             </div>
 
             {/* Scheduled Deliveries */}
-            <div className="grid grid-cols-2 gap-4 border-t border-white/5 pt-3">
+            <div className="grid grid-cols-2 gap-4 border-t border-border pt-3">
               <div className="space-y-1">
-                <label className="text-xs text-gray-400 font-semibold flex items-center gap-1">
+                <label className="text-xs text-muted-foreground font-semibold flex items-center gap-1">
                   <Calendar className="h-3.5 w-3.5" /> Scheduled Time (Optional)
                 </label>
                 <Input
@@ -1372,7 +1372,7 @@ export function NotificationManagementPanel() {
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs text-gray-400 font-semibold flex items-center gap-1">
+                <label className="text-xs text-muted-foreground font-semibold flex items-center gap-1">
                   <Clock className="h-3.5 w-3.5" /> Expiration Time (Optional)
                 </label>
                 <Input
@@ -1384,12 +1384,12 @@ export function NotificationManagementPanel() {
               </div>
             </div>
 
-            <DialogFooter className="border-t border-white/5 pt-3">
+            <DialogFooter className="border-t border-border pt-3">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => setIsSendOpen(false)}
-                className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+                className="border-border bg-muted text-foreground hover:bg-muted"
               >
                 Cancel
               </Button>
@@ -1400,7 +1400,7 @@ export function NotificationManagementPanel() {
                   (targetType === "SPECIFIC" && !targetUser) ||
                   (notificationType === "RICH" && imageType === "file" && !imageFile)
                 }
-                className="bg-primary hover:bg-primary/95 text-white"
+                className="bg-primary hover:bg-primary/95 text-primary-foreground"
               >
                 {sendMutation.isPending ? "Queuing..." : "Create Campaign"}
               </Button>
@@ -1411,8 +1411,8 @@ export function NotificationManagementPanel() {
 
       {/* Edit Campaign Dialog */}
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-        <DialogContent className="border-white/10 bg-[#161616] text-white sm:max-w-[600px] max-h-[85vh] overflow-y-auto shadow-2xl">
-          <DialogHeader className="border-b border-white/5 pb-3">
+        <DialogContent className="border-border bg-background text-foreground sm:max-w-[600px] max-h-[85vh] overflow-y-auto shadow-2xl">
+          <DialogHeader className="border-b border-border pb-3">
             <DialogTitle className="flex items-center gap-2.5 text-xl font-bold">
               <Edit3 className="h-5 w-5 text-cyan-400" />
               Edit Campaign Details
@@ -1435,7 +1435,7 @@ export function NotificationManagementPanel() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="text-xs text-gray-400 font-semibold">Title</label>
+                  <label className="text-xs text-muted-foreground font-semibold">Title</label>
                   <Input
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
@@ -1445,7 +1445,7 @@ export function NotificationManagementPanel() {
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs text-gray-400 font-semibold">Channel</label>
+                  <label className="text-xs text-muted-foreground font-semibold">Channel</label>
                   <select
                     value={channel}
                     onChange={(e) => setChannel(e.target.value)}
@@ -1461,7 +1461,7 @@ export function NotificationManagementPanel() {
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs text-gray-400 font-semibold">Summary / Description (Short)</label>
+                <label className="text-xs text-muted-foreground font-semibold">Summary / Description (Short)</label>
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
@@ -1472,7 +1472,7 @@ export function NotificationManagementPanel() {
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs text-gray-400 font-semibold">Message Body (Full inbox content)</label>
+                <label className="text-xs text-muted-foreground font-semibold">Message Body (Full inbox content)</label>
                 <textarea
                   value={body}
                   onChange={(e) => setBody(e.target.value)}
@@ -1482,10 +1482,10 @@ export function NotificationManagementPanel() {
               </div>
 
               {/* Rich Toggle */}
-              <div className="space-y-2 border-t border-white/5 pt-3">
+              <div className="space-y-2 border-t border-border pt-3">
                 <div className="flex justify-between items-center">
-                  <label className="text-xs text-gray-400 font-semibold">Notification Type</label>
-                  <div className="flex gap-2 bg-white/5 p-0.5 rounded border border-white/5">
+                  <label className="text-xs text-muted-foreground font-semibold">Notification Type</label>
+                  <div className="flex gap-2 bg-muted p-0.5 rounded border border-border">
                     <button
                       type="button"
                       onClick={() => {
@@ -1493,7 +1493,7 @@ export function NotificationManagementPanel() {
                         setImageUrl("");
                       }}
                       className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
-                        notificationType === "NORMAL" ? "bg-primary text-white" : "text-gray-400 hover:text-white"
+                        notificationType === "NORMAL" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-primary-foreground"
                       }`}
                       disabled={activeNotification.status !== "PENDING"}
                     >
@@ -1503,7 +1503,7 @@ export function NotificationManagementPanel() {
                       type="button"
                       onClick={() => setNotificationType("RICH")}
                       className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
-                        notificationType === "RICH" ? "bg-primary text-white" : "text-gray-400 hover:text-white"
+                        notificationType === "RICH" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-primary-foreground"
                       }`}
                       disabled={activeNotification.status !== "PENDING"}
                     >
@@ -1513,15 +1513,15 @@ export function NotificationManagementPanel() {
                 </div>
 
                 {notificationType === "RICH" && (
-                  <div className="space-y-2.5 bg-white/5 p-3 rounded-lg border border-white/5">
+                  <div className="space-y-2.5 bg-muted p-3 rounded-lg border border-border">
                     <div className="flex justify-between items-center">
-                      <span className="text-[11px] text-gray-400">Image Source</span>
+                      <span className="text-[11px] text-muted-foreground">Image Source</span>
                       <div className="flex gap-2">
                         <button
                           type="button"
                           onClick={() => setImageType("url")}
                           className={`px-2 py-0.5 rounded text-[10px] font-semibold transition-colors ${
-                            imageType === "url" ? "bg-primary text-white" : "bg-white/5 text-gray-400"
+                            imageType === "url" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
                           }`}
                           disabled={activeNotification.status !== "PENDING"}
                         >
@@ -1531,7 +1531,7 @@ export function NotificationManagementPanel() {
                           type="button"
                           onClick={() => setImageType("file")}
                           className={`px-2 py-0.5 rounded text-[10px] font-semibold transition-colors ${
-                            imageType === "file" ? "bg-primary text-white" : "bg-white/5 text-gray-400"
+                            imageType === "file" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
                           }`}
                           disabled={activeNotification.status !== "PENDING"}
                         >
@@ -1554,7 +1554,7 @@ export function NotificationManagementPanel() {
                           type="file"
                           accept="image/*"
                           onChange={handleFileChange}
-                          className="border-white/10 bg-white/5 text-white file:bg-white/10 file:text-white file:border-0 file:rounded file:px-2 file:py-1 file:mr-2 text-xs h-9"
+                          className="border-border bg-muted text-foreground file:bg-muted file:text-foreground file:border-0 file:rounded file:px-2 file:py-1 file:mr-2 text-xs h-9"
                           disabled={activeNotification.status !== "PENDING"}
                         />
                       </div>
@@ -1562,7 +1562,7 @@ export function NotificationManagementPanel() {
 
                     {/* Image Live Preview */}
                     {imageUrl && (
-                      <div className="mt-2.5 border border-white/10 rounded-lg overflow-hidden max-h-[140px] flex justify-center bg-black/30">
+                      <div className="mt-2.5 border border-border rounded-lg overflow-hidden max-h-[140px] flex justify-center bg-muted">
                         <img src={imageUrl} alt="Preview" className="h-full object-contain max-h-[140px]" />
                       </div>
                     )}
@@ -1571,9 +1571,9 @@ export function NotificationManagementPanel() {
               </div>
 
               {/* Delivery channels */}
-              <div className="grid grid-cols-2 gap-4 border-t border-white/5 pt-3">
+              <div className="grid grid-cols-2 gap-4 border-t border-border pt-3">
                 <div className="space-y-1">
-                  <label className="text-xs text-gray-400 font-semibold">Delivery Type</label>
+                  <label className="text-xs text-muted-foreground font-semibold">Delivery Type</label>
                   <select
                     value={deliveryType}
                     onChange={(e) => setDeliveryType(e.target.value)}
@@ -1587,7 +1587,7 @@ export function NotificationManagementPanel() {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs text-gray-400 font-semibold">Delivery Medium</label>
+                  <label className="text-xs text-muted-foreground font-semibold">Delivery Medium</label>
                   <select
                     value={deliveryChannel}
                     onChange={(e) => setDeliveryChannel(e.target.value)}
@@ -1602,8 +1602,8 @@ export function NotificationManagementPanel() {
               </div>
 
               {/* Action Button & Redirection Targets */}
-              <div className="space-y-3 border-t border-white/5 pt-3">
-                <label className="text-xs text-gray-400 font-semibold">Action Button & Redirection</label>
+              <div className="space-y-3 border-t border-border pt-3">
+                <label className="text-xs text-muted-foreground font-semibold">Action Button & Redirection</label>
                 <div className="grid grid-cols-3 gap-3">
                   <div>
                     <select
@@ -1656,9 +1656,9 @@ export function NotificationManagementPanel() {
                           disabled={activeNotification.status !== "PENDING"}
                         />
                         {redirectSearch.trim().length > 0 && !redirectId && activeNotification.status === "PENDING" && (
-                          <div className="absolute z-50 left-0 right-0 max-h-[140px] overflow-y-auto rounded border border-white/10 bg-[#121212] divide-y divide-white/5 shadow-2xl">
+                          <div className="absolute z-50 left-0 right-0 max-h-[140px] overflow-y-auto rounded border border-border bg-background divide-y divide-border shadow-2xl">
                             {filteredRedirectTargets().length === 0 && (
-                              <p className="text-xs text-gray-500 p-2">No items found</p>
+                              <p className="text-xs text-muted-foreground p-2">No items found</p>
                             )}
                             {filteredRedirectTargets().map((item: any) => (
                               <button
@@ -1668,10 +1668,10 @@ export function NotificationManagementPanel() {
                                   setRedirectId(item._id);
                                   setRedirectSearch(item.title || item.name);
                                 }}
-                                className="flex w-full items-center justify-between p-2 text-left text-xs text-gray-300 hover:bg-white/5 transition-colors"
+                                className="flex w-full items-center justify-between p-2 text-left text-xs text-muted-foreground hover:bg-muted transition-colors"
                               >
                                 <span>{item.title || item.name}</span>
-                                <span className="text-[10px] text-gray-500">{item._id.slice(-6)}</span>
+                                <span className="text-[10px] text-muted-foreground">{item._id.slice(-6)}</span>
                               </button>
                             ))}
                           </div>
@@ -1683,7 +1683,7 @@ export function NotificationManagementPanel() {
 
                 {redirectType !== "none" && (
                   <div className="flex flex-col gap-1">
-                    <label className="text-[10px] text-gray-500 font-semibold uppercase tracking-wider">Custom Action Button Text</label>
+                    <label className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider">Custom Action Button Text</label>
                     <Input
                       value={actionButtonText}
                       onChange={(e) => setActionButtonText(e.target.value)}
@@ -1696,9 +1696,9 @@ export function NotificationManagementPanel() {
               </div>
 
               {/* Priority & Route */}
-              <div className="grid grid-cols-2 gap-4 border-t border-white/5 pt-3">
+              <div className="grid grid-cols-2 gap-4 border-t border-border pt-3">
                 <div className="space-y-1">
-                  <label className="text-xs text-gray-400 font-semibold">Priority Level</label>
+                  <label className="text-xs text-muted-foreground font-semibold">Priority Level</label>
                   <select
                     value={priority}
                     onChange={(e) => setPriority(e.target.value)}
@@ -1712,7 +1712,7 @@ export function NotificationManagementPanel() {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs text-gray-400 font-semibold">Deep Link</label>
+                  <label className="text-xs text-muted-foreground font-semibold">Deep Link</label>
                   <Input
                     value={deepLink}
                     onChange={(e) => setDeepLink(e.target.value)}
@@ -1723,9 +1723,9 @@ export function NotificationManagementPanel() {
               </div>
 
               {/* Scheduled date edit */}
-              <div className="grid grid-cols-2 gap-4 border-t border-white/5 pt-3">
+              <div className="grid grid-cols-2 gap-4 border-t border-border pt-3">
                 <div className="space-y-1">
-                  <label className="text-xs text-gray-400 font-semibold">Scheduled Date</label>
+                  <label className="text-xs text-muted-foreground font-semibold">Scheduled Date</label>
                   <Input
                     type="datetime-local"
                     value={scheduledAt}
@@ -1736,7 +1736,7 @@ export function NotificationManagementPanel() {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs text-gray-400 font-semibold">Expiration Date</label>
+                  <label className="text-xs text-muted-foreground font-semibold">Expiration Date</label>
                   <Input
                     type="datetime-local"
                     value={expiresAt}
@@ -1749,9 +1749,9 @@ export function NotificationManagementPanel() {
 
               {/* Live Status Selector for non-pending */}
               {activeNotification.status !== "PENDING" && (
-                <div className="grid grid-cols-2 gap-4 border-t border-white/5 pt-3">
+                <div className="grid grid-cols-2 gap-4 border-t border-border pt-3">
                   <div className="space-y-1 col-span-2">
-                    <label className="text-xs text-gray-400 font-semibold">Campaign Status (Live Update)</label>
+                    <label className="text-xs text-muted-foreground font-semibold">Campaign Status (Live Update)</label>
                     <select
                       value={editStatus}
                       onChange={(e) => setEditStatus(e.target.value)}
@@ -1767,12 +1767,12 @@ export function NotificationManagementPanel() {
                 </div>
               )}
 
-              <DialogFooter className="border-t border-white/5 pt-3 mt-4">
+              <DialogFooter className="border-t border-border pt-3 mt-4">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => setIsEditOpen(false)}
-                  className="border-white/10 bg-white/5 text-white"
+                  className="border-border bg-muted text-foreground"
                 >
                   Cancel
                 </Button>
@@ -1783,7 +1783,7 @@ export function NotificationManagementPanel() {
                     (targetType === "SPECIFIC" && !targetUser) ||
                     (notificationType === "RICH" && imageType === "file" && !imageFile)
                   }
-                  className="bg-primary hover:bg-primary/95 text-white"
+                  className="bg-primary hover:bg-primary/95 text-primary-foreground"
                 >
                   {updateMutation.isPending ? "Saving..." : "Save Changes"}
                 </Button>
@@ -1795,8 +1795,8 @@ export function NotificationManagementPanel() {
 
       {/* Details Dialog */}
       <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
-        <DialogContent className="border-white/10 bg-[#161616] text-white sm:max-w-[550px] shadow-2xl">
-          <DialogHeader className="border-b border-white/5 pb-3">
+        <DialogContent className="border-border bg-background text-foreground sm:max-w-[550px] shadow-2xl">
+          <DialogHeader className="border-b border-border pb-3">
             <DialogTitle className="flex items-center gap-2.5 text-xl font-bold">
               <FileText className="h-5 w-5 text-primary" />
               Campaign Details
@@ -1807,84 +1807,84 @@ export function NotificationManagementPanel() {
             <div className="space-y-4 py-2 text-sm">
               <div className="flex justify-between items-start gap-4">
                 <div className="min-w-0">
-                  <h3 className="font-bold text-white text-lg break-all">{activeNotification.title}</h3>
-                  <p className="text-xs text-gray-400 mt-1">Channel: {activeNotification.channel} · Type: {activeNotification.notificationType}</p>
+                  <h3 className="font-bold text-foreground text-lg break-all">{activeNotification.title}</h3>
+                  <p className="text-xs text-muted-foreground mt-1">Channel: {activeNotification.channel} · Type: {activeNotification.notificationType}</p>
                 </div>
                 <Badge variant="outline" className={`${getStatusColor(activeNotification.status)} py-0.5 text-xs font-semibold`}>
                   {activeNotification.status}
                 </Badge>
               </div>
 
-              <div className="border border-white/5 bg-white/5 rounded-lg p-3">
-                <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block mb-1">Alert description</span>
-                <p className="text-gray-200 text-xs break-all">{activeNotification.description}</p>
+              <div className="border border-border bg-muted rounded-lg p-3">
+                <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider block mb-1">Alert description</span>
+                <p className="text-foreground text-xs break-all">{activeNotification.description}</p>
               </div>
 
               {activeNotification.body && activeNotification.body !== activeNotification.description && (
-                <div className="border border-white/5 bg-white/5 rounded-lg p-3">
-                  <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block mb-1">Inbox full body</span>
-                  <p className="text-gray-200 text-xs break-all whitespace-pre-wrap">{activeNotification.body}</p>
+                <div className="border border-border bg-muted rounded-lg p-3">
+                  <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider block mb-1">Inbox full body</span>
+                  <p className="text-foreground text-xs break-all whitespace-pre-wrap">{activeNotification.body}</p>
                 </div>
               )}
 
               {activeNotification.imageUrl && (
-                <div className="border border-white/5 rounded-lg overflow-hidden max-h-[160px] flex justify-center bg-black/40">
+                <div className="border border-border rounded-lg overflow-hidden max-h-[160px] flex justify-center bg-muted">
                   <img src={activeNotification.imageUrl} alt="" className="object-contain max-h-[160px]" />
                 </div>
               )}
 
               {/* Grid information */}
-              <div className="grid grid-cols-2 gap-4 border-t border-white/5 pt-3 text-xs">
+              <div className="grid grid-cols-2 gap-4 border-t border-border pt-3 text-xs">
                 <div>
-                  <span className="text-gray-400 block font-medium">Delivery Mode:</span>
-                  <span className="text-white font-semibold">
+                  <span className="text-muted-foreground block font-medium">Delivery Mode:</span>
+                  <span className="text-foreground font-semibold">
                     {activeNotification.deliveryChannel === "BOTH" ? "Push & In-App" : activeNotification.deliveryChannel === "FCM" ? "Push Only" : "In-App Only"}
                   </span>
                 </div>
                 <div>
-                  <span className="text-gray-400 block font-medium">Priority:</span>
+                  <span className="text-muted-foreground block font-medium">Priority:</span>
                   <Badge variant="outline" className={`${getPriorityColor(activeNotification.priority)} text-[10px] py-0 mt-0.5`}>
                     {activeNotification.priority}
                   </Badge>
                 </div>
                 <div>
-                  <span className="text-gray-400 block font-medium">Target Audience:</span>
-                  <span className="text-white font-semibold">
+                  <span className="text-muted-foreground block font-medium">Target Audience:</span>
+                  <span className="text-foreground font-semibold">
                     {activeNotification.targetType} {activeNotification.targetRole ? `(${activeNotification.targetRole})` : ""}
                   </span>
                 </div>
                 <div>
-                  <span className="text-gray-400 block font-medium">Deep Link:</span>
+                  <span className="text-muted-foreground block font-medium">Deep Link:</span>
                   <span className="text-cyan-400 font-semibold break-all">{activeNotification.deepLink || "None"}</span>
                 </div>
                 <div>
-                  <span className="text-gray-400 block font-medium">Scheduled delivery:</span>
-                  <span className="text-white">{activeNotification.scheduledAt ? formatDate(activeNotification.scheduledAt) : "Immediate"}</span>
+                  <span className="text-muted-foreground block font-medium">Scheduled delivery:</span>
+                  <span className="text-foreground">{activeNotification.scheduledAt ? formatDate(activeNotification.scheduledAt) : "Immediate"}</span>
                 </div>
                 <div>
-                  <span className="text-gray-400 block font-medium">Expiration date:</span>
-                  <span className="text-white">{activeNotification.expiresAt ? formatDate(activeNotification.expiresAt) : "Never"}</span>
+                  <span className="text-muted-foreground block font-medium">Expiration date:</span>
+                  <span className="text-foreground">{activeNotification.expiresAt ? formatDate(activeNotification.expiresAt) : "Never"}</span>
                 </div>
               </div>
 
               {/* Delivery stats */}
-              <div className="border-t border-white/5 pt-3 space-y-2">
-                <span className="text-xs text-gray-400 font-bold uppercase tracking-wider block">Real-time statistics</span>
+              <div className="border-t border-border pt-3 space-y-2">
+                <span className="text-xs text-muted-foreground font-bold uppercase tracking-wider block">Real-time statistics</span>
                 <div className="grid grid-cols-4 gap-2 text-center">
-                  <div className="bg-white/5 rounded p-2 border border-white/5">
-                    <span className="text-xs text-gray-400 block">Sent</span>
-                    <span className="text-sm font-bold text-white">{activeNotification.sentCount}</span>
+                  <div className="bg-muted rounded p-2 border border-border">
+                    <span className="text-xs text-muted-foreground block">Sent</span>
+                    <span className="text-sm font-bold text-foreground">{activeNotification.sentCount}</span>
                   </div>
-                  <div className="bg-white/5 rounded p-2 border border-white/5">
-                    <span className="text-xs text-gray-400 block">Delivered</span>
+                  <div className="bg-muted rounded p-2 border border-border">
+                    <span className="text-xs text-muted-foreground block">Delivered</span>
                     <span className="text-sm font-bold text-teal-400">{activeNotification.deliveryCount}</span>
                   </div>
-                  <div className="bg-white/5 rounded p-2 border border-white/5">
-                    <span className="text-xs text-gray-400 block">Opened</span>
+                  <div className="bg-muted rounded p-2 border border-border">
+                    <span className="text-xs text-muted-foreground block">Opened</span>
                     <span className="text-sm font-bold text-blue-400">{activeNotification.openCount}</span>
                   </div>
-                  <div className="bg-white/5 rounded p-2 border border-white/5">
-                    <span className="text-xs text-gray-400 block">Failed</span>
+                  <div className="bg-muted rounded p-2 border border-border">
+                    <span className="text-xs text-muted-foreground block">Failed</span>
                     <span className="text-sm font-bold text-rose-400">{activeNotification.failedCount}</span>
                   </div>
                 </div>
@@ -1902,10 +1902,10 @@ export function NotificationManagementPanel() {
             </div>
           )}
 
-          <DialogFooter className="border-t border-white/5 pt-3">
+          <DialogFooter className="border-t border-border pt-3">
             <Button
               onClick={() => setIsDetailsOpen(false)}
-              className="bg-primary hover:bg-primary/95 text-white"
+              className="bg-primary hover:bg-primary/95 text-primary-foreground"
             >
               Close
             </Button>
@@ -1915,21 +1915,21 @@ export function NotificationManagementPanel() {
 
       {/* Delete Campaign Dialog */}
       <Dialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
-        <DialogContent className="border-white/10 bg-[#161616] text-white max-w-sm shadow-2xl">
+        <DialogContent className="border-border bg-background text-foreground max-w-sm shadow-2xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-rose-400">
               <Trash2 className="h-5 w-5" />
               Delete Campaign?
             </DialogTitle>
           </DialogHeader>
-          <div className="py-2 text-sm text-gray-300">
+          <div className="py-2 text-sm text-muted-foreground">
             Are you sure you want to delete this notification campaign? Any scheduled BullMQ jobs will be cancelled. This action cannot be undone.
           </div>
           <DialogFooter className="pt-2">
             <Button
               onClick={() => setIsDeleteOpen(false)}
               variant="outline"
-              className="border-white/10 bg-white/5 text-white hover:bg-white/10 text-xs"
+              className="border-border bg-muted text-foreground hover:bg-muted text-xs"
             >
               Cancel
             </Button>
@@ -1947,21 +1947,21 @@ export function NotificationManagementPanel() {
 
       {/* Batch Delete Campaigns Dialog */}
       <Dialog open={isBatchDeleteOpen} onOpenChange={setIsBatchDeleteOpen}>
-        <DialogContent className="border-white/10 bg-[#161616] text-white max-w-sm shadow-2xl">
+        <DialogContent className="border-border bg-background text-foreground max-w-sm shadow-2xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-rose-400">
               <Trash2 className="h-5 w-5" />
               Delete Selected Campaigns?
             </DialogTitle>
           </DialogHeader>
-          <div className="py-2 text-sm text-gray-300">
-            Are you sure you want to delete the <span className="font-bold text-white">{selectedCampaigns.length}</span> selected notification campaigns? Any pending scheduled jobs will be cancelled. This action cannot be undone.
+          <div className="py-2 text-sm text-muted-foreground">
+            Are you sure you want to delete the <span className="font-bold text-foreground">{selectedCampaigns.length}</span> selected notification campaigns? Any pending scheduled jobs will be cancelled. This action cannot be undone.
           </div>
           <DialogFooter className="pt-2">
             <Button
               onClick={() => setIsBatchDeleteOpen(false)}
               variant="outline"
-              className="border-white/10 bg-white/5 text-white hover:bg-white/10 text-xs"
+              className="border-border bg-muted text-foreground hover:bg-muted text-xs"
             >
               Cancel
             </Button>
@@ -1979,8 +1979,8 @@ export function NotificationManagementPanel() {
 
       {/* End-to-End Push Diagnostics Debugger Dialog */}
       <Dialog open={isDebuggerOpen} onOpenChange={setIsDebuggerOpen}>
-        <DialogContent className="border-white/10 bg-[#141414] text-white sm:max-w-[1000px] max-h-[90vh] overflow-y-auto shadow-2xl p-6">
-          <DialogHeader className="border-b border-white/5 pb-3">
+        <DialogContent className="border-border bg-background text-foreground sm:max-w-[1000px] max-h-[90vh] overflow-y-auto shadow-2xl p-6">
+          <DialogHeader className="border-b border-border pb-3">
             <DialogTitle className="flex items-center gap-2.5 text-xl font-bold">
               <ShieldAlert className="h-5 w-5 text-amber-400" />
               End-to-End Push Diagnostics & Debugger
@@ -1990,14 +1990,14 @@ export function NotificationManagementPanel() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4">
             {/* Left Column: Form Inputs */}
             <form onSubmit={handleTestPushSubmit} className="space-y-4">
-              <div className="bg-white/5 rounded-xl p-4 border border-white/5 space-y-4">
-                <h3 className="text-sm font-semibold text-gray-300 flex items-center gap-1.5 border-b border-white/5 pb-2">
+              <div className="bg-muted rounded-xl p-4 border border-border space-y-4">
+                <h3 className="text-sm font-semibold text-muted-foreground flex items-center gap-1.5 border-b border-border pb-2">
                   <UserIcon className="h-4 w-4 text-amber-400" />
                   Target Device
                 </h3>
 
                 <div className="space-y-1">
-                  <label className="text-xs text-gray-400 font-semibold">User Search (Username, Email, or ID)</label>
+                  <label className="text-xs text-muted-foreground font-semibold">User Search (Username, Email, or ID)</label>
                   <Input
                     value={debugUser}
                     onChange={(e) => {
@@ -2007,13 +2007,13 @@ export function NotificationManagementPanel() {
                     placeholder="e.g. aditya, user@example.com"
                     className={inputClass}
                   />
-                  <p className="text-[10px] text-gray-500">Searches DB for this user and retrieves their registered token.</p>
+                  <p className="text-[10px] text-muted-foreground">Searches DB for this user and retrieves their registered token.</p>
                 </div>
 
-                <div className="text-center text-xs text-gray-600 font-bold uppercase tracking-widest my-1">— OR —</div>
+                <div className="text-center text-xs text-muted-foreground font-bold uppercase tracking-widest my-1">— OR —</div>
 
                 <div className="space-y-1">
-                  <label className="text-xs text-gray-400 font-semibold">Raw Expo or FCM Push Token</label>
+                  <label className="text-xs text-muted-foreground font-semibold">Raw Expo or FCM Push Token</label>
                   <Input
                     value={debugToken}
                     onChange={(e) => {
@@ -2026,15 +2026,15 @@ export function NotificationManagementPanel() {
                 </div>
               </div>
 
-              <div className="bg-white/5 rounded-xl p-4 border border-white/5 space-y-4">
-                <h3 className="text-sm font-semibold text-gray-300 flex items-center gap-1.5 border-b border-white/5 pb-2">
+              <div className="bg-muted rounded-xl p-4 border border-border space-y-4">
+                <h3 className="text-sm font-semibold text-muted-foreground flex items-center gap-1.5 border-b border-border pb-2">
                   <Bell className="h-4 w-4 text-amber-400" />
                   Alert Content
                 </h3>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1">
-                    <label className="text-xs text-gray-400 font-semibold">Alert Title</label>
+                    <label className="text-xs text-muted-foreground font-semibold">Alert Title</label>
                     <Input
                       value={debugTitle}
                       onChange={(e) => setDebugTitle(e.target.value)}
@@ -2044,7 +2044,7 @@ export function NotificationManagementPanel() {
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-xs text-gray-400 font-semibold">Image URL (Rich Banner)</label>
+                    <label className="text-xs text-muted-foreground font-semibold">Image URL (Rich Banner)</label>
                     <Input
                       value={debugImageUrl}
                       onChange={(e) => setDebugImageUrl(e.target.value)}
@@ -2055,7 +2055,7 @@ export function NotificationManagementPanel() {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs text-gray-400 font-semibold">Alert Body</label>
+                  <label className="text-xs text-muted-foreground font-semibold">Alert Body</label>
                   <textarea
                     value={debugBody}
                     onChange={(e) => setDebugBody(e.target.value)}
@@ -2066,15 +2066,15 @@ export function NotificationManagementPanel() {
                 </div>
               </div>
 
-              <div className="bg-white/5 rounded-xl p-4 border border-white/5 space-y-4">
-                <h3 className="text-sm font-semibold text-gray-300 flex items-center gap-1.5 border-b border-white/5 pb-2">
+              <div className="bg-muted rounded-xl p-4 border border-border space-y-4">
+                <h3 className="text-sm font-semibold text-muted-foreground flex items-center gap-1.5 border-b border-border pb-2">
                   <LinkIcon className="h-4 w-4 text-amber-400" />
                   Interactive Action & Deep Link
                 </h3>
 
                 <div className="grid grid-cols-3 gap-3">
                   <div>
-                    <label className="text-xs text-gray-400 font-semibold">Redirect Type</label>
+                    <label className="text-xs text-muted-foreground font-semibold">Redirect Type</label>
                     <select
                       value={debugRedirectType}
                       onChange={(e) => {
@@ -2104,7 +2104,7 @@ export function NotificationManagementPanel() {
                     </select>
                   </div>
                   <div className="col-span-2">
-                    <label className="text-xs text-gray-400 font-semibold">Redirection Value</label>
+                    <label className="text-xs text-muted-foreground font-semibold">Redirection Value</label>
                     {debugRedirectType === "external" && (
                       <Input
                         value={debugExternalUrl}
@@ -2123,9 +2123,9 @@ export function NotificationManagementPanel() {
                           className={inputClass}
                         />
                         {debugRedirectSearch.trim().length > 0 && !debugRedirectId && (
-                          <div className="absolute z-50 left-0 right-0 max-h-[120px] overflow-y-auto rounded border border-white/10 bg-[#121212] divide-y divide-white/5 shadow-2xl">
+                          <div className="absolute z-50 left-0 right-0 max-h-[120px] overflow-y-auto rounded border border-border bg-background divide-y divide-border shadow-2xl">
                             {filteredDebugRedirectTargets().length === 0 && (
-                              <p className="text-xs text-gray-500 p-2">No items found</p>
+                              <p className="text-xs text-muted-foreground p-2">No items found</p>
                             )}
                             {filteredDebugRedirectTargets().map((item: any) => (
                               <button
@@ -2135,10 +2135,10 @@ export function NotificationManagementPanel() {
                                   setDebugRedirectId(item._id);
                                   setDebugRedirectSearch(item.title || item.name);
                                 }}
-                                className="flex w-full items-center justify-between p-2 text-left text-xs text-gray-300 hover:bg-white/5 transition-colors"
+                                className="flex w-full items-center justify-between p-2 text-left text-xs text-muted-foreground hover:bg-muted transition-colors"
                               >
                                 <span>{item.title || item.name}</span>
-                                <span className="text-[10px] text-gray-500">{item._id.slice(-6)}</span>
+                                <span className="text-[10px] text-muted-foreground">{item._id.slice(-6)}</span>
                               </button>
                             ))}
                           </div>
@@ -2150,7 +2150,7 @@ export function NotificationManagementPanel() {
 
                 {debugRedirectType !== "none" && (
                   <div className="flex flex-col gap-1">
-                    <label className="text-[10px] text-gray-500 font-semibold uppercase tracking-wider">Button Text (Action Category)</label>
+                    <label className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider">Button Text (Action Category)</label>
                     <Input
                       value={debugActionButtonText}
                       onChange={(e) => setDebugActionButtonText(e.target.value)}
@@ -2166,7 +2166,7 @@ export function NotificationManagementPanel() {
                   type="button"
                   variant="outline"
                   onClick={() => setIsDebuggerOpen(false)}
-                  className="border-white/10 bg-white/5 text-white"
+                  className="border-border bg-muted text-foreground"
                 >
                   Close
                 </Button>
@@ -2182,14 +2182,14 @@ export function NotificationManagementPanel() {
 
             {/* Right Column: Diagnostics Outputs */}
             <div className="space-y-4 flex flex-col h-full min-h-[400px]">
-              <div className="bg-white/5 rounded-xl p-4 border border-white/5 flex-1 flex flex-col min-h-[300px]">
-                <h3 className="text-sm font-semibold text-gray-300 flex items-center gap-1.5 border-b border-white/5 pb-2">
+              <div className="bg-muted rounded-xl p-4 border border-border flex-1 flex flex-col min-h-[300px]">
+                <h3 className="text-sm font-semibold text-muted-foreground flex items-center gap-1.5 border-b border-border pb-2">
                   <Activity className="h-4 w-4 text-amber-400" />
                   Diagnostics Results
                 </h3>
 
                 {!debugResult && !testPushMutation.isPending && (
-                  <div className="flex-1 flex flex-col items-center justify-center text-center p-6 text-gray-500">
+                  <div className="flex-1 flex flex-col items-center justify-center text-center p-6 text-muted-foreground">
                     <ShieldAlert className="h-8 w-8 text-white/10 mb-2" />
                     <p className="text-xs">Configure parameters and click "Send Diagnostics Push" to view live device routing logs and API payloads.</p>
                   </div>
@@ -2206,7 +2206,7 @@ export function NotificationManagementPanel() {
                   <div className="flex-1 space-y-4 mt-3 text-xs overflow-y-auto pr-1">
                     {/* Status Badge */}
                     <div className="flex items-center justify-between">
-                      <span className="font-semibold text-gray-400">Status:</span>
+                      <span className="font-semibold text-muted-foreground">Status:</span>
                       <span className={`px-2 py-0.5 rounded text-[11px] font-bold ${
                         debugResult.success ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-rose-500/10 text-rose-400 border border-rose-500/20"
                       }`}>
@@ -2215,20 +2215,20 @@ export function NotificationManagementPanel() {
                     </div>
 
                     {/* Routing Meta */}
-                    <div className="grid grid-cols-2 gap-2 bg-white/5 rounded-lg p-2 border border-white/5">
+                    <div className="grid grid-cols-2 gap-2 bg-muted rounded-lg p-2 border border-border">
                       <div>
-                        <span className="text-[10px] text-gray-500 block">Token Type</span>
-                        <span className="font-semibold text-gray-200">{debugResult.tokenType || "UNKNOWN"}</span>
+                        <span className="text-[10px] text-muted-foreground block">Token Type</span>
+                        <span className="font-semibold text-foreground">{debugResult.tokenType || "UNKNOWN"}</span>
                       </div>
                       <div>
-                        <span className="text-[10px] text-gray-500 block">Firebase SDK initialized</span>
+                        <span className="text-[10px] text-muted-foreground block">Firebase SDK initialized</span>
                         <span className={`font-semibold ${debugResult.firebaseInitialized ? "text-emerald-400" : "text-rose-400"}`}>
                           {debugResult.firebaseInitialized ? "True" : "False"}
                         </span>
                       </div>
                       <div className="col-span-2">
-                        <span className="text-[10px] text-gray-500 block">Resolved Token</span>
-                        <span className="font-mono text-[9px] break-all text-gray-300 bg-black/45 p-1 rounded block mt-0.5">
+                        <span className="text-[10px] text-muted-foreground block">Resolved Token</span>
+                        <span className="font-mono text-[9px] break-all text-muted-foreground bg-black/45 p-1 rounded block mt-0.5">
                           {debugResult.rawToken || "None"}
                         </span>
                       </div>
@@ -2236,8 +2236,8 @@ export function NotificationManagementPanel() {
 
                     {/* Logs console */}
                     <div className="space-y-1">
-                      <span className="font-bold text-gray-400 block uppercase tracking-wider text-[9px]">Execution Logs</span>
-                      <div className="bg-black/80 rounded-lg p-3 font-mono text-[10px] text-green-400 border border-white/5 max-h-[140px] overflow-y-auto space-y-1">
+                      <span className="font-bold text-muted-foreground block uppercase tracking-wider text-[9px]">Execution Logs</span>
+                      <div className="bg-black/80 rounded-lg p-3 font-mono text-[10px] text-green-400 border border-border max-h-[140px] overflow-y-auto space-y-1">
                         {debugResult.logs?.map((log: string, idx: number) => (
                           <div key={idx} className="break-all">{`> ${log}`}</div>
                         ))}
@@ -2247,15 +2247,15 @@ export function NotificationManagementPanel() {
                     {/* Payload and API JSON Accordions */}
                     <div className="space-y-3">
                       <div>
-                        <span className="font-bold text-gray-400 block uppercase tracking-wider text-[9px] mb-1">Payload Sent to Provider</span>
-                        <pre className="bg-white/5 border border-white/5 rounded-lg p-3 text-[10px] overflow-x-auto text-cyan-300 max-h-[150px] font-mono">
+                        <span className="font-bold text-muted-foreground block uppercase tracking-wider text-[9px] mb-1">Payload Sent to Provider</span>
+                        <pre className="bg-muted border border-border rounded-lg p-3 text-[10px] overflow-x-auto text-cyan-300 max-h-[150px] font-mono">
                           {JSON.stringify(debugResult.payloadSent, null, 2)}
                         </pre>
                       </div>
 
                       <div>
-                        <span className="font-bold text-gray-400 block uppercase tracking-wider text-[9px] mb-1">API Provider Response</span>
-                        <pre className="bg-white/5 border border-white/5 rounded-lg p-3 text-[10px] overflow-x-auto text-amber-300 max-h-[150px] font-mono">
+                        <span className="font-bold text-muted-foreground block uppercase tracking-wider text-[9px] mb-1">API Provider Response</span>
+                        <pre className="bg-muted border border-border rounded-lg p-3 text-[10px] overflow-x-auto text-amber-300 max-h-[150px] font-mono">
                           {JSON.stringify(debugResult.apiResponse, null, 2)}
                         </pre>
                       </div>

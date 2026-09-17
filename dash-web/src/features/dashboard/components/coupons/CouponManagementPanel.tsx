@@ -109,7 +109,7 @@ export function CouponManagementPanel() {
         }
       />
 
-      <Card className="border-white/10 bg-[#1c1c1c]">
+      <Card className="border-border bg-card">
         <CardContent className="px-0">
           {couponsQuery.isLoading && (
             <LoadingState label="Loading coupons..." />
@@ -120,13 +120,13 @@ export function CouponManagementPanel() {
           {!couponsQuery.isLoading && Boolean(coupons.length) && (
             <Table>
               <TableHeader>
-                <TableRow className="border-white/10 hover:bg-transparent">
-                  <TableHead className="px-4 text-gray-400">Code</TableHead>
-                  <TableHead className="text-gray-400">Discount</TableHead>
-                  <TableHead className="text-gray-400">Usage</TableHead>
-                  <TableHead className="text-gray-400">Dates</TableHead>
-                  <TableHead className="text-gray-400">Status</TableHead>
-                  <TableHead className="text-right text-gray-400">
+                <TableRow className="border-border hover:bg-transparent">
+                  <TableHead className="px-4 text-muted-foreground">Code</TableHead>
+                  <TableHead className="text-muted-foreground">Discount</TableHead>
+                  <TableHead className="text-muted-foreground">Usage</TableHead>
+                  <TableHead className="text-muted-foreground">Dates</TableHead>
+                  <TableHead className="text-muted-foreground">Status</TableHead>
+                  <TableHead className="text-right text-muted-foreground">
                     Actions
                   </TableHead>
                 </TableRow>
@@ -135,29 +135,29 @@ export function CouponManagementPanel() {
                 {coupons.map((coupon) => (
                   <TableRow
                     key={coupon._id}
-                    className="border-white/10 hover:bg-white/[0.03]"
+                    className="border-border hover:bg-muted"
                   >
                     <TableCell className="px-4">
-                      <div className="font-medium text-white">
+                      <div className="font-medium text-foreground">
                         {coupon.code}
                       </div>
-                      <div className="text-xs text-gray-500">
+                      <div className="text-xs text-muted-foreground">
                         {coupon.description}
                       </div>
                     </TableCell>
-                    <TableCell className="text-gray-300">
+                    <TableCell className="text-muted-foreground">
                       {coupon.discountType === "PERCENTAGE"
                         ? `${coupon.discountValue}%`
                         : `Rs. ${formatAmount(coupon.discountValue)}`}
                     </TableCell>
-                    <TableCell className="text-gray-300">
+                    <TableCell className="text-muted-foreground">
                       {coupon.usedCount || 0} / {coupon.usageLimit}
                     </TableCell>
                     <TableCell>
-                      <div className="text-xs text-gray-400">
+                      <div className="text-xs text-muted-foreground">
                         {formatDate(coupon.startDate)}
                       </div>
-                      <div className="text-xs text-gray-400">
+                      <div className="text-xs text-muted-foreground">
                         {formatDate(coupon.endDate)}
                       </div>
                     </TableCell>
@@ -190,7 +190,7 @@ export function CouponManagementPanel() {
                         <Button
                           size="sm"
                           variant="outline"
-                          className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+                          className="border-border bg-muted text-foreground hover:bg-muted"
                           onClick={() => setEditing(coupon)}
                         >
                           <Edit className="h-3.5 w-3.5" />
@@ -258,7 +258,7 @@ function CouponCreateDialog({
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto border-white/10 bg-[#1c1c1c] text-white sm:max-w-3xl">
+      <DialogContent className="max-h-[90vh] overflow-y-auto border-border bg-card text-foreground sm:max-w-3xl">
         <DialogHeader>
           <DialogTitle>Create Coupon</DialogTitle>
         </DialogHeader>
@@ -287,7 +287,7 @@ function CouponEditDialog({
 }) {
   return (
     <Dialog open={Boolean(coupon)} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto border-white/10 bg-[#1c1c1c] text-white sm:max-w-3xl">
+      <DialogContent className="max-h-[90vh] overflow-y-auto border-border bg-card text-foreground sm:max-w-3xl">
         <DialogHeader>
           <DialogTitle>Edit Coupon {coupon?.code}</DialogTitle>
         </DialogHeader>
@@ -424,7 +424,7 @@ function CouponForm({
         min="1"
         className={inputClass}
       />
-      <div className="flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-gray-300">
+      <div className="flex items-center justify-between rounded-lg border border-border bg-muted px-3 py-2 text-sm text-muted-foreground">
         <span>Active Status</span>
         <Switch
           checked={isActive}
@@ -476,7 +476,7 @@ function CouponForm({
         <Button
           type="button"
           variant="outline"
-          className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+          className="border-border bg-muted text-foreground hover:bg-muted"
           onClick={onCancel}
           disabled={isPending}
         >

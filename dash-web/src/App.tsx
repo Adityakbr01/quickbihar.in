@@ -1,33 +1,55 @@
-import { Suspense } from "react";
+import { Suspense, lazy, type ComponentType, type LazyExoticComponent } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { GuestRoute, NoIndex, ProtectedRoute, ScrollToTop } from "@/lib/routeGuards";
 import { RouteErrorBoundary } from "@/components/RouteErrorBoundary";
 
 import Home from "@/pages/Home";
-import PrivacyPolicy from "@/pages/PrivacyPolicy";
-import ReturnPolicy from "@/pages/ReturnPolicy";
-import TermsOfService from "@/pages/TermsOfService";
-import ForgotPassword from "@/pages/auth/ForgotPassword";
-import LinkGoogle from "@/pages/auth/LinkGoogle";
-import ResetPassword from "@/pages/auth/ResetPassword";
-import SetPassword from "@/pages/auth/SetPassword";
-import AdminLogin from "@/pages/admin/AdminLogin";
-import AdminDashboard from "@/pages/admin/AdminDashboard";
-import SellerLogin from "@/pages/seller/SellerLogin";
-import SellerRegister from "@/pages/seller/SellerRegister";
-import SellerDashboard from "@/pages/seller/SellerDashboard";
-import DeliveryLogin from "@/pages/delivery/DeliveryLogin";
-import DeliveryRegister from "@/pages/delivery/DeliveryRegister";
-import DeliveryDashboard from "@/pages/delivery/DeliveryDashboard";
 
-const DashboardFallback = <div className="min-h-screen bg-[#121212]" />;
+// Every route below Home is split into its own chunk so the first paint
+// only downloads the landing page + shared vendors. Dashboards (recharts,
+// xlsx, tables) are the heavy ones — they load on navigation instead.
+function lazyWithRetry<T extends ComponentType<Record<string, never>>>(
+  importer: () => Promise<{ default: T }>,
+): LazyExoticComponent<T> {
+  return lazy(() =>
+    importer().catch((err: unknown) => {
+      // A chunk load failure usually means a fresh deploy invalidated the
+      // hashed asset URL. One hard reload fetches the new index.html; the
+      // session flag stops reload loops if the chunk is genuinely broken.
+      const key = "qb-chunk-reloaded";
+      if (!sessionStorage.getItem(key)) {
+        sessionStorage.setItem(key, "1");
+        window.location.reload();
+      }
+      throw err;
+    }),
+  );
+}
+
+const PrivacyPolicy = lazyWithRetry(() => import("@/pages/PrivacyPolicy"));
+const ReturnPolicy = lazyWithRetry(() => import("@/pages/ReturnPolicy"));
+const TermsOfService = lazyWithRetry(() => import("@/pages/TermsOfService"));
+const ForgotPassword = lazyWithRetry(() => import("@/pages/auth/ForgotPassword"));
+const LinkGoogle = lazyWithRetry(() => import("@/pages/auth/LinkGoogle"));
+const ResetPassword = lazyWithRetry(() => import("@/pages/auth/ResetPassword"));
+const SetPassword = lazyWithRetry(() => import("@/pages/auth/SetPassword"));
+const AdminLogin = lazyWithRetry(() => import("@/pages/admin/AdminLogin"));
+const AdminDashboard = lazyWithRetry(() => import("@/pages/admin/AdminDashboard"));
+const SellerLogin = lazyWithRetry(() => import("@/pages/seller/SellerLogin"));
+const SellerRegister = lazyWithRetry(() => import("@/pages/seller/SellerRegister"));
+const SellerDashboard = lazyWithRetry(() => import("@/pages/seller/SellerDashboard"));
+const DeliveryLogin = lazyWithRetry(() => import("@/pages/delivery/DeliveryLogin"));
+const DeliveryRegister = lazyWithRetry(() => import("@/pages/delivery/DeliveryRegister"));
+const DeliveryDashboard = lazyWithRetry(() => import("@/pages/delivery/DeliveryDashboard"));
+
+const DashboardFallback = <div className="min-h-screen bg-background" />;
 
 function NotFound() {
   return (
-    <main className="dark min-h-screen w-full bg-[#0e0e0e] text-white flex items-center justify-center p-6">
+    <main className="dark min-h-screen w-full bg-background text-foreground flex items-center justify-center p-6">
       <div className="text-center space-y-3">
         <h1 className="text-3xl font-bold">Page not found</h1>
-        <p className="text-sm text-gray-400">
+        <p className="text-sm text-muted-foreground">
           The page you are looking for does not exist.
         </p>
         <a href="/" className="text-sm text-emerald-300 hover:text-emerald-200">
@@ -49,6 +71,9 @@ export default function App() {
   return (
     <RouteErrorBoundary>
       <ScrollToTop />
+      {/* Outer boundary for all lazy route chunks (Home is eager, so this
+          never flashes on first paint — only during route navigation). */}
+      <Suspense fallback={DashboardFallback}>
       <Routes>
         {/* Public landing + legal pages */}
         <Route path="/" element={<Home />} />
@@ -210,6 +235,7 @@ export default function App() {
 
         <Route path="*" element={<NotFound />} />
       </Routes>
+      </Suspense>
     </RouteErrorBoundary>
   );
 }

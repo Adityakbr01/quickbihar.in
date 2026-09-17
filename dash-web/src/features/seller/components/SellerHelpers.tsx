@@ -17,10 +17,10 @@ import type { SellerPayoutMethod } from "@/features/seller/api/sellerPanel.api";
 import { cn } from "@/lib/utils";
 
 export const inputClass =
-  "w-full border-white/10 bg-white/5 text-white placeholder:text-gray-500";
+  "w-full border-border bg-muted text-foreground placeholder:text-muted-foreground";
 export const selectClass =
-  "h-9 w-full rounded-lg border border-white/10 bg-[#181818] px-2 text-sm text-white outline-none";
-export const labelClass = "grid gap-1 text-xs font-medium uppercase text-gray-500";
+  "h-9 w-full rounded-lg border border-border bg-background px-2 text-sm text-foreground outline-none";
+export const labelClass = "grid gap-1 text-xs font-medium uppercase text-muted-foreground";
 
 export function Metric({
   title,
@@ -36,10 +36,10 @@ export function Metric({
   const content = (
     <CardContent className="flex items-center justify-between gap-3 p-3 sm:p-4">
       <div className="min-w-0">
-        <p className="text-xs font-medium uppercase text-gray-500">{title}</p>
-        <p className="mt-1 break-words text-lg font-semibold text-white sm:text-2xl">{value}</p>
+        <p className="text-xs font-medium uppercase text-muted-foreground">{title}</p>
+        <p className="mt-1 break-words text-lg font-semibold text-foreground sm:text-2xl">{value}</p>
       </div>
-      <div className="shrink-0 rounded-lg bg-white/5 p-2 text-emerald-300">{icon}</div>
+      <div className="shrink-0 rounded-lg bg-primary/10 p-2 text-primary">{icon}</div>
     </CardContent>
   );
 
@@ -48,7 +48,7 @@ export function Metric({
       <button
         type="button"
         onClick={onClick}
-        className="w-full rounded-lg border border-white/10 bg-[#1c1c1c] text-left transition hover:border-emerald-400/30 hover:bg-white/[0.04] focus:outline-none focus:ring-2 focus:ring-emerald-400/40"
+        className="w-full rounded-lg border border-border bg-card text-left transition hover:border-primary/40 hover:bg-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         {content}
       </button>
@@ -56,7 +56,7 @@ export function Metric({
   }
 
   return (
-    <Card className="border-white/10 bg-[#1c1c1c]">
+    <Card className="border-border bg-card">
       {content}
     </Card>
   );
@@ -75,13 +75,13 @@ export function StatusTile({
 }) {
   const content = (
     <>
-      <div className="text-xs font-medium uppercase text-gray-500">{title}</div>
+      <div className="text-xs font-medium uppercase text-muted-foreground">{title}</div>
       <div className="mt-2 flex items-center justify-between gap-3">
-        <div className="text-sm font-medium text-white">{label}</div>
+        <div className="text-sm font-medium text-foreground">{label}</div>
         {active ? (
-          <CheckCircle2 className="h-4 w-4 text-emerald-300" />
+          <CheckCircle2 className="h-4 w-4 text-primary" />
         ) : (
-          <XCircle className="h-4 w-4 text-red-300" />
+          <XCircle className="h-4 w-4 text-destructive" />
         )}
       </div>
     </>
@@ -92,7 +92,7 @@ export function StatusTile({
       <button
         type="button"
         onClick={onClick}
-        className="w-full rounded-lg border border-white/10 bg-white/[0.03] p-3 text-left transition hover:border-emerald-400/30 hover:bg-white/[0.05] focus:outline-none focus:ring-2 focus:ring-emerald-400/40"
+        className="w-full rounded-lg border border-border bg-muted p-3 text-left transition hover:border-primary/40 hover:bg-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         {content}
       </button>
@@ -100,7 +100,7 @@ export function StatusTile({
   }
 
   return (
-    <div className="rounded-lg border border-white/10 bg-white/[0.03] p-3">
+    <div className="rounded-lg border border-border bg-muted p-3">
       {content}
     </div>
   );
@@ -133,9 +133,9 @@ export function StatusBadge({ label }: { label: string }) {
       variant="outline"
       className={cn(
         "whitespace-nowrap",
-        positive && "border-emerald-400/30 text-emerald-300",
-        warning && "border-amber-400/30 text-amber-300",
-        !positive && !warning && "border-red-400/30 text-red-300"
+        positive && "border-emerald-600/30 text-emerald-700 dark:border-emerald-400/30 dark:text-emerald-300",
+        warning && "border-amber-600/30 text-amber-700 dark:border-amber-400/30 dark:text-amber-300",
+        !positive && !warning && "border-red-600/30 text-red-700 dark:border-red-400/30 dark:text-red-300"
       )}
     >
       {label}
@@ -144,12 +144,12 @@ export function StatusBadge({ label }: { label: string }) {
 }
 
 export function LoadingState({ label }: { label: string }) {
-  return <div className="py-10 text-center text-sm text-gray-400">{label}</div>;
+  return <div className="py-10 text-center text-sm text-muted-foreground">{label}</div>;
 }
 
 export function EmptyState({ label }: { label: string }) {
   return (
-    <div className="rounded-lg border border-dashed border-white/10 p-6 text-center text-sm text-gray-500">
+    <div className="rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
       {label}
     </div>
   );
@@ -168,9 +168,9 @@ export function SimpleTable({
     <div className="overflow-x-auto">
       <Table>
         <TableHeader>
-          <TableRow className="border-white/10 hover:bg-transparent">
+          <TableRow className="border-border hover:bg-transparent">
             {columns.map((column) => (
-              <TableHead key={column} className="text-gray-400">
+              <TableHead key={column} className="text-muted-foreground">
                 {column}
               </TableHead>
             ))}
@@ -181,20 +181,20 @@ export function SimpleTable({
             rows.map((row, index) => (
               <TableRow
                 key={index}
-                className="border-white/10 hover:bg-white/[0.03]"
+                className="border-border hover:bg-muted"
               >
                 {row.map((cell, cellIndex) => (
-                  <TableCell key={cellIndex} className="text-gray-300 align-middle py-3">
+                  <TableCell key={cellIndex} className="text-muted-foreground align-middle py-3">
                     {cell}
                   </TableCell>
                 ))}
               </TableRow>
             ))
           ) : (
-            <TableRow className="border-white/10">
+            <TableRow className="border-border">
               <TableCell
                 colSpan={columns.length}
-                className="py-8 text-center text-gray-500"
+                className="py-8 text-center text-muted-foreground"
               >
                 {empty}
               </TableCell>
@@ -230,10 +230,10 @@ export function Field({
       <span className="flex items-center gap-2">
         {label}
         {required && (
-          <span className="text-[10px] normal-case text-red-300">Required</span>
+          <span className="text-[10px] normal-case text-destructive">Required</span>
         )}
         {optional && (
-          <span className="text-[10px] normal-case text-gray-500">Optional</span>
+          <span className="text-[10px] normal-case text-muted-foreground">Optional</span>
         )}
       </span>
       <Input
@@ -244,7 +244,7 @@ export function Field({
         disabled={disabled}
         className={inputClass}
       />
-      {helper && <span className="text-xs normal-case text-gray-500">{helper}</span>}
+      {helper && <span className="text-xs normal-case text-muted-foreground">{helper}</span>}
     </label>
   );
 }
@@ -258,7 +258,7 @@ export function DeleteButton({ onDelete }: { onDelete: () => void }) {
     <Button
       size="sm"
       variant="outline"
-      className="border-red-400/30 bg-red-400/10 text-red-200 hover:bg-red-400/20"
+      className="border-destructive/30 bg-destructive/10 text-destructive hover:bg-destructive/20"
       onClick={() => {
         if (window.confirm("Delete this item?")) onDelete();
       }}
@@ -280,9 +280,9 @@ export function ModuleCard({
   children: ReactNode;
 }) {
   return (
-    <Card className="border-white/10 bg-[#1c1c1c]">
-      <CardHeader className="border-b border-white/10">
-        <CardTitle className="flex flex-col gap-3 text-base text-white lg:flex-row lg:items-center lg:justify-between">
+    <Card className="border-border bg-card">
+      <CardHeader className="border-b border-border">
+        <CardTitle className="flex flex-col gap-3 text-base text-foreground lg:flex-row lg:items-center lg:justify-between">
           <span>{title}</span>
           <div className="flex flex-wrap items-center gap-2">
             {filters}
@@ -344,7 +344,7 @@ export function ListFilters({
       )}
       <Button
         variant="outline"
-        className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+        className="border-border bg-muted text-foreground hover:bg-muted"
         onClick={() => onChange({ page: 1, limit: params.limit || 10 })}
       >
         <RefreshCcw className="h-4 w-4" />
@@ -364,14 +364,14 @@ export function PaginationBar({
 }) {
   if (!result) return null;
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-3 text-sm text-gray-400">
+    <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-3 text-sm text-muted-foreground">
       <span>{result.total} total</span>
       <div className="flex items-center gap-2">
         <Button
           size="sm"
           variant="outline"
           disabled={(params.page || 1) <= 1}
-          className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+          className="border-border bg-muted text-foreground hover:bg-muted"
           onClick={() =>
             onChange({ ...params, page: Math.max(1, (params.page || 1) - 1) })
           }
@@ -385,7 +385,7 @@ export function PaginationBar({
           size="sm"
           variant="outline"
           disabled={(params.page || 1) >= result.totalPages}
-          className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+          className="border-border bg-muted text-foreground hover:bg-muted"
           onClick={() => onChange({ ...params, page: (params.page || 1) + 1 })}
         >
           Next

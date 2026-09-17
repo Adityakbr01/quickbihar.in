@@ -123,7 +123,7 @@ export function OrderManagementPanel() {
   };
 
   return (
-    <div className="grid gap-4 text-white">
+    <div className="grid gap-4 text-foreground">
       <ManagementToolbar
         title="Sub-Order Shipments Operations"
         search={params.search}
@@ -140,7 +140,7 @@ export function OrderManagementPanel() {
         extraAction={
           <Button
             variant="outline"
-            className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+            className="border-border bg-muted text-foreground hover:bg-muted"
             onClick={exportSubOrders}
           >
             <FileDown className="h-4 w-4" />
@@ -149,7 +149,7 @@ export function OrderManagementPanel() {
         }
       />
 
-      <Card className="border-white/10 bg-[#1c1c1c]">
+      <Card className="border-border bg-card">
         <CardContent className="px-0">
           {subOrdersQuery.isLoading && <LoadingState label="Loading sub-order shipments..." />}
           {!subOrdersQuery.isLoading && !subOrders.length && (
@@ -158,14 +158,14 @@ export function OrderManagementPanel() {
           {!subOrdersQuery.isLoading && Boolean(subOrders.length) && (
             <Table>
               <TableHeader>
-                <TableRow className="border-white/10 hover:bg-transparent">
-                  <TableHead className="px-4 text-gray-400">Sub-Order ID</TableHead>
-                  <TableHead className="text-gray-400">Merchant Store</TableHead>
-                  <TableHead className="text-gray-400">Customer</TableHead>
-                  <TableHead className="text-gray-400">Payment & Amount</TableHead>
-                  <TableHead className="text-gray-400">Rider / Delivery</TableHead>
-                  <TableHead className="text-gray-400">Fulfillment Status</TableHead>
-                  <TableHead className="text-right text-gray-400">Operations</TableHead>
+                <TableRow className="border-border hover:bg-transparent">
+                  <TableHead className="px-4 text-muted-foreground">Sub-Order ID</TableHead>
+                  <TableHead className="text-muted-foreground">Merchant Store</TableHead>
+                  <TableHead className="text-muted-foreground">Customer</TableHead>
+                  <TableHead className="text-muted-foreground">Payment & Amount</TableHead>
+                  <TableHead className="text-muted-foreground">Rider / Delivery</TableHead>
+                  <TableHead className="text-muted-foreground">Fulfillment Status</TableHead>
+                  <TableHead className="text-right text-muted-foreground">Operations</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -176,21 +176,21 @@ export function OrderManagementPanel() {
                   const isCodSettled = so.timeline?.some((event: any) => event.status === "COD_SETTLED");
                   
                   return (
-                    <TableRow key={so._id} className="border-white/10 hover:bg-white/[0.03]">
+                    <TableRow key={so._id} className="border-border hover:bg-muted">
                       <TableCell className="px-4">
-                        <div className="font-semibold text-white">{so.subOrderId}</div>
-                        <div className="text-[10px] text-gray-500">Parent: {so.parentOrderId?.orderId || "QB-ORDER"}</div>
+                        <div className="font-semibold text-foreground">{so.subOrderId}</div>
+                        <div className="text-[10px] text-muted-foreground">Parent: {so.parentOrderId?.orderId || "QB-ORDER"}</div>
                       </TableCell>
                       <TableCell>
-                        <div className="text-sm font-medium text-white">{so.storeId?.name || "Merchant"}</div>
-                        <div className="text-[10px] text-gray-500">Seller ID: {so.sellerId?.fullName || "Seller"}</div>
+                        <div className="text-sm font-medium text-foreground">{so.storeId?.name || "Merchant"}</div>
+                        <div className="text-[10px] text-muted-foreground">Seller ID: {so.sellerId?.fullName || "Seller"}</div>
                       </TableCell>
                       <TableCell>
-                        <div className="text-sm text-gray-300">{so.parentOrderId?.shippingAddress?.fullName || "Customer"}</div>
-                        <div className="text-xs text-gray-500">{so.parentOrderId?.shippingAddress?.phone}</div>
+                        <div className="text-sm text-muted-foreground">{so.parentOrderId?.shippingAddress?.fullName || "Customer"}</div>
+                        <div className="text-xs text-muted-foreground">{so.parentOrderId?.shippingAddress?.phone}</div>
                       </TableCell>
                       <TableCell>
-                        <div className="text-sm font-bold text-white">Rs. {formatAmount(so.payableAmount)}</div>
+                        <div className="text-sm font-bold text-foreground">Rs. {formatAmount(so.payableAmount)}</div>
                         <span className={cn(
                           "inline-block mt-0.5 px-1 py-0.5 rounded text-[10px] font-bold",
                           isCod ? "bg-amber-500/10 text-amber-500 border border-amber-500/20" : "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20"
@@ -201,7 +201,7 @@ export function OrderManagementPanel() {
                       <TableCell>
                         <div className="space-y-1">
                           <DeliveryStatusBadge status={so.delivery?.status || "UNASSIGNED"} />
-                          <div className="text-[11px] text-gray-400 font-medium">
+                          <div className="text-[11px] text-muted-foreground font-medium">
                             {so.delivery?.riderId?.fullName || "Unassigned Rider"}
                           </div>
                         </div>
@@ -246,7 +246,7 @@ export function OrderManagementPanel() {
                             <Button
                               size="sm"
                               variant="outline"
-                              className="border-white/10 bg-white/5 text-white hover:bg-white/10 text-[11px] h-8"
+                              className="border-border bg-muted text-foreground hover:bg-muted text-[11px] h-8"
                               onClick={() => setAssignmentSubOrder(so)}
                             >
                               <UserPlus className="h-3 w-3 mr-1" />
@@ -257,7 +257,7 @@ export function OrderManagementPanel() {
                           <Button
                             size="sm"
                             variant="outline"
-                            className="border-white/10 bg-white/5 text-white hover:bg-white/10 text-[11px] h-8"
+                            className="border-border bg-muted text-foreground hover:bg-muted text-[11px] h-8"
                             onClick={() => setTimelineSubOrder(so)}
                           >
                             <History className="h-3 w-3 mr-1" />
@@ -266,7 +266,7 @@ export function OrderManagementPanel() {
                           <Button
                             size="sm"
                             variant="outline"
-                            className="border-white/10 bg-white/5 text-white hover:bg-white/10 text-[11px] h-8"
+                            className="border-border bg-muted text-foreground hover:bg-muted text-[11px] h-8"
                             onClick={() => setSelectedSubOrder(so)}
                           >
                             <Eye className="h-3 w-3" />
@@ -333,7 +333,7 @@ function SubOrderDetailsDialog({
 }) {
   return (
     <Dialog open={Boolean(subOrder)} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto border-white/10 bg-[#1c1c1c] text-white sm:max-w-3xl">
+      <DialogContent className="max-h-[90vh] overflow-y-auto border-border bg-card text-foreground sm:max-w-3xl">
         <DialogHeader>
           <DialogTitle>Sub-Order Shipment Specifications ({subOrder?.subOrderId})</DialogTitle>
         </DialogHeader>
@@ -376,29 +376,29 @@ function SubOrderDetailsDialog({
               />
             </div>
             
-            <Card className="border-white/10 bg-white/[0.03]">
-              <CardHeader className="border-b border-white/10 py-3">
-                <CardTitle className="text-sm font-semibold text-white">Itemized Package Contents</CardTitle>
+            <Card className="border-border bg-muted">
+              <CardHeader className="border-b border-border py-3">
+                <CardTitle className="text-sm font-semibold text-foreground">Itemized Package Contents</CardTitle>
               </CardHeader>
               <CardContent className="px-0">
                 <Table>
                   <TableHeader>
-                    <TableRow className="border-white/10 hover:bg-transparent">
-                      <TableHead className="px-4 text-gray-400">Product Title</TableHead>
-                      <TableHead className="text-gray-400">SKU / Variant</TableHead>
-                      <TableHead className="text-gray-400">Qty</TableHead>
-                      <TableHead className="text-gray-400 text-right font-medium">Subtotal</TableHead>
+                    <TableRow className="border-border hover:bg-transparent">
+                      <TableHead className="px-4 text-muted-foreground">Product Title</TableHead>
+                      <TableHead className="text-muted-foreground">SKU / Variant</TableHead>
+                      <TableHead className="text-muted-foreground">Qty</TableHead>
+                      <TableHead className="text-muted-foreground text-right font-medium">Subtotal</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {subOrder.items?.map((item: any, idx: number) => (
-                      <TableRow key={idx} className="border-white/10 hover:bg-transparent">
-                        <TableCell className="px-4 text-white font-medium">{item.title}</TableCell>
-                        <TableCell className="text-gray-400 font-mono text-[11px]">
+                      <TableRow key={idx} className="border-border hover:bg-transparent">
+                        <TableCell className="px-4 text-foreground font-medium">{item.title}</TableCell>
+                        <TableCell className="text-muted-foreground font-mono text-[11px]">
                           {item.sku} • {item.size} / {item.color}
                         </TableCell>
-                        <TableCell className="text-gray-300 font-medium">{item.quantity}</TableCell>
-                        <TableCell className="text-white text-right font-bold">Rs. {formatAmount(item.price * item.quantity)}</TableCell>
+                        <TableCell className="text-muted-foreground font-medium">{item.quantity}</TableCell>
+                        <TableCell className="text-foreground text-right font-bold">Rs. {formatAmount(item.price * item.quantity)}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -430,7 +430,7 @@ function RiderAssignmentDialog({
 
   return (
     <Dialog open onOpenChange={onOpenChange}>
-      <DialogContent className="border-white/10 bg-[#1c1c1c] text-white sm:max-w-md">
+      <DialogContent className="border-border bg-card text-foreground sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Manual Rider Allocation ({subOrder.subOrderId})</DialogTitle>
         </DialogHeader>
@@ -439,14 +439,14 @@ function RiderAssignmentDialog({
             <Truck className="h-5 w-5 shrink-0" />
             <div>
               <div className="font-bold">Merchant: {subOrder.storeId?.name}</div>
-              <div className="mt-0.5 text-[10px] text-gray-400">
+              <div className="mt-0.5 text-[10px] text-muted-foreground">
                 Pickup address: {subOrder.storeId?.address?.line1}, {subOrder.storeId?.address?.city}
               </div>
             </div>
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider block">
+            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">
               Online Delivery Partners (Within Radius)
             </label>
             <select
@@ -467,7 +467,7 @@ function RiderAssignmentDialog({
             </select>
           </div>
 
-          <div className="flex justify-end gap-2 pt-2 border-t border-white/5">
+          <div className="flex justify-end gap-2 pt-2 border-t border-border">
             <Button variant="ghost" size="sm" onClick={() => onOpenChange(false)} disabled={isPending}>
               Dismiss
             </Button>
@@ -498,7 +498,7 @@ function TimelineLogsDialog({
 
   return (
     <Dialog open onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[80vh] overflow-y-auto border-white/10 bg-[#1c1c1c] text-white sm:max-w-lg">
+      <DialogContent className="max-h-[80vh] overflow-y-auto border-border bg-card text-foreground sm:max-w-lg">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <History className="h-5 w-5 text-cyan-400" />
@@ -507,9 +507,9 @@ function TimelineLogsDialog({
         </DialogHeader>
         <div className="py-4 space-y-6">
           {events.length === 0 ? (
-            <div className="text-center py-6 text-sm text-gray-500">No events logged for this shipment.</div>
+            <div className="text-center py-6 text-sm text-muted-foreground">No events logged for this shipment.</div>
           ) : (
-            <div className="relative border-l border-white/10 pl-6 ml-3 space-y-6">
+            <div className="relative border-l border-border pl-6 ml-3 space-y-6">
               {events.map((event: any, index: number) => {
                 const isSystem = event.actor === "SYSTEM";
                 const isAdmin = event.actor === "ADMIN";
@@ -521,8 +521,8 @@ function TimelineLogsDialog({
                   <div key={index} className="relative">
                     {/* Pulsing indicator marker dot */}
                     <span className={cn(
-                      "absolute -left-[31px] top-1.5 flex h-4 w-4 rounded-full border-2 bg-[#1c1c1c] items-center justify-center",
-                      isSystem && "border-gray-500",
+                      "absolute -left-[31px] top-1.5 flex h-4 w-4 rounded-full border-2 bg-card items-center justify-center",
+                      isSystem && "border-border",
                       isAdmin && "border-amber-500",
                       isRider && "border-cyan-400",
                       isSeller && "border-purple-400",
@@ -530,7 +530,7 @@ function TimelineLogsDialog({
                     )}>
                       <span className={cn(
                         "h-1.5 w-1.5 rounded-full",
-                        isSystem && "bg-gray-500",
+                        isSystem && "bg-muted",
                         isAdmin && "bg-amber-500",
                         isRider && "bg-cyan-400",
                         isSeller && "bg-purple-400",
@@ -540,18 +540,18 @@ function TimelineLogsDialog({
                     
                     <div className="space-y-1">
                       <div className="flex items-center justify-between gap-2">
-                        <span className="font-bold text-white text-xs tracking-wide">{event.status}</span>
-                        <span className="text-[10px] text-gray-500 font-mono">{formatDate(event.timestamp)}</span>
+                        <span className="font-bold text-foreground text-xs tracking-wide">{event.status}</span>
+                        <span className="text-[10px] text-muted-foreground font-mono">{formatDate(event.timestamp)}</span>
                       </div>
-                      <div className="text-xs text-gray-400 flex items-center gap-1.5 font-medium">
+                      <div className="text-xs text-muted-foreground flex items-center gap-1.5 font-medium">
                         <User className="h-3.5 w-3.5" />
                         <span>Actor: {event.actor} {event.actorId ? `(${event.actorId})` : ""}</span>
                       </div>
-                      <div className="p-2.5 bg-black/30 border border-white/5 rounded-lg text-xs text-gray-300 leading-relaxed font-sans mt-1">
+                      <div className="p-2.5 bg-muted border border-border rounded-lg text-xs text-muted-foreground leading-relaxed font-sans mt-1">
                         {event.metadata?.message || event.metadata?.note || "Status checkpoint verified successfully."}
                       </div>
                       {(event.ipAddress || event.deviceInfo) && (
-                        <div className="text-[9px] text-gray-500 font-mono tracking-tight flex flex-wrap gap-2 pt-0.5 pl-1">
+                        <div className="text-[9px] text-muted-foreground font-mono tracking-tight flex flex-wrap gap-2 pt-0.5 pl-1">
                           {event.ipAddress && <span>IP: {event.ipAddress}</span>}
                           {event.deviceInfo && <span className="truncate max-w-xs">UA: {event.deviceInfo}</span>}
                         </div>

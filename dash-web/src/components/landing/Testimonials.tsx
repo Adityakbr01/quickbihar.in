@@ -1,53 +1,46 @@
-import { Star, Sparkles } from "lucide-react";
+import { Star } from "lucide-react";
 import { landingData } from "@/constants/links";
+import SectionHeader from "@/components/landing/SectionHeader";
 
 export default function Testimonials() {
   const { testimonials } = landingData;
 
   return (
-    <section className="relative border-t border-border py-20 bg-background">
+    <section className="relative border-t border-border bg-background py-20 sm:py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        
-        <div className="mx-auto max-w-2xl text-center">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1 text-xs font-semibold text-card-foreground">
-            <Sparkles className="h-3.5 w-3.5 text-primary" />
-            {testimonials.badge}
-          </span>
-          <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
-            {testimonials.title}
-          </h2>
-        </div>
 
-        <div className="mt-12 grid gap-6 lg:grid-cols-3">
+        <SectionHeader badge={testimonials.badge} title={testimonials.title} />
+
+        <div className="mt-12 grid gap-5 lg:grid-cols-3">
           {testimonials.items.map((t) => (
             <figure
               key={t.name}
-              className="flex flex-col justify-between rounded-xl border border-border bg-card p-6 shadow-xs transition-all hover:bg-muted/40"
+              className="flex flex-col justify-between rounded-2xl border border-border bg-card p-6 shadow-xs transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
             >
               <div>
                 <div className="flex items-center justify-between">
-                  <div className="flex text-primary gap-0.5 text-xs">
+                  <div className="flex gap-0.5 text-tertiary" aria-label={`${t.rating} out of 5 stars`}>
                     {Array.from({ length: t.rating }).map((_, i) => (
                       <Star key={i} className="h-3.5 w-3.5 fill-current" />
                     ))}
                   </div>
-                  <span className="rounded bg-muted px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">
+                  <span className="rounded-full bg-muted px-2.5 py-1 text-[10px] font-semibold tracking-wide text-muted-foreground uppercase">
                     {t.tag}
                   </span>
                 </div>
 
-                <blockquote className="mt-4 text-xs leading-relaxed text-card-foreground sm:text-sm">
+                <blockquote className="mt-4 font-serif-accent text-[15px] leading-relaxed text-card-foreground italic">
                   &ldquo;{t.quote}&rdquo;
                 </blockquote>
               </div>
 
               <figcaption className="mt-6 flex items-center gap-3 border-t border-border pt-4">
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold text-xs">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
                   {t.initials}
                 </div>
                 <div>
                   <div className="text-xs font-bold text-card-foreground">{t.name}</div>
-                  <div className="text-[10px] text-muted-foreground">{t.role}</div>
+                  <div className="text-[11px] text-muted-foreground">{t.role}</div>
                 </div>
               </figcaption>
             </figure>

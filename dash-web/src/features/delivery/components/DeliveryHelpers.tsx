@@ -18,19 +18,19 @@ export const activeStatuses: DeliveryStatus[] = [
 ];
 export const terminalStatuses: DeliveryStatus[] = ["DELIVERED", "DELIVERY_CONFIRMED", "CANCELLED", "FAILED", "RETURNED"];
 
-export const selectClass = "h-9 rounded-lg border border-white/10 bg-[#181818] px-2 text-sm text-white outline-none";
-export const inputClass = "border-white/10 bg-white/5 text-white placeholder:text-gray-500";
-export const textareaClass = "min-h-24 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none placeholder:text-gray-500";
+export const selectClass = "h-9 rounded-lg border border-border bg-background px-2 text-sm text-foreground outline-none";
+export const inputClass = "border-border bg-muted text-foreground placeholder:text-muted-foreground";
+export const textareaClass = "min-h-24 rounded-lg border border-border bg-muted px-3 py-2 text-sm text-foreground outline-none placeholder:text-muted-foreground";
 
 export function Metric({ title, value, icon }: { title: string; value: number | string; icon: ReactNode }) {
   return (
-    <Card className="border-white/10 bg-[#1c1c1c]">
+    <Card className="border-border bg-card">
       <CardContent className="flex items-center justify-between p-4">
         <div>
-          <div className="text-sm text-gray-400">{title}</div>
-          <div className="mt-1 text-xl font-semibold text-white">{value}</div>
+          <div className="text-sm text-muted-foreground">{title}</div>
+          <div className="mt-1 text-xl font-semibold text-foreground">{value}</div>
         </div>
-        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/5 text-cyan-300">{icon}</div>
+        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted text-cyan-300">{icon}</div>
       </CardContent>
     </Card>
   );
@@ -38,16 +38,16 @@ export function Metric({ title, value, icon }: { title: string; value: number | 
 
 export function ProfileLine({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-2 last:border-b-0">
-      <span className="text-gray-400">{label}</span>
-      <span className="text-right text-white">{value}</span>
+    <div className="flex items-center justify-between gap-3 border-b border-border pb-2 last:border-b-0">
+      <span className="text-muted-foreground">{label}</span>
+      <span className="text-right text-foreground">{value}</span>
     </div>
   );
 }
 
 export function DeliveryStatusBadge({ status }: { status: DeliveryStatus }) {
   const className = cn(
-    "border-white/10 text-gray-300",
+    "border-border text-muted-foreground",
     status === "DELIVERED" && "border-emerald-400/30 text-emerald-300",
     status === "DELIVERY_CONFIRMED" && "border-emerald-400/30 text-emerald-300",
     activeStatuses.includes(status) && "border-cyan-400/30 text-cyan-300",
@@ -57,7 +57,7 @@ export function DeliveryStatusBadge({ status }: { status: DeliveryStatus }) {
 }
 
 export function EmptyState({ label }: { label: string }) {
-  return <div className="py-6 text-sm text-gray-400">{label}</div>;
+  return <div className="py-6 text-sm text-muted-foreground">{label}</div>;
 }
 
 export function deliveryStatusOf(order: DeliveryOrder): DeliveryStatus {

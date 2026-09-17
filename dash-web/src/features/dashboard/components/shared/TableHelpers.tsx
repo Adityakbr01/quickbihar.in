@@ -38,14 +38,14 @@ export function ManagementToolbar({
   extraAction?: React.ReactNode;
 }) {
   return (
-    <Card className="border-white/10 bg-[#1c1c1c]">
-      <CardHeader className="gap-4 border-b border-white/10 md:flex-row md:items-center md:justify-between">
-        <CardTitle className="text-base text-white">{title}</CardTitle>
+    <Card className="border-border bg-card">
+      <CardHeader className="gap-4 border-b border-border md:flex-row md:items-center md:justify-between">
+        <CardTitle className="text-base text-foreground">{title}</CardTitle>
         <div className="flex flex-wrap gap-2">
           {extraAction}
           <Button
             variant="outline"
-            className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+            className="border-border bg-muted text-foreground hover:bg-muted"
             onClick={onRefresh}
           >
             <RefreshCcw className="h-4 w-4" />
@@ -55,7 +55,7 @@ export function ManagementToolbar({
       </CardHeader>
       <CardContent className="grid gap-2 md:grid-cols-[1fr_160px_160px_120px]">
         <div className="relative">
-          <Search className="pointer-events-none absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
+          <Search className="pointer-events-none absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             value={search}
             onChange={(event) => onSearch(event.target.value)}
@@ -110,14 +110,14 @@ export function PaginationFooter({
   onPage: (page: number) => void;
 }) {
   return (
-    <div className="flex items-center justify-between rounded-lg border border-white/10 bg-[#1c1c1c] px-4 py-3">
-      <div className="text-sm text-gray-400">
+    <div className="flex items-center justify-between rounded-lg border border-border bg-card px-4 py-3">
+      <div className="text-sm text-muted-foreground">
         Page {page} of {Math.max(totalPages, 1)}
       </div>
       <div className="flex gap-2">
         <Button
           variant="outline"
-          className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+          className="border-border bg-muted text-foreground hover:bg-muted"
           disabled={page <= 1}
           onClick={() => onPage(page - 1)}
         >
@@ -125,7 +125,7 @@ export function PaginationFooter({
         </Button>
         <Button
           variant="outline"
-          className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+          className="border-border bg-muted text-foreground hover:bg-muted"
           disabled={page >= totalPages}
           onClick={() => onPage(page + 1)}
         >
@@ -144,11 +144,11 @@ export function DetailTile({
   lines: Array<string | undefined>;
 }) {
   return (
-    <div className="rounded-lg border border-white/10 bg-white/[0.03] p-3">
-      <div className="text-xs font-medium uppercase text-gray-500">{title}</div>
+    <div className="rounded-lg border border-border bg-muted p-3">
+      <div className="text-xs font-medium uppercase text-muted-foreground">{title}</div>
       <div className="mt-2 grid gap-1">
         {lines.filter(Boolean).map((line) => (
-          <div key={line} className="text-sm text-gray-300">
+          <div key={line} className="text-sm text-muted-foreground">
             {line}
           </div>
         ))}
@@ -159,7 +159,7 @@ export function DetailTile({
 
 export function LoadingState({ label }: { label: string }) {
   return (
-    <div className="flex items-center justify-center gap-2 px-4 py-10 text-sm text-gray-400">
+    <div className="flex items-center justify-center gap-2 px-4 py-10 text-sm text-muted-foreground">
       <Package className="h-4 w-4 animate-pulse" />
       {label}
     </div>
@@ -167,7 +167,7 @@ export function LoadingState({ label }: { label: string }) {
 }
 
 export function EmptyState({ label }: { label: string }) {
-  return <div className="px-4 py-10 text-sm text-gray-400">{label}</div>;
+  return <div className="px-4 py-10 text-sm text-muted-foreground">{label}</div>;
 }
 
 export function StatusBadge({ active, label }: { active: boolean; label: string }) {
@@ -201,7 +201,7 @@ export function DeliveryStatusBadge({ status }: { status: DeliveryStatus }) {
     <Badge
       variant="outline"
       className={cn(
-        "border-white/10 text-gray-300",
+        "border-border text-muted-foreground",
         active && "border-cyan-400/30 text-cyan-300",
         status === "DELIVERED" && "border-emerald-400/30 text-emerald-300",
         status === "CANCELLED" && "border-red-400/30 text-red-300",

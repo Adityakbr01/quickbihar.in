@@ -164,21 +164,21 @@ function PartnerDirectoryContent({
         />
       </div>
 
-      <Card className="border-white/10 bg-[#1c1c1c]">
-        <CardHeader className="gap-4 border-b border-white/10 lg:flex-row lg:items-center lg:justify-between">
+      <Card className="border-border bg-card">
+        <CardHeader className="gap-4 border-b border-border lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <CardTitle className="flex items-center gap-2 text-base text-white">
+            <CardTitle className="flex items-center gap-2 text-base text-foreground">
               {icon}
               {title}
             </CardTitle>
-            <div className="mt-1 text-xs text-gray-500">
+            <div className="mt-1 text-xs text-muted-foreground">
               Profile, orders, transactions, reports, and exports in one place.
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
             <Button
               variant="outline"
-              className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+              className="border-border bg-muted text-foreground hover:bg-muted"
               onClick={onRefresh}
             >
               <RefreshCcw className="h-4 w-4" />
@@ -209,39 +209,39 @@ function PartnerDirectoryContent({
         </CardContent>
       </Card>
 
-      <Card className="border-white/10 bg-[#1c1c1c]">
+      <Card className="border-border bg-card">
         <CardContent className="px-0">
           {isLoading && <LoadingState label={`Loading ${kind === "seller" ? "sellers" : "riders"}...`} />}
           {!isLoading && !people.length && <EmptyState label={`No ${kind === "seller" ? "sellers" : "riders"} found.`} />}
           {!isLoading && Boolean(people.length) && (
             <Table>
               <TableHeader>
-                <TableRow className="border-white/10 hover:bg-transparent">
-                  <TableHead className="px-4 text-gray-400">Partner</TableHead>
-                  <TableHead className="text-gray-400">Profile</TableHead>
-                  <TableHead className="text-gray-400">Wallet</TableHead>
-                  <TableHead className="text-gray-400">Status</TableHead>
-                  <TableHead className="text-right text-gray-400">Actions</TableHead>
+                <TableRow className="border-border hover:bg-transparent">
+                  <TableHead className="px-4 text-muted-foreground">Partner</TableHead>
+                  <TableHead className="text-muted-foreground">Profile</TableHead>
+                  <TableHead className="text-muted-foreground">Wallet</TableHead>
+                  <TableHead className="text-muted-foreground">Status</TableHead>
+                  <TableHead className="text-right text-muted-foreground">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {people.map((person) => {
                   const profile = profileFor(kind, person);
                   return (
-                    <TableRow key={person._id} className="border-white/10 hover:bg-white/[0.03]">
+                    <TableRow key={person._id} className="border-border hover:bg-muted">
                       <TableCell className="px-4">
-                        <div className="font-medium text-white">{partnerDisplayName(kind, person)}</div>
-                        <div className="text-xs text-gray-500">{person.email}</div>
-                        <div className="mt-1 text-xs text-gray-500">{person.phone || "No phone"}</div>
+                        <div className="font-medium text-foreground">{partnerDisplayName(kind, person)}</div>
+                        <div className="text-xs text-muted-foreground">{person.email}</div>
+                        <div className="mt-1 text-xs text-muted-foreground">{person.phone || "No phone"}</div>
                       </TableCell>
                       <TableCell>
                         <PartnerProfileCell kind={kind} profile={profile} />
                       </TableCell>
                       <TableCell>
-                        <div className="text-sm font-semibold text-white">
+                        <div className="text-sm font-semibold text-foreground">
                           Rs. {formatAmount(profile?.wallet?.availableBalance || 0)}
                         </div>
-                        <div className="text-xs text-gray-500">
+                        <div className="text-xs text-muted-foreground">
                           Pending Rs. {formatAmount(profile?.wallet?.pendingPayoutBalance || 0)}
                         </div>
                         {kind === "rider" && (
@@ -260,7 +260,7 @@ function PartnerDirectoryContent({
                               className={
                                 profile?.isOnline
                                   ? "border-emerald-400/30 text-emerald-300"
-                                  : "border-white/10 text-gray-400"
+                                  : "border-border text-muted-foreground"
                               }
                             >
                               {profile?.isOnline ? "Online" : "Offline"}
@@ -273,7 +273,7 @@ function PartnerDirectoryContent({
                           <Button
                             size="sm"
                             variant="outline"
-                            className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+                            className="border-border bg-muted text-foreground hover:bg-muted"
                             onClick={() => setSelected(person)}
                           >
                             <Eye className="h-3.5 w-3.5" />
@@ -320,7 +320,7 @@ function PartnerDirectoryContent({
                             variant={person.isBlocked ? "outline" : "destructive"}
                             className={
                               person.isBlocked
-                                ? "border-white/10 bg-white/5 text-white hover:bg-white/10"
+                                ? "border-border bg-muted text-foreground hover:bg-muted"
                                 : ""
                             }
                             disabled={setBlocked.isPending}
@@ -387,13 +387,13 @@ function PartnerDetailDialog({
 
   return (
     <Dialog open onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[92vh] overflow-y-auto border-white/10 bg-[#1c1c1c] text-white sm:max-w-6xl">
+      <DialogContent className="max-h-[92vh] overflow-y-auto border-border bg-card text-foreground sm:max-w-6xl">
         <DialogHeader>
           <DialogTitle className="flex flex-wrap items-center gap-2">
             {title}
             <PayoutPartnerBadge type={partnerType} />
           </DialogTitle>
-          <div className="text-sm text-gray-400">
+          <div className="text-sm text-muted-foreground">
             {partnerDisplayName(kind, partner)} / {partner.email}
           </div>
         </DialogHeader>
@@ -417,7 +417,7 @@ function PartnerDetailDialog({
             <div className="flex flex-wrap gap-2">
               <Button
                 variant="outline"
-                className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+                className="border-border bg-muted text-foreground hover:bg-muted"
                 disabled={!insight}
                 onClick={() => insight && exportPartnerCsv(kind, insight, orders)}
               >
@@ -426,7 +426,7 @@ function PartnerDetailDialog({
               </Button>
               <Button
                 variant="outline"
-                className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+                className="border-border bg-muted text-foreground hover:bg-muted"
                 disabled={!insight}
                 onClick={() => insight && exportPartnerXlsx(kind, insight, orders)}
               >
@@ -449,7 +449,7 @@ function PartnerDetailDialog({
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-2 border-b border-white/10 pb-2">
+          <div className="flex flex-wrap gap-2 border-b border-border pb-2">
             {detailTabs.map((tab) => (
               <button
                 key={tab}
@@ -459,7 +459,7 @@ function PartnerDetailDialog({
                   "h-9 rounded-lg px-3 text-sm transition-colors",
                   activeTab === tab
                     ? "bg-emerald-500/10 text-emerald-300"
-                    : "text-gray-400 hover:bg-white/5 hover:text-white",
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground",
                 )}
               >
                 {tab}
@@ -565,40 +565,40 @@ function PartnerOrdersTable({
 
   return (
     <div className="grid gap-3">
-      <Card className="border-white/10 bg-white/[0.03]">
+      <Card className="border-border bg-muted">
         <CardContent className="px-0">
           <Table>
             <TableHeader>
-              <TableRow className="border-white/10 hover:bg-transparent">
-                <TableHead className="px-4 text-gray-400">Sub-order</TableHead>
-                <TableHead className="text-gray-400">Store / Customer</TableHead>
-                <TableHead className="text-gray-400">Amount</TableHead>
-                <TableHead className="text-gray-400">Status</TableHead>
-                <TableHead className="text-gray-400">Rider payout</TableHead>
-                <TableHead className="text-gray-400">Created</TableHead>
+              <TableRow className="border-border hover:bg-transparent">
+                <TableHead className="px-4 text-muted-foreground">Sub-order</TableHead>
+                <TableHead className="text-muted-foreground">Store / Customer</TableHead>
+                <TableHead className="text-muted-foreground">Amount</TableHead>
+                <TableHead className="text-muted-foreground">Status</TableHead>
+                <TableHead className="text-muted-foreground">Rider payout</TableHead>
+                <TableHead className="text-muted-foreground">Created</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {orders.map((order) => (
-                <TableRow key={order._id} className="border-white/10 hover:bg-white/[0.03]">
+                <TableRow key={order._id} className="border-border hover:bg-muted">
                   <TableCell className="px-4">
-                    <div className="font-medium text-white">{order.subOrderId}</div>
-                    <div className="text-xs text-gray-500">{order.parentOrderId?.orderId || "-"}</div>
+                    <div className="font-medium text-foreground">{order.subOrderId}</div>
+                    <div className="text-xs text-muted-foreground">{order.parentOrderId?.orderId || "-"}</div>
                   </TableCell>
                   <TableCell>
-                    <div className="text-sm text-white">{order.storeId?.name || "Store"}</div>
-                    <div className="text-xs text-gray-500">
+                    <div className="text-sm text-foreground">{order.storeId?.name || "Store"}</div>
+                    <div className="text-xs text-muted-foreground">
                       {order.parentOrderId?.shippingAddress?.fullName || "Customer"}
                     </div>
                   </TableCell>
-                  <TableCell className="text-white">Rs. {formatAmount(order.payableAmount || 0)}</TableCell>
+                  <TableCell className="text-foreground">Rs. {formatAmount(order.payableAmount || 0)}</TableCell>
                   <TableCell>
                     <PartnerStatusBadge status={order.status} />
                   </TableCell>
-                  <TableCell className="text-gray-300">
+                  <TableCell className="text-muted-foreground">
                     Rs. {formatAmount(order.delivery?.payoutAmount || 0)}
                   </TableCell>
-                  <TableCell className="text-gray-400">{formatDate(order.createdAt)}</TableCell>
+                  <TableCell className="text-muted-foreground">{formatDate(order.createdAt)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -613,33 +613,33 @@ function PartnerOrdersTable({
 function PartnerTransactionsTable({ transactions }: { transactions: PartnerTransaction[] }) {
   if (!transactions.length) return <EmptyState label="No partner transactions found." />;
   return (
-    <Card className="border-white/10 bg-white/[0.03]">
+    <Card className="border-border bg-muted">
       <CardContent className="px-0">
         <Table>
           <TableHeader>
-            <TableRow className="border-white/10 hover:bg-transparent">
-              <TableHead className="px-4 text-gray-400">Type</TableHead>
-              <TableHead className="text-gray-400">Amount</TableHead>
-              <TableHead className="text-gray-400">Status</TableHead>
-              <TableHead className="text-gray-400">Reference</TableHead>
-              <TableHead className="text-gray-400">Note</TableHead>
-              <TableHead className="text-gray-400">Date</TableHead>
+            <TableRow className="border-border hover:bg-transparent">
+              <TableHead className="px-4 text-muted-foreground">Type</TableHead>
+              <TableHead className="text-muted-foreground">Amount</TableHead>
+              <TableHead className="text-muted-foreground">Status</TableHead>
+              <TableHead className="text-muted-foreground">Reference</TableHead>
+              <TableHead className="text-muted-foreground">Note</TableHead>
+              <TableHead className="text-muted-foreground">Date</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {transactions.map((transaction) => (
-              <TableRow key={`${transaction.type}-${transaction._id}`} className="border-white/10 hover:bg-white/[0.03]">
+              <TableRow key={`${transaction.type}-${transaction._id}`} className="border-border hover:bg-muted">
                 <TableCell className="px-4">
-                  <Badge variant="outline" className="border-white/10 text-gray-300">
+                  <Badge variant="outline" className="border-border text-muted-foreground">
                     {transaction.type}
                   </Badge>
-                  <div className="mt-1 text-xs text-gray-500">{transaction.label}</div>
+                  <div className="mt-1 text-xs text-muted-foreground">{transaction.label}</div>
                 </TableCell>
-                <TableCell className="font-medium text-white">Rs. {formatAmount(transaction.amount)}</TableCell>
-                <TableCell className="text-gray-300">{transaction.status || "-"}</TableCell>
-                <TableCell className="text-gray-400">{transaction.referenceId || "-"}</TableCell>
-                <TableCell className="max-w-64 truncate text-gray-400">{transaction.note || "-"}</TableCell>
-                <TableCell className="text-gray-400">{formatDateTime(transaction.createdAt)}</TableCell>
+                <TableCell className="font-medium text-foreground">Rs. {formatAmount(transaction.amount)}</TableCell>
+                <TableCell className="text-muted-foreground">{transaction.status || "-"}</TableCell>
+                <TableCell className="text-muted-foreground">{transaction.referenceId || "-"}</TableCell>
+                <TableCell className="max-w-64 truncate text-muted-foreground">{transaction.note || "-"}</TableCell>
+                <TableCell className="text-muted-foreground">{formatDateTime(transaction.createdAt)}</TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -691,18 +691,18 @@ function ReportTable<T>({
   render: (row: T) => ExportRow;
 }) {
   return (
-    <Card className="border-white/10 bg-white/[0.03]">
+    <Card className="border-border bg-muted">
       <CardHeader>
-        <CardTitle className="text-base text-white">{title}</CardTitle>
+        <CardTitle className="text-base text-foreground">{title}</CardTitle>
       </CardHeader>
       <CardContent className="px-0">
         {!rows.length && <EmptyState label="No report rows found." />}
         {Boolean(rows.length) && (
           <Table>
             <TableHeader>
-              <TableRow className="border-white/10 hover:bg-transparent">
+              <TableRow className="border-border hover:bg-transparent">
                 {columns.map((column, index) => (
-                  <TableHead key={column} className={index === 0 ? "px-4 text-gray-400" : "text-gray-400"}>
+                  <TableHead key={column} className={index === 0 ? "px-4 text-muted-foreground" : "text-muted-foreground"}>
                     {column}
                   </TableHead>
                 ))}
@@ -710,11 +710,11 @@ function ReportTable<T>({
             </TableHeader>
             <TableBody>
               {rows.map((row, rowIndex) => (
-                <TableRow key={rowIndex} className="border-white/10 hover:bg-white/[0.03]">
+                <TableRow key={rowIndex} className="border-border hover:bg-muted">
                   {render(row).map((value, index) => (
                     <TableCell
                       key={`${rowIndex}-${index}`}
-                      className={index === 0 ? "px-4 text-sm font-medium text-white" : "text-sm text-gray-300"}
+                      className={index === 0 ? "px-4 text-sm font-medium text-foreground" : "text-sm text-muted-foreground"}
                     >
                       {value}
                     </TableCell>
@@ -732,9 +732,9 @@ function ReportTable<T>({
 function InventorySummary({ insight }: { insight: PartnerInsight }) {
   const inventory = insight.inventory;
   return (
-    <Card className="border-white/10 bg-white/[0.03]">
+    <Card className="border-border bg-muted">
       <CardHeader>
-        <CardTitle className="text-base text-white">Inventory</CardTitle>
+        <CardTitle className="text-base text-foreground">Inventory</CardTitle>
       </CardHeader>
       <CardContent className="grid gap-3 sm:grid-cols-2">
         <DetailBox label="Products" value={inventory?.totalProducts || 0} />
@@ -761,9 +761,9 @@ function RiderPerformance({ insight }: { insight: PartnerInsight }) {
   const performance = insight.riderPerformance;
   return (
     <div className="grid gap-4 xl:grid-cols-2">
-      <Card className="border-white/10 bg-white/[0.03]">
+      <Card className="border-border bg-muted">
         <CardHeader>
-          <CardTitle className="text-base text-white">Delivery performance</CardTitle>
+          <CardTitle className="text-base text-foreground">Delivery performance</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-3 sm:grid-cols-2">
           <DetailBox label="Total payout" value={`Rs. ${formatAmount(performance?.totalPayout || 0)}`} />
@@ -838,7 +838,7 @@ function RecordPayoutDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="border-white/10 bg-[#1c1c1c] text-white sm:max-w-lg">
+      <DialogContent className="border-border bg-card text-foreground sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Record Payout</DialogTitle>
         </DialogHeader>
@@ -877,7 +877,7 @@ function RecordPayoutDialog({
             placeholder="Internal note"
             className={textareaClass}
           />
-          <DialogFooter className="border-white/10 bg-transparent">
+          <DialogFooter className="border-border bg-transparent">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
@@ -925,7 +925,7 @@ function SettleCodDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="border-white/10 bg-[#1c1c1c] text-white sm:max-w-lg">
+      <DialogContent className="border-border bg-card text-foreground sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Settle COD Liability</DialogTitle>
         </DialogHeader>
@@ -953,7 +953,7 @@ function SettleCodDialog({
             placeholder="Settlement note"
             className={textareaClass}
           />
-          <DialogFooter className="border-white/10 bg-transparent">
+          <DialogFooter className="border-border bg-transparent">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
@@ -978,16 +978,16 @@ function PartnerMetric({
   tone?: "slate" | "emerald" | "cyan" | "amber";
 }) {
   const toneClass = {
-    slate: "text-white",
+    slate: "text-foreground",
     emerald: "text-emerald-200",
     cyan: "text-cyan-200",
     amber: "text-amber-200",
   }[tone];
 
   return (
-    <Card className="border-white/10 bg-[#1c1c1c]">
+    <Card className="border-border bg-card">
       <CardContent className="p-4">
-        <div className="text-xs font-medium uppercase text-gray-500">{label}</div>
+        <div className="text-xs font-medium uppercase text-muted-foreground">{label}</div>
         <div className={cn("mt-2 text-2xl font-semibold", toneClass)}>{value}</div>
       </CardContent>
     </Card>
@@ -996,29 +996,29 @@ function PartnerMetric({
 
 function DetailBox({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="rounded-lg border border-white/10 bg-black/20 p-3">
-      <div className="text-xs font-medium uppercase text-gray-500">{label}</div>
-      <div className="mt-1 break-words text-sm font-medium text-white">{value}</div>
+    <div className="rounded-lg border border-border bg-muted p-3">
+      <div className="text-xs font-medium uppercase text-muted-foreground">{label}</div>
+      <div className="mt-1 break-words text-sm font-medium text-foreground">{value}</div>
     </div>
   );
 }
 
 function PartnerProfileCell({ kind, profile }: { kind: PartnerKind; profile?: PartnerProfile | null }) {
-  if (!profile) return <span className="text-xs text-gray-500">Missing profile</span>;
+  if (!profile) return <span className="text-xs text-muted-foreground">Missing profile</span>;
   if (kind === "seller") {
     return (
       <div className="space-y-1 text-sm">
-        <div className="text-white">{profile.businessName || "Business"}</div>
-        <div className="text-xs text-gray-500">{profile.mallName || "Independent seller"}</div>
-        <div className="text-xs text-gray-500">{profile.store?.name || "Store not configured"}</div>
+        <div className="text-foreground">{profile.businessName || "Business"}</div>
+        <div className="text-xs text-muted-foreground">{profile.mallName || "Independent seller"}</div>
+        <div className="text-xs text-muted-foreground">{profile.store?.name || "Store not configured"}</div>
       </div>
     );
   }
   return (
     <div className="space-y-1 text-sm">
-      <div className="text-white">{[profile.vehicleType, profile.vehicleNumber].filter(Boolean).join(" / ") || "Vehicle not set"}</div>
-      <div className="text-xs text-gray-500">{profile.licenseNumber || "License not set"}</div>
-      <div className="text-xs text-gray-500">{profile.address?.city || "City not set"}</div>
+      <div className="text-foreground">{[profile.vehicleType, profile.vehicleNumber].filter(Boolean).join(" / ") || "Vehicle not set"}</div>
+      <div className="text-xs text-muted-foreground">{profile.licenseNumber || "License not set"}</div>
+      <div className="text-xs text-muted-foreground">{profile.address?.city || "City not set"}</div>
     </div>
   );
 }
@@ -1031,7 +1031,7 @@ function PartnerStatusBadge({ status }: { status?: string }) {
         ? "border-amber-400/30 text-amber-300"
         : status === "REJECTED"
           ? "border-red-400/30 text-red-300"
-          : "border-white/10 text-gray-300";
+          : "border-border text-muted-foreground";
   return (
     <Badge variant="outline" className={className}>
       {status || "UNKNOWN"}

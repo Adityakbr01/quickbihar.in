@@ -120,8 +120,8 @@ export function SellerProductsPanel({
         columns={["Product", "Category", "Price", "Stock", "Approval", "Actions"]}
         rows={(productsQuery.data?.data || []).map((product) => [
           <div key={`${product._id}-title`} className="min-w-48">
-            <div className="font-medium text-white">{product.title}</div>
-            <div className="text-xs text-gray-500">
+            <div className="font-medium text-foreground">{product.title}</div>
+            <div className="text-xs text-muted-foreground">
               {product.brand || product.details?.sku || product.slug}
             </div>
           </div>,
@@ -141,7 +141,7 @@ export function SellerProductsPanel({
                 <Button
                   size="sm"
                   variant="outline"
-                  className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+                  className="border-border bg-muted text-foreground hover:bg-muted"
                 >
                   Edit
                 </Button>
@@ -399,7 +399,7 @@ function ProductDialog({
   return (
     <Dialog open={open} onOpenChange={changeOpen}>
       <DialogTrigger render={trigger as never} />
-      <DialogContent className="max-h-[90vh] overflow-y-auto border-white/10 bg-[#1c1c1c] text-white sm:max-w-5xl">
+      <DialogContent className="max-h-[90vh] overflow-y-auto border-border bg-card text-foreground sm:max-w-5xl">
         <DialogHeader>
           <DialogTitle>{product ? "Edit Product" : "Create Product"}</DialogTitle>
         </DialogHeader>
@@ -436,7 +436,7 @@ function ProductDialog({
             </label>
             <label className={labelClass}>
               Subcategory
-              <span className="text-[10px] normal-case text-gray-500">Optional</span>
+              <span className="text-[10px] normal-case text-muted-foreground">Optional</span>
               <select
                 name="subCategory"
                 value={subCategory}
@@ -454,7 +454,7 @@ function ProductDialog({
             </label>
             <label className={labelClass}>
               Gender
-              <span className="text-[10px] normal-case text-gray-500">Optional</span>
+              <span className="text-[10px] normal-case text-muted-foreground">Optional</span>
               <select
                 name="gender"
                 value={gender}
@@ -509,18 +509,18 @@ function ProductDialog({
                   {priceError}
                 </div>
               )}
-              <div className="md:col-span-2 grid gap-3 rounded-lg border border-white/10 bg-black/20 p-3 text-xs text-gray-300">
+              <div className="md:col-span-2 grid gap-3 rounded-lg border border-border bg-muted p-3 text-xs text-muted-foreground">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <span className="font-semibold text-white">Seller net estimate</span>
-                  <span className="text-gray-400">Hybrid marketplace model</span>
+                  <span className="font-semibold text-foreground">Seller net estimate</span>
+                  <span className="text-muted-foreground">Hybrid marketplace model</span>
                 </div>
                 <div className="grid gap-2 md:grid-cols-3">
-                  <div className="rounded border border-white/10 bg-white/[0.03] px-3 py-2">
-                    <div className="text-gray-500">Selling price</div>
-                    <div className="mt-1 font-semibold text-white">Rs. {formatAmount(sellingPriceNumber)}</div>
+                  <div className="rounded border border-border bg-muted px-3 py-2">
+                    <div className="text-muted-foreground">Selling price</div>
+                    <div className="mt-1 font-semibold text-foreground">Rs. {formatAmount(sellingPriceNumber)}</div>
                   </div>
-                  <div className="rounded border border-white/10 bg-white/[0.03] px-3 py-2">
-                    <div className="text-gray-500">Commission ({commissionPercent}%)</div>
+                  <div className="rounded border border-border bg-muted px-3 py-2">
+                    <div className="text-muted-foreground">Commission ({commissionPercent}%)</div>
                     <div className="mt-1 font-semibold text-amber-200">- Rs. {formatAmount(estimatedCommission)}</div>
                   </div>
                   <div className="rounded border border-emerald-400/20 bg-emerald-500/10 px-3 py-2">
@@ -532,12 +532,12 @@ function ProductDialog({
                   Delivery rider payout is funded from visible customer delivery/dynamic charges plus platform commission. It is not added as a hidden seller deduction.
                 </div>
                 <div className="grid gap-2 md:grid-cols-4">
-                  <div className="rounded border border-white/10 px-3 py-2">0-3 km: Rs. {formatAmount(payoutRules.upto3Km ?? 20)}</div>
-                  <div className="rounded border border-white/10 px-3 py-2">3-5 km: Rs. {formatAmount(payoutRules.upto5Km ?? 30)}</div>
-                  <div className="rounded border border-white/10 px-3 py-2">5-8 km: Rs. {formatAmount(payoutRules.upto8Km ?? 45)}</div>
-                  <div className="rounded border border-white/10 px-3 py-2">After 8 km: +Rs. {formatAmount(payoutRules.extraPerKmAfter8 ?? 5)}/km</div>
+                  <div className="rounded border border-border px-3 py-2">0-3 km: Rs. {formatAmount(payoutRules.upto3Km ?? 20)}</div>
+                  <div className="rounded border border-border px-3 py-2">3-5 km: Rs. {formatAmount(payoutRules.upto5Km ?? 30)}</div>
+                  <div className="rounded border border-border px-3 py-2">5-8 km: Rs. {formatAmount(payoutRules.upto8Km ?? 45)}</div>
+                  <div className="rounded border border-border px-3 py-2">After 8 km: +Rs. {formatAmount(payoutRules.extraPerKmAfter8 ?? 5)}/km</div>
                 </div>
-                <div className="grid gap-2 md:grid-cols-4 text-gray-400">
+                <div className="grid gap-2 md:grid-cols-4 text-muted-foreground">
                   <div>Rain bonus: Rs. {formatAmount(bonusRules.rainBonus ?? 0)}</div>
                   <div>Peak bonus: Rs. {formatAmount(bonusRules.peakBonus ?? 0)}</div>
                   <div>Festival bonus: Rs. {formatAmount(bonusRules.festivalBonus ?? 0)}</div>
@@ -545,7 +545,7 @@ function ProductDialog({
                 </div>
               </div>
             </div>
-            <label className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-gray-300">
+            <label className="flex items-center gap-2 rounded-lg border border-border bg-muted px-3 py-2 text-sm text-muted-foreground">
               <input name="isGstApplicable" type="checkbox" defaultChecked={Boolean(product?.isGstApplicable)} />
               GST Applicable
             </label>
@@ -592,11 +592,11 @@ function ProductDialog({
             />
             <Field name="description" label="Full Description" defaultValue={product?.description} optional />
           </div>
-          <section className="grid gap-3 rounded-lg border border-white/10 bg-white/[0.03] p-3">
+          <section className="grid gap-3 rounded-lg border border-border bg-muted p-3">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <div className="text-sm font-medium text-white">Media</div>
-                <div className="text-xs text-gray-500">
+                <div className="text-sm font-medium text-foreground">Media</div>
+                <div className="text-xs text-muted-foreground">
                   {totalImages}/5 images selected. At least one image is required.
                 </div>
               </div>
@@ -604,7 +604,7 @@ function ProductDialog({
                 type="file"
                 multiple
                 accept="image/*"
-                className="max-w-xs border-white/10 bg-white/5 text-white"
+                className="max-w-xs border-border bg-muted text-foreground"
                 onChange={chooseImages}
                 disabled={totalImages >= 5}
               />
@@ -614,13 +614,13 @@ function ProductDialog({
               {existingImages.map((image, index) => (
                 <div
                   key={`${image.fileId}-${index}`}
-                  className="flex items-center justify-between gap-3 rounded border border-white/10 bg-black/20 px-3 py-2 text-xs text-gray-300"
+                  className="flex items-center justify-between gap-3 rounded border border-border bg-muted px-3 py-2 text-xs text-muted-foreground"
                 >
                   <div className="flex items-center gap-2 overflow-hidden flex-1">
                     <img
                       src={image.url}
                       alt="Product Preview"
-                      className="h-10 w-10 rounded object-cover border border-white/10"
+                      className="h-10 w-10 rounded object-cover border border-border"
                     />
                     <span className="truncate">{image.url}</span>
                   </div>
@@ -640,13 +640,13 @@ function ProductDialog({
                 return (
                   <div
                     key={`${image.name}-${index}`}
-                    className="flex items-center justify-between gap-3 rounded border border-white/10 bg-black/20 px-3 py-2 text-xs text-gray-300"
+                    className="flex items-center justify-between gap-3 rounded border border-border bg-muted px-3 py-2 text-xs text-muted-foreground"
                   >
                     <div className="flex items-center gap-2 overflow-hidden flex-1">
                       <img
                         src={previewUrl}
                         alt="New Preview"
-                        className="h-10 w-10 rounded object-cover border border-white/10"
+                        className="h-10 w-10 rounded object-cover border border-border"
                       />
                       <span className="truncate">{image.name}</span>
                     </div>
@@ -670,8 +670,8 @@ function ProductDialog({
 
           <SellerVariantEditor variants={variants} onChange={setVariants} />
 
-          <section className="grid gap-3 rounded-lg border border-white/10 bg-white/[0.03] p-3">
-            <div className="text-sm font-medium text-white">Size Chart</div>
+          <section className="grid gap-3 rounded-lg border border-border bg-muted p-3">
+            <div className="text-sm font-medium text-foreground">Size Chart</div>
             <select
               value={sizeChartId}
               onChange={(event) => setSizeChartId(event.target.value)}
@@ -692,9 +692,9 @@ function ProductDialog({
             {selectedChart && <SizeChartPreview chart={selectedChart} />}
           </section>
 
-          <section className="grid gap-3 rounded-lg border border-white/10 bg-white/[0.03] p-3">
-            <div className="text-sm font-medium text-white">Policies</div>
-            <div className="text-xs text-gray-500">
+          <section className="grid gap-3 rounded-lg border border-border bg-muted p-3">
+            <div className="text-sm font-medium text-foreground">Policies</div>
+            <div className="text-xs text-muted-foreground">
               Select admin-approved policies for return, refund, shipping, and terms.
             </div>
             <div className="grid gap-3 md:grid-cols-2">
@@ -772,14 +772,14 @@ function ProductDialog({
             </div>
           </section>
 
-          <section className="grid gap-3 rounded-lg border border-white/10 bg-white/[0.03] p-3">
-            <div className="text-sm font-medium text-white">Delivery & Compliance</div>
+          <section className="grid gap-3 rounded-lg border border-border bg-muted p-3">
+            <div className="text-sm font-medium text-foreground">Delivery & Compliance</div>
             <div className="grid gap-3 md:grid-cols-3">
-              <div className="flex items-center justify-between rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-sm text-gray-300 h-9">
+              <div className="flex items-center justify-between rounded-lg border border-border bg-muted px-3 py-2 text-sm text-muted-foreground h-9">
                 <span>Express Delivery</span>
                 <Switch checked={isExpressAvailable} onCheckedChange={setIsExpressAvailable} />
               </div>
-              <div className="flex items-center justify-between rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-sm text-gray-300 h-9">
+              <div className="flex items-center justify-between rounded-lg border border-border bg-muted px-3 py-2 text-sm text-muted-foreground h-9">
                 <span>COD Available</span>
                 <Switch checked={isCodAvailable} onCheckedChange={setIsCodAvailable} />
               </div>
@@ -816,8 +816,8 @@ function ProductDialog({
               />
             </div>
           </section>
-          <section className="grid gap-3 rounded-lg border border-white/10 bg-white/[0.03] p-3">
-            <div className="text-sm font-medium text-white">Specifications</div>
+          <section className="grid gap-3 rounded-lg border border-border bg-muted p-3">
+            <div className="text-sm font-medium text-foreground">Specifications</div>
             <div className="grid gap-3 md:grid-cols-3">
               <Field name="fit" label="Fit" defaultValue={product?.details?.fit} optional />
               <Field name="pattern" label="Pattern" defaultValue={product?.details?.pattern} optional />
@@ -827,7 +827,7 @@ function ProductDialog({
               <Field name="washCare" label="Wash Care" defaultValue={product?.details?.washCare} optional />
             </div>
           </section>
-          <DialogFooter className="border-white/10 bg-white/[0.03] gap-2">
+          <DialogFooter className="border-border bg-muted gap-2">
             <Button
               type="button"
               variant="outline"
@@ -881,11 +881,11 @@ function SellerVariantEditor({
   };
 
   return (
-    <section className="grid gap-3 rounded-lg border border-white/10 bg-white/[0.03] p-3">
+    <section className="grid gap-3 rounded-lg border border-border bg-muted p-3">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <div className="text-sm font-medium text-white">Product Variants</div>
-          <div className="text-xs text-gray-500">
+          <div className="text-sm font-medium text-foreground">Product Variants</div>
+          <div className="text-xs text-muted-foreground">
             Size, color, and stock are required. SKU can stay blank for auto-generation.
           </div>
         </div>
@@ -893,7 +893,7 @@ function SellerVariantEditor({
           type="button"
           size="sm"
           variant="outline"
-          className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+          className="border-border bg-muted text-foreground hover:bg-muted"
           onClick={() => onChange([...variants, { size: "", color: "", stock: 0, sku: "" }])}
         >
           <Plus className="h-3.5 w-3.5" />
@@ -926,7 +926,7 @@ function SellerVariantEditor({
           </label>
           <label className={labelClass}>
             Variant Price
-            <span className="text-[10px] normal-case text-gray-500">Optional</span>
+            <span className="text-[10px] normal-case text-muted-foreground">Optional</span>
             <Input
               value={variant.price ?? ""}
               onChange={(event) => update(index, "price", event.target.value)}
@@ -951,7 +951,7 @@ function SellerVariantEditor({
           </label>
           <label className={labelClass}>
             Variant SKU
-            <span className="text-[10px] normal-case text-gray-500">Auto-generated</span>
+            <span className="text-[10px] normal-case text-muted-foreground">Auto-generated</span>
             <Input
               value={variant.sku || ""}
               disabled
@@ -984,14 +984,14 @@ function SizeChartPreview({ chart }: { chart: SellerSizeChart }) {
   const rows = (chart.data || []).slice(0, 5);
 
   return (
-    <div className="overflow-hidden rounded-lg border border-white/10 bg-black/20">
-      <div className="border-b border-white/10 px-3 py-2 text-xs text-gray-400">
+    <div className="overflow-hidden rounded-lg border border-border bg-muted">
+      <div className="border-b border-border px-3 py-2 text-xs text-muted-foreground">
         {chart.name} - {chart.category} - {chart.unit}
       </div>
       {rows.length > 0 && fields.length > 0 ? (
         <div className="overflow-x-auto">
           <table className="min-w-full text-left text-xs">
-            <thead className="bg-white/[0.03] text-gray-400">
+            <thead className="bg-muted text-muted-foreground">
               <tr>
                 {fields.map((field) => (
                   <th key={field} className="px-3 py-2 font-medium">
@@ -1002,7 +1002,7 @@ function SizeChartPreview({ chart }: { chart: SellerSizeChart }) {
             </thead>
             <tbody>
               {rows.map((row, index) => (
-                <tr key={index} className="border-t border-white/10 text-gray-300">
+                <tr key={index} className="border-t border-border text-muted-foreground">
                   {fields.map((field) => (
                     <td key={field} className="px-3 py-2">
                       {String(row[field] ?? "-")}
@@ -1014,7 +1014,7 @@ function SizeChartPreview({ chart }: { chart: SellerSizeChart }) {
           </table>
         </div>
       ) : (
-        <div className="px-3 py-2 text-xs text-gray-500">No preview rows available.</div>
+        <div className="px-3 py-2 text-xs text-muted-foreground">No preview rows available.</div>
       )}
     </div>
   );

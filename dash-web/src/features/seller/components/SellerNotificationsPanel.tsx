@@ -35,8 +35,8 @@ export function SellerNotificationsPanel() {
         columns={["Notification", "Type", "Severity", "Date", "Action"]}
         rows={(notificationsQuery.data?.data || []).map((notification) => [
           <div key={`${notification._id}-note`} className="min-w-64">
-            <div className="font-medium text-white">{notification.title}</div>
-            <div className="text-xs text-gray-500">{notification.message}</div>
+            <div className="font-medium text-foreground">{notification.title}</div>
+            <div className="text-xs text-muted-foreground">{notification.message}</div>
           </div>,
           notification.type,
           <StatusBadge key={`${notification._id}-severity`} label={notification.severity} />,

@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" class="dark">
+<html lang="en">
 
 <head>
   <meta charset="UTF-8" />
@@ -25,10 +25,15 @@
     href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,600;1,700&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Space+Grotesk:wght@500;600;700&display=swap"
     rel="stylesheet" />
   <script>
-    // Keep the dark theme applied before first paint (replaces next/font + layout dark class).
+    // Apply the stored theme before first paint (mirrors next-themes:
+    // storageKey "theme", default follows the OS).
+    // Prevents a dark/light flash while the bundle loads.
     try {
-      document.documentElement.classList.add("dark");
-    } catch { }
+      var s = localStorage.getItem("theme") || "system";
+      var d = s === "dark" || (s === "system" && matchMedia("(prefers-color-scheme: dark)").matches);
+      document.documentElement.classList.toggle("dark", d);
+      document.documentElement.style.colorScheme = d ? "dark" : "light";
+    } catch (e) {}
   </script>
 </head>
 

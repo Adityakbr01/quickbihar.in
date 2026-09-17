@@ -49,8 +49,8 @@ export function SellerSizeChartsPanel() {
         columns={["Chart", "Fields", "Scope", "Approval", "Actions"]}
         rows={(chartsQuery.data?.data || []).map((chart) => [
           <div key={`${chart._id}-chart`}>
-            <div className="font-medium text-white">{chart.name}</div>
-            <div className="text-xs text-gray-500">
+            <div className="font-medium text-foreground">{chart.name}</div>
+            <div className="text-xs text-muted-foreground">
               {chart.category} / {chart.unit}
             </div>
           </div>,
@@ -109,13 +109,13 @@ function AssignSizeChartDialog({
           <Button
             size="sm"
             variant="outline"
-            className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+            className="border-border bg-muted text-foreground hover:bg-muted"
           >
             Assign
           </Button>
         }
       />
-      <DialogContent className="border-white/10 bg-[#1c1c1c] text-white sm:max-w-2xl">
+      <DialogContent className="border-border bg-card text-foreground sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>Assign Products to Size Chart</DialogTitle>
         </DialogHeader>
@@ -124,7 +124,7 @@ function AssignSizeChartDialog({
             products.map((product) => (
               <label
                 key={product._id}
-                className="flex items-center gap-3 rounded-lg border border-white/10 bg-white/[0.03] p-3 text-sm cursor-pointer select-none"
+                className="flex items-center gap-3 rounded-lg border border-border bg-muted p-3 text-sm cursor-pointer select-none"
               >
                 <input
                   type="checkbox"
@@ -135,10 +135,10 @@ function AssignSizeChartDialog({
               </label>
             ))
           ) : (
-            <div className="text-center text-sm text-gray-500 py-6">No products found to assign.</div>
+            <div className="text-center text-sm text-muted-foreground py-6">No products found to assign.</div>
           )}
         </div>
-        <DialogFooter className="border-white/10 bg-white/[0.03] gap-2">
+        <DialogFooter className="border-border bg-muted gap-2">
           <Button variant="outline" onClick={() => setOpen(false)} disabled={isPending}>
             Cancel
           </Button>

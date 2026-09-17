@@ -150,7 +150,7 @@ export function SellerInventoryPanel({
         filters={
           <div className="flex flex-wrap items-center gap-2">
             <div className="relative">
-              <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
+              <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 value={params.search || ""}
                 onChange={(event) =>
@@ -160,15 +160,15 @@ export function SellerInventoryPanel({
                 className={cn(inputClass, "w-52 pl-8")}
               />
             </div>
-            <div className="flex rounded-lg border border-white/10 bg-black/20 p-1">
+            <div className="flex rounded-lg border border-border bg-muted p-1">
               {statusFilters.map((filter) => (
                 <button
                   key={filter.value}
                   type="button"
                   onClick={() => setStatus(filter.value)}
                   className={cn(
-                    "h-8 rounded-md px-3 text-xs font-medium text-gray-400 transition hover:text-white",
-                    (params.status || "ALL") === filter.value && "bg-white text-black hover:text-black",
+                    "h-8 rounded-md px-3 text-xs font-medium text-muted-foreground transition hover:text-foreground",
+                    (params.status || "ALL") === filter.value && "bg-primary text-primary-foreground hover:text-primary-foreground",
                   )}
                 >
                   {filter.label}
@@ -177,7 +177,7 @@ export function SellerInventoryPanel({
             </div>
             <Button
               variant="outline"
-              className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+              className="border-border bg-muted text-foreground hover:bg-muted"
               onClick={() => inventoryQuery.refetch()}
             >
               <RefreshCcw className="h-4 w-4" />
@@ -187,7 +187,7 @@ export function SellerInventoryPanel({
       >
         <div className="grid gap-3">
           {inventoryQuery.isLoading ? (
-            <div className="py-10 text-center text-sm text-gray-400">Loading inventory...</div>
+            <div className="py-10 text-center text-sm text-muted-foreground">Loading inventory...</div>
           ) : products.length ? (
             products.map((product) => (
               <InventoryProductRow
@@ -248,25 +248,25 @@ function InventoryProductRow({
       type="button"
       onClick={onSelect}
       className={cn(
-        "grid gap-3 rounded-lg border border-white/10 bg-white/[0.03] p-3 text-left transition hover:border-emerald-400/30 hover:bg-white/[0.05] md:grid-cols-[56px_minmax(0,1fr)_auto]",
+        "grid gap-3 rounded-lg border border-border bg-muted p-3 text-left transition hover:border-emerald-400/30 hover:bg-muted md:grid-cols-[56px_minmax(0,1fr)_auto]",
         selected && "border-emerald-400/40 bg-emerald-400/10 ring-1 ring-emerald-400/20",
       )}
     >
-      <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-lg border border-white/10 bg-black/30">
+      <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-lg border border-border bg-muted">
         {primaryImage ? (
           <img src={primaryImage} alt={product.title} className="h-full w-full object-cover" />
         ) : (
-          <PackageSearch className="h-5 w-5 text-gray-500" />
+          <PackageSearch className="h-5 w-5 text-muted-foreground" />
         )}
       </div>
 
       <div className="min-w-0">
         <div className="flex flex-wrap items-center gap-2">
-          <div className="truncate text-sm font-semibold text-white">{product.title}</div>
+          <div className="truncate text-sm font-semibold text-foreground">{product.title}</div>
           <StatusBadge label={product.approvalStatus || "APPROVED"} />
           <StatusBadge label={product.isActive === false ? "INACTIVE" : "ACTIVE"} />
         </div>
-        <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500">
+        <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
           <span>{product.brand || "Brand not set"}</span>
           <span>{[product.category, product.subCategory].filter(Boolean).join(" / ") || "Category"}</span>
           <span>{product.variants.length} variants</span>
@@ -277,13 +277,13 @@ function InventoryProductRow({
             <Badge
               key={variant.sku || `${variant.size}-${variant.color}`}
               variant="outline"
-              className="border-white/10 bg-black/20 text-[11px] text-gray-300"
+              className="border-border bg-muted text-[11px] text-muted-foreground"
             >
               {variantLabel(variant)}: {variant.stock}
             </Badge>
           ))}
           {product.variants.length > 4 && (
-            <Badge variant="outline" className="border-white/10 text-[11px] text-gray-400">
+            <Badge variant="outline" className="border-border text-[11px] text-muted-foreground">
               +{product.variants.length - 4}
             </Badge>
           )}
@@ -291,7 +291,7 @@ function InventoryProductRow({
       </div>
 
       <div className="flex items-center justify-between gap-4 md:block md:text-right">
-        <div className="text-2xl font-semibold text-white">{totalStock}</div>
+        <div className="text-2xl font-semibold text-foreground">{totalStock}</div>
         <div
           className={cn(
             "mt-1 inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-semibold",
@@ -336,9 +336,9 @@ function StockEditor({
   const canSave = Boolean(product && variant?.sku);
 
   return (
-    <Card className="border-white/10 bg-[#1c1c1c]">
-      <CardHeader className="border-b border-white/10">
-        <CardTitle className="flex items-center gap-2 text-base text-white">
+    <Card className="border-border bg-card">
+      <CardHeader className="border-b border-border">
+        <CardTitle className="flex items-center gap-2 text-base text-foreground">
           <Warehouse className="h-4 w-4 text-emerald-300" />
           Stock Editor
         </CardTitle>
@@ -346,9 +346,9 @@ function StockEditor({
       <CardContent className="grid gap-4 pt-4">
         {product && variant ? (
           <form onSubmit={onSubmit} className="grid gap-4">
-            <div className="rounded-lg border border-white/10 bg-white/[0.03] p-3">
-              <div className="text-sm font-semibold text-white">{product.title}</div>
-              <div className="mt-1 text-xs text-gray-500">{product._id}</div>
+            <div className="rounded-lg border border-border bg-muted p-3">
+              <div className="text-sm font-semibold text-foreground">{product.title}</div>
+              <div className="mt-1 text-xs text-muted-foreground">{product._id}</div>
             </div>
 
             <label className={labelClass}>
@@ -366,7 +366,7 @@ function StockEditor({
               </select>
             </label>
 
-            <div className="grid gap-3 rounded-lg border border-white/10 bg-black/20 p-3 md:grid-cols-3">
+            <div className="grid gap-3 rounded-lg border border-border bg-muted p-3 md:grid-cols-3">
               <StockInfo label="Current" value={variant.stock || 0} />
               <StockInfo label="New" value={draftStock} strong />
               <StockInfo label="Delta" value={draftStock - (variant.stock || 0)} />
@@ -385,16 +385,16 @@ function StockEditor({
             </label>
 
             <div className="grid grid-cols-5 gap-2">
-              <Button type="button" variant="outline" className="border-white/10 bg-white/5 text-white" onClick={() => onAdjust(-1)}>
+              <Button type="button" variant="outline" className="border-border bg-muted text-foreground" onClick={() => onAdjust(-1)}>
                 <Minus className="h-4 w-4" />
               </Button>
-              <Button type="button" variant="outline" className="border-white/10 bg-white/5 text-white" onClick={() => onAdjust(1)}>
+              <Button type="button" variant="outline" className="border-border bg-muted text-foreground" onClick={() => onAdjust(1)}>
                 <Plus className="h-4 w-4" />
               </Button>
-              <Button type="button" variant="outline" className="border-white/10 bg-white/5 text-white" onClick={() => onAdjust(5)}>
+              <Button type="button" variant="outline" className="border-border bg-muted text-foreground" onClick={() => onAdjust(5)}>
                 +5
               </Button>
-              <Button type="button" variant="outline" className="border-white/10 bg-white/5 text-white" onClick={() => onDraftStockChange(0)}>
+              <Button type="button" variant="outline" className="border-border bg-muted text-foreground" onClick={() => onDraftStockChange(0)}>
                 Set 0
               </Button>
               <Button type="button" variant="outline" className="border-emerald-400/30 bg-emerald-400/10 text-emerald-200" onClick={() => onDraftStockChange(Math.max(draftStock, 20))}>
@@ -436,9 +436,9 @@ function StockInfo({
   strong?: boolean;
 }) {
   return (
-    <div className="rounded border border-white/10 bg-white/[0.03] px-3 py-2">
-      <div className="text-[11px] font-medium uppercase text-gray-500">{label}</div>
-      <div className={cn("mt-1 text-lg font-semibold text-gray-200", strong && "text-emerald-300")}>
+    <div className="rounded border border-border bg-muted px-3 py-2">
+      <div className="text-[11px] font-medium uppercase text-muted-foreground">{label}</div>
+      <div className={cn("mt-1 text-lg font-semibold text-foreground", strong && "text-emerald-300")}>
         {value > 0 && label === "Delta" ? `+${value}` : value}
       </div>
     </div>
@@ -455,13 +455,13 @@ function MovementHistory({
   sku: string;
 }) {
   return (
-    <Card className="border-white/10 bg-[#1c1c1c]">
-      <CardHeader className="border-b border-white/10">
-        <CardTitle className="text-base text-white">Movements</CardTitle>
+    <Card className="border-border bg-card">
+      <CardHeader className="border-b border-border">
+        <CardTitle className="text-base text-foreground">Movements</CardTitle>
       </CardHeader>
       <CardContent className="grid gap-2 pt-4">
         {loading ? (
-          <div className="py-6 text-center text-sm text-gray-400">Loading movements...</div>
+          <div className="py-6 text-center text-sm text-muted-foreground">Loading movements...</div>
         ) : movements.length ? (
           movements.map((movement) => <MovementRow key={movement._id} movement={movement} />)
         ) : (
@@ -477,24 +477,24 @@ function MovementRow({ movement }: { movement: SellerInventoryMovement }) {
   const neutral = movement.quantity === 0;
 
   return (
-    <div className="rounded-lg border border-white/10 bg-white/[0.03] p-3">
+    <div className="rounded-lg border border-border bg-muted p-3">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
             <StatusBadge label={movement.movementType} />
-            <span className="truncate text-xs text-gray-400">{movement.variantLabel || movement.sku}</span>
+            <span className="truncate text-xs text-muted-foreground">{movement.variantLabel || movement.sku}</span>
           </div>
-          <div className="mt-1 text-xs text-gray-500">
+          <div className="mt-1 text-xs text-muted-foreground">
             {movement.previousStock} &gt {movement.newStock}
             {movement.reason ? ` - ${movement.reason}` : ""}
           </div>
         </div>
-        <div className={cn("text-sm font-semibold", positive && "text-emerald-300", !positive && !neutral && "text-red-300", neutral && "text-gray-300")}>
+        <div className={cn("text-sm font-semibold", positive && "text-emerald-300", !positive && !neutral && "text-red-300", neutral && "text-muted-foreground")}>
           {positive ? "+" : ""}
           {movement.quantity}
         </div>
       </div>
-      <div className="mt-2 text-[11px] text-gray-500">{formatDate(movement.createdAt)}</div>
+      <div className="mt-2 text-[11px] text-muted-foreground">{formatDate(movement.createdAt)}</div>
     </div>
   );
 }

@@ -69,39 +69,39 @@ export function SizeChartManagementPanel() {
         }
       />
 
-      <Card className="border-white/10 bg-[#1c1c1c]">
+      <Card className="border-border bg-card">
         <CardContent className="px-0">
           {chartsQuery.isLoading && <LoadingState label="Loading size charts..." />}
           {!chartsQuery.isLoading && !filteredCharts.length && <EmptyState label="No size charts found." />}
           {!chartsQuery.isLoading && Boolean(filteredCharts.length) && (
             <Table>
               <TableHeader>
-                <TableRow className="border-white/10 hover:bg-transparent">
-                  <TableHead className="px-4 text-gray-400">Name</TableHead>
-                  <TableHead className="text-gray-400">Category</TableHead>
-                  <TableHead className="text-gray-400">Unit</TableHead>
-                  <TableHead className="text-gray-400">Fields</TableHead>
-                  <TableHead className="text-gray-400">Updated</TableHead>
-                  <TableHead className="text-right text-gray-400">Actions</TableHead>
+                <TableRow className="border-border hover:bg-transparent">
+                  <TableHead className="px-4 text-muted-foreground">Name</TableHead>
+                  <TableHead className="text-muted-foreground">Category</TableHead>
+                  <TableHead className="text-muted-foreground">Unit</TableHead>
+                  <TableHead className="text-muted-foreground">Fields</TableHead>
+                  <TableHead className="text-muted-foreground">Updated</TableHead>
+                  <TableHead className="text-right text-muted-foreground">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredCharts.map((chart) => (
-                  <TableRow key={chart._id} className="border-white/10 hover:bg-white/[0.03]">
+                  <TableRow key={chart._id} className="border-border hover:bg-muted">
                     <TableCell className="px-4">
-                      <div className="font-medium text-white">{chart.name}</div>
-                      <div className="text-xs text-gray-500">{(chart as any).scope || "GLOBAL"}</div>
+                      <div className="font-medium text-foreground">{chart.name}</div>
+                      <div className="text-xs text-muted-foreground">{(chart as any).scope || "GLOBAL"}</div>
                     </TableCell>
-                    <TableCell className="text-sm text-gray-300">{chart.category}</TableCell>
-                    <TableCell className="text-sm text-gray-300">{chart.unit}</TableCell>
-                    <TableCell className="text-sm text-gray-400">{chart.fields?.join(", ") || "-"}</TableCell>
-                    <TableCell className="text-sm text-gray-400">{formatDate((chart as any).updatedAt || (chart as any).createdAt)}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground">{chart.category}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground">{chart.unit}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground">{chart.fields?.join(", ") || "-"}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground">{formatDate((chart as any).updatedAt || (chart as any).createdAt)}</TableCell>
                     <TableCell>
                       <div className="flex justify-end gap-2">
                         <Button
                           size="sm"
                           variant="outline"
-                          className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+                          className="border-border bg-muted text-foreground hover:bg-muted"
                           onClick={() => setEditing(chart)}
                         >
                           <Edit className="h-3.5 w-3.5" />
@@ -128,7 +128,7 @@ export function SizeChartManagementPanel() {
       </Card>
 
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-        <DialogContent className="border-white/10 bg-[#1c1c1c] text-white sm:max-w-xl">
+        <DialogContent className="border-border bg-card text-foreground sm:max-w-xl">
           <DialogHeader>
             <DialogTitle>Create Size Chart</DialogTitle>
           </DialogHeader>
@@ -141,7 +141,7 @@ export function SizeChartManagementPanel() {
       </Dialog>
 
       <Dialog open={Boolean(editing)} onOpenChange={(open) => !open && setEditing(null)}>
-        <DialogContent className="border-white/10 bg-[#1c1c1c] text-white sm:max-w-xl">
+        <DialogContent className="border-border bg-card text-foreground sm:max-w-xl">
           <DialogHeader>
             <DialogTitle>Edit Size Chart</DialogTitle>
           </DialogHeader>
@@ -211,18 +211,18 @@ function SizeChartForm({
   return (
     <form onSubmit={submit} className="grid gap-3 pt-2">
       <div className="grid gap-1">
-        <span className="text-xs font-medium uppercase text-gray-400">Chart Template Name</span>
+        <span className="text-xs font-medium uppercase text-muted-foreground">Chart Template Name</span>
         <Input required value={name} onChange={(e) => setName(e.target.value)} className={inputClass} placeholder="Men's Tops Chart" />
       </div>
 
       <div className="grid gap-3 md:grid-cols-2">
         <div className="grid gap-1">
-          <span className="text-xs font-medium uppercase text-gray-500">Clothing Category</span>
+          <span className="text-xs font-medium uppercase text-muted-foreground">Clothing Category</span>
           <Input required value={category} onChange={(e) => setCategory(e.target.value)} className={inputClass} placeholder="Shirts" />
         </div>
 
         <div className="grid gap-1">
-          <span className="text-xs font-medium uppercase text-gray-500">Measurement Unit</span>
+          <span className="text-xs font-medium uppercase text-muted-foreground">Measurement Unit</span>
           <select value={unit} onChange={(e) => setUnit(e.target.value)} className={selectClass}>
             <option value="inches">Inches (in)</option>
             <option value="cm">Centimeters (cm)</option>
@@ -231,22 +231,22 @@ function SizeChartForm({
       </div>
 
       <div className="grid gap-1">
-        <span className="text-xs font-medium uppercase text-gray-500">Header Columns (Comma separated)</span>
+        <span className="text-xs font-medium uppercase text-muted-foreground">Header Columns (Comma separated)</span>
         <Input required value={fields} onChange={(e) => setFields(e.target.value)} className={inputClass} placeholder="size, chest, length" />
       </div>
 
       <div className="grid gap-1">
-        <span className="text-xs font-medium uppercase text-gray-500">Measurement Tips (Comma separated)</span>
+        <span className="text-xs font-medium uppercase text-muted-foreground">Measurement Tips (Comma separated)</span>
         <Input value={howToMeasure} onChange={(e) => setHowToMeasure(e.target.value)} className={inputClass} placeholder="Measure chest around fullest part..." />
       </div>
 
       <div className="grid gap-1">
-        <span className="text-xs font-medium uppercase text-gray-500">Data Grid (JSON Array)</span>
+        <span className="text-xs font-medium uppercase text-muted-foreground">Data Grid (JSON Array)</span>
         <textarea
           required
           value={data}
           onChange={(e) => setData(e.target.value)}
-          className="min-h-36 rounded-lg border border-white/10 bg-white/5 p-3 text-xs text-white outline-none font-mono"
+          className="min-h-36 rounded-lg border border-border bg-muted p-3 text-xs text-foreground outline-none font-mono"
         />
       </div>
 

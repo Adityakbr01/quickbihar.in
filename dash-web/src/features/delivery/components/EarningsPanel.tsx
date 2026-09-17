@@ -134,11 +134,11 @@ export function EarningsPanel({
   return (
     <div className="grid gap-4 xl:grid-cols-[1fr_380px]">
       <div className="grid gap-4">
-        <Card className="border-white/10 bg-[#1c1c1c]">
+        <Card className="border-border bg-card">
           <CardContent className="flex flex-col gap-3 p-4 md:flex-row md:items-center md:justify-between">
             <div>
-              <div className="text-sm font-medium text-white">Date filter</div>
-              <div className="mt-1 text-xs text-gray-500">
+              <div className="text-sm font-medium text-foreground">Date filter</div>
+              <div className="mt-1 text-xs text-muted-foreground">
                 Timeline and ledger show credit/debit entries for the selected date range.
               </div>
             </div>
@@ -158,7 +158,7 @@ export function EarningsPanel({
               <Button
                 type="button"
                 variant="outline"
-                className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+                className="border-border bg-muted text-foreground hover:bg-muted"
                 onClick={() => {
                   const today = todayInputValue();
                   setDateFrom(today);
@@ -191,14 +191,14 @@ export function EarningsPanel({
           <Metric title="Pending Requests" value={pendingPayouts.length} icon={<WalletCards className="h-4 w-4" />} />
         </section>
 
-        <Card className="border-white/10 bg-[#1c1c1c]">
-          <CardHeader className="gap-3 border-b border-white/10 md:flex-row md:items-center md:justify-between">
+        <Card className="border-border bg-card">
+          <CardHeader className="gap-3 border-b border-border md:flex-row md:items-center md:justify-between">
             <div>
-              <CardTitle className="flex items-center gap-2 text-base text-white">
+              <CardTitle className="flex items-center gap-2 text-base text-foreground">
                 <WalletCards className="h-4 w-4 text-cyan-300" />
                 Earnings Ledger
               </CardTitle>
-              <div className="mt-1 text-xs text-gray-500">
+              <div className="mt-1 text-xs text-muted-foreground">
                 Order-wise credited rider payouts with delivered and credited times.
               </div>
             </div>
@@ -207,27 +207,27 @@ export function EarningsPanel({
             </Badge>
           </CardHeader>
           <CardContent className="px-0">
-            {loading && <div className="px-4 py-10 text-sm text-gray-400">Loading earnings...</div>}
-            {!loading && !(earnings?.ledger || []).length && <div className="px-4 py-10 text-sm text-gray-400">No credited earnings yet.</div>}
+            {loading && <div className="px-4 py-10 text-sm text-muted-foreground">Loading earnings...</div>}
+            {!loading && !(earnings?.ledger || []).length && <div className="px-4 py-10 text-sm text-muted-foreground">No credited earnings yet.</div>}
             {!loading && Boolean((earnings?.ledger || []).length) && (
               <Table>
                 <TableHeader>
-                  <TableRow className="border-white/10 hover:bg-transparent">
-                    <TableHead className="px-4 text-gray-400">Order</TableHead>
-                    <TableHead className="text-gray-400">Customer</TableHead>
-                    <TableHead className="text-gray-400">Amount</TableHead>
-                    <TableHead className="text-gray-400">Delivered</TableHead>
-                    <TableHead className="text-gray-400">Credited</TableHead>
+                  <TableRow className="border-border hover:bg-transparent">
+                    <TableHead className="px-4 text-muted-foreground">Order</TableHead>
+                    <TableHead className="text-muted-foreground">Customer</TableHead>
+                    <TableHead className="text-muted-foreground">Amount</TableHead>
+                    <TableHead className="text-muted-foreground">Delivered</TableHead>
+                    <TableHead className="text-muted-foreground">Credited</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {earnings?.ledger.map((item) => (
-                    <TableRow key={item._id} className="border-white/10 hover:bg-white/[0.03]">
-                      <TableCell className="px-4 font-medium text-white">{item.orderId}</TableCell>
-                      <TableCell className="text-gray-300">{item.customerName || "-"}</TableCell>
-                      <TableCell className="text-white">Rs. {formatAmount(item.amount)}</TableCell>
-                      <TableCell className="text-gray-400">{formatDate(item.deliveredAt)}</TableCell>
-                      <TableCell className="text-gray-400">{formatDate(item.creditedAt)}</TableCell>
+                    <TableRow key={item._id} className="border-border hover:bg-muted">
+                      <TableCell className="px-4 font-medium text-foreground">{item.orderId}</TableCell>
+                      <TableCell className="text-muted-foreground">{item.customerName || "-"}</TableCell>
+                      <TableCell className="text-foreground">Rs. {formatAmount(item.amount)}</TableCell>
+                      <TableCell className="text-muted-foreground">{formatDate(item.deliveredAt)}</TableCell>
+                      <TableCell className="text-muted-foreground">{formatDate(item.creditedAt)}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -236,21 +236,21 @@ export function EarningsPanel({
           </CardContent>
         </Card>
 
-        <Card className="border-white/10 bg-[#1c1c1c]">
-          <CardHeader className="gap-3 border-b border-white/10 md:flex-row md:items-center md:justify-between">
+        <Card className="border-border bg-card">
+          <CardHeader className="gap-3 border-b border-border md:flex-row md:items-center md:justify-between">
             <div>
-              <CardTitle className="flex items-center gap-2 text-base text-white">
+              <CardTitle className="flex items-center gap-2 text-base text-foreground">
                 <History className="h-4 w-4 text-cyan-300" />
                 Full Earnings Timeline
               </CardTitle>
-              <div className="mt-1 text-xs text-gray-500">Only wallet credits and debits for the selected date range.</div>
+              <div className="mt-1 text-xs text-muted-foreground">Only wallet credits and debits for the selected date range.</div>
             </div>
-            <Badge variant="outline" className="border-white/10 text-gray-300">
+            <Badge variant="outline" className="border-border text-muted-foreground">
               {timeline.length} events
             </Badge>
           </CardHeader>
           <CardContent>
-            {loading && <div className="py-10 text-sm text-gray-400">Loading timeline...</div>}
+            {loading && <div className="py-10 text-sm text-muted-foreground">Loading timeline...</div>}
             {!loading && !timeline.length && <EmptyState label="No credit or debit entries for this date range." />}
             {!loading && Boolean(timeline.length) && (
               <div className="grid gap-3">
@@ -262,43 +262,43 @@ export function EarningsPanel({
           </CardContent>
         </Card>
 
-        <Card className="border-white/10 bg-[#1c1c1c]">
-          <CardHeader className="border-b border-white/10">
-            <CardTitle className="flex items-center gap-2 text-base text-white">
+        <Card className="border-border bg-card">
+          <CardHeader className="border-b border-border">
+            <CardTitle className="flex items-center gap-2 text-base text-foreground">
               <WalletCards className="h-4 w-4 text-cyan-300" />
               Payout Requests
             </CardTitle>
           </CardHeader>
           <CardContent className="px-0">
-            {loading && <div className="px-4 py-10 text-sm text-gray-400">Loading payouts...</div>}
+            {loading && <div className="px-4 py-10 text-sm text-muted-foreground">Loading payouts...</div>}
             {!loading && !filteredPayoutList.length && (
-              <div className="px-4 py-10 text-sm text-gray-400">No payout requests in this date range.</div>
+              <div className="px-4 py-10 text-sm text-muted-foreground">No payout requests in this date range.</div>
             )}
             {!loading && Boolean(filteredPayoutList.length) && (
               <Table>
                 <TableHeader>
-                  <TableRow className="border-white/10 hover:bg-transparent">
-                    <TableHead className="px-4 text-gray-400">Amount</TableHead>
-                    <TableHead className="text-gray-400">Status</TableHead>
-                    <TableHead className="text-gray-400">Requested</TableHead>
-                    <TableHead className="text-gray-400">Paid/Updated</TableHead>
-                    <TableHead className="text-gray-400">By</TableHead>
-                    <TableHead className="text-gray-400">Reference</TableHead>
+                  <TableRow className="border-border hover:bg-transparent">
+                    <TableHead className="px-4 text-muted-foreground">Amount</TableHead>
+                    <TableHead className="text-muted-foreground">Status</TableHead>
+                    <TableHead className="text-muted-foreground">Requested</TableHead>
+                    <TableHead className="text-muted-foreground">Paid/Updated</TableHead>
+                    <TableHead className="text-muted-foreground">By</TableHead>
+                    <TableHead className="text-muted-foreground">Reference</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredPayoutList.map((payout) => (
-                    <TableRow key={payout._id} className="border-white/10 hover:bg-white/[0.03]">
-                      <TableCell className="px-4 text-white">Rs. {formatAmount(payout.amount)}</TableCell>
+                    <TableRow key={payout._id} className="border-border hover:bg-muted">
+                      <TableCell className="px-4 text-foreground">Rs. {formatAmount(payout.amount)}</TableCell>
                       <TableCell>
                         <PayoutStatusBadge status={payout.status} />
                       </TableCell>
-                      <TableCell className="text-gray-400">{formatDate(payout.createdAt)}</TableCell>
-                      <TableCell className="text-gray-400">
+                      <TableCell className="text-muted-foreground">{formatDate(payout.createdAt)}</TableCell>
+                      <TableCell className="text-muted-foreground">
                         {formatDate(payout.processedAt || payout.updatedAt)}
                       </TableCell>
-                      <TableCell className="text-gray-400">{payoutProcessedBy(payout)}</TableCell>
-                      <TableCell className="text-gray-400">{payout.referenceId || "-"}</TableCell>
+                      <TableCell className="text-muted-foreground">{payoutProcessedBy(payout)}</TableCell>
+                      <TableCell className="text-muted-foreground">{payout.referenceId || "-"}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -309,9 +309,9 @@ export function EarningsPanel({
       </div>
 
       <div className="grid gap-4">
-        <Card className="border-white/10 bg-[#1c1c1c]">
-          <CardHeader className="border-b border-white/10">
-            <CardTitle className="flex items-center gap-2 text-base text-white">
+        <Card className="border-border bg-card">
+          <CardHeader className="border-b border-border">
+            <CardTitle className="flex items-center gap-2 text-base text-foreground">
               <WalletCards className="h-4 w-4 text-cyan-300" />
               Payout Status
             </CardTitle>
@@ -331,9 +331,9 @@ export function EarningsPanel({
           </CardContent>
         </Card>
 
-        <Card className="border-white/10 bg-[#1c1c1c]">
-          <CardHeader className="border-b border-white/10">
-            <CardTitle className="flex items-center gap-2 text-base text-white">
+        <Card className="border-border bg-card">
+          <CardHeader className="border-b border-border">
+            <CardTitle className="flex items-center gap-2 text-base text-foreground">
               <CreditCard className="h-4 w-4 text-cyan-300" />
               Payout Methods
             </CardTitle>
@@ -372,9 +372,9 @@ export function EarningsPanel({
           </CardContent>
         </Card>
 
-        <Card className="border-white/10 bg-[#1c1c1c]">
-          <CardHeader className="border-b border-white/10">
-            <CardTitle className="flex items-center gap-2 text-base text-white">
+        <Card className="border-border bg-card">
+          <CardHeader className="border-b border-border">
+            <CardTitle className="flex items-center gap-2 text-base text-foreground">
               <WalletCards className="h-4 w-4 text-cyan-300" />
               Request Payout
             </CardTitle>
@@ -413,15 +413,15 @@ function PayoutMethodRow({
   isPending: boolean;
 }) {
   return (
-    <div className="rounded-lg border border-white/10 bg-white/[0.03] p-3">
+    <div className="rounded-lg border border-border bg-muted p-3">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <div className="text-sm font-medium text-white">{method.displayName || method.label || method.type}</div>
-          <div className="text-xs text-gray-500">{payoutMethodName(method)}</div>
+          <div className="text-sm font-medium text-foreground">{method.displayName || method.label || method.type}</div>
+          <div className="text-xs text-muted-foreground">{payoutMethodName(method)}</div>
         </div>
         <MethodStatusBadge status={method.status} />
       </div>
-      <div className="mt-3 grid gap-1 text-xs text-gray-400">
+      <div className="mt-3 grid gap-1 text-xs text-muted-foreground">
         <div>Submitted: {formatDate(method.createdAt)}</div>
         {method.verifiedAt && <div>Verified: {formatDate(method.verifiedAt)}</div>}
         {method.rejectionReason && <div className="text-red-300">Rejected: {method.rejectionReason}</div>}
@@ -433,7 +433,7 @@ function PayoutMethodRow({
           variant="outline"
           onClick={onDefault}
           disabled={isPending}
-          className="mt-3 border-white/10 bg-white/5 text-white hover:bg-white/10"
+          className="mt-3 border-border bg-muted text-foreground hover:bg-muted"
         >
           Set default
         </Button>
@@ -445,25 +445,25 @@ function PayoutMethodRow({
 
 function TimelineItem({ item }: { item: TimelineItemType }) {
   return (
-    <div className="grid gap-3 rounded-lg border border-white/10 bg-white/[0.03] p-3 md:grid-cols-[1fr_auto]">
+    <div className="grid gap-3 rounded-lg border border-border bg-muted p-3 md:grid-cols-[1fr_auto]">
       <div className="flex gap-3">
         <div className={cn("mt-1 h-2.5 w-2.5 shrink-0 rounded-full", timelineDotClass(item.tone))} />
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <div className="font-medium text-white">{item.title}</div>
+            <div className="font-medium text-foreground">{item.title}</div>
             <TimelineStatusBadge label={item.status} tone={item.tone} />
           </div>
-          <div className="mt-1 text-sm text-gray-400">{item.subtitle}</div>
-          <div className="mt-2 grid gap-1 text-xs text-gray-500 sm:grid-cols-3">
+          <div className="mt-1 text-sm text-muted-foreground">{item.subtitle}</div>
+          <div className="mt-2 grid gap-1 text-xs text-muted-foreground sm:grid-cols-3">
             <span>When: {formatDate(item.at)}</span>
             <span>Who: {item.actor}</span>
             <span>Where: {item.location}</span>
           </div>
-          {item.detail && <div className="mt-2 text-xs text-gray-400">{item.detail}</div>}
+          {item.detail && <div className="mt-2 text-xs text-muted-foreground">{item.detail}</div>}
         </div>
       </div>
       {typeof item.amount === "number" && (
-        <div className="text-right text-sm font-semibold text-white">Rs. {formatAmount(item.amount)}</div>
+        <div className="text-right text-sm font-semibold text-foreground">Rs. {formatAmount(item.amount)}</div>
       )}
     </div>
   );
@@ -541,7 +541,7 @@ function timelineBadgeClass(tone: TimelineItemType["tone"]) {
   if (tone === "amber") return "border-amber-400/30 text-amber-300";
   if (tone === "red") return "border-red-400/30 text-red-300";
   if (tone === "cyan") return "border-cyan-400/30 text-cyan-300";
-  return "border-white/10 text-gray-300";
+  return "border-border text-muted-foreground";
 }
 
 function timelineDotClass(tone: TimelineItemType["tone"]) {
@@ -549,7 +549,7 @@ function timelineDotClass(tone: TimelineItemType["tone"]) {
   if (tone === "amber") return "bg-amber-300";
   if (tone === "red") return "bg-red-300";
   if (tone === "cyan") return "bg-cyan-300";
-  return "bg-gray-400";
+  return "bg-muted-foreground";
 }
 
 function payoutTone(status: DeliveryPayoutStatus): TimelineItemType["tone"] {

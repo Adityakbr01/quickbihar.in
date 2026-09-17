@@ -1,90 +1,126 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-/* Class-based dark mode: `.dark` on <html> (set in index.html). */
+/* Class-based dark mode: `.dark` on <html> (set by next-themes before paint). */
 @custom-variant dark (&:where(.dark, .dark *));
 
 /*
- * Design system — generated from DESIGN.md (SingleClik CRM / Clean Slate & Precision Canvas)
- * Tailwind CSS v4 (CSS-first config). All tokens live in @theme below,
- * so every color / type / radius / shadow is a native utility, e.g.:
- *   bg-primary text-on-primary bg-surface-container-lowest
- *   text-display text-headline-lg text-body-md text-label-sm
- *   rounded-sm rounded-md rounded-lg rounded-xl rounded-full rounded-default
- *   shadow-sm shadow-md shadow-lg
- *   max-w-page (1280px container; standard max-w-sm/md/lg/xl untouched)
- * Dark mode: same utilities + `dark:` overrides where needed; theme values
- * flip automatically via the `.dark` block below (dark default).
+ * QuickBihar shared theme — warm cream (light) / warm espresso (dark).
+ * Single source of truth for every dashboard (admin / seller / delivery):
+ * components must use these tokens (bg-background, text-foreground,
+ * bg-card, bg-muted, border-border, bg-primary, ...) — never hardcoded
+ * hex colors — so the next-themes light/dark toggle works everywhere.
+ *
+ * Token families:
+ *   surface / on-surface / ...  panel + page surfaces
+ *   background / foreground ... app shell (shadcn-compatible)
+ *   card / popover / muted / accent / secondary / destructive (+foregrounded)
+ *   border / input / ring ..... lines, fields, focus
+ *   chart-1..5 ................ data visualization
+ *   sidebar-* ................. navigation rails (same warm theme)
  */
 
 @theme {
-  /* ---------- Colors: surfaces (SingleClik Clean Slate & Modern Canvas) ---------- */
-  --color-surface: #F8FAFC;
-  --color-surface-dim: #F1F5F9;
-  --color-surface-bright: #FFFFFF;
-  --color-surface-container-lowest: #FFFFFF;
-  --color-surface-container-low: #F8FAFC;
-  --color-surface-container: #F1F5F9;
-  --color-surface-container-high: #E2E8F0;
-  --color-surface-container-highest: #CBD5E1;
-  --color-surface-variant: #F1F5F9;
-  --color-surface-tint: #2563EB;
+  /* ---------- Colors: surfaces (warm cream) ---------- */
+  --color-surface: #f7f2e9;
+  --color-surface-dim: #efe7d8;
+  --color-surface-bright: #fffdf8;
+  --color-surface-container-lowest: #fffdf8;
+  --color-surface-container-low: #f7f2e9;
+  --color-surface-container: #efe7d8;
+  --color-surface-container-high: #e5d9c3;
+  --color-surface-container-highest: #d8c8ab;
+  --color-surface-variant: #efe7d8;
+  --color-surface-tint: #8a6844;
 
-  --color-on-surface: #0F172A;
-  --color-on-surface-variant: #475569;
-  --color-inverse-surface: #0F172A;
-  --color-inverse-on-surface: #F8FAFC;
+  --color-on-surface: #292018;
+  --color-on-surface-variant: #6f6257;
+  --color-inverse-surface: #292018;
+  --color-inverse-on-surface: #f7f2e9;
 
-  --color-outline: #E2E8F0;
-  --color-outline-variant: #CBD5E1;
+  --color-outline: #e3d7c2;
+  --color-outline-variant: #d3c3a6;
 
-  --color-background: #F8FAFC;
-  --color-on-background: #0F172A;
+  --color-background: #f7f2e9;
+  --color-on-background: #292018;
 
-  /* ---------- Colors: brand (SingleClik Electric Royal Blue & Verified Accents) ---------- */
-  --color-primary: #2563EB;
-  --color-on-primary: #FFFFFF;
-  --color-primary-container: #EFF6FF;
-  --color-on-primary-container: #1E40AF;
-  --color-inverse-primary: #93C5FD;
-  --color-primary-hover: #1D4ED8;
-  --color-primary-active: #1E40AF;
+  /* ---------- Colors: brand (bronze / sage / amber) ---------- */
+  --color-primary: #7c5a36;
+  --color-primary-foreground: #faf6ee;
+  --color-on-primary: #faf6ee;
+  --color-primary-container: #ece0cb;
+  --color-on-primary-container: #5d4227;
+  --color-inverse-primary: #d9a866;
+  --color-primary-hover: #6a4c2d;
+  --color-primary-active: #5d4227;
 
-  --color-secondary: #10B981;
-  --color-on-secondary: #FFFFFF;
-  --color-secondary-container: #ECFDF5;
-  --color-on-secondary-container: #047857;
+  --color-secondary: #ddd0b6;
+  --color-on-secondary: #292018;
+  --color-secondary-container: #dde8d4;
+  --color-on-secondary-container: #3f5233;
 
-  --color-tertiary: #F59E0B;
-  --color-on-tertiary: #FFFFFF;
-  --color-tertiary-container: #FEF3C7;
-  --color-on-tertiary-container: #B45309;
+  --color-tertiary: #b97f2e;
+  --color-on-tertiary: #fffaf2;
+  --color-tertiary-container: #f3e3c8;
+  --color-on-tertiary-container: #7a5417;
 
-  --color-error: #EF4444;
-  --color-on-error: #FFFFFF;
-  --color-error-container: #FEE2E2;
-  --color-on-error-container: #991B1B;
+  --color-error: #b3402e;
+  --color-on-error: #fff7f2;
+  --color-error-container: #f6d9d2;
+  --color-on-error-container: #7c271b;
 
   /* ---------- Colors: fixed accents ---------- */
-  --color-primary-fixed: #EFF6FF;
-  --color-primary-fixed-dim: #DBEAFE;
-  --color-on-primary-fixed: #1E40AF;
-  --color-on-primary-fixed-variant: #1D4ED8;
+  --color-primary-fixed: #ece0cb;
+  --color-primary-fixed-dim: #e0cfae;
+  --color-on-primary-fixed: #5d4227;
+  --color-on-primary-fixed-variant: #7c5a36;
 
-  --color-secondary-fixed: #ECFDF5;
-  --color-secondary-fixed-dim: #D1FAE5;
-  --color-on-secondary-fixed: #065F46;
-  --color-on-secondary-fixed-variant: #047857;
+  --color-secondary-fixed: #dde8d4;
+  --color-secondary-fixed-dim: #c9d8b8;
+  --color-on-secondary-fixed: #3f5233;
+  --color-on-secondary-fixed-variant: #5a6b47;
 
-  --color-tertiary-fixed: #FEF3C7;
-  --color-tertiary-fixed-dim: #FDE68A;
-  --color-on-tertiary-fixed: #92400E;
-  --color-on-tertiary-fixed-variant: #B45309;
+  --color-tertiary-fixed: #f3e3c8;
+  --color-tertiary-fixed-dim: #ebd3a8;
+  --color-on-tertiary-fixed: #7a5417;
+  --color-on-tertiary-fixed-variant: #96702a;
+
+  /* ---------- Colors: shell / components (same warm theme) ---------- */
+  --color-foreground: #292018;
+  --color-card: #fffdf8;
+  --color-card-foreground: #292018;
+  --color-popover: #fffdf8;
+  --color-popover-foreground: #292018;
+  --color-muted: #efe7d8;
+  --color-muted-foreground: #6f6257;
+  --color-accent: #e9dcc4;
+  --color-accent-foreground: #292018;
+  --color-secondary-foreground: #292018;
+  --color-destructive: #b3402e;
+  --color-destructive-foreground: #faf6ee;
+  --color-border: #e3d7c2;
+  --color-input: #e7dcc6;
+  --color-ring: #a37e4f;
+
+  --color-chart-1: #8a6844;
+  --color-chart-2: #6d7f57;
+  --color-chart-3: #b97f2e;
+  --color-chart-4: #a4552f;
+  --color-chart-5: #8a6d9e;
+
+  --color-sidebar: #f1e9d9;
+  --color-sidebar-foreground: #292018;
+  --color-sidebar-primary: #7c5a36;
+  --color-sidebar-primary-foreground: #faf6ee;
+  --color-sidebar-accent: #e5d5b8;
+  --color-sidebar-accent-foreground: #292018;
+  --color-sidebar-border: #e0d3ba;
+  --color-sidebar-ring: #a37e4f;
 
   /* ---------- Typography ---------- */
   --font-sans: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-display: "Space Grotesk", sans-serif;
-  --font-serif: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-display: "Space Grotesk", "Plus Jakarta Sans", sans-serif;
+  --font-serif: "Playfair Display", Georgia, "Times New Roman", serif;
 
   --text-display: 96px;
   --text-display--line-height: 104px;
@@ -133,69 +169,117 @@
   --radius-3xl: 1.75rem;
   --radius-full: 9999px;
 
-  /* ---------- Elevation ---------- */
-  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.05);
-  --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.07);
-  --shadow-lg: 0 12px 30px rgba(15, 23, 42, 0.09);
-  --shadow-focus-ring: 0 0 0 3px rgba(37, 99, 235, 0.25);
+  /* ---------- Elevation (warm, soft) ---------- */
+  --shadow-sm: 0 1px 3px rgba(90, 70, 45, 0.08);
+  --shadow-md: 0 4px 12px rgba(90, 70, 45, 0.1);
+  --shadow-lg: 0 12px 30px rgba(90, 70, 45, 0.14);
+  --shadow-focus-ring: 0 0 0 3px rgba(140, 110, 70, 0.25);
 
   /* ---------- Layout ---------- */
   --container-page: 1280px;
+  --spacing-gutter: 24px;
 }
 
 /*
- * Dark theme (SingleClik Deep Midnight Slate)
+ * Dark theme (warm espresso)
  */
 .dark {
-  --color-surface: #0B1120;
-  --color-surface-dim: #070C16;
-  --color-surface-bright: #1E293B;
-  --color-surface-container-lowest: #0F172A;
-  --color-surface-container-low: #131D33;
-  --color-surface-container: #1E293B;
-  --color-surface-container-high: #283548;
-  --color-surface-container-highest: #334155;
-  --color-surface-variant: #1E293B;
-  --color-surface-tint: #3B82F6;
+  --color-surface: #1a140e;
+  --color-surface-dim: #120d08;
+  --color-surface-bright: #2a2117;
+  --color-surface-container-lowest: #211a12;
+  --color-surface-container-low: #1f1811;
+  --color-surface-container: #2a2117;
+  --color-surface-container-high: #352a1d;
+  --color-surface-container-highest: #453723;
+  --color-surface-variant: #2a2117;
+  --color-surface-tint: #d9a866;
 
-  --color-on-surface: #F8FAFC;
-  --color-on-surface-variant: #94A3B8;
-  --color-inverse-surface: #F8FAFC;
-  --color-inverse-on-surface: #0F172A;
+  --color-on-surface: #f1e7d6;
+  --color-on-surface-variant: #b3a48d;
+  --color-inverse-surface: #f1e7d6;
+  --color-inverse-on-surface: #292018;
 
-  --color-outline: #1E293B;
-  --color-outline-variant: #334155;
+  --color-outline: #3a2f21;
+  --color-outline-variant: #54452f;
 
-  --color-background: #0B1120;
-  --color-on-background: #F8FAFC;
+  --color-background: #1a140e;
+  --color-on-background: #f1e7d6;
 
-  --color-primary: #3B82F6;
-  --color-on-primary: #FFFFFF;
-  --color-primary-container: #1E3A8A;
-  --color-on-primary-container: #DBEAFE;
-  --color-inverse-primary: #1D4ED8;
-  --color-primary-hover: #60A5FA;
-  --color-primary-active: #2563EB;
+  --color-primary: #d9a866;
+  --color-primary-foreground: #2a1f10;
+  --color-on-primary: #2a1f10;
+  --color-primary-container: #4a3823;
+  --color-on-primary-container: #f0d9b5;
+  --color-inverse-primary: #7c5a36;
+  --color-primary-hover: #e5b878;
+  --color-primary-active: #c9975a;
 
-  --color-secondary: #10B981;
-  --color-on-secondary: #FFFFFF;
-  --color-secondary-container: #064E3B;
-  --color-on-secondary-container: #A7F3D0;
+  --color-secondary: #33291b;
+  --color-on-secondary: #f1e7d6;
+  --color-secondary-container: #2c3a22;
+  --color-on-secondary-container: #cfdcb8;
 
-  --color-tertiary: #F59E0B;
-  --color-on-tertiary: #FFFFFF;
-  --color-tertiary-container: #451A03;
-  --color-on-tertiary-container: #FDE68A;
+  --color-tertiary: #d99a3c;
+  --color-on-tertiary: #2a1c08;
+  --color-tertiary-container: #4a3413;
+  --color-on-tertiary-container: #f2dcae;
 
-  --color-error: #F87171;
-  --color-on-error: #450A0A;
-  --color-error-container: #7F1D1D;
-  --color-on-error-container: #FEE2E2;
+  --color-error: #e0654f;
+  --color-on-error: #2a0f0a;
+  --color-error-container: #57231a;
+  --color-on-error-container: #f6c9bd;
+
+  --color-primary-fixed: #4a3823;
+  --color-primary-fixed-dim: #5d482c;
+  --color-on-primary-fixed: #f0d9b5;
+  --color-on-primary-fixed-variant: #d9a866;
+
+  --color-secondary-fixed: #2c3a22;
+  --color-secondary-fixed-dim: #3a4d2d;
+  --color-on-secondary-fixed: #cfdcb8;
+  --color-on-secondary-fixed-variant: #93a86f;
+
+  --color-tertiary-fixed: #4a3413;
+  --color-tertiary-fixed-dim: #5f4520;
+  --color-on-tertiary-fixed: #f2dcae;
+  --color-on-tertiary-fixed-variant: #d99a3c;
+
+  --color-foreground: #f1e7d6;
+  --color-card: #211a12;
+  --color-card-foreground: #f1e7d6;
+  --color-popover: #241c13;
+  --color-popover-foreground: #f1e7d6;
+  --color-muted: #2a2117;
+  --color-muted-foreground: #b3a48d;
+  --color-accent: #3a2d1d;
+  --color-accent-foreground: #f1e7d6;
+  --color-secondary-foreground: #f1e7d6;
+  --color-destructive: #e0654f;
+  --color-destructive-foreground: #2a0f0a;
+  --color-border: #3a2f21;
+  --color-input: #3f3423;
+  --color-ring: #d9a866;
+
+  --color-chart-1: #d9a866;
+  --color-chart-2: #93a86f;
+  --color-chart-3: #d99a3c;
+  --color-chart-4: #d97b4f;
+  --color-chart-5: #a98bc0;
+
+  --color-sidebar: #1e1710;
+  --color-sidebar-foreground: #f1e7d6;
+  --color-sidebar-primary: #d9a866;
+  --color-sidebar-primary-foreground: #2a1f10;
+  --color-sidebar-accent: #33291b;
+  --color-sidebar-accent-foreground: #f1e7d6;
+  --color-sidebar-border: #3a2f21;
+  --color-sidebar-ring: #d9a866;
 
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.5);
   --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.6);
   --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.7);
-  --shadow-focus-ring: 0 0 0 3px rgba(59, 130, 246, 0.35);
+  --shadow-focus-ring: 0 0 0 3px rgba(217, 168, 102, 0.35);
 
   color-scheme: dark;
 }
@@ -215,6 +299,13 @@
   body {
     @apply bg-surface text-on-background font-sans text-body-md antialiased;
     text-rendering: optimizeLegibility;
+  }
+
+  /* Tailwind v4 renders buttons with `cursor: default` — restore the
+     pointer for every clickable control (except disabled ones). */
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]) {
+    cursor: pointer;
   }
 
   h1,

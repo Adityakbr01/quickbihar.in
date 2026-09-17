@@ -36,9 +36,9 @@ export function OverviewPanel({
       </section>
 
       <section className="grid gap-4 xl:grid-cols-[1fr_320px]">
-        <Card className="border-white/10 bg-[#1c1c1c]">
-          <CardHeader className="border-b border-white/10">
-            <CardTitle className="flex items-center gap-2 text-base text-white">
+        <Card className="border-border bg-card">
+          <CardHeader className="border-b border-border">
+            <CardTitle className="flex items-center gap-2 text-base text-foreground">
               <ClipboardList className="h-4 w-4 text-cyan-300" />
               Recent Activity
             </CardTitle>
@@ -46,10 +46,10 @@ export function OverviewPanel({
           <CardContent className="grid gap-3">
             {(dashboard?.recentOrders || []).length ? (
               dashboard?.recentOrders.map((order) => (
-                <div key={order._id} className="flex items-center justify-between border-b border-white/10 pb-3 last:border-0 last:pb-0">
+                <div key={order._id} className="flex items-center justify-between border-b border-border pb-3 last:border-0 last:pb-0">
                   <div>
-                    <div className="text-sm font-medium text-white">{order.orderId}</div>
-                    <div className="text-xs text-gray-500">
+                    <div className="text-sm font-medium text-foreground">{order.orderId}</div>
+                    <div className="text-xs text-muted-foreground">
                       {order.shippingAddress?.city || "-"} · {formatDate(order.updatedAt)}
                     </div>
                   </div>
@@ -62,9 +62,9 @@ export function OverviewPanel({
           </CardContent>
         </Card>
 
-        <Card className="border-white/10 bg-[#1c1c1c]">
-          <CardHeader className="border-b border-white/10">
-            <CardTitle className="flex items-center gap-2 text-base text-white">
+        <Card className="border-border bg-card">
+          <CardHeader className="border-b border-border">
+            <CardTitle className="flex items-center gap-2 text-base text-foreground">
               <Bike className="h-4 w-4 text-cyan-300" />
               Rider Status
             </CardTitle>

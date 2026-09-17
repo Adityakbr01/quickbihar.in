@@ -15,6 +15,7 @@ import {
   User as UserIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuthStore } from "@/features/auth/store/authStore";
 import type { AuthUser } from "@/features/auth/schemas/auth.schema";
 import { getUserRoles, hasRole } from "@/lib/rbac";
@@ -106,35 +107,35 @@ export default function Header() {
   };
 
   return (
-    <header className="fixed inset-x-0 top-0 z-50 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        
+    <header className="fixed inset-x-0 top-0 z-50 border-b border-border bg-background/85 backdrop-blur-md supports-[backdrop-filter]:bg-background/70">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-2 px-4 sm:px-6 lg:px-8">
+
         {/* Brand Logo */}
-        <Link to="/" className="flex items-center gap-2.5">
+        <Link to="/" className="flex shrink-0 items-center gap-2.5" aria-label="QuickBihar.in home">
           <img
             src="/logo.png"
             alt="QuickBihar.in logo"
             width={36}
             height={36}
-            className="h-9 w-9 rounded-lg object-contain shadow-sm"
+            className="h-9 w-9 rounded-xl object-contain shadow-xs ring-1 ring-border"
           />
           <div className="flex flex-col">
-            <span className="text-lg font-bold tracking-tight text-foreground">
+            <span className="font-display text-lg font-bold tracking-tight text-foreground">
               QuickBihar<span className="text-primary">.in</span>
             </span>
-            <span className="text-[10px] font-medium text-muted-foreground -mt-0.5">
+            <span className="-mt-0.5 text-[10px] font-medium tracking-wide text-muted-foreground">
               Fashion & Fast Delivery
             </span>
           </div>
         </Link>
 
         {/* Desktop Navigation */}
-        <nav className="hidden items-center gap-6 md:flex">
+        <nav className="hidden items-center gap-1 md:flex" aria-label="Primary">
           {navigation.navLinks.map((link) => (
             <Link
               key={link.label}
               to={link.href}
-              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+              className="rounded-full px-3.5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             >
               {link.label}
             </Link>
@@ -142,14 +143,15 @@ export default function Header() {
         </nav>
 
         {/* Desktop Actions */}
-        <div className="hidden items-center gap-3 sm:flex">
+        <div className="hidden items-center gap-2.5 sm:flex">
+          <ThemeToggle />
           {loggedIn ? (
             dashboardUrl ? (
               /* Partner (admin / seller / delivery) — has a real dashboard */
               <Link to={dashboardUrl}>
                 <Button
                   size="sm"
-                  className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm font-medium"
+                  className="bg-primary font-medium text-on-primary shadow-xs hover:bg-primary/90"
                 >
                   <LayoutDashboard className="mr-1.5 h-4 w-4" />
                   Dashboard
@@ -179,12 +181,12 @@ export default function Header() {
                       className="fixed inset-0 z-10"
                       onClick={() => setUserMenuOpen(false)}
                     />
-                    <div className="absolute right-0 top-full z-20 mt-2 w-64 overflow-hidden rounded-lg border border-border bg-popover text-popover-foreground shadow-lg">
+                    <div className="absolute right-0 top-full z-20 mt-2 w-64 overflow-hidden rounded-xl border border-border bg-popover text-popover-foreground shadow-lg">
                       <div className="border-b border-border px-4 py-3">
-                        <div className="text-sm font-semibold text-foreground truncate">
+                        <div className="truncate text-sm font-semibold text-foreground">
                           {user?.fullName || "Customer"}
                         </div>
-                        <div className="text-xs text-muted-foreground truncate">
+                        <div className="truncate text-xs text-muted-foreground">
                           {user?.email}
                         </div>
                         <div className="mt-1 text-[10px] font-semibold uppercase tracking-wider text-primary">
@@ -195,7 +197,7 @@ export default function Header() {
                         <button
                           type="button"
                           onClick={handleSignOut}
-                          className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-foreground transition-colors hover:bg-muted"
+                          className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-foreground transition-colors hover:bg-muted"
                         >
                           <LogOut className="h-4 w-4 text-muted-foreground" />
                           Sign out
@@ -223,8 +225,8 @@ export default function Header() {
                 {portalsOpen && (
                   <>
                     <div className="fixed inset-0 z-10" onClick={() => setPortalsOpen(false)} />
-                    <div className="absolute right-0 top-full z-20 mt-2 w-72 overflow-hidden rounded-lg border border-border bg-popover p-2 text-popover-foreground shadow-lg">
-                      <div className="px-3 py-1.5 text-xs font-semibold text-muted-foreground border-b border-border">
+                    <div className="absolute right-0 top-full z-20 mt-2 w-72 overflow-hidden rounded-xl border border-border bg-popover p-2 text-popover-foreground shadow-lg">
+                      <div className="border-b border-border px-3 py-1.5 text-xs font-semibold text-muted-foreground">
                         {navigation.partnerMenuTitle}
                       </div>
                       <div className="mt-1 space-y-1">
@@ -233,17 +235,17 @@ export default function Header() {
                           return (
                             <div
                               key={portal.title}
-                              className="rounded-md p-2 hover:bg-muted transition-colors"
+                              className="rounded-lg p-2 transition-colors hover:bg-muted"
                             >
                               <div className="flex items-center gap-2.5">
-                                <div className="flex h-7 w-7 items-center justify-center rounded bg-primary/10 text-primary">
+                                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 text-primary">
                                   <Icon className="h-4 w-4" />
                                 </div>
-                                <div className="flex-1 min-w-0">
+                                <div className="min-w-0 flex-1">
                                   <div className="text-xs font-semibold text-foreground">
                                     {portal.title}
                                   </div>
-                                  <div className="text-[11px] text-muted-foreground truncate">
+                                  <div className="truncate text-[11px] text-muted-foreground">
                                     {portal.description}
                                   </div>
                                 </div>
@@ -283,7 +285,7 @@ export default function Header() {
                 href={APP_LINKS.PLAY_STORE}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 rounded-md bg-primary px-3.5 py-2 text-xs font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 transition-colors"
+                className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-xs font-semibold text-on-primary shadow-xs transition-colors hover:bg-primary/90"
               >
                 <Smartphone className="h-4 w-4" />
                 <span>Get on Google Play</span>
@@ -292,25 +294,28 @@ export default function Header() {
           )}
         </div>
 
-        {/* Mobile menu toggle */}
-        <button
-          className="flex sm:hidden p-2 text-muted-foreground hover:text-foreground"
-          onClick={() => setMobileOpen(!mobileOpen)}
-          aria-label="Toggle menu"
-        >
-          {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-        </button>
+        {/* Mobile actions */}
+        <div className="flex items-center gap-2 sm:hidden">
+          <ThemeToggle className="h-8 w-8" />
+          <button
+            className="flex rounded-full p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            onClick={() => setMobileOpen(!mobileOpen)}
+            aria-label="Toggle menu"
+          >
+            {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+          </button>
+        </div>
 
       </div>
 
       {/* Mobile Menu */}
       {mobileOpen && (
-        <div className="border-t border-border bg-background sm:hidden px-4 py-4 space-y-3">
+        <div className="space-y-3 border-t border-border bg-background px-4 py-4 sm:hidden">
           {loggedIn ? (
             <>
               {/* Account block — same data as the desktop user menu, but
                   rendered inline so it's reachable on small screens. */}
-              <div className="rounded-md border border-border bg-card p-3">
+              <div className="rounded-xl border border-border bg-card p-3">
                 <div className="flex items-center gap-2.5">
                   <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary">
                     <UserIcon className="h-4 w-4" />
@@ -333,7 +338,7 @@ export default function Header() {
                     <Link
                       to={dashboardUrl}
                       onClick={() => setMobileOpen(false)}
-                      className="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground shadow-sm"
+                      className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-3 py-2 text-xs font-semibold text-on-primary shadow-xs"
                     >
                       <LayoutDashboard className="h-4 w-4" />
                       Open Dashboard
@@ -345,7 +350,7 @@ export default function Header() {
                       setMobileOpen(false);
                       handleSignOut();
                     }}
-                    className="inline-flex items-center justify-center gap-2 rounded-md border border-border bg-background px-3 py-2 text-xs font-semibold text-foreground"
+                    className="inline-flex items-center justify-center gap-2 rounded-full border border-border bg-background px-3 py-2 text-xs font-semibold text-foreground"
                   >
                     <LogOut className="h-4 w-4" />
                     Sign out
@@ -358,7 +363,7 @@ export default function Header() {
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => setMobileOpen(false)}
-                className="flex items-center justify-center gap-2 w-full rounded-md bg-primary/10 py-2.5 text-xs font-semibold text-primary shadow-sm"
+                className="flex w-full items-center justify-center gap-2 rounded-full bg-primary/10 py-2.5 text-xs font-semibold text-primary shadow-xs"
               >
                 <Smartphone className="h-4 w-4" />
                 Download QuickBihar App
@@ -371,7 +376,7 @@ export default function Header() {
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => setMobileOpen(false)}
-                className="flex items-center justify-center gap-2 w-full rounded-md bg-primary py-2.5 text-xs font-semibold text-primary-foreground shadow-sm"
+                className="flex w-full items-center justify-center gap-2 rounded-full bg-primary py-2.5 text-xs font-semibold text-on-primary shadow-xs"
               >
                 <Smartphone className="h-4 w-4" />
                 Download QuickBihar App
@@ -383,7 +388,7 @@ export default function Header() {
                     key={link.label}
                     to={link.href}
                     onClick={() => setMobileOpen(false)}
-                    className="block rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+                    className="block rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
                   >
                     {link.label}
                   </Link>
@@ -396,13 +401,13 @@ export default function Header() {
                 </div>
                 <div className="space-y-2">
                   {navigation.portalOptions.map((portal) => (
-                    <div key={portal.title} className="rounded-md bg-card p-2.5 border border-border">
+                    <div key={portal.title} className="rounded-xl border border-border bg-card p-2.5">
                       <div className="text-xs font-semibold text-card-foreground">{portal.title}</div>
                       <div className="mt-1.5 flex gap-3 text-xs">
                         <Link
                           to={portal.loginHref}
                           onClick={() => setMobileOpen(false)}
-                          className="text-primary font-medium hover:underline"
+                          className="font-medium text-primary hover:underline"
                         >
                           Login →
                         </Link>
@@ -410,7 +415,7 @@ export default function Header() {
                           <Link
                             to={portal.registerHref}
                             onClick={() => setMobileOpen(false)}
-                            className="text-foreground font-medium hover:underline"
+                            className="font-medium text-foreground hover:underline"
                           >
                             Register →
                           </Link>

@@ -136,9 +136,9 @@ export function MarketingPromotionsPanel() {
         }
       />
       <div className="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
-        <Card className="border-white/10 bg-[#1c1c1c]">
+        <Card className="border-border bg-card">
           <CardHeader>
-            <CardTitle className="text-white">Flash Sales</CardTitle>
+            <CardTitle className="text-foreground">Flash Sales</CardTitle>
           </CardHeader>
           <CardContent className="px-0">
             {flashSalesQuery.isLoading && (
@@ -150,26 +150,26 @@ export function MarketingPromotionsPanel() {
             {!flashSalesQuery.isLoading && Boolean(rows.length) && (
               <Table>
                 <TableHeader>
-                  <TableRow className="border-white/10 hover:bg-transparent">
-                    <TableHead className="px-4 text-gray-400">Campaign</TableHead>
-                    <TableHead className="text-gray-400">Discount</TableHead>
-                    <TableHead className="text-gray-400">Status</TableHead>
-                    <TableHead className="text-right text-gray-400">Actions</TableHead>
+                  <TableRow className="border-border hover:bg-transparent">
+                    <TableHead className="px-4 text-muted-foreground">Campaign</TableHead>
+                    <TableHead className="text-muted-foreground">Discount</TableHead>
+                    <TableHead className="text-muted-foreground">Status</TableHead>
+                    <TableHead className="text-right text-muted-foreground">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {rows.map((sale) => (
                     <TableRow
                       key={sale._id}
-                      className="border-white/10 hover:bg-white/[0.03]"
+                      className="border-border hover:bg-muted"
                     >
                       <TableCell className="px-4">
-                        <div className="font-medium text-white">{sale.name}</div>
-                        <div className="text-xs text-gray-500">
+                        <div className="font-medium text-foreground">{sale.name}</div>
+                        <div className="text-xs text-muted-foreground">
                           {formatDate(sale.startsAt)} to {formatDate(sale.endsAt)}
                         </div>
                       </TableCell>
-                      <TableCell className="text-sm text-gray-300">
+                      <TableCell className="text-sm text-muted-foreground">
                         {sale.discountValue}{" "}
                         {sale.discountType === "PERCENTAGE" ? "%" : "Rs."}
                       </TableCell>
@@ -181,7 +181,7 @@ export function MarketingPromotionsPanel() {
                           <Button
                             size="sm"
                             variant="outline"
-                            className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+                            className="border-border bg-muted text-foreground hover:bg-muted"
                             onClick={() => {
                               setEditing(sale);
                               setDraft(flashSaleToDraft(sale));
@@ -211,9 +211,9 @@ export function MarketingPromotionsPanel() {
             )}
           </CardContent>
         </Card>
-        <Card className="border-white/10 bg-[#1c1c1c]">
+        <Card className="border-border bg-card">
           <CardHeader>
-            <CardTitle className="text-white">Featured Products</CardTitle>
+            <CardTitle className="text-foreground">Featured Products</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-3">
             {productsQuery.isLoading && <LoadingState label="Loading products..." />}
@@ -223,19 +223,19 @@ export function MarketingPromotionsPanel() {
             {products.map((product) => (
               <div
                 key={product._id}
-                className="rounded-lg border border-white/10 bg-white/[0.03] p-3"
+                className="rounded-lg border border-border bg-muted p-3"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <div className="text-sm font-medium text-white">
+                    <div className="text-sm font-medium text-foreground">
                       {product.title}
                     </div>
-                    <div className="text-xs text-gray-500">
+                    <div className="text-xs text-muted-foreground">
                       Rs. {formatAmount(product.price)} · Stock{" "}
                       {product.totalStock || 0}
                     </div>
                   </div>
-                  <Badge variant="outline" className="border-white/10 text-gray-300">
+                  <Badge variant="outline" className="border-border text-muted-foreground">
                     {product.category}
                   </Badge>
                 </div>
@@ -285,7 +285,7 @@ export function MarketingPromotionsPanel() {
         open={Boolean(Object.keys(draft).length)}
         onOpenChange={(open) => !open && closeDialog()}
       >
-        <DialogContent className="border-white/10 bg-[#1c1c1c] text-white sm:max-w-xl">
+        <DialogContent className="border-border bg-card text-foreground sm:max-w-xl">
           <DialogHeader>
             <DialogTitle>{editing ? "Edit" : "Create"} Flash Sale</DialogTitle>
           </DialogHeader>
@@ -386,7 +386,7 @@ export function MarketingPromotionsPanel() {
             <Button
               type="submit"
               disabled={createFlashSale.isPending || updateFlashSale.isPending}
-              className="bg-white text-black hover:bg-gray-200"
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
             >
               {createFlashSale.isPending || updateFlashSale.isPending ? (
                 <>
@@ -423,7 +423,7 @@ function ToggleButton({
       className={
         active
           ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-200 hover:bg-emerald-400/20"
-          : "border-white/10 bg-white/5 text-gray-300 hover:bg-white/10"
+          : "border-border bg-muted text-muted-foreground hover:bg-muted"
       }
       onClick={onClick}
     >

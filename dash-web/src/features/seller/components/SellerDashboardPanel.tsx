@@ -1,5 +1,8 @@
 import React from "react";
+import { useTheme } from "next-themes";
 import { BarChart3, Bell, CircleDollarSign, ClipboardList, Package, WalletCards, Warehouse, Send } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useAuthStore } from "@/features/auth/store/authStore";
 import {
   Area,
   AreaChart,
@@ -44,6 +47,23 @@ export function SellerDashboardPanel({
   onNavigate?: (section: SellerSection, intent?: SellerSectionIntent) => void;
 }) {
   const dashboardQuery = useSellerDashboard();
+  const { resolvedTheme } = useTheme();
+  const user = useAuthStore((state) => state.user);
+
+  // Recharts draws with raw colors (no CSS classes), so pick grid + tick
+  // tones per mode to stay readable on both cream and espresso surfaces.
+  const isDark = resolvedTheme === "dark";
+  const gridStroke = isDark ? "rgba(255,255,255,0.08)" : "rgba(74,56,35,0.14)";
+  const tickFill = isDark ? "#9ca3af" : "#857362";
+
+  const hour = new Date().getHours();
+  const daypart = hour < 12 ? "morning" : hour < 17 ? "afternoon" : "evening";
+  const firstName = user?.fullName?.split(" ")[0] || "Seller";
+  const todayLabel = new Intl.DateTimeFormat("en-IN", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  }).format(new Date());
 
   if (dashboardQuery.isLoading) return <LoadingState label="Loading dashboard..." />;
 
@@ -88,6 +108,34 @@ export function SellerDashboardPanel({
 
   return (
     <div className="grid gap-3 sm:gap-4">
+      <section className="overflow-hidden rounded-2xl border border-border bg-gradient-to-r from-primary/15 via-card to-card">
+        <div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+          <div className="min-w-0">
+            <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{todayLabel}</p>
+            <h2 className="mt-1 truncate text-2xl font-bold tracking-tight text-foreground">
+              Good {daypart}, {firstName}!
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Here&apos;s what&apos;s happening across your store today.
+            </p>
+          </div>
+          <div className="flex shrink-0 flex-wrap gap-2">
+            <Button
+              type="button"
+              onClick={() => onNavigate?.("products")}
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              <Package className="h-4 w-4" />
+              Add product
+            </Button>
+            <Button type="button" variant="outline" onClick={() => onNavigate?.("orders")}>
+              <ClipboardList className="h-4 w-4" />
+              View orders
+            </Button>
+          </div>
+        </div>
+      </section>
+
       <section className="grid grid-cols-2 gap-3 md:gap-4 xl:grid-cols-4">
         <Metric
           title="Available"
@@ -140,11 +188,11 @@ export function SellerDashboardPanel({
       </section>
 
       <section className="grid gap-4 xl:grid-cols-[minmax(0,1.35fr)_minmax(320px,0.85fr)]">
-        <Card className="border-white/10 bg-[#1c1c1c]">
-          <CardHeader className="border-b border-white/10">
+        <Card className="border-border bg-card">
+          <CardHeader className="border-b border-border">
             <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-              <CardTitle className="text-base text-white">Sales And Net Earnings</CardTitle>
-              <div className="text-xs text-gray-500">Last 30 days</div>
+              <CardTitle className="text-base text-foreground">Sales And Net Earnings</CardTitle>
+              <div className="text-xs text-muted-foreground">Last 30 days</div>
             </div>
           </CardHeader>
           <CardContent className="pt-4">
@@ -164,17 +212,17 @@ export function SellerDashboardPanel({
                       <stop offset="95%" stopColor="#38bdf8" stopOpacity={0.02} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid stroke="rgba(255,255,255,0.08)" vertical={false} />
+                  <CartesianGrid stroke={gridStroke} vertical={false} />
                   <XAxis
                     dataKey="_id"
                     tickFormatter={shortDate}
-                    tick={{ fill: "#9ca3af", fontSize: 11 }}
+                    tick={{ fill: tickFill, fontSize: 11 }}
                     axisLine={false}
                     tickLine={false}
                   />
                   <YAxis
                     tickFormatter={(value) => `${Number(value) / 1000}k`}
-                    tick={{ fill: "#9ca3af", fontSize: 11 }}
+                    tick={{ fill: tickFill, fontSize: 11 }}
                     axisLine={false}
                     tickLine={false}
                     width={42}
@@ -216,16 +264,16 @@ export function SellerDashboardPanel({
         </Card>
 
         <div className="grid gap-4">
-          <Card className="border-white/10 bg-[#1c1c1c]">
-            <CardHeader className="border-b border-white/10">
-              <CardTitle className="text-base text-white">Order Status Mix</CardTitle>
+          <Card className="border-border bg-card">
+            <CardHeader className="border-b border-border">
+              <CardTitle className="text-base text-foreground">Order Status Mix</CardTitle>
             </CardHeader>
             <CardContent className="pt-4">
               <div className="h-[150px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={orderChartRows}>
-                    <CartesianGrid stroke="rgba(255,255,255,0.08)" vertical={false} />
-                    <XAxis dataKey="status" tick={{ fill: "#9ca3af", fontSize: 10 }} axisLine={false} tickLine={false} interval={0} />
+                    <CartesianGrid stroke={gridStroke} vertical={false} />
+                    <XAxis dataKey="status" tick={{ fill: tickFill, fontSize: 10 }} axisLine={false} tickLine={false} interval={0} />
                     <YAxis hide />
                     <Tooltip content={<SellerMoneyTooltip />} />
                     <Bar dataKey="count" name="Orders" fill="#34d399" radius={[6, 6, 0, 0]} />
@@ -235,9 +283,9 @@ export function SellerDashboardPanel({
             </CardContent>
           </Card>
 
-          <Card className="border-white/10 bg-[#1c1c1c]">
-            <CardHeader className="border-b border-white/10">
-              <CardTitle className="text-base text-white">Top Products</CardTitle>
+          <Card className="border-border bg-card">
+            <CardHeader className="border-b border-border">
+              <CardTitle className="text-base text-foreground">Top Products</CardTitle>
             </CardHeader>
             <CardContent className="pt-4">
               <div className="h-[150px]">
@@ -246,8 +294,8 @@ export function SellerDashboardPanel({
                     data={topProductRows}
                     margin={{ left: 0, right: 4, top: 8, bottom: 0 }}
                   >
-                    <CartesianGrid stroke="rgba(255,255,255,0.08)" vertical={false} />
-                    <XAxis dataKey="title" tick={{ fill: "#9ca3af", fontSize: 10 }} axisLine={false} tickLine={false} interval={0} />
+                    <CartesianGrid stroke={gridStroke} vertical={false} />
+                    <XAxis dataKey="title" tick={{ fill: tickFill, fontSize: 10 }} axisLine={false} tickLine={false} interval={0} />
                     <YAxis hide />
                     <Tooltip content={<SellerMoneyTooltip />} />
                     <Bar dataKey="revenue" name="Revenue" fill="#38bdf8" radius={[6, 6, 0, 0]} />
@@ -260,9 +308,9 @@ export function SellerDashboardPanel({
       </section>
 
       {!isSetupComplete && checklist.length > 0 && (
-        <Card className="border-white/10 bg-[#1c1c1c]">
-          <CardHeader className="border-b border-white/10">
-            <CardTitle className="text-base text-white">Setup Checklist</CardTitle>
+        <Card className="border-border bg-card">
+          <CardHeader className="border-b border-border">
+            <CardTitle className="text-base text-foreground">Setup Checklist</CardTitle>
           </CardHeader>
           <CardContent className="grid grid-cols-2 gap-3 pt-4 md:grid-cols-2 xl:grid-cols-4">
             {checklist.map((item) => (
@@ -279,9 +327,9 @@ export function SellerDashboardPanel({
       )}
 
       <div className="grid gap-4 xl:grid-cols-2">
-        <Card className="border-white/10 bg-[#1c1c1c]">
-          <CardHeader className="border-b border-white/10">
-            <CardTitle className="text-base text-white">Recent Orders</CardTitle>
+        <Card className="border-border bg-card">
+          <CardHeader className="border-b border-border">
+            <CardTitle className="text-base text-foreground">Recent Orders</CardTitle>
           </CardHeader>
           <CardContent className="pt-4">
             <SimpleTable
@@ -292,7 +340,7 @@ export function SellerDashboardPanel({
                   key={`${order._id}-order-link`}
                   type="button"
                   onClick={() => onNavigate?.("orders")}
-                  className="text-left font-medium text-white underline-offset-4 hover:text-emerald-200 hover:underline"
+                  className="text-left font-medium text-foreground underline-offset-4 hover:text-primary hover:underline"
                 >
                   {order.orderId}
                 </button>,
@@ -304,9 +352,9 @@ export function SellerDashboardPanel({
           </CardContent>
         </Card>
 
-        <Card className="border-white/10 bg-[#1c1c1c]">
-          <CardHeader className="border-b border-white/10">
-            <CardTitle className="text-base text-white">Recent Notifications</CardTitle>
+        <Card className="border-border bg-card">
+          <CardHeader className="border-b border-border">
+            <CardTitle className="text-base text-foreground">Recent Notifications</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-2 pt-4">
             {(dashboard?.recentNotifications || []).length ? (
@@ -315,13 +363,13 @@ export function SellerDashboardPanel({
                   key={item._id}
                   type="button"
                   onClick={() => onNavigate?.("notifications")}
-                  className="rounded-lg border border-white/10 bg-white/[0.03] p-3 text-left transition hover:border-emerald-400/30 hover:bg-white/[0.05] focus:outline-none focus:ring-2 focus:ring-emerald-400/40"
+                  className="rounded-lg border border-border bg-muted p-3 text-left transition hover:border-primary/40 hover:bg-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
-                    <div className="text-sm font-medium text-white">{item.title}</div>
+                    <div className="text-sm font-medium text-foreground">{item.title}</div>
                     <StatusBadge label={item.severity} />
                   </div>
-                  <div className="mt-1 text-xs text-gray-400">{item.message}</div>
+                  <div className="mt-1 text-xs text-muted-foreground">{item.message}</div>
                 </button>
               ))
             ) : (
@@ -343,18 +391,18 @@ function shortDate(value: string) {
 function SellerMoneyTooltip({ active, payload, label }: ChartTooltipProps) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="rounded-lg border border-white/10 bg-[#111] px-3 py-2 shadow-xl">
-      <div className="mb-1 text-xs font-medium text-gray-400">{label}</div>
+    <div className="rounded-lg border border-border bg-background px-3 py-2 shadow-xl">
+      <div className="mb-1 text-xs font-medium text-muted-foreground">{label}</div>
       <div className="grid gap-1">
         {payload.map((item) => {
           const isCount = ["count", "orders", "quantity"].includes(item.dataKey || "");
           return (
             <div key={item.dataKey || item.name} className="flex items-center justify-between gap-4 text-xs">
-              <span className="flex items-center gap-2 text-gray-300">
+              <span className="flex items-center gap-2 text-muted-foreground">
                 <span className="h-2 w-2 rounded-full" style={{ backgroundColor: item.color || item.fill }} />
                 {item.name}
               </span>
-              <span className="font-medium text-white">
+              <span className="font-medium text-foreground">
                 {isCount ? item.value : `Rs. ${formatAmount(Number(item.value || 0))}`}
               </span>
             </div>
@@ -375,12 +423,12 @@ function SellerChartLegend({
   color: string;
 }) {
   return (
-    <div className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2">
-      <div className="flex items-center gap-2 text-[11px] uppercase text-gray-500">
+    <div className="rounded-lg border border-border bg-muted px-3 py-2">
+      <div className="flex items-center gap-2 text-[11px] uppercase text-muted-foreground">
         <span className="h-2 w-2 rounded-full" style={{ backgroundColor: color }} />
         {label}
       </div>
-      <div className="mt-1 text-sm font-semibold text-white">{value}</div>
+      <div className="mt-1 text-sm font-semibold text-foreground">{value}</div>
     </div>
   );
 }

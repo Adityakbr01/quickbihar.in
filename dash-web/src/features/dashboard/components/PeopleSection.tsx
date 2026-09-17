@@ -84,11 +84,11 @@ export function PeopleSection({
   const deleteUser = useDeleteAdminUser();
 
   return (
-    <Card className="border-white/10 bg-[#1c1c1c]">
-      <CardHeader className="gap-4 border-b border-white/10 lg:flex-row lg:items-center lg:justify-between">
+    <Card className="border-border bg-card">
+      <CardHeader className="gap-4 border-b border-border lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <CardTitle className="text-base text-white">People</CardTitle>
-          <div className="mt-1 text-xs text-gray-500">
+          <CardTitle className="text-base text-foreground">People</CardTitle>
+          <div className="mt-1 text-xs text-muted-foreground">
             Create, view, edit, deactivate, verify, and control access for user accounts.
           </div>
         </div>
@@ -213,23 +213,23 @@ function PeopleTable({
   ) => void;
 }) {
   if (isLoading) {
-    return <div className="px-4 py-10 text-sm text-gray-400">Loading people...</div>;
+    return <div className="px-4 py-10 text-sm text-muted-foreground">Loading people...</div>;
   }
 
   if (!people.length) {
-    return <div className="px-4 py-10 text-sm text-gray-400">No people found.</div>;
+    return <div className="px-4 py-10 text-sm text-muted-foreground">No people found.</div>;
   }
 
   return (
     <Table>
       <TableHeader>
-        <TableRow className="border-white/10 hover:bg-transparent">
-          <TableHead className="px-4 text-gray-400">Name</TableHead>
-          <TableHead className="text-gray-400">Role</TableHead>
-          <TableHead className="text-gray-400">Partner</TableHead>
-          <TableHead className="text-gray-400">Mall</TableHead>
-          <TableHead className="text-gray-400">Status</TableHead>
-          <TableHead className="text-right text-gray-400">Actions</TableHead>
+        <TableRow className="border-border hover:bg-transparent">
+          <TableHead className="px-4 text-muted-foreground">Name</TableHead>
+          <TableHead className="text-muted-foreground">Role</TableHead>
+          <TableHead className="text-muted-foreground">Partner</TableHead>
+          <TableHead className="text-muted-foreground">Mall</TableHead>
+          <TableHead className="text-muted-foreground">Status</TableHead>
+          <TableHead className="text-right text-muted-foreground">Actions</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -240,14 +240,14 @@ function PeopleTable({
             <TableRow
               key={person._id}
               className={cn(
-                "border-white/10 hover:bg-white/[0.03]",
+                "border-border hover:bg-muted",
                 isDeleted && "bg-red-500/[0.03] opacity-75",
               )}
             >
               <TableCell className="px-4">
-                <div className="font-medium text-white">{person.fullName}</div>
-                <div className="text-xs text-gray-500">{person.email}</div>
-                <div className="text-xs text-gray-600">@{person.username}</div>
+                <div className="font-medium text-foreground">{person.fullName}</div>
+                <div className="text-xs text-muted-foreground">{person.email}</div>
+                <div className="text-xs text-muted-foreground">@{person.username}</div>
               </TableCell>
               <TableCell>
                 <RoleBadge role={person.role} />
@@ -255,29 +255,29 @@ function PeopleTable({
               <TableCell>
                 {partner ? (
                   <div className="space-y-1">
-                    <Badge variant="outline" className="border-white/10 text-gray-300">
+                    <Badge variant="outline" className="border-border text-muted-foreground">
                       {partner.type}
                     </Badge>
-                    <div className="text-xs text-gray-500">
+                    <div className="text-xs text-muted-foreground">
                       {partner.profile.businessName || partner.profile.vehicleNumber || "Profile"}
                     </div>
                   </div>
                 ) : (
-                  <span className="text-xs text-gray-500">-</span>
+                  <span className="text-xs text-muted-foreground">-</span>
                 )}
               </TableCell>
               <TableCell>
                 {person.sellerProfile?.mallName ? (
                   <div className="space-y-1">
-                    <div className="text-sm text-white">{person.sellerProfile.mallName}</div>
-                    <div className="text-xs text-gray-500">
+                    <div className="text-sm text-foreground">{person.sellerProfile.mallName}</div>
+                    <div className="text-xs text-muted-foreground">
                       {[person.sellerProfile.mallUnit, person.sellerProfile.mallFloor]
                         .filter(Boolean)
                         .join(" / ") || "Assigned"}
                     </div>
                   </div>
                 ) : (
-                  <span className="text-xs text-gray-500">-</span>
+                  <span className="text-xs text-muted-foreground">-</span>
                 )}
               </TableCell>
               <TableCell>
@@ -298,7 +298,7 @@ function PeopleTable({
                   <Button
                     size="sm"
                     variant="outline"
-                    className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+                    className="border-border bg-muted text-foreground hover:bg-muted"
                     onClick={() => onView(person)}
                   >
                     <Eye className="h-3.5 w-3.5" />
@@ -307,7 +307,7 @@ function PeopleTable({
                   <Button
                     size="sm"
                     variant="outline"
-                    className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+                    className="border-border bg-muted text-foreground hover:bg-muted"
                     onClick={() => onEdit(person)}
                   >
                     <Edit className="h-3.5 w-3.5" />
@@ -317,7 +317,7 @@ function PeopleTable({
                     <Button
                       size="sm"
                       variant="outline"
-                      className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+                      className="border-border bg-muted text-foreground hover:bg-muted"
                       onClick={() => onPartnerStatus(person, partner.type, "APPROVED")}
                     >
                       <CheckCircle2 className="h-3.5 w-3.5" />
@@ -328,7 +328,7 @@ function PeopleTable({
                     <Button
                       size="sm"
                       variant="ghost"
-                      className="text-gray-300 hover:bg-white/10 hover:text-white"
+                      className="text-muted-foreground hover:bg-muted hover:text-foreground"
                       onClick={() => onPartnerStatus(person, partner.type, "REJECTED")}
                     >
                       <XCircle className="h-3.5 w-3.5" />
@@ -340,7 +340,7 @@ function PeopleTable({
                     variant={person.isBlocked ? "outline" : "destructive"}
                     className={
                       person.isBlocked
-                        ? "border-white/10 bg-white/5 text-white hover:bg-white/10"
+                        ? "border-border bg-muted text-foreground hover:bg-muted"
                         : ""
                     }
                     onClick={() => onBlock(person)}
@@ -407,7 +407,7 @@ function UserFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto border-white/10 bg-[#1c1c1c] text-white sm:max-w-2xl">
+      <DialogContent className="max-h-[90vh] overflow-y-auto border-border bg-card text-foreground sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
@@ -469,7 +469,7 @@ function UserFormDialog({
           <div className="rounded-lg border border-amber-400/20 bg-amber-400/10 p-3 text-xs text-amber-100">
             Seller and rider roles automatically create a pending partner profile.
           </div>
-          <DialogFooter className="border-white/10 bg-transparent">
+          <DialogFooter className="border-border bg-transparent">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isPending}>
               Cancel
             </Button>
@@ -496,7 +496,7 @@ function UserDetailDialog({
   const partner = getPartner(detail);
   return (
     <Dialog open onOpenChange={onOpenChange}>
-      <DialogContent className="border-white/10 bg-[#1c1c1c] text-white sm:max-w-2xl">
+      <DialogContent className="border-border bg-card text-foreground sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>User Details</DialogTitle>
         </DialogHeader>
@@ -538,7 +538,7 @@ function DeleteUserDialog({
 
   return (
     <Dialog open onOpenChange={onOpenChange}>
-      <DialogContent className="border-white/10 bg-[#1c1c1c] text-white sm:max-w-lg">
+      <DialogContent className="border-border bg-card text-foreground sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Deactivate User</DialogTitle>
         </DialogHeader>
@@ -551,9 +551,9 @@ function DeleteUserDialog({
             value={reason}
             onChange={(event) => setReason(event.target.value)}
             placeholder="Reason"
-            className="min-h-24 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none placeholder:text-gray-500"
+            className="min-h-24 rounded-lg border border-border bg-muted px-3 py-2 text-sm text-foreground outline-none placeholder:text-muted-foreground"
           />
-          <DialogFooter className="border-white/10 bg-transparent">
+          <DialogFooter className="border-border bg-transparent">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isPending}>
               Cancel
             </Button>
@@ -571,7 +571,7 @@ function DeleteUserDialog({
 function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
     <label className="grid gap-1">
-      <span className="text-xs font-medium uppercase text-gray-500">{label}</span>
+      <span className="text-xs font-medium uppercase text-muted-foreground">{label}</span>
       {children}
     </label>
   );
@@ -579,9 +579,9 @@ function Field({ label, children }: { label: string; children: ReactNode }) {
 
 function DetailBox({ label, value }: { label: string; value: ReactNode }) {
   return (
-    <div className="rounded-lg border border-white/10 bg-white/[0.03] p-3">
-      <div className="text-xs font-medium uppercase text-gray-500">{label}</div>
-      <div className="mt-1 break-words text-sm text-white">{value}</div>
+    <div className="rounded-lg border border-border bg-muted p-3">
+      <div className="text-xs font-medium uppercase text-muted-foreground">{label}</div>
+      <div className="mt-1 break-words text-sm text-foreground">{value}</div>
     </div>
   );
 }

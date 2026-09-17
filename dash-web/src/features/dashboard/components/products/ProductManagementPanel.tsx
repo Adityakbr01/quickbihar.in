@@ -133,7 +133,7 @@ export function ProductManagementPanel({
       />
 
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto border-white/10 bg-[#1c1c1c] text-white sm:max-w-5xl">
+        <DialogContent className="max-h-[90vh] overflow-y-auto border-border bg-card text-foreground sm:max-w-5xl">
           <DialogHeader>
             <DialogTitle>Create Product</DialogTitle>
           </DialogHeader>
@@ -158,7 +158,7 @@ export function ProductManagementPanel({
         open={Boolean(editing)}
         onOpenChange={(open) => !open && setEditing(null)}
       >
-        <DialogContent className="max-h-[90vh] overflow-y-auto border-white/10 bg-[#1c1c1c] text-white sm:max-w-5xl">
+        <DialogContent className="max-h-[90vh] overflow-y-auto border-border bg-card text-foreground sm:max-w-5xl">
           <DialogHeader>
             <DialogTitle>Edit Product</DialogTitle>
           </DialogHeader>
@@ -181,7 +181,7 @@ export function ProductManagementPanel({
         </DialogContent>
       </Dialog>
 
-      <Card className="border-white/10 bg-[#1c1c1c]">
+      <Card className="border-border bg-card">
         <CardContent className="px-0">
           {productsQuery.isLoading && (
             <LoadingState label="Loading products..." />
@@ -192,13 +192,13 @@ export function ProductManagementPanel({
           {!productsQuery.isLoading && Boolean(products.length) && (
             <Table>
               <TableHeader>
-                <TableRow className="border-white/10 hover:bg-transparent">
-                  <TableHead className="px-4 text-gray-400">Product</TableHead>
-                  <TableHead className="text-gray-400">Category</TableHead>
-                  <TableHead className="text-gray-400">Price</TableHead>
-                  <TableHead className="text-gray-400">Stock</TableHead>
-                  <TableHead className="text-gray-400">Status</TableHead>
-                  <TableHead className="text-right text-gray-400">
+                <TableRow className="border-border hover:bg-transparent">
+                  <TableHead className="px-4 text-muted-foreground">Product</TableHead>
+                  <TableHead className="text-muted-foreground">Category</TableHead>
+                  <TableHead className="text-muted-foreground">Price</TableHead>
+                  <TableHead className="text-muted-foreground">Stock</TableHead>
+                  <TableHead className="text-muted-foreground">Status</TableHead>
+                  <TableHead className="text-right text-muted-foreground">
                     Actions
                   </TableHead>
                 </TableRow>
@@ -207,35 +207,35 @@ export function ProductManagementPanel({
                 {products.map((product) => (
                   <TableRow
                     key={product._id}
-                    className="border-white/10 hover:bg-white/[0.03]"
+                    className="border-border hover:bg-muted"
                   >
                     <TableCell className="px-4">
-                      <div className="font-medium text-white">
+                      <div className="font-medium text-foreground">
                         {product.title}
                       </div>
-                      <div className="text-xs text-gray-500">
+                      <div className="text-xs text-muted-foreground">
                         {product.slug}
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="text-sm text-white">
+                      <div className="text-sm text-foreground">
                         {product.category}
                       </div>
-                      <div className="text-xs text-gray-500">
+                      <div className="text-xs text-muted-foreground">
                         {product.brand || "-"}
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="text-sm text-white">
+                      <div className="text-sm text-foreground">
                         Rs. {formatAmount(product.price)}
                       </div>
                       {product.originalPrice && (
-                        <div className="text-xs text-gray-500 line-through">
+                        <div className="text-xs text-muted-foreground line-through">
                           Rs. {formatAmount(product.originalPrice)}
                         </div>
                       )}
                     </TableCell>
-                    <TableCell className="text-gray-300">
+                    <TableCell className="text-muted-foreground">
                       {product.totalStock ??
                         product.variants?.reduce(
                           (sum, variant) => sum + Number(variant.stock || 0),
@@ -263,7 +263,7 @@ export function ProductManagementPanel({
                         <Button
                           size="sm"
                           variant="outline"
-                          className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+                          className="border-border bg-muted text-foreground hover:bg-muted"
                           onClick={() => {
                             setEditing(product);
                           }}
@@ -317,7 +317,7 @@ function ProductField({
 }) {
   return (
     <div className="grid gap-1.5">
-      <span className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-gray-400">
+      <span className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
         {label}
         {required && (
           <span className="rounded-full border border-red-400/30 px-1.5 py-0.5 text-[10px] leading-none text-red-200">
@@ -330,7 +330,7 @@ function ProductField({
         <span
           className={cn(
             "text-xs leading-4",
-            error ? "text-red-300" : "text-gray-500",
+            error ? "text-red-300" : "text-muted-foreground",
           )}
         >
           {error || helper}
@@ -888,7 +888,7 @@ function ProductForm({
               className={inputClass}
             />
           </ProductField>
-          <div className="flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-gray-300 h-9 self-end">
+          <div className="flex items-center justify-between rounded-lg border border-border bg-muted px-3 py-2 text-sm text-muted-foreground h-9 self-end">
             <span>GST Applicable</span>
             <Switch
               checked={isGstApplicable}
@@ -925,13 +925,13 @@ function ProductForm({
           {existingImages.map((image, index) => (
             <div
               key={`${image.fileId}-${index}`}
-              className="flex items-center justify-between gap-3 rounded border border-white/10 bg-black/20 px-3 py-2 text-xs text-gray-300"
+              className="flex items-center justify-between gap-3 rounded border border-border bg-muted px-3 py-2 text-xs text-muted-foreground"
             >
               <div className="flex items-center gap-2 overflow-hidden flex-1">
                 <img
                   src={image.url}
                   alt="Product Preview"
-                  className="h-10 w-10 rounded object-cover border border-white/10"
+                  className="h-10 w-10 rounded object-cover border border-border"
                 />
                 <span className="truncate">{image.url}</span>
               </div>
@@ -951,13 +951,13 @@ function ProductForm({
             return (
               <div
                 key={`${image.name}-${index}`}
-                className="flex items-center justify-between gap-3 rounded border border-white/10 bg-black/20 px-3 py-2 text-xs text-gray-300"
+                className="flex items-center justify-between gap-3 rounded border border-border bg-muted px-3 py-2 text-xs text-muted-foreground"
               >
                 <div className="flex items-center gap-2 overflow-hidden flex-1">
                   <img
                     src={previewUrl}
                     alt="New Preview"
-                    className="h-10 w-10 rounded object-cover border border-white/10"
+                    className="h-10 w-10 rounded object-cover border border-border"
                   />
                   <span className="truncate">{image.name}</span>
                 </div>
@@ -1083,14 +1083,14 @@ function ProductForm({
 
       <ProductFormSection title="Delivery & Compliance">
         <div className="grid gap-3 md:grid-cols-3">
-          <div className="flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-gray-300 h-9">
+          <div className="flex items-center justify-between rounded-lg border border-border bg-muted px-3 py-2 text-sm text-muted-foreground h-9">
             <span>Express Delivery</span>
             <Switch
               checked={isExpressAvailable}
               onCheckedChange={setIsExpressAvailable}
             />
           </div>
-          <div className="flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-gray-300 h-9">
+          <div className="flex items-center justify-between rounded-lg border border-border bg-muted px-3 py-2 text-sm text-muted-foreground h-9">
             <span>COD Available</span>
             <Switch
               checked={isCodAvailable}
@@ -1212,14 +1212,14 @@ function ProductForm({
       </ProductFormSection>
 
       <div className="flex flex-wrap gap-3">
-        <div className="flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-gray-300 h-9">
+        <div className="flex items-center justify-between rounded-lg border border-border bg-muted px-3 py-2 text-sm text-muted-foreground h-9">
           <span className="mr-2">Featured Product</span>
           <Switch
             checked={isFeatured}
             onCheckedChange={setIsFeatured}
           />
         </div>
-        <div className="flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-gray-300 h-9">
+        <div className="flex items-center justify-between rounded-lg border border-border bg-muted px-3 py-2 text-sm text-muted-foreground h-9">
           <span className="mr-2">Active</span>
           <Switch
             checked={isActive}
@@ -1244,7 +1244,7 @@ function ProductForm({
         <Button
           type="button"
           variant="outline"
-          className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+          className="border-border bg-muted text-foreground hover:bg-muted"
           onClick={onCancel}
           disabled={isPending}
         >
@@ -1265,10 +1265,10 @@ function ProductFormSection({
   children: React.ReactNode;
 }) {
   return (
-    <section className="grid gap-3 rounded-lg border border-white/10 bg-white/[0.03] p-3">
+    <section className="grid gap-3 rounded-lg border border-border bg-muted p-3">
       <div>
-        <div className="text-sm font-medium text-white">{title}</div>
-        {helper && <div className="text-xs text-gray-500">{helper}</div>}
+        <div className="text-sm font-medium text-foreground">{title}</div>
+        {helper && <div className="text-xs text-muted-foreground">{helper}</div>}
       </div>
       {children}
     </section>
@@ -1285,14 +1285,14 @@ function SizeChartPreview({
   const rows = (chart.data || []).slice(0, 5);
 
   return (
-    <div className="overflow-hidden rounded-lg border border-white/10 bg-black/20">
-      <div className="border-b border-white/10 px-3 py-2 text-xs text-gray-400">
+    <div className="overflow-hidden rounded-lg border border-border bg-muted">
+      <div className="border-b border-border px-3 py-2 text-xs text-muted-foreground">
         {chart.name} - {chart.category} - {chart.unit}
       </div>
       {rows.length > 0 && fields.length > 0 ? (
         <div className="overflow-x-auto">
           <table className="min-w-full text-left text-xs">
-            <thead className="bg-white/[0.03] text-gray-400">
+            <thead className="bg-muted text-muted-foreground">
               <tr>
                 {fields.map((field) => (
                   <th key={field} className="px-3 py-2 font-medium">
@@ -1303,7 +1303,7 @@ function SizeChartPreview({
             </thead>
             <tbody>
               {rows.map((row, index) => (
-                <tr key={index} className="border-t border-white/10 text-gray-300">
+                <tr key={index} className="border-t border-border text-muted-foreground">
                   {fields.map((field) => (
                     <td key={field} className="px-3 py-2">
                       {String(row[field] ?? "-")}
@@ -1315,7 +1315,7 @@ function SizeChartPreview({
           </table>
         </div>
       ) : (
-        <div className="px-3 py-2 text-xs text-gray-500">
+        <div className="px-3 py-2 text-xs text-muted-foreground">
           No preview rows available.
         </div>
       )}
@@ -1352,11 +1352,11 @@ function VariantEditor({
   };
 
   return (
-    <div className="grid gap-3 rounded-lg border border-white/10 bg-white/[0.03] p-3">
+    <div className="grid gap-3 rounded-lg border border-border bg-muted p-3">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <div className="text-sm font-medium text-white">Product Variants</div>
-          <div className="text-xs text-gray-500">
+          <div className="text-sm font-medium text-foreground">Product Variants</div>
+          <div className="text-xs text-muted-foreground">
             Size, color, and stock are required. Variant SKU is auto-generated
             if blank.
           </div>
@@ -1365,7 +1365,7 @@ function VariantEditor({
           type="button"
           size="sm"
           variant="outline"
-          className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+          className="border-border bg-muted text-foreground hover:bg-muted"
           onClick={() =>
             onChange([...variants, { size: "", color: "", stock: 0, sku: "" }])
           }

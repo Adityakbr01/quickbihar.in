@@ -6,11 +6,11 @@ import type {
 import * as XLSX from "xlsx";
 
 export const inputClass =
-  "w-full border-white/10 bg-white/5 text-white placeholder:text-gray-500";
+  "w-full border-border bg-muted text-foreground placeholder:text-muted-foreground";
 export const selectClass =
-  "h-9 w-full rounded-lg border border-white/10 bg-[#181818] px-2 text-sm text-white outline-none";
+  "h-9 w-full rounded-lg border border-border bg-background px-2 text-sm text-foreground outline-none";
 export const textareaClass =
-  "min-h-20 rounded-lg border border-white/10 bg-white/5 px-2.5 py-2 text-sm text-white outline-none placeholder:text-gray-500";
+  "min-h-20 rounded-lg border border-border bg-muted px-2.5 py-2 text-sm text-foreground outline-none placeholder:text-muted-foreground";
 
 export type ExportCell = string | number | boolean | null | undefined;
 export type ExportRow = ExportCell[];

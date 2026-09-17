@@ -22,16 +22,16 @@ export function SectionHeader({
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex items-center gap-2">
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-white">
+        <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-muted text-foreground">
           {icon}
         </div>
-        <h2 className="text-xl font-semibold text-white">{title}</h2>
+        <h2 className="text-xl font-semibold text-foreground">{title}</h2>
       </div>
       <div className="flex flex-wrap gap-2">
         {onRefresh && (
           <Button
             variant="outline"
-            className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+            className="border-border bg-muted text-foreground hover:bg-muted"
             onClick={onRefresh}
           >
             <RefreshCcw className="h-4 w-4" />
@@ -40,7 +40,7 @@ export function SectionHeader({
         )}
         {actionLabel && onAction && (
           <Button
-            className="bg-white text-black hover:bg-gray-200"
+            className="bg-primary text-primary-foreground hover:bg-primary/90"
             onClick={onAction}
           >
             <Plus className="h-4 w-4" />
@@ -69,8 +69,8 @@ export function TabButtons({
           variant={value === tab.id ? "default" : "outline"}
           className={
             value === tab.id
-              ? "bg-white text-black hover:bg-gray-200"
-              : "border-white/10 bg-white/5 text-white hover:bg-white/10"
+              ? "bg-primary text-primary-foreground hover:bg-primary/90"
+              : "border-border bg-muted text-foreground hover:bg-muted"
           }
           onClick={() => onChange(tab.id)}
         >
@@ -97,10 +97,10 @@ export function ModuleToolbar({
   onExport: () => void;
 }) {
   return (
-    <Card className="border-white/10 bg-[#1c1c1c]">
+    <Card className="border-border bg-card">
       <CardContent className="flex flex-col gap-3 p-3 md:flex-row md:items-center">
         <div className="relative min-w-0 flex-1">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             className={`${inputClass} pl-9`}
             placeholder="Search"
@@ -121,7 +121,7 @@ export function ModuleToolbar({
         </select>
         <Button
           variant="outline"
-          className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+          className="border-border bg-muted text-foreground hover:bg-muted"
           onClick={onExport}
         >
           <FileDown className="h-4 w-4" />
@@ -146,7 +146,7 @@ export function StatusBadge({ value }: { value?: string }) {
         status.includes("PENDING") ||
         status.includes("SCHEDULED")
       ? "border-amber-400/30 text-amber-200"
-      : "border-white/10 text-gray-300";
+      : "border-border text-muted-foreground";
   return (
     <Badge variant="outline" className={tone}>
       {status}
@@ -155,11 +155,11 @@ export function StatusBadge({ value }: { value?: string }) {
 }
 
 export function LoadingState({ label }: { label: string }) {
-  return <div className="p-6 text-center text-sm text-gray-400">{label}</div>;
+  return <div className="p-6 text-center text-sm text-muted-foreground">{label}</div>;
 }
 
 export function EmptyState({ label }: { label: string }) {
-  return <div className="p-6 text-center text-sm text-gray-500">{label}</div>;
+  return <div className="p-6 text-center text-sm text-muted-foreground">{label}</div>;
 }
 
 export function PaginationFooter({
@@ -175,18 +175,18 @@ export function PaginationFooter({
     <div className="flex items-center justify-end gap-2">
       <Button
         variant="outline"
-        className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+        className="border-border bg-muted text-foreground hover:bg-muted"
         disabled={page <= 1}
         onClick={() => onPage(page - 1)}
       >
         Previous
       </Button>
-      <span className="text-sm text-gray-400">
+      <span className="text-sm text-muted-foreground">
         {page} / {Math.max(totalPages, 1)}
       </span>
       <Button
         variant="outline"
-        className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+        className="border-border bg-muted text-foreground hover:bg-muted"
         disabled={page >= totalPages}
         onClick={() => onPage(page + 1)}
       >

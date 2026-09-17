@@ -118,7 +118,7 @@ export function CategoryManagementPanel() {
       />
 
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto border-white/10 bg-[#1c1c1c] text-white sm:max-w-4xl">
+        <DialogContent className="max-h-[90vh] overflow-y-auto border-border bg-card text-foreground sm:max-w-4xl">
           <DialogHeader>
             <DialogTitle>Create Category</DialogTitle>
           </DialogHeader>
@@ -143,7 +143,7 @@ export function CategoryManagementPanel() {
         open={Boolean(editing)}
         onOpenChange={(open) => !open && setEditing(null)}
       >
-        <DialogContent className="max-h-[90vh] overflow-y-auto border-white/10 bg-[#1c1c1c] text-white sm:max-w-4xl">
+        <DialogContent className="max-h-[90vh] overflow-y-auto border-border bg-card text-foreground sm:max-w-4xl">
           <DialogHeader>
             <DialogTitle>Edit Category</DialogTitle>
           </DialogHeader>
@@ -167,7 +167,7 @@ export function CategoryManagementPanel() {
 
       <CategoryTree categories={allCategories} />
 
-      <Card className="border-white/10 bg-[#1c1c1c]">
+      <Card className="border-border bg-card">
         <CardContent className="px-0">
           {categoriesQuery.isLoading && (
             <LoadingState label="Loading categories..." />
@@ -178,14 +178,14 @@ export function CategoryManagementPanel() {
           {!categoriesQuery.isLoading && Boolean(categories.length) && (
             <Table>
               <TableHeader>
-                <TableRow className="border-white/10 hover:bg-transparent">
-                  <TableHead className="px-4 text-gray-400">Category</TableHead>
-                  <TableHead className="text-gray-400">Parent</TableHead>
-                  <TableHead className="text-gray-400">Sort</TableHead>
-                  <TableHead className="text-gray-400">Home</TableHead>
-                  <TableHead className="text-gray-400">Pos</TableHead>
-                  <TableHead className="text-gray-400">Status</TableHead>
-                  <TableHead className="text-right text-gray-400">
+                <TableRow className="border-border hover:bg-transparent">
+                  <TableHead className="px-4 text-muted-foreground">Category</TableHead>
+                  <TableHead className="text-muted-foreground">Parent</TableHead>
+                  <TableHead className="text-muted-foreground">Sort</TableHead>
+                  <TableHead className="text-muted-foreground">Home</TableHead>
+                  <TableHead className="text-muted-foreground">Pos</TableHead>
+                  <TableHead className="text-muted-foreground">Status</TableHead>
+                  <TableHead className="text-right text-muted-foreground">
                     Actions
                   </TableHead>
                 </TableRow>
@@ -194,19 +194,19 @@ export function CategoryManagementPanel() {
                 {categories.map((category) => (
                   <TableRow
                     key={category._id}
-                    className="border-white/10 hover:bg-white/[0.03]"
+                    className="border-border hover:bg-muted"
                   >
                     <TableCell className="px-4">
-                      <div className="font-medium text-white">
+                      <div className="font-medium text-foreground">
                         {category.title}
                       </div>
-                      <div className="text-xs text-gray-500">
+                      <div className="text-xs text-muted-foreground">
                         {category.slug}
                       </div>
                     </TableCell>
-                    <TableCell className="text-gray-300">
+                    <TableCell className="text-muted-foreground">
                       {parentTitle(category.parentId) ? (
-                        <span className="inline-flex items-center rounded-md bg-white/10 px-2 py-0.5 text-xs text-gray-300">
+                        <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs text-muted-foreground">
                           {parentTitle(category.parentId)}
                         </span>
                       ) : (
@@ -215,7 +215,7 @@ export function CategoryManagementPanel() {
                         </span>
                       )}
                     </TableCell>
-                    <TableCell className="text-gray-300">
+                    <TableCell className="text-muted-foreground">
                       {category.priority || 0} / {category.sortOrder || 0}
                     </TableCell>
                     <TableCell>
@@ -234,7 +234,7 @@ export function CategoryManagementPanel() {
                         type="number"
                         min="0"
                         max="99"
-                        className="h-7 w-14 rounded border border-white/10 bg-white/5 px-1.5 text-center text-xs text-white focus:border-emerald-500 focus:outline-none"
+                        className="h-7 w-14 rounded border border-border bg-muted px-1.5 text-center text-xs text-foreground focus:border-emerald-500 focus:outline-none"
                         defaultValue={category.homePosition ?? 0}
                         onBlur={(e) => {
                           const val = Number(e.target.value);
@@ -263,7 +263,7 @@ export function CategoryManagementPanel() {
                         <Button
                           size="sm"
                           variant="outline"
-                          className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+                          className="border-border bg-muted text-foreground hover:bg-muted"
                           onClick={() => {
                             setIsCreateOpen(false);
                             setEditing(category);
@@ -442,21 +442,21 @@ function CategoryForm({
         placeholder="SEO Meta Description"
         className={textareaClass}
       />
-      <div className="flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-gray-300 h-9">
+      <div className="flex items-center justify-between rounded-lg border border-border bg-muted px-3 py-2 text-sm text-muted-foreground h-9">
         <span>Active Status</span>
         <Switch
           checked={isActive}
           onCheckedChange={setIsActive}
         />
       </div>
-      <div className="flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-gray-300 h-9">
+      <div className="flex items-center justify-between rounded-lg border border-border bg-muted px-3 py-2 text-sm text-muted-foreground h-9">
         <span>Is Featured</span>
         <Switch
           checked={isFeatured}
           onCheckedChange={setIsFeatured}
         />
       </div>
-      <div className="flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-gray-300 h-9">
+      <div className="flex items-center justify-between rounded-lg border border-border bg-muted px-3 py-2 text-sm text-muted-foreground h-9">
         <span>Show on Home</span>
         <Switch
           checked={isVisibleOnHome}
@@ -487,7 +487,7 @@ function CategoryForm({
         <Button
           type="button"
           variant="outline"
-          className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+          className="border-border bg-muted text-foreground hover:bg-muted"
           onClick={onCancel}
           disabled={isPending}
         >
@@ -514,26 +514,26 @@ function CategoryTree({ categories }: { categories: AdminCategory[] }) {
   }, [categories]);
 
   return (
-    <Card className="border-white/10 bg-[#1c1c1c]">
-      <CardHeader className="border-b border-white/10">
-        <CardTitle className="text-base text-white">
+    <Card className="border-border bg-card">
+      <CardHeader className="border-b border-border">
+        <CardTitle className="text-base text-foreground">
           Category &amp; Subcategory Hierarchy
         </CardTitle>
       </CardHeader>
       <CardContent className="grid gap-3 md:grid-cols-2 xl:grid-cols-3 pt-4">
         {!roots.length && (
-          <div className="text-sm text-gray-400">No categories available.</div>
+          <div className="text-sm text-muted-foreground">No categories available.</div>
         )}
         {roots.map((category) => {
           const children = childrenByParent.get(category._id) || [];
           return (
             <div
               key={category._id}
-              className="rounded-lg border border-white/10 bg-white/[0.03] p-3.5 space-y-2.5"
+              className="rounded-lg border border-border bg-muted p-3.5 space-y-2.5"
             >
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
-                  <span className="font-semibold text-white">{category.title}</span>
+                  <span className="font-semibold text-foreground">{category.title}</span>
                   {category.isVisibleOnHome && (
                     <span className="rounded bg-emerald-500/20 px-1.5 py-0.5 text-[10px] font-medium text-emerald-400">
                       Home #{category.homePosition || 0}
@@ -545,7 +545,7 @@ function CategoryTree({ categories }: { categories: AdminCategory[] }) {
                   label={category.isActive ? "Active" : "Inactive"}
                 />
               </div>
-              <div className="text-xs text-gray-400">
+              <div className="text-xs text-muted-foreground">
                 {children.length} {children.length === 1 ? "subcategory" : "subcategories"}
               </div>
               {children.length > 0 ? (
@@ -553,14 +553,14 @@ function CategoryTree({ categories }: { categories: AdminCategory[] }) {
                   {children.map((child) => (
                     <span
                       key={child._id}
-                      className="inline-flex items-center rounded-md bg-white/5 border border-white/5 px-2 py-1 text-xs text-gray-300"
+                      className="inline-flex items-center rounded-md bg-muted border border-border px-2 py-1 text-xs text-muted-foreground"
                     >
                       {child.title}
                     </span>
                   ))}
                 </div>
               ) : (
-                <div className="text-xs text-gray-500 italic">No subcategories yet</div>
+                <div className="text-xs text-muted-foreground italic">No subcategories yet</div>
               )}
             </div>
           );

@@ -172,11 +172,11 @@ export function OverviewSection({
       </section>
 
       <section className="grid gap-4 xl:grid-cols-[minmax(0,1.4fr)_minmax(320px,0.8fr)]">
-        <Card className="border-white/10 bg-[#1c1c1c]">
-          <CardHeader className="border-b border-white/10">
+        <Card className="border-border bg-card">
+          <CardHeader className="border-b border-border">
             <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-              <CardTitle className="text-base text-white">Revenue And Platform Earnings</CardTitle>
-              <div className="text-xs text-gray-500">Last 30 days</div>
+              <CardTitle className="text-base text-foreground">Revenue And Platform Earnings</CardTitle>
+              <div className="text-xs text-muted-foreground">Last 30 days</div>
             </div>
           </CardHeader>
           <CardContent className="pt-4">
@@ -245,9 +245,9 @@ export function OverviewSection({
         </Card>
 
         <div className="grid gap-4">
-          <Card className="border-white/10 bg-[#1c1c1c]">
-            <CardHeader className="border-b border-white/10">
-              <CardTitle className="text-base text-white">Order Status Revenue</CardTitle>
+          <Card className="border-border bg-card">
+            <CardHeader className="border-b border-border">
+              <CardTitle className="text-base text-foreground">Order Status Revenue</CardTitle>
             </CardHeader>
             <CardContent className="pt-4">
               <div className="h-[170px]">
@@ -270,9 +270,9 @@ export function OverviewSection({
             </CardContent>
           </Card>
 
-          <Card className="border-white/10 bg-[#1c1c1c]">
-            <CardHeader className="border-b border-white/10">
-              <CardTitle className="text-base text-white">Platform Money Mix</CardTitle>
+          <Card className="border-border bg-card">
+            <CardHeader className="border-b border-border">
+              <CardTitle className="text-base text-foreground">Platform Money Mix</CardTitle>
             </CardHeader>
             <CardContent className="grid gap-4 pt-4 sm:grid-cols-[140px_1fr]">
               <div className="h-[140px]">
@@ -308,9 +308,9 @@ export function OverviewSection({
       </section>
 
       <section className="grid gap-4 xl:grid-cols-[1fr_420px]">
-        <Card className="border-white/10 bg-[#1c1c1c]">
-          <CardHeader className="border-b border-white/10">
-            <CardTitle className="text-base text-white">Mall Network</CardTitle>
+        <Card className="border-border bg-card">
+          <CardHeader className="border-b border-border">
+            <CardTitle className="text-base text-foreground">Mall Network</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-3 md:grid-cols-4">
             <NetworkTile
@@ -332,9 +332,9 @@ export function OverviewSection({
           </CardContent>
         </Card>
 
-        <Card className="border-white/10 bg-[#1c1c1c]">
-          <CardHeader className="border-b border-white/10">
-            <CardTitle className="text-base text-white">
+        <Card className="border-border bg-card">
+          <CardHeader className="border-b border-border">
+            <CardTitle className="text-base text-foreground">
               Recent Payouts
             </CardTitle>
           </CardHeader>
@@ -343,18 +343,18 @@ export function OverviewSection({
               payouts.map((payout) => (
                 <div
                   key={payout._id}
-                  className="flex items-center justify-between border-b border-white/10 pb-3 last:border-0 last:pb-0"
+                  className="flex items-center justify-between border-b border-border pb-3 last:border-0 last:pb-0"
                 >
                   <div>
-                    <div className="text-sm font-medium text-white">
+                    <div className="text-sm font-medium text-foreground">
                       {payout.partnerId?.fullName || "Partner"}
                     </div>
-                    <div className="text-xs text-gray-500">
+                    <div className="text-xs text-muted-foreground">
                       {payout.partnerType}
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-sm font-medium text-white">
+                    <div className="text-sm font-medium text-foreground">
                       Rs. {formatAmount(payout.amount)}
                     </div>
                     <StatusBadge
@@ -365,7 +365,7 @@ export function OverviewSection({
                 </div>
               ))
             ) : (
-              <div className="py-6 text-sm text-gray-400">
+              <div className="py-6 text-sm text-muted-foreground">
                 No payouts recorded.
               </div>
             )}
@@ -379,16 +379,16 @@ export function OverviewSection({
 function MoneyTooltip({ active, payload, label }: ChartTooltipProps) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="rounded-lg border border-white/10 bg-[#111] px-3 py-2 shadow-xl">
-      <div className="mb-1 text-xs font-medium text-gray-400">{label}</div>
+    <div className="rounded-lg border border-border bg-background px-3 py-2 shadow-xl">
+      <div className="mb-1 text-xs font-medium text-muted-foreground">{label}</div>
       <div className="grid gap-1">
         {payload.map((item) => (
           <div key={item.dataKey || item.name} className="flex items-center justify-between gap-4 text-xs">
-            <span className="flex items-center gap-2 text-gray-300">
+            <span className="flex items-center gap-2 text-muted-foreground">
               <span className="h-2 w-2 rounded-full" style={{ backgroundColor: item.color || item.fill }} />
               {item.name}
             </span>
-            <span className="font-medium text-white">
+            <span className="font-medium text-foreground">
               {typeof item.value === "number" && item.dataKey !== "count"
                 ? compactMoney(item.value)
                 : item.value}
@@ -410,12 +410,12 @@ function ChartLegend({
   color: string;
 }) {
   return (
-    <div className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2">
-      <div className="flex items-center gap-2 text-[11px] uppercase text-gray-500">
+    <div className="rounded-lg border border-border bg-muted px-3 py-2">
+      <div className="flex items-center gap-2 text-[11px] uppercase text-muted-foreground">
         <span className="h-2 w-2 rounded-full" style={{ backgroundColor: color }} />
         {label}
       </div>
-      <div className="mt-1 text-sm font-semibold text-white">{value}</div>
+      <div className="mt-1 text-sm font-semibold text-foreground">{value}</div>
     </div>
   );
 }

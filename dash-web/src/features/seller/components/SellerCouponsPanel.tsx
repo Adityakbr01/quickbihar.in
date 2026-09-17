@@ -65,7 +65,7 @@ export function SellerCouponsPanel() {
         empty={couponsQuery.isLoading ? "Loading coupons..." : "No coupons found."}
         columns={["Code", "Rule", "Target", "In Cart?", "Usage", "Dates", "Approval", "Actions"]}
         rows={(couponsQuery.data?.data || []).map((coupon) => [
-          <div key={`${coupon._id}-code`} className="font-medium text-white">
+          <div key={`${coupon._id}-code`} className="font-medium text-foreground">
             {coupon.code}
           </div>,
           `${
@@ -102,7 +102,7 @@ export function SellerCouponsPanel() {
             className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border transition cursor-pointer ${
               coupon.showOnCart !== false
                 ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20"
-                : "bg-zinc-500/10 border-zinc-500/30 text-zinc-400 hover:bg-zinc-500/20"
+                : "bg-muted border-border text-muted-foreground hover:bg-zinc-500/20"
             }`}
             title="Click to toggle whether this coupon appears in customer cart"
           >
@@ -123,7 +123,7 @@ export function SellerCouponsPanel() {
                 <Button
                   size="sm"
                   variant="outline"
-                  className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+                  className="border-border bg-muted text-foreground hover:bg-muted"
                 >
                   Edit
                 </Button>
@@ -219,7 +219,7 @@ function CouponDialog({
   return (
     <Dialog open={open} onOpenChange={changeOpen}>
       <DialogTrigger render={trigger as never} />
-      <DialogContent className="border-white/10 bg-[#1c1c1c] text-white sm:max-w-2xl">
+      <DialogContent className="border-border bg-card text-foreground sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>{coupon ? "Edit Coupon" : "Create Coupon"}</DialogTitle>
         </DialogHeader>
@@ -268,11 +268,11 @@ function CouponDialog({
             </label>
             <Field name="description" label="Description" defaultValue={coupon?.description} required />
 
-            <div className="grid gap-2 md:col-span-2 rounded-lg border border-white/10 bg-white/[0.03] p-3">
+            <div className="grid gap-2 md:col-span-2 rounded-lg border border-border bg-muted p-3">
               <label className="flex items-center justify-between cursor-pointer">
                 <div>
-                  <span className="text-sm font-semibold text-white block">Show Coupon in Customer Cart</span>
-                  <span className="text-xs text-white/50 block mt-0.5">
+                  <span className="text-sm font-semibold text-foreground block">Show Coupon in Customer Cart</span>
+                  <span className="text-xs text-muted-foreground block mt-0.5">
                     When enabled, this coupon is shown under "Offers & Benefits" in customer carts for 1-tap application.
                   </span>
                 </div>
@@ -281,7 +281,7 @@ function CouponDialog({
                   name="showOnCart"
                   checked={showOnCart}
                   onChange={(e) => setShowOnCart(e.target.checked)}
-                  className="w-4 h-4 rounded text-emerald-500 focus:ring-0 focus:ring-offset-0 bg-white/10 border-white/20 ml-3"
+                  className="w-4 h-4 rounded text-emerald-500 focus:ring-0 focus:ring-offset-0 bg-muted border-border ml-3"
                 />
               </label>
             </div>
@@ -289,25 +289,25 @@ function CouponDialog({
             <div className="grid gap-2 md:col-span-2">
               <span className={labelClass}>Coupon Target</span>
               <div className="flex gap-6 mt-1">
-                <label className="flex items-center gap-2 text-sm text-white/80 cursor-pointer">
+                <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer">
                   <input
                     type="radio"
                     name="appliesTo"
                     value="ALL"
                     checked={appliesTo === "ALL"}
                     onChange={() => setAppliesTo("ALL")}
-                    className="text-[#fb923c] focus:ring-0 focus:ring-offset-0 bg-white/5 border-white/10"
+                    className="text-primary focus:ring-0 focus:ring-offset-0 bg-muted border-border"
                   />
                   Apply to all my products
                 </label>
-                <label className="flex items-center gap-2 text-sm text-white/80 cursor-pointer">
+                <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer">
                   <input
                     type="radio"
                     name="appliesTo"
                     value="SPECIFIC"
                     checked={appliesTo === "SPECIFIC"}
                     onChange={() => setAppliesTo("SPECIFIC")}
-                    className="text-[#fb923c] focus:ring-0 focus:ring-offset-0 bg-white/5 border-white/10"
+                    className="text-primary focus:ring-0 focus:ring-offset-0 bg-muted border-border"
                   />
                   Apply to specific products
                 </label>
@@ -317,13 +317,13 @@ function CouponDialog({
             {appliesTo === "SPECIFIC" && (
               <div className="grid gap-2 md:col-span-2">
                 <span className={labelClass}>Select Products</span>
-                <div className="max-h-48 overflow-y-auto border border-white/10 rounded-md bg-white/[0.02] p-2 space-y-1">
+                <div className="max-h-48 overflow-y-auto border border-border rounded-md bg-muted p-2 space-y-1">
                   {products.map((product) => {
                     const isChecked = selectedProductIds.includes(product._id);
                     return (
                       <label
                         key={product._id}
-                        className="flex items-center gap-3 p-2 rounded-md hover:bg-white/5 cursor-pointer text-sm text-white/80"
+                        className="flex items-center gap-3 p-2 rounded-md hover:bg-muted cursor-pointer text-sm text-muted-foreground"
                       >
                         <input
                           type="checkbox"
@@ -335,7 +335,7 @@ function CouponDialog({
                               setSelectedProductIds([...selectedProductIds, product._id]);
                             }
                           }}
-                          className="rounded text-[#fb923c] focus:ring-0 focus:ring-offset-0 bg-white/5 border-white/10"
+                          className="rounded text-primary focus:ring-0 focus:ring-offset-0 bg-muted border-border"
                         />
                         {product.images?.[0]?.url && (
                           <img
@@ -346,13 +346,13 @@ function CouponDialog({
                         )}
                         <div className="flex-1 truncate">
                           <span className="font-medium">{product.title}</span>
-                          <span className="block text-xs text-white/40">SKU: {product.details?.sku || "N/A"}</span>
+                          <span className="block text-xs text-muted-foreground">SKU: {product.details?.sku || "N/A"}</span>
                         </div>
                       </label>
                     );
                   })}
                   {products.length === 0 && !productsQuery.isLoading && (
-                    <div className="text-center text-sm text-white/40 py-4">
+                    <div className="text-center text-sm text-muted-foreground py-4">
                       No products found. Please create products first.
                     </div>
                   )}
@@ -362,7 +362,7 @@ function CouponDialog({
 
             {dateError && <div className="text-xs text-red-300 md:col-span-2">{dateError}</div>}
           </div>
-          <DialogFooter className="border-white/10 bg-white/[0.03] gap-2">
+          <DialogFooter className="border-border bg-muted gap-2">
             <Button
               type="button"
               variant="outline"

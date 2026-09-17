@@ -30,13 +30,13 @@ export function AdminSidebar({
   };
 
   return (
-    <aside className="shrink-0 border-b border-white/10 bg-[#181818] lg:flex lg:h-screen lg:w-72 lg:flex-col lg:overflow-hidden lg:border-b-0 lg:border-r">
-      <div className="flex items-center gap-3 border-b border-white/10 px-4 py-4">
+    <aside className="shrink-0 border-b border-border bg-background lg:flex lg:h-screen lg:w-72 lg:flex-col lg:overflow-hidden lg:border-b-0 lg:border-r">
+      <div className="flex items-center gap-3 border-b border-border px-4 py-4">
         <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-500 text-sm font-bold text-black shadow-md shadow-emerald-500/20">
           QB
         </div>
         <div>
-          <div className="text-sm font-semibold text-white">QuickBihar</div>
+          <div className="text-sm font-semibold text-foreground">QuickBihar</div>
           <div className="text-xs text-emerald-400 font-medium">Admin Portal</div>
         </div>
       </div>
@@ -57,7 +57,7 @@ export function AdminSidebar({
                   "w-full h-10 flex items-center justify-start gap-3 px-3 py-2 text-sm rounded-lg transition-all duration-200 outline-none text-left",
                   activeSection === section.id
                     ? "bg-emerald-500/10 text-emerald-400 font-medium border border-emerald-500/20"
-                    : "text-gray-400 hover:text-white hover:bg-white/[0.05]",
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted",
                 )}
               >
                 <span className="shrink-0">{section.icon}</span>

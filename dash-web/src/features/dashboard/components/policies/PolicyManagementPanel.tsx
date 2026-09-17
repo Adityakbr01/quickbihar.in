@@ -86,28 +86,28 @@ export function PolicyManagementPanel() {
         }
       />
 
-      <Card className="border-white/10 bg-[#1c1c1c]">
+      <Card className="border-border bg-card">
         <CardContent className="px-0">
           {policiesQuery.isLoading && <LoadingState label="Loading policies..." />}
           {!policiesQuery.isLoading && !policies.length && <EmptyState label="No policies found." />}
           {!policiesQuery.isLoading && Boolean(policies.length) && (
             <Table>
               <TableHeader>
-                <TableRow className="border-white/10 hover:bg-transparent">
-                  <TableHead className="px-4 text-gray-400">Name</TableHead>
-                  <TableHead className="text-gray-400">Type</TableHead>
-                  <TableHead className="text-gray-400">Is Default</TableHead>
-                  <TableHead className="text-gray-400">Status</TableHead>
-                  <TableHead className="text-gray-400">Updated</TableHead>
-                  <TableHead className="text-right text-gray-400">Actions</TableHead>
+                <TableRow className="border-border hover:bg-transparent">
+                  <TableHead className="px-4 text-muted-foreground">Name</TableHead>
+                  <TableHead className="text-muted-foreground">Type</TableHead>
+                  <TableHead className="text-muted-foreground">Is Default</TableHead>
+                  <TableHead className="text-muted-foreground">Status</TableHead>
+                  <TableHead className="text-muted-foreground">Updated</TableHead>
+                  <TableHead className="text-right text-muted-foreground">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {policies.map((policy) => (
-                  <TableRow key={policy._id} className="border-white/10 hover:bg-white/[0.03]">
+                  <TableRow key={policy._id} className="border-border hover:bg-muted">
                     <TableCell className="px-4">
-                      <div className="font-medium text-white">{policy.name}</div>
-                      <div className="line-clamp-1 max-w-xs text-xs text-gray-500">{policy.description}</div>
+                      <div className="font-medium text-foreground">{policy.name}</div>
+                      <div className="line-clamp-1 max-w-xs text-xs text-muted-foreground">{policy.description}</div>
                     </TableCell>
                     <TableCell>
                       <Badge variant="outline" className="border-cyan-400/30 text-cyan-300">
@@ -127,13 +127,13 @@ export function PolicyManagementPanel() {
                         <StatusBadge active={Boolean(policy.isActive)} label={policy.isActive ? "Active" : "Inactive"} />
                       </button>
                     </TableCell>
-                    <TableCell className="text-sm text-gray-400">{formatDate(policy.updatedAt || policy.createdAt)}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground">{formatDate(policy.updatedAt || policy.createdAt)}</TableCell>
                     <TableCell>
                       <div className="flex justify-end gap-2">
                         <Button
                           size="sm"
                           variant="outline"
-                          className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+                          className="border-border bg-muted text-foreground hover:bg-muted"
                           onClick={() => setEditing(policy)}
                         >
                           <Edit className="h-3.5 w-3.5" />
@@ -166,7 +166,7 @@ export function PolicyManagementPanel() {
       />
 
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-        <DialogContent className="border-white/10 bg-[#1c1c1c] text-white sm:max-w-xl">
+        <DialogContent className="border-border bg-card text-foreground sm:max-w-xl">
           <DialogHeader>
             <DialogTitle>Create Policy</DialogTitle>
           </DialogHeader>
@@ -179,7 +179,7 @@ export function PolicyManagementPanel() {
       </Dialog>
 
       <Dialog open={Boolean(editing)} onOpenChange={(open) => !open && setEditing(null)}>
-        <DialogContent className="border-white/10 bg-[#1c1c1c] text-white sm:max-w-xl">
+        <DialogContent className="border-border bg-card text-foreground sm:max-w-xl">
           <DialogHeader>
             <DialogTitle>Edit Policy</DialogTitle>
           </DialogHeader>
@@ -224,12 +224,12 @@ function PolicyForm({
   return (
     <form onSubmit={submit} className="grid gap-4 pt-2">
       <div className="grid gap-1.5">
-        <span className="text-xs font-medium uppercase text-gray-400">Policy Name</span>
+        <span className="text-xs font-medium uppercase text-muted-foreground">Policy Name</span>
         <Input required value={name} onChange={(e) => setName(e.target.value)} className={inputClass} placeholder="Return Policy - 7 Days" />
       </div>
 
       <div className="grid gap-1.5">
-        <span className="text-xs font-medium uppercase text-gray-500">Policy Type</span>
+        <span className="text-xs font-medium uppercase text-muted-foreground">Policy Type</span>
         <select value={policyType} onChange={(e) => setPolicyType(e.target.value)} className={selectClass}>
           <option value="RETURN">Return Policy</option>
           <option value="REFUND">Refund Policy</option>
@@ -239,22 +239,22 @@ function PolicyForm({
       </div>
 
       <div className="grid gap-1.5">
-        <span className="text-xs font-medium uppercase text-gray-500">Policy Description</span>
+        <span className="text-xs font-medium uppercase text-muted-foreground">Policy Description</span>
         <textarea required value={description} onChange={(e) => setDescription(e.target.value)} className={textareaClass} placeholder="Write detail policy description..." />
       </div>
 
-      <div className="flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.03] p-3 text-sm text-gray-300">
+      <div className="flex items-center justify-between rounded-lg border border-border bg-muted p-3 text-sm text-muted-foreground">
         <div className="grid gap-0.5">
           <div className="font-medium">Default Policy</div>
-          <div className="text-xs text-gray-500">Enable this as the default fallback option for newly registered store templates.</div>
+          <div className="text-xs text-muted-foreground">Enable this as the default fallback option for newly registered store templates.</div>
         </div>
         <Switch checked={isDefault} onCheckedChange={setIsDefault} />
       </div>
 
-      <div className="flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.03] p-3 text-sm text-gray-300">
+      <div className="flex items-center justify-between rounded-lg border border-border bg-muted p-3 text-sm text-muted-foreground">
         <div className="grid gap-0.5">
           <div className="font-medium">Active Status</div>
-          <div className="text-xs text-gray-500">Enable or disable policy visibility. Inactive policies cannot be selected by sellers.</div>
+          <div className="text-xs text-muted-foreground">Enable or disable policy visibility. Inactive policies cannot be selected by sellers.</div>
         </div>
         <Switch checked={isActive} onCheckedChange={setIsActive} />
       </div>
