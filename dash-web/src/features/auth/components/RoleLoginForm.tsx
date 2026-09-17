@@ -1,11 +1,10 @@
-"use client";
-
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { Link, useNavigate } from "react-router-dom";
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import Link from "next/link";
+
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -129,15 +128,15 @@ const THEME: Record<ThemeKey, ThemeConfig> = {
  */
 export default function RoleLoginForm({ theme }: RoleLoginFormProps) {
   const config = THEME[theme];
-  const router = useRouter();
+  const navigate = useNavigate();
   const { user, isAuthenticated } = useAuthStore();
   const hasHydrated = useAuthHydrated();
 
   useEffect(() => {
     if (hasHydrated && isAuthenticated && config.isAuthorized(user)) {
-      router.replace(config.alreadyAuthedRedirect);
+      navigate(config.alreadyAuthedRedirect, { replace: true });
     }
-  }, [hasHydrated, isAuthenticated, user, router, config]);
+  }, [hasHydrated, isAuthenticated, user, navigate, config]);
 
   // Pick the right hooks for this role.
   const { mutate: login, isPending: isLoggingIn } =
@@ -240,7 +239,7 @@ export default function RoleLoginForm({ theme }: RoleLoginFormProps) {
                   <div className="flex items-center justify-between">
                     <FormLabel className="text-gray-300">Password</FormLabel>
                     <Link
-                      href="/auth/forgot-password"
+                      to="/auth/forgot-password"
                       className={`text-xs ${config.accentText} ${config.accentTextHover}`}
                     >
                       Forgot password?
@@ -280,7 +279,7 @@ export default function RoleLoginForm({ theme }: RoleLoginFormProps) {
           <div className="text-center text-sm text-gray-400">
             {config.registerLabel}{" "}
             <Link
-              href={config.registerHref}
+              to={config.registerHref}
               className={`${config.accentText} ${config.accentTextHover}`}
             >
               Register here

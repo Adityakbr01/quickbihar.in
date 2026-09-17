@@ -1,5 +1,4 @@
-import Link from "next/link";
-import Image from "next/image";
+import { Link } from "react-router-dom";
 import {
   Sparkles,
   QrCode,
@@ -79,14 +78,14 @@ export default function Hero() {
             <div className="mt-5 flex flex-wrap items-center justify-center gap-3 text-xs text-muted-foreground lg:justify-start">
               <span>Partner with us:</span>
               <Link
-                href={hero.partnerLinks.sellerHref}
+                to={hero.partnerLinks.sellerHref}
                 className="font-medium text-primary hover:underline"
               >
                 {hero.partnerLinks.sellerText}
               </Link>
               <span>•</span>
               <Link
-                href={hero.partnerLinks.riderHref}
+                to={hero.partnerLinks.riderHref}
                 className="font-medium text-foreground hover:underline"
               >
                 {hero.partnerLinks.riderText}
@@ -167,13 +166,12 @@ export default function Hero() {
 
                   {/* App Screen Content */}
                   <div className="relative">
-                    <Image
+                    <img
                       src="/images/app-screen-clean.webp"
                       alt="QuickBihar Mobile App"
                       width={581}
                       height={1212}
                       className="w-full h-auto block select-none"
-                      priority
                     />
 
                     {/* Glass Reflection Overlay */}

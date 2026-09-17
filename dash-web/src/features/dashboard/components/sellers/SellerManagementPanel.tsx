@@ -1,5 +1,3 @@
-"use client";
-
 import React, { type FormEvent, useState } from "react";
 import { Plus, Edit, Trash2, Save, Store, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";

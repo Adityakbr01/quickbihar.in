@@ -1,5 +1,3 @@
-"use client";
-
 import React, { type FormEvent } from "react";
 import { Send } from "lucide-react";
 import { Button } from "@/components/ui/button";

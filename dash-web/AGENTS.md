@@ -1,5 +1,9 @@
-<!-- BEGIN:nextjs-agent-rules -->
-# This is NOT the Next.js you know
+<!-- BEGIN:vite-agent-rules -->
+# Vite + React SPA (migrated from Next.js)
 
-This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
-<!-- END:nextjs-agent-rules -->
+- This is a client-only SPA: `src/main.tsx` → `BrowserRouter` → `src/App.tsx` routes → `src/pages/*`.
+- No server components, no middleware, no `next/*` imports. Route guards live in `src/lib/routeGuards.tsx`.
+- Env vars use `import.meta.env.VITE_*` (see `.env.example`). Never use `process.env`.
+- Routing: `react-router-dom` (`Link to=`, `useNavigate`, `useLocation`, `useSearchParams` tuple).
+- Lint with `oxlint` (`npm run lint`), typecheck with `npm run typecheck`.
+<!-- END:vite-agent-rules -->

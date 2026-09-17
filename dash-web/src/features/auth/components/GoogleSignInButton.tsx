@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useRef, useState } from "react";
 import { Loader2 } from "lucide-react";
 
@@ -96,9 +94,9 @@ export default function GoogleSignInButton({
   const [busy, setBusy] = useState(false);
   const [rendered, setRendered] = useState(false);
   const [clientId, setClientId] = useState<string | null>(
-    process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID &&
-      !process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID.includes("placeholder")
-      ? process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
+    import.meta.env.VITE_GOOGLE_CLIENT_ID &&
+      !import.meta.env.VITE_GOOGLE_CLIENT_ID.includes("placeholder")
+      ? import.meta.env.VITE_GOOGLE_CLIENT_ID
       : null,
   );
 

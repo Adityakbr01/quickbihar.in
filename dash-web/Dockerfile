@@ -4,50 +4,41 @@ RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
 # Copy dependency files
-COPY package.json package-lock.json* bun.lock* ./
-RUN npm install
+COPY package.json package-lock.json* ./
+RUN npm ci --no-audit --no-fund || npm install --no-audit --no-fund
 
-# 2. Rebuild the source code only when needed
+# 2. Build the static SPA
 FROM node:20-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Set relative paths so frontend automatically uses the current IP/Domain
-ARG NEXT_PUBLIC_API_URL=/api/v1
-ARG NEXT_PUBLIC_SOCKET_URL=/
-ARG NEXT_PUBLIC_GOOGLE_CLIENT_ID=183149129805-vf8pkq6h066lcapjanjv1271g36jvij4.apps.googleusercontent.com
+# Set relative paths so the frontend automatically uses the current IP/domain.
+# Vite inlines VITE_* vars into the JS bundle at build time.
+ARG VITE_API_URL=/api/v1
+ARG VITE_SOCKET_URL=/
+ARG VITE_GOOGLE_CLIENT_ID=183149129805-vf8pkq6h066lcapjanjv1271g36jvij4.apps.googleusercontent.com
 
-ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
-ENV NEXT_PUBLIC_SOCKET_URL=$NEXT_PUBLIC_SOCKET_URL
-ENV NEXT_PUBLIC_GOOGLE_CLIENT_ID=$NEXT_PUBLIC_GOOGLE_CLIENT_ID
+ENV VITE_API_URL=$VITE_API_URL
+ENV VITE_SOCKET_URL=$VITE_SOCKET_URL
+ENV VITE_GOOGLE_CLIENT_ID=$VITE_GOOGLE_CLIENT_ID
 
 RUN npm run build
 
-# 3. Production image, copy all the files and run next
-FROM node:20-alpine AS runner
-WORKDIR /app
+# 3. Production image — serve dist/ with nginx + SPA fallback
+FROM nginx:alpine AS runner
 
-ENV NODE_ENV=production
+# ngx_brotli is not compiled into nginx:alpine — install it from Alpine
+# repos so the `brotli_*` directives in nginx.conf don't crash startup.
+# The official image includes /etc/nginx/modules/*.conf at main context,
+# which is the only place `load_module` is allowed.
+RUN apk add --no-cache nginx-mod-http-brotli && \
+    printf 'load_module modules/ngx_http_brotli_filter_module.so;\nload_module modules/ngx_http_brotli_static_module.so;\n' \
+      > /etc/nginx/modules/10-brotli.conf
 
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
-
-COPY --from=builder /app/public ./public
-
-# Set the correct permission for prerender cache
-RUN mkdir .next
-RUN chown nextjs:nodejs .next
-
-# Automatically leverage output traces to reduce image size
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-
-USER nextjs
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=builder /app/dist /usr/share/nginx/html
 
 EXPOSE 3000
-ENV PORT=3000
-ENV HOSTNAME="0.0.0.0"
 
-# server.js is created by next build from the standalone output
-CMD ["node", "server.js"]
+CMD ["nginx", "-g", "daemon off;"]

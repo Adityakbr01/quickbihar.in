@@ -1,5 +1,3 @@
-"use client";
-
 import { type FormEvent, useMemo, useState } from "react";
 import {
   Ban,

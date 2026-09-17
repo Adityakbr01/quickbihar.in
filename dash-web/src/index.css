@@ -1,0 +1,413 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/* Class-based dark mode: `.dark` on <html> (set in index.html). */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * Design system — generated from DESIGN.md (SingleClik CRM / Clean Slate & Precision Canvas)
+ * Tailwind CSS v4 (CSS-first config). All tokens live in @theme below,
+ * so every color / type / radius / shadow is a native utility, e.g.:
+ *   bg-primary text-on-primary bg-surface-container-lowest
+ *   text-display text-headline-lg text-body-md text-label-sm
+ *   rounded-sm rounded-md rounded-lg rounded-xl rounded-full rounded-default
+ *   shadow-sm shadow-md shadow-lg
+ *   max-w-page (1280px container; standard max-w-sm/md/lg/xl untouched)
+ * Dark mode: same utilities + `dark:` overrides where needed; theme values
+ * flip automatically via the `.dark` block below (dark default).
+ */
+
+@theme {
+  /* ---------- Colors: surfaces (SingleClik Clean Slate & Modern Canvas) ---------- */
+  --color-surface: #F8FAFC;
+  --color-surface-dim: #F1F5F9;
+  --color-surface-bright: #FFFFFF;
+  --color-surface-container-lowest: #FFFFFF;
+  --color-surface-container-low: #F8FAFC;
+  --color-surface-container: #F1F5F9;
+  --color-surface-container-high: #E2E8F0;
+  --color-surface-container-highest: #CBD5E1;
+  --color-surface-variant: #F1F5F9;
+  --color-surface-tint: #2563EB;
+
+  --color-on-surface: #0F172A;
+  --color-on-surface-variant: #475569;
+  --color-inverse-surface: #0F172A;
+  --color-inverse-on-surface: #F8FAFC;
+
+  --color-outline: #E2E8F0;
+  --color-outline-variant: #CBD5E1;
+
+  --color-background: #F8FAFC;
+  --color-on-background: #0F172A;
+
+  /* ---------- Colors: brand (SingleClik Electric Royal Blue & Verified Accents) ---------- */
+  --color-primary: #2563EB;
+  --color-on-primary: #FFFFFF;
+  --color-primary-container: #EFF6FF;
+  --color-on-primary-container: #1E40AF;
+  --color-inverse-primary: #93C5FD;
+  --color-primary-hover: #1D4ED8;
+  --color-primary-active: #1E40AF;
+
+  --color-secondary: #10B981;
+  --color-on-secondary: #FFFFFF;
+  --color-secondary-container: #ECFDF5;
+  --color-on-secondary-container: #047857;
+
+  --color-tertiary: #F59E0B;
+  --color-on-tertiary: #FFFFFF;
+  --color-tertiary-container: #FEF3C7;
+  --color-on-tertiary-container: #B45309;
+
+  --color-error: #EF4444;
+  --color-on-error: #FFFFFF;
+  --color-error-container: #FEE2E2;
+  --color-on-error-container: #991B1B;
+
+  /* ---------- Colors: fixed accents ---------- */
+  --color-primary-fixed: #EFF6FF;
+  --color-primary-fixed-dim: #DBEAFE;
+  --color-on-primary-fixed: #1E40AF;
+  --color-on-primary-fixed-variant: #1D4ED8;
+
+  --color-secondary-fixed: #ECFDF5;
+  --color-secondary-fixed-dim: #D1FAE5;
+  --color-on-secondary-fixed: #065F46;
+  --color-on-secondary-fixed-variant: #047857;
+
+  --color-tertiary-fixed: #FEF3C7;
+  --color-tertiary-fixed-dim: #FDE68A;
+  --color-on-tertiary-fixed: #92400E;
+  --color-on-tertiary-fixed-variant: #B45309;
+
+  /* ---------- Typography ---------- */
+  --font-sans: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Space Grotesk", sans-serif;
+  --font-serif: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+
+  --text-display: 96px;
+  --text-display--line-height: 104px;
+  --text-display--letter-spacing: -0.04em;
+  --text-display--font-weight: 600;
+
+  --text-headline-lg: 48px;
+  --text-headline-lg--line-height: 56px;
+  --text-headline-lg--letter-spacing: -0.02em;
+  --text-headline-lg--font-weight: 600;
+
+  --text-headline-md: 24px;
+  --text-headline-md--line-height: 32px;
+  --text-headline-md--letter-spacing: -0.01em;
+  --text-headline-md--font-weight: 600;
+
+  --text-title-lg: 20px;
+  --text-title-lg--line-height: 28px;
+  --text-title-lg--font-weight: 600;
+
+  --text-body-lg: 16px;
+  --text-body-lg--line-height: 24px;
+  --text-body-lg--font-weight: 400;
+
+  --text-body-md: 14px;
+  --text-body-md--line-height: 20px;
+  --text-body-md--font-weight: 400;
+
+  --text-label-md: 14px;
+  --text-label-md--line-height: 20px;
+  --text-label-md--letter-spacing: 0.01em;
+  --text-label-md--font-weight: 500;
+
+  --text-label-sm: 12px;
+  --text-label-sm--line-height: 16px;
+  --text-label-sm--letter-spacing: 0.02em;
+  --text-label-sm--font-weight: 500;
+
+  /* ---------- Shape ---------- */
+  --radius-sm: 0.375rem;
+  --radius-default: 0.625rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.25rem;
+  --radius-2xl: 1.5rem;
+  --radius-3xl: 1.75rem;
+  --radius-full: 9999px;
+
+  /* ---------- Elevation ---------- */
+  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.05);
+  --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.07);
+  --shadow-lg: 0 12px 30px rgba(15, 23, 42, 0.09);
+  --shadow-focus-ring: 0 0 0 3px rgba(37, 99, 235, 0.25);
+
+  /* ---------- Layout ---------- */
+  --container-page: 1280px;
+}
+
+/*
+ * Dark theme (SingleClik Deep Midnight Slate)
+ */
+.dark {
+  --color-surface: #0B1120;
+  --color-surface-dim: #070C16;
+  --color-surface-bright: #1E293B;
+  --color-surface-container-lowest: #0F172A;
+  --color-surface-container-low: #131D33;
+  --color-surface-container: #1E293B;
+  --color-surface-container-high: #283548;
+  --color-surface-container-highest: #334155;
+  --color-surface-variant: #1E293B;
+  --color-surface-tint: #3B82F6;
+
+  --color-on-surface: #F8FAFC;
+  --color-on-surface-variant: #94A3B8;
+  --color-inverse-surface: #F8FAFC;
+  --color-inverse-on-surface: #0F172A;
+
+  --color-outline: #1E293B;
+  --color-outline-variant: #334155;
+
+  --color-background: #0B1120;
+  --color-on-background: #F8FAFC;
+
+  --color-primary: #3B82F6;
+  --color-on-primary: #FFFFFF;
+  --color-primary-container: #1E3A8A;
+  --color-on-primary-container: #DBEAFE;
+  --color-inverse-primary: #1D4ED8;
+  --color-primary-hover: #60A5FA;
+  --color-primary-active: #2563EB;
+
+  --color-secondary: #10B981;
+  --color-on-secondary: #FFFFFF;
+  --color-secondary-container: #064E3B;
+  --color-on-secondary-container: #A7F3D0;
+
+  --color-tertiary: #F59E0B;
+  --color-on-tertiary: #FFFFFF;
+  --color-tertiary-container: #451A03;
+  --color-on-tertiary-container: #FDE68A;
+
+  --color-error: #F87171;
+  --color-on-error: #450A0A;
+  --color-error-container: #7F1D1D;
+  --color-on-error-container: #FEE2E2;
+
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.6);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.7);
+  --shadow-focus-ring: 0 0 0 3px rgba(59, 130, 246, 0.35);
+
+  color-scheme: dark;
+}
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    /* Reserve space for the page scrollbar so content never
+       jumps sideways when it appears/disappears after data loads. */
+    scrollbar-gutter: stable;
+  }
+
+  body {
+    @apply bg-surface text-on-background font-sans text-body-md antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-semibold tracking-tight text-on-background text-balance;
+  }
+
+  ::selection {
+    background-color: var(--color-primary-container);
+    color: var(--color-on-primary-container);
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--color-primary-container);
+    outline-offset: 2px;
+  }
+}
+
+/* Hide scrollbars while keeping scroll/swipe working.
+   Used on table scroll regions so appearing scrollbars
+   never push content around after data loads. */
+@utility scrollbar-hide {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@utility font-display {
+  font-family: var(--font-display);
+}
+
+@utility font-serif-accent {
+  font-family: var(--font-serif);
+}
+
+@utility font-sans-ui {
+  font-family: var(--font-sans);
+}
+
+@layer components {
+
+  /* Page container: 12-col grid, max 1280px, 24px gutters (DESIGN.md Layout) */
+  .container-page {
+    width: 100%;
+    max-width: var(--container-page);
+    margin-inline: auto;
+    padding-inline: var(--spacing-gutter);
+  }
+
+  /* ----- Buttons: 36px height, 6px 15px padding, rounded-lg, label-md ----- */
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 36px;
+    padding: 6px 15px;
+    border-radius: var(--radius-lg);
+    background-color: var(--color-primary);
+    color: var(--color-on-primary);
+    font-size: var(--text-label-md);
+    line-height: var(--text-label-md--line-height);
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+  }
+
+  .btn-primary:hover {
+    background-color: var(--color-primary-hover);
+  }
+
+  .btn-primary:active {
+    background-color: var(--color-primary-active);
+  }
+
+  .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 36px;
+    padding: 6px 15px;
+    border-radius: var(--radius-lg);
+    background-color: var(--color-primary-container);
+    color: var(--color-primary);
+    font-size: var(--text-label-md);
+    line-height: var(--text-label-md--line-height);
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+  }
+
+  .btn-secondary:hover {
+    background-color: var(--color-primary-fixed-dim);
+  }
+
+  .btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 36px;
+    padding: 6px 15px;
+    border-radius: var(--radius-lg);
+    background-color: transparent;
+    color: var(--color-on-surface);
+    font-size: var(--text-label-md);
+    line-height: var(--text-label-md--line-height);
+    font-weight: 400;
+    transition: background-color 0.2s ease;
+  }
+
+  .btn-ghost:hover {
+    background-color: var(--color-surface-container-low);
+  }
+
+  /* ----- Card: surface-container-lowest, 16px padding, border + md shadow ----- */
+  .card {
+    background-color: var(--color-surface-container-lowest);
+    border: 1px solid var(--color-outline);
+    border-radius: var(--radius-lg);
+    padding: 16px;
+    box-shadow: var(--shadow-md);
+  }
+
+  .card-hover {
+    transition: all 0.2s ease;
+  }
+
+  .card-hover:hover {
+    background-color: var(--color-surface-container-low);
+    box-shadow: var(--shadow-lg);
+  }
+
+  /* ----- Input: surface-container-low, 36px height, rounded DEFAULT ----- */
+  .input-field {
+    width: 100%;
+    min-height: 36px;
+    padding: 8px 12px;
+    border: 1px solid var(--color-outline);
+    border-radius: var(--radius-default);
+    background-color: var(--color-surface-container-low);
+    color: var(--color-on-surface);
+    font-size: var(--text-body-md);
+    line-height: var(--text-body-md--line-height);
+  }
+
+  .input-field::placeholder {
+    color: var(--color-on-surface-variant);
+  }
+
+  .input-field:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: var(--shadow-focus-ring);
+  }
+
+  /* ----- Badges: label-sm, full pill, 4px 12px ----- */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 12px;
+    border-radius: var(--radius-full);
+    background-color: var(--color-secondary-container);
+    color: var(--color-on-secondary-container);
+    font-size: var(--text-label-sm);
+    line-height: var(--text-label-sm--line-height);
+    font-weight: 500;
+    letter-spacing: var(--text-label-sm--letter-spacing);
+  }
+
+  .badge-accent {
+    background-color: var(--color-tertiary-container);
+    color: var(--color-on-tertiary-container);
+  }
+
+  /* ----- List item ----- */
+  .list-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-radius: var(--radius-md);
+    background-color: transparent;
+    color: var(--color-on-surface);
+    transition: background-color 0.15s ease;
+  }
+
+  .list-item:hover {
+    background-color: var(--color-surface-container-high);
+    color: var(--color-primary);
+  }
+}

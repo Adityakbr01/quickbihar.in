@@ -1,5 +1,3 @@
-"use client";
-
 import { type FormEvent, type ReactNode, useState } from "react";
 import { Save } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

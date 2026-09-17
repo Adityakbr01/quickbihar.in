@@ -1,5 +1,3 @@
-"use client";
-
 import { type FormEvent, useEffect, useState } from "react";
 import { Settings, DatabaseBackup, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";

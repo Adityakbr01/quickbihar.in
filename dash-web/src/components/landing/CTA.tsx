@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "react-router-dom";
 import { Mail, Phone, Smartphone, Store, Bike, Sparkles } from "lucide-react";
 import { APP_LINKS, landingData } from "@/constants/links";
 
@@ -40,7 +40,7 @@ export default function CTA() {
 
               {/* Partner Links */}
               <Link
-                href="/seller/register"
+                to="/seller/register"
                 className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-5 py-3 text-xs font-semibold text-card-foreground transition-colors hover:bg-muted"
               >
                 <Store className="h-4 w-4 text-primary" />
@@ -48,7 +48,7 @@ export default function CTA() {
               </Link>
 
               <Link
-                href="/delivery/register"
+                to="/delivery/register"
                 className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-5 py-3 text-xs font-semibold text-card-foreground transition-colors hover:bg-muted"
               >
                 <Bike className="h-4 w-4 text-primary" />

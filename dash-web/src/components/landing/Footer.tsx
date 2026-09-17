@@ -1,5 +1,5 @@
-import Link from "next/link";
-import { Mail, MapPin, Phone, ShoppingBag, Smartphone, ShieldCheck, Store, Bike } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Mail, MapPin, Phone, Smartphone, ShieldCheck, Store, Bike } from "lucide-react";
 import { APP_LINKS, landingData } from "@/constants/links";
 
 const iconMap: Record<string, typeof Store> = {
@@ -21,10 +21,15 @@ export default function Footer() {
           
           {/* Brand Info (2 Columns) */}
           <div className="lg:col-span-2 space-y-4">
-            <Link href="/" className="flex items-center gap-2.5">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                <ShoppingBag className="h-5 w-5" />
-              </div>
+            <Link to="/" className="flex items-center gap-2.5">
+              <img
+                src="/logo.png"
+                alt="QuickBihar.in logo"
+                width={36}
+                height={36}
+                loading="lazy"
+                className="h-9 w-9 rounded-lg object-contain"
+              />
               <div className="flex flex-col">
                 <span className="text-lg font-bold tracking-tight text-foreground">
                   QuickBihar<span className="text-primary">.in</span>
@@ -104,7 +109,7 @@ export default function Footer() {
                           </a>
                         ) : (
                           <Link
-                            href={href}
+                            to={href}
                             className={`text-xs transition-colors ${
                               isHighlight
                                 ? "font-semibold text-primary hover:underline"
@@ -136,7 +141,7 @@ export default function Footer() {
             {footer.bottomLinks.map((link) => (
               <Link
                 key={link.label}
-                href={link.href}
+                to={link.href}
                 className={link.primary ? "text-primary hover:underline" : "hover:text-foreground transition-colors"}
               >
                 {link.label}

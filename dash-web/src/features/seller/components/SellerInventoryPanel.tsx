@@ -1,5 +1,3 @@
-"use client";
-
 import React, { type FormEvent, useEffect, useMemo, useState } from "react";
 import {
   AlertTriangle,

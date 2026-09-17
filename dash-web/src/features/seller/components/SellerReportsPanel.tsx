@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useState } from "react";
 import { ClipboardList, Package, ReceiptText, Users } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

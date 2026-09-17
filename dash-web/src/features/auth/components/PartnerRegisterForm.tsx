@@ -1,7 +1,5 @@
-"use client";
+import { Link, useNavigate } from "react-router-dom";
 
-import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
 import { Bike, CheckCircle2, FileUp, Loader2, MapPin, Store, ArrowLeft, X, FileText, UploadCloud, AlertCircle, LogOut } from "lucide-react";
 import { toast } from "sonner";
@@ -38,7 +36,7 @@ interface ValidationErrors {
 }
 
 export default function PartnerRegisterForm({ mode }: { mode: PartnerMode }) {
-  const router = useRouter();
+  const navigate = useNavigate();
   const isRider = mode === "RIDER";
   const { user, token, isAuthenticated, setAuth, clearAuth } = useAuthStore();
   const hasHydrated = useAuthHydrated();
@@ -141,7 +139,7 @@ export default function PartnerRegisterForm({ mode }: { mode: PartnerMode }) {
         setCrossRoleConflict(null);
         setStatus(currentApp);
         if (currentApp?.status === "APPROVED") {
-          router.replace(isRider ? "/delivery/dashboard" : "/seller/dashboard");
+          navigate(isRider ? "/delivery/dashboard" : "/seller/dashboard", { replace: true });
         } else if (currentApp?.status === "PENDING") {
           setPhase("submitted");
         } else {
@@ -154,7 +152,7 @@ export default function PartnerRegisterForm({ mode }: { mode: PartnerMode }) {
       .finally(() => {
         setIsCheckingStatus(false);
       });
-  }, [hasHydrated, isAuthenticated, isRider, router, token]);
+  }, [hasHydrated, isAuthenticated, isRider, navigate, token]);
 
   useEffect(() => {
     if (user?.phone && !formFields.phone) {
@@ -444,7 +442,7 @@ export default function PartnerRegisterForm({ mode }: { mode: PartnerMode }) {
                 <Button
                   type="button"
                   className={`${activeColorClass} text-white font-semibold w-full sm:w-auto cursor-pointer`}
-                  onClick={() => router.push(crossRoleConflict.dashboardUrl!)}
+                  onClick={() => navigate(crossRoleConflict.dashboardUrl!)}
                 >
                   Go to {crossRoleConflict.role} Dashboard →
                 </Button>
@@ -504,7 +502,7 @@ export default function PartnerRegisterForm({ mode }: { mode: PartnerMode }) {
                             setCrossRoleConflict(null);
                             setStatus(currentApp);
                             if (currentApp?.status === "APPROVED") {
-                              router.replace(isRider ? "/delivery/dashboard" : "/seller/dashboard");
+                              navigate(isRider ? "/delivery/dashboard" : "/seller/dashboard", { replace: true });
                             } else if (currentApp?.status === "PENDING") {
                               setPhase("submitted");
                             } else {
@@ -527,7 +525,7 @@ export default function PartnerRegisterForm({ mode }: { mode: PartnerMode }) {
                 <div className="text-center text-sm text-gray-400">
                   Already registered?{" "}
                   <Link
-                    href={isRider ? "/delivery/login" : "/seller/login"}
+                    to={isRider ? "/delivery/login" : "/seller/login"}
                     className={`font-medium ${isRider ? "text-cyan-400 hover:text-cyan-300" : "text-emerald-400 hover:text-emerald-300"} hover:underline`}
                   >
                     Sign in
@@ -638,7 +636,7 @@ export default function PartnerRegisterForm({ mode }: { mode: PartnerMode }) {
                     type="button"
                     className={`${activeColorClass} text-white font-semibold py-6 text-base shadow-lg cursor-pointer`}
                     onClick={() =>
-                      router.push(isRider ? "/delivery/dashboard" : "/seller/dashboard")
+                      navigate(isRider ? "/delivery/dashboard" : "/seller/dashboard")
                     }
                   >
                     Go to {isRider ? "Rider" : "Seller"} Dashboard →

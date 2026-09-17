@@ -1,5 +1,3 @@
-"use client";
-
 // CLOTHING-SPECIFIC — see multi-vertical milestone (docs/WIRE-FLOW-AUDIT-TODO.md)
 
 import React, { useState } from "react";

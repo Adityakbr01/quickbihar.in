@@ -1,5 +1,3 @@
-"use client";
-
 import React, { type FormEvent, useState, useEffect } from "react";
 import { Building2, MapPin, Phone, Mail, User, Info, Check, Image as ImageIcon, Trash2, Edit2, LogOut, Navigation } from "lucide-react";
 import { Button } from "@/components/ui/button";

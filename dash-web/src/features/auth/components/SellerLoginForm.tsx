@@ -1,5 +1,3 @@
-"use client";
-
 import RoleLoginForm from "./RoleLoginForm";
 
 export default function SellerLoginForm() {

@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "react-router-dom";
 import { ArrowRight, Bike, CheckCircle2, ShoppingBag, Store, Smartphone, Sparkles } from "lucide-react";
 import { APP_LINKS, landingData } from "@/constants/links";
 
@@ -78,7 +78,7 @@ export default function Audiences() {
                     </a>
                   ) : (
                     <Link
-                      href={primaryHref}
+                      to={primaryHref}
                       className="w-full flex items-center justify-center gap-2 rounded-lg bg-primary py-2.5 text-xs font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 transition-colors"
                     >
                       {aud.primaryCta.label}
@@ -88,7 +88,7 @@ export default function Audiences() {
 
                   <div className="text-center">
                     <Link
-                      href={aud.secondaryCta.href}
+                      to={aud.secondaryCta.href}
                       className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
                     >
                       {aud.secondaryCta.label}

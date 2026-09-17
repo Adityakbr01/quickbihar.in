@@ -1,5 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import {
   googleAuthRequest,
@@ -42,7 +42,7 @@ const handleIncompletePartner = async (
   partnerType: "RIDER" | "SELLER",
   setAuth: (u: AuthUser, t: string) => void,
   accessToken: string,
-  router: ReturnType<typeof useRouter>,
+  navigate: ReturnType<typeof useNavigate>,
   fallbackMessage?: string,
 ) => {
   setAuth(user, accessToken);
@@ -86,7 +86,7 @@ const handleIncompletePartner = async (
         `Please complete ${partnerType === "RIDER" ? "delivery" : "seller"} registration first.`,
       );
   }
-  router.replace(partnerType === "RIDER" ? "/delivery/register" : "/seller/register");
+  navigate(partnerType === "RIDER" ? "/delivery/register" : "/seller/register", { replace: true });
   return true;
 };
 
@@ -99,7 +99,7 @@ const useRoleLogin = ({
   redirectTo: string;
   accessDeniedMessage: string;
 }) => {
-  const router = useRouter();
+  const navigate = useNavigate();
   const setAuth = useAuthStore((state) => state.setAuth);
 
   return useMutation({
@@ -122,7 +122,7 @@ const useRoleLogin = ({
             partnerType,
             setAuth,
             accessToken,
-            router,
+            navigate,
             !isAllowed ? undefined : accessDeniedMessage,
           );
           if (handled || !isAllowed) return;
@@ -136,10 +136,10 @@ const useRoleLogin = ({
 
       setAuth(user, accessToken);
       toast.success(`Welcome back, ${user.fullName}!`);
-      // Force a full page reload to the dashboard. router.replace alone can
+      // Force a full page reload to the dashboard. navigate.replace alone can
       // race with the next route's hydration — the dashboard's auth guard
       // may see stale state and bounce the user back to login, and
-      // router.refresh can collide with the in-flight replace transition.
+      // navigate.refresh can collide with the in-flight replace transition.
       // A full reload guarantees: (1) the proxy runs with the new cookie,
       // (2) zustand re-hydrates from localStorage on the new page,
       // (3) React Query starts with a fresh cache.
@@ -207,7 +207,7 @@ const useRoleGoogleAuth = ({
   redirectTo: string;
   accessDeniedMessage: string;
 }) => {
-  const router = useRouter();
+  const navigate = useNavigate();
   const setAuth = useAuthStore((state) => state.setAuth);
 
   return useMutation({
@@ -225,7 +225,7 @@ const useRoleGoogleAuth = ({
             partnerType,
             setAuth,
             accessToken,
-            router,
+            navigate,
             !isAllowed ? undefined : accessDeniedMessage,
           );
           if (handled || !isAllowed) return;
@@ -369,7 +369,7 @@ export const useUpdateProfile = () => {
 };
 
 export const useLogout = () => {
-  const router = useRouter();
+  const navigate = useNavigate();
   const clearAuth = useAuthStore((state) => state.clearAuth);
 
   return async (redirectTo = "/") => {
@@ -377,6 +377,6 @@ export const useLogout = () => {
       await logoutRequest();
     } catch {}
     clearAuth();
-    router.replace(redirectTo);
+    navigate(redirectTo, { replace: true });
   };
 };

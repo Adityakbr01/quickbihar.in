@@ -1,5 +1,3 @@
-"use client";
-
 import { useState } from "react";
 import { BarChart3, RefreshCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";

@@ -1,5 +1,3 @@
-"use client";
-
 import { type FormEvent, useState } from "react";
 import { MailPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";

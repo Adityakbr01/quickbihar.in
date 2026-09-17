@@ -1,8 +1,6 @@
-"use client";
-
 import { io, type Socket } from "socket.io-client";
 
-const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:8000";
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || "http://localhost:8000";
 
 let socket: Socket | null = null;
 let activeToken: string | null = null;

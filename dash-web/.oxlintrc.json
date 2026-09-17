@@ -1,0 +1,8 @@
+{
+  "$schema": "https://oxc.rs/docs/guide/usage/linter/config-file-reference.html",
+  "plugins": ["react", "typescript", "unicorn", "import", "jsdoc", "jsx-a11y"],
+  "rules": {
+    "no-console": "warn"
+  },
+  "ignorePatterns": ["dist", "node_modules", "public"]
+}

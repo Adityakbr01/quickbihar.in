@@ -1,5 +1,3 @@
-"use client";
-
 import React from "react";
 import { BarChart3, Bell, CircleDollarSign, ClipboardList, Package, WalletCards, Warehouse, Send } from "lucide-react";
 import {

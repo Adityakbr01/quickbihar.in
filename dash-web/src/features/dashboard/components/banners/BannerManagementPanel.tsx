@@ -1,5 +1,3 @@
-"use client";
-
 import React, { type FormEvent, useState } from "react";
 import { toast } from "sonner";
 import { Plus, Edit, Trash2, Save, ExternalLink, Loader2 } from "lucide-react";
