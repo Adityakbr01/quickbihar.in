@@ -1,8 +1,9 @@
-import { useMemo } from "react";
-import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
-import { LogOut, RefreshCcw, Clock, AlertTriangle, FileText } from "lucide-react";
+import { useMemo, useState } from "react";
+import { useLocation, useNavigate, useSearchParams, Link } from "react-router-dom";
+import { ChevronRight, LogOut, Menu, RefreshCcw, Clock, AlertTriangle, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { MobileNavDrawer } from "@/components/MobileNavDrawer";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuthStore } from "@/features/auth/store/authStore";
 import { useAuthHydrated } from "@/features/auth/hooks/useAuthHydrated";
@@ -27,6 +28,7 @@ export function SellerDashboardClient() {
   const { user, isAuthenticated, clearAuth } = useAuthStore();
   const hasHydrated = useAuthHydrated();
   const setupQuery = useSellerSetupStatusV2();
+  const [navOpen, setNavOpen] = useState(false);
 
   const isApprovedOnboarding =
     Boolean(setupQuery.data?.seller) ||
@@ -159,15 +161,39 @@ export function SellerDashboardClient() {
   return (
     <main className="min-h-screen h-screen overflow-hidden bg-background text-foreground">
       <div className="flex min-h-screen h-screen overflow-hidden flex-col lg:flex-row">
-        <SellerSidebar activeSection={activeSection} onSectionChange={(section) => changeSection(section)} />
+        <div className="hidden lg:contents">
+          <SellerSidebar activeSection={activeSection} onSectionChange={(section) => changeSection(section)} />
+        </div>
 
         <section className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
           <header className="flex shrink-0 flex-col gap-3 border-b border-border bg-background px-4 py-3 sm:flex-row sm:items-center sm:justify-between lg:px-6 lg:py-4">
             <div>
               <h1 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">Seller Panel</h1>
-              <p className="text-sm text-muted-foreground">{sectionLabels[activeSection]}</p>
+              <nav aria-label="Breadcrumb" className="mt-0.5 flex items-center gap-1.5 text-sm text-muted-foreground">
+                {activeSection === "dashboard" ? (
+                  <span>{sectionLabels.dashboard}</span>
+                ) : (
+                  <>
+                    <Link to={sellerSectionHref("dashboard")} className="transition-colors hover:text-foreground">
+                      Dashboard
+                    </Link>
+                    <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
+                    <span className="text-foreground">{sectionLabels[activeSection]}</span>
+                  </>
+                )}
+              </nav>
             </div>
             <div className="flex flex-wrap items-center gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className="lg:hidden"
+                onClick={() => setNavOpen(true)}
+                aria-label="Open menu"
+              >
+                <Menu className="h-4 w-4" />
+              </Button>
               <ThemeToggle />
               <Button
                 variant="outline"
@@ -203,6 +229,21 @@ export function SellerDashboardClient() {
             </div>
           </ScrollArea>
         </section>
+
+        <MobileNavDrawer
+          open={navOpen}
+          onClose={() => setNavOpen(false)}
+          label="Seller menu"
+        >
+          <SellerSidebar
+            forceVertical
+            activeSection={activeSection}
+            onSectionChange={(section) => {
+              setNavOpen(false);
+              changeSection(section);
+            }}
+          />
+        </MobileNavDrawer>
       </div>
     </main>
   );

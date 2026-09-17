@@ -1,5 +1,5 @@
-import { type ReactNode } from "react";
-import hotToast, { type ToastOptions } from "react-hot-toast";
+import { type ReactElement, type ReactNode } from "react";
+import hotToast, { type Renderable, type ToastOptions } from "react-hot-toast";
 import { Info } from "lucide-react";
 
 /**
@@ -27,7 +27,7 @@ export type FeedbackOptions = {
   id?: string;
 };
 
-function body(message: ReactNode, description?: ReactNode): ReactNode {
+function body(message: Renderable, description?: ReactNode): Renderable {
   if (description === undefined || description === null || description === "") {
     return message;
   }
@@ -49,16 +49,16 @@ function options(opts?: FeedbackOptions): ToastOptions {
 }
 
 export const toast = {
-  success: (message: ReactNode, opts?: FeedbackOptions) =>
+  success: (message: Renderable, opts?: FeedbackOptions) =>
     hotToast.success(body(message, opts?.description), options(opts)),
-  error: (message: ReactNode, opts?: FeedbackOptions) =>
+  error: (message: Renderable, opts?: FeedbackOptions) =>
     hotToast.error(body(message, opts?.description), options(opts)),
-  info: (message: ReactNode, opts?: FeedbackOptions) =>
+  info: (message: Renderable, opts?: FeedbackOptions) =>
     hotToast(body(message, opts?.description), {
       icon: <Info className="h-4 w-4 shrink-0" />,
       ...options(opts),
     }),
-  loading: (message: ReactNode, opts?: FeedbackOptions) =>
+  loading: (message: Renderable, opts?: FeedbackOptions) =>
     hotToast.loading(body(message, opts?.description), options(opts)),
   dismiss: (id?: string) => hotToast.dismiss(id),
 };

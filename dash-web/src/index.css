@@ -207,8 +207,8 @@
   --color-on-background: #f1e7d6;
 
   --color-primary: #d9a866;
-  --color-primary-foreground: #2a1f10;
-  --color-on-primary: #2a1f10;
+  --color-primary-foreground: #faf6ee;
+  --color-on-primary: #faf6ee;
   --color-primary-container: #4a3823;
   --color-on-primary-container: #f0d9b5;
   --color-inverse-primary: #7c5a36;
@@ -500,5 +500,39 @@
   .list-item:hover {
     background-color: var(--color-surface-container-high);
     color: var(--color-primary);
+  }
+}
+
+/* Mobile navigation drawer enter animations */
+@keyframes drawer-in {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes drawer-overlay-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.drawer-panel {
+  animation: drawer-in 0.22s ease-out;
+}
+
+.drawer-overlay {
+  animation: drawer-overlay-in 0.18s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .drawer-panel,
+  .drawer-overlay {
+    animation: none;
   }
 }

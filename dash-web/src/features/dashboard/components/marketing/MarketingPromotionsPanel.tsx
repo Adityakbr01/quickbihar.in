@@ -392,7 +392,7 @@ export function MarketingPromotionsPanel() {
             <Button
               type="submit"
               disabled={createFlashSale.isPending || updateFlashSale.isPending}
-              className="bg-primary text-primary-foreground hover:bg-primary/90"
+              className="bg-primary text-on-primary hover:bg-primary/90"
             >
               {createFlashSale.isPending || updateFlashSale.isPending ? (
                 <>

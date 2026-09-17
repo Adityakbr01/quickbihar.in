@@ -29,10 +29,10 @@ export function OverviewPanel({
   return (
     <div className="grid gap-4">
       <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-        <Metric title="Active" value={loading ? "-" : stats?.activeOrders || 0} icon={<Truck className="h-4 w-4" />} />
-        <Metric title="Today Delivered" value={loading ? "-" : stats?.todayDeliveries || 0} icon={<CalendarDays className="h-4 w-4" />} />
-        <Metric title="Available" value={`Rs. ${formatAmount(stats?.availableBalance || 0)}`} icon={<WalletCards className="h-4 w-4" />} />
-        <Metric title="Lifetime" value={`Rs. ${formatAmount(stats?.lifetimeEarnings || 0)}`} icon={<WalletCards className="h-4 w-4" />} />
+        <Metric title="Active" value={loading ? "-" : stats?.activeOrders || 0} icon={<Truck className="h-4 w-4" />} onTab={() => onTab("active")} />
+        <Metric title="Today Delivered" value={loading ? "-" : stats?.todayDeliveries || 0} icon={<CalendarDays className="h-4 w-4" />} onTab={() => onTab("history")} />
+        <Metric title="Available" value={`Rs. ${formatAmount(stats?.availableBalance || 0)}`} icon={<WalletCards className="h-4 w-4" />} onTab={() => onTab("earnings")} />
+        <Metric title="Lifetime" value={`Rs. ${formatAmount(stats?.lifetimeEarnings || 0)}`} icon={<WalletCards className="h-4 w-4" />} onTab={() => onTab("earnings")} />
       </section>
 
       <section className="grid gap-4 xl:grid-cols-[1fr_320px]">

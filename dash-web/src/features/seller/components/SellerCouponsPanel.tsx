@@ -1,6 +1,7 @@
 import React, { type FormEvent, type ReactNode, useState } from "react";
 import { Plus, Save, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import { DatePicker } from "@/components/ui/date-picker";
 import {
   Dialog,
@@ -40,6 +41,7 @@ import {
 } from "./SellerHelpers";
 
 export function SellerCouponsPanel() {
+  const confirm = useConfirm();
   const [params, setParams] = useState<SellerQueryParams>({ page: 1, limit: 10 });
   const couponsQuery = useSellerCoupons(params);
   const mutations = useSellerCouponMutations();
@@ -137,7 +139,15 @@ export function SellerCouponsPanel() {
               size="sm"
               variant="outline"
               className="border-emerald-400/30 bg-emerald-400/10 text-emerald-800 dark:text-emerald-200 hover:bg-emerald-400/20"
-              onClick={() => mutations.submit.mutate(coupon._id)}
+              onClick={async () => {
+                const ok = await confirm({
+                  title: `Send coupon ${coupon.code} for review?`,
+                  description: "The admin reviews it before shoppers can use it.",
+                  confirmLabel: "Send for Review",
+                  tone: "primary",
+                });
+                if (ok) mutations.submit.mutate(coupon._id);
+              }}
             >
               Send
             </Button>

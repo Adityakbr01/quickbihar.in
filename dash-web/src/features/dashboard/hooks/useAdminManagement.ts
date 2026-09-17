@@ -8,22 +8,28 @@ export const useAdminDashboard = () =>
     queryFn: adminManagementApi.getDashboard,
   });
 
-export const useManagementCatalog = () =>
+export const useManagementCatalog = (options?: { enabled?: boolean }) =>
   useQuery({
     queryKey: ["admin-management-catalog"],
     queryFn: adminManagementApi.getManagementCatalog,
+    enabled: options?.enabled ?? true,
   });
 
-export const useAppConfig = () =>
+export const useAppConfig = (options?: { enabled?: boolean }) =>
   useQuery({
     queryKey: ["app-config"],
     queryFn: adminManagementApi.getAppConfig,
+    enabled: options?.enabled ?? true,
   });
 
-export const useManagedPeople = (params: { role?: string; status?: string; search?: string }) =>
+export const useManagedPeople = (
+  params: { role?: string; status?: string; search?: string },
+  options?: { enabled?: boolean },
+) =>
   useQuery({
     queryKey: ["admin-people", params],
     queryFn: () => adminManagementApi.getPeople(params),
+    enabled: options?.enabled ?? true,
   });
 
 export const useAdminUser = (id: string) =>
@@ -33,10 +39,11 @@ export const useAdminUser = (id: string) =>
     enabled: !!id,
   });
 
-export const usePayouts = () =>
+export const usePayouts = (options?: { enabled?: boolean }) =>
   useQuery({
     queryKey: ["admin-payouts"],
     queryFn: adminManagementApi.getPayouts,
+    enabled: options?.enabled ?? true,
   });
 
 export const usePayoutMethods = (params: { status?: "PENDING_VERIFICATION" | "VERIFIED" | "REJECTED" } = {}) =>
@@ -45,22 +52,25 @@ export const usePayoutMethods = (params: { status?: "PENDING_VERIFICATION" | "VE
     queryFn: () => adminManagementApi.getPayoutMethods(params),
   });
 
-export const useMalls = () =>
+export const useMalls = (options?: { enabled?: boolean }) =>
   useQuery({
     queryKey: ["admin-malls"],
     queryFn: adminManagementApi.getMalls,
+    enabled: options?.enabled ?? true,
   });
 
-export const useMallRequests = () =>
+export const useMallRequests = (options?: { enabled?: boolean }) =>
   useQuery({
     queryKey: ["admin-mall-requests"],
     queryFn: adminManagementApi.getMallRequests,
+    enabled: options?.enabled ?? true,
   });
 
-export const useMallCreationRequests = () =>
+export const useMallCreationRequests = (options?: { enabled?: boolean }) =>
   useQuery({
     queryKey: ["admin-mall-creation-requests"],
     queryFn: adminManagementApi.getMallCreationRequests,
+    enabled: options?.enabled ?? true,
   });
 
 export const useSetBlocked = () => {

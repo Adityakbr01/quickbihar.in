@@ -168,7 +168,7 @@ export function SellerInventoryPanel({
                   onClick={() => setStatus(filter.value)}
                   className={cn(
                     "h-8 rounded-md px-3 text-xs font-medium text-muted-foreground transition hover:text-foreground",
-                    (params.status || "ALL") === filter.value && "bg-primary text-primary-foreground hover:text-primary-foreground",
+                    (params.status || "ALL") === filter.value && "bg-primary text-on-primary hover:text-on-primary",
                   )}
                 >
                   {filter.label}

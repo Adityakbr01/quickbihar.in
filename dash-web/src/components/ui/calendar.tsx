@@ -33,7 +33,7 @@ function Calendar({
           buttonVariants({ variant: "ghost", size: "icon-sm" }),
           "size-8 rounded-md p-0 font-normal aria-selected:opacity-100"
         ),
-        selected: "[&>button]:bg-primary [&>button]:text-primary-foreground [&>button]:hover:bg-primary [&>button]:hover:text-primary-foreground",
+        selected: "[&>button]:bg-primary [&>button]:text-on-primary [&>button]:hover:bg-primary [&>button]:hover:text-on-primary",
         today: "[&>button]:border [&>button]:border-cyan-400/50 [&>button]:text-cyan-700 dark:text-cyan-300",
         disabled: "pointer-events-none opacity-40",
         hidden: "invisible",

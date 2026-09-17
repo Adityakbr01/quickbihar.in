@@ -40,7 +40,7 @@ export function SectionHeader({
         )}
         {actionLabel && onAction && (
           <Button
-            className="bg-primary text-primary-foreground hover:bg-primary/90"
+            className="bg-primary text-on-primary hover:bg-primary/90"
             onClick={onAction}
           >
             <Plus className="h-4 w-4" />
@@ -69,7 +69,7 @@ export function TabButtons({
           variant={value === tab.id ? "default" : "outline"}
           className={
             value === tab.id
-              ? "bg-primary text-primary-foreground hover:bg-primary/90"
+              ? "bg-primary text-on-primary hover:bg-primary/90"
               : "border-border bg-muted text-foreground hover:bg-muted"
           }
           onClick={() => onChange(tab.id)}

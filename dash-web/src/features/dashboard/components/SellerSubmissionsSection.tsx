@@ -397,6 +397,7 @@ function OnboardingApplicationsTable({
   setReasonById: React.Dispatch<React.SetStateAction<Record<string, string>>>;
 }) {
   const queryStatus = status === "ALL" ? undefined : (status === "PENDING_REVIEW" ? "PENDING" : status);
+  const confirm = useConfirm();
   const applicationsQuery = useAdminOnboardingApplications(undefined, queryStatus);
   const reviewApplication = useReviewOnboardingApplication();
   const applications = applicationsQuery.data || [];
@@ -532,9 +533,15 @@ function OnboardingApplicationsTable({
                           variant="outline"
                           className="border-emerald-400/30 bg-emerald-400/10 text-emerald-800 dark:text-emerald-200 hover:bg-emerald-400/20"
                           disabled={reviewApplication.isPending}
-                          onClick={() =>
-                            reviewApplication.mutate({ id: app._id, status: "APPROVED" })
-                          }
+                          onClick={async () => {
+                            const ok = await confirm({
+                              title: "Approve this application?",
+                              description: "The partner account is activated immediately.",
+                              confirmLabel: "Approve",
+                              tone: "primary",
+                            });
+                            if (ok) reviewApplication.mutate({ id: app._id, status: "APPROVED" });
+                          }}
                         >
                           <CheckCircle2 className="h-3.5 w-3.5" />
                           Approve
@@ -545,13 +552,19 @@ function OnboardingApplicationsTable({
                           size="sm"
                           variant="destructive"
                           disabled={reviewApplication.isPending}
-                          onClick={() =>
-                            reviewApplication.mutate({
-                              id: app._id,
-                              status: "REJECTED",
-                              reason: optionalValue(reasonById[app._id] || ""),
-                            })
-                          }
+                          onClick={async () => {
+                            const ok = await confirm({
+                              title: "Reject this application?",
+                              description: "The applicant must fix and resubmit.",
+                              confirmLabel: "Reject",
+                            });
+                            if (ok)
+                              reviewApplication.mutate({
+                                id: app._id,
+                                status: "REJECTED",
+                                reason: optionalValue(reasonById[app._id] || ""),
+                              });
+                          }}
                         >
                           <XCircle className="h-3.5 w-3.5" />
                           Reject

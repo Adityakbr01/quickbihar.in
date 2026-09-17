@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/lib/toast";
 import {
@@ -101,6 +101,7 @@ const useRoleLogin = ({
 }) => {
   const navigate = useNavigate();
   const setAuth = useAuthStore((state) => state.setAuth);
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: loginRequest,
@@ -135,19 +136,14 @@ const useRoleLogin = ({
       }
 
       setAuth(user, accessToken);
+      // Wipe any cached data from a previous session/user, then go to the
+      // dashboard with client-side navigation — no page reload. This is
+      // safe in the SPA because setAuth updates the store synchronously
+      // (the route guard reads it immediately) and nothing server-side
+      // needs to re-run for the new session.
+      queryClient.clear();
       toast.success(`Welcome back, ${user.fullName}!`);
-      // Force a full page reload to the dashboard. navigate.replace alone can
-      // race with the next route's hydration — the dashboard's auth guard
-      // may see stale state and bounce the user back to login, and
-      // navigate.refresh can collide with the in-flight replace transition.
-      // A full reload guarantees: (1) the proxy runs with the new cookie,
-      // (2) zustand re-hydrates from localStorage on the new page,
-      // (3) React Query starts with a fresh cache.
-      // Same pattern as axios.ts:141 for session-expiry redirects.
-      // Small delay so the toast is visible before the page unloads.
-      setTimeout(() => {
-        window.location.assign(redirectTo);
-      }, 250);
+      navigate(redirectTo, { replace: true });
     },
     onError: (err: Error) => {
       const errorMessage =
@@ -209,6 +205,7 @@ const useRoleGoogleAuth = ({
 }) => {
   const navigate = useNavigate();
   const setAuth = useAuthStore((state) => state.setAuth);
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: googleAuthRequest,
@@ -236,11 +233,11 @@ const useRoleGoogleAuth = ({
       }
 
       setAuth(user, accessToken);
+      // Same as useRoleLogin: wipe stale cache, then client-side navigate —
+      // no page reload, so the dashboard mounts once and fetches once.
+      queryClient.clear();
       toast.success(`Welcome back, ${user.fullName}!`);
-      // See useRoleLogin above for why we use a full reload here.
-      setTimeout(() => {
-        window.location.assign(redirectTo);
-      }, 250);
+      navigate(redirectTo, { replace: true });
     },
     onError: (err: Error) => {
       const errorMessage =
@@ -272,23 +269,23 @@ export const useDeliveryGoogleAuth = () =>
   });
 
 export const useRegister = () => {
+  const navigate = useNavigate();
   const setAuth = useAuthStore((state) => state.setAuth);
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: registerRequest,
     onSuccess: async (response) => {
       const { user, accessToken } = response.data;
       setAuth(user, accessToken);
+      queryClient.clear();
       toast.success("Account created! Continue with your partner details.");
       const next =
         typeof window !== "undefined" &&
         window.location.pathname.includes("delivery")
           ? "/delivery/register"
           : "/seller/register";
-      // Full reload — same rationale as useRoleLogin above.
-      setTimeout(() => {
-        window.location.assign(next);
-      }, 250);
+      navigate(next, { replace: true });
     },
     onError: (err: Error) => {
       toast.error(err.message || "Registration failed. Please try again.");
@@ -336,14 +333,12 @@ export const useRequestPasswordReset = () => {
 };
 
 export const useResetPassword = () => {
+  const navigate = useNavigate();
   return useMutation({
     mutationFn: resetPasswordRequest,
     onSuccess: async () => {
       toast.success("Password reset. Please sign in with your new password.");
-      // Full reload — same rationale as useRoleLogin above.
-      setTimeout(() => {
-        window.location.assign("/admin/login");
-      }, 250);
+      navigate("/admin/login", { replace: true });
     },
     onError: (err: Error) => {
       toast.error(err.message || "Could not reset password.");
@@ -371,12 +366,16 @@ export const useUpdateProfile = () => {
 export const useLogout = () => {
   const navigate = useNavigate();
   const clearAuth = useAuthStore((state) => state.clearAuth);
+  const queryClient = useQueryClient();
 
   return async (redirectTo = "/") => {
     try {
       await logoutRequest();
     } catch {}
     clearAuth();
+    // Drop the signed-out user's cached data immediately so the next
+    // session never flashes stale rows (replaces the old full-reload wipe).
+    queryClient.clear();
     navigate(redirectTo, { replace: true });
   };
 };

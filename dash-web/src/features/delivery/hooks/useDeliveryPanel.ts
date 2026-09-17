@@ -15,28 +15,41 @@ export const useDeliveryDashboard = () =>
     queryFn: deliveryApi.getDashboard,
   });
 
-export const useDeliveryOrders = (params: { status?: DeliveryStatus; page?: number; limit?: number }) =>
+export const useDeliveryOrders = (
+  params: { status?: DeliveryStatus; page?: number; limit?: number },
+  options?: { enabled?: boolean },
+) =>
   useQuery({
     queryKey: ["delivery-orders", params],
     queryFn: () => deliveryApi.getOrders(params),
+    enabled: options?.enabled ?? true,
   });
 
-export const useDeliveryHistory = (params: { status?: DeliveryStatus; dateFrom?: string; dateTo?: string; page?: number; limit?: number }) =>
+export const useDeliveryHistory = (
+  params: { status?: DeliveryStatus; dateFrom?: string; dateTo?: string; page?: number; limit?: number },
+  options?: { enabled?: boolean },
+) =>
   useQuery({
     queryKey: ["delivery-history", params],
     queryFn: () => deliveryApi.getHistory(params),
+    enabled: options?.enabled ?? true,
   });
 
-export const useDeliveryEarnings = (params: { dateFrom?: string; dateTo?: string } = {}) =>
+export const useDeliveryEarnings = (
+  params: { dateFrom?: string; dateTo?: string } = {},
+  options?: { enabled?: boolean },
+) =>
   useQuery({
     queryKey: ["delivery-earnings", params],
     queryFn: () => deliveryApi.getEarnings(params),
+    enabled: options?.enabled ?? true,
   });
 
-export const useDeliveryPayouts = () =>
+export const useDeliveryPayouts = (options?: { enabled?: boolean }) =>
   useQuery({
     queryKey: ["delivery-payouts"],
     queryFn: deliveryApi.getPayouts,
+    enabled: options?.enabled ?? true,
   });
 
 /**

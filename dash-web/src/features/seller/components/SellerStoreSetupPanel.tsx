@@ -1,6 +1,7 @@
 import React, { type FormEvent, useState, useEffect } from "react";
 import { LocateFixed, MapPin, Save, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -26,6 +27,7 @@ import {
 } from "./SellerHelpers";
 
 export function SellerStoreSetupPanel() {
+  const confirm = useConfirm();
   const storeQuery = useSellerStore();
   const saveStore = useSaveSellerStore();
   const toggleOpen = useToggleSellerStoreOpen();
@@ -158,7 +160,18 @@ export function SellerStoreSetupPanel() {
                 size="sm"
                 variant="outline"
                 className="border-border bg-muted text-foreground hover:bg-muted"
-                onClick={() => toggleOpen.mutate(!store.isOpen)}
+                onClick={async () => {
+                  const opening = !store.isOpen;
+                  const ok = await confirm({
+                    title: opening ? "Open your store?" : "Close your store?",
+                    description: opening
+                      ? "Shoppers can browse and order again."
+                      : "Shoppers immediately stop seeing your store.",
+                    confirmLabel: opening ? "Open Store" : "Close Store",
+                    tone: opening ? "primary" : "destructive",
+                  });
+                  if (ok) toggleOpen.mutate(!store.isOpen);
+                }}
               >
                 {store.isOpen ? "Close Store" : "Open Store"}
               </Button>

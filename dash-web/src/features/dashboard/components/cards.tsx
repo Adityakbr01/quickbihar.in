@@ -10,19 +10,42 @@ export function Metric({
   title,
   value,
   icon,
+  onNavigate,
 }: {
   title: string;
   value: string | number;
   icon: ReactNode;
+  /** When provided, the whole card becomes a button that jumps to a section. */
+  onNavigate?: () => void;
 }) {
+  const content = (
+    <>
+      <div className="min-w-0">
+        <p className="truncate text-[11px] font-medium tracking-wide text-muted-foreground uppercase">{title}</p>
+        <p className="mt-1 truncate text-xl font-semibold text-foreground">{value}</p>
+      </div>
+      <div className="shrink-0 rounded-lg bg-muted p-2 text-emerald-700 transition-colors group-hover:bg-primary/10 group-hover:text-primary dark:text-emerald-300">{icon}</div>
+    </>
+  );
+
+  if (onNavigate) {
+    return (
+      <button
+        type="button"
+        onClick={onNavigate}
+        title={`Go to ${title}`}
+        aria-label={`${title}: ${value}. Go to ${title}`}
+        className="group flex min-w-0 items-center justify-between gap-2 rounded-xl bg-card px-4 py-3 text-left ring-1 ring-foreground/10 transition hover:shadow-md hover:ring-primary/50"
+      >
+        {content}
+      </button>
+    );
+  }
+
   return (
-    <Card className="border-border bg-card" size="sm">
-      <CardContent className="flex items-center justify-between">
-        <div>
-          <p className="text-xs font-medium uppercase text-muted-foreground">{title}</p>
-          <p className="mt-1 text-2xl font-semibold text-foreground">{value}</p>
-        </div>
-        <div className="rounded-lg bg-muted p-2 text-emerald-700 dark:text-emerald-300">{icon}</div>
+    <Card className="group min-w-0 border-border bg-card" size="sm">
+      <CardContent className="flex items-center justify-between gap-2">
+        {content}
       </CardContent>
     </Card>
   );

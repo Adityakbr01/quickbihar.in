@@ -17,6 +17,7 @@ import {
   Warehouse,
 } from "lucide-react";
 import type { SellerSetupStatus } from "@/features/seller/api/sellerPanel.api";
+import SidebarFooter from "@/components/dashboard/SidebarFooter";
 import { cn } from "@/lib/utils";
 
 // Import split panels
@@ -168,12 +169,25 @@ export const sectionLabels: Record<SellerSection, string> = {
 export function SellerSidebar({
   activeSection,
   onSectionChange,
+  forceVertical = false,
 }: {
   activeSection: SellerSection;
   onSectionChange: (section: SellerSection) => void;
+  /**
+   * Render the desktop vertical layout regardless of viewport — used
+   * inside the mobile navigation drawer (the default responsive layout
+   * is a horizontal scroll strip on small screens).
+   */
+  forceVertical?: boolean;
 }) {
   return (
-    <aside className="shrink-0 border-b border-border bg-background lg:h-dvh lg:w-72 lg:overflow-hidden lg:border-b-0 lg:border-r">
+    <aside
+      className={cn(
+        forceVertical
+          ? "flex h-full w-full flex-col overflow-hidden bg-background"
+          : "shrink-0 border-b border-border bg-background lg:h-dvh lg:w-72 lg:overflow-hidden lg:border-b-0 lg:border-r",
+      )}
+    >
       <div className="flex h-full flex-col">
         <div className="border-b border-border px-4 py-3 lg:px-5 lg:py-5">
           <div className="flex items-center gap-2 text-foreground">
@@ -183,11 +197,24 @@ export function SellerSidebar({
           <p className="mt-0.5 text-xs text-muted-foreground lg:mt-1">QuickBihar Clothing</p>
         </div>
 
-        <nav className="scrollbar-none flex gap-2 overflow-x-auto px-3 py-3 lg:grid lg:min-h-0 lg:flex-1 lg:gap-5 lg:overflow-x-hidden lg:overflow-y-auto lg:p-4">
+        <nav
+          className={cn(
+            forceVertical
+              ? "grid min-h-0 flex-1 gap-5 overflow-y-auto p-4"
+              : "scrollbar-none flex gap-2 overflow-x-auto px-3 py-3 lg:grid lg:min-h-0 lg:flex-1 lg:gap-5 lg:overflow-x-hidden lg:overflow-y-auto lg:p-4",
+          )}
+        >
           {sellerNavigation.map((group) => (
-            <div key={group.title} className="flex shrink-0 gap-2 lg:block">
-              <div className="mb-2 hidden px-2 text-xs font-medium uppercase tracking-wider text-muted-foreground lg:block">{group.title}</div>
-              <div className="flex gap-2 lg:grid lg:gap-1">
+            <div key={group.title} className={cn(forceVertical ? "block" : "flex shrink-0 gap-2 lg:block")}>
+              <div
+                className={cn(
+                  "mb-2 px-2 text-xs font-medium uppercase tracking-wider text-muted-foreground",
+                  !forceVertical && "hidden lg:block",
+                )}
+              >
+                {group.title}
+              </div>
+              <div className={cn(forceVertical ? "grid gap-1" : "flex gap-2 lg:grid lg:gap-1")}>
                 {group.items.map((item) => (
                   <button
                     key={item.id}
@@ -196,7 +223,8 @@ export function SellerSidebar({
                     aria-current={activeSection === item.id ? "page" : undefined}
                     className={cn(
                       "flex min-h-10 shrink-0 items-center gap-2 whitespace-nowrap rounded-lg px-3 text-left text-sm text-muted-foreground transition hover:bg-muted hover:text-foreground lg:w-full",
-                      activeSection === item.id && "bg-primary font-medium text-primary-foreground shadow-xs hover:bg-primary hover:text-primary-foreground",
+                      forceVertical && "w-full",
+                      activeSection === item.id && "bg-primary font-medium text-on-primary shadow-xs hover:bg-primary hover:text-on-primary",
                     )}
                   >
                     {item.icon}
@@ -207,6 +235,7 @@ export function SellerSidebar({
             </div>
           ))}
         </nav>
+        <SidebarFooter current="seller" />
       </div>
     </aside>
   );

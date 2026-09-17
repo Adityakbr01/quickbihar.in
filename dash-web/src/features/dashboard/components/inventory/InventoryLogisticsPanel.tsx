@@ -347,7 +347,7 @@ export function InventoryLogisticsPanel() {
             <Button
               type="submit"
               disabled={createWarehouse.isPending || updateWarehouse.isPending}
-              className="bg-primary text-primary-foreground hover:bg-primary/90"
+              className="bg-primary text-on-primary hover:bg-primary/90"
             >
               {createWarehouse.isPending || updateWarehouse.isPending ? (
                 <>
@@ -500,7 +500,7 @@ export function InventoryLogisticsPanel() {
             <Button
               type="submit"
               disabled={createProvider.isPending || updateProvider.isPending}
-              className="bg-primary text-primary-foreground hover:bg-primary/90"
+              className="bg-primary text-on-primary hover:bg-primary/90"
             >
               {createProvider.isPending || updateProvider.isPending ? (
                 <>
@@ -553,7 +553,7 @@ export function InventoryLogisticsPanel() {
               <Button
                 type="submit"
                 disabled={updateStock.isPending}
-                className="bg-primary text-primary-foreground hover:bg-primary/90"
+                className="bg-primary text-on-primary hover:bg-primary/90"
               >
                 {updateStock.isPending ? (
                   <>

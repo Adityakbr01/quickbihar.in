@@ -123,7 +123,7 @@ export function SellerDashboardPanel({
             <Button
               type="button"
               onClick={() => onNavigate?.("products")}
-              className="bg-primary text-primary-foreground hover:bg-primary/90"
+              className="bg-primary text-on-primary hover:bg-primary/90"
             >
               <Package className="h-4 w-4" />
               Add product

@@ -292,7 +292,7 @@ export function SystemSettingsPanel() {
                 />
                 <Button
                   type="submit"
-                  className="bg-primary text-primary-foreground hover:bg-primary/90"
+                  className="bg-primary text-on-primary hover:bg-primary/90"
                 >
                   <Save className="h-4 w-4" />
                   Save Configuration
@@ -377,7 +377,7 @@ export function SystemSettingsPanel() {
                   onChange={(event) => setBackupName(event.target.value)}
                 />
                 <Button
-                  className="bg-primary text-primary-foreground hover:bg-primary/90"
+                  className="bg-primary text-on-primary hover:bg-primary/90"
                   onClick={() =>
                     createBackup.mutate(
                       { name: backupName || undefined },

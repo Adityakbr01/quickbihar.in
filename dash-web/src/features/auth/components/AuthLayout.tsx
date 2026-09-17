@@ -2,12 +2,25 @@ import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
+type PortalId = "admin" | "seller" | "delivery";
+
+const PORTALS: Array<{ id: PortalId; label: string; to: string }> = [
+  { id: "admin", label: "Admin Login", to: "/admin/login" },
+  { id: "seller", label: "Seller Login", to: "/seller/login" },
+  { id: "delivery", label: "Rider Login", to: "/delivery/login" },
+];
+
 interface AuthLayoutProps {
   children: ReactNode;
   /** Small footer line under the card. Defaults to the portal copyright. */
   note?: ReactNode;
   /** Wider container for multi-section forms (registration). */
   wide?: boolean;
+  /**
+   * When set (login pages), shows a portal switcher under the form so a
+   * user can jump directly to the admin / seller / rider login.
+   */
+  portal?: PortalId;
 }
 
 /**
@@ -15,7 +28,7 @@ interface AuthLayoutProps {
  * brand header with theme toggle, centered content, footer note.
  * All colors come from src/index.css tokens so light/dark just works.
  */
-export default function AuthLayout({ children, note, wide = false }: AuthLayoutProps) {
+export default function AuthLayout({ children, note, wide = false, portal }: AuthLayoutProps) {
   return (
     <div className="relative flex min-h-screen flex-col overflow-hidden bg-background">
       {/* Ambient background */}
@@ -44,7 +57,10 @@ export default function AuthLayout({ children, note, wide = false }: AuthLayoutP
 
       {/* Centered content */}
       <main className="relative z-10 flex flex-1 items-center justify-center px-4 py-8">
-        <div className={`w-full ${wide ? "max-w-2xl" : "max-w-sm"}`}>{children}</div>
+        <div className={`w-full ${wide ? "max-w-2xl" : "max-w-sm"}`}>
+          {children}
+          {portal && <PortalSwitcher current={portal} />}
+        </div>
       </main>
 
       {/* Footer */}
@@ -54,5 +70,34 @@ export default function AuthLayout({ children, note, wide = false }: AuthLayoutP
         )}
       </footer>
     </div>
+  );
+}
+
+function PortalSwitcher({ current }: { current: PortalId }) {
+  return (
+    <nav aria-label="Switch login portal" className="mt-6 flex flex-col items-center gap-2.5">
+      <p className="text-xs text-muted-foreground">Continue as</p>
+      <div className="flex flex-wrap items-center justify-center gap-2">
+        {PORTALS.map((item) =>
+          item.id === current ? (
+            <span
+              key={item.id}
+              aria-current="page"
+              className="rounded-full bg-primary px-4 py-1.5 text-xs font-semibold text-primary-foreground shadow-xs"
+            >
+              {item.label}
+            </span>
+          ) : (
+            <Link
+              key={item.id}
+              to={item.to}
+              className="rounded-full border border-border bg-card px-4 py-1.5 text-xs font-medium text-muted-foreground transition hover:border-primary/50 hover:text-foreground"
+            >
+              {item.label}
+            </Link>
+          ),
+        )}
+      </div>
+    </nav>
   );
 }

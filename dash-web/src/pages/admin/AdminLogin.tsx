@@ -5,7 +5,7 @@ import AuthLayout from "@/features/auth/components/AuthLayout";
 export default function AdminLoginPage() {
   useEffect(() => { document.title = "Admin Login | QuickBihar Dashboard"; }, []);
   return (
-    <AuthLayout note="QuickBihar Control Center · Restricted access">
+    <AuthLayout note="QuickBihar Control Center · Restricted access" portal="admin">
       <AdminLoginForm />
     </AuthLayout>
   );

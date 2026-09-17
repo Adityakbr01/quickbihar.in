@@ -1,4 +1,5 @@
 import { Badge } from "@/components/ui/badge";
+import SidebarFooter from "@/components/dashboard/SidebarFooter";
 import { cn } from "@/lib/utils";
 import { navigationGroups } from "./types";
 import type { AdminSection } from "./types";
@@ -7,6 +8,7 @@ export function AdminSidebar({
   activeSection,
   counts,
   onSectionChange,
+  forceVertical = false,
 }: {
   activeSection: AdminSection;
   counts: {
@@ -19,6 +21,12 @@ export function AdminSidebar({
     pendingReviews?: number;
   };
   onSectionChange: (section: AdminSection) => void;
+  /**
+   * Render the desktop vertical layout regardless of viewport — used
+   * inside the mobile navigation drawer (the default responsive layout
+   * is a horizontal scroll strip on small screens).
+   */
+  forceVertical?: boolean;
 }) {
   const countBySection: Partial<Record<AdminSection, number>> = {
     people: counts.people,
@@ -30,33 +38,51 @@ export function AdminSidebar({
   };
 
   return (
-    <aside className="shrink-0 border-b border-border bg-background lg:flex lg:h-screen lg:w-72 lg:flex-col lg:overflow-hidden lg:border-b-0 lg:border-r">
+    <aside
+      className={cn(
+        forceVertical
+          ? "flex h-full w-full flex-col overflow-hidden bg-background"
+          : "shrink-0 border-b border-border bg-background lg:flex lg:h-screen lg:w-72 lg:flex-col lg:overflow-hidden lg:border-b-0 lg:border-r",
+      )}
+    >
       <div className="flex items-center gap-3 border-b border-border px-4 py-4">
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-500 text-sm font-bold text-black shadow-md shadow-emerald-500/20">
+        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-sm font-bold text-on-primary shadow-xs">
           QB
         </div>
         <div>
           <div className="text-sm font-semibold text-foreground">QuickBihar</div>
-          <div className="text-xs text-emerald-400 font-medium">Admin Portal</div>
+          <div className="text-xs text-primary font-medium">Admin Portal</div>
         </div>
       </div>
-      <nav className="scrollbar-none flex overflow-x-auto px-3 py-3 lg:min-h-0 lg:flex-1 lg:flex-col lg:overflow-x-hidden lg:overflow-y-auto lg:space-y-4">
+      <nav
+        className={cn(
+          forceVertical
+            ? "flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-4"
+            : "scrollbar-none flex overflow-x-auto px-3 py-3 lg:min-h-0 lg:flex-1 lg:flex-col lg:overflow-x-hidden lg:overflow-y-auto lg:space-y-4",
+        )}
+      >
         {navigationGroups.map((group) => (
           <div
             key={group.title}
-            className="flex shrink-0 lg:flex-col lg:space-y-1"
+            className={cn(forceVertical ? "flex flex-col gap-1" : "flex shrink-0 lg:flex-col lg:space-y-1")}
           >
-            <div className="hidden px-2 pb-1 text-[11px] font-bold uppercase tracking-wider text-emerald-500/80 lg:block">
+            <div
+              className={cn(
+                "px-2 pb-1 text-[11px] font-bold uppercase tracking-wider text-muted-foreground",
+                !forceVertical && "hidden lg:block",
+              )}
+            >
               {group.title}
             </div>
             {group.items.map((section) => (
               <button
                 key={section.id}
                 onClick={() => onSectionChange(section.id)}
+                aria-current={activeSection === section.id ? "page" : undefined}
                 className={cn(
                   "w-full h-10 flex items-center justify-start gap-3 px-3 py-2 text-sm rounded-lg transition-all duration-200 outline-none text-left",
                   activeSection === section.id
-                    ? "bg-emerald-500/10 text-emerald-400 font-medium border border-emerald-500/20"
+                    ? "bg-primary font-medium text-on-primary shadow-xs hover:bg-primary hover:text-on-primary"
                     : "text-muted-foreground hover:text-foreground hover:bg-muted",
                 )}
               >
@@ -78,17 +104,18 @@ export function AdminSidebar({
                 )}
               </button>
             ))}
-          </div>
-        ))}
-      </nav>
-    </aside>
+            </div>
+          ))}
+        </nav>
+        <SidebarFooter current="admin" />
+      </aside>
   );
 }
 
 // Helper functions used by AdminSidebar
 export function countBadgeClass(count: number, isActive?: boolean) {
   if (isActive) {
-    return "border-emerald-500/30 bg-emerald-500/20 text-emerald-400 shadow-sm";
+    return "border-white/25 bg-white/15 text-on-primary shadow-sm";
   }
   if (count >= 15) {
     return "border-emerald-400/30 bg-emerald-400/10 text-emerald-800 dark:text-emerald-200 shadow-emerald-500/10";

@@ -742,7 +742,7 @@ export function NotificationManagementPanel() {
 
           <Button
             onClick={openCompose}
-            className="bg-primary hover:bg-primary/95 text-primary-foreground h-9"
+            className="bg-primary hover:bg-primary/95 text-on-primary h-9"
           >
             <Plus className="mr-2 h-4 w-4" />
             Create Notification
@@ -975,7 +975,7 @@ export function NotificationManagementPanel() {
                           variant={p === page ? "default" : "outline"}
                           className={`h-8 w-8 p-0 text-xs font-semibold ${
                             p === page
-                              ? "bg-primary text-primary-foreground"
+                              ? "bg-primary text-on-primary"
                               : "border-border bg-card text-muted-foreground hover:bg-muted"
                           }`}
                         >
@@ -1072,7 +1072,7 @@ export function NotificationManagementPanel() {
                       setImageFile(null);
                     }}
                     className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
-                      notificationType === "NORMAL" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-primary-foreground"
+                      notificationType === "NORMAL" ? "bg-primary text-on-primary" : "text-muted-foreground hover:text-on-primary"
                     }`}
                   >
                     Normal
@@ -1081,7 +1081,7 @@ export function NotificationManagementPanel() {
                     type="button"
                     onClick={() => setNotificationType("RICH")}
                     className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
-                      notificationType === "RICH" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-primary-foreground"
+                      notificationType === "RICH" ? "bg-primary text-on-primary" : "text-muted-foreground hover:text-on-primary"
                     }`}
                   >
                     Rich (Image attachment)
@@ -1098,7 +1098,7 @@ export function NotificationManagementPanel() {
                         type="button"
                         onClick={() => setImageType("url")}
                         className={`px-2 py-0.5 rounded text-[10px] font-semibold transition-colors ${
-                          imageType === "url" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                          imageType === "url" ? "bg-primary text-on-primary" : "bg-muted text-muted-foreground"
                         }`}
                       >
                         Image URL
@@ -1107,7 +1107,7 @@ export function NotificationManagementPanel() {
                         type="button"
                         onClick={() => setImageType("file")}
                         className={`px-2 py-0.5 rounded text-[10px] font-semibold transition-colors ${
-                          imageType === "file" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                          imageType === "file" ? "bg-primary text-on-primary" : "bg-muted text-muted-foreground"
                         }`}
                       >
                         Upload Local
@@ -1400,7 +1400,7 @@ export function NotificationManagementPanel() {
                   (targetType === "SPECIFIC" && !targetUser) ||
                   (notificationType === "RICH" && imageType === "file" && !imageFile)
                 }
-                className="bg-primary hover:bg-primary/95 text-primary-foreground"
+                className="bg-primary hover:bg-primary/95 text-on-primary"
               >
                 {sendMutation.isPending ? "Queuing..." : "Create Campaign"}
               </Button>
@@ -1493,7 +1493,7 @@ export function NotificationManagementPanel() {
                         setImageUrl("");
                       }}
                       className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
-                        notificationType === "NORMAL" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-primary-foreground"
+                        notificationType === "NORMAL" ? "bg-primary text-on-primary" : "text-muted-foreground hover:text-on-primary"
                       }`}
                       disabled={activeNotification.status !== "PENDING"}
                     >
@@ -1503,7 +1503,7 @@ export function NotificationManagementPanel() {
                       type="button"
                       onClick={() => setNotificationType("RICH")}
                       className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
-                        notificationType === "RICH" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-primary-foreground"
+                        notificationType === "RICH" ? "bg-primary text-on-primary" : "text-muted-foreground hover:text-on-primary"
                       }`}
                       disabled={activeNotification.status !== "PENDING"}
                     >
@@ -1521,7 +1521,7 @@ export function NotificationManagementPanel() {
                           type="button"
                           onClick={() => setImageType("url")}
                           className={`px-2 py-0.5 rounded text-[10px] font-semibold transition-colors ${
-                            imageType === "url" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                            imageType === "url" ? "bg-primary text-on-primary" : "bg-muted text-muted-foreground"
                           }`}
                           disabled={activeNotification.status !== "PENDING"}
                         >
@@ -1531,7 +1531,7 @@ export function NotificationManagementPanel() {
                           type="button"
                           onClick={() => setImageType("file")}
                           className={`px-2 py-0.5 rounded text-[10px] font-semibold transition-colors ${
-                            imageType === "file" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                            imageType === "file" ? "bg-primary text-on-primary" : "bg-muted text-muted-foreground"
                           }`}
                           disabled={activeNotification.status !== "PENDING"}
                         >
@@ -1783,7 +1783,7 @@ export function NotificationManagementPanel() {
                     (targetType === "SPECIFIC" && !targetUser) ||
                     (notificationType === "RICH" && imageType === "file" && !imageFile)
                   }
-                  className="bg-primary hover:bg-primary/95 text-primary-foreground"
+                  className="bg-primary hover:bg-primary/95 text-on-primary"
                 >
                   {updateMutation.isPending ? "Saving..." : "Save Changes"}
                 </Button>
@@ -1905,7 +1905,7 @@ export function NotificationManagementPanel() {
           <DialogFooter className="border-t border-border pt-3">
             <Button
               onClick={() => setIsDetailsOpen(false)}
-              className="bg-primary hover:bg-primary/95 text-primary-foreground"
+              className="bg-primary hover:bg-primary/95 text-on-primary"
             >
               Close
             </Button>

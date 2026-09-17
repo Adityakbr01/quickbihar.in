@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Bike,
+  ChevronRight,
   ClipboardList,
   History,
   LogOut,
@@ -21,6 +22,7 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import SidebarFooter from "@/components/dashboard/SidebarFooter";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuthStore } from "@/features/auth/store/authStore";
@@ -170,10 +172,13 @@ export default function DeliveryDashboardPage() {
     [earningsDateFrom, earningsDateTo],
   );
 
-  const ordersQuery = useDeliveryOrders(orderParams);
-  const historyQuery = useDeliveryHistory(historyParams);
-  const earningsQuery = useDeliveryEarnings(earningsParams);
-  const payoutsQuery = useDeliveryPayouts();
+  // Lazy tab data: dashboard + setup status load on entry (profile gating),
+  // while each tab's list fires the first time its tab opens (cached after)
+  // instead of all 6 endpoints firing together on every dashboard load.
+  const ordersQuery = useDeliveryOrders(orderParams, { enabled: activeTab === "active" });
+  const historyQuery = useDeliveryHistory(historyParams, { enabled: activeTab === "history" });
+  const earningsQuery = useDeliveryEarnings(earningsParams, { enabled: activeTab === "earnings" });
+  const payoutsQuery = useDeliveryPayouts({ enabled: activeTab === "earnings" });
   const setupStatusQuery = useDeliverySetupStatus();
   const updateAvailability = useUpdateDeliveryAvailability();
   const payoutMutations = useDeliveryPayoutMutations();
@@ -395,7 +400,7 @@ export default function DeliveryDashboardPage() {
                     onClick={() => setActiveTab(tab.id)}
                     className={cn(
                       "h-10 shrink-0 justify-start gap-2 text-muted-foreground hover:bg-muted hover:text-foreground",
-                      activeTab === tab.id && "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground"
+                      activeTab === tab.id && "bg-primary text-on-primary hover:bg-primary hover:text-on-primary"
                     )}
                   >
                     {tab.icon}
@@ -438,6 +443,7 @@ export default function DeliveryDashboardPage() {
               </div>
             )}
           </div>
+          <SidebarFooter current="delivery" />
         </aside>
 
         {/* Workspace panel */}
@@ -445,7 +451,23 @@ export default function DeliveryDashboardPage() {
           <header className="shrink-0 flex flex-col gap-3 border-b border-border bg-background px-4 py-4 md:flex-row md:items-center md:justify-between lg:px-6">
             <div>
               <h1 className="text-2xl font-semibold tracking-tight text-foreground">Delivery Dashboard</h1>
-              <p className="text-sm text-muted-foreground">{deliverySectionLabels[activeTab]}</p>
+              <nav aria-label="Breadcrumb" className="mt-0.5 flex items-center gap-1.5 text-sm text-muted-foreground">
+                {activeTab === "overview" ? (
+                  <span>{deliverySectionLabels.overview}</span>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab("overview")}
+                      className="transition-colors hover:text-foreground"
+                    >
+                      Overview
+                    </button>
+                    <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
+                    <span className="text-foreground">{deliverySectionLabels[activeTab]}</span>
+                  </>
+                )}
+              </nav>
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <ThemeToggle />

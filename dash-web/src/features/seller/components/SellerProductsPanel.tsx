@@ -3,6 +3,7 @@
 import React, { type FormEvent, type ReactNode, useEffect, useState, useMemo } from "react";
 import { Plus, Edit, Send, Trash2, Save, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -61,6 +62,7 @@ export function SellerProductsPanel({
   initialApprovalStatus?: SellerQueryParams["approvalStatus"];
 }) {
   const [params, setParams] = useState<SellerQueryParams>({ page: 1, limit: 10 });
+  const confirm = useConfirm();
   const productsQuery = useSellerProducts(params);
   const categoriesQuery = useSellerCategories();
   const storeQuery = useSellerStore();
@@ -155,7 +157,15 @@ export function SellerProductsPanel({
               size="sm"
               variant="outline"
               className="border-emerald-400/30 bg-emerald-400/10 text-emerald-800 dark:text-emerald-200 hover:bg-emerald-400/20"
-              onClick={() => mutations.submit.mutate(product._id)}
+              onClick={async () => {
+                const ok = await confirm({
+                  title: `Send product ${product.title} for review?`,
+                  description: "The admin reviews it before it goes live in your store.",
+                  confirmLabel: "Send for Review",
+                  tone: "primary",
+                });
+                if (ok) mutations.submit.mutate(product._id);
+              }}
             >
               <Send className="h-3.5 w-3.5" />
             </Button>

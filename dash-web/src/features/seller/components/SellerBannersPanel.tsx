@@ -1,6 +1,7 @@
 import React, { type FormEvent, type ReactNode, useState } from "react";
 import { Plus, Save, Send, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import {
   Dialog,
   DialogContent,
@@ -39,6 +40,7 @@ import {
 } from "./SellerHelpers";
 
 export function SellerBannersPanel() {
+  const confirm = useConfirm();
   const [params, setParams] = useState<SellerQueryParams>({ page: 1, limit: 10 });
   const bannersQuery = useSellerBanners(params);
   const mutations = useSellerBannerMutations();
@@ -97,7 +99,15 @@ export function SellerBannersPanel() {
               size="sm"
               variant="outline"
               className="border-emerald-400/30 bg-emerald-400/10 text-emerald-800 dark:text-emerald-200 hover:bg-emerald-400/20"
-              onClick={() => mutations.submit.mutate(banner._id)}
+              onClick={async () => {
+                const ok = await confirm({
+                  title: `Send banner ${banner.title || ""} for review?`,
+                  description: "The admin reviews it before it goes live.",
+                  confirmLabel: "Send for Review",
+                  tone: "primary",
+                });
+                if (ok) mutations.submit.mutate(banner._id);
+              }}
             >
               <Send className="h-3.5 w-3.5" />
             </Button>

@@ -22,15 +22,33 @@ export const selectClass = "h-9 rounded-lg border border-border bg-background px
 export const inputClass = "border-border bg-muted text-foreground placeholder:text-muted-foreground";
 export const textareaClass = "min-h-24 rounded-lg border border-border bg-muted px-3 py-2 text-sm text-foreground outline-none placeholder:text-muted-foreground";
 
-export function Metric({ title, value, icon }: { title: string; value: number | string; icon: ReactNode }) {
+export function Metric({ title, value, icon, onTab }: { title: string; value: number | string; icon: ReactNode; onTab?: () => void }) {
+  const content = (
+    <>
+      <div className="min-w-0">
+        <div className="truncate text-sm text-muted-foreground">{title}</div>
+        <div className="mt-1 truncate text-xl font-semibold text-foreground">{value}</div>
+      </div>
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-muted text-cyan-700 transition-colors group-hover:bg-primary/10 group-hover:text-primary dark:text-cyan-300">{icon}</div>
+    </>
+  );
+  if (onTab) {
+    return (
+      <button
+        type="button"
+        onClick={onTab}
+        title={`Go to ${title}`}
+        aria-label={`${title}: ${value}. Go to ${title}`}
+        className="group flex min-w-0 items-center justify-between gap-2 rounded-xl bg-card p-4 text-left ring-1 ring-foreground/10 transition hover:shadow-md hover:ring-primary/50"
+      >
+        {content}
+      </button>
+    );
+  }
   return (
-    <Card className="border-border bg-card">
-      <CardContent className="flex items-center justify-between p-4">
-        <div>
-          <div className="text-sm text-muted-foreground">{title}</div>
-          <div className="mt-1 text-xl font-semibold text-foreground">{value}</div>
-        </div>
-        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted text-cyan-700 dark:text-cyan-300">{icon}</div>
+    <Card className="group min-w-0 border-border bg-card">
+      <CardContent className="flex items-center justify-between gap-2 p-4">
+        {content}
       </CardContent>
     </Card>
   );

@@ -5,7 +5,7 @@ import AuthLayout from "@/features/auth/components/AuthLayout";
 export default function DeliveryLoginPage() {
   useEffect(() => { document.title = "Delivery Login | QuickBihar Dashboard"; }, []);
   return (
-    <AuthLayout note="QuickBihar Delivery Panel">
+    <AuthLayout note="QuickBihar Delivery Panel" portal="delivery">
       <DeliveryLoginForm />
     </AuthLayout>
   );

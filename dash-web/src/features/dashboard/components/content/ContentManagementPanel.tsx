@@ -317,7 +317,7 @@ export function ContentManagementPanel() {
             <Button
               type="submit"
               disabled={isPending}
-              className="bg-primary text-primary-foreground hover:bg-primary/90"
+              className="bg-primary text-on-primary hover:bg-primary/90"
             >
               {isPending ? (
                 <>
