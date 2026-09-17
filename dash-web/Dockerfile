@@ -1,3 +1,7 @@
+# Dashboard (dash-web) image — static Vite SPA served by container nginx,
+# same pattern as mobile-web. Built by CI (.github/workflows/docker-ci-cd.yml
+# matrix entry "web-dash") and run as service `web-dash` on 127.0.0.1:3002.
+
 # 1. Install dependencies only when needed
 FROM node:20-alpine AS deps
 RUN apk add --no-cache libc6-compat
@@ -25,16 +29,12 @@ ENV VITE_GOOGLE_CLIENT_ID=$VITE_GOOGLE_CLIENT_ID
 
 RUN npm run build
 
-# 3. Production image — serve dist/ with nginx + SPA fallback
+# 3. Production image — plain nginx:alpine serving dist/ with SPA fallback.
+# NOTE: no brotli module here on purpose. nginx:alpine pins nginx 1.31.x
+# while Alpine's nginx-mod-http-brotli lags (1.30.x) and apk refuses the
+# mix, which broke CI. Dynamic gzip is on below; the host nginx also
+# gzips, so nothing is served uncompressed.
 FROM nginx:alpine AS runner
-
-# ngx_brotli is not compiled into nginx:alpine — install it from Alpine
-# repos so the `brotli_*` directives in nginx.conf don't crash startup.
-# The official image includes /etc/nginx/modules/*.conf at main context,
-# which is the only place `load_module` is allowed.
-RUN apk add --no-cache nginx-mod-http-brotli && \
-    printf 'load_module modules/ngx_http_brotli_filter_module.so;\nload_module modules/ngx_http_brotli_static_module.so;\n' \
-      > /etc/nginx/modules/10-brotli.conf
 
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=builder /app/dist /usr/share/nginx/html

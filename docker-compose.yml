@@ -43,8 +43,8 @@ services:
       retries: 3
       start_period: 10s
 
-  web:
-    image: ${DOCKER_USER:-adityakbr}/quickbihar-web:prod
+  web-dash:
+    image: ${DOCKER_USER:-adityakbr}/quickbihar-web-dash:prod
     build:
       context: ./dash-web
       dockerfile: Dockerfile
@@ -52,15 +52,12 @@ services:
         VITE_API_URL: /api/v1
         VITE_SOCKET_URL: /
         VITE_GOOGLE_CLIENT_ID: ${VITE_GOOGLE_CLIENT_ID:-183149129805-vf8pkq6h066lcapjanjv1271g36jvij4.apps.googleusercontent.com}
-    container_name: quickbihar-web
+    container_name: quickbihar-web-dash
     restart: unless-stopped
     ports:
       - "127.0.0.1:3002:3000"
     environment:
       - NODE_ENV=production
-    env_file:
-      - path: ./dash-web/.env
-        required: false
     depends_on:
       - server
     networks:
