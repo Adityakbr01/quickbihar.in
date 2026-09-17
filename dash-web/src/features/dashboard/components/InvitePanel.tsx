@@ -38,7 +38,7 @@ export function InvitePanel() {
     <Card className="max-w-xl border-border bg-card">
       <CardHeader className="border-b border-border">
         <CardTitle className="flex items-center gap-2 text-base text-foreground">
-          <MailPlus className="h-4 w-4 text-emerald-300" />
+          <MailPlus className="h-4 w-4 text-emerald-700 dark:text-emerald-300" />
           Invite
         </CardTitle>
       </CardHeader>

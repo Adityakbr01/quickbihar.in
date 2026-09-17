@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DatePicker } from "@/components/ui/date-picker";
 import {
@@ -132,6 +133,7 @@ function PartnerDirectoryContent({
   onRefresh: () => void;
 }) {
   const [selected, setSelected] = useState<ManagedPerson | null>(null);
+  const confirm = useConfirm();
   const setBlocked = useSetBlocked();
   const updatePartnerStatus = useUpdatePartnerStatus();
   const partnerType: PartnerType = kind === "seller" ? "SELLER" : "DELIVERY";
@@ -245,7 +247,7 @@ function PartnerDirectoryContent({
                           Pending Rs. {formatAmount(profile?.wallet?.pendingPayoutBalance || 0)}
                         </div>
                         {kind === "rider" && (
-                          <div className="text-xs text-amber-300">
+                          <div className="text-xs text-amber-700 dark:text-amber-300">
                             COD Rs. {formatAmount(profile?.wallet?.collectedCodLiability || 0)}
                           </div>
                         )}
@@ -259,7 +261,7 @@ function PartnerDirectoryContent({
                               variant="outline"
                               className={
                                 profile?.isOnline
-                                  ? "border-emerald-400/30 text-emerald-300"
+                                  ? "border-emerald-400/30 text-emerald-700 dark:text-emerald-300"
                                   : "border-border text-muted-foreground"
                               }
                             >
@@ -283,15 +285,22 @@ function PartnerDirectoryContent({
                             <Button
                               size="sm"
                               variant="outline"
-                              className="border-emerald-400/30 bg-emerald-400/10 text-emerald-200 hover:bg-emerald-400/20"
+                              className="border-emerald-400/30 bg-emerald-400/10 text-emerald-800 dark:text-emerald-200 hover:bg-emerald-400/20"
                               disabled={updatePartnerStatus.isPending}
-                              onClick={() =>
-                                updatePartnerStatus.mutate({
-                                  userId: person._id,
-                                  type: partnerType,
-                                  status: "APPROVED",
-                                })
-                              }
+                              onClick={async () => {
+                                const ok = await confirm({
+                                  title: `Approve ${kind} ${person.email}?`,
+                                  description: "They gain full partner access immediately.",
+                                  confirmLabel: "Approve",
+                                  tone: "primary",
+                                });
+                                if (ok)
+                                  updatePartnerStatus.mutate({
+                                    userId: person._id,
+                                    type: partnerType,
+                                    status: "APPROVED",
+                                  });
+                              }}
                             >
                               <CheckCircle2 className="h-3.5 w-3.5" />
                               Approve
@@ -301,15 +310,21 @@ function PartnerDirectoryContent({
                             <Button
                               size="sm"
                               variant="outline"
-                              className="border-red-400/30 bg-red-400/10 text-red-200 hover:bg-red-400/20"
+                              className="border-red-400/30 bg-red-400/10 text-red-800 dark:text-red-200 hover:bg-red-400/20"
                               disabled={updatePartnerStatus.isPending}
-                              onClick={() =>
-                                updatePartnerStatus.mutate({
-                                  userId: person._id,
-                                  type: partnerType,
-                                  status: "REJECTED",
-                                })
-                              }
+                              onClick={async () => {
+                                const ok = await confirm({
+                                  title: `Reject ${kind} ${person.email}?`,
+                                  description: "The applicant is notified and must reapply.",
+                                  confirmLabel: "Reject",
+                                });
+                                if (ok)
+                                  updatePartnerStatus.mutate({
+                                    userId: person._id,
+                                    type: partnerType,
+                                    status: "REJECTED",
+                                  });
+                              }}
                             >
                               <XCircle className="h-3.5 w-3.5" />
                               Reject
@@ -324,12 +339,21 @@ function PartnerDirectoryContent({
                                 : ""
                             }
                             disabled={setBlocked.isPending}
-                            onClick={() =>
-                              setBlocked.mutate({
-                                userId: person._id,
-                                isBlocked: !person.isBlocked,
-                              })
-                            }
+                            onClick={async () => {
+                              const blocking = !person.isBlocked;
+                              const ok = await confirm({
+                                title: blocking ? `Ban ${person.email}?` : `Unban ${person.email}?`,
+                                description: blocking
+                                  ? "They lose access immediately."
+                                  : "Their access is restored.",
+                                confirmLabel: blocking ? "Ban" : "Unban",
+                              });
+                              if (ok)
+                                setBlocked.mutate({
+                                  userId: person._id,
+                                  isBlocked: blocking,
+                                });
+                            }}
                           >
                             <Ban className="h-3.5 w-3.5" />
                             {person.isBlocked ? "Unban" : "Ban"}
@@ -458,7 +482,7 @@ function PartnerDetailDialog({
                 className={cn(
                   "h-9 rounded-lg px-3 text-sm transition-colors",
                   activeTab === tab
-                    ? "bg-emerald-500/10 text-emerald-300"
+                    ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
                     : "text-muted-foreground hover:bg-muted hover:text-foreground",
                 )}
               >
@@ -979,9 +1003,9 @@ function PartnerMetric({
 }) {
   const toneClass = {
     slate: "text-foreground",
-    emerald: "text-emerald-200",
-    cyan: "text-cyan-200",
-    amber: "text-amber-200",
+    emerald: "text-emerald-800 dark:text-emerald-200",
+    cyan: "text-cyan-800 dark:text-cyan-200",
+    amber: "text-amber-800 dark:text-amber-200",
   }[tone];
 
   return (
@@ -1026,11 +1050,11 @@ function PartnerProfileCell({ kind, profile }: { kind: PartnerKind; profile?: Pa
 function PartnerStatusBadge({ status }: { status?: string }) {
   const className =
     status === "APPROVED"
-      ? "border-emerald-400/30 text-emerald-300"
+      ? "border-emerald-400/30 text-emerald-700 dark:text-emerald-300"
       : status === "PENDING"
-        ? "border-amber-400/30 text-amber-300"
+        ? "border-amber-400/30 text-amber-700 dark:text-amber-300"
         : status === "REJECTED"
-          ? "border-red-400/30 text-red-300"
+          ? "border-red-400/30 text-red-700 dark:text-red-300"
           : "border-border text-muted-foreground";
   return (
     <Badge variant="outline" className={className}>

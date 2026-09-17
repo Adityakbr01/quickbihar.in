@@ -2,6 +2,7 @@ import React, { type FormEvent, useState } from "react";
 import { Plus, Edit, Trash2, Save, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -31,6 +32,7 @@ import { selectClass, inputClass, textareaClass, formatDate } from "../../utils"
 import type { AdminListParams } from "../../api/adminManagement.api";
 
 export function PolicyManagementPanel() {
+  const confirm = useConfirm();
   const [params, setParams] = useState<AdminListParams>({
     page: 1,
     limit: 10,
@@ -110,7 +112,7 @@ export function PolicyManagementPanel() {
                       <div className="line-clamp-1 max-w-xs text-xs text-muted-foreground">{policy.description}</div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline" className="border-cyan-400/30 text-cyan-300">
+                      <Badge variant="outline" className="border-cyan-400/30 text-cyan-700 dark:text-cyan-300">
                         {policy.policyType}
                       </Badge>
                     </TableCell>
@@ -142,8 +144,13 @@ export function PolicyManagementPanel() {
                         <Button
                           size="sm"
                           variant="destructive"
-                          onClick={() => {
-                            if (window.confirm(`Delete policy ${policy.name}?`)) deletePolicy.mutate(policy._id);
+                          onClick={async () => {
+                            const ok = await confirm({
+                              title: `Delete policy ${policy.name}?`,
+                              description: "Stores using this policy will be affected.",
+                              confirmLabel: "Delete",
+                            });
+                            if (ok) deletePolicy.mutate(policy._id);
                           }}
                         >
                           <Trash2 className="h-3.5 w-3.5" />

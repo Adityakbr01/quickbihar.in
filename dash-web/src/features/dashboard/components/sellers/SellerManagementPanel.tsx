@@ -1,6 +1,7 @@
 import React, { type FormEvent, useState } from "react";
 import { Plus, Edit, Trash2, Save, Store, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -31,6 +32,7 @@ import { selectClass, inputClass, formatDate } from "../../utils";
 import type { AdminListParams, ManagedPerson } from "../../api/adminManagement.api";
 
 export function SellerManagementPanel() {
+  const confirm = useConfirm();
   const [params, setParams] = useState<AdminListParams>({
     page: 1,
     limit: 10,
@@ -115,7 +117,7 @@ export function SellerManagementPanel() {
                     <TableCell className="text-sm text-muted-foreground">
                       {seller.sellerProfile?.mallId ? (
                         <div className="flex items-center gap-1">
-                          <Store className="h-3.5 w-3.5 text-cyan-300" />
+                          <Store className="h-3.5 w-3.5 text-cyan-700 dark:text-cyan-300" />
                           <span>
                             {seller.sellerProfile.mallName || "Mall"} · Unit {seller.sellerProfile.mallUnit}
                           </span>
@@ -146,13 +148,13 @@ export function SellerManagementPanel() {
                           <Button
                             size="sm"
                             variant="destructive"
-                            onClick={() => {
-                              if (
-                                window.confirm(
-                                  `Deactivate seller ${seller.sellerProfile?.businessName || seller.email}? This will block user login and deactivate their store/products.`
-                                )
-                              )
-                                deleteSeller.mutate(seller._id);
+                            onClick={async () => {
+                              const ok = await confirm({
+                                title: `Deactivate seller ${seller.sellerProfile?.businessName || seller.email}?`,
+                                description: "This blocks user login and deactivates their store and products.",
+                                confirmLabel: "Deactivate",
+                              });
+                              if (ok) deleteSeller.mutate(seller._id);
                             }}
                           >
                             <Trash2 className="h-3.5 w-3.5" />

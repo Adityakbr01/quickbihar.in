@@ -2,6 +2,7 @@ import React, { type ReactNode } from "react";
 import { CheckCircle2, RefreshCcw, Trash2, XCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
@@ -253,14 +254,20 @@ export function RowActions({ children }: { children: ReactNode }) {
   return <div className="flex flex-wrap items-center gap-2">{children}</div>;
 }
 
-export function DeleteButton({ onDelete }: { onDelete: () => void }) {
+export function DeleteButton({ onDelete, label = "this item" }: { onDelete: () => void; label?: string }) {
+  const confirm = useConfirm();
   return (
     <Button
       size="sm"
       variant="outline"
       className="border-destructive/30 bg-destructive/10 text-destructive hover:bg-destructive/20"
-      onClick={() => {
-        if (window.confirm("Delete this item?")) onDelete();
+      onClick={async () => {
+        const ok = await confirm({
+          title: `Delete ${label}?`,
+          description: "This action cannot be undone.",
+          confirmLabel: "Delete",
+        });
+        if (ok) onDelete();
       }}
     >
       <Trash2 className="h-3.5 w-3.5" />

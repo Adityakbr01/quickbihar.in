@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { ChevronDown, Copy, Package, Phone, PhoneCall, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useFulfillmentRealtime } from "@/hooks/useFulfillmentRealtime";
 import type { SellerQueryParams } from "@/features/seller/api/sellerManagement.api";
@@ -42,7 +43,7 @@ function ItemsDropdownCell({ items }: { items: any[] }) {
           {firstItem.title}
         </span>
         {items.length > 1 ? (
-          <span className="shrink-0 rounded bg-indigo-500/20 px-1 py-0.2 text-[10px] font-bold text-indigo-300">
+          <span className="shrink-0 rounded bg-indigo-500/20 px-1 py-0.2 text-[10px] font-bold text-indigo-700 dark:text-indigo-300">
             +{items.length - 1}
           </span>
         ) : (
@@ -88,6 +89,7 @@ function ItemsDropdownCell({ items }: { items: any[] }) {
 }
 
 export function SellerOrdersPanel() {
+  const confirm = useConfirm();
   useFulfillmentRealtime();
   const [params, setParams] = useState<SellerQueryParams>({ page: 1, limit: 10 });
   const subOrdersQuery = useSellerSubOrders(params);
@@ -235,11 +237,11 @@ export function SellerOrdersPanel() {
                       >
                         <div className="flex items-center gap-1.5">
                           <Phone className="h-3.5 w-3.5 text-emerald-400" />
-                          <span className="font-mono text-emerald-300 font-bold">
+                          <span className="font-mono text-emerald-700 dark:text-emerald-300 font-bold">
                             {maskPhone(customerPhone)}
                           </span>
                         </div>
-                        <span className="text-[10px] font-bold text-emerald-400 group-hover:text-emerald-300">
+                        <span className="text-[10px] font-bold text-emerald-400 group-hover:text-emerald-700 dark:group-hover:text-emerald-300">
                           TAP TO CALL →
                         </span>
                       </a>
@@ -365,7 +367,14 @@ export function SellerOrdersPanel() {
                   <Button
                     size="sm"
                     className="bg-red-600 hover:bg-red-700 text-white flex-1"
-                    onClick={() => processCancellation.mutate({ subOrderId: subOrder._id, approve: true })}
+                    onClick={async () => {
+                      const ok = await confirm({
+                        title: "Approve this cancellation?",
+                        description: "The order is cancelled and the customer is refunded per policy.",
+                        confirmLabel: "Approve Cancel",
+                      });
+                      if (ok) processCancellation.mutate({ subOrderId: subOrder._id, approve: true });
+                    }}
                     disabled={processCancellation.isPending}
                   >
                     Approve Cancel

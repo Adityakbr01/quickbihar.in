@@ -30,7 +30,7 @@ import { isRider } from "@/lib/rbac";
 import { webSocketClient } from "@/lib/socket";
 import { SocketEvents } from "@/constants/socketEvents";
 import { useFulfillmentRealtime } from "@/hooks/useFulfillmentRealtime";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import {
   useDeliveryDashboard,
   useDeliveryEarnings,
@@ -372,7 +372,7 @@ export default function DeliveryDashboardPage() {
         {/* Sidebar */}
         <aside className="shrink-0 border-b border-border bg-background lg:flex lg:h-screen lg:w-72 lg:flex-col lg:overflow-hidden lg:border-b-0 lg:border-r">
           <div className="flex items-center gap-3 border-b border-border px-4 py-4">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-cyan-400/10 text-cyan-300">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-cyan-400/10 text-cyan-700 dark:text-cyan-300">
               <Bike className="h-5 w-5" />
             </div>
             <div className="min-w-0">
@@ -415,7 +415,7 @@ export default function DeliveryDashboardPage() {
                 <span>Duty Status</span>
                 <Badge
                   variant="outline"
-                  className={cn("border-border text-muted-foreground", profile?.isOnline && "border-emerald-400/30 text-emerald-300 bg-emerald-500/10")}
+                  className={cn("border-border text-muted-foreground", profile?.isOnline && "border-emerald-400/30 text-emerald-700 dark:text-emerald-300 bg-emerald-500/10")}
                 >
                   {profile?.isOnline ? "Online" : "Offline"}
                 </Badge>
@@ -600,7 +600,7 @@ export default function DeliveryDashboardPage() {
                     ⚠️ Fragile
                   </span>
                 )}
-                <span className="px-2.5 py-1 text-xs font-bold bg-cyan-500/10 text-cyan-300 border border-cyan-500/20 rounded-lg">
+                <span className="px-2.5 py-1 text-xs font-bold bg-cyan-500/10 text-cyan-700 dark:text-cyan-300 border border-cyan-500/20 rounded-lg">
                   Weight: {activeJobOffer.packageDetails?.weight}g
                 </span>
               </div>

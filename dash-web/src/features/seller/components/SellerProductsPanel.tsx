@@ -154,12 +154,12 @@ export function SellerProductsPanel({
             <Button
               size="sm"
               variant="outline"
-              className="border-emerald-400/30 bg-emerald-400/10 text-emerald-200 hover:bg-emerald-400/20"
+              className="border-emerald-400/30 bg-emerald-400/10 text-emerald-800 dark:text-emerald-200 hover:bg-emerald-400/20"
               onClick={() => mutations.submit.mutate(product._id)}
             >
               <Send className="h-3.5 w-3.5" />
             </Button>
-            <DeleteButton onDelete={() => mutations.remove.mutate(product._id)} />
+            <DeleteButton label={`product ${product.title}`} onDelete={() => mutations.remove.mutate(product._id)} />
           </RowActions>,
         ])}
       />
@@ -414,7 +414,7 @@ function ProductDialog({
             <Field name="brand" label="Brand" defaultValue={product?.brand} optional />
             <label className={labelClass}>
               Category
-              <span className="text-[10px] normal-case text-red-300">Required</span>
+              <span className="text-[10px] normal-case text-red-700 dark:text-red-300">Required</span>
               <select
                 name="category"
                 value={category}
@@ -472,7 +472,7 @@ function ProductDialog({
               <label className={labelClass}>
                 <span className="flex items-center gap-2">
                   Selling Price
-                  <span className="text-[10px] normal-case text-red-300">Required</span>
+                  <span className="text-[10px] normal-case text-red-700 dark:text-red-300">Required</span>
                 </span>
                 <Input
                   name="price"
@@ -487,7 +487,7 @@ function ProductDialog({
               <label className={labelClass}>
                 <span className="flex items-center gap-2">
                   MRP / Original Price
-                  <span className="text-[10px] normal-case text-red-300">Required</span>
+                  <span className="text-[10px] normal-case text-red-700 dark:text-red-300">Required</span>
                 </span>
                 <Input
                   name="originalPrice"
@@ -505,7 +505,7 @@ function ProductDialog({
                 </div>
               )}
               {priceError && (
-                <div className="md:col-span-2 rounded border border-red-500/20 bg-red-500/5 px-3 py-1.5 text-xs font-semibold text-red-300">
+                <div className="md:col-span-2 rounded border border-red-500/20 bg-red-500/5 px-3 py-1.5 text-xs font-semibold text-red-700 dark:text-red-300">
                   {priceError}
                 </div>
               )}
@@ -521,11 +521,11 @@ function ProductDialog({
                   </div>
                   <div className="rounded border border-border bg-muted px-3 py-2">
                     <div className="text-muted-foreground">Commission ({commissionPercent}%)</div>
-                    <div className="mt-1 font-semibold text-amber-200">- Rs. {formatAmount(estimatedCommission)}</div>
+                    <div className="mt-1 font-semibold text-amber-800 dark:text-amber-200">- Rs. {formatAmount(estimatedCommission)}</div>
                   </div>
                   <div className="rounded border border-emerald-400/20 bg-emerald-500/10 px-3 py-2">
                     <div className="text-emerald-100/80">Estimated seller payout</div>
-                    <div className="mt-1 font-semibold text-emerald-200">Rs. {formatAmount(estimatedSellerNet)}</div>
+                    <div className="mt-1 font-semibold text-emerald-800 dark:text-emerald-200">Rs. {formatAmount(estimatedSellerNet)}</div>
                   </div>
                 </div>
                 <div className="rounded border border-blue-400/20 bg-blue-500/10 px-3 py-2 text-blue-100/90">
@@ -609,7 +609,7 @@ function ProductDialog({
                 disabled={totalImages >= 5}
               />
             </div>
-            {imageError && <div className="text-xs text-red-300">{imageError}</div>}
+            {imageError && <div className="text-xs text-red-700 dark:text-red-300">{imageError}</div>}
             <div className="grid gap-2 md:grid-cols-2">
               {existingImages.map((image, index) => (
                 <div
@@ -628,7 +628,7 @@ function ProductDialog({
                     type="button"
                     size="sm"
                     variant="ghost"
-                    className="text-red-300 hover:bg-red-400/10 hover:text-red-200 shrink-0"
+                    className="text-red-700 dark:text-red-300 hover:bg-red-400/10 hover:text-red-800 dark:hover:text-red-200 shrink-0"
                     onClick={() => removeExistingImage(index)}
                   >
                     Remove
@@ -654,7 +654,7 @@ function ProductDialog({
                       type="button"
                       size="sm"
                       variant="ghost"
-                      className="text-red-300 hover:bg-red-400/10 hover:text-red-200 shrink-0"
+                      className="text-red-700 dark:text-red-300 hover:bg-red-400/10 hover:text-red-800 dark:hover:text-red-200 shrink-0"
                       onClick={() => {
                         removeNewImage(index);
                         URL.revokeObjectURL(previewUrl);
@@ -685,7 +685,7 @@ function ProductDialog({
               ))}
             </select>
             {selectedChart?.description && (
-              <div className="text-xs text-blue-300/90 bg-blue-500/5 border border-blue-500/20 rounded p-2">
+              <div className="text-xs text-blue-700 dark:text-blue-300/90 bg-blue-500/5 border border-blue-500/20 rounded p-2">
                 {selectedChart.description}
               </div>
             )}
@@ -904,7 +904,7 @@ function SellerVariantEditor({
         <div key={index} className="grid gap-2 md:grid-cols-[1fr_1fr_1fr_1fr_1fr_auto]">
           <label className={labelClass}>
             Size
-            <span className="text-[10px] normal-case text-red-300">Required</span>
+            <span className="text-[10px] normal-case text-red-700 dark:text-red-300">Required</span>
             <Input
               value={variant.size}
               onChange={(event) => update(index, "size", event.target.value)}
@@ -915,7 +915,7 @@ function SellerVariantEditor({
           </label>
           <label className={labelClass}>
             Color
-            <span className="text-[10px] normal-case text-red-300">Required</span>
+            <span className="text-[10px] normal-case text-red-700 dark:text-red-300">Required</span>
             <Input
               value={variant.color}
               onChange={(event) => update(index, "color", event.target.value)}
@@ -938,7 +938,7 @@ function SellerVariantEditor({
           </label>
           <label className={labelClass}>
             Stock
-            <span className="text-[10px] normal-case text-red-300">Required</span>
+            <span className="text-[10px] normal-case text-red-700 dark:text-red-300">Required</span>
             <Input
               value={variant.stock}
               onChange={(event) => update(index, "stock", event.target.value)}
@@ -963,7 +963,7 @@ function SellerVariantEditor({
             <Button
               type="button"
               variant="ghost"
-              className="h-9 text-red-300 hover:bg-red-400/10 hover:text-red-200"
+              className="h-9 text-red-700 dark:text-red-300 hover:bg-red-400/10 hover:text-red-800 dark:hover:text-red-200"
               onClick={() =>
                 onChange(variants.filter((_, currentIndex) => currentIndex !== index))
               }

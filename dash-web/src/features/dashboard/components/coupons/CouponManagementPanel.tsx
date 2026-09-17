@@ -1,6 +1,7 @@
 import React, { useState, FormEvent } from "react";
 import { Plus, Edit, Trash2, Save, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog,
@@ -49,6 +50,7 @@ import {
 } from "../shared/TableHelpers";
 
 export function CouponManagementPanel() {
+  const confirm = useConfirm();
   const [params, setParams] = useState<QueryParams>({
     page: 1,
     limit: 10,
@@ -199,9 +201,13 @@ export function CouponManagementPanel() {
                         <Button
                           size="sm"
                           variant="destructive"
-                          onClick={() => {
-                            if (window.confirm(`Delete coupon ${coupon.code}?`))
-                              deleteCoupon.mutate(coupon._id);
+                          onClick={async () => {
+                            const ok = await confirm({
+                              title: `Delete coupon ${coupon.code}?`,
+                              description: "Shoppers will no longer be able to use this coupon.",
+                              confirmLabel: "Delete",
+                            });
+                            if (ok) deleteCoupon.mutate(coupon._id);
                           }}
                         >
                           <Trash2 className="h-3.5 w-3.5" />
@@ -448,7 +454,7 @@ function CouponForm({
         className={inputClass}
       />
       {dateError && (
-        <div className="text-xs text-red-300 md:col-span-2">{dateError}</div>
+        <div className="text-xs text-red-700 dark:text-red-300 md:col-span-2">{dateError}</div>
       )}
       <div className="md:col-span-2">
         <Input

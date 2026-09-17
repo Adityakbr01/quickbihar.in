@@ -3,7 +3,7 @@ import axios, {
   type AxiosRequestConfig,
   type InternalAxiosRequestConfig,
 } from "axios";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 
 const AUTH_STORAGE_KEY = "admin-auth-storage";
 

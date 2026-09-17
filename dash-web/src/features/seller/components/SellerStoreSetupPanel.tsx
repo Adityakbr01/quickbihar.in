@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import {
   useSellerStore,
   useSellerCategories,
@@ -209,7 +209,7 @@ export function SellerStoreSetupPanel() {
               <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                 <div>
                   <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-                    <MapPin className="h-4 w-4 text-emerald-300" />
+                    <MapPin className="h-4 w-4 text-emerald-700 dark:text-emerald-300" />
                     Pickup GPS Location
                   </div>
                   <div className="mt-1 text-xs text-muted-foreground">
@@ -258,7 +258,7 @@ export function SellerStoreSetupPanel() {
                   href={`https://www.google.com/maps/search/?api=1&query=${storeLat},${storeLng}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="text-xs font-medium text-emerald-300 hover:text-emerald-200"
+                  className="text-xs font-medium text-emerald-700 dark:text-emerald-300 hover:text-emerald-800 dark:hover:text-emerald-200"
                 >
                   Check saved pickup point on Google Maps
                 </a>
@@ -367,7 +367,7 @@ export function SellerStoreSetupPanel() {
                 )}
               </Button>
               {missingFields.map((field) => (
-                <Badge key={field} variant="outline" className="border-amber-400/30 text-amber-300">
+                <Badge key={field} variant="outline" className="border-amber-400/30 text-amber-700 dark:text-amber-300">
                   {field}
                 </Badge>
               ))}

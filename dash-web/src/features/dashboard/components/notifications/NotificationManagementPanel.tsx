@@ -2248,14 +2248,14 @@ export function NotificationManagementPanel() {
                     <div className="space-y-3">
                       <div>
                         <span className="font-bold text-muted-foreground block uppercase tracking-wider text-[9px] mb-1">Payload Sent to Provider</span>
-                        <pre className="bg-muted border border-border rounded-lg p-3 text-[10px] overflow-x-auto text-cyan-300 max-h-[150px] font-mono">
+                        <pre className="bg-muted border border-border rounded-lg p-3 text-[10px] overflow-x-auto text-cyan-700 dark:text-cyan-300 max-h-[150px] font-mono">
                           {JSON.stringify(debugResult.payloadSent, null, 2)}
                         </pre>
                       </div>
 
                       <div>
                         <span className="font-bold text-muted-foreground block uppercase tracking-wider text-[9px] mb-1">API Provider Response</span>
-                        <pre className="bg-muted border border-border rounded-lg p-3 text-[10px] overflow-x-auto text-amber-300 max-h-[150px] font-mono">
+                        <pre className="bg-muted border border-border rounded-lg p-3 text-[10px] overflow-x-auto text-amber-700 dark:text-amber-300 max-h-[150px] font-mono">
                           {JSON.stringify(debugResult.apiResponse, null, 2)}
                         </pre>
                       </div>

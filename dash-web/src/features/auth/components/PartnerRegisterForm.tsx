@@ -2,8 +2,9 @@ import { Link, useNavigate } from "react-router-dom";
 
 import { FormEvent, useEffect, useState } from "react";
 import { Bike, CheckCircle2, FileUp, Loader2, MapPin, Store, X, FileText, UploadCloud, AlertCircle, LogOut } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { Button } from "@/components/ui/button";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { googleAuthRequest, updateProfileRequest, logoutRequest } from "../api/auth.api";
@@ -37,6 +38,7 @@ interface ValidationErrors {
 
 export default function PartnerRegisterForm({ mode }: { mode: PartnerMode }) {
   const navigate = useNavigate();
+  const confirm = useConfirm();
   const isRider = mode === "RIDER";
   const { user, token, isAuthenticated, setAuth, clearAuth } = useAuthStore();
   const hasHydrated = useAuthHydrated();
@@ -296,6 +298,13 @@ export default function PartnerRegisterForm({ mode }: { mode: PartnerMode }) {
       toast.error("Please fix highlighted errors in the form before submitting.");
       return;
     }
+    const ok = await confirm({
+      title: "Submit application for approval?",
+      description: "Your details and documents go to the admin for verification. Make sure everything is accurate.",
+      confirmLabel: "Submit Application",
+      tone: "primary",
+    });
+    if (!ok) return;
     if (!isAuthenticated) {
       toast.error("Login required before submitting application");
       return;

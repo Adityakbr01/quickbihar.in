@@ -14,6 +14,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useFulfillmentRealtime } from "@/hooks/useFulfillmentRealtime";
 import {
@@ -71,6 +72,7 @@ const subOrderStatuses = [
 ];
 
 export function OrderManagementPanel() {
+  const confirm = useConfirm();
   useFulfillmentRealtime();
   const [params, setParams] = useState({
     page: 1,
@@ -223,10 +225,14 @@ export function OrderManagementPanel() {
                             <Button
                               size="sm"
                               className="bg-amber-600 hover:bg-amber-700 text-white font-bold text-[11px] h-8"
-                              onClick={() => {
-                                if (confirm(`Confirm deposit of Rs. ${so.payableAmount} collected by rider?`)) {
-                                  settleCodMutation.mutate(so._id);
-                                }
+                              onClick={async () => {
+                                const ok = await confirm({
+                                  title: `Settle Rs. ${so.payableAmount} in cash?`,
+                                  description: "Confirm the rider has deposited the collected cash.",
+                                  confirmLabel: "Settle Cash",
+                                  tone: "primary",
+                                });
+                                if (ok) settleCodMutation.mutate(so._id);
                               }}
                               disabled={settleCodMutation.isPending}
                             >

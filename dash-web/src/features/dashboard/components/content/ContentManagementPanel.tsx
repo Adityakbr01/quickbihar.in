@@ -1,6 +1,7 @@
 import { type FormEvent, useState } from "react";
 import { Megaphone, Edit, Trash2, Save, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { DateTimePicker } from "@/components/ui/date-time-picker";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -61,6 +62,7 @@ const contentTabs: Array<{ id: ContentKind; label: string }> = [
 ];
 
 export function ContentManagementPanel() {
+  const confirm = useConfirm();
   const [kind, setKind] = useState<ContentKind>("cms");
   const [params, setParams] = useState<AdminListParams>({
     page: 1,
@@ -127,8 +129,13 @@ export function ContentManagementPanel() {
     setDraft({});
   };
 
-  const deleteItem = (item: any) => {
-    if (!window.confirm("Delete this item?")) return;
+  const deleteItem = async (item: any) => {
+    const ok = await confirm({
+      title: "Delete this item?",
+      description: "This action cannot be undone.",
+      confirmLabel: "Delete",
+    });
+    if (!ok) return;
     if (kind === "cms") deleteCMS.mutate(item._id);
     if (kind === "faq") deleteFAQ.mutate(item._id);
     if (kind === "blog") deleteBlog.mutate(item._id);
@@ -269,7 +276,7 @@ export function ContentManagementPanel() {
                         <Button
                           size="sm"
                           variant="outline"
-                          className="border-red-500/30 bg-red-500/10 text-red-200 hover:bg-red-500/20"
+                          className="border-red-500/30 bg-red-500/10 text-red-800 dark:text-red-200 hover:bg-red-500/20"
                           onClick={() => deleteItem(item)}
                         >
                           <Trash2 className="h-3.5 w-3.5" />

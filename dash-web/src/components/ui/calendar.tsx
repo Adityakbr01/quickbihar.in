@@ -34,7 +34,7 @@ function Calendar({
           "size-8 rounded-md p-0 font-normal aria-selected:opacity-100"
         ),
         selected: "[&>button]:bg-primary [&>button]:text-primary-foreground [&>button]:hover:bg-primary [&>button]:hover:text-primary-foreground",
-        today: "[&>button]:border [&>button]:border-cyan-400/50 [&>button]:text-cyan-300",
+        today: "[&>button]:border [&>button]:border-cyan-400/50 [&>button]:text-cyan-700 dark:text-cyan-300",
         disabled: "pointer-events-none opacity-40",
         hidden: "invisible",
         ...classNames,

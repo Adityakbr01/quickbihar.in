@@ -1,6 +1,7 @@
 import { type FormEvent, useState } from "react";
 import { Boxes, Edit, Trash2, Save, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -52,6 +53,7 @@ const logisticsTabs: Array<{ id: LogisticsKind; label: string }> = [
 ];
 
 export function InventoryLogisticsPanel() {
+  const confirm = useConfirm();
   const [tab, setTab] = useState<LogisticsKind>("inventory");
   const [params, setParams] = useState<AdminListParams>({
     page: 1,
@@ -214,10 +216,14 @@ export function InventoryLogisticsPanel() {
             setEditingWarehouse(warehouse);
             setWarehouseDraft(warehouseToDraft(warehouse));
           }}
-          onDelete={(warehouse) =>
-            window.confirm("Deactivate this warehouse?") &&
-            deleteWarehouse.mutate(warehouse._id)
-          }
+          onDelete={async (warehouse) => {
+            const ok = await confirm({
+              title: "Deactivate this warehouse?",
+              description: "Stock operations routed through it will stop. This can be re-enabled later.",
+              confirmLabel: "Deactivate",
+            });
+            if (ok) deleteWarehouse.mutate(warehouse._id);
+          }}
         />
       )}
       {tab === "shipping" && (
@@ -228,10 +234,14 @@ export function InventoryLogisticsPanel() {
             setEditingProvider(provider);
             setShippingDraft(providerToDraft(provider));
           }}
-          onDelete={(provider) =>
-            window.confirm("Deactivate this provider?") &&
-            deleteProvider.mutate(provider._id)
-          }
+          onDelete={async (provider) => {
+            const ok = await confirm({
+              title: "Deactivate this provider?",
+              description: "New shipments cannot use this provider until re-enabled.",
+              confirmLabel: "Deactivate",
+            });
+            if (ok) deleteProvider.mutate(provider._id);
+          }}
         />
       )}
       {tab === "inventory" && Boolean(inventoryQuery.data?.movements?.length) && (
@@ -584,10 +594,10 @@ function InventoryTable({
         <div className="flex flex-wrap items-center justify-between gap-2">
           <CardTitle className="text-foreground">Inventory</CardTitle>
           <div className="flex gap-2">
-            <Badge variant="outline" className="border-amber-400/30 text-amber-200">
+            <Badge variant="outline" className="border-amber-400/30 text-amber-800 dark:text-amber-200">
               {lowStock} low
             </Badge>
-            <Badge variant="outline" className="border-red-400/30 text-red-200">
+            <Badge variant="outline" className="border-red-400/30 text-red-800 dark:text-red-200">
               {outOfStock} out
             </Badge>
           </div>
@@ -626,7 +636,7 @@ function InventoryTable({
                       variant="outline"
                       className={
                         (product.totalStock || 0) <= 10
-                          ? "border-amber-400/30 text-amber-200"
+                          ? "border-amber-400/30 text-amber-800 dark:text-amber-200"
                           : "border-border text-muted-foreground"
                       }
                     >
@@ -791,7 +801,7 @@ function SimpleAdminTable<T extends { _id: string }>({
                       <Button
                         size="sm"
                         variant="outline"
-                        className="border-red-500/30 bg-red-500/10 text-red-200 hover:bg-red-500/20"
+                        className="border-red-500/30 bg-red-500/10 text-red-800 dark:text-red-200 hover:bg-red-500/20"
                         onClick={() => onDelete(row)}
                       >
                         Delete

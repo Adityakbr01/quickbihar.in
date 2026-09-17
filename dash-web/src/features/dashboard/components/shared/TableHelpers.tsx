@@ -176,8 +176,8 @@ export function StatusBadge({ active, label }: { active: boolean; label: string 
       variant="outline"
       className={
         active
-          ? "border-emerald-400/30 text-emerald-300"
-          : "border-red-400/30 text-red-300"
+          ? "border-emerald-400/30 text-emerald-700 dark:text-emerald-300"
+          : "border-red-400/30 text-red-700 dark:text-red-300"
       }
     >
       {active ? (
@@ -202,9 +202,9 @@ export function DeliveryStatusBadge({ status }: { status: DeliveryStatus }) {
       variant="outline"
       className={cn(
         "border-border text-muted-foreground",
-        active && "border-cyan-400/30 text-cyan-300",
-        status === "DELIVERED" && "border-emerald-400/30 text-emerald-300",
-        status === "CANCELLED" && "border-red-400/30 text-red-300",
+        active && "border-cyan-400/30 text-cyan-700 dark:text-cyan-300",
+        status === "DELIVERED" && "border-emerald-400/30 text-emerald-700 dark:text-emerald-300",
+        status === "CANCELLED" && "border-red-400/30 text-red-700 dark:text-red-300",
       )}
     >
       <Truck className="h-3 w-3" />

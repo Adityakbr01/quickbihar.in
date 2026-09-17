@@ -22,7 +22,7 @@ export function Metric({
           <p className="text-xs font-medium uppercase text-muted-foreground">{title}</p>
           <p className="mt-1 text-2xl font-semibold text-foreground">{value}</p>
         </div>
-        <div className="rounded-lg bg-muted p-2 text-emerald-300">{icon}</div>
+        <div className="rounded-lg bg-muted p-2 text-emerald-700 dark:text-emerald-300">{icon}</div>
       </CardContent>
     </Card>
   );
@@ -71,9 +71,9 @@ export function PayoutSummaryCard({
   tone: "amber" | "emerald" | "cyan" | "slate";
 }) {
   const toneClass = {
-    amber: "border-amber-400/20 bg-amber-400/10 text-amber-200",
-    emerald: "border-emerald-400/20 bg-emerald-400/10 text-emerald-200",
-    cyan: "border-cyan-400/20 bg-cyan-400/10 text-cyan-200",
+    amber: "border-amber-400/20 bg-amber-400/10 text-amber-800 dark:text-amber-200",
+    emerald: "border-emerald-400/20 bg-emerald-400/10 text-emerald-800 dark:text-emerald-200",
+    cyan: "border-cyan-400/20 bg-cyan-400/10 text-cyan-800 dark:text-cyan-200",
     slate: "border-border bg-muted text-muted-foreground",
   }[tone];
 
@@ -112,7 +112,7 @@ export function ManagementFeatureCard({
     <div className="rounded-lg border border-border bg-muted p-4">
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-center gap-2">
-          <div className="rounded-lg bg-muted p-2 text-emerald-300">
+          <div className="rounded-lg bg-muted p-2 text-emerald-700 dark:text-emerald-300">
             {managementIconByName[feature.name] || (
               <Settings className="h-4 w-4" />
             )}

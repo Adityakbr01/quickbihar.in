@@ -295,9 +295,9 @@ function InventoryProductRow({
         <div
           className={cn(
             "mt-1 inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-semibold",
-            stockLabel === "OK" && "border-emerald-400/30 text-emerald-300",
-            stockLabel === "LOW" && "border-amber-400/30 text-amber-300",
-            stockLabel === "OUT" && "border-red-400/30 text-red-300",
+            stockLabel === "OK" && "border-emerald-400/30 text-emerald-700 dark:text-emerald-300",
+            stockLabel === "LOW" && "border-amber-400/30 text-amber-700 dark:text-amber-300",
+            stockLabel === "OUT" && "border-red-400/30 text-red-700 dark:text-red-300",
           )}
         >
           {stockLabel === "OK" ? <CheckCircle2 className="h-3 w-3" /> : <AlertTriangle className="h-3 w-3" />}
@@ -339,7 +339,7 @@ function StockEditor({
     <Card className="border-border bg-card">
       <CardHeader className="border-b border-border">
         <CardTitle className="flex items-center gap-2 text-base text-foreground">
-          <Warehouse className="h-4 w-4 text-emerald-300" />
+          <Warehouse className="h-4 w-4 text-emerald-700 dark:text-emerald-300" />
           Stock Editor
         </CardTitle>
       </CardHeader>
@@ -397,7 +397,7 @@ function StockEditor({
               <Button type="button" variant="outline" className="border-border bg-muted text-foreground" onClick={() => onDraftStockChange(0)}>
                 Set 0
               </Button>
-              <Button type="button" variant="outline" className="border-emerald-400/30 bg-emerald-400/10 text-emerald-200" onClick={() => onDraftStockChange(Math.max(draftStock, 20))}>
+              <Button type="button" variant="outline" className="border-emerald-400/30 bg-emerald-400/10 text-emerald-800 dark:text-emerald-200" onClick={() => onDraftStockChange(Math.max(draftStock, 20))}>
                 <PackageCheck className="h-4 w-4" />
               </Button>
             </div>
@@ -438,7 +438,7 @@ function StockInfo({
   return (
     <div className="rounded border border-border bg-muted px-3 py-2">
       <div className="text-[11px] font-medium uppercase text-muted-foreground">{label}</div>
-      <div className={cn("mt-1 text-lg font-semibold text-foreground", strong && "text-emerald-300")}>
+      <div className={cn("mt-1 text-lg font-semibold text-foreground", strong && "text-emerald-700 dark:text-emerald-300")}>
         {value > 0 && label === "Delta" ? `+${value}` : value}
       </div>
     </div>
@@ -489,7 +489,7 @@ function MovementRow({ movement }: { movement: SellerInventoryMovement }) {
             {movement.reason ? ` - ${movement.reason}` : ""}
           </div>
         </div>
-        <div className={cn("text-sm font-semibold", positive && "text-emerald-300", !positive && !neutral && "text-red-300", neutral && "text-muted-foreground")}>
+        <div className={cn("text-sm font-semibold", positive && "text-emerald-700 dark:text-emerald-300", !positive && !neutral && "text-red-700 dark:text-red-300", neutral && "text-muted-foreground")}>
           {positive ? "+" : ""}
           {movement.quantity}
         </div>

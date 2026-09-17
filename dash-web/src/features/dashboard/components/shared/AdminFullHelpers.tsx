@@ -141,11 +141,11 @@ export function StatusBadge({ value }: { value?: string }) {
     status.includes("COMPLETED") ||
     status.includes("RESTORED") ||
     status.includes("APPROVED")
-      ? "border-emerald-400/30 text-emerald-200"
+      ? "border-emerald-400/30 text-emerald-800 dark:text-emerald-200"
       : status.includes("DRAFT") ||
         status.includes("PENDING") ||
         status.includes("SCHEDULED")
-      ? "border-amber-400/30 text-amber-200"
+      ? "border-amber-400/30 text-amber-800 dark:text-amber-200"
       : "border-border text-muted-foreground";
   return (
     <Badge variant="outline" className={tone}>

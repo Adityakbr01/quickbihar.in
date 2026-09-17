@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
@@ -60,6 +61,7 @@ const sellerSubmissionTypeOptions: Array<{
 ];
 
 export function SellerSubmissionsSection() {
+  const confirm = useConfirm();
   const [type, setType] = useState<string>("onboarding");
   const [status, setStatus] = useState<
     "PENDING_REVIEW" | "PENDING" | "APPROVED" | "REJECTED" | "ALL"
@@ -83,7 +85,7 @@ export function SellerSubmissionsSection() {
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
 
-  const approve = (submission: SellerSubmission) => {
+  const approve = async (submission: SellerSubmission) => {
     if (type === "banners") {
       setBannerReviewItem(submission);
       setPlacement("home_top");
@@ -91,7 +93,13 @@ export function SellerSubmissionsSection() {
       setStartDate(new Date().toISOString().split("T")[0]);
       setEndDate("");
     } else {
-      reviewSubmission.mutate({ type: type as SellerSubmissionType, id: submission._id, status: "APPROVED" });
+      const ok = await confirm({
+        title: "Approve this submission?",
+        description: "It goes live for shoppers immediately.",
+        confirmLabel: "Approve",
+        tone: "primary",
+      });
+      if (ok) reviewSubmission.mutate({ type: type as SellerSubmissionType, id: submission._id, status: "APPROVED" });
     }
   };
 
@@ -115,7 +123,13 @@ export function SellerSubmissionsSection() {
     );
   };
 
-  const reject = (submission: SellerSubmission) => {
+  const reject = async (submission: SellerSubmission) => {
+    const ok = await confirm({
+      title: "Reject this submission?",
+      description: "The partner is notified and must resubmit.",
+      confirmLabel: "Reject",
+    });
+    if (!ok) return;
     reviewSubmission.mutate({
       type: type as SellerSubmissionType,
       id: submission._id,
@@ -129,7 +143,7 @@ export function SellerSubmissionsSection() {
       <Card className="border-border bg-card">
         <CardHeader className="gap-4 border-b border-border md:flex-row md:items-center md:justify-between">
           <CardTitle className="flex items-center gap-2 text-base text-foreground">
-            <ShieldCheck className="h-4 w-4 text-emerald-300" />
+            <ShieldCheck className="h-4 w-4 text-emerald-700 dark:text-emerald-300" />
             Seller & Partner Review Queue
           </CardTitle>
           <div className="flex flex-wrap gap-2">
@@ -254,7 +268,7 @@ export function SellerSubmissionsSection() {
                           <Button
                             size="sm"
                             variant="outline"
-                            className="border-emerald-400/30 bg-emerald-400/10 text-emerald-200 hover:bg-emerald-400/20"
+                            className="border-emerald-400/30 bg-emerald-400/10 text-emerald-800 dark:text-emerald-200 hover:bg-emerald-400/20"
                             onClick={() => approve(submission)}
                             disabled={reviewSubmission.isPending}
                           >
@@ -428,8 +442,8 @@ function OnboardingApplicationsTable({
                         variant="outline"
                         className={
                           app.type === "SELLER"
-                            ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-300 font-semibold"
-                            : "border-blue-400/30 bg-blue-400/10 text-blue-300 font-semibold"
+                            ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-700 dark:text-emerald-300 font-semibold"
+                            : "border-blue-400/30 bg-blue-400/10 text-blue-700 dark:text-blue-300 font-semibold"
                         }
                       >
                         {app.type}
@@ -472,7 +486,7 @@ function OnboardingApplicationsTable({
                             href={doc.url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 text-xs text-emerald-400 underline hover:text-emerald-300 truncate max-w-40"
+                            className="inline-flex items-center gap-1 text-xs text-emerald-400 underline hover:text-emerald-700 dark:hover:text-emerald-300 truncate max-w-40"
                           >
                             <FileText className="h-3 w-3 shrink-0" />
                             {doc.name || `Document ${i + 1}`}
@@ -488,10 +502,10 @@ function OnboardingApplicationsTable({
                       variant="outline"
                       className={
                         app.status === "APPROVED"
-                          ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-300"
+                          ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-700 dark:text-emerald-300"
                           : app.status === "REJECTED"
-                          ? "border-red-400/30 bg-red-400/10 text-red-300"
-                          : "border-amber-400/30 bg-amber-400/10 text-amber-300"
+                          ? "border-red-400/30 bg-red-400/10 text-red-700 dark:text-red-300"
+                          : "border-amber-400/30 bg-amber-400/10 text-amber-700 dark:text-amber-300"
                       }
                     >
                       {app.status}
@@ -516,7 +530,7 @@ function OnboardingApplicationsTable({
                         <Button
                           size="sm"
                           variant="outline"
-                          className="border-emerald-400/30 bg-emerald-400/10 text-emerald-200 hover:bg-emerald-400/20"
+                          className="border-emerald-400/30 bg-emerald-400/10 text-emerald-800 dark:text-emerald-200 hover:bg-emerald-400/20"
                           disabled={reviewApplication.isPending}
                           onClick={() =>
                             reviewApplication.mutate({ id: app._id, status: "APPROVED" })

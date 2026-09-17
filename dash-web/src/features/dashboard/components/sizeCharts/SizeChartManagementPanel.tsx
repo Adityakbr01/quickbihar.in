@@ -3,6 +3,7 @@
 import React, { type FormEvent, useState } from "react";
 import { Plus, Edit, Trash2, Save, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -29,6 +30,7 @@ import {
 import { selectClass, inputClass, formatDate } from "../../utils";
 
 export function SizeChartManagementPanel() {
+  const confirm = useConfirm();
   const [search, setSearch] = useState("");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editing, setEditing] = useState<any | null>(null);
@@ -110,8 +112,13 @@ export function SizeChartManagementPanel() {
                         <Button
                           size="sm"
                           variant="destructive"
-                          onClick={() => {
-                            if (window.confirm(`Delete size chart ${chart.name}?`)) deleteChart.mutate(chart._id);
+                          onClick={async () => {
+                            const ok = await confirm({
+                              title: `Delete size chart ${chart.name}?`,
+                              description: "Products using this chart lose their size guide.",
+                              confirmLabel: "Delete",
+                            });
+                            if (ok) deleteChart.mutate(chart._id);
                           }}
                         >
                           <Trash2 className="h-3.5 w-3.5" />
@@ -250,7 +257,7 @@ function SizeChartForm({
         />
       </div>
 
-      {error && <div className="text-xs text-red-300">{error}</div>}
+      {error && <div className="text-xs text-red-700 dark:text-red-300">{error}</div>}
 
       <DialogFooter className="gap-2 pt-2">
         <Button type="button" variant="outline" onClick={onCancel} disabled={isPending}>

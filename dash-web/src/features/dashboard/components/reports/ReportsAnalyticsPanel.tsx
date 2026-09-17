@@ -208,7 +208,7 @@ function MetricCard({
         <div
           className={
             tone === "warning"
-              ? "mt-2 text-2xl font-semibold text-amber-200"
+              ? "mt-2 text-2xl font-semibold text-amber-800 dark:text-amber-200"
               : "mt-2 text-2xl font-semibold text-foreground"
           }
         >

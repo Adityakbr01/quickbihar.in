@@ -52,7 +52,7 @@ function NotFound() {
         <p className="text-sm text-muted-foreground">
           The page you are looking for does not exist.
         </p>
-        <a href="/" className="text-sm text-emerald-300 hover:text-emerald-200">
+        <a href="/" className="text-sm text-emerald-700 dark:text-emerald-300 hover:text-emerald-800 dark:hover:text-emerald-200">
           Go home →
         </a>
       </div>

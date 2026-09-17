@@ -2,6 +2,7 @@
 import React, { useState, useMemo, FormEvent } from "react";
 import { Plus, Edit, Trash2, Save, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog,
@@ -61,6 +62,7 @@ export function ProductManagementPanel({
 }: {
   sellers: ManagedPerson[];
 }) {
+  const confirm = useConfirm();
   const [params, setParams] = useState<QueryParams>({
     page: 1,
     limit: 10,
@@ -274,11 +276,13 @@ export function ProductManagementPanel({
                         <Button
                           size="sm"
                           variant="destructive"
-                          onClick={() => {
-                            if (
-                              window.confirm(`Delete product ${product.title}?`)
-                            )
-                              deleteProduct.mutate(product._id);
+                          onClick={async () => {
+                            const ok = await confirm({
+                              title: `Delete product ${product.title}?`,
+                              description: "This action cannot be undone.",
+                              confirmLabel: "Delete",
+                            });
+                            if (ok) deleteProduct.mutate(product._id);
                           }}
                         >
                           <Trash2 className="h-3.5 w-3.5" />
@@ -320,7 +324,7 @@ function ProductField({
       <span className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
         {label}
         {required && (
-          <span className="rounded-full border border-red-400/30 px-1.5 py-0.5 text-[10px] leading-none text-red-200">
+          <span className="rounded-full border border-red-400/30 px-1.5 py-0.5 text-[10px] leading-none text-red-800 dark:text-red-200">
             Required
           </span>
         )}
@@ -330,7 +334,7 @@ function ProductField({
         <span
           className={cn(
             "text-xs leading-4",
-            error ? "text-red-300" : "text-muted-foreground",
+            error ? "text-red-700 dark:text-red-300" : "text-muted-foreground",
           )}
         >
           {error || helper}
@@ -901,7 +905,7 @@ function ProductForm({
             </div>
           )}
           {priceError && (
-            <div className="md:col-span-4 rounded border border-red-500/20 bg-red-500/5 px-3 py-1.5 text-xs font-semibold text-red-300">
+            <div className="md:col-span-4 rounded border border-red-500/20 bg-red-500/5 px-3 py-1.5 text-xs font-semibold text-red-700 dark:text-red-300">
               {priceError}
             </div>
           )}
@@ -920,7 +924,7 @@ function ProductForm({
           disabled={totalImages >= 5}
           className={inputClass}
         />
-        {imageError && <div className="text-xs text-red-300">{imageError}</div>}
+        {imageError && <div className="text-xs text-red-700 dark:text-red-300">{imageError}</div>}
         <div className="grid gap-2 md:grid-cols-2">
           {existingImages.map((image, index) => (
             <div
@@ -939,7 +943,7 @@ function ProductForm({
                 type="button"
                 size="sm"
                 variant="ghost"
-                className="text-red-300 hover:bg-red-400/10 hover:text-red-200 shrink-0"
+                className="text-red-700 dark:text-red-300 hover:bg-red-400/10 hover:text-red-800 dark:hover:text-red-200 shrink-0"
                 onClick={() => removeExistingImage(index)}
               >
                 Remove
@@ -965,7 +969,7 @@ function ProductForm({
                   type="button"
                   size="sm"
                   variant="ghost"
-                  className="text-red-300 hover:bg-red-400/10 hover:text-red-200 shrink-0"
+                  className="text-red-700 dark:text-red-300 hover:bg-red-400/10 hover:text-red-800 dark:hover:text-red-200 shrink-0"
                   onClick={() => {
                     removeNewImage(index);
                     URL.revokeObjectURL(previewUrl);
@@ -995,7 +999,7 @@ function ProductForm({
           ))}
         </select>
         {selectedChart?.description && (
-          <div className="text-xs text-blue-300/90 bg-blue-500/5 border border-blue-500/20 rounded p-2">
+          <div className="text-xs text-blue-700 dark:text-blue-300/90 bg-blue-500/5 border border-blue-500/20 rounded p-2">
             {selectedChart.description}
           </div>
         )}
@@ -1436,7 +1440,7 @@ function VariantEditor({
             <Button
               type="button"
               variant="ghost"
-              className="h-9 text-red-300 hover:bg-red-400/10 hover:text-red-200"
+              className="h-9 text-red-700 dark:text-red-300 hover:bg-red-400/10 hover:text-red-800 dark:hover:text-red-200"
               onClick={() =>
                 onChange(
                   variants.filter((_, currentIndex) => currentIndex !== index),

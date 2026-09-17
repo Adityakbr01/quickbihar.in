@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { LogOut, RefreshCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuthStore } from "@/features/auth/store/authStore";
@@ -59,6 +60,7 @@ import {
 
 export default function AdminDashboardPage() {
   useEffect(() => { document.title = "Admin Dashboard | QuickBihar Dashboard"; }, []);
+  const confirm = useConfirm();
 
   const navigate = useNavigate();
   const { pathname } = useLocation();
@@ -318,19 +320,35 @@ export default function AdminDashboardPage() {
                     onSearch={setSearch}
                     onRole={setRole}
                     onStatus={setStatus}
-                    onBlock={(person) =>
-                      setBlocked.mutate({
-                        userId: person._id,
-                        isBlocked: !person.isBlocked,
-                      })
-                    }
-                    onPartnerStatus={(person, type, partnerStatus) =>
-                      updatePartnerStatus.mutate({
-                        userId: person._id,
-                        type,
-                        status: partnerStatus,
-                      })
-                    }
+                    onBlock={async (person) => {
+                      const blocking = !person.isBlocked;
+                      const ok = await confirm({
+                        title: blocking ? `Ban ${person.email}?` : `Unban ${person.email}?`,
+                        description: blocking
+                          ? "They lose access immediately across app and dashboards."
+                          : "Their access is restored.",
+                        confirmLabel: blocking ? "Ban User" : "Unban User",
+                      });
+                      if (ok)
+                        setBlocked.mutate({
+                          userId: person._id,
+                          isBlocked: blocking,
+                        });
+                    }}
+                    onPartnerStatus={async (person, type, partnerStatus) => {
+                      const ok = await confirm({
+                        title: `${partnerStatus === "APPROVED" ? "Approve" : "Reject"} ${type} access for ${person.email}?`,
+                        description: "The partner is notified of this decision.",
+                        confirmLabel: partnerStatus === "APPROVED" ? "Approve" : "Reject",
+                        tone: partnerStatus === "APPROVED" ? "primary" : "destructive",
+                      });
+                      if (ok)
+                        updatePartnerStatus.mutate({
+                          userId: person._id,
+                          type,
+                          status: partnerStatus,
+                        });
+                    }}
                   />
                 </div>
               )}

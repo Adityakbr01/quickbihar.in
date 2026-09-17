@@ -96,12 +96,12 @@ export function SellerBannersPanel() {
             <Button
               size="sm"
               variant="outline"
-              className="border-emerald-400/30 bg-emerald-400/10 text-emerald-200 hover:bg-emerald-400/20"
+              className="border-emerald-400/30 bg-emerald-400/10 text-emerald-800 dark:text-emerald-200 hover:bg-emerald-400/20"
               onClick={() => mutations.submit.mutate(banner._id)}
             >
               <Send className="h-3.5 w-3.5" />
             </Button>
-            <DeleteButton onDelete={() => mutations.remove.mutate(banner._id)} />
+            <DeleteButton label={`banner ${banner.title || ""}`.trim()} onDelete={() => mutations.remove.mutate(banner._id)} />
           </RowActions>,
         ])}
       />

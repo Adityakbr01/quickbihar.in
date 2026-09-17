@@ -3,7 +3,7 @@ import { useAuthStore } from "@/features/auth/store/authStore";
 import { webSocketClient } from "@/lib/socket";
 import { SocketEvents } from "@/constants/socketEvents";
 import { useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 
 export default function SocketListenerProvider({ children }: { children: React.ReactNode }) {
   const token = useAuthStore((state) => state.token);

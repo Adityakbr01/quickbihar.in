@@ -54,7 +54,7 @@ export function SellerCategoriesPanel() {
           />
           <div className="flex flex-wrap gap-2">
             {(categoriesQuery.data?.assigned?.subcategories || []).map((item) => (
-              <Badge key={item} variant="outline" className="border-emerald-400/30 text-emerald-300">
+              <Badge key={item} variant="outline" className="border-emerald-400/30 text-emerald-700 dark:text-emerald-300">
                 {item}
               </Badge>
             ))}
@@ -80,7 +80,7 @@ export function SellerCategoriesPanel() {
             <label className={labelClass}>
               <span className="flex items-center gap-2">
                 Primary Category
-                <span className="text-[10px] normal-case text-red-300">Required</span>
+                <span className="text-[10px] normal-case text-red-700 dark:text-red-300">Required</span>
               </span>
               <select name="requestedPrimaryCategory" required className={selectClass}>
                 <option value="">Select category</option>

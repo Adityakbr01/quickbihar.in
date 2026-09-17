@@ -2,6 +2,7 @@ import { FormEvent } from "react";
 import { WalletCards, CheckCircle2, CreditCard, History } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DatePicker } from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
@@ -87,6 +88,7 @@ export function EarningsPanel({
     request: { mutate: (payload: any) => void; isPending: boolean };
   };
 }) {
+  const confirm = useConfirm();
   const verifiedMethods = (payouts?.payoutMethods || []).filter((method) => method.status === "VERIFIED");
   const payoutList = payouts?.payouts || [];
   const filteredPayoutList = payoutList.filter((payout) => dateInRange(payoutTimelineDate(payout), dateFrom, dateTo));
@@ -120,11 +122,19 @@ export function EarningsPanel({
     event.currentTarget.reset();
   };
 
-  const submitPayout = (event: FormEvent<HTMLFormElement>) => {
+  const submitPayout = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
+    const amount = Number(form.get("amount") || 0);
+    const ok = await confirm({
+      title: `Request payout of Rs. ${formatAmount(amount)}?`,
+      description: "The request goes to the admin for approval and processing.",
+      confirmLabel: "Request Payout",
+      tone: "primary",
+    });
+    if (!ok) return;
     mutations.request.mutate({
-      amount: Number(form.get("amount") || 0),
+      amount,
       payoutMethodId: text(form, "payoutMethodId"),
       note: optionalText(form, "note"),
     });
@@ -195,14 +205,14 @@ export function EarningsPanel({
           <CardHeader className="gap-3 border-b border-border md:flex-row md:items-center md:justify-between">
             <div>
               <CardTitle className="flex items-center gap-2 text-base text-foreground">
-                <WalletCards className="h-4 w-4 text-cyan-300" />
+                <WalletCards className="h-4 w-4 text-cyan-700 dark:text-cyan-300" />
                 Earnings Ledger
               </CardTitle>
               <div className="mt-1 text-xs text-muted-foreground">
                 Order-wise credited rider payouts with delivered and credited times.
               </div>
             </div>
-            <Badge variant="outline" className="border-emerald-400/30 text-emerald-300">
+            <Badge variant="outline" className="border-emerald-400/30 text-emerald-700 dark:text-emerald-300">
               Rs. {formatAmount(earnings?.totalCredited || 0)} credited
             </Badge>
           </CardHeader>
@@ -240,7 +250,7 @@ export function EarningsPanel({
           <CardHeader className="gap-3 border-b border-border md:flex-row md:items-center md:justify-between">
             <div>
               <CardTitle className="flex items-center gap-2 text-base text-foreground">
-                <History className="h-4 w-4 text-cyan-300" />
+                <History className="h-4 w-4 text-cyan-700 dark:text-cyan-300" />
                 Full Earnings Timeline
               </CardTitle>
               <div className="mt-1 text-xs text-muted-foreground">Only wallet credits and debits for the selected date range.</div>
@@ -265,7 +275,7 @@ export function EarningsPanel({
         <Card className="border-border bg-card">
           <CardHeader className="border-b border-border">
             <CardTitle className="flex items-center gap-2 text-base text-foreground">
-              <WalletCards className="h-4 w-4 text-cyan-300" />
+              <WalletCards className="h-4 w-4 text-cyan-700 dark:text-cyan-300" />
               Payout Requests
             </CardTitle>
           </CardHeader>
@@ -312,7 +322,7 @@ export function EarningsPanel({
         <Card className="border-border bg-card">
           <CardHeader className="border-b border-border">
             <CardTitle className="flex items-center gap-2 text-base text-foreground">
-              <WalletCards className="h-4 w-4 text-cyan-300" />
+              <WalletCards className="h-4 w-4 text-cyan-700 dark:text-cyan-300" />
               Payout Status
             </CardTitle>
           </CardHeader>
@@ -334,7 +344,7 @@ export function EarningsPanel({
         <Card className="border-border bg-card">
           <CardHeader className="border-b border-border">
             <CardTitle className="flex items-center gap-2 text-base text-foreground">
-              <CreditCard className="h-4 w-4 text-cyan-300" />
+              <CreditCard className="h-4 w-4 text-cyan-700 dark:text-cyan-300" />
               Payout Methods
             </CardTitle>
           </CardHeader>
@@ -375,7 +385,7 @@ export function EarningsPanel({
         <Card className="border-border bg-card">
           <CardHeader className="border-b border-border">
             <CardTitle className="flex items-center gap-2 text-base text-foreground">
-              <WalletCards className="h-4 w-4 text-cyan-300" />
+              <WalletCards className="h-4 w-4 text-cyan-700 dark:text-cyan-300" />
               Request Payout
             </CardTitle>
           </CardHeader>
@@ -424,7 +434,7 @@ function PayoutMethodRow({
       <div className="mt-3 grid gap-1 text-xs text-muted-foreground">
         <div>Submitted: {formatDate(method.createdAt)}</div>
         {method.verifiedAt && <div>Verified: {formatDate(method.verifiedAt)}</div>}
-        {method.rejectionReason && <div className="text-red-300">Rejected: {method.rejectionReason}</div>}
+        {method.rejectionReason && <div className="text-red-700 dark:text-red-300">Rejected: {method.rejectionReason}</div>}
       </div>
       {method.status === "VERIFIED" && !method.isDefault && (
         <Button
@@ -438,7 +448,7 @@ function PayoutMethodRow({
           Set default
         </Button>
       )}
-      {method.isDefault && <div className="mt-2 text-xs text-cyan-300">Default method</div>}
+      {method.isDefault && <div className="mt-2 text-xs text-cyan-700 dark:text-cyan-300">Default method</div>}
     </div>
   );
 }
@@ -537,10 +547,10 @@ function TimelineStatusBadge({ label, tone }: { label: string; tone: TimelineIte
 }
 
 function timelineBadgeClass(tone: TimelineItemType["tone"]) {
-  if (tone === "emerald") return "border-emerald-400/30 text-emerald-300";
-  if (tone === "amber") return "border-amber-400/30 text-amber-300";
-  if (tone === "red") return "border-red-400/30 text-red-300";
-  if (tone === "cyan") return "border-cyan-400/30 text-cyan-300";
+  if (tone === "emerald") return "border-emerald-400/30 text-emerald-700 dark:text-emerald-300";
+  if (tone === "amber") return "border-amber-400/30 text-amber-700 dark:text-amber-300";
+  if (tone === "red") return "border-red-400/30 text-red-700 dark:text-red-300";
+  if (tone === "cyan") return "border-cyan-400/30 text-cyan-700 dark:text-cyan-300";
   return "border-border text-muted-foreground";
 }
 

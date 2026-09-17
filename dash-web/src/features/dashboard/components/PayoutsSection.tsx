@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
@@ -459,6 +460,7 @@ function PayoutMethodReviewPanel({
   methods: PayoutMethod[];
   isLoading: boolean;
 }) {
+  const confirm = useConfirm();
   const reviewPayoutMethod = useReviewPayoutMethod();
   const rejectMethod = (method: PayoutMethod) => {
     const reason = window.prompt("Reason for rejecting this payout method?");
@@ -477,7 +479,7 @@ function PayoutMethodReviewPanel({
       <CardHeader className="gap-2 border-b border-border sm:flex-row sm:items-center sm:justify-between">
         <div>
           <CardTitle className="flex items-center gap-2 text-base text-foreground">
-            <ShieldCheck className="h-4 w-4 text-emerald-300" />
+            <ShieldCheck className="h-4 w-4 text-emerald-700 dark:text-emerald-300" />
             Verify Payout Methods
           </CardTitle>
           <div className="mt-1 text-xs text-muted-foreground">
@@ -488,8 +490,8 @@ function PayoutMethodReviewPanel({
           variant="outline"
           className={
             methods.length
-              ? "border-amber-400/30 text-amber-300"
-              : "border-emerald-400/30 text-emerald-300"
+              ? "border-amber-400/30 text-amber-700 dark:text-amber-300"
+              : "border-emerald-400/30 text-emerald-700 dark:text-emerald-300"
           }
         >
           {methods.length ? "Action needed" : "Clear"}
@@ -545,7 +547,7 @@ function PayoutMethodReviewPanel({
                       {method.isDefault && (
                         <Badge
                           variant="outline"
-                          className="border-cyan-400/30 text-cyan-300"
+                          className="border-cyan-400/30 text-cyan-700 dark:text-cyan-300"
                         >
                           Default
                         </Badge>
@@ -567,14 +569,21 @@ function PayoutMethodReviewPanel({
                         size="sm"
                         variant="outline"
                         className="border-border bg-muted text-foreground hover:bg-muted"
-                        onClick={() =>
-                          reviewPayoutMethod.mutate({
-                            sellerId: method.sellerId,
-                            deliveryId: method.deliveryId,
-                            methodId: method._id,
-                            status: "VERIFIED",
-                          })
-                        }
+                        onClick={async () => {
+                          const ok = await confirm({
+                            title: "Verify this payout method?",
+                            description: "The partner can receive payouts to this method afterwards.",
+                            confirmLabel: "Verify",
+                            tone: "primary",
+                          });
+                          if (ok)
+                            reviewPayoutMethod.mutate({
+                              sellerId: method.sellerId,
+                              deliveryId: method.deliveryId,
+                              methodId: method._id,
+                              status: "VERIFIED",
+                            });
+                        }}
                         disabled={reviewPayoutMethod.isPending}
                       >
                         <CheckCircle2 className="h-3.5 w-3.5" />
@@ -610,14 +619,25 @@ function PayoutTable({
   isFiltered: boolean;
 }) {
   const updatePayoutStatus = useUpdatePayoutStatus();
+  const confirm = useConfirm();
   const [viewingPayout, setViewingPayout] = useState<Payout | null>(null);
   const [payingPayout, setPayingPayout] = useState<Payout | null>(null);
-  const updateStatus = (payout: Payout, status: PayoutStatus) => {
+  const updateStatus = async (payout: Payout, status: PayoutStatus) => {
     const noteValue =
       status === "FAILED"
         ? window.prompt("Failure note?", payout.note || "")
         : undefined;
     if (noteValue === null) return;
+
+    if (status !== "FAILED") {
+      const ok = await confirm({
+        title: `Mark payout as ${status}?`,
+        description: `Rs. ${payout.amount} to ${payoutPartnerName(payout)}. The partner is notified.`,
+        confirmLabel: `Mark ${status}`,
+        tone: "primary",
+      });
+      if (!ok) return;
+    }
 
     const note = noteValue === undefined ? undefined : optionalValue(noteValue);
     updatePayoutStatus.mutate({ payoutId: payout._id, status, note });
@@ -710,7 +730,7 @@ function PayoutTable({
                       <Button
                         size="sm"
                         variant="outline"
-                        className="border-emerald-400/30 bg-emerald-400/10 text-emerald-200 hover:bg-emerald-400/20"
+                        className="border-emerald-400/30 bg-emerald-400/10 text-emerald-800 dark:text-emerald-200 hover:bg-emerald-400/20"
                         disabled={updatePayoutStatus.isPending}
                         onClick={() => setPayingPayout(payout)}
                       >
@@ -720,7 +740,7 @@ function PayoutTable({
                       <Button
                         size="sm"
                         variant="outline"
-                        className="border-red-400/30 bg-red-400/10 text-red-200 hover:bg-red-400/20"
+                        className="border-red-400/30 bg-red-400/10 text-red-800 dark:text-red-200 hover:bg-red-400/20"
                         disabled={updatePayoutStatus.isPending}
                         onClick={() => updateStatus(payout, "FAILED")}
                       >
@@ -864,7 +884,7 @@ function PayoutPaidDialog({
         </DialogHeader>
         <form onSubmit={submit} className="grid gap-4">
           <div className="rounded-lg border border-emerald-400/20 bg-emerald-400/10 p-3">
-            <div className="text-xs font-medium uppercase text-emerald-200">
+            <div className="text-xs font-medium uppercase text-emerald-800 dark:text-emerald-200">
               Settlement amount
             </div>
             <div className="mt-1 text-2xl font-semibold text-foreground">

@@ -136,12 +136,12 @@ export function SellerCouponsPanel() {
             <Button
               size="sm"
               variant="outline"
-              className="border-emerald-400/30 bg-emerald-400/10 text-emerald-200 hover:bg-emerald-400/20"
+              className="border-emerald-400/30 bg-emerald-400/10 text-emerald-800 dark:text-emerald-200 hover:bg-emerald-400/20"
               onClick={() => mutations.submit.mutate(coupon._id)}
             >
               Send
             </Button>
-            <DeleteButton onDelete={() => mutations.remove.mutate(coupon._id)} />
+            <DeleteButton label={`coupon ${coupon.code}`} onDelete={() => mutations.remove.mutate(coupon._id)} />
           </RowActions>,
         ])}
       />
@@ -360,7 +360,7 @@ function CouponDialog({
               </div>
             )}
 
-            {dateError && <div className="text-xs text-red-300 md:col-span-2">{dateError}</div>}
+            {dateError && <div className="text-xs text-red-700 dark:text-red-300 md:col-span-2">{dateError}</div>}
           </div>
           <DialogFooter className="border-border bg-muted gap-2">
             <Button

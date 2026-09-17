@@ -1,6 +1,7 @@
 import { type FormEvent, useState } from "react";
 import { Megaphone, Edit, Trash2, Save, CheckCircle2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { DateTimePicker } from "@/components/ui/date-time-picker";
@@ -40,6 +41,7 @@ import {
 import { inputClass, selectClass, textareaClass, formatAmount, formatDate, downloadCsv } from "../../utils";
 
 export function MarketingPromotionsPanel() {
+  const confirm = useConfirm();
   const [params, setParams] = useState<AdminListParams>({
     page: 1,
     limit: 8,
@@ -193,11 +195,15 @@ export function MarketingPromotionsPanel() {
                           <Button
                             size="sm"
                             variant="outline"
-                            className="border-red-500/30 bg-red-500/10 text-red-200 hover:bg-red-500/20"
-                            onClick={() =>
-                              window.confirm("Delete this flash sale?") &&
-                              deleteFlashSale.mutate(sale._id)
-                            }
+                            className="border-red-500/30 bg-red-500/10 text-red-800 dark:text-red-200 hover:bg-red-500/20"
+                            onClick={async () => {
+                              const ok = await confirm({
+                                title: "Delete this flash sale?",
+                                description: "The sale ends immediately for all shoppers.",
+                                confirmLabel: "Delete",
+                              });
+                              if (ok) deleteFlashSale.mutate(sale._id);
+                            }}
                           >
                             <Trash2 className="h-3.5 w-3.5" />
                             Delete
@@ -355,7 +361,7 @@ export function MarketingPromotionsPanel() {
                 placeholder="Ends At"
               />
               {dateError && (
-                <div className="text-xs text-red-300 sm:col-span-2">{dateError}</div>
+                <div className="text-xs text-red-700 dark:text-red-300 sm:col-span-2">{dateError}</div>
               )}
               <select
                 className={selectClass}
@@ -422,7 +428,7 @@ function ToggleButton({
       variant="outline"
       className={
         active
-          ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-200 hover:bg-emerald-400/20"
+          ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-800 dark:text-emerald-200 hover:bg-emerald-400/20"
           : "border-border bg-muted text-muted-foreground hover:bg-muted"
       }
       onClick={onClick}

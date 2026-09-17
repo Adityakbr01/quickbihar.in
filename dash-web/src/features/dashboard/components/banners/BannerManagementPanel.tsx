@@ -1,8 +1,9 @@
 import React, { type FormEvent, useState } from "react";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { Plus, Edit, Trash2, Save, ExternalLink, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -39,6 +40,7 @@ function redirectLabel(type: string, id?: string): string {
 let redirectLabels: Record<string, Record<string, string>> = {};
 
 export function BannerManagementPanel() {
+  const confirm = useConfirm();
   const [search, setSearch] = useState("");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editing, setEditing] = useState<any | null>(null);
@@ -141,7 +143,7 @@ export function BannerManagementPanel() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge variant="outline" className="border-cyan-400/30 text-cyan-300">
+                        <Badge variant="outline" className="border-cyan-400/30 text-cyan-700 dark:text-cyan-300">
                           {banner.placement}
                         </Badge>
                       </TableCell>
@@ -182,8 +184,13 @@ export function BannerManagementPanel() {
                           <Button
                             size="sm"
                             variant="destructive"
-                            onClick={() => {
-                              if (window.confirm(`Delete banner ${banner.title || ""}?`)) deleteBanner.mutate(banner._id);
+                            onClick={async () => {
+                              const ok = await confirm({
+                                title: `Delete banner ${banner.title || ""}?`,
+                                description: "This action cannot be undone.",
+                                confirmLabel: "Delete",
+                              });
+                              if (ok) deleteBanner.mutate(banner._id);
                             }}
                           >
                             <Trash2 className="h-3.5 w-3.5" />
@@ -386,7 +393,7 @@ function BannerForm({
                     onClick={() => setRedirectId(redirectId === cat._id ? "" : cat._id)}
                     className={`flex items-center gap-2 rounded-lg border p-2 text-left text-xs transition-colors ${
                       redirectId === cat._id
-                        ? "border-cyan-400/50 bg-cyan-400/10 text-cyan-300"
+                        ? "border-cyan-400/50 bg-cyan-400/10 text-cyan-700 dark:text-cyan-300"
                         : "border-transparent bg-muted text-muted-foreground hover:bg-muted"
                     }`}
                   >
@@ -411,7 +418,7 @@ function BannerForm({
                     onClick={() => setRedirectId(redirectId === prod._id ? "" : prod._id)}
                     className={`flex items-center gap-2 rounded-lg border p-2 text-left text-xs transition-colors ${
                       redirectId === prod._id
-                        ? "border-cyan-400/50 bg-cyan-400/10 text-cyan-300"
+                        ? "border-cyan-400/50 bg-cyan-400/10 text-cyan-700 dark:text-cyan-300"
                         : "border-transparent bg-muted text-muted-foreground hover:bg-muted"
                     }`}
                   >

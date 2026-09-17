@@ -30,7 +30,7 @@ export function Metric({ title, value, icon }: { title: string; value: number | 
           <div className="text-sm text-muted-foreground">{title}</div>
           <div className="mt-1 text-xl font-semibold text-foreground">{value}</div>
         </div>
-        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted text-cyan-300">{icon}</div>
+        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted text-cyan-700 dark:text-cyan-300">{icon}</div>
       </CardContent>
     </Card>
   );
@@ -48,10 +48,10 @@ export function ProfileLine({ label, value }: { label: string; value: string }) 
 export function DeliveryStatusBadge({ status }: { status: DeliveryStatus }) {
   const className = cn(
     "border-border text-muted-foreground",
-    status === "DELIVERED" && "border-emerald-400/30 text-emerald-300",
-    status === "DELIVERY_CONFIRMED" && "border-emerald-400/30 text-emerald-300",
-    activeStatuses.includes(status) && "border-cyan-400/30 text-cyan-300",
-    (status === "CANCELLED" || status === "FAILED") && "border-red-400/30 text-red-300",
+    status === "DELIVERED" && "border-emerald-400/30 text-emerald-700 dark:text-emerald-300",
+    status === "DELIVERY_CONFIRMED" && "border-emerald-400/30 text-emerald-700 dark:text-emerald-300",
+    activeStatuses.includes(status) && "border-cyan-400/30 text-cyan-700 dark:text-cyan-300",
+    (status === "CANCELLED" || status === "FAILED") && "border-red-400/30 text-red-700 dark:text-red-300",
   );
   return <Badge variant="outline" className={className}>{deliveryStatusLabel(status)}</Badge>;
 }

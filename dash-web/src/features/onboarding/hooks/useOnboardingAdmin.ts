@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { onboardingApi } from "../api/onboarding.api";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 
 export const useAdminOnboardingApplications = (type?: string, status?: string) => {
   return useQuery({

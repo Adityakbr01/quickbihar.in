@@ -1,6 +1,7 @@
 import { type FormEvent, useEffect, useState } from "react";
 import { Settings, DatabaseBackup, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
@@ -42,6 +43,7 @@ const systemTabs: Array<{ id: SystemKind; label: string }> = [
 ];
 
 export function SystemSettingsPanel() {
+  const confirm = useConfirm();
   const [tab, setTab] = useState<SystemKind>("config");
   const [configDraft, setConfigDraft] = useState<AdminSystemConfig>({});
   const [logKind, setLogKind] = useState<"activity" | "audit">("activity");
@@ -437,11 +439,15 @@ export function SystemSettingsPanel() {
                           <Button
                             size="sm"
                             variant="outline"
-                            className="border-red-500/30 bg-red-500/10 text-red-200 hover:bg-red-500/20"
-                            onClick={() =>
-                              window.confirm("Restore this backup?") &&
-                              restoreBackup.mutate(backup._id)
-                            }
+                            className="border-red-500/30 bg-red-500/10 text-red-800 dark:text-red-200 hover:bg-red-500/20"
+                            onClick={async () => {
+                              const ok = await confirm({
+                                title: "Restore this backup?",
+                                description: "Current data is overwritten. Run a dry run first if unsure.",
+                                confirmLabel: "Restore",
+                              });
+                              if (ok) restoreBackup.mutate(backup._id);
+                            }}
                           >
                             Restore
                           </Button>
@@ -474,7 +480,7 @@ function ToggleButton({
       variant="outline"
       className={
         active
-          ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-200 hover:bg-emerald-400/20"
+          ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-800 dark:text-emerald-200 hover:bg-emerald-400/20"
           : "border-border bg-muted text-muted-foreground hover:bg-muted"
       }
       onClick={onClick}

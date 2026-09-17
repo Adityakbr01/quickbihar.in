@@ -48,7 +48,7 @@ export function HistoryPanel({
     <Card className="border-border bg-card">
       <CardHeader className="flex flex-col gap-3 border-b border-border xl:flex-row xl:items-center xl:justify-between">
         <CardTitle className="flex items-center gap-2 text-base text-foreground">
-          <History className="h-4 w-4 text-cyan-300" />
+          <History className="h-4 w-4 text-cyan-700 dark:text-cyan-300" />
           Order History
         </CardTitle>
         <div className="flex flex-wrap gap-2">
@@ -94,7 +94,7 @@ export function HistoryPanel({
                     <button
                       type="button"
                       onClick={() => onSelect(order._id)}
-                      className="font-medium text-foreground hover:text-cyan-300"
+                      className="font-medium text-foreground hover:text-cyan-700 dark:hover:text-cyan-300"
                     >
                       {order.orderId}
                     </button>

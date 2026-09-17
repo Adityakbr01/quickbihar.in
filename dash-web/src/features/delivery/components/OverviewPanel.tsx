@@ -39,7 +39,7 @@ export function OverviewPanel({
         <Card className="border-border bg-card">
           <CardHeader className="border-b border-border">
             <CardTitle className="flex items-center gap-2 text-base text-foreground">
-              <ClipboardList className="h-4 w-4 text-cyan-300" />
+              <ClipboardList className="h-4 w-4 text-cyan-700 dark:text-cyan-300" />
               Recent Activity
             </CardTitle>
           </CardHeader>
@@ -65,7 +65,7 @@ export function OverviewPanel({
         <Card className="border-border bg-card">
           <CardHeader className="border-b border-border">
             <CardTitle className="flex items-center gap-2 text-base text-foreground">
-              <Bike className="h-4 w-4 text-cyan-300" />
+              <Bike className="h-4 w-4 text-cyan-700 dark:text-cyan-300" />
               Rider Status
             </CardTitle>
           </CardHeader>

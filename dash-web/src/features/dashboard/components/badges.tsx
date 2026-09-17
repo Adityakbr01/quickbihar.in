@@ -9,8 +9,8 @@ export function StatusBadge({ active, label }: { active: boolean; label: string 
       variant="outline"
       className={
         active
-          ? "border-emerald-400/30 text-emerald-300"
-          : "border-red-400/30 text-red-300"
+          ? "border-emerald-400/30 text-emerald-700 dark:text-emerald-300"
+          : "border-red-400/30 text-red-700 dark:text-red-300"
       }
     >
       {label}
@@ -25,7 +25,7 @@ export function RoleBadge({ role }: { role: string }) {
       variant="outline"
       className={
         isAdmin
-          ? "border-cyan-400/30 text-cyan-300"
+          ? "border-cyan-400/30 text-cyan-700 dark:text-cyan-300"
           : "border-border text-muted-foreground"
       }
     >
@@ -50,9 +50,9 @@ export function FeatureStatusBadge({ status }: { status: ManagementStatus }) {
 }
 
 function statusClass(status: ManagementStatus) {
-  if (status === "ACTIVE") return "border-emerald-400/30 text-emerald-300";
-  if (status === "PARTIAL") return "border-amber-400/30 text-amber-300";
-  return "border-sky-400/30 text-sky-300";
+  if (status === "ACTIVE") return "border-emerald-400/30 text-emerald-700 dark:text-emerald-300";
+  if (status === "PARTIAL") return "border-amber-400/30 text-amber-700 dark:text-amber-300";
+  return "border-sky-400/30 text-sky-700 dark:text-sky-300";
 }
 
 export function SubmissionStatusBadge({ status }: { status: string }) {
@@ -63,9 +63,9 @@ export function SubmissionStatusBadge({ status }: { status: string }) {
     <Badge
       variant="outline"
       className={cn(
-        isApproved && "border-emerald-400/30 text-emerald-300",
-        isPending && "border-amber-400/30 text-amber-300",
-        !isApproved && !isPending && "border-red-400/30 text-red-300",
+        isApproved && "border-emerald-400/30 text-emerald-700 dark:text-emerald-300",
+        isPending && "border-amber-400/30 text-amber-700 dark:text-amber-300",
+        !isApproved && !isPending && "border-red-400/30 text-red-700 dark:text-red-300",
       )}
     >
       {status}
@@ -75,10 +75,10 @@ export function SubmissionStatusBadge({ status }: { status: string }) {
 
 export function PayoutStatusBadge({ status }: { status: PayoutStatus }) {
   const className = {
-    PENDING: "border-amber-400/30 text-amber-300",
-    PROCESSING: "border-cyan-400/30 text-cyan-300",
-    PAID: "border-emerald-400/30 text-emerald-300",
-    FAILED: "border-red-400/30 text-red-300",
+    PENDING: "border-amber-400/30 text-amber-700 dark:text-amber-300",
+    PROCESSING: "border-cyan-400/30 text-cyan-700 dark:text-cyan-300",
+    PAID: "border-emerald-400/30 text-emerald-700 dark:text-emerald-300",
+    FAILED: "border-red-400/30 text-red-700 dark:text-red-300",
   }[status];
 
   return (
@@ -94,8 +94,8 @@ export function PayoutPartnerBadge({ type }: { type: string }) {
       variant="outline"
       className={
         type === "DELIVERY"
-          ? "border-cyan-400/30 text-cyan-300"
-          : "border-purple-400/30 text-purple-300"
+          ? "border-cyan-400/30 text-cyan-700 dark:text-cyan-300"
+          : "border-purple-400/30 text-purple-700 dark:text-purple-300"
       }
     >
       {type}

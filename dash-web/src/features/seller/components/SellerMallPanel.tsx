@@ -1,8 +1,9 @@
 import React, { type FormEvent, useState, useEffect } from "react";
 import { Building2, MapPin, Phone, Mail, User, Info, Check, Image as ImageIcon, Trash2, Edit2, LogOut, Navigation } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import {
   useSellerSetupStatusV2,
   useSellerMallMutations,
@@ -12,6 +13,7 @@ import { usePublicMalls } from "../hooks/useSellerPanel";
 import { StatusTile, Field, text, labelClass, selectClass, inputClass, StatusBadge } from "./SellerHelpers";
 
 export function SellerMallPanel({ setup }: { setup?: any }) {
+  const confirm = useConfirm();
   const setupQuery = useSellerSetupStatusV2();
   const currentSetup = setup || setupQuery.data;
   const mallMutations = useSellerMallMutations();
@@ -193,8 +195,13 @@ export function SellerMallPanel({ setup }: { setup?: any }) {
     setIsEditing(true);
   };
 
-  const handleDisconnect = (mallId: string) => {
-    if (window.confirm("Are you sure you want to delete this mall request/association? This cannot be undone.")) {
+  const handleDisconnect = async (mallId: string) => {
+    const ok = await confirm({
+      title: "Disconnect this mall?",
+      description: "This removes the mall request/association. This cannot be undone.",
+      confirmLabel: "Disconnect",
+    });
+    if (ok) {
       mallMutations.deleteMall.mutate(mallId, {
         onSuccess: () => {
           setSelectedMallId(null);
@@ -214,7 +221,7 @@ export function SellerMallPanel({ setup }: { setup?: any }) {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-xl font-bold text-foreground flex items-center gap-2">
-              <Building2 className="h-6 w-6 text-emerald-300" />
+              <Building2 className="h-6 w-6 text-emerald-700 dark:text-emerald-300" />
               My Malls
             </h1>
             <p className="text-xs text-muted-foreground mt-1">Manage your linked malls and creation requests</p>
@@ -298,7 +305,7 @@ export function SellerMallPanel({ setup }: { setup?: any }) {
           <CardHeader className="flex flex-row items-center justify-between border-b border-border pb-4">
             <div>
               <CardTitle className="text-lg text-foreground flex items-center gap-2">
-                <Building2 className="h-5 w-5 text-emerald-300" />
+                <Building2 className="h-5 w-5 text-emerald-700 dark:text-emerald-300" />
                 {activeMall.name}
               </CardTitle>
               <p className="text-xs text-muted-foreground mt-1">{activeMall.description || "No tagline / description available"}</p>
@@ -309,7 +316,7 @@ export function SellerMallPanel({ setup }: { setup?: any }) {
                 <Edit2 className="h-4 w-4 mr-1.5" />
                 Edit Mall
               </Button>
-              <Button size="sm" variant="destructive" className="bg-red-950/40 border border-red-800/30 text-red-200 hover:bg-red-900/40" onClick={() => handleDisconnect(activeMall._id)}>
+              <Button size="sm" variant="destructive" className="bg-red-950/40 border border-red-800/30 text-red-800 dark:text-red-200 hover:bg-red-900/40" onClick={() => handleDisconnect(activeMall._id)}>
                 <LogOut className="h-4 w-4 mr-1.5" />
                 Disconnect
               </Button>
@@ -317,7 +324,7 @@ export function SellerMallPanel({ setup }: { setup?: any }) {
           </CardHeader>
           <CardContent className="pt-6 space-y-6">
             {activeMall.rejectionReason && activeMall.status === "REJECTED" && (
-              <div className="rounded-lg border border-red-500/20 bg-red-500/5 p-4 text-sm text-red-200">
+              <div className="rounded-lg border border-red-500/20 bg-red-500/5 p-4 text-sm text-red-800 dark:text-red-200">
                 <h4 className="font-semibold mb-1">Mall Creation Rejected</h4>
                 <p>{activeMall.rejectionReason}</p>
               </div>
@@ -329,7 +336,7 @@ export function SellerMallPanel({ setup }: { setup?: any }) {
                   <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Address & Location</h3>
                   <div className="space-y-1 text-sm text-foreground">
                     <div className="flex items-center gap-2 text-muted-foreground">
-                      <MapPin className="h-4 w-4 shrink-0 text-emerald-300" />
+                      <MapPin className="h-4 w-4 shrink-0 text-emerald-700 dark:text-emerald-300" />
                       <span>{activeMall.address?.line1 || "No Address line"}, {activeMall.address?.city || ""}, {activeMall.address?.state || ""} {activeMall.address?.pincode ? `- ${activeMall.address.pincode}` : ""}</span>
                     </div>
                     {activeMall.address?.latitude && activeMall.address?.longitude && (
@@ -340,7 +347,7 @@ export function SellerMallPanel({ setup }: { setup?: any }) {
                           href={`https://www.google.com/maps/search/?api=1&query=${activeMall.address.latitude},${activeMall.address.longitude}`}
                           target="_blank"
                           rel="noreferrer"
-                          className="text-xs text-blue-400 underline hover:text-blue-300 ml-2"
+                          className="text-xs text-blue-400 underline hover:text-blue-700 dark:hover:text-blue-300 ml-2"
                         >
                           View on Google Maps
                         </a>
@@ -354,25 +361,25 @@ export function SellerMallPanel({ setup }: { setup?: any }) {
                   <div className="space-y-1 text-sm text-foreground">
                     {activeMall.contact?.managerName && (
                       <div className="flex items-center gap-2 text-muted-foreground">
-                        <User className="h-4 w-4 text-emerald-300" />
+                        <User className="h-4 w-4 text-emerald-700 dark:text-emerald-300" />
                         <span>Manager: {activeMall.contact.managerName}</span>
                       </div>
                     )}
                     {activeMall.contact?.phone && (
                       <div className="flex items-center gap-2 text-muted-foreground">
-                        <Phone className="h-4 w-4 text-emerald-300" />
+                        <Phone className="h-4 w-4 text-emerald-700 dark:text-emerald-300" />
                         <span>Phone: {activeMall.contact.phone}</span>
                       </div>
                     )}
                     {activeMall.contact?.email && (
                       <div className="flex items-center gap-2 text-muted-foreground">
-                        <Mail className="h-4 w-4 text-emerald-300" />
+                        <Mail className="h-4 w-4 text-emerald-700 dark:text-emerald-300" />
                         <span>Email: {activeMall.contact.email}</span>
                       </div>
                     )}
                     {activeMall.mobileNumber && (
                       <div className="flex items-center gap-2 text-muted-foreground">
-                        <Phone className="h-4 w-4 text-emerald-300" />
+                        <Phone className="h-4 w-4 text-emerald-700 dark:text-emerald-300" />
                         <span>
                           Mobile: {activeMall.mobileNumber} 
                           <span className="text-[10px] text-muted-foreground ml-2">
@@ -388,7 +395,7 @@ export function SellerMallPanel({ setup }: { setup?: any }) {
                   <div className="space-y-2">
                     <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Your Shop Location</h3>
                     <p className="text-sm text-foreground pl-6">
-                      Unit: <span className="font-semibold text-emerald-300">{currentSetup.seller.mallUnit || "N/A"}</span> | Floor: <span className="font-semibold text-emerald-300">{currentSetup.seller.mallFloor || "N/A"}</span>
+                      Unit: <span className="font-semibold text-emerald-700 dark:text-emerald-300">{currentSetup.seller.mallUnit || "N/A"}</span> | Floor: <span className="font-semibold text-emerald-700 dark:text-emerald-300">{currentSetup.seller.mallFloor || "N/A"}</span>
                     </p>
                   </div>
                 )}
@@ -442,10 +449,10 @@ export function SellerMallPanel({ setup }: { setup?: any }) {
         <Card className="border-border bg-card">
           <CardHeader className="border-b border-border">
             <CardTitle className="text-base text-foreground flex items-center gap-2">
-              <Building2 className="h-5 w-5 text-emerald-300" />
+              <Building2 className="h-5 w-5 text-emerald-700 dark:text-emerald-300" />
               Edit Mall Details
             </CardTitle>
-            <p className="text-xs text-amber-300 font-medium">⚠️ Note: Changing any details will reset the mall status to PENDING and require admin re-approval.</p>
+            <p className="text-xs text-amber-700 dark:text-amber-300 font-medium">⚠️ Note: Changing any details will reset the mall status to PENDING and require admin re-approval.</p>
           </CardHeader>
           <CardContent className="pt-4">
             <form onSubmit={submitEdit} className="grid gap-4">
@@ -662,7 +669,7 @@ export function SellerMallPanel({ setup }: { setup?: any }) {
               <label className={labelClass}>
                 <span className="flex items-center gap-2">
                   Select Mall
-                  <span className="text-[10px] normal-case text-red-300">Required</span>
+                  <span className="text-[10px] normal-case text-red-700 dark:text-red-300">Required</span>
                 </span>
                 <select
                   name="mallId"
@@ -792,7 +799,7 @@ export function SellerMallPanel({ setup }: { setup?: any }) {
               <label className={labelClass}>
                 <span className="flex items-center gap-2">
                   Upload Mall Photos
-                  <span className="text-[10px] normal-case text-red-300">Required (1-5 images)</span>
+                  <span className="text-[10px] normal-case text-red-700 dark:text-red-300">Required (1-5 images)</span>
                 </span>
                 <input
                   type="file"

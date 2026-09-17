@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { SocketEvents } from "@/constants/socketEvents";
 import { getWebSocket } from "@/lib/socket";
 import axiosInstance from "@/lib/axios";

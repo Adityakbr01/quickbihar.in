@@ -8,9 +8,10 @@ import {
   Info,
   Trash2,
 } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
@@ -131,7 +132,7 @@ function MallRequestsPanel({
     <Card className="border-border bg-card">
       <CardHeader className="border-b border-border">
         <CardTitle className="flex items-center gap-2 text-base text-foreground">
-          <CheckCircle2 className="h-4 w-4 text-emerald-300" />
+          <CheckCircle2 className="h-4 w-4 text-emerald-700 dark:text-emerald-300" />
           Mall Requests
         </CardTitle>
       </CardHeader>
@@ -243,7 +244,7 @@ function MallCreationRequestsPanel({
     <Card className="border-border bg-card">
       <CardHeader className="border-b border-border">
         <CardTitle className="flex items-center gap-2 text-base text-foreground">
-          <Building2 className="h-4 w-4 text-emerald-300" />
+          <Building2 className="h-4 w-4 text-emerald-700 dark:text-emerald-300" />
           New Mall Requests
         </CardTitle>
       </CardHeader>
@@ -349,7 +350,7 @@ function TopMallsPanel({ malls }: { malls: Mall[] }) {
     <Card className="border-border bg-card">
       <CardHeader className="border-b border-border">
         <CardTitle className="flex items-center gap-2 text-base text-foreground">
-          <Building2 className="h-4 w-4 text-emerald-300" />
+          <Building2 className="h-4 w-4 text-emerald-700 dark:text-emerald-300" />
           Top 10 In App
         </CardTitle>
       </CardHeader>
@@ -506,7 +507,7 @@ function MallCreatePanel() {
     <Card className="border-border bg-card">
       <CardHeader className="border-b border-border">
         <CardTitle className="flex items-center gap-2 text-base text-foreground">
-          <Building2 className="h-4 w-4 text-emerald-300" />
+          <Building2 className="h-4 w-4 text-emerald-700 dark:text-emerald-300" />
           Add Mall
         </CardTitle>
       </CardHeader>
@@ -756,6 +757,7 @@ function MallDirectory({
 }
 
 function MallRow({ mall }: { mall: Mall }) {
+  const confirm = useConfirm();
   const updateMall = useUpdateMall();
   const deactivateMall = useDeactivateMall();
   const [name, setName] = useState(mall.name);
@@ -982,7 +984,14 @@ function MallRow({ mall }: { mall: Mall }) {
               <Button
                 size="sm"
                 variant="destructive"
-                onClick={() => deactivateMall.mutate(mall._id)}
+                onClick={async () => {
+                  const ok = await confirm({
+                    title: `Deactivate ${mall.name}?`,
+                    description: "Its stores stop receiving mall traffic until re-enabled.",
+                    confirmLabel: "Deactivate",
+                  });
+                  if (ok) deactivateMall.mutate(mall._id);
+                }}
                 disabled={deactivateMall.isPending}
               >
                 Deactivate
@@ -1239,7 +1248,7 @@ function SellerMallAssignments({
     <Card className="border-border bg-card xl:col-span-2">
       <CardHeader className="border-b border-border">
         <CardTitle className="flex items-center gap-2 text-base text-foreground">
-          <Store className="h-4 w-4 text-emerald-300" />
+          <Store className="h-4 w-4 text-emerald-700 dark:text-emerald-300" />
           Seller Mall Assignment
         </CardTitle>
       </CardHeader>

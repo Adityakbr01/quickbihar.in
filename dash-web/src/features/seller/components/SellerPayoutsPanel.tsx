@@ -1,6 +1,7 @@
 import React, { type FormEvent, useMemo } from "react";
 import { WalletCards, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { SellerSetupStatus } from "@/features/seller/api/sellerPanel.api";
 import type { SellerPayoutMethodPayload } from "@/features/seller/api/sellerPanel.api";
@@ -25,6 +26,7 @@ import {
 } from "./SellerHelpers";
 
 export function SellerPayoutsPanel({ setup }: { setup?: SellerSetupStatus }) {
+  const confirm = useConfirm();
   const setupQuery = useSellerSetupStatusV2();
   const payoutsQuery = useSellerPayouts();
   const payoutMutations = useSellerPayoutMutations();
@@ -56,11 +58,19 @@ export function SellerPayoutsPanel({ setup }: { setup?: SellerSetupStatus }) {
     payoutMutations.addMethod.mutate(payload);
   };
 
-  const submitPayout = (event: FormEvent<HTMLFormElement>) => {
+  const submitPayout = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
+    const amount = numberValue(form, "amount") || 0;
+    const ok = await confirm({
+      title: `Request payout of Rs. ${formatAmount(amount)}?`,
+      description: "The request goes to the admin for approval and processing.",
+      confirmLabel: "Request Payout",
+      tone: "primary",
+    });
+    if (!ok) return;
     payoutMutations.request.mutate({
-      amount: numberValue(form, "amount") || 0,
+      amount,
       payoutMethodId: text(form, "payoutMethodId"),
       note: text(form, "note"),
     });

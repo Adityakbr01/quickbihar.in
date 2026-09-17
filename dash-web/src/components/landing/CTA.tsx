@@ -29,7 +29,7 @@ export default function CTA() {
               <span>{cta.badge}</span>
             </span>
 
-            <h2 className="mx-auto mt-4 max-w-3xl font-display text-2xl font-bold tracking-tight text-balance sm:text-4xl">
+            <h2 className="mx-auto mt-4 max-w-3xl font-display text-2xl font-bold tracking-tight text-balance text-on-primary sm:text-4xl">
               {cta.title}
             </h2>
 

@@ -1,6 +1,7 @@
 import React, { useState, useMemo, FormEvent } from "react";
 import { Plus, Edit, Trash2, Save, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
@@ -48,6 +49,7 @@ import {
 } from "../shared/TableHelpers";
 
 export function CategoryManagementPanel() {
+  const confirm = useConfirm();
   const [params, setParams] = useState<QueryParams>({
     page: 1,
     limit: 10,
@@ -275,13 +277,13 @@ export function CategoryManagementPanel() {
                         <Button
                           size="sm"
                           variant="destructive"
-                          onClick={() => {
-                            if (
-                              window.confirm(
-                                `Delete category ${category.title}?`,
-                              )
-                            )
-                              deleteCategory.mutate(category._id);
+                          onClick={async () => {
+                            const ok = await confirm({
+                              title: `Delete category ${category.title}?`,
+                              description: "Products in this category may be affected. This action cannot be undone.",
+                              confirmLabel: "Delete",
+                            });
+                            if (ok) deleteCategory.mutate(category._id);
                           }}
                         >
                           <Trash2 className="h-3.5 w-3.5" />

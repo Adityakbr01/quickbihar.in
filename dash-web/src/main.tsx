@@ -7,7 +7,8 @@ import App from "./App";
 import QueryProvider from "@/components/providers/QueryProvider";
 import SocketListenerProvider from "@/components/providers/SocketListenerProvider";
 import AuthProviders from "@/components/providers/AuthProviders";
-import { Toaster } from "@/components/ui/sonner";
+import { Toaster } from "react-hot-toast";
+import { ConfirmProvider } from "@/components/ui/confirm-dialog";
 import { RouteErrorBoundary } from "@/components/RouteErrorBoundary";
 
 createRoot(document.getElementById("root")!).render(
@@ -17,12 +18,29 @@ createRoot(document.getElementById("root")!).render(
         <QueryProvider>
           <AuthProviders>
             <BrowserRouter>
-              <SocketListenerProvider>
-                <App />
-              </SocketListenerProvider>
+              <ConfirmProvider>
+                <SocketListenerProvider>
+                  <App />
+                </SocketListenerProvider>
+              </ConfirmProvider>
             </BrowserRouter>
           </AuthProviders>
-          <Toaster position="top-center" richColors />
+          <Toaster
+            position="top-center"
+            gutter={8}
+            toastOptions={{
+              duration: 4000,
+              style: {
+                background: "var(--color-popover)",
+                color: "var(--color-popover-foreground)",
+                border: "1px solid var(--color-border)",
+                borderRadius: "var(--radius-lg)",
+                fontSize: "14px",
+                maxWidth: "420px",
+              },
+              error: { duration: 5000 },
+            }}
+          />
         </QueryProvider>
       </ThemeProvider>
     </RouteErrorBoundary>

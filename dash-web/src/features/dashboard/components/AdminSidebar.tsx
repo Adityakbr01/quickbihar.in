@@ -91,12 +91,12 @@ export function countBadgeClass(count: number, isActive?: boolean) {
     return "border-emerald-500/30 bg-emerald-500/20 text-emerald-400 shadow-sm";
   }
   if (count >= 15) {
-    return "border-emerald-400/30 bg-emerald-400/10 text-emerald-200 shadow-emerald-500/10";
+    return "border-emerald-400/30 bg-emerald-400/10 text-emerald-800 dark:text-emerald-200 shadow-emerald-500/10";
   }
   if (count <= 5) {
-    return "border-red-400/30 bg-red-400/10 text-red-200 shadow-red-500/10";
+    return "border-red-400/30 bg-red-400/10 text-red-800 dark:text-red-200 shadow-red-500/10";
   }
-  return "border-amber-400/30 bg-amber-400/10 text-amber-200 shadow-amber-500/10";
+  return "border-amber-400/30 bg-amber-400/10 text-amber-800 dark:text-amber-200 shadow-amber-500/10";
 }
 
 export function formatSidebarCount(count: number) {
