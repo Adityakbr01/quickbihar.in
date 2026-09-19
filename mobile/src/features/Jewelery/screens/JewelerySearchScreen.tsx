@@ -1,10 +1,12 @@
 import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
+  ActivityIndicator,
   Keyboard,
   Platform,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -13,7 +15,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { ProductCard } from "@/src/features/Jewelery/components/ProductCard";
-import { products } from "@/src/features/Jewelery/data/products";
+import { useJewelerySearch } from "@/src/features/Jewelery/hooks/useJeweleryCatalog";
 import { useColors } from "@/src/features/Jewelery/hooks/useColors";
 
 const popularSearches = [
@@ -29,17 +31,21 @@ export default function JewelerySearchScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const [query, setQuery] = useState("");
+  const [debounced, setDebounced] = useState("");
   const topPad = Platform.OS === "web" ? 67 : insets.top;
 
-  const filtered = query.trim()
-    ? products.filter(
-        (p) =>
-          p.name.toLowerCase().includes(query.toLowerCase()) ||
-          p.collection.toLowerCase().includes(query.toLowerCase()) ||
-          p.metal.toLowerCase().includes(query.toLowerCase()) ||
-          (p.stone ?? "").toLowerCase().includes(query.toLowerCase()),
-      )
-    : [];
+  useEffect(() => {
+    const t = setTimeout(() => setDebounced(query.trim()), 400);
+    return () => clearTimeout(t);
+  }, [query]);
+
+  const { data: pages, isLoading } = useJewelerySearch(debounced);
+  const filtered = useMemo(
+    () => (pages?.pages ?? []).flatMap((pg) => pg.data),
+    [pages]
+  );
+  const total = pages?.pages?.[0]?.total ?? filtered.length;
+  const hasQuery = query.trim() !== "";
 
   return (
     <View style={[styles.root, { backgroundColor: colors.ivory }]}>
@@ -129,6 +135,18 @@ export default function JewelerySearchScreen() {
             ))}
           </View>
         </View>
+      ) : isLoading ? (
+        <View style={styles.emptyState}>
+          <ActivityIndicator color={colors.gold} />
+          <Text
+            style={[
+              styles.emptyBody,
+              { color: colors.warmGray, fontFamily: "DMSans_400Regular" },
+            ]}
+          >
+            Searching the vault...
+          </Text>
+        </View>
       ) : filtered.length === 0 ? (
         <View style={styles.emptyState}>
           <Feather name="search" size={32} color={colors.midGray} />
@@ -153,21 +171,26 @@ export default function JewelerySearchScreen() {
           </Text>
         </View>
       ) : (
-        <View style={styles.results}>
-          <Text
-            style={[
-              styles.resultCount,
-              { color: colors.warmGray, fontFamily: "DMSans_400Regular" },
-            ]}
-          >
-            {filtered.length} piece{filtered.length !== 1 ? "s" : ""} found
-          </Text>
-          <View style={styles.productGrid}>
-            {filtered.map((p) => (
-              <ProductCard key={p.id} product={p} />
-            ))}
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={[Platform.OS === "web" && { paddingBottom: 34 }]}
+        >
+          <View style={styles.results}>
+            <Text
+              style={[
+                styles.resultCount,
+                { color: colors.warmGray, fontFamily: "DMSans_400Regular" },
+              ]}
+            >
+              {total} piece{total !== 1 ? "s" : ""} found
+            </Text>
+            <View style={styles.productGrid}>
+              {filtered.map((p) => (
+                <ProductCard key={p.id} product={p} />
+              ))}
+            </View>
           </View>
-        </View>
+        </ScrollView>
       )}
     </View>
   );

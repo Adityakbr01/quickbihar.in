@@ -88,6 +88,19 @@ function isApprovedForPublic(product: any): boolean {
     return product?.isActive && (!product.approvalStatus || product.approvalStatus === "APPROVED");
 }
 
+/**
+ * Owner id of a product doc — findById/findBySlug populate `sellerId`, so
+ * unwrap {_id} first (populated.toString() is "[object Object]" and would
+ * wrongly deny sellers their own products).
+ */
+function ownerIdOf(product: any): string {
+    const s = product?.sellerId;
+    if (!s) return "";
+    if (typeof s === "string") return s;
+    if (typeof s === "object" && (s as any)._id) return (s as any)._id.toString();
+    return s.toString();
+}
+
 function inferVertical(category?: string, subCategory?: string, vertical?: string): "CLOTHING" | "FOOD" | "JEWELERY" {
     if (vertical && ["CLOTHING", "FOOD", "JEWELERY"].includes(vertical)) return vertical as any;
     const text = `${category || ""} ${subCategory || ""}`.toLowerCase();
@@ -389,8 +402,8 @@ export async function getLocalProducts(query: any = {}) {
 /**
  * Retrieve products created by a specific seller.
  */
-export async function getSellerProducts(sellerId: string) {
-    return await ProductDAO.findBySellerId(sellerId);
+export async function getSellerProducts(sellerId: string, query: any = {}) {
+    return await ProductDAO.findBySellerId(sellerId, query);
 }
 
 /**
@@ -421,21 +434,21 @@ export async function updateProduct(id: string, data: any, sellerId: string, rol
         const product = await ProductDAO.findById(id);
         if (!product) throw new ApiError(404, "Product not found");
 
-        if (isSellerRole(role) && product.sellerId.toString() !== sellerId.toString()) {
+        if (isSellerRole(role) && ownerIdOf(product) !== sellerId.toString()) {
             throw new ApiError(403, "You do not have permission to edit this product");
         }
 
         const validatedData = updateProductSchema.parse(data);
         if (isSellerRole(role) || validatedData.category || validatedData.subCategory) {
             await assertSellerProductGate(
-                product.sellerId.toString(),
+                ownerIdOf(product),
                 validatedData.category || product.category || "",
                 validatedData.subCategory || product.subCategory || undefined,
             );
         }
         const policyRefs = cleanPolicyRefs(validatedData.policyRefs);
         await Promise.all([
-            assertSizeChartAllowed(validatedData.sizeChartId, product.sellerId.toString()),
+            assertSizeChartAllowed(validatedData.sizeChartId, ownerIdOf(product)),
             assertRefundPolicyActive(validatedData.refundPolicy),
             assertPolicyRefsActive(policyRefs),
         ]);
@@ -513,7 +526,7 @@ export async function deleteProduct(id: string, sellerId: string, role: string) 
     const product = await ProductDAO.findById(id);
     if (!product) throw new ApiError(404, "Product not found");
 
-    if (isSellerRole(role) && product.sellerId.toString() !== sellerId.toString()) {
+    if (isSellerRole(role) && ownerIdOf(product) !== sellerId.toString()) {
         throw new ApiError(403, "You do not have permission to delete this product");
     }
 
@@ -537,6 +550,7 @@ export async function getSimilarProducts(productId: string, limit = 10) {
             category: product.category || undefined,
             tags: product.tags,
             brand: product.brand || undefined,
+            vertical: (product as any).vertical || undefined,
         },
         safeLimit
     );

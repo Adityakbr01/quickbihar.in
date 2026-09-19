@@ -20,24 +20,18 @@ import {
 import { useTopPad } from "@/src/hooks/useTopPad";
 import { useCart } from "@/src/features/Jewelery/context/CartContext";
 import { useColors } from "@/src/features/Jewelery/hooks/useColors";
-import Toast from "react-native-toast-message";
 
 export default function JeweleryCartScreen() {
   const colors = useColors();
   const topPad = useTopPad();
-  const { cartItems, cartCount, removeFromCart, updateQuantity, cartTotal, clearCart } =
+  const { cartItems, cartCount, removeFromCart, updateQuantity, cartTotal } =
     useCart();
   const insets = useSafeAreaInsets();
   const bottomPad = Platform.OS === "web" ? 34 : insets.bottom;
 
   const handleCheckout = () => {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    clearCart();
-    Toast.show({
-      type: "success",
-      text1: "Order placed!",
-      text2: "Your jewellery is on its way.",
-    });
+    router.push("/checkout" as any);
   };
 
   return (

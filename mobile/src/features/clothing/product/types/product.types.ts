@@ -131,8 +131,14 @@ export interface IProduct {
     metalType?: string;
     purity?: string;
     hallmark?: boolean;
+    bisMark?: string;
     gemstone?: string;
+    stoneWeightCt?: number;
     weightGrams?: number;
+    makingCharge?: number;
+    wastagePct?: number;
+    certNo?: string;
+    certUrl?: string;
   };
   tags: string[];
   isFeatured: boolean;

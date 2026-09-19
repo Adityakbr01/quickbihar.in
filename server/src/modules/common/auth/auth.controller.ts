@@ -190,7 +190,7 @@ export const requestReset = asyncHandler(async (req: Request, res: Response) => 
  * Consume a reset JWT and set a new password.
  */
 export const resetPassword = asyncHandler(async (req: Request, res: Response) => {
-  await authService.consumePasswordReset(req.body.token, req.body.newPassword);
+  await authService.consumePasswordReset(req.body.token, req.body.password);
   return res.status(200).json(new ApiResponse(200, { ok: true }, "Password reset successfully. Please sign in."));
 });
 

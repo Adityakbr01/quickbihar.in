@@ -226,8 +226,16 @@ export async function findAll(query: any = {}, options: { skip?: number; limit?:
 /**
  * Fetch all active products for a specific seller, sorted by creation date.
  */
-export async function findBySellerId(sellerId: string) {
-    return await Product.find({ sellerId, isDeleted: false }).sort({ createdAt: -1 }).lean({ virtuals: true });
+export async function findBySellerId(sellerId: string, query: any = {}) {
+    const filter: any = { sellerId, isDeleted: false };
+    if (query.vertical) {
+        filter.vertical = query.vertical;
+    }
+    if (query.search && typeof query.search === "string" && query.search.trim()) {
+        const rx = new RegExp(escapeRx(query.search.trim()), "i");
+        filter.$or = [{ title: rx }, { category: rx }, { subCategory: rx }, { brand: rx }];
+    }
+    return await Product.find(filter).sort({ createdAt: -1 }).lean({ virtuals: true });
 }
 
 /**
@@ -284,10 +292,11 @@ export async function softDeleteById(id: string) {
  */
 export async function findSimilar(
     productId: string,
-    { category, tags, brand }: { category?: string; tags?: string[]; brand?: string },
+    { category, tags, brand, vertical }: { category?: string; tags?: string[]; brand?: string; vertical?: string },
     limit = 10
 ) {
     const safeLimit = Math.min(50, Math.max(1, Number(limit) || 10));
+    const safeVertical = vertical && ["CLOTHING", "FOOD", "JEWELERY"].includes(vertical) ? vertical : "CLOTHING";
     const orConditions: any[] = [];
 
     if (category) {
@@ -309,8 +318,10 @@ export async function findSimilar(
         _id: { $ne: productId },
         isDeleted: false,
         isActive: true,
-        vertical: "CLOTHING",
-        category: { $not: /jewel|necklace|ring|earring|pendant|bangle|food|grocery|beverage|snack/i },
+        vertical: safeVertical,
+        ...(safeVertical === "CLOTHING"
+            ? { category: { $not: /jewel|necklace|ring|earring|pendant|bangle|food|grocery|beverage|snack/i } }
+            : {}),
         $and: [
             { $or: [{ approvalStatus: "APPROVED" }, { approvalStatus: { $exists: false } }] },
         ],

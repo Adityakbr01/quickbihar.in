@@ -15,6 +15,7 @@ export const createCategorySchema = z.object({
     homePosition: z.coerce.number().int().optional(),
     parentId: z.string().optional().nullable(),
     parentModel: z.enum(["Category", "SubCategory"]).optional(),
+    vertical: z.enum(["CLOTHING", "FOOD", "JEWELERY", "GLOBAL"]).optional().default("CLOTHING"),
     seo: z.preprocess(
         (val) => typeof val === "string" ? JSON.parse(val) : val,
         z.object({

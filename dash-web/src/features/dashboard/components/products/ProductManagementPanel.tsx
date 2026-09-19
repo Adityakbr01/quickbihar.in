@@ -24,10 +24,18 @@ import { ManagedPerson } from "../../api/adminManagement.api";
 import {
   AdminProduct,
   AdminSizeChart,
+  JEWELERY_PURITIES,
   ProductPayload,
   ProductVariantPayload,
+  ProductVertical,
   QueryParams,
 } from "../../api/catalogManagement.api";
+import { CatalogVerticalTabs } from "@/features/catalog/components/CatalogVerticalTabs";
+import {
+  FOOD_TYPES,
+  toCatalogVertical,
+  type CatalogVertical,
+} from "@/features/catalog/lib/catalogVerticals";
 import {
   useAdminProducts,
   useAdminCategories,
@@ -122,15 +130,30 @@ export function ProductManagementPanel({
         onSortOrder={(value) => setParam("sortOrder", value)}
         onRefresh={() => productsQuery.refetch()}
         extraAction={
-          <Button
-            onClick={() => {
-              setEditing(null);
-              setIsCreateOpen(true);
-            }}
-          >
-            <Plus className="h-4 w-4" />
-            Create Product
-          </Button>
+          <div className="flex items-center gap-2">
+            <select
+              value={params.vertical || ""}
+              onChange={(event) =>
+                setParam("vertical", event.target.value || undefined)
+              }
+              className="h-9 rounded-md border border-border bg-card px-2 text-sm text-foreground"
+              title="Filter by vertical"
+            >
+              <option value="">All verticals</option>
+              <option value="CLOTHING">Clothing</option>
+              <option value="FOOD">Food</option>
+              <option value="JEWELERY">Jewelry</option>
+            </select>
+            <Button
+              onClick={() => {
+                setEditing(null);
+                setIsCreateOpen(true);
+              }}
+            >
+              <Plus className="h-4 w-4" />
+              Create Product
+            </Button>
+          </div>
         }
       />
 
@@ -430,6 +453,35 @@ function ProductForm({
   const [category, setCategory] = useState(product?.category || "");
   const [subCategory, setSubCategory] = useState(product?.subCategory || "");
   const [gender, setGender] = useState(product?.gender || "");
+  const [vertical, setVertical] = useState<CatalogVertical>(
+    toCatalogVertical(product?.vertical),
+  );
+  const [metalType, setMetalType] = useState(product?.jeweleryDetails?.metalType || "");
+  const [purity, setPurity] = useState(product?.jeweleryDetails?.purity || "");
+  const [hallmark, setHallmark] = useState(Boolean(product?.jeweleryDetails?.hallmark));
+  const [bisMark, setBisMark] = useState(product?.jeweleryDetails?.bisMark || "");
+  const [gemstone, setGemstone] = useState(product?.jeweleryDetails?.gemstone || "");
+  const [stoneWeightCt, setStoneWeightCt] = useState(
+    product?.jeweleryDetails?.stoneWeightCt != null ? String(product.jeweleryDetails.stoneWeightCt) : "",
+  );
+  const [weightGrams, setWeightGrams] = useState(
+    product?.jeweleryDetails?.weightGrams != null ? String(product.jeweleryDetails.weightGrams) : "",
+  );
+  const [makingCharge, setMakingCharge] = useState(
+    product?.jeweleryDetails?.makingCharge != null ? String(product.jeweleryDetails.makingCharge) : "",
+  );
+  const [wastagePct, setWastagePct] = useState(
+    product?.jeweleryDetails?.wastagePct != null ? String(product.jeweleryDetails.wastagePct) : "",
+  );
+  const [certNo, setCertNo] = useState(product?.jeweleryDetails?.certNo || "");
+  const [certUrl, setCertUrl] = useState(product?.jeweleryDetails?.certUrl || "");
+  const [vegNonVeg, setVegNonVeg] = useState(product?.foodDetails?.vegNonVeg || "");
+  const [shelfLife, setShelfLife] = useState(product?.foodDetails?.shelfLife || "");
+  const [ingredients, setIngredients] = useState((product?.foodDetails?.ingredients || []).join(", "));
+  const [servingSize, setServingSize] = useState(product?.foodDetails?.servingSize || "");
+  const [calories, setCalories] = useState(
+    product?.foodDetails?.calories != null ? String(product.foodDetails.calories) : "",
+  );
   const [description, setDescription] = useState(product?.description || "");
   const [shortDescription, setShortDescription] = useState(
     product?.shortDescription || "",
@@ -578,6 +630,11 @@ function ProductForm({
     // Price and originalPrice checks
     const oPrice = Number(originalPrice);
     if (!oPrice) return "MRP / Original Price is required.";
+    if (vertical === "JEWELERY") {
+      if (!metalType.trim()) return "Metal type is required for jewelry.";
+      if (!purity) return "Purity is required for jewelry.";
+      if (!weightGrams || Number(weightGrams) <= 0) return "Weight (grams) is required for jewelry.";
+    }
 
     return "";
   }, [
@@ -590,6 +647,10 @@ function ProductForm({
     totalImages,
     price,
     originalPrice,
+    vertical,
+    metalType,
+    purity,
+    weightGrams,
   ]);
 
   const changeSeller = (nextSellerId: string) => {
@@ -646,6 +707,33 @@ function ProductForm({
         category: effectiveCategory,
         subCategory: subCategory || undefined,
         gender: optionalValue(gender),
+        vertical: (vertical || "CLOTHING") as ProductVertical,
+        jeweleryDetails:
+          vertical === "JEWELERY"
+            ? {
+                metalType: optionalValue(metalType),
+                purity: purity || undefined,
+                hallmark,
+                bisMark: optionalValue(bisMark),
+                gemstone: optionalValue(gemstone),
+                stoneWeightCt: numericOrUndefined(stoneWeightCt),
+                weightGrams: numericOrUndefined(weightGrams),
+                makingCharge: numericOrUndefined(makingCharge),
+                wastagePct: numericOrUndefined(wastagePct),
+                certNo: optionalValue(certNo),
+                certUrl: optionalValue(certUrl),
+              }
+            : undefined,
+        foodDetails:
+          vertical === "FOOD"
+            ? {
+                vegNonVeg: vegNonVeg || undefined,
+                shelfLife: optionalValue(shelfLife),
+                ingredients: splitCsv(ingredients),
+                servingSize: optionalValue(servingSize),
+                calories: numericOrUndefined(calories),
+              }
+            : undefined,
         description: optionalValue(description),
         shortDescription: optionalValue(shortDescription),
         price: Number(price),
@@ -812,6 +900,13 @@ function ProductForm({
             </select>
           </ProductField>
           <ProductField
+            label="Catalog"
+            required
+            helper="Clothing, Jewelry or Food — each shows its own tailored section below."
+          >
+            <CatalogVerticalTabs value={vertical} onChange={setVertical} />
+          </ProductField>
+          <ProductField
             label="Product SKU"
             helper="Auto-generated by backend."
           >
@@ -823,6 +918,173 @@ function ProductForm({
             />
           </ProductField>
         </div>
+
+        {vertical === "JEWELERY" && (
+          <div className="grid gap-3 md:grid-cols-4">
+            <ProductField
+              label="Metal Type"
+              required
+              helper="e.g. 22K Yellow Gold."
+            >
+              <Input
+                value={metalType}
+                onChange={(event) => setMetalType(event.target.value)}
+                placeholder="22K Yellow Gold"
+                className={inputClass}
+              />
+            </ProductField>
+            <ProductField label="Purity" required helper="BIS purity mark.">
+              <select
+                value={purity}
+                onChange={(event) => setPurity(event.target.value)}
+                className={selectClass}
+              >
+                <option value="">Select purity</option>
+                {JEWELERY_PURITIES.map((item) => (
+                  <option key={item} value={item}>
+                    {item}
+                  </option>
+                ))}
+              </select>
+            </ProductField>
+            <ProductField
+              label="Weight (grams)"
+              required
+              helper="Net metal weight."
+            >
+              <Input
+                value={weightGrams}
+                onChange={(event) => setWeightGrams(event.target.value)}
+                placeholder="4.2"
+                type="number"
+                min="0"
+                step="0.01"
+                className={inputClass}
+              />
+            </ProductField>
+            <ProductField label="BIS / HUID Mark" helper="Hallmark ID.">
+              <Input
+                value={bisMark}
+                onChange={(event) => setBisMark(event.target.value)}
+                placeholder="HUID-XXXX"
+                className={inputClass}
+              />
+            </ProductField>
+            <ProductField label="Gemstone" helper="e.g. Ruby, Diamond.">
+              <Input
+                value={gemstone}
+                onChange={(event) => setGemstone(event.target.value)}
+                placeholder="Ruby"
+                className={inputClass}
+              />
+            </ProductField>
+            <ProductField label="Stone Weight (ct)" helper="Optional.">
+              <Input
+                value={stoneWeightCt}
+                onChange={(event) => setStoneWeightCt(event.target.value)}
+                placeholder="0.5"
+                type="number"
+                min="0"
+                step="0.01"
+                className={inputClass}
+              />
+            </ProductField>
+            <ProductField label="Making Charge (₹)" helper="Optional.">
+              <Input
+                value={makingCharge}
+                onChange={(event) => setMakingCharge(event.target.value)}
+                placeholder="2500"
+                type="number"
+                min="0"
+                className={inputClass}
+              />
+            </ProductField>
+            <ProductField label="Wastage (%)" helper="Optional, 0-100.">
+              <Input
+                value={wastagePct}
+                onChange={(event) => setWastagePct(event.target.value)}
+                placeholder="8"
+                type="number"
+                min="0"
+                max="100"
+                className={inputClass}
+              />
+            </ProductField>
+            <ProductField label="Certificate No." helper="Optional.">
+              <Input
+                value={certNo}
+                onChange={(event) => setCertNo(event.target.value)}
+                placeholder="CERT-001"
+                className={inputClass}
+              />
+            </ProductField>
+            <ProductField label="Certificate URL" helper="Optional.">
+              <Input
+                value={certUrl}
+                onChange={(event) => setCertUrl(event.target.value)}
+                placeholder="https://..."
+                className={inputClass}
+              />
+            </ProductField>
+            <div className="flex items-center justify-between rounded-lg border border-border bg-muted px-3 py-2 text-sm text-muted-foreground h-9 self-end">
+              <span>Hallmarked</span>
+              <Switch checked={hallmark} onCheckedChange={setHallmark} />
+            </div>
+          </div>
+        )}
+
+        {vertical === "FOOD" && (
+          <div className="grid gap-3 md:grid-cols-4">
+            <ProductField label="Veg / Non-Veg" helper="Food type.">
+              <select
+                value={vegNonVeg}
+                onChange={(event) => setVegNonVeg(event.target.value)}
+                className={selectClass}
+              >
+                <option value="">Select type</option>
+                {FOOD_TYPES.map((item) => (
+                  <option key={item} value={item}>
+                    {item}
+                  </option>
+                ))}
+              </select>
+            </ProductField>
+            <ProductField label="Shelf Life" helper="e.g. 6 months.">
+              <Input
+                value={shelfLife}
+                onChange={(event) => setShelfLife(event.target.value)}
+                placeholder="6 months"
+                className={inputClass}
+              />
+            </ProductField>
+            <ProductField label="Ingredients" helper="Comma separated.">
+              <Input
+                value={ingredients}
+                onChange={(event) => setIngredients(event.target.value)}
+                placeholder="Wheat, Sugar, Ghee"
+                className={inputClass}
+              />
+            </ProductField>
+            <ProductField label="Serving Size" helper="e.g. 100g.">
+              <Input
+                value={servingSize}
+                onChange={(event) => setServingSize(event.target.value)}
+                placeholder="100g"
+                className={inputClass}
+              />
+            </ProductField>
+            <ProductField label="Calories" helper="Per serving.">
+              <Input
+                value={calories}
+                onChange={(event) => setCalories(event.target.value)}
+                placeholder="450"
+                type="number"
+                min="0"
+                className={inputClass}
+              />
+            </ProductField>
+          </div>
+        )}
 
         <div className="grid gap-3 md:grid-cols-2">
           <ProductField

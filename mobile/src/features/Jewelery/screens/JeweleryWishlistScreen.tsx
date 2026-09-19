@@ -12,17 +12,24 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { ProductCard } from "@/src/features/Jewelery/components/ProductCard";
-import { products } from "@/src/features/Jewelery/data/products";
-import { useCart } from "@/src/features/Jewelery/context/CartContext";
+import { useJeweleryProduct } from "@/src/features/Jewelery/hooks/useJeweleryCatalog";
+import { toJeweleryProduct } from "@/src/features/Jewelery/api/jewelery.api";
+import { useWishlistStore } from "@/src/features/common/wishlist/store/wishlistStore";
 import { useColors } from "@/src/features/Jewelery/hooks/useColors";
+
+function WishlistRow({ id, cached }: { id: string; cached?: any }) {
+  const { data } = useJeweleryProduct(cached ? undefined : id);
+  const product = cached ? toJeweleryProduct(cached) : data;
+  if (!product) return null;
+  return <ProductCard product={product} />;
+}
 
 export default function JeweleryWishlistScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { wishlist } = useCart();
+  const wishlistIds = useWishlistStore((s) => s.items);
+  const cachedProducts = useWishlistStore((s) => s.cachedProducts);
   const topPad = Platform.OS === "web" ? 67 : insets.top;
-
-  const wishlisted = products.filter((p) => wishlist.includes(p.id));
 
   return (
     <View style={[styles.root, { backgroundColor: colors.ivory }]}>
@@ -50,11 +57,11 @@ export default function JeweleryWishlistScreen() {
             { color: colors.warmGray, fontFamily: "DMSans_400Regular" },
           ]}
         >
-          {wishlisted.length} piece{wishlisted.length !== 1 ? "s" : ""}
+          {wishlistIds.length} piece{wishlistIds.length !== 1 ? "s" : ""}
         </Text>
       </View>
 
-      {wishlisted.length === 0 ? (
+      {wishlistIds.length === 0 ? (
         <View style={styles.emptyState}>
           <Feather name="heart" size={40} color={colors.midGray} />
           <Text
@@ -99,8 +106,8 @@ export default function JeweleryWishlistScreen() {
           ]}
         >
           <View style={styles.productGrid}>
-            {wishlisted.map((product) => (
-              <ProductCard key={product.id} product={product} />
+            {wishlistIds.map((id) => (
+              <WishlistRow key={id} id={id} cached={cachedProducts[id]} />
             ))}
           </View>
         </ScrollView>

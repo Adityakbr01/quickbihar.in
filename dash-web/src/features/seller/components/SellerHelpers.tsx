@@ -307,11 +307,13 @@ export function ListFilters({
   onChange,
   approval,
   statusOptions,
+  verticalFilter,
 }: {
   params: SellerQueryParams;
   onChange: (params: SellerQueryParams) => void;
   approval?: boolean;
   statusOptions?: string[];
+  verticalFilter?: boolean;
 }) {
   return (
     <>
@@ -347,6 +349,21 @@ export function ListFilters({
           <option value="PENDING_REVIEW">Pending</option>
           <option value="APPROVED">Approved</option>
           <option value="REJECTED">Rejected</option>
+        </select>
+      )}
+      {verticalFilter && (
+        <select
+          value={params.vertical || ""}
+          onChange={(event) =>
+            onChange({ ...params, vertical: event.target.value || undefined, page: 1 })
+          }
+          className={selectClass}
+          title="Filter by catalog"
+        >
+          <option value="">All catalogs</option>
+          <option value="CLOTHING">Clothing</option>
+          <option value="FOOD">Food</option>
+          <option value="JEWELERY">Jewelry</option>
         </select>
       )}
       <Button

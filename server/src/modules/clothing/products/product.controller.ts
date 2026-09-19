@@ -42,7 +42,7 @@ export const getAllProducts = asyncHandler(async (req: Request, res: Response) =
 
     let products;
     if (role === "SELLER" || role === "seller") {
-        products = await ProductService.getSellerProducts(_id.toString());
+        products = await ProductService.getSellerProducts(_id.toString(), req.query);
     } else {
         products = await ProductService.getProducts(req.query);
     }

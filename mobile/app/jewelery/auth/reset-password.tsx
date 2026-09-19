@@ -15,24 +15,17 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { useAuth } from "@/src/features/Jewelery/context/AuthContext";
+import { resetPasswordRequest } from "@/src/features/common/auth/api/auth.api";
 import { useColors } from "@/src/features/Jewelery/hooks/useColors";
 import { JEWELERY_MODULE_CONFIG } from "@/src/constants/app.constants";
 
 export default function ResetPasswordScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { signUp, resetPassword } = useAuth();
 
-  const params = useLocalSearchParams<{
-    phone: string;
-    flow: "signup" | "forgot";
-    name?: string;
-    email?: string;
-  }>();
+  const params = useLocalSearchParams<{ token?: string }>();
+  const token = (params.token || "").trim();
 
-  const [fullName, setFullName] = useState(params.name || "");
-  const [email, setEmail] = useState(params.email || "");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -47,18 +40,8 @@ export default function ResetPasswordScreen() {
   const bottomPad = Platform.OS === "web" ? 34 : insets.bottom;
 
   const validate = () => {
-    if (params.flow === "signup") {
-      if (!fullName.trim()) {
-        setError("Please enter your full name.");
-        return false;
-      }
-      if (!email.trim() || !email.includes("@")) {
-        setError("Please enter a valid email address (e.g. name@example.com) for password login.");
-        return false;
-      }
-    }
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters.");
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters.");
       return false;
     }
     if (password !== confirmPassword) {
@@ -95,35 +78,65 @@ export default function ResetPasswordScreen() {
 
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setLoading(true);
-
-    if (params.flow === "signup") {
-      const result = await signUp(
-        fullName.trim(),
-        email.trim().toLowerCase(),
-        password,
-      );
+    try {
+      await resetPasswordRequest({ token, password });
       setLoading(false);
-      if (result.success) {
-        setSuccess(true);
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        setTimeout(() => router.replace("/jewelery/(tabs)/profile" as any), 1800);
-      } else {
-        setError(result.error ?? "Registration failed.");
-      }
-    } else {
-      const res = await resetPassword(params.phone || "", password, email.trim() || undefined);
+      setSuccess(true);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      setTimeout(() => router.replace("/jewelery/auth/sign-in" as any), 1800);
+    } catch (err: any) {
       setLoading(false);
-      if (res.success) {
-        setSuccess(true);
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        setTimeout(() => router.replace("/jewelery/(tabs)/profile" as any), 1800);
-      } else {
-        setError(res.error || "Could not update password/email. Please try again.");
-      }
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      setError(err?.response?.data?.message || err?.message || "Link expired or invalid. Request a new reset link.");
     }
   };
 
   const strength = getStrength();
+
+  if (!token) {
+    return (
+      <View
+        style={[
+          styles.root,
+          {
+            backgroundColor: colors.ivory,
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 32,
+          },
+        ]}
+      >
+        <Text
+          style={[
+            styles.successTitle,
+            {
+              color: colors.ink,
+              fontFamily: "CormorantGaramond_400Regular_Italic",
+              textAlign: "center",
+            },
+          ]}
+        >
+          Link invalid.
+        </Text>
+        <Text
+          style={[
+            styles.successSub,
+            { color: colors.warmGray, fontFamily: "DMSans_300Light", textAlign: "center" },
+          ]}
+        >
+          Open this screen from the reset link in your email, or request a new one.
+        </Text>
+        <Pressable
+          onPress={() => router.replace("/jewelery/auth/forgot-password" as any)}
+          style={{ marginTop: 20 }}
+        >
+          <Text style={{ color: colors.gold, fontFamily: "DMSans_400Regular" }}>
+            Request new link →
+          </Text>
+        </Pressable>
+      </View>
+    );
+  }
 
   if (success) {
     return (
@@ -151,9 +164,7 @@ export default function ResetPasswordScreen() {
             },
           ]}
         >
-          {params.flow === "signup"
-            ? `Welcome to ${JEWELERY_MODULE_CONFIG.brandName}.`
-            : "Password reset."}
+          Password reset.
         </Text>
         <Text
           style={[
@@ -161,9 +172,7 @@ export default function ResetPasswordScreen() {
             { color: colors.warmGray, fontFamily: "DMSans_300Light" },
           ]}
         >
-          {params.flow === "signup"
-            ? "Your account is ready. Explore the collection."
-            : "You can now sign in with your new password."}
+          You can now sign in with your new password.
         </Text>
       </View>
     );
@@ -210,9 +219,7 @@ export default function ResetPasswordScreen() {
               },
             ]}
           >
-            {params.flow === "signup"
-              ? "Set your\npassword."
-              : "Password &\nEmail Setup."}
+            Set a new{"\n"}password.
           </Text>
           <Text
             style={[
@@ -220,85 +227,8 @@ export default function ResetPasswordScreen() {
               { color: colors.warmGray, fontFamily: "DMSans_300Light" },
             ]}
           >
-            {params.flow === "signup"
-              ? `Choose a secure password and link your email address for your ${JEWELERY_MODULE_CONFIG.brandName} account.`
-              : "Update your password or link your email address for password login."}
+            Choose a secure password for your account.
           </Text>
-
-          {/* Full Name (For Sign Up) */}
-          {params.flow === "signup" && (
-            <View style={styles.fieldGroup}>
-              <Text
-                style={[
-                  styles.fieldLabel,
-                  { color: colors.warmGray, fontFamily: "DMSans_400Regular" },
-                ]}
-              >
-                FULL NAME
-              </Text>
-              <View
-                style={[
-                  styles.inputRow,
-                  {
-                    borderBottomColor:
-                      focusedField === "name" ? colors.gold : colors.midGray,
-                  },
-                ]}
-              >
-                <TextInput
-                  style={[
-                    styles.input,
-                    { color: colors.ink, fontFamily: "DMSans_400Regular" },
-                  ]}
-                  placeholder="Your Full Name"
-                  placeholderTextColor={colors.warmGray}
-                  value={fullName}
-                  onChangeText={setFullName}
-                  onFocus={() => setFocusedField("name")}
-                  onBlur={() => setFocusedField(null)}
-                  returnKeyType="next"
-                  autoCapitalize="words"
-                />
-              </View>
-            </View>
-          )}
-
-          {/* Email Address (For Password Login) */}
-          <View style={styles.fieldGroup}>
-            <Text
-              style={[
-                styles.fieldLabel,
-                { color: colors.warmGray, fontFamily: "DMSans_400Regular" },
-              ]}
-            >
-              EMAIL ADDRESS (FOR PASSWORD LOGIN)
-            </Text>
-            <View
-              style={[
-                styles.inputRow,
-                {
-                  borderBottomColor:
-                    focusedField === "email" ? colors.gold : colors.midGray,
-                },
-              ]}
-            >
-              <TextInput
-                style={[
-                  styles.input,
-                  { color: colors.ink, fontFamily: "DMSans_400Regular" },
-                ]}
-                placeholder="name@example.com"
-                placeholderTextColor={colors.warmGray}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                value={email}
-                onChangeText={setEmail}
-                onFocus={() => setFocusedField("email")}
-                onBlur={() => setFocusedField(null)}
-                returnKeyType="next"
-              />
-            </View>
-          </View>
 
           {/* Password */}
           <View style={styles.fieldGroup}>
@@ -308,7 +238,7 @@ export default function ResetPasswordScreen() {
                 { color: colors.warmGray, fontFamily: "DMSans_400Regular" },
               ]}
             >
-              {params.flow === "signup" ? "CREATE PASSWORD" : "NEW PASSWORD"}
+              NEW PASSWORD
             </Text>
             <View
               style={[
@@ -324,7 +254,7 @@ export default function ResetPasswordScreen() {
                   styles.input,
                   { color: colors.ink, fontFamily: "DMSans_400Regular" },
                 ]}
-                placeholder="Min. 6 characters"
+                placeholder="Min. 8 characters"
                 placeholderTextColor={colors.warmGray}
                 secureTextEntry={!showPassword}
                 value={password}
@@ -479,7 +409,7 @@ export default function ResetPasswordScreen() {
                   { color: colors.ivory, fontFamily: "DMSans_500Medium" },
                 ]}
               >
-                {params.flow === "signup" ? "Create Account" : "Reset Password"}
+                Reset Password
               </Text>
             )}
           </Pressable>

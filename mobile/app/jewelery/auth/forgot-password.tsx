@@ -1,4 +1,4 @@
-import { useAuth } from "@/src/features/Jewelery/context/AuthContext";
+import { requestResetRequest } from "@/src/features/common/auth/api/auth.api";
 import { useColors } from "@/src/features/Jewelery/hooks/useColors";
 import { JEWELERY_MODULE_CONFIG } from "@/src/constants/app.constants";
 import { Feather } from "@expo/vector-icons";
@@ -22,36 +22,35 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 export default function ForgotPasswordScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { sendOtp } = useAuth();
 
-  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [sent, setSent] = useState(false);
   const [focused, setFocused] = useState(false);
 
   const topPad = Platform.OS === "web" ? 67 : insets.top;
   const bottomPad = Platform.OS === "web" ? 34 : insets.bottom;
 
-  const handleSendOtp = async () => {
+  const handleSendReset = async () => {
     setError("");
-    const inputVal = phone.trim();
-    if (!inputVal) {
-      setError("Please enter your registered email or phone number.");
+    const cleaned = email.trim();
+    if (!/^\S+@\S+\.\S+$/.test(cleaned)) {
+      setError("Please enter your registered email address.");
       return;
     }
 
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setLoading(true);
-    const result = await sendOtp(inputVal);
-    setLoading(false);
-
-    if (result.success) {
-      router.push({
-        pathname: "/jewelery/auth/otp" as any,
-        params: { phone: inputVal, email: inputVal, flow: "forgot" },
-      });
-    } else {
-      setError(result.error || "Failed to send OTP.");
+    try {
+      await requestResetRequest({ email: cleaned });
+      setLoading(false);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      setSent(true);
+    } catch (err: any) {
+      setLoading(false);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      setError(err?.response?.data?.message || err?.message || "Failed to send reset email.");
     }
   };
 
@@ -80,82 +79,69 @@ export default function ForgotPasswordScreen() {
             Forgot your{"\n"}password?
           </Text>
           <Text style={[styles.subline, { color: colors.warmGray, fontFamily: "DMSans_300Light" }]}>
-            No worries. Enter your registered mobile number and we'll send you a verification code.
+            No worries. Enter your registered email and we'll send you a password reset link.
           </Text>
 
           <View style={[styles.divider, { backgroundColor: colors.midGray }]} />
 
-          {/* Steps visual */}
-          <View style={styles.stepsRow}>
-            {["Enter number", "Verify OTP", "New password"].map((step, i) => (
-              <React.Fragment key={step}>
-                <View style={styles.step}>
-                  <View style={[
-                    styles.stepDot,
-                    { backgroundColor: i === 0 ? colors.gold : colors.midGray },
-                  ]}>
-                    <Text style={[styles.stepNum, { color: i === 0 ? colors.ivory : colors.warmGray, fontFamily: "DMSans_500Medium" }]}>
-                      {i + 1}
-                    </Text>
-                  </View>
-                  <Text style={[styles.stepLabel, { color: i === 0 ? colors.ink : colors.warmGray, fontFamily: "DMSans_400Regular" }]}>
-                    {step}
+          {sent ? (
+            <View style={[styles.errorBox, { backgroundColor: "#f0fdf4", borderColor: colors.emerald }]}>
+              <Feather name="check-circle" size={13} color={colors.emerald} />
+              <Text style={[styles.errorText, { color: colors.ink, fontFamily: "DMSans_400Regular" }]}>
+                Reset link sent! Check your email inbox (and spam folder) to set a new password.
+              </Text>
+            </View>
+          ) : (
+            <>
+              {/* Email */}
+              <View style={[styles.fieldGroup, { marginTop: 8 }]}>
+                <Text style={[styles.fieldLabel, { color: colors.warmGray, fontFamily: "DMSans_400Regular" }]}>
+                  REGISTERED EMAIL ADDRESS
+                </Text>
+                <View style={[styles.inputRow, { borderBottomColor: focused ? colors.gold : colors.midGray }]}>
+                  <TextInput
+                    style={[styles.input, { color: colors.ink, fontFamily: "DMSans_400Regular" }]}
+                    placeholder="Enter your email"
+                    placeholderTextColor={colors.warmGray}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    value={email}
+                    onChangeText={setEmail}
+                    onFocus={() => setFocused(true)}
+                    onBlur={() => setFocused(false)}
+                    returnKeyType="done"
+                    onSubmitEditing={handleSendReset}
+                  />
+                </View>
+              </View>
+
+              {!!error && (
+                <View style={[styles.errorBox, { backgroundColor: "#fdf0f0", borderColor: colors.maroon }]}>
+                  <Feather name="alert-circle" size={13} color={colors.maroon} />
+                  <Text style={[styles.errorText, { color: colors.maroon, fontFamily: "DMSans_400Regular" }]}>
+                    {error}
                   </Text>
                 </View>
-                {i < 2 && <View style={[styles.stepLine, { backgroundColor: colors.midGray }]} />}
-              </React.Fragment>
-            ))}
-          </View>
+              )}
 
-          {/* Phone */}
-          <View style={[styles.fieldGroup, { marginTop: 32 }]}>
-            <Text style={[styles.fieldLabel, { color: colors.warmGray, fontFamily: "DMSans_400Regular" }]}>
-              REGISTERED MOBILE NUMBER
-            </Text>
-            <View style={[styles.inputRow, { borderBottomColor: focused ? colors.gold : colors.midGray }]}>
-              <Text style={[styles.countryCode, { color: colors.ink, fontFamily: "DMSans_400Regular" }]}>+91</Text>
-              <View style={[styles.inputSep, { backgroundColor: colors.midGray }]} />
-              <TextInput
-                style={[styles.input, { color: colors.ink, fontFamily: "DMSans_400Regular" }]}
-                placeholder="Enter your number"
-                placeholderTextColor={colors.warmGray}
-                keyboardType="phone-pad"
-                value={phone}
-                onChangeText={setPhone}
-                onFocus={() => setFocused(true)}
-                onBlur={() => setFocused(false)}
-                returnKeyType="done"
-                onSubmitEditing={handleSendOtp}
-                maxLength={10}
-              />
-            </View>
-          </View>
-
-          {!!error && (
-            <View style={[styles.errorBox, { backgroundColor: "#fdf0f0", borderColor: colors.maroon }]}>
-              <Feather name="alert-circle" size={13} color={colors.maroon} />
-              <Text style={[styles.errorText, { color: colors.maroon, fontFamily: "DMSans_400Regular" }]}>
-                {error}
-              </Text>
-            </View>
+              <Pressable
+                style={({ pressed }) => [
+                  styles.primaryBtn,
+                  { backgroundColor: pressed ? colors.goldLight : colors.gold, opacity: loading ? 0.7 : 1 },
+                ]}
+                onPress={handleSendReset}
+                disabled={loading}
+              >
+                {loading ? (
+                  <ActivityIndicator color={colors.ivory} size="small" />
+                ) : (
+                  <Text style={[styles.primaryBtnText, { color: colors.ivory, fontFamily: "DMSans_500Medium" }]}>
+                    Send Reset Link →
+                  </Text>
+                )}
+              </Pressable>
+            </>
           )}
-
-          <Pressable
-            style={({ pressed }) => [
-              styles.primaryBtn,
-              { backgroundColor: pressed ? colors.goldLight : colors.gold, opacity: loading ? 0.7 : 1 },
-            ]}
-            onPress={handleSendOtp}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color={colors.ivory} size="small" />
-            ) : (
-              <Text style={[styles.primaryBtnText, { color: colors.ivory, fontFamily: "DMSans_500Medium" }]}>
-                Send Verification Code →
-              </Text>
-            )}
-          </Pressable>
 
           <Pressable onPress={() => router.back()} style={styles.backToSignIn}>
             <Text style={[styles.backText, { color: colors.gold, fontFamily: "DMSans_400Regular" }]}>

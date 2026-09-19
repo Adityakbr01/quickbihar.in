@@ -1,3 +1,4 @@
+import type { IProduct } from "@/src/features/clothing/product/types/product.types";
 import { ProductTryOnConfig } from "@/src/features/Jewelery/utils/tryOn";
 
 export interface Product {
@@ -21,6 +22,8 @@ export interface Product {
   images: any[];
   inStock: number;
   tryOn?: ProductTryOnConfig;
+  /** Server IProduct behind this UI item (set by toJeweleryProduct). Enables real cart/wishlist/checkout. */
+  _raw?: IProduct;
 }
 
 // Jewelery module inactive: product images removed from assets (see git history

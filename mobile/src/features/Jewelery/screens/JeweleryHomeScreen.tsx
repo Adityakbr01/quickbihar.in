@@ -3,6 +3,7 @@ import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
 import React, { useRef } from "react";
 import {
+  ActivityIndicator,
   Dimensions,
   FlatList,
   Image,
@@ -28,14 +29,10 @@ import { HeroCarousel } from "@/src/features/Jewelery/components/HeroCarousel";
 import { ProductCard } from "@/src/features/Jewelery/components/ProductCard";
 import { useCart } from "@/src/features/Jewelery/context/CartContext";
 import {
-  collections,
   occasions,
 } from "@/src/features/Jewelery/data/collections";
-import {
-  getBestsellers,
-  getNewArrivals,
-  products,
-} from "@/src/features/Jewelery/data/products";
+import { useJeweleryBestsellers, useJeweleryCategories, useJeweleryNewArrivals } from "@/src/features/Jewelery/hooks/useJeweleryCatalog";
+import type { Collection } from "@/src/features/Jewelery/data/collections";
 import { useColors } from "@/src/features/Jewelery/hooks/useColors";
 
 const { width } = Dimensions.get("window");
@@ -227,6 +224,16 @@ function SectionHeader({
 
 function FeaturedCollections() {
   const colors = useColors();
+  const { data: cats } = useJeweleryCategories();
+  const top: Collection[] = (cats ?? []).slice(0, 3).map((c) => ({
+    id: c._id,
+    name: c.title,
+    tagline: "",
+    mood: "",
+    pieceCount: 0,
+    image: c.image ? { uri: c.image } : null,
+  }));
+  if (!top.length) return null;
   return (
     <View style={[styles.section, { backgroundColor: colors.ivory }]}>
       <SectionHeader
@@ -235,11 +242,14 @@ function FeaturedCollections() {
         onSeeAll={() => router.push("/jewelery/collections" as any)}
       />
       <View style={styles.collectionsGrid}>
-        <CollectionCard collection={collections[0]} large style={{ flex: 1 }} />
-        <View style={styles.collectionsStack}>
-          <CollectionCard collection={collections[1]} style={{ flex: 1 }} />
-          <CollectionCard collection={collections[2]} style={{ flex: 1 }} />
-        </View>
+        <CollectionCard collection={top[0]} large style={{ flex: 1 }} />
+        {top.length > 1 && (
+          <View style={styles.collectionsStack}>
+            {top.slice(1).map((c) => (
+              <CollectionCard key={c.id} collection={c} style={{ flex: 1 }} />
+            ))}
+          </View>
+        )}
       </View>
     </View>
   );
@@ -247,7 +257,8 @@ function FeaturedCollections() {
 
 function NewArrivals() {
   const colors = useColors();
-  const newItems = getNewArrivals();
+  const { data: newItems = [], isLoading } = useJeweleryNewArrivals(8);
+  if (!isLoading && newItems.length === 0) return null;
   return (
     <View style={[styles.section, { backgroundColor: colors.champagne }]}>
       <SectionHeader
@@ -255,16 +266,20 @@ function NewArrivals() {
         title="New Arrivals"
         onSeeAll={() => router.push("/jewelery/collections" as any)}
       />
-      <FlatList
-        data={newItems}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        keyExtractor={(i) => i.id}
-        contentContainerStyle={styles.horizontalList}
-        renderItem={({ item }) => (
-          <ProductCard product={item} style={{ width: 164, marginRight: 12 }} />
-        )}
-      />
+      {isLoading ? (
+        <ActivityIndicator color={colors.gold} />
+      ) : (
+        <FlatList
+          data={newItems}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          keyExtractor={(i) => i.id}
+          contentContainerStyle={styles.horizontalList}
+          renderItem={({ item }) => (
+            <ProductCard product={item} style={{ width: 164, marginRight: 12 }} />
+          )}
+        />
+      )}
     </View>
   );
 }
@@ -364,7 +379,8 @@ function HeritageSection() {
 
 function BestsellerSection() {
   const colors = useColors();
-  const bestsellers = getBestsellers();
+  const { data: bestsellers = [], isLoading } = useJeweleryBestsellers(6);
+  if (!isLoading && bestsellers.length === 0) return null;
   return (
     <View style={[styles.section, { backgroundColor: colors.ivory }]}>
       <Text
@@ -381,9 +397,11 @@ function BestsellerSection() {
         onSeeAll={() => router.push("/jewelery/collections" as any)}
       />
       <View style={styles.productGrid}>
-        {bestsellers.map((p) => (
-          <ProductCard key={p.id} product={p} />
-        ))}
+        {isLoading ? (
+          <ActivityIndicator color={colors.gold} style={{ flex: 1 }} />
+        ) : (
+          bestsellers.map((p) => <ProductCard key={p.id} product={p} />)
+        )}
       </View>
     </View>
   );

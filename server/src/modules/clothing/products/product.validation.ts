@@ -60,11 +60,17 @@ export const createProductObjectSchema = z.object({
     jeweleryDetails: z.preprocess(
         (val) => typeof val === "string" ? JSON.parse(val) : val,
         z.object({
-            metalType: z.string().optional(),
-            purity: z.string().optional(),
-            hallmark: z.boolean().optional(),
-            gemstone: z.string().optional(),
-            weightGrams: z.coerce.number().optional(),
+            metalType: z.string().trim().optional(),
+            purity: z.enum(["24K", "22K", "18K", "14K", "925 Silver", "Platinum", "Other"]).optional(),
+            hallmark: z.preprocess((val) => val === "true" || val === true, z.boolean()).optional(),
+            bisMark: z.string().trim().optional(),
+            gemstone: z.string().trim().optional(),
+            stoneWeightCt: z.coerce.number().min(0).optional(),
+            weightGrams: z.coerce.number().min(0).optional(),
+            makingCharge: z.coerce.number().min(0).optional(),
+            wastagePct: z.coerce.number().min(0).max(100).optional(),
+            certNo: z.string().trim().optional(),
+            certUrl: z.string().url("Invalid certificate URL").optional().or(z.literal("")),
         })
     ).optional(),
  
@@ -130,7 +136,18 @@ export const createProductObjectSchema = z.object({
      refundPolicy: z.string().optional(),
 });
 
-export const createProductSchema = createProductObjectSchema;
+export const createProductSchema = createProductObjectSchema.superRefine((val, ctx) => {
+    if (val.vertical === "JEWELERY") {
+        const jd: any = val.jeweleryDetails;
+        if (!jd || typeof jd !== "object") {
+            ctx.addIssue({ code: "custom", path: ["jeweleryDetails"], message: "jeweleryDetails is required for JEWELERY products" });
+            return;
+        }
+        if (!jd.metalType) ctx.addIssue({ code: "custom", path: ["jeweleryDetails", "metalType"], message: "metalType is required for JEWELERY products" });
+        if (!jd.purity) ctx.addIssue({ code: "custom", path: ["jeweleryDetails", "purity"], message: "purity is required for JEWELERY products" });
+        if (jd.weightGrams == null) ctx.addIssue({ code: "custom", path: ["jeweleryDetails", "weightGrams"], message: "weightGrams is required for JEWELERY products" });
+    }
+});
 
 export const updateProductSchema = createProductObjectSchema.partial();
 

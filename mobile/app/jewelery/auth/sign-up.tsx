@@ -22,47 +22,58 @@ import { JEWELERY_MODULE_CONFIG } from "@/src/constants/app.constants";
 export default function SignUpScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { sendOtp } = useAuth();
+  const { signUp, signIn } = useAuth();
 
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [focusedField, setFocusedField] = useState<string | null>(null);
 
   const phoneRef = useRef<TextInput>(null);
   const emailRef = useRef<TextInput>(null);
+  const passwordRef = useRef<TextInput>(null);
 
   const topPad = Platform.OS === "web" ? 67 : insets.top;
   const bottomPad = Platform.OS === "web" ? 34 : insets.bottom;
 
-  const handleSendOtp = async () => {
+  const handleSignUp = async () => {
     setError("");
-    const cleanedPhone = phone.trim();
-    if (cleanedPhone.length !== 10) {
-      setError("Please enter a valid 10-digit mobile number.");
+    if (name.trim().length < 2) {
+      setError("Please enter your full name.");
+      return;
+    }
+    const cleanedEmail = email.trim();
+    if (!/^\S+@\S+\.\S+$/.test(cleanedEmail)) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters.");
       return;
     }
 
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setLoading(true);
-    const result = await sendOtp(cleanedPhone, true);
+    const result = await signUp(name.trim(), cleanedEmail, password);
+    if (!result.success) {
+      setLoading(false);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      setError(result.error ?? "Registration failed.");
+      return;
+    }
+    const login = await signIn(cleanedEmail, password);
     setLoading(false);
 
-    if (result.success) {
-      router.push({
-        pathname: "/jewelery/auth/otp" as any,
-        params: {
-          target: cleanedPhone,
-          phone: cleanedPhone,
-          name: name.trim(),
-          email: email.trim(),
-          flow: "signup",
-        },
-      });
+    if (login.success) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      router.replace("/jewelery/(tabs)/profile" as any);
     } else {
-      setError(result.error || "Failed to send OTP.");
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      router.replace("/jewelery/auth/sign-in" as any);
     }
   };
 
@@ -158,7 +169,7 @@ export default function SignUpScreen() {
             </View>
           </View>
 
-          {/* Phone */}
+          {/* Phone (optional) */}
           <View style={styles.fieldGroup}>
             <Text
               style={[
@@ -166,7 +177,8 @@ export default function SignUpScreen() {
                 { color: colors.warmGray, fontFamily: "DMSans_400Regular" },
               ]}
             >
-              MOBILE NUMBER
+              MOBILE NUMBER{" "}
+              <Text style={{ fontSize: 8, letterSpacing: 0 }}>(OPTIONAL)</Text>
             </Text>
             <View
               style={[
@@ -205,7 +217,7 @@ export default function SignUpScreen() {
             </View>
           </View>
 
-          {/* Email (optional) */}
+          {/* Email */}
           <View style={styles.fieldGroup}>
             <Text
               style={[
@@ -213,8 +225,7 @@ export default function SignUpScreen() {
                 { color: colors.warmGray, fontFamily: "DMSans_400Regular" },
               ]}
             >
-              EMAIL ADDRESS{" "}
-              <Text style={{ fontSize: 8, letterSpacing: 0 }}>(OPTIONAL)</Text>
+              EMAIL ADDRESS
             </Text>
             <View
               style={[
@@ -236,9 +247,47 @@ export default function SignUpScreen() {
                 onChangeText={setEmail}
                 onFocus={() => setFocusedField("email")}
                 onBlur={() => setFocusedField(null)}
-                returnKeyType="done"
-                onSubmitEditing={handleSendOtp}
+                returnKeyType="next"
+                onSubmitEditing={() => passwordRef.current?.focus()}
               />
+            </View>
+          </View>
+
+          {/* Password */}
+          <View style={styles.fieldGroup}>
+            <Text
+              style={[
+                styles.fieldLabel,
+                { color: colors.warmGray, fontFamily: "DMSans_400Regular" },
+              ]}
+            >
+              PASSWORD
+            </Text>
+            <View
+              style={[
+                styles.inputRow,
+                { borderBottomColor: fieldBorder("password") },
+              ]}
+            >
+              <TextInput
+                ref={passwordRef}
+                style={[
+                  styles.input,
+                  { color: colors.ink, fontFamily: "DMSans_400Regular", flex: 1 },
+                ]}
+                placeholder="Min. 8 characters"
+                placeholderTextColor={colors.warmGray}
+                secureTextEntry={!showPassword}
+                value={password}
+                onChangeText={setPassword}
+                onFocus={() => setFocusedField("password")}
+                onBlur={() => setFocusedField(null)}
+                returnKeyType="done"
+                onSubmitEditing={handleSignUp}
+              />
+              <Pressable onPress={() => setShowPassword(!showPassword)} hitSlop={8}>
+                <Feather name={showPassword ? "eye-off" : "eye"} size={16} color={colors.warmGray} />
+              </Pressable>
             </View>
           </View>
 
@@ -297,7 +346,7 @@ export default function SignUpScreen() {
                 opacity: loading ? 0.7 : 1,
               },
             ]}
-            onPress={handleSendOtp}
+            onPress={handleSignUp}
             disabled={loading}
           >
             {loading ? (
@@ -309,7 +358,7 @@ export default function SignUpScreen() {
                   { color: colors.ivory, fontFamily: "DMSans_500Medium" },
                 ]}
               >
-                Send OTP →
+                Create Account →
               </Text>
             )}
           </Pressable>

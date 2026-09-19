@@ -53,6 +53,13 @@ import {
   files,
   Field,
 } from "./SellerHelpers";
+import { CatalogVerticalTabs } from "@/features/catalog/components/CatalogVerticalTabs";
+import {
+  FOOD_TYPES,
+  JEWELERY_PURITIES,
+  toCatalogVertical,
+  type CatalogVertical,
+} from "@/features/catalog/lib/catalogVerticals";
 
 type SellerCategoryOption = { _id: string; title: string; slug?: string; isActive?: boolean };
 
@@ -110,7 +117,7 @@ export function SellerProductsPanel({
           }
         />
       }
-      filters={<ListFilters params={params} onChange={setParams} approval />}
+      filters={<ListFilters params={params} onChange={setParams} approval verticalFilter />}
     >
       {productCreateBlocked && (
         <div className="mb-3 rounded-lg border border-amber-400/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-100">
@@ -261,6 +268,9 @@ function ProductDialog({
   const [category, setCategory] = useState(initialCategory);
   const [subCategory, setSubCategory] = useState(product?.subCategory || "");
   const [gender, setGender] = useState(product?.gender || "");
+  const [vertical, setVertical] = useState<CatalogVertical>(
+    toCatalogVertical((product as any)?.vertical),
+  );
   const categoryBlocked = !categoryOptions.length;
 
   const categoriesQuery = useSellerCategories();
@@ -278,10 +288,42 @@ function ProductDialog({
 
   const selectedChart = sizeCharts.find((chart) => chart._id === sizeChartId);
 
+  const allowedCategoryTitles = (nextVertical: CatalogVertical): Set<string> | null => {
+    const available: any[] = categoriesQuery.data?.available ?? [];
+    if (!available.length) return null;
+    const allowed = new Set<string>();
+    for (const item of available) {
+      if (!item?.vertical || item.vertical === "GLOBAL" || item.vertical === nextVertical) {
+        allowed.add(categoryKey(item.title));
+      }
+    }
+    return allowed;
+  };
+
+  const visibleCategoryOptions = useMemo(() => {
+    const allowed = allowedCategoryTitles(vertical);
+    if (!allowed) return categoryOptions;
+    const visible = categoryOptions.filter((c) => allowed.has(categoryKey(c.title)));
+    return visible.length ? visible : categoryOptions;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [categoryOptions, categoriesQuery.data, vertical]);
+
+  const changeVertical = (next: CatalogVertical) => {
+    if (product) return; // locked on edit
+    setVertical(next);
+    const allowed = allowedCategoryTitles(next);
+    if (allowed && !allowed.has(categoryKey(category))) {
+      const first = categoryOptions.find((c) => allowed.has(categoryKey(c.title)));
+      setCategory(first?.title || "");
+      setSubCategory("");
+    }
+  };
+
   const resetDraft = () => {
     setCategory(product?.category || categoryOptions[0]?.title || "");
     setSubCategory(product?.subCategory || "");
     setGender(product?.gender || "");
+    setVertical(toCatalogVertical((product as any)?.vertical));
     setExistingImages(product?.images || []);
     setNewImages([]);
     setImageError("");
@@ -346,6 +388,15 @@ function ProductDialog({
       return;
     }
     const form = new FormData(event.currentTarget);
+    if (vertical === "JEWELERY") {
+      const metal = text(form, "jeweleryMetalType");
+      const pur = text(form, "jeweleryPurity");
+      const wt = numberValue(form, "jeweleryWeightGrams");
+      if (!metal || !pur || !wt || wt <= 0) {
+        alert("Metal type, purity and weight are required for jewelry.");
+        return;
+      }
+    }
     onSubmit(
       {
         title: text(form, "title"),
@@ -353,6 +404,33 @@ function ProductDialog({
         category: category,
         subCategory: subCategory || undefined,
         gender: gender || undefined,
+        vertical,
+        jeweleryDetails:
+          vertical === "JEWELERY"
+            ? {
+                metalType: text(form, "jeweleryMetalType") || undefined,
+                purity: text(form, "jeweleryPurity") || undefined,
+                hallmark: form.get("jeweleryHallmark") === "on",
+                bisMark: text(form, "jeweleryBisMark") || undefined,
+                gemstone: text(form, "jeweleryGemstone") || undefined,
+                stoneWeightCt: numberValue(form, "jeweleryStoneWeightCt"),
+                weightGrams: numberValue(form, "jeweleryWeightGrams"),
+                makingCharge: numberValue(form, "jeweleryMakingCharge"),
+                wastagePct: numberValue(form, "jeweleryWastagePct"),
+                certNo: text(form, "jeweleryCertNo") || undefined,
+                certUrl: text(form, "jeweleryCertUrl") || undefined,
+              }
+            : undefined,
+        foodDetails:
+          vertical === "FOOD"
+            ? {
+                vegNonVeg: text(form, "foodVegNonVeg") || undefined,
+                shelfLife: text(form, "foodShelfLife") || undefined,
+                ingredients: list(text(form, "foodIngredients")),
+                servingSize: text(form, "foodServingSize") || undefined,
+                calories: numberValue(form, "foodCalories"),
+              }
+            : undefined,
         price: sPrice || 0,
         originalPrice: oPrice,
         isGstApplicable: form.get("isGstApplicable") === "on",
@@ -414,6 +492,11 @@ function ProductDialog({
           <DialogTitle>{product ? "Edit Product" : "Create Product"}</DialogTitle>
         </DialogHeader>
         <form onSubmit={submit} className="grid gap-4">
+          <CatalogVerticalTabs
+            value={vertical}
+            onChange={changeVertical}
+            disabled={Boolean(product)}
+          />
           {categoryBlocked && (
             <div className="rounded-lg border border-amber-400/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-100">
               No categories available. Please contact administrator.
@@ -437,7 +520,7 @@ function ProductDialog({
                 className={selectClass}
               >
                 <option value="">Select category</option>
-                {categoryOptions.map((category) => (
+                {visibleCategoryOptions.map((category) => (
                   <option key={category._id} value={category.title}>
                     {category.title}
                   </option>
@@ -680,8 +763,9 @@ function ProductDialog({
 
           <SellerVariantEditor variants={variants} onChange={setVariants} />
 
-          <section className="grid gap-3 rounded-lg border border-border bg-muted p-3">
-            <div className="text-sm font-medium text-foreground">Size Chart</div>
+          {vertical === "CLOTHING" && (
+            <section className="grid gap-3 rounded-lg border border-border bg-muted p-3">
+              <div className="text-sm font-medium text-foreground">Size Chart</div>
             <select
               value={sizeChartId}
               onChange={(event) => setSizeChartId(event.target.value)}
@@ -701,6 +785,154 @@ function ProductDialog({
             )}
             {selectedChart && <SizeChartPreview chart={selectedChart} />}
           </section>
+          )}
+
+          {vertical === "JEWELERY" && (
+            <section className="grid gap-3 rounded-lg border border-border bg-muted p-3">
+              <div className="text-sm font-medium text-foreground">Jewelry Details</div>
+              <div className="text-xs text-muted-foreground">
+                BIS hallmark fields. Metal type, purity and weight are required.
+              </div>
+              <div className="grid gap-3 md:grid-cols-2">
+                <Field
+                  name="jeweleryMetalType"
+                  label="Metal Type"
+                  defaultValue={product?.jeweleryDetails?.metalType}
+                  required
+                  helper="e.g. 22K Yellow Gold."
+                />
+                <label className={labelClass}>
+                  Purity
+                  <span className="text-[10px] normal-case text-red-700 dark:text-red-300">Required</span>
+                  <select
+                    name="jeweleryPurity"
+                    defaultValue={product?.jeweleryDetails?.purity || ""}
+                    required
+                    className={selectClass}
+                  >
+                    <option value="">Select purity</option>
+                    {JEWELERY_PURITIES.map((item) => (
+                      <option key={item} value={item}>
+                        {item}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <Field
+                  name="jeweleryWeightGrams"
+                  label="Weight (grams)"
+                  type="number"
+                  defaultValue={product?.jeweleryDetails?.weightGrams ?? ""}
+                  required
+                  helper="Net metal weight."
+                />
+                <Field
+                  name="jeweleryBisMark"
+                  label="BIS / HUID Mark"
+                  defaultValue={product?.jeweleryDetails?.bisMark}
+                  optional
+                />
+                <Field
+                  name="jeweleryGemstone"
+                  label="Gemstone"
+                  defaultValue={product?.jeweleryDetails?.gemstone}
+                  optional
+                  helper="e.g. Ruby, Diamond."
+                />
+                <Field
+                  name="jeweleryStoneWeightCt"
+                  label="Stone Weight (ct)"
+                  type="number"
+                  defaultValue={product?.jeweleryDetails?.stoneWeightCt ?? ""}
+                  optional
+                />
+                <Field
+                  name="jeweleryMakingCharge"
+                  label="Making Charge (₹)"
+                  type="number"
+                  defaultValue={product?.jeweleryDetails?.makingCharge ?? ""}
+                  optional
+                />
+                <Field
+                  name="jeweleryWastagePct"
+                  label="Wastage (%)"
+                  type="number"
+                  defaultValue={product?.jeweleryDetails?.wastagePct ?? ""}
+                  optional
+                />
+                <Field
+                  name="jeweleryCertNo"
+                  label="Certificate No."
+                  defaultValue={product?.jeweleryDetails?.certNo}
+                  optional
+                />
+                <Field
+                  name="jeweleryCertUrl"
+                  label="Certificate URL"
+                  defaultValue={product?.jeweleryDetails?.certUrl}
+                  optional
+                />
+                <label className="flex items-center gap-2 rounded-lg border border-border bg-muted px-3 py-2 text-sm text-muted-foreground">
+                  <input
+                    name="jeweleryHallmark"
+                    type="checkbox"
+                    defaultChecked={Boolean(product?.jeweleryDetails?.hallmark)}
+                  />
+                  Hallmarked
+                </label>
+              </div>
+            </section>
+          )}
+
+          {vertical === "FOOD" && (
+            <section className="grid gap-3 rounded-lg border border-border bg-muted p-3">
+              <div className="text-sm font-medium text-foreground">Food Details</div>
+              <div className="grid gap-3 md:grid-cols-2">
+                <label className={labelClass}>
+                  Veg / Non-Veg
+                  <select
+                    name="foodVegNonVeg"
+                    defaultValue={product?.foodDetails?.vegNonVeg || ""}
+                    className={selectClass}
+                  >
+                    <option value="">Select type</option>
+                    {FOOD_TYPES.map((item) => (
+                      <option key={item} value={item}>
+                        {item}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <Field
+                  name="foodShelfLife"
+                  label="Shelf Life"
+                  defaultValue={product?.foodDetails?.shelfLife}
+                  optional
+                  helper="e.g. 6 months."
+                />
+                <Field
+                  name="foodIngredients"
+                  label="Ingredients"
+                  defaultValue={(product?.foodDetails?.ingredients || []).join(", ")}
+                  optional
+                  helper="Comma separated."
+                />
+                <Field
+                  name="foodServingSize"
+                  label="Serving Size"
+                  defaultValue={product?.foodDetails?.servingSize}
+                  optional
+                />
+                <Field
+                  name="foodCalories"
+                  label="Calories"
+                  type="number"
+                  defaultValue={product?.foodDetails?.calories ?? ""}
+                  optional
+                />
+              </div>
+            </section>
+          )}
 
           <section className="grid gap-3 rounded-lg border border-border bg-muted p-3">
             <div className="text-sm font-medium text-foreground">Policies</div>

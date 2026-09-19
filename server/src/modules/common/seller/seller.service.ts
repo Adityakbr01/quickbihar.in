@@ -592,6 +592,7 @@ export class SellerService {
         if (query.status === "active") filter.isActive = true;
         if (query.status === "inactive") filter.isActive = false;
         if (query.approvalStatus && query.approvalStatus !== "ALL") filter.approvalStatus = query.approvalStatus;
+        if (query.vertical) filter.vertical = query.vertical;
 
         return await paginated(Product, filter, query, ["createdAt", "title", "price", "totalStock", "approvalStatus"]);
     }

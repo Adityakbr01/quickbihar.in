@@ -151,6 +151,32 @@ export interface ProductVariantPayload {
   sku?: string;
 }
 
+export type ProductVertical = "CLOTHING" | "FOOD" | "JEWELERY";
+
+export interface JeweleryDetailsPayload {
+  metalType?: string;
+  purity?: string;
+  hallmark?: boolean;
+  bisMark?: string;
+  gemstone?: string;
+  stoneWeightCt?: number;
+  weightGrams?: number;
+  makingCharge?: number;
+  wastagePct?: number;
+  certNo?: string;
+  certUrl?: string;
+}
+
+export const JEWELERY_PURITIES = [
+  "24K",
+  "22K",
+  "18K",
+  "14K",
+  "925 Silver",
+  "Platinum",
+  "Other",
+] as const;
+
 export interface AdminProduct {
   _id: string;
   id?: string;
@@ -169,6 +195,15 @@ export interface AdminProduct {
   storeId?: string;
   variants: ProductVariantPayload[];
   totalStock?: number;
+  vertical?: ProductVertical;
+  jeweleryDetails?: JeweleryDetailsPayload;
+  foodDetails?: {
+    vegNonVeg?: string;
+    shelfLife?: string;
+    ingredients?: string[];
+    servingSize?: string;
+    calories?: number;
+  };
   sizeChartId?: string | AdminSizeChart;
   isGstApplicable?: boolean;
   gstPercentage?: number;
@@ -234,6 +269,15 @@ export interface ProductPayload {
   isGstApplicable?: boolean;
   gstPercentage?: number;
   variants: ProductVariantPayload[];
+  vertical?: ProductVertical;
+  jeweleryDetails?: JeweleryDetailsPayload;
+  foodDetails?: {
+    vegNonVeg?: string;
+    shelfLife?: string;
+    ingredients?: string[];
+    servingSize?: string;
+    calories?: number;
+  };
   details?: {
     sku?: string;
     fit?: string;
@@ -444,6 +488,9 @@ const productFormData = (payload: ProductPayload, images?: File[]) => {
   appendOptional(formData, "isGstApplicable", payload.isGstApplicable);
   appendOptional(formData, "gstPercentage", payload.gstPercentage);
   appendOptional(formData, "variants", payload.variants);
+  appendOptional(formData, "vertical", payload.vertical);
+  appendOptional(formData, "jeweleryDetails", payload.jeweleryDetails);
+  appendOptional(formData, "foodDetails", payload.foodDetails);
   appendOptional(formData, "details", payload.details);
   appendOptional(formData, "tags", payload.tags);
   appendOptional(formData, "seo", payload.seo);

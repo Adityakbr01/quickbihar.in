@@ -9,6 +9,7 @@
     "build": "bun build src/server.ts --target bun --outdir ./dist --packages external --minify",
     "start": "bun run dist/server.js",
     "seed": "bun run src/db/runSeed.ts",
+    "seed:jewelry": "bun run src/seed/seedJewelry.ts",
     "migrate:identities": "bun run src/db/migrations/001-add-identities-array.ts",
     "migrate:flag-legacy-otp": "bun run src/db/migrations/002-flag-legacy-otp-users.ts",
     "migrate:drain-otp-redis": "bun run src/db/migrations/003-drain-redis-otp-keys.ts",

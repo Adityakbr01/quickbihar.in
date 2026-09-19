@@ -1,7 +1,8 @@
 import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
+  ActivityIndicator,
   FlatList,
   Image,
   Platform,
@@ -14,18 +15,8 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { ProductCard } from "@/src/features/Jewelery/components/ProductCard";
-import { collections } from "@/src/features/Jewelery/data/collections";
-import { products } from "@/src/features/Jewelery/data/products";
+import { useJeweleryCategories, useJeweleryProducts } from "@/src/features/Jewelery/hooks/useJeweleryCatalog";
 import { useColors } from "@/src/features/Jewelery/hooks/useColors";
-
-const collectionTabs = [
-  "All",
-  "Bridal",
-  "Everyday Luxury",
-  "Festive Edit",
-  "Statement Pieces",
-  "Contemporary Ethnic",
-];
 
 export default function JeweleryCollectionsScreen() {
   const colors = useColors();
@@ -33,10 +24,27 @@ export default function JeweleryCollectionsScreen() {
   const [activeTab, setActiveTab] = useState("All");
   const topPad = Platform.OS === "web" ? 67 : insets.top;
 
-  const filtered =
-    activeTab === "All"
-      ? products
-      : products.filter((p) => p.collection === activeTab);
+  const { data: cats } = useJeweleryCategories();
+  const collectionTabs = useMemo(
+    () => ["All", ...((cats ?? []).map((c) => c.title))],
+    [cats]
+  );
+  const chips = useMemo(
+    () => (cats ?? []).map((c) => ({ id: c._id, name: c.title, image: c.image ? { uri: c.image } : null })),
+    [cats]
+  );
+
+  const {
+    data: pages,
+    isLoading,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
+  } = useJeweleryProducts({ category: activeTab === "All" ? undefined : activeTab });
+  const filtered = useMemo(
+    () => (pages?.pages ?? []).flatMap((pg) => pg.data),
+    [pages]
+  );
 
   return (
     <View style={[styles.root, { backgroundColor: colors.ivory }]}>
@@ -93,7 +101,7 @@ export default function JeweleryCollectionsScreen() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.collectionScroll}
           >
-            {collections.map((c) => (
+            {chips.map((c) => (
               <Pressable
                 key={c.id}
                 style={({ pressed }) => [
@@ -104,11 +112,13 @@ export default function JeweleryCollectionsScreen() {
                 ]}
                 onPress={() => setActiveTab(c.name)}
               >
-                <Image
-                  source={c.image}
-                  style={styles.collectionChipImage}
-                  resizeMode="cover"
-                />
+                {c.image && (
+                  <Image
+                    source={c.image}
+                    style={styles.collectionChipImage}
+                    resizeMode="cover"
+                  />
+                )}
                 <View style={styles.collectionChipOverlay} />
                 <View style={styles.collectionChipContent}>
                   <Text
@@ -121,17 +131,6 @@ export default function JeweleryCollectionsScreen() {
                     ]}
                   >
                     {c.name}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.collectionChipCount,
-                      {
-                        color: "rgba(247,243,236,0.7)",
-                        fontFamily: "DMSans_400Regular",
-                      },
-                    ]}
-                  >
-                    {c.pieceCount} pieces
                   </Text>
                 </View>
               </Pressable>
@@ -190,11 +189,15 @@ export default function JeweleryCollectionsScreen() {
           style={[styles.productsSection, { backgroundColor: colors.ivory }]}
         >
           <View style={styles.productGrid}>
-            {filtered.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
+            {isLoading ? (
+              <ActivityIndicator color={colors.gold} style={{ flex: 1, paddingVertical: 40 }} />
+            ) : (
+              filtered.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))
+            )}
           </View>
-          {filtered.length === 0 && (
+          {!isLoading && filtered.length === 0 && (
             <View style={styles.emptyState}>
               <Feather name="package" size={32} color={colors.midGray} />
               <Text
@@ -206,6 +209,21 @@ export default function JeweleryCollectionsScreen() {
                 No pieces found in this collection
               </Text>
             </View>
+          )}
+          {hasNextPage && !isLoading && (
+            <Pressable
+              onPress={() => fetchNextPage()}
+              disabled={isFetchingNextPage}
+              style={{ alignItems: "center", paddingVertical: 16 }}
+            >
+              {isFetchingNextPage ? (
+                <ActivityIndicator color={colors.gold} />
+              ) : (
+                <Text style={[{ color: colors.gold, fontFamily: "DMSans_500Medium", fontSize: 12, letterSpacing: 1 }]}>
+                  LOAD MORE
+                </Text>
+              )}
+            </Pressable>
           )}
         </View>
       </ScrollView>

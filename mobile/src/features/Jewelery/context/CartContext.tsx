@@ -4,14 +4,18 @@ import React, {
   useCallback,
   useContext,
   useEffect,
-  useState,
+  useMemo,
 } from "react";
 
+import { useCartStore, type CartItem as StoreCartItem } from "@/src/features/common/cart/store/cartStore";
+import { useWishlistStore } from "@/src/features/common/wishlist/store/wishlistStore";
 import { Product } from "@/src/features/Jewelery/data/products";
 
 interface CartItem {
   product: Product;
   quantity: number;
+  /** Server variant SKU behind this line (needed for update/remove). */
+  sku: string;
 }
 
 interface CartContextType {
@@ -20,7 +24,7 @@ interface CartContextType {
   addToCart: (product: Product) => void;
   removeFromCart: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
-  toggleWishlist: (productId: string) => void;
+  toggleWishlist: (product: Product) => void;
   isWishlisted: (productId: string) => boolean;
   cartCount: number;
   cartTotal: number;
@@ -29,130 +33,124 @@ interface CartContextType {
 
 const CartContext = createContext<CartContextType | null>(null);
 
+function liteProductFromStoreItem(item: StoreCartItem): Product {
+  return {
+    id: item.productId,
+    name: item.productTitle ?? "Jewellery",
+    subtitle: "",
+    price: item.price ?? 0,
+    rating: 0,
+    reviewCount: 0,
+    collection: "",
+    metal: "",
+    occasions: [],
+    description: "",
+    craftDetail: "",
+    image: item.image ? { uri: item.image } : null,
+    images: item.image ? [{ uri: item.image }] : [],
+    inStock: item.availableStock ?? 0,
+  };
+}
+
+function defaultSkuFor(raw: NonNullable<Product["_raw"]>): string | null {
+  const variants = raw.variants ?? [];
+  const inStock = variants.find((v) => (v.stock ?? 0) > 0);
+  return (inStock ?? variants[0])?.sku ?? null;
+}
+
+/**
+ * Jewelery cart/wishlist bridge — delegates to the single shared commerce
+ * stores (useCartStore + useWishlistStore) so jewelry flows through the same
+ * server cart, quote → order → Razorpay pipeline as clothing.
+ *
+ * Legacy local-only keys (jewelery_cart/jewelery_wishlist) are retired: the
+ * shared stores persist + sync to the server themselves.
+ */
 export function CartProvider({ children }: { children: React.ReactNode }) {
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  const [wishlist, setWishlist] = useState<string[]>([]);
+  const storeItems = useCartStore((s) => s.items);
+  const storeCount = useCartStore((s) => s.itemCount);
+  const storeSubtotal = useCartStore((s) => s.subtotal);
+  const wishlistItems = useWishlistStore((s) => s.items);
 
   useEffect(() => {
-    const load = async () => {
-      try {
-        const [cartData, wishlistData] = await Promise.all([
-          // ponytail: mock cart keys — prefixed to avoid collision with common/cart cartStore
-          AsyncStorage.getItem("jewelery_cart"),
-          AsyncStorage.getItem("jewelery_wishlist"),
-        ]);
-        if (cartData) setCartItems(JSON.parse(cartData));
-        if (wishlistData) setWishlist(JSON.parse(wishlistData));
-      } catch {}
-    };
-    load();
+    AsyncStorage.multiRemove(["jewelery_cart", "jewelery_wishlist"]).catch(() => {});
   }, []);
 
-  const saveCart = useCallback(async (items: CartItem[]) => {
-    try {
-      await AsyncStorage.setItem("jewelery_cart", JSON.stringify(items));
-    } catch {}
-  }, []);
-
-  const saveWishlist = useCallback(async (items: string[]) => {
-    try {
-      await AsyncStorage.setItem("jewelery_wishlist", JSON.stringify(items));
-    } catch {}
-  }, []);
-
-  const addToCart = useCallback(
-    (product: Product) => {
-      setCartItems((prev) => {
-        const existing = prev.find((i) => i.product.id === product.id);
-        const updated = existing
-          ? prev.map((i) =>
-              i.product.id === product.id
-                ? { ...i, quantity: i.quantity + 1 }
-                : i,
-            )
-          : [...prev, { product, quantity: 1 }];
-        saveCart(updated);
-        return updated;
-      });
-    },
-    [saveCart],
+  const skuForProduct = useCallback(
+    (productId: string) => storeItems.find((i) => i.productId === productId)?.sku,
+    [storeItems]
   );
+
+  const addToCart = useCallback((product: Product) => {
+    const raw = product._raw;
+    if (!raw) return;
+    const sku = defaultSkuFor(raw);
+    if (!sku) return;
+    void useCartStore.getState().addItem(raw, sku, 1);
+  }, []);
 
   const removeFromCart = useCallback(
     (productId: string) => {
-      setCartItems((prev) => {
-        const updated = prev.filter((i) => i.product.id !== productId);
-        saveCart(updated);
-        return updated;
-      });
+      const sku = skuForProduct(productId);
+      if (sku) void useCartStore.getState().removeItem(sku);
     },
-    [saveCart],
+    [skuForProduct]
   );
 
   const updateQuantity = useCallback(
     (productId: string, quantity: number) => {
+      const sku = skuForProduct(productId);
+      if (!sku) return;
       if (quantity < 1) {
-        removeFromCart(productId);
+        void useCartStore.getState().removeItem(sku);
         return;
       }
-      setCartItems((prev) => {
-        const updated = prev.map((i) =>
-          i.product.id === productId ? { ...i, quantity } : i,
-        );
-        saveCart(updated);
-        return updated;
-      });
+      void useCartStore.getState().updateQuantity(sku, quantity);
     },
-    [removeFromCart, saveCart],
+    [skuForProduct]
   );
 
-  const toggleWishlist = useCallback(
-    (productId: string) => {
-      setWishlist((prev) => {
-        const updated = prev.includes(productId)
-          ? prev.filter((id) => id !== productId)
-          : [...prev, productId];
-        saveWishlist(updated);
-        return updated;
-      });
-    },
-    [saveWishlist],
-  );
+  const toggleWishlist = useCallback((product: Product) => {
+    if (!product?.id) return;
+    void useWishlistStore.getState().toggleItem(product.id, product._raw);
+  }, []);
 
   const isWishlisted = useCallback(
-    (productId: string) => wishlist.includes(productId),
-    [wishlist],
+    (productId: string) => wishlistItems.includes(productId),
+    [wishlistItems]
   );
 
   const clearCart = useCallback(() => {
-    setCartItems([]);
-    saveCart([]);
-  }, [saveCart]);
+    void useCartStore.getState().clearCart();
+  }, []);
 
-  const cartCount = cartItems.reduce((sum, i) => sum + i.quantity, 0);
-  const cartTotal = cartItems.reduce(
-    (sum, i) => sum + i.product.price * i.quantity,
-    0,
+  const cartItems = useMemo<CartItem[]>(
+    () =>
+      storeItems.map((item) => ({
+        product: liteProductFromStoreItem(item),
+        quantity: item.quantity,
+        sku: item.sku,
+      })),
+    [storeItems]
   );
 
-  return (
-    <CartContext.Provider
-      value={{
-        cartItems,
-        wishlist,
-        addToCart,
-        removeFromCart,
-        updateQuantity,
-        toggleWishlist,
-        isWishlisted,
-        cartCount,
-        cartTotal,
-        clearCart,
-      }}
-    >
-      {children}
-    </CartContext.Provider>
+  const value = useMemo<CartContextType>(
+    () => ({
+      cartItems,
+      wishlist: wishlistItems,
+      addToCart,
+      removeFromCart,
+      updateQuantity,
+      toggleWishlist,
+      isWishlisted,
+      cartCount: storeCount,
+      cartTotal: storeSubtotal,
+      clearCart,
+    }),
+    [cartItems, wishlistItems, addToCart, removeFromCart, updateQuantity, toggleWishlist, isWishlisted, storeCount, storeSubtotal, clearCart]
   );
+
+  return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }
 
 const defaultCartContext: CartContextType = {

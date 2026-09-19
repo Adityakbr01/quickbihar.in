@@ -60,14 +60,16 @@ export function CollectionCard({
         >
           {collection.name}
         </Text>
-        <Text
-          style={[
-            styles.count,
-            { color: "rgba(247,243,236,0.7)", fontFamily: "DMSans_400Regular" },
-          ]}
-        >
-          {collection.pieceCount} pieces
-        </Text>
+        {collection.pieceCount > 0 && (
+          <Text
+            style={[
+              styles.count,
+              { color: "rgba(247,243,236,0.7)", fontFamily: "DMSans_400Regular" },
+            ]}
+          >
+            {collection.pieceCount} pieces
+          </Text>
+        )}
         <View
           style={[styles.exploreRow]}
         >

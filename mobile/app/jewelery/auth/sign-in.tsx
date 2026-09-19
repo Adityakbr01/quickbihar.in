@@ -16,15 +16,19 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useAuth } from "@/src/features/Jewelery/context/AuthContext";
+import { googleAuthRequest } from "@/src/features/common/auth/api/auth.api";
+import { GoogleSignInButton } from "@/src/features/common/auth/components/GoogleSignInButton";
+import { useAuthStore } from "@/src/features/common/auth/store/authStore";
+import { useCartStore } from "@/src/features/common/cart/store/cartStore";
 import { useColors } from "@/src/features/Jewelery/hooks/useColors";
 import { JEWELERY_MODULE_CONFIG } from "@/src/constants/app.constants";
 export default function SignInScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { signIn, sendOtp } = useAuth();
+  const { signIn } = useAuth();
+  const { setAuth } = useAuthStore();
 
-  const [authTab, setAuthTab] = useState<"otp" | "password">("otp");
-  const [phone, setPhone] = useState("");
+  const [authTab, setAuthTab] = useState<"password" | "google">("password");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -37,28 +41,30 @@ export default function SignInScreen() {
   const topPad = Platform.OS === "web" ? 67 : insets.top;
   const bottomPad = Platform.OS === "web" ? 34 : insets.bottom;
 
-  const handleSendOtp = async () => {
+  const syncGuestCart = () => {
+    useCartStore.getState().syncLocalCart().catch(() => {});
+  };
+
+  const handleGoogleSuccess = async (idToken: string) => {
     setError("");
-    const cleanedPhone = phone.trim();
-    if (cleanedPhone.length !== 10) {
-      setError("Please enter a valid 10-digit mobile number.");
-      return;
-    }
-
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setLoading(true);
-    const result = await sendOtp(cleanedPhone);
-    setLoading(false);
-
-    if (result.success) {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      router.push({
-        pathname: "/jewelery/auth/otp" as any,
-        params: { target: cleanedPhone, phone: cleanedPhone, flow: "login" },
-      });
-    } else {
+    try {
+      const response = await googleAuthRequest({ idToken, client: "mobile" });
+      const data = response?.data;
+      if (data?.user && data?.accessToken) {
+        await setAuth(data.user, data.accessToken, data.refreshToken || "");
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        syncGuestCart();
+        router.replace("/jewelery/(tabs)/profile" as any);
+      } else {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+        setError(response?.message || "Google sign-in failed.");
+      }
+    } catch (err: any) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      setError(result.error ?? "Failed to send OTP.");
+      setError(err?.response?.data?.message || err?.message || "Google sign-in failed.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -81,6 +87,7 @@ export default function SignInScreen() {
 
     if (result.success) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      syncGuestCart();
       router.replace("/jewelery/(tabs)/profile" as any);
     } else {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
@@ -123,27 +130,6 @@ export default function SignInScreen() {
             <Pressable
               style={[
                 styles.tabItem,
-                authTab === "otp" && { backgroundColor: colors.gold },
-              ]}
-              onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                setAuthTab("otp");
-                setError("");
-              }}
-            >
-              <Text
-                style={[
-                  styles.tabText,
-                  { color: authTab === "otp" ? colors.ivory : colors.warmGray, fontFamily: "DMSans_500Medium" },
-                ]}
-              >
-                Mobile OTP
-              </Text>
-            </Pressable>
-
-            <Pressable
-              style={[
-                styles.tabItem,
                 authTab === "password" && { backgroundColor: colors.gold },
               ]}
               onPress={() => {
@@ -161,40 +147,34 @@ export default function SignInScreen() {
                 Email & Password
               </Text>
             </Pressable>
+
+            <Pressable
+              style={[
+                styles.tabItem,
+                authTab === "google" && { backgroundColor: colors.gold },
+              ]}
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                setAuthTab("google");
+                setError("");
+              }}
+            >
+              <Text
+                style={[
+                  styles.tabText,
+                  { color: authTab === "google" ? colors.ivory : colors.warmGray, fontFamily: "DMSans_500Medium" },
+                ]}
+              >
+                Google
+              </Text>
+            </Pressable>
           </View>
 
           {/* Divider */}
           <View style={[styles.divider, { backgroundColor: colors.midGray }]} />
 
-          {/* Tab 1: Phone OTP */}
-          {authTab === "otp" ? (
-            <View style={styles.fieldGroup}>
-              <Text style={[styles.fieldLabel, { color: colors.warmGray, fontFamily: "DMSans_400Regular" }]}>
-                MOBILE NUMBER
-              </Text>
-              <View style={[
-                styles.inputRow,
-                { borderBottomColor: focusedField === "phone" ? colors.gold : colors.midGray },
-              ]}>
-                <Text style={[styles.countryCode, { color: colors.ink, fontFamily: "DMSans_400Regular" }]}>+91</Text>
-                <View style={[styles.inputSep, { backgroundColor: colors.midGray }]} />
-                <TextInput
-                  style={[styles.input, { color: colors.ink, fontFamily: "DMSans_400Regular" }]}
-                  placeholder="Enter 10-digit mobile number"
-                  placeholderTextColor={colors.warmGray}
-                  keyboardType="phone-pad"
-                  value={phone}
-                  onChangeText={setPhone}
-                  onFocus={() => setFocusedField("phone")}
-                  onBlur={() => setFocusedField(null)}
-                  returnKeyType="done"
-                  onSubmitEditing={handleSendOtp}
-                  maxLength={10}
-                />
-              </View>
-            </View>
-          ) : (
-            /* Tab 2: Email & Password */
+          {/* Tab 1: Email & Password */}
+          {authTab === "password" ? (
             <>
               {/* Email */}
               <View style={styles.fieldGroup}>
@@ -259,6 +239,24 @@ export default function SignInScreen() {
                 </Text>
               </Pressable>
             </>
+          ) : (
+            /* Tab 2: Google */
+            <View style={styles.fieldGroup}>
+              <Text style={[styles.fieldLabel, { color: colors.warmGray, fontFamily: "DMSans_400Regular" }]}>
+                ONE-TAP SIGN IN
+              </Text>
+              <Text style={[styles.subline, { color: colors.warmGray, fontFamily: "DMSans_300Light", marginBottom: 16 }]}>
+                New users are registered automatically.
+              </Text>
+              <GoogleSignInButton
+                mode="signin"
+                disabled={loading}
+                onSuccess={(idToken) => {
+                  handleGoogleSuccess(idToken).catch(() => {});
+                }}
+                onError={(msg) => setError(msg)}
+              />
+            </View>
           )}
 
           {/* Error Banner */}
@@ -271,23 +269,25 @@ export default function SignInScreen() {
             </View>
           )}
 
-          {/* Primary Action Button */}
-          <Pressable
-            style={({ pressed }) => [
-              styles.primaryBtn,
-              { backgroundColor: pressed ? colors.goldLight : colors.gold, opacity: loading ? 0.7 : 1 },
-            ]}
-            onPress={authTab === "otp" ? handleSendOtp : handlePasswordSignIn}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color={colors.ivory} size="small" />
-            ) : (
-              <Text style={[styles.primaryBtnText, { color: colors.ivory, fontFamily: "DMSans_500Medium" }]}>
-                {authTab === "otp" ? "Get OTP →" : "Sign In"}
-              </Text>
-            )}
-          </Pressable>
+          {/* Primary Action Button (password tab only — Google tab acts via its own button) */}
+          {authTab === "password" && (
+            <Pressable
+              style={({ pressed }) => [
+                styles.primaryBtn,
+                { backgroundColor: pressed ? colors.goldLight : colors.gold, opacity: loading ? 0.7 : 1 },
+              ]}
+              onPress={handlePasswordSignIn}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator color={colors.ivory} size="small" />
+              ) : (
+                <Text style={[styles.primaryBtnText, { color: colors.ivory, fontFamily: "DMSans_500Medium" }]}>
+                  Sign In
+                </Text>
+              )}
+            </Pressable>
+          )}
 
           {/* Divider with OR */}
           <View style={styles.orRow}>

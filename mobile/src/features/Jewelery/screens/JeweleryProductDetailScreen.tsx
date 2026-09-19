@@ -3,6 +3,7 @@ import * as Haptics from "expo-haptics";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useState } from "react";
 import {
+  ActivityIndicator,
   Image,
   Platform,
   Pressable,
@@ -16,7 +17,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { APP_CURRENCY } from "@/src/constants";
 import { ImageCarousel } from "@/src/features/Jewelery/components/ImageCarousel";
 import { ProductCard } from "@/src/features/Jewelery/components/ProductCard";
-import { getProductById, products, Product as JeweleryProduct } from "@/src/features/Jewelery/data/products";
+import type { Product as JeweleryProduct } from "@/src/features/Jewelery/data/products";
+import { useJeweleryProduct, useSimilarJewelery } from "@/src/features/Jewelery/hooks/useJeweleryCatalog";
 import { useCart } from "@/src/features/Jewelery/context/CartContext";
 import { useColors } from "@/src/features/Jewelery/hooks/useColors";
 
@@ -53,10 +55,16 @@ export default function JeweleryProductDetailScreen() {
 
   const bottomPad = Platform.OS === "web" ? 34 : insets.bottom;
 
-  const product = getProductById(id ?? "");
-  const related = products
-    .filter((p: JeweleryProduct) => p.id !== id && p.collection === product?.collection)
-    .slice(0, 4);
+  const { data: product, isLoading } = useJeweleryProduct(id);
+  const { data: related = [] } = useSimilarJewelery(id, 4);
+
+  if (isLoading) {
+    return (
+      <View style={[styles.root, { backgroundColor: colors.ivory, alignItems: "center", justifyContent: "center" }]}>
+        <ActivityIndicator color={colors.gold} />
+      </View>
+    );
+  }
 
   if (!product) {
     return (
@@ -116,7 +124,7 @@ export default function JeweleryProductDetailScreen() {
         <Pressable
           onPress={() => {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            toggleWishlist(product.id);
+            toggleWishlist(product);
           }}
           style={[
             styles.backBtnInner,
@@ -370,7 +378,7 @@ export default function JeweleryProductDetailScreen() {
           style={[styles.wishlistStickyBtn, { borderColor: colors.midGray }]}
           onPress={() => {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            toggleWishlist(product.id);
+            toggleWishlist(product);
           }}
         >
           <Feather

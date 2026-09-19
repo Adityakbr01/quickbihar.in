@@ -46,6 +46,7 @@ export const sellerListQuerySchema = z.object({
     search: z.string().trim().optional(),
     status: z.string().trim().optional(),
     approvalStatus: z.enum(["DRAFT", "PENDING_REVIEW", "APPROVED", "REJECTED", "ALL"]).optional(),
+    vertical: z.enum(["CLOTHING", "FOOD", "JEWELERY"]).optional(),
     sortBy: z.string().trim().optional(),
     sortOrder: z.enum(["asc", "desc"]).optional(),
     dateFrom: z.string().trim().optional(),

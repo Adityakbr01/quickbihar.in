@@ -22,6 +22,7 @@ export interface SellerQueryParams {
   search?: string;
   status?: string;
   approvalStatus?: string;
+  vertical?: string;
   sortBy?: string;
   sortOrder?: "asc" | "desc";
   dateFrom?: string;
@@ -187,6 +188,27 @@ export interface SellerProduct {
   images?: Array<{ url: string; fileId: string }>;
   variants: ProductVariantPayload[];
   totalStock?: number;
+  vertical?: "CLOTHING" | "FOOD" | "JEWELERY";
+  jeweleryDetails?: {
+    metalType?: string;
+    purity?: string;
+    hallmark?: boolean;
+    bisMark?: string;
+    gemstone?: string;
+    stoneWeightCt?: number;
+    weightGrams?: number;
+    makingCharge?: number;
+    wastagePct?: number;
+    certNo?: string;
+    certUrl?: string;
+  };
+  foodDetails?: {
+    vegNonVeg?: string;
+    shelfLife?: string;
+    ingredients?: string[];
+    servingSize?: string;
+    calories?: number;
+  };
   sizeChartId?: string | SellerSizeChart;
   isGstApplicable?: boolean;
   gstPercentage?: number;
@@ -249,6 +271,27 @@ export interface SellerProductPayload {
   isGstApplicable?: boolean;
   gstPercentage?: number;
   variants: ProductVariantPayload[];
+  vertical?: "CLOTHING" | "FOOD" | "JEWELERY";
+  jeweleryDetails?: {
+    metalType?: string;
+    purity?: string;
+    hallmark?: boolean;
+    bisMark?: string;
+    gemstone?: string;
+    stoneWeightCt?: number;
+    weightGrams?: number;
+    makingCharge?: number;
+    wastagePct?: number;
+    certNo?: string;
+    certUrl?: string;
+  };
+  foodDetails?: {
+    vegNonVeg?: string;
+    shelfLife?: string;
+    ingredients?: string[];
+    servingSize?: string;
+    calories?: number;
+  };
   details?: {
     sku?: string;
     fit?: string;
@@ -693,6 +736,9 @@ const productFormData = (payload: Partial<SellerProductPayload>, images?: File[]
   appendOptional(formData, "isGstApplicable", payload.isGstApplicable);
   appendOptional(formData, "gstPercentage", payload.gstPercentage);
   appendOptional(formData, "variants", payload.variants);
+  appendOptional(formData, "vertical", payload.vertical);
+  appendOptional(formData, "jeweleryDetails", payload.jeweleryDetails);
+  appendOptional(formData, "foodDetails", payload.foodDetails);
   appendOptional(formData, "details", payload.details);
   appendOptional(formData, "tags", payload.tags);
   appendOptional(formData, "seo", payload.seo);

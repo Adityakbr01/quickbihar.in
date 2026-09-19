@@ -138,3 +138,45 @@ Fir `bun install` — 1 package removed, lockfile clean. ExoPlayer/AVPlayer nati
 Verify baad me: `grep expo-video` zero refs, `tsc --noEmit` clean.
 
 Note: future me video chahiye ho to wapas add karna: `bun add expo-video` + plugin entry + `npx expo prebuild`. Tab tak dead weight rakhne ka koi matlab nahi tha.
+
+## 8. LIVE verification with admin + seller (19 Sep 2026, same day)
+
+Status: ✅ DONE. Server local start karke real credentials se har flow check kiya (tokens/keys kahi save nahi kiye, `/tmp` cleanup done).
+
+- Admin login (`admin@quickbihar.in`) → 200, role ADMIN ✅
+- Seller login (`aditykbr01@gmail.com`) → 200, role SELLER, APPROVED + verified ✅
+- `GET /products/public?vertical=JEWELERY` → 200 (empty — expected, koi product nahi tha) ✅
+- `GET /products/trending?vertical=JEWELERY` → 200 ✅
+- `seed:jewelry` chalaya → **8 JEWELERY categories live** (Jewellery + Necklace/Ring/Earrings/Bangle/Pendant/Bridal Set/Chain), `GET /categories/public?vertical=JEWELERY` → 200 ✅
+- Nayi JEWELERY validation live prove: bina `jeweleryDetails` POST → **400 `jeweleryDetails is required for JEWELERY products`** (koi DB write nahi) ✅
+- Refactored `findSimilar` regression check (clothing product id) → 200 with results ✅
+- Wishlist toggle + cart add fake id par → 404 `Product not found` (sahi lookup, koi write nahi) ✅
+- Admin `GET /products` → 200 ✅
+- `bun test jewelry` → 10/10 pass; mobile `tsc --noEmit` → clean ✅
+
+⚠️ BLOCKER (action needed, code issue nahi): seller ka store setup incomplete hai — `policyRefs.returnPolicy/refundPolicy/shippingPolicy` missing. Isliye seller abhi **koi bhi** product (clothing bhi) create nahi kar sakta — ye clothing wala purana rule jewelry par bhi sahi lag raha hai. Fix: dash-web me seller store policies complete karo, fir seller jewelry products list kar payega. Redis bhi local par down tha (`ECONNREFUSED 6379`) — server chal gaya par OTP/rate-limit paths ke liye Redis chahiye.
+
+## 9. DONE — Seller update/delete owner-check bug (19 Sep 2026, critical)
+
+Live test me pakda gaya: seller apna khud ka product **edit/delete nahi kar sakta tha** (hamesha 403) — clothing sellers ke liye bhi. Root cause: `ProductDAO.findById` `sellerId` populate karta hai, aur service `product.sellerId.toString()` compare kar raha tha → populated object ka toString `"[object Object]"` hota hai, kabhi match nahi hota.
+
+Fix (`server/src/modules/clothing/products/products.service.ts`): `ownerIdOf()` helper jo populated `{_id}` unwrap karta hai. `updateProduct` (3 jagah) + `deleteProduct` me lagaya. Live prove: seller PATCH → 200, DELETE → 200 (stale server ne 1 ghanta confuse kiya — `taskkill //F //IM bun.exe` + restart ke baad pass).
+
+## 10. DONE — reset-password endpoint bug (19 Sep 2026)
+
+`POST /auth/reset-password`: validation `{token, password}` mangta hai par controller `req.body.newPassword` padh raha tha → real reset flow sab clients ke liye broken tha. One-line fix (`auth.controller.ts`). Jewelry mobile auth bhi isi par migrate: sign-in (Email+Google, OTP tab hataya — server routes exist hi nahi karte), sign-up (password field + auto-login), forgot (reset-link email), reset-password (token-based), otp route retired → sign-in redirect. `AuthContext` se dead OTP functions hataye.
+
+## 11. DONE — Seller panel chain via /sellers/products (19 Sep 2026)
+
+- Create JEWELERY (dash-web payload shape) → 201, approval DRAFT ✅
+- Seller list `?vertical=JEWELERY` → 1 result ✅ (backend: `sellerListQuerySchema` + `SellerService.listProducts` + `findBySellerId` me vertical/search support add kiya; `GET /products` seller path bhi query forward karta hai)
+- Update jewelry fields → 200 ✅, Delete → 200 ✅
+- Test data cleanup done — public catalog wapas empty, koi junk nahi.
+
+## 12. DONE — Dash-web catalog tabs (19 Sep 2026)
+
+Screenshot wali demand: Create Product me **catalog tabs (Clothing | Jewelry | Food)**, separate tailored forms, centralized:
+- New shared module `dash-web/src/features/catalog/` — `lib/catalogVerticals.ts` (verticals, purities, food types) + `components/CatalogVerticalTabs.tsx` (dono panels use karte hai).
+- **Seller dialog**: tabs (edit par locked), category dropdown vertical ke hisab se filter, Size Chart sirf Clothing me, Jewelry section (metal/purity/weight required + BIS/gemstone/making/cert), Food section (veg/shelf/ingredients), submit validation + payload.
+- **Admin form**: same tabs + jewelry/food sections + payload + list me vertical filter. Seller list me bhi "All catalogs" filter.
+- `tsc -b` clean, `oxlint` me sirf pre-existing warnings. Server ke 23 test fails pre-existing hai (clean tree par bhi fail — stash karke prove kiya).

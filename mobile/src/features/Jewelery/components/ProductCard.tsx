@@ -48,7 +48,7 @@ export function ProductCard({ product, style }: ProductCardProps) {
 
   const handleWishlist = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    toggleWishlist(product.id);
+    toggleWishlist(product);
   };
 
   const handleAddToCart = () => {
