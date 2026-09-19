@@ -1,4 +1,5 @@
 import { Feather } from "@expo/vector-icons";
+import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
 import React, { useEffect, useMemo, useState } from "react";
 import {
@@ -85,7 +86,10 @@ export default function JewelerySearchScreen() {
             </Pressable>
           )}
         </View>
-        <Pressable onPress={() => router.back()} hitSlop={8}>
+        <Pressable onPress={() => {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          router.back();
+        }} hitSlop={8}>
           <Text
             style={[
               styles.cancelText,
@@ -118,7 +122,10 @@ export default function JewelerySearchScreen() {
                     backgroundColor: pressed ? colors.pearl : "transparent",
                   },
                 ]}
-                onPress={() => setQuery(s)}
+                onPress={() => {
+                  Haptics.selectionAsync();
+                  setQuery(s);
+                }}
               >
                 <Text
                   style={[

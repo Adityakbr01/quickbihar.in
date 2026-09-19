@@ -12,7 +12,7 @@ import CartSummary from "../components/CartSummary";
 import EmptyCart from "../components/EmptyCart";
 import CouponInput from "../components/CouponInput";
 import { useRouter } from "expo-router";
-import Toast from "react-native-toast-message";
+import { Alert } from "react-native";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
 import { AnimatedPrice } from "@/src/components/common/AnimatedPrice";
 
@@ -65,12 +65,10 @@ const CartContent = () => {
 
   const handleCheckout = () => {
     if (!isAuthenticated) {
-      Toast.show({
-        type: "info",
-        text1: "Login Required",
-        text2: "Please login to place an order",
-      });
-      router.push("/auth" as any);
+      Alert.alert("Login Required", "Please login to place an order", [
+        { text: "Cancel", style: "cancel" },
+        { text: "Login", onPress: () => router.push("/auth" as any) },
+      ]);
       return;
     }
     router.push("/checkout" as any);

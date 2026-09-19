@@ -21,7 +21,7 @@ import { useMallDetail, useSubmitMallReview } from "../hooks/useMalls";
 import { SeoHead } from "@/src/components/seo/SeoHead";
 import { breadcrumbJsonLd, mallJsonLd, mallMeta } from "@/src/lib/seo";
 import { LinearGradient } from "expo-linear-gradient";
-import Toast from "react-native-toast-message";
+import * as Haptics from "expo-haptics";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
 
 interface MallDetailScreenProps {
@@ -115,20 +115,17 @@ const MallDetailScreen: React.FC<MallDetailScreenProps> = ({ id, initialMall }) 
       { rating, comment },
       {
         onSuccess: () => {
-          Toast.show({
-            type: "success",
-            text1: "Review Submitted",
-            text2: "Thank you for rating this mall!",
-          });
+          Haptics.notificationAsync(
+            Haptics.NotificationFeedbackType.Success,
+          ).catch(() => {});
           setComment("");
           setShowReviewForm(false);
         },
         onError: (err: any) => {
-          Toast.show({
-            type: "error",
-            text1: "Submission Failed",
-            text2: err.message || "Failed to submit review.",
-          });
+          // Haptic-only failure signal — the form stays open to retry.
+          Haptics.notificationAsync(
+            Haptics.NotificationFeedbackType.Error,
+          ).catch(() => {});
         },
       }
     );
@@ -162,11 +159,6 @@ const MallDetailScreen: React.FC<MallDetailScreenProps> = ({ id, initialMall }) 
     const { latitude, longitude } = mall.address || {};
     if (latitude && longitude) {
       Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`).catch((err) => {
-        Toast.show({
-          type: "error",
-          text1: "Error",
-          text2: "Could not open Google Maps",
-        });
         console.error("Open Maps Error:", err);
       });
     }

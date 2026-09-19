@@ -15,7 +15,6 @@ import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { getMyOrdersRequest } from "../api/order.api";
 import { socketClient } from "@/src/lib/socket";
 import { SocketEvents } from "@/src/constants/socketEvents";
-import Toast from "react-native-toast-message";
 import SafeViewWrapper from "@/src/provider/SafeViewWrapper";
 import dayjs from "dayjs";
 import { createStyles } from "../style/OrderListScreen.style";
@@ -40,15 +39,7 @@ const OrderListScreen = () => {
 
     socketClient.on(SocketEvents.ORDER_STATUS_UPDATE, (data) => {
       console.log("[OrderListScreen] Received update event:", data);
-
-      // Update local state and show a toast
       fetchOrders();
-
-      Toast.show({
-        type: "info",
-        text1: "Order Update! 📦",
-        text2: data.message || `Your order status is now ${data.status}`,
-      });
     });
 
     return () => {

@@ -4,11 +4,11 @@ import { socketClient } from "@/src/lib/socket";
 import { authStorage } from "@/src/lib/authStorage";
 import React, { useEffect } from "react";
 import { Platform } from "react-native";
+import * as Haptics from "expo-haptics";
 import { useCartStore } from "../features/common/cart/store/cartStore";
 import { useAuthStore } from "../features/common/auth/store/authStore";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
-import Toast from "react-native-toast-message";
 
 export const SocketListenerProvider: React.FC<{
   children: React.ReactNode;
@@ -74,11 +74,6 @@ export const SocketListenerProvider: React.FC<{
     socketClient.on(SocketEvents.NEW_NOTIFICATION, (data) => {
       console.log("[SocketListener] New live notification received:", data);
       queryClient.invalidateQueries({ queryKey: ["user-notifications"] });
-      Toast.show({
-        type: "info",
-        text1: data?.title || "New Notification",
-        text2: data?.description || "",
-      });
     });
 
     socketClient.on(SocketEvents.NOTIFICATION_UPDATED, async (data) => {
@@ -125,11 +120,11 @@ export const SocketListenerProvider: React.FC<{
         console.warn("[SocketListener] Failed to schedule local persistent notification:", err);
       }
 
-      Toast.show({
-        type: "success",
-        text1: data?.title || "Live Activity Update",
-        text2: data?.description || "",
-      });
+      // Haptic-only signal for live activity updates — the notification
+      // list refreshes via query invalidation above, no toast/alert needed.
+      Haptics.notificationAsync(
+        Haptics.NotificationFeedbackType.Success,
+      ).catch(() => {});
     });
 
     return () => {

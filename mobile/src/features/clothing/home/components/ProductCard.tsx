@@ -10,7 +10,6 @@ import { Product as MockProduct } from "../lib/mockData";
 import { useWishlistStore } from "@/src/features/common/wishlist/store/wishlistStore";
 import { useCartStore } from "@/src/features/common/cart/store/cartStore";
 import * as Haptics from "expo-haptics";
-import Toast from "react-native-toast-message";
 import WishlistHeart from "@/src/components/common/WishlistHeart";
 import { VariantSelectorBottomSheet } from "../../product/components/modals/VariantSelectorBottomSheet";
 import { formatPrice } from "@/src/utils/formatPrice";
@@ -59,19 +58,8 @@ export const ProductCard = ({ item, desktopWidth }: ProductCardProps) => {
 
     try {
       await addItem(item, sku, 1);
-      Toast.show({
-        type: 'success',
-        text1: 'Added to Cart',
-        text2: `${productData.name} added successfully!`,
-        props: { id: Date.now() }
-      });
     } catch {
-      Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: 'Failed to add item to cart',
-        props: { id: Date.now() }
-      });
+      // silent — haptics already fired
     }
   };
 

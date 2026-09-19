@@ -1,5 +1,5 @@
 import { router } from "expo-router";
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   Image,
   Pressable,
@@ -10,9 +10,9 @@ import {
 } from "react-native";
 import Carousel from "react-native-reanimated-carousel";
 
-import { useColors } from "@/src/features/Jewelery/hooks/useColors";
-import type { Product } from "@/src/features/Jewelery/data/products";
 import { APP_CURRENCY } from "@/src/constants";
+import type { Product } from "@/src/features/Jewelery/data/products";
+import { useColors } from "@/src/features/Jewelery/hooks/useColors";
 
 const AUTO_SCROLL_INTERVAL = 4500;
 

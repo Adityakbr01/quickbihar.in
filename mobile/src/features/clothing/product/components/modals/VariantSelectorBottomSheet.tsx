@@ -13,7 +13,6 @@ import { Theme } from "@/src/theme/Provider/ThemeProvider";
 import { IProduct } from "../../types/product.types";
 import { useCartStore } from "@/src/features/common/cart/store/cartStore";
 import * as Haptics from "expo-haptics";
-import Toast from "react-native-toast-message";
 import { useRouter } from "expo-router";
 
 import SizeChartModal from "./SizeChartModal";
@@ -176,13 +175,8 @@ export const VariantSelectorBottomSheet = ({
     }
 
     if (!selectedSize && sizesForColor.length > 0) {
+      // Haptic-only validation — the size row is visible in this sheet.
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      Toast.show({
-        type: "error",
-        text1: "Select Size",
-        text2: "Please select a size first",
-        props: { id: Date.now() },
-      });
       return;
     }
 
@@ -192,20 +186,9 @@ export const VariantSelectorBottomSheet = ({
     try {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       await addItem(product, sku, 1);
-      Toast.show({
-        type: "success",
-        text1: "Added to Bag",
-        text2: `${product.title} added to your bag`,
-        props: { id: Date.now() },
-      });
       onClose();
     } catch {
-      Toast.show({
-        type: "error",
-        text1: "Error",
-        text2: "Failed to add item to bag",
-        props: { id: Date.now() },
-      });
+      // silent — haptics already fired
     }
   };
 

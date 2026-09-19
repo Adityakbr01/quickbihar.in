@@ -21,7 +21,6 @@ import LivingPixelOcean from "@/src/components/LivingPixelOcean";
 import { TextInput } from "@/src/theme/components/TextInput";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { useSetPassword } from "@/src/features/common/auth/hooks/useAuth";
-import Toast from "react-native-toast-message";
 
 /**
  * In-account password setter.
@@ -91,11 +90,6 @@ export default function SetPasswordScreen() {
     setPasswordRequest(payload, {
       onSuccess: () => {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        Toast.show({
-          type: "success",
-          text1: "Password updated",
-          text2: "You can now sign in with your email and password.",
-        });
         if (router.canGoBack()) router.back();
         else router.replace("/account/profile-info" as any);
       },

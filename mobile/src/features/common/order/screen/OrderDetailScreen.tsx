@@ -18,7 +18,6 @@ import {
   Feather,
 } from "@expo/vector-icons";
 import dayjs from "dayjs";
-import Toast from "react-native-toast-message";
 import * as Haptics from "expo-haptics";
 
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
@@ -130,11 +129,6 @@ export default function OrderDetailScreen() {
       try {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       } catch {}
-      Toast.show({
-        type: "info",
-        text1: "Order Status Updated 🚀",
-        text2: data.message || `Status updated to ${data.status || "latest"}`,
-      });
     };
 
     socket.on(SocketEvents.ORDER_STATUS_UPDATE, handleUpdate);
@@ -183,11 +177,6 @@ export default function OrderDetailScreen() {
       setOrder(data);
     } catch (err: any) {
       console.error("[OrderDetailScreen] Fetch error:", err);
-      Toast.show({
-        type: "error",
-        text1: "Failed to load order details",
-        text2: err?.message || "Please check your network connection.",
-      });
     } finally {
       if (showLoading) setIsLoading(false);
     }
@@ -269,11 +258,6 @@ export default function OrderDetailScreen() {
 
   const handleCopyOrderId = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    Toast.show({
-      type: "success",
-      text1: "Order ID Copied",
-      text2: `#${order?.orderId || orderId}`,
-    });
   };
 
   const handleShare = async () => {
@@ -303,11 +287,9 @@ export default function OrderDetailScreen() {
   const handleHelp = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     Linking.openURL("tel:9304922632").catch(() => {
-      Toast.show({
-        type: "info",
-        text1: "Customer Support",
-        text2: "Helpline: +91 9304922632",
-      });
+      // Haptic-only fallback — dialer failures are rare and the Help
+      // button itself already signals the tap.
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     });
   };
 

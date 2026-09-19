@@ -4,14 +4,12 @@ import { useFocusEffect, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   Image,
   ScrollView,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
-import Toast from "react-native-toast-message";
 import { getAddressesRequest, updateAddressRequest } from "../../address/api/address.api";
 import PhoneOtpSheet from "../../address/components/PhoneOtpSheet";
 import { useCartStore } from "../../cart/store/cartStore";
@@ -27,6 +25,7 @@ import { createOrderStyles } from "../style/orderStyles";
 import IOSAlertDialog, {
   AlertButton,
 } from "@/src/components/ui/IOSAlertDialog";
+import * as Haptics from "expo-haptics";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
 import { PhoneMissingBanner } from "../components/PhoneMissingBanner";
 
@@ -209,11 +208,6 @@ const CheckoutScreen = () => {
       });
     } catch (error) {
       console.error("Failed to fetch addresses:", error);
-      Toast.show({
-        type: "error",
-        text1: "Error",
-        text2: "Failed to load addresses",
-      });
     } finally {
       setIsLoading(false);
     }
@@ -221,11 +215,10 @@ const CheckoutScreen = () => {
 
   const handlePlaceOrder = async () => {
     if (!selectedAddress) {
-      Toast.show({
-        type: "error",
-        text1: "Required",
-        text2: "Please select a delivery address",
-      });
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      showAlert("Address Required", "Please select a delivery address", [
+        { text: "OK", style: "default" },
+      ]);
       return;
     }
 
@@ -343,11 +336,7 @@ const CheckoutScreen = () => {
           );
         });
     } catch (error: any) {
-      Toast.show({
-        type: "error",
-        text1: "Error",
-        text2: error.message || "Failed to initiate order",
-      });
+      showAlert("Error", error.message || "Failed to initiate order", [{ text: "OK", style: "default" }]);
     } finally {
       setIsProcessingPayment(false);
     }
@@ -795,11 +784,6 @@ const CheckoutScreen = () => {
                 phone: verifiedPhone,
               });
               await fetchAddresses();
-              Toast.show({
-                type: "success",
-                text1: "Phone Verified",
-                text2: "Your delivery address phone has been verified!",
-              });
             } catch (e) {
               console.error("Failed to update address after verification:", e);
               await fetchAddresses();

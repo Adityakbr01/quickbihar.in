@@ -44,7 +44,6 @@ import { breadcrumbJsonLd, productJsonLd, productMeta } from "@/src/lib/seo";
 import { useWishlistStore } from "@/src/features/common/wishlist/store/wishlistStore";
 import { useCartStore } from "@/src/features/common/cart/store/cartStore";
 import * as Haptics from "expo-haptics";
-import Toast from "react-native-toast-message";
 import WishlistHeart from "@/src/components/common/WishlistHeart";
 
 import { useSizeChart, useSizeCharts } from "@/src/features/clothing/sizeChart/hooks/useSizeCharts";
@@ -224,13 +223,9 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
     }
 
     if (!selectedSize && sizesForColor.length > 0) {
+      // Haptic-only validation — the size selector is right here on
+      // screen, no popup needed.
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      Toast.show({
-        type: "error",
-        text1: "Select Size",
-        text2: "Please select a size before adding to bag",
-        props: { id: Date.now() }
-      });
       return;
     }
 
@@ -240,19 +235,8 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
     try {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       await addItem(dp, sku, 1);
-      Toast.show({
-        type: "success",
-        text1: "Added to Bag",
-        text2: `${dp.title} has been added to your bag`,
-        props: { id: Date.now() }
-      });
     } catch {
-      Toast.show({
-        type: "error",
-        text1: "Error",
-        text2: "Failed to add item to bag",
-        props: { id: Date.now() }
-      });
+      // silent — haptics already signalled error
     }
   };
 
@@ -260,12 +244,8 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
     try {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       await voteHelpfulMutation.mutateAsync(reviewId);
-    } catch (error: any) {
-      Toast.show({
-        type: "error",
-        text1: "Vote Failed",
-        text2: error?.response?.data?.message || "Please login to vote",
-      });
+    } catch {
+      // silent
     }
   };
 

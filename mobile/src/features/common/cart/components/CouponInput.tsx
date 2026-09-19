@@ -5,7 +5,6 @@ import {
   TextInput,
   TouchableOpacity,
   ActivityIndicator,
-  Alert
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
@@ -61,7 +60,8 @@ const CouponInput = () => {
       (c) => c.code.toUpperCase() === targetCode
     );
     if (isAlreadyApplied) {
-      Alert.alert("Coupon Already Applied", "This coupon is already applied to your cart.");
+      // Haptic-only — the coupon is already listed as applied below.
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
       return;
     }
 

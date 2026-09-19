@@ -1,5 +1,4 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import Toast from "react-native-toast-message";
 import {
   getUserNotificationsRequest,
   markAsReadRequest,
@@ -44,11 +43,6 @@ export const useMarkAsRead = () => {
     },
     onError: (error: any) => {
       console.error("[useMarkAsRead] Error:", error);
-      Toast.show({
-        type: "error",
-        text1: "Error",
-        text2: error.message || "Failed to mark notification as read",
-      });
     },
   });
 };
@@ -60,19 +54,9 @@ export const useMarkAllAsRead = () => {
     mutationFn: markAllAsReadRequest,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["user-notifications"] });
-      Toast.show({
-        type: "success",
-        text1: "Success",
-        text2: "All notifications marked as read",
-      });
     },
     onError: (error: any) => {
       console.error("[useMarkAllAsRead] Error:", error);
-      Toast.show({
-        type: "error",
-        text1: "Error",
-        text2: error.message || "Failed to mark all notifications as read",
-      });
     },
   });
 };

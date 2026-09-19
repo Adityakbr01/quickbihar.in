@@ -8,7 +8,6 @@ import { useRouter } from "expo-router";
 import LazyLottie from "@/src/components/common/LazyLottie";
 import React from "react";
 import { Image } from "expo-image";
-import Toast from "react-native-toast-message";
 import { useCartStore } from "@/src/features/common/cart/store/cartStore";
 import { useWishlistStore } from "@/src/features/common/wishlist/store/wishlistStore";
 import { DealProduct as MockProduct } from "../lib/dealsConfig";
@@ -65,31 +64,14 @@ export const DealProductCard = ({ product, width }: DealProductCardProps) => {
 
     try {
       await addItem(product, sku, 1);
-
-      Toast.show({
-        type: 'success',
-        text1: 'Added to Cart',
-        text2: `${productData.title} added successfully!`,
-        props: {
-          id: Date.now(), // ✅ MOST IMPORTANT LINE
-        },
-      });
-
     } catch {
-      Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: 'Failed to add item to cart',
-        props: {
-          id: Date.now(), // ✅ consistency
-        },
-      });
+      // silent — haptics already fired
     }
   };
 
   // Helper to handle both Mock and Real Data mapping
   const computedDiscount = React.useMemo(() => {
-  const p = product as IProduct;
+    const p = product as IProduct;
     if (p.discountPercentage && Number(p.discountPercentage) > 0) {
       return `${Math.round(Number(p.discountPercentage))}% OFF`;
     }

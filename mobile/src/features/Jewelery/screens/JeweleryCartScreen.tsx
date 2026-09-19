@@ -31,7 +31,7 @@ export default function JeweleryCartScreen() {
 
   const handleCheckout = () => {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    router.push("/checkout" as any);
+    router.push("/jewelery/checkout" as any);
   };
 
   return (

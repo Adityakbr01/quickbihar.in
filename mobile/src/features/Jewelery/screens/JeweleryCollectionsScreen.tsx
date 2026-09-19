@@ -1,4 +1,5 @@
 import { Feather } from "@expo/vector-icons";
+import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
 import React, { useMemo, useState } from "react";
 import {
@@ -70,7 +71,10 @@ export default function JeweleryCollectionsScreen() {
         >
           Collections
         </Text>
-        <Pressable onPress={() => router.push("/jewelery/search" as any)} hitSlop={8}>
+        <Pressable onPress={() => {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          router.push("/jewelery/search" as any);
+        }} hitSlop={8}>
           <Feather name="search" size={20} color={colors.ink} />
         </Pressable>
       </View>
@@ -114,7 +118,10 @@ export default function JeweleryCollectionsScreen() {
                     opacity: pressed ? 0.85 : 1,
                   },
                 ]}
-                onPress={() => setActiveTab(c.name)}
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  setActiveTab(c.name);
+                }}
               >
                 {c.image && (
                   <Image

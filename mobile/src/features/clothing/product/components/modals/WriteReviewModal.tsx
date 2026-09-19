@@ -11,7 +11,6 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { Theme } from "@/src/theme/Provider/ThemeProvider";
 import * as Haptics from "expo-haptics";
-import Toast from "react-native-toast-message";
 
 import { useRouter } from "expo-router";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
@@ -76,23 +75,14 @@ export const WriteReviewModal: React.FC<WriteReviewModalProps> = ({
   const handleSubmit = async () => {
     if (!isAuthenticated) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-      Toast.show({
-        type: "error",
-        text1: "Login Required",
-        text2: "Please log in to submit a review.",
-      });
       onClose();
       router.push("/auth" as any);
       return;
     }
 
     if (!comment.trim()) {
+      // Haptic-only — the comment box is focused right here in the sheet.
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      Toast.show({
-        type: "error",
-        text1: "Comment Required",
-        text2: "Please share a few words about your experience",
-      });
       return;
     }
 
@@ -104,24 +94,13 @@ export const WriteReviewModal: React.FC<WriteReviewModalProps> = ({
         comment: comment.trim(),
       });
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      Toast.show({
-        type: "success",
-        text1: "Review Submitted",
-        text2: "Thank you for reviewing this product!",
-      });
       setTitle("");
       setComment("");
       setRating(5);
       onClose();
     } catch (error: any) {
+      // Haptic-only failure signal — the sheet stays open to retry.
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      Toast.show({
-        type: "error",
-        text1: "Submission Failed",
-        text2:
-          error?.response?.data?.message ||
-          "Please log in to submit a review.",
-      });
     } finally {
       setIsSubmitting(false);
     }

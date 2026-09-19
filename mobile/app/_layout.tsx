@@ -1,4 +1,3 @@
-import { toastConfig } from "@/src/components/common/CustomToast";
 import { SheetProvider } from "@/src/components/common/BottomSheet";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
 import { configureGoogleSignIn } from "@/src/features/common/auth/config/googleSignInConfig";
@@ -12,7 +11,6 @@ import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 import { View, Platform } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import Toast from "react-native-toast-message";
 import * as SplashScreen from "expo-splash-screen";
 
 function AppNotificationsInit() {
@@ -70,7 +68,6 @@ function ThemedApp() {
                 contentStyle: { backgroundColor: theme.background },
               }}
             />
-            <Toast config={toastConfig} />
           </SocketListenerProvider>
         </SheetProvider>
       </TrueSheetProvider>

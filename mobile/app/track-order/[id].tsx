@@ -22,6 +22,7 @@ import { authStorage } from "@/src/lib/authStorage";
 import { NoIndexHead } from "@/src/components/seo/SeoHead";
 import { useSocketStore } from "@/src/store/useSocketStore";
 import { SocketEvents } from "@/src/constants/socketEvents";
+import * as Haptics from "expo-haptics";
 
 export default function TrackOrderScreen() {
   const { id } = useLocalSearchParams();
@@ -147,9 +148,10 @@ export default function TrackOrderScreen() {
   const submitCancellation = async (subOrderId: string, reason: string) => {
     try {
       setCancelLoading(true);
-      const response = await cancelSubOrderRequest(subOrderId, reason);
-      Alert.alert("Success", response.message || "Cancellation request sent.");
-      
+      await cancelSubOrderRequest(subOrderId, reason);
+      // Haptic-only success — the tracking card refreshes below.
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+
       const orderData = await getOrderByIdRequest(orderId);
       const updated = orderData?.data || orderData;
       setOrder(updated);
@@ -159,8 +161,8 @@ export default function TrackOrderScreen() {
         if (match) setSelectedSubOrder(match);
       }
     } catch (error: any) {
-      const errMsg = error.response?.data?.message || error.message || "Failed to cancel shipment";
-      Alert.alert("Cancellation Failed", errMsg);
+      // Haptic-only failure signal — the shipment stays active to retry.
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     } finally {
       setCancelLoading(false);
     }
