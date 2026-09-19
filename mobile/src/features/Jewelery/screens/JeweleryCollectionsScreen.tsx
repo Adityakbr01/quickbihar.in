@@ -22,7 +22,7 @@ export default function JeweleryCollectionsScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const [activeTab, setActiveTab] = useState("All");
-  const topPad = Platform.OS === "web" ? 67 : insets.top;
+  const topPad = Platform.OS === "web" ? 16 : insets.top;
 
   const { data: cats } = useJeweleryCategories();
   const collectionTabs = useMemo(

@@ -71,11 +71,17 @@ export function ProductCard({ product, style }: ProductCardProps) {
       ]}
     >
       <View style={styles.imageContainer}>
-        <Image
-          source={product.image}
-          style={styles.image}
-          resizeMode="cover"
-        />
+        {product.image ? (
+          <Image
+            source={product.image}
+            style={styles.image}
+            resizeMode="cover"
+          />
+        ) : (
+          <View style={[styles.image, styles.imageFallback, { backgroundColor: colors.champagne }]}>
+            <Feather name="image" size={28} color={colors.gold} />
+          </View>
+        )}
         {product.badge && (
           <View
             style={[styles.badge, { backgroundColor: colors.gold }]}
@@ -166,6 +172,10 @@ const styles = StyleSheet.create({
   image: {
     width: "100%",
     height: "100%",
+  },
+  imageFallback: {
+    alignItems: "center",
+    justifyContent: "center",
   },
   badge: {
     position: "absolute",

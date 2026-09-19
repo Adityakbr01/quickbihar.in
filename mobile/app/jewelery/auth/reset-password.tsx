@@ -36,7 +36,7 @@ export default function ResetPasswordScreen() {
   const [focusedField, setFocusedField] = useState<string | null>(null);
 
   const confirmRef = useRef<TextInput>(null);
-  const topPad = Platform.OS === "web" ? 67 : insets.top;
+  const topPad = Platform.OS === "web" ? 16 : insets.top;
   const bottomPad = Platform.OS === "web" ? 34 : insets.bottom;
 
   const validate = () => {

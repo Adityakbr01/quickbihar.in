@@ -27,7 +27,7 @@ export const FoodHomeScreen = () => {
   return (
     <SafeViewWrapper>
       <HomeHeader />
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView contentContainerStyle={[styles.container, { paddingBottom: 32 }]}>
         <View style={[styles.banner, isDark
           ? { backgroundColor: "rgba(225,29,72,0.14)", borderColor: "rgba(225,29,72,0.40)" }
           : { backgroundColor: "#FFF1F2", borderColor: "#FECDD3" }]}>

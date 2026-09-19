@@ -29,7 +29,7 @@ export default function JeweleryWishlistScreen() {
   const insets = useSafeAreaInsets();
   const wishlistIds = useWishlistStore((s) => s.items);
   const cachedProducts = useWishlistStore((s) => s.cachedProducts);
-  const topPad = Platform.OS === "web" ? 67 : insets.top;
+  const topPad = Platform.OS === "web" ? 16 : insets.top;
 
   return (
     <View style={[styles.root, { backgroundColor: colors.ivory }]}>

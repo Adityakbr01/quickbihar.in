@@ -140,6 +140,19 @@ const geoJsonCoords = (value?: any) => {
     return finiteCoords({ latitude, longitude });
 };
 
+/**
+ * Pickup point for distance/pricing. The STORE is the single source of
+ * truth (rider collects there; serviceability checks the same point).
+ * Per-item logistics coords are only a fallback for stores without a
+ * location — stale product coordinates previously priced a local
+ * delivery as 99 km and paid the rider ₹500 on a ₹839 order.
+ */
+export function resolvePickupCoords(store: any, items: any[] = []) {
+    const fromStore = geoJsonCoords(store?.currentLocation);
+    if (fromStore) return fromStore;
+    return items.map((item) => finiteCoords(item)).find(Boolean) || null;
+}
+
 const minutesOfDay = (time?: string) => {
     const match = /^(\d{2}):(\d{2})$/.exec(time || "");
     if (!match) return null;
@@ -424,8 +437,7 @@ export class OrderPricingService {
             const sellerNet = roundMoney(commissionBase - platformCommission);
             const storeId = idString(sellerItems[0]?.storeId);
             const store = storeId ? storesById.get(storeId) : null;
-            const itemCoords = sellerItems.map((item) => finiteCoords(item)).find(Boolean) || null;
-            const storeCoords = itemCoords || geoJsonCoords(store?.currentLocation);
+            const storeCoords = resolvePickupCoords(store, sellerItems);
             const distanceKm = storeCoords ? roundMoney(distanceKmBetween(storeCoords, customerCoords) || 0) : 0;
             const bonusFlags = await detectBonusFlags(bonusRules, storeCoords, customerCoords);
             const payoutInfo = calculateRiderPayout(distanceKm, {

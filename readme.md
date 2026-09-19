@@ -2,9 +2,9 @@
 
 QuickBihar.in is a **hyperlocal, multi-vertical commerce platform** built as a three-app monorepo: a customer storefront, a web dashboard for admins and sellers, and a backend API with realtime delivery orchestration.
 
-Clothing is the live vertical today. The codebase has been deliberately restructured around a **`common` (vertical-agnostic) + `clothing` (apparel-specific)** seam so that **food** and **jewelery** verticals can be added later without rewrites.
+Clothing and jewelery are the live verticals today. The codebase is restructured around a **`common` (vertical-agnostic) + per-vertical** seam so that the **food** vertical can be added later without rewrites.
 
-> **Status:** Clothing ships end-to-end — discovery → cart → checkout → payment → multi-seller fulfillment → rider delivery → returns. The `food` and `jewelery` folders exist as scaffolded placeholders on the [roadmap](#roadmap), not yet implemented.
+> **Status:** Clothing and jewelery ship end-to-end — discovery → cart → checkout → payment → multi-seller fulfillment → rider delivery → returns. The `food` folder exists as a scaffolded placeholder on the [roadmap](#roadmap), not yet implemented.
 
 ---
 
@@ -70,7 +70,7 @@ Each app is an independent package with its own `package.json`, dependencies, an
 - **Zustand** (auth/global state), **TanStack Query** + AsyncStorage persistence (server cache)
 - **Axios** REST client, **Socket.IO client** for realtime order/delivery updates
 - **react-hook-form + Zod** forms, **react-native-razorpay** checkout
-- Reanimated 4, Hugeicons, Lottie; run scripts use **Bun** (`bun expo start`)
+- Reanimated 4, Lottie, single icon system (`@expo/vector-icons` via `AppIcon`); run scripts use **Bun** (`bun expo start`)
 
 **`server/` — Bun + Express API**
 
@@ -116,7 +116,7 @@ All traffic enters through Nginx and is routed by path:
 
 ## The `common` vs `clothing` seam
 
-To support future verticals, shared code is separated from apparel-specific code on every layer. New verticals (food, jewelery) are dropped into their own folders without touching `common`.
+To support future verticals, shared code is separated from apparel-specific code on every layer. New verticals (food) are dropped into their own folders without touching `common`. Jewelery already follows this pattern (`mobile/src/features/Jewelery/`, server `vertical=JEWELERY`).
 
 **Server** — `server/src/modules/`
 - `common/` — auth, user, rbac, order, cart, coupon, notification, banner, category, delivery, deliveryBoy, fulfillment, admin, socket, savedAddress, paymentMethod, onboarding, appConfig, label, mall, refundPolicy, wishlist, store, seller
@@ -125,7 +125,7 @@ To support future verticals, shared code is separated from apparel-specific code
 **Mobile** — `mobile/src/features/`
 - `common/` — account, address, admin, banner, cart, category, coupon, notification, order, profileInfo, refundPolicy, trackOrder, wishlist, auth
 - `clothing/` — home, product, search, sizeChart
-- `Delivery/`, `Onboarding/` — cross-role features; `Food/`, `Jewelery/` — placeholders
+- `Delivery/`, `Onboarding/` — cross-role features; `Jewelery/` — live jewelry storefront; `Food/` — placeholder
 
 **Web** — `web/src/features/` (`auth`, `dashboard`, `seller`, `delivery`, `onboarding`). Clothing coupling here is embedded inside shared admin/seller panels; files are marked `// CLOTHING-SPECIFIC — see multi-vertical milestone` for later extraction.
 
@@ -336,13 +336,13 @@ Detailed sequence/state diagrams for each flow are in [`docs/ARCHITECTURE_AND_FL
 
 ## Roadmap
 
-The platform is architected for three verticals. **Clothing** is live; **food** and **jewelery** are the next milestone (placeholder folders already scaffolded). Planned work, in order:
+The platform is architected for three verticals. **Clothing** and **jewelery** are live; **food** is the next milestone (placeholder folder already scaffolded). Completed for jewelery, remaining in order:
 
-1. **Schema generalization (server):** extend `StoreType`/`sellerType` to `CLOTHING | FOOD | JEWELERY`; make product `variants`/`size`/`color` conditional per vertical; add food fields (veg/nonveg, expiry, weight) and jewelery fields (metal, purity, hallmark, gemstone).
-2. **Seller onboarding:** vertical selector + per-vertical product forms.
-3. **Web dashboards:** render product forms dynamically by `store.type`.
-4. **Mobile:** vertical-parameterized feature tree; add `food` and `jewelery` route trees.
-5. **Catalog:** per-vertical category discriminator.
+1. **Schema generalization (server):** extend `StoreType`/`sellerType` to `CLOTHING | FOOD | JEWELERY`; make product `variants`/`size`/`color` conditional per vertical; add food fields (veg/nonveg, expiry, weight) and jewelery fields (metal, purity, hallmark, gemstone). ✅ jewelery fields done and enforced; food fields pending. ✅ jewelery fields done and enforced; food fields pending.
+2. **Seller onboarding:** ✅ done — catalog tabs (Clothing | Jewelry | Food) with tailored forms in seller + admin dashboards; category dropdown filters by vertical.
+3. **Web dashboards:** ✅ done — shared `features/catalog/` module (tabs + vertical constants) used by admin and seller panels; vertical filters on product lists.
+4. **Mobile:** ✅ jewelery done — real catalog/cart/wishlist/checkout/auth on shared commerce stores (`vertical=JEWELERY`); food route tree still pending.
+5. **Catalog:** ✅ done — categories carry `vertical`; 8 JEWELERY categories seeded; admin can create vertical-scoped categories.
 
 Open correctness/security items (payment races, credential hardening, HTTPS/domain migration, return state machine, etc.) are tracked in [`docs/WIRE-FLOW-AUDIT-TODO.md`](docs/WIRE-FLOW-AUDIT-TODO.md).
 

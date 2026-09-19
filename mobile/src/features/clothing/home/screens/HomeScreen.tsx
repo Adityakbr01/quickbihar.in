@@ -70,7 +70,11 @@ const HomeScreen = ({ rootSlug }: { rootSlug?: string }) => {
       <View style={localStyles.scrollView}>
         <ScrollView
           style={localStyles.scrollView}
-          contentContainerStyle={isWide ? localStyles.desktopContent : undefined}
+          contentContainerStyle={[
+            isWide ? localStyles.desktopContent : undefined,
+            // Bottom tab bar overlays content (absolute) — keep last items visible.
+            { paddingBottom: isDesktop ? 24 : 100 },
+          ]}
           showsVerticalScrollIndicator={false}
           stickyHeaderIndices={isDesktop ? undefined : [1]}
           refreshControl={

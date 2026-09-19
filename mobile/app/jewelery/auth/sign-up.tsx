@@ -37,7 +37,7 @@ export default function SignUpScreen() {
   const emailRef = useRef<TextInput>(null);
   const passwordRef = useRef<TextInput>(null);
 
-  const topPad = Platform.OS === "web" ? 67 : insets.top;
+  const topPad = Platform.OS === "web" ? 16 : insets.top;
   const bottomPad = Platform.OS === "web" ? 34 : insets.bottom;
 
   const handleSignUp = async () => {

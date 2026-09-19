@@ -15,6 +15,7 @@ import {
 } from "react-native";
 
 import { useColors } from "@/src/features/Jewelery/hooks/useColors";
+import type { Product } from "@/src/features/Jewelery/data/products";
 
 const { width } = Dimensions.get("window");
 
@@ -23,7 +24,7 @@ const AUTO_SCROLL_INTERVAL = 4500;
 
 interface HeroSlide {
   id: string;
-  image: any;
+  image?: any;
   label: string;
   headline: string;
   body: string;
@@ -32,10 +33,9 @@ interface HeroSlide {
   secondaryCta?: string;
 }
 
-const slides: HeroSlide[] = [
+const BRAND_SLIDES: HeroSlide[] = [
   {
     id: "s1",
-    image: null,
     label: "NEW ARRIVALS — SUMMER EDIT",
     headline: "For the woman\nwho wears gold\nlike a second skin.",
     body: "Handcrafted fine jewellery rooted in Indian tradition.",
@@ -45,7 +45,6 @@ const slides: HeroSlide[] = [
   },
   {
     id: "s2",
-    image: null,
     label: "BRIDAL 2026",
     headline: "Because you've\nimagined this moment\nsince you were seven.",
     body: "Sacred. Heirloom. Forever. Our bridal collection awaits.",
@@ -55,16 +54,15 @@ const slides: HeroSlide[] = [
   },
   {
     id: "s3",
-    image: null,
     label: "FESTIVE EDIT",
     headline: "For the nights that\nsmell like agarbatti\nand feel like magic.",
     body: "Kundan, polki and gold — curated for every celebration.",
     ctaLabel: "Shop Festive →",
     ctaRoute: "/jewelery/collections",
+    secondaryCta: "Book a Consultation →",
   },
   {
     id: "s4",
-    image: null,
     label: "STATEMENT PIECES",
     headline: "Not subtle.\nNot sorry.\nJust gold.",
     body: "Bold artisan pieces for the woman who commands attention.",
@@ -73,24 +71,47 @@ const slides: HeroSlide[] = [
   },
 ];
 
-export function HeroCarousel() {
+/**
+ * Hero carousel. Feed it real catalog products and it builds shoppable
+ * slides from their photos; otherwise brand slides render on emerald.
+ * No mock imagery — every pixel is either server data or flat brand color.
+ */
+export function HeroCarousel({ items }: { items?: Product[] }) {
   const colors = useColors();
+  const withPhotos = (items ?? []).filter((p) => p.image);
+  const slides: HeroSlide[] = withPhotos.length
+    ? withPhotos.slice(0, 4).map((p) => ({
+        id: `p-${p.id}`,
+        image: p.image,
+        label: p.collection?.toUpperCase() || "FEATURED",
+        headline: p.name,
+        body: `${p.subtitle} · ₹${p.price.toLocaleString("en-IN")}`,
+        ctaLabel: "Shop This Piece →",
+        ctaRoute: `/jewelery/product/${p.id}`,
+      }))
+    : BRAND_SLIDES;
   const [activeIndex, setActiveIndex] = useState(0);
   const flatListRef = useRef<FlatList>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  const slideCount = slides.length;
+
   const startTimer = useCallback(() => {
     if (timerRef.current) clearInterval(timerRef.current);
+    if (slideCount < 2) return;
     timerRef.current = setInterval(() => {
       setActiveIndex((prev) => {
-        const next = (prev + 1) % slides.length;
-        flatListRef.current?.scrollToIndex({ index: next, animated: true });
+        const next = (prev + 1) % slideCount;
+        try {
+          flatListRef.current?.scrollToIndex({ index: next, animated: true });
+        } catch {}
         return next;
       });
     }, AUTO_SCROLL_INTERVAL);
-  }, []);
+  }, [slideCount]);
 
   useEffect(() => {
+    setActiveIndex(0);
     startTimer();
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
@@ -114,8 +135,11 @@ export function HeroCarousel() {
 
   const renderSlide = ({ item }: { item: HeroSlide }) => (
     <View style={styles.slide}>
-      <Image source={item.image} style={styles.slideImage} resizeMode="cover" />
-      <View style={styles.overlay} />
+      {item.image ? (
+        <Image source={item.image} style={styles.slideImage} resizeMode="cover" />
+      ) : (
+        <View style={[styles.slideImage, { backgroundColor: colors.emerald }]} />
+      )}      <View style={styles.overlay} />
       <View style={styles.slideContent}>
         <Text
           style={[

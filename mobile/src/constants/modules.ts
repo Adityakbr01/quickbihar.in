@@ -19,19 +19,19 @@ export const APP_MODULES: AppModule[] = [
     route: "/(tabs)/clothing/home",
   },
   {
-    id: "food",
-    name: "Food",
-    label: "Food",
-    iconName: "fast-food-outline",
-    badgeColor: "#E11D48",
-    route: "/food",
-  },
-  {
     id: "jewelery",
     name: "Jewelry",
     label: "Jewelry",
     iconName: "sparkles-outline",
     badgeColor: "#D97706",
     route: "/jewelery",
+  },
+  {
+    id: "food",
+    name: "Food",
+    label: "Food",
+    iconName: "fast-food-outline",
+    badgeColor: "#E11D48",
+    route: "/food",
   },
 ];

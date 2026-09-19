@@ -108,7 +108,7 @@ export default function JeweleryProductDetailScreen() {
       <View
         style={[
           styles.backBtn,
-          { top: (Platform.OS === "web" ? 67 : insets.top) + 10 },
+          { top: (Platform.OS === "web" ? 16 : insets.top) + 10 },
         ]}
       >
         <Pressable

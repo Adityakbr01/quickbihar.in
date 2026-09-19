@@ -91,29 +91,3 @@ export const logoutRequest = async () => {
   const response = await axiosInstance.post("/auth/logout");
   return response.data;
 };
-
-// ─── DEPRECATED OTP — kept for the parallel Jewelery auth flow ─
-// These will be removed in Phase 7 when the server's /auth/request-otp
-// and /auth/verify-otp routes are deleted. The main auth flow
-// (`auth.screen.tsx`) no longer uses them.
-export const requestOTPRequest = async (
-  payload:
-    | string
-    | { email?: string; phone?: string; target?: string; isRegistration?: boolean; flow?: string }
-) => {
-  const data =
-    typeof payload === "string" ? { target: payload, phone: payload, email: payload } : payload;
-  const response = await axiosInstance.post("/auth/request-otp", data);
-  return response.data;
-};
-
-export const verifyOTPRequest = async (data: {
-  email?: string;
-  phone?: string;
-  target?: string;
-  identifier?: string;
-  otp: string;
-}) => {
-  const response = await axiosInstance.post("/auth/verify-otp", data);
-  return response.data;
-};

@@ -16,12 +16,11 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { JEWELERY_MODULE_CONFIG } from "@/src/constants";
 import { useAuth } from "@/src/features/Jewelery/context/AuthContext";
-import {
-  MOCK_CREDITS,
-  MOCK_ORDERS,
-} from "@/src/features/Jewelery/data/mockUserData";
+import { useCart } from "@/src/features/Jewelery/context/CartContext";
+import { getMyOrdersRequest } from "@/src/features/common/order/api/order.api";
 import { useColors } from "@/src/features/Jewelery/hooks/useColors";
 import { useTopPad } from "@/src/hooks/useTopPad";
+import { useQuery } from "@tanstack/react-query";
 
 const guestMenuItems = [
   {
@@ -113,9 +112,17 @@ export default function JeweleryAccountScreen() {
   const topPad = useTopPad();
   const bottomPad = Platform.OS === "web" ? 34 : 0;
   const { user, signOut } = useAuth();
+  const { wishlist } = useCart();
 
-  const activeOrders = MOCK_ORDERS.filter(
-    (o) => o.status !== "Delivered" && o.status !== "Cancelled",
+  const TERMINAL_ORDER_STATUS = ["DELIVERED", "CANCELLED", "REFUNDED", "REJECTED", "FAILED"];
+  const { data: ordersResp } = useQuery({
+    queryKey: ["jewelery-account-orders"],
+    queryFn: getMyOrdersRequest,
+    enabled: !!user,
+  });
+  const realOrders: any[] = (ordersResp as any)?.data ?? [];
+  const activeOrders = realOrders.filter(
+    (o) => !TERMINAL_ORDER_STATUS.includes(o.status),
   );
 
   const handleSignOut = () => {
@@ -263,9 +270,9 @@ export default function JeweleryAccountScreen() {
               onPress={() => router.push("/account/orders")}
             >
               {[
-                { label: "Orders", value: String(MOCK_ORDERS.length) },
+                { label: "Orders", value: String(realOrders.length) },
                 { label: "Active", value: String(activeOrders.length) },
-                { label: "Credits", value: `₹${MOCK_CREDITS}` },
+                { label: "Wishlist", value: String(wishlist.length) },
               ].map((s, i) => (
                 <React.Fragment key={s.label}>
                   <View style={styles.stat}>
@@ -332,7 +339,7 @@ export default function JeweleryAccountScreen() {
               <MenuItem
                 icon="package"
                 label="My Orders"
-                sub={`${MOCK_ORDERS.length} orders · ${activeOrders.length} active`}
+                sub={`${realOrders.length} orders · ${activeOrders.length} active`}
                 badge={
                   activeOrders.length > 0
                     ? String(activeOrders.length)
@@ -344,33 +351,13 @@ export default function JeweleryAccountScreen() {
                 icon="heart"
                 label="Wishlist"
                 sub="Pieces you've saved"
-                route="/(tabs)/wishlist"
+                route="/jewelery/(tabs)/wishlist"
               />
               <MenuItem
                 icon="map-pin"
                 label="Saved Addresses"
-                sub="2 addresses saved"
+                sub="Manage delivery addresses"
                 route="/account/addresses"
-              />
-              <MenuItem
-                icon="credit-card"
-                label="Payment Methods"
-                sub="Visa ×4832 · Mastercard ×9241"
-                route="/account/payment-methods"
-              />
-              <MenuItem
-                icon="gift"
-                label="Gift Cards & Credits"
-                sub={`QuickBihar credits: ₹${MOCK_CREDITS}`}
-                onPress={() =>
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-                }
-              />
-              <MenuItem
-                icon="sliders"
-                label="Size Profile"
-                sub="Ring: 16 · Bangle: 2-6 · Chain: 18″"
-                route="/account/size-profile"
               />
               <MenuItem
                 icon="key"
@@ -541,7 +528,7 @@ export default function JeweleryAccountScreen() {
                   icon: "heart",
                   text: "Wishlist synced across all your devices",
                 },
-                { icon: "gift", text: "Exclusive member-only gifts & credits" },
+                { icon: "gift", text: "Exclusive member-only gifts" },
                 { icon: "truck", text: "Faster checkout with saved addresses" },
               ].map((p) => (
                 <View key={p.text} style={styles.perkRow}>

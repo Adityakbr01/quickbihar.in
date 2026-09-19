@@ -1,115 +1,74 @@
-import React, { useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
-import { Image } from "expo-image";
-import { Ionicons } from "@expo/vector-icons";
+import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
+import React from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import SafeViewWrapper from "@/src/provider/SafeViewWrapper";
 
-import { jeweleryColors } from "../constants/jeweleryColors";
-import { products as jeweleryProducts, Product as JeweleryProduct } from "../data/products";
+import { useColors } from "../hooks/useColors";
 
+/**
+ * Virtual try-on placeholder. Live AR needs backend 3D models per product
+ * (not served yet) — this screen honestly says "coming soon" instead of
+ * rendering mock jewellery. Product pages hide the Try button until then.
+ */
 export const JeweleryTryOnScreen = () => {
-  const [selectedProduct, setSelectedProduct] = useState(jeweleryProducts[0]);
-  const [cameraActive, setCameraActive] = useState(true);
+  const colors = useColors();
 
   return (
     <SafeViewWrapper>
-      <View style={[styles.root, { backgroundColor: jeweleryColors.ink }]}>
-        {/* Top Header */}
+      <View style={[styles.root, { backgroundColor: colors.ivory }]}>
         <View style={styles.header}>
-          <Pressable style={styles.closeBtn} onPress={() => router.back()}>
-            <Ionicons name="close" size={22} color="#FFF" />
+          <Pressable style={styles.closeBtn} onPress={() => router.back()} hitSlop={8}>
+            <Feather name="x" size={22} color={colors.ink} />
           </Pressable>
-          <Text style={styles.headerTitle}>Virtual AR Mirror 🪞</Text>
+          <Text
+            style={[
+              styles.headerTitle,
+              { color: colors.ink, fontFamily: "CormorantGaramond_600SemiBold" },
+            ]}
+          >
+            Virtual Try-On
+          </Text>
           <View style={{ width: 36 }} />
         </View>
 
-        {/* AR Viewport Placeholder */}
-        <View style={styles.viewport}>
-          <Image
-            source={{ uri: selectedProduct.image }}
-            style={styles.arOverlayImage}
-            contentFit="contain"
-          />
-          <View style={styles.arFrameBadge}>
-            <Ionicons
-              name="sparkles"
-              size={14}
-              color={jeweleryColors.goldLight}
-            />
-            <Text style={styles.arFrameText}>AR Alignment: Live</Text>
+        <View style={[styles.body, { backgroundColor: colors.pearl }]}>
+          <View style={[styles.iconCircle, { borderColor: colors.gold }]}>
+            <Feather name="camera" size={32} color={colors.gold} />
           </View>
-        </View>
-
-        {/* Product Switcher Bar */}
-        <View
-          style={[
-            styles.bottomPanel,
-            { backgroundColor: jeweleryColors.pearl },
-          ]}
-        >
-          <Text style={[styles.panelTitle, { color: jeweleryColors.ink }]}>
-            Try On Ornaments Live
+          <Text
+            style={[
+              styles.title,
+              { color: colors.ink, fontFamily: "CormorantGaramond_500Medium_Italic" },
+            ]}
+          >
+            Coming soon.
           </Text>
-          <View style={styles.carouselRow}>
-            {jeweleryProducts.map((p: JeweleryProduct) => {
-              const isSelected = p.id === selectedProduct.id;
-              return (
-                <Pressable
-                  key={p.id}
-                  style={[
-                    styles.thumbCard,
-                    isSelected && {
-                      borderColor: jeweleryColors.gold,
-                      borderWidth: 2,
-                    },
-                  ]}
-                  onPress={() => setSelectedProduct(p)}
-                >
-                  <Image
-                    source={{ uri: p.image }}
-                    style={styles.thumbImage}
-                    contentFit="cover"
-                  />
-                  <Text
-                    style={[styles.thumbName, { color: jeweleryColors.ink }]}
-                    numberOfLines={1}
-                  >
-                    {p.name}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
-
-          {/* Action Row */}
-          <View style={styles.actionRow}>
-            <Pressable
-              style={[styles.actionBtn, { borderColor: jeweleryColors.gold }]}
-            >
-              <Ionicons
-                name="camera-outline"
-                size={18}
-                color={jeweleryColors.gold}
-              />
-              <Text
-                style={[styles.actionBtnText, { color: jeweleryColors.gold }]}
-              >
-                Capture Photo
-              </Text>
-            </Pressable>
-            <Pressable
+          <Text
+            style={[
+              styles.sub,
+              { color: colors.warmGray, fontFamily: "DMSans_300Light" },
+            ]}
+          >
+            Live AR mirror is in the works. Meanwhile, every piece ships with
+            free 30-day returns — try it at home, for real.
+          </Text>
+          <Pressable
+            style={({ pressed }) => [
+              styles.btn,
+              { backgroundColor: pressed ? colors.goldLight : colors.gold },
+            ]}
+            onPress={() => router.push("/jewelery/collections" as any)}
+          >
+            <Text
               style={[
-                styles.addBagBtn,
-                { backgroundColor: jeweleryColors.gold },
+                styles.btnText,
+                { color: colors.ivory, fontFamily: "DMSans_500Medium" },
               ]}
-              onPress={() =>
-                router.push(`/jewelery/product/${selectedProduct.id}` as any)
-              }
             >
-              <Text style={styles.addBagText}>View Item Details →</Text>
-            </Pressable>
-          </View>
+              Browse Collections →
+            </Text>
+          </Pressable>
         </View>
       </View>
     </SafeViewWrapper>
@@ -117,9 +76,7 @@ export const JeweleryTryOnScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-  },
+  root: { flex: 1 },
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -131,101 +88,33 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: "rgba(255,255,255,0.15)",
     alignItems: "center",
     justifyContent: "center",
   },
-  headerTitle: {
-    color: "#FFF",
-    fontSize: 16,
-    fontWeight: "700",
-  },
-  viewport: {
+  headerTitle: { fontSize: 16, letterSpacing: 2 },
+  body: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    position: "relative",
+    padding: 32,
+    gap: 14,
   },
-  arOverlayImage: {
-    width: "70%",
-    height: "70%",
-  },
-  arFrameBadge: {
-    position: "absolute",
-    top: 16,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 16,
-    backgroundColor: "rgba(0,0,0,0.6)",
-  },
-  arFrameText: {
-    color: "#FFF",
-    fontSize: 11,
-    fontWeight: "600",
-  },
-  bottomPanel: {
-    padding: 16,
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    gap: 12,
-  },
-  panelTitle: {
-    fontSize: 14,
-    fontWeight: "800",
-  },
-  carouselRow: {
-    flexDirection: "row",
-    gap: 10,
-  },
-  thumbCard: {
-    width: 80,
-    borderRadius: 6,
-    overflow: "hidden",
+  iconCircle: {
+    width: 88,
+    height: 88,
+    borderRadius: 44,
     borderWidth: 1,
-    borderColor: "transparent",
-  },
-  thumbImage: {
-    width: "100%",
-    height: 60,
-  },
-  thumbName: {
-    fontSize: 9,
-    fontWeight: "700",
-    padding: 4,
-    textAlign: "center",
-  },
-  actionRow: {
-    flexDirection: "row",
-    gap: 10,
-    marginTop: 4,
-  },
-  actionBtn: {
-    flex: 1,
-    flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 6,
-    paddingVertical: 10,
-    borderRadius: 6,
-    borderWidth: 1,
+    marginBottom: 8,
   },
-  actionBtnText: {
-    fontSize: 12,
-    fontWeight: "700",
+  title: { fontSize: 32, lineHeight: 38, textAlign: "center" },
+  sub: { fontSize: 14, lineHeight: 22, textAlign: "center", maxWidth: 300 },
+  btn: {
+    paddingVertical: 14,
+    paddingHorizontal: 28,
+    borderRadius: 2,
+    marginTop: 10,
   },
-  addBagBtn: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 10,
-    borderRadius: 6,
-  },
-  addBagText: {
-    color: "#FFF",
-    fontSize: 12,
-    fontWeight: "700",
-  },
+  btnText: { fontSize: 12, letterSpacing: 1.5 },
 });

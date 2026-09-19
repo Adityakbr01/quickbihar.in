@@ -15,6 +15,7 @@ import * as Haptics from "expo-haptics";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { useCartStore } from "@/src/features/common/cart/store/cartStore";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
+import { ModuleSwitcherButton } from "@/src/components/common/ModuleSwitcherButton";
 import { BREAKPOINTS, DESKTOP } from "@/src/utils/responsive";
 
 /**
@@ -203,6 +204,7 @@ export const DesktopNavbar = () => {
           >
             <Ionicons name="notifications-outline" size={18} color={theme.text} />
           </Pressable>
+          <ModuleSwitcherButton />
           <Pressable
             onPress={() => toggleMode?.()}
             style={[styles.iconBtn, { borderColor: theme.border }]}

@@ -32,7 +32,7 @@ export default function JewelerySearchScreen() {
   const insets = useSafeAreaInsets();
   const [query, setQuery] = useState("");
   const [debounced, setDebounced] = useState("");
-  const topPad = Platform.OS === "web" ? 67 : insets.top;
+  const topPad = Platform.OS === "web" ? 16 : insets.top;
 
   useEffect(() => {
     const t = setTimeout(() => setDebounced(query.trim()), 400);

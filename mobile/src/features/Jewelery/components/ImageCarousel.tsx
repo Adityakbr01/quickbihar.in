@@ -46,13 +46,29 @@ export function ImageCarousel({ images }: ImageCarouselProps) {
     });
   };
 
+  const safeImages = (images ?? []).filter(Boolean);
+  if (safeImages.length === 0) {
+    return (
+      <View
+        style={{
+          height: IMAGE_HEIGHT,
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: colors.champagne,
+        }}
+      >
+        <Feather name="image" size={40} color={colors.gold} />
+      </View>
+    );
+  }
+
   return (
     <View>
       {/* Main image pager */}
       <View style={{ height: IMAGE_HEIGHT }}>
         <FlatList
           ref={flatListRef}
-          data={images}
+          data={safeImages}
           horizontal
           pagingEnabled
           showsHorizontalScrollIndicator={false}
@@ -76,7 +92,7 @@ export function ImageCarousel({ images }: ImageCarouselProps) {
 
         {/* Dot indicators overlay */}
         <View style={styles.dots}>
-          {images.map((_, i) => (
+          {safeImages.map((_, i) => (
             <View
               key={i}
               style={[
@@ -114,7 +130,7 @@ export function ImageCarousel({ images }: ImageCarouselProps) {
             <Feather name="chevron-left" size={18} color={colors.ink} />
           </Pressable>
         )}
-        {activeIndex < images.length - 1 && (
+        {activeIndex < safeImages.length - 1 && (
           <Pressable
             style={[styles.arrow, styles.arrowRight, { backgroundColor: `${colors.pearl}D9` }]}
             onPress={() => handleThumbPress(activeIndex + 1)}
@@ -126,11 +142,11 @@ export function ImageCarousel({ images }: ImageCarouselProps) {
       </View>
 
       {/* Thumbnail strip */}
-      {images.length > 1 && (
+      {safeImages.length > 1 && (
         <View style={[styles.thumbStrip, { backgroundColor: colors.pearl }]}>
           <FlatList
             ref={thumbListRef}
-            data={images}
+            data={safeImages}
             horizontal
             showsHorizontalScrollIndicator={false}
             keyExtractor={(_, i) => `thumb-${i}`}

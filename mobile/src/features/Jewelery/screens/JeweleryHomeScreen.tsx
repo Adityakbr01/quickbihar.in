@@ -6,7 +6,6 @@ import {
   ActivityIndicator,
   Dimensions,
   FlatList,
-  Image,
   Platform,
   Pressable,
   ScrollView,
@@ -27,7 +26,6 @@ import {
 import { CollectionCard } from "@/src/features/Jewelery/components/CollectionCard";
 import { HeroCarousel } from "@/src/features/Jewelery/components/HeroCarousel";
 import { ProductCard } from "@/src/features/Jewelery/components/ProductCard";
-import { useCart } from "@/src/features/Jewelery/context/CartContext";
 import {
   occasions,
 } from "@/src/features/Jewelery/data/collections";
@@ -88,7 +86,6 @@ function AnnouncementBar() {
 
 function Header() {
   const colors = useColors();
-  const { cartCount } = useCart();
   const topPad = useTopPad();
 
   return (
@@ -102,12 +99,6 @@ function Header() {
         },
       ]}
     >
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-        <ModuleSwitcherButton />
-        <Pressable onPress={() => router.push("/jewelery/search")} hitSlop={8}>
-          <Feather name="search" size={20} color={colors.ink} />
-        </Pressable>
-      </View>
       <Text
         style={[
           styles.logoText,
@@ -116,20 +107,12 @@ function Header() {
       >
         {APP_NAME}
       </Text>
-      <Pressable
-        onPress={() => router.push("/jewelery/(tabs)/cart" as any)}
-        hitSlop={8}
-        style={styles.cartBtn}
-      >
-        <Feather name="shopping-bag" size={20} color={colors.ink} />
-        {cartCount > 0 && (
-          <View style={[styles.cartBadge, { backgroundColor: colors.gold }]}>
-            <Text style={[styles.cartBadgeText, { color: colors.ivory }]}>
-              {cartCount}
-            </Text>
-          </View>
-        )}
-      </Pressable>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+        <Pressable onPress={() => router.push("/jewelery/search")} hitSlop={8}>
+          <Feather name="search" size={20} color={colors.ink} />
+        </Pressable>
+        <ModuleSwitcherButton />
+      </View>
     </View>
   );
 }
@@ -327,11 +310,6 @@ function HeritageSection() {
   const colors = useColors();
   return (
     <View style={[styles.heritageSection, { backgroundColor: colors.pearl }]}>
-        <Image
-          source={undefined} // jewelery inactive — asset removed, see git history
-        style={styles.heritageImage}
-        resizeMode="cover"
-      />
       <View style={styles.heritageContent}>
         <Text
           style={[
@@ -383,14 +361,6 @@ function BestsellerSection() {
   if (!isLoading && bestsellers.length === 0) return null;
   return (
     <View style={[styles.section, { backgroundColor: colors.ivory }]}>
-      <Text
-        style={[
-          styles.trustBar,
-          { color: colors.warmGray, fontFamily: "DMSans_400Regular" },
-        ]}
-      >
-        As loved by 40,000+ Indian women
-      </Text>
       <SectionHeader
         label="MOST LOVED"
         title="Bestsellers"
@@ -630,6 +600,7 @@ function NewsletterSection() {
 
 export default function JeweleryHomeScreen() {
   const colors = useColors();
+  const { data: heroItems } = useJeweleryBestsellers(4);
 
   return (
     <View style={[styles.root, { backgroundColor: colors.ivory }]}>
@@ -638,11 +609,11 @@ export default function JeweleryHomeScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[
           styles.scrollContent,
-          Platform.OS === "web" && { paddingBottom: 34 },
+          { paddingBottom: Platform.OS === "web" ? 110 : 90 },
         ]}
       >
         <AnnouncementBar />
-        <HeroCarousel />
+        <HeroCarousel items={heroItems} />
         <BrandPillars />
         <FeaturedCollections />
         <NewArrivals />
@@ -650,7 +621,7 @@ export default function JeweleryHomeScreen() {
         <HeritageSection />
         <BestsellerSection />
         <FestiveCampaign />
-        <TestimonialsSection />
+        {/* Testimonials hidden until real verified reviews exist. */}
         <GiftingSection />
         <NewsletterSection />
       </ScrollView>
@@ -660,7 +631,7 @@ export default function JeweleryHomeScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  scrollContent: {},
+  scrollContent: { flexGrow: 1 },
   announcementBar: {
     paddingVertical: 8,
     alignItems: "center",
@@ -683,18 +654,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     letterSpacing: 4,
   },
-  cartBtn: { position: "relative" },
-  cartBadge: {
-    position: "absolute",
-    top: -6,
-    right: -8,
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  cartBadgeText: { fontSize: 8 },
   pillarsContainer: {
     flexDirection: "row",
     paddingVertical: 16,
@@ -765,11 +724,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
   },
   heritageSection: {
-    minHeight: 480,
-  },
-  heritageImage: {
-    width: "100%",
-    height: 240,
+    minHeight: 0,
   },
   heritageContent: {
     padding: 24,

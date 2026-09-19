@@ -29,7 +29,7 @@ export default function ForgotPasswordScreen() {
   const [sent, setSent] = useState(false);
   const [focused, setFocused] = useState(false);
 
-  const topPad = Platform.OS === "web" ? 67 : insets.top;
+  const topPad = Platform.OS === "web" ? 16 : insets.top;
   const bottomPad = Platform.OS === "web" ? 34 : insets.bottom;
 
   const handleSendReset = async () => {

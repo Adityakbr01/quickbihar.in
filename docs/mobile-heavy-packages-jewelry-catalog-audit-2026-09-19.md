@@ -180,3 +180,77 @@ Screenshot wali demand: Create Product me **catalog tabs (Clothing | Jewelry | F
 - **Seller dialog**: tabs (edit par locked), category dropdown vertical ke hisab se filter, Size Chart sirf Clothing me, Jewelry section (metal/purity/weight required + BIS/gemstone/making/cert), Food section (veg/shelf/ingredients), submit validation + payload.
 - **Admin form**: same tabs + jewelry/food sections + payload + list me vertical filter. Seller list me bhi "All catalogs" filter.
 - `tsc -b` clean, `oxlint` me sirf pre-existing warnings. Server ke 23 test fails pre-existing hai (clean tree par bhi fail — stash karke prove kiya).
+
+## 13. DONE — Order value bug: platform negative profit (19 Sep 2026, CRITICAL)
+
+**Report tha:** platform negative profit, seller ko full, rider ko delivery fee 60 ke against 600.
+
+**DB se nikala (last orders):** `QB-5259642924` (DELIVERED, payable 839) ka snapshot: commission 119.85 (15% sahi), sellerNet 679.15 (sahi kata — seller ko "full" nahi mila, hisab sahi hai), par `riderPayoutEstimate: 500` jabki customer ne delivery fee sirf 40 di → `appNetAfterRider: -340.15`. Rider offer ACCEPT hua 500 par (`riderDistanceToStoreKm: 0.09` — rider store ke bagal me tha!). Matlab 0 km ki delivery par 99 km ka payout.
+
+**Root cause (2-layer):**
+1. **Code bug** (`orderPricing.service.ts`): quote me distance `itemCoords || storeCoords` se nikalta tha — product ke `logistics` coords ko store location par PRIORITY milti thi. Serviceability check sahi tha (store coords use karta hai), par pricing galat coords se hoti thi — dono me mismatch.
+2. **Data bug:** 7 products me `logistics` pin Patna ka tha (25.5941, 85.1376) jabki store Dumraon me hai (25.5840133, 84.1512183) — lagta hai bulk-import default. Snapshot distance 98.93 = exact Patna distance. Har order overpay ho raha tha.
+
+**Fix:**
+- `resolvePickupCoords()` helper: STORE `currentLocation` single source of truth, item coords sirf fallback. + unit tests (`pricingCoords.test.ts` — 3/3 pass).
+- 7 products ke logistics coords admin PATCH se store pin par correct kiye.
+- Live prove (same customer pin): pehle dist 98.93 / rider 500 / appNet -340.15 → ab **dist 0 / rider 20 / appNet +309.85**.
+
+**Note:** purane DELIVERED order ka -340.15 snapshot history hai (badla nahi ja sakta). Seller settlement (679.15) sahi tha, kuch lena-dena nahi. Aage ke liye: store radius (20 km) + rules (45 + 5/km) me max payout ~105 rehta hai in-radius orders par — economics healthy. Chhote door ke orders par nazar rakhna; zaroorat pade to delivery fee/commission tune karna (admin config, code change nahi chahiye).
+
+## 14. Jewelry recheck (19 Sep 2026, same day)
+
+- `GET /products/public?vertical=JEWELERY` → 200 (empty — seller ne abhi real products add nahi kiye, expected)
+- `GET /categories/public?vertical=JEWELERY` → 200, **8 categories live**
+- `GET /products/trending?vertical=JEWELERY` → 200
+- Mobile: catalog/cart/wishlist/checkout/auth sab real flows par, `tsc` clean, koi mock checkout nahi bacha
+- **Launch ke liye ready:** seller dash-web (tabs wala form) se jewelry products add kare → app me turant dikhenge. Pehla real product add karke ek test order (quote tak) kar lena recommended hai.
+
+## 15. DONE — Mock purge + launch readiness (19 Sep 2026)
+
+**Hata diya:**
+- `data/products.ts` → sirf `Product` type bacha (8 mock products, null images, `mock://` try-on URLs sab delete)
+- `data/collections.ts` → sirf `Collection` type + occasion labels bache
+- `data/mockUserData.ts` → **deleted** (fake orders, fake credits, fake cards)
+- `hooks/useJewelerySearch.ts` (purana mock hook) → **deleted**
+
+**Account screen (fake money tha!):** stats me `₹MOCK_CREDITS`, "Visa ×4832" jaise nakli card numbers, "2 addresses" — sab hataya. Ab real `getMyOrdersRequest` se orders/active count, teesra stat Wishlist count. Dead routes wale items hataye (Payment Methods, Size Profile — ye routes exist hi nahi karte the). Gift Cards & Credits section hataya (koi credits system nahi hai). Wishlist ka galat route (`/(tabs)/wishlist` → clothing!) fix kiya.
+
+**Images:** heritage `source={undefined}` crash-risk hataya; hero slides ko emerald fallback background; ProductCard + ImageCarousel me null-guard + fallback icon; TryOn screen ko honest "Coming soon" placeholder banaya (product pages Try button pehle se hide karte hai).
+
+**Fake social proof:** 3 nakli "Verified Purchase" reviews + "40,000+ Indian women" claim hide kiya (code rakha hai — real reviews aane par wapas lagana).
+
+**Launch verdict: YES, ready** — har screen real API par hai, empty states hai, koi dead route/fake checkout/fake money nahi. Pehla real product add hote hi catalog live. Ek cheez user ke haath me: announcement/trust lines ("Try at home", "Free returns 30 days") business claims hai — jo service doge wahi rakho.
+
+## 16. DONE — Mock images purge (19 Sep 2026)
+
+- HeroCarousel ke 4 `image: null` mock slides delete. Ab hero **real catalog photos** se banta hai (bestsellers → shoppable slides with price + product link); catalog empty ho to emerald brand slides. Auto-scroll timer ko dynamic length-safe banaya (stale closure crash fix).
+- Koi `require()` image, koi jewelry asset file, koi `mock://` URL nahi bacha — grep verify kiya.
+- `tsc` clean.
+
+## 18. DONE — Web 500s: CORS origin missing (19 Sep 2026)
+
+**Symptom:** `localhost:8081` par clothing home ke saare API calls 500 (banners, products, categories, malls).
+
+**Root cause:** server log me साफ dikha — `CORS origin not allowed: http://localhost:8081`. Server ke `CORS_ORIGIN` me Expo web port (8081) tha hi nahi; CORS middleware throw karta hai aur error handler use 500 me badal deta hai. API origin bundle me sahi tha (`:8000`), sirf server allowlist incomplete thi.
+
+**Fix:** `server/.env` me `http://localhost:8081` + `http://10.198.26.27:8081` (phone testing) add + server restart. Verify: teeno endpoints web origin ke saath 200. **User ko sirf page refresh karna hai** — rebuild zaroori nahi.
+
+## 17. DONE — Bell lottie remove + catalog arrow + last-catalog reopen (19 Sep 2026)
+
+**Bell button fully removed:** pehle bell lottie hataya tha, fir poora notification bell button hi hata diya `HomeHeader` se (teeno catalogs me header shared hai). Ab header me sirf brand + catalog arrow hai. Notifications screen (`/account/notifications`) waise bhi exist karti hai, reachable rahegi account se.
+
+**Desktop navbar me bhi arrow:** wide-screen web par `HomeHeader` chhupta hai aur `DesktopNavbar` dikhta hai (usme arrow nahi tha) — waha bhi `ModuleSwitcherButton` lagaya, notifications button ke bagal me. Ab arrow mobile + desktop + teeno catalogs me dikhta hai. (Note: desktop-wide Food screen me koi header nahi hota — pre-existing behavior, mobile par arrow hai.)
+
+**Switcher pill redesign (arrow samajh nahi aa raha tha):** akele `→` se pata nahi chalta tha kaha jayega — button ab pill hai jisme **next catalog ka icon + naam + arrow** dikhta hai (e.g. Clothing par `✨ Jewelry →`). Border next catalog ke color me. Tap karne par seedha us catalog me jata hai.
+
+## 17b. Jewelry header reorder + full-height (19 Sep 2026)
+
+- Header order ab: **Quick Bihar (left) → search → catalog pill (right)**. Header se bag button hataya (pill uski jagah right me).
+- Bottom tab bar me **Bag tab rakha hai** — wahi se cart/checkout khulta hai; woh hataya to checkout toot jayega.
+- Full height: ScrollView me `flexGrow: 1` + absolute tab bar ke liye bottom padding (native 90 / web 110) — last content (newsletter) tab bar ke peeche nahi chhupega.
+- **Teeno catalog home screens me bottom padding:** bottom tab bar absolute hai, last items chhupte the — Clothing home (desktop par 24, mobile par 100), Jewelry home (native 90 / web 110 + flexGrow), Food home (32, waha tab bar nahi hai).
+
+**Catalog changer arrow:** header switcher ka `swap-horizontal` icon → `arrow-forward`. Ek click = next catalog: **Clothing (default) → Jewelry → Food → wapas Clothing** (`APP_MODULES` order fix — pehle food 2nd tha). Button par accessibility label bhi hai ("Next catalog: Jewelry"). Clothing, Jewelry (pehle se tha) aur Food (shared `HomeHeader` use karta hai) — teeno headers me same arrow.
+
+**Last-catalog reopen:** pehle se persisted tha (`useModuleStore` → AsyncStorage `active-app-module-v1`) aur `app/index.tsx` hydration ke baad last module par redirect karta hai — verify kiya, koi reset-on-logout nahi hai. Jewelry se exit karke app dobara kholo → seedha Jewelry khulega. Koi code change nahi chahiye tha, sirf order fix tha.
