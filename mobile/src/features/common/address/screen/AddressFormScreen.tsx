@@ -1,13 +1,7 @@
 import IOSAlertDialog, { AlertButton } from "@/src/components/ui/IOSAlertDialog";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  Bookmark02Icon,
-  CallIcon,
-  Location01Icon,
-  MapPinCheckIcon,
-  UserIcon
-} from "@hugeicons/core-free-icons";
+import { AppIcon } from "@/src/components/common/AppIcon";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import * as Location from "expo-location";
@@ -360,7 +354,7 @@ const AddressFormScreen = () => {
           control={control}
           name="fullName"
           label="Full Name"
-          icon={UserIcon}
+          icon="person-outline"
           placeholder="e.g. Aditya Kumar"
           errors={errors}
           theme={theme}
@@ -372,7 +366,7 @@ const AddressFormScreen = () => {
           control={control}
           name="phone"
           label="Phone Number"
-          icon={CallIcon}
+          icon="call-outline"
           placeholder="e.g. 9876543210"
           errors={errors}
           theme={theme}
@@ -433,7 +427,7 @@ const AddressFormScreen = () => {
           control={control}
           name="street"
           label="Street Address"
-          icon={Location01Icon}
+          icon="location-outline"
           placeholder="House No, Street name..."
           errors={errors}
           theme={theme}
@@ -447,7 +441,7 @@ const AddressFormScreen = () => {
               control={control}
               name="city"
               label="City"
-              icon={Location01Icon}
+              icon="location-outline"
               placeholder="e.g. Patna"
               errors={errors}
               theme={theme}
@@ -459,7 +453,7 @@ const AddressFormScreen = () => {
               control={control}
               name="state"
               label="State"
-              icon={Bookmark02Icon}
+              icon="bookmark-outline"
               placeholder="e.g. Bihar"
               errors={errors}
               theme={theme}
@@ -474,7 +468,7 @@ const AddressFormScreen = () => {
               control={control}
               name="pincode"
               label="Pincode"
-              icon={Bookmark02Icon}
+              icon="bookmark-outline"
               placeholder="6 digits"
               errors={errors}
               theme={theme}
@@ -487,7 +481,7 @@ const AddressFormScreen = () => {
               control={control}
               name="landmark"
               label="Landmark (Opt)"
-              icon={MapPinCheckIcon}
+              icon="navigate-outline"
               placeholder="Near..."
               errors={errors}
               theme={theme}

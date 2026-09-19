@@ -1,7 +1,6 @@
 import React from "react";
 import { View, Text, TouchableOpacity, ActivityIndicator } from "react-native";
-import { MapPinCheckIcon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react-native";
+import { AppIcon } from "@/src/components/common/AppIcon";
 import { Theme } from "@/src/theme/Provider/ThemeProvider";
 
 interface LocationFetchButtonProps {
@@ -32,8 +31,8 @@ const LocationFetchButton: React.FC<LocationFetchButtonProps> = ({
           <ActivityIndicator color={theme.primary} size="small" />
         ) : (
           <>
-            <HugeiconsIcon
-              icon={MapPinCheckIcon}
+            <AppIcon
+              name="navigate-outline"
               size={20}
               color={theme.primary}
             />

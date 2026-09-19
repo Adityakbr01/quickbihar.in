@@ -1,8 +1,7 @@
 import React from "react";
 import { View, Text, TouchableOpacity, ActivityIndicator } from "react-native";
 import { Image } from "expo-image";
-import { PencilEdit01Icon, Camera01Icon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react-native";
+import { AppIcon } from "@/src/components/common/AppIcon";
 import * as Haptics from "expo-haptics";
 import * as ImagePicker from "expo-image-picker";
 import { Theme } from "@/src/theme/Provider/ThemeProvider";
@@ -133,11 +132,10 @@ const AccountHeader = ({ theme, styles, name, email, avatarUrl }: AccountHeaderP
         )}
 
         <View style={[styles.editBadge, { backgroundColor: theme.secondaryBackground, right: -4, bottom: -4 }]}>
-           <HugeiconsIcon
-            icon={Camera01Icon}
+           <AppIcon
+            name="camera-outline"
             size={12}
             color={theme.primary}
-            strokeWidth={2}
           />
         </View>
       </TouchableOpacity>
@@ -152,7 +150,7 @@ const AccountHeader = ({ theme, styles, name, email, avatarUrl }: AccountHeaderP
                 style={{ backgroundColor: theme.tertiaryBackground, padding: 8, borderRadius: 10 }}
                 onPress={handleEditProfile}
             >
-                <HugeiconsIcon icon={PencilEdit01Icon} size={18} color={theme.primary} />
+                <AppIcon name="pencil-outline" size={18} color={theme.primary} />
             </TouchableOpacity>
         </View>
       </View>

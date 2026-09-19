@@ -1,17 +1,4 @@
-import {
-  DiscountIcon,
-  StarHalfIcon,
-  GiftIcon,
-  Shirt01Icon,
-  SmartPhone01Icon,
-  GlassesIcon,
-  Home01Icon,
-  SparklesIcon,
-  ManIcon,
-  WomanIcon,
-  UserIcon,
-  KidIcon,
-} from "@hugeicons/core-free-icons";
+import type { AppIconName } from "@/src/components/common/AppIcon";
 
 export const CAMPAIGNS = [
   {
@@ -41,31 +28,31 @@ export const CAMPAIGNS = [
   },
 ];
 
-export const CATEGORY_OPTIONS = [
-  { title: "Topwear", icon: Shirt01Icon },
-  { title: "Tech Wear", icon: SmartPhone01Icon },
-  { title: "Accessories", icon: GlassesIcon },
-  { title: "Loungewear", icon: Home01Icon },
-  { title: "Ethnic", icon: SparklesIcon },
+export const CATEGORY_OPTIONS: { title: string; icon: AppIconName }[] = [
+  { title: "Topwear", icon: "shirt-outline" },
+  { title: "Tech Wear", icon: "phone-portrait-outline" },
+  { title: "Accessories", icon: "glasses-outline" },
+  { title: "Loungewear", icon: "home-outline" },
+  { title: "Ethnic", icon: "sparkles-outline" },
 ];
 
-export const GENDER_OPTIONS = [
-  { title: "Men", icon: ManIcon },
-  { title: "Women", icon: WomanIcon },
-  { title: "Unisex", icon: UserIcon },
-  { title: "Kids", icon: KidIcon },
+export const GENDER_OPTIONS: { title: string; icon: AppIconName }[] = [
+  { title: "Men", icon: "man-outline" },
+  { title: "Women", icon: "woman-outline" },
+  { title: "Unisex", icon: "person-outline" },
+  { title: "Kids", icon: "happy-outline" },
 ];
 
-export const FILTERS = [
+export const FILTERS: { title: string; icon: AppIconName | false }[] = [
   { title: "Gender", icon: false },
   { title: "Categories", icon: false },
   { title: "₹1000 and above", icon: false },
   { title: "₹500 - ₹999", icon: false },
   { title: "₹200 - ₹499", icon: false },
   { title: "Under ₹199", icon: false },
-  { title: "Rising Star", icon: DiscountIcon },
-  { title: "Top Brand", icon: GiftIcon },
-  { title: "Top Rated", icon: StarHalfIcon },
+  { title: "Rising Star", icon: "pricetag-outline" },
+  { title: "Top Brand", icon: "gift-outline" },
+  { title: "Top Rated", icon: "star-half" },
 ];
 
 export const DEAL_PRODUCTS = [

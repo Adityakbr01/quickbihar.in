@@ -2,38 +2,31 @@ import { getRoleName, RIDER_ROLE_ALIAS, RoleEnum, useAuthStore } from "@/src/fea
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { DesktopNavbar } from "@/src/features/clothing/home/components/DesktopNavbar";
 import { BREAKPOINTS } from "@/src/utils/responsive";
-import {
-  DeliveryTruck01Icon,
-  Home01Icon,
-  Search01Icon,
-  ShoppingCartCheck01Icon,
-  User02FreeIcons,
-} from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react-native";
+import { AppIcon, type AppIconName } from "@/src/components/common/AppIcon";
 import * as Haptics from "expo-haptics";
 import { Tabs, useRouter } from "expo-router";
 import { Platform, View, useWindowDimensions } from "react-native";
 
-const TABS_CONFIG = [
+const TABS_CONFIG: { name: string; label: string; icon: AppIconName }[] = [
   {
     name: "home",
     label: "Home",
-    icon: Home01Icon,
+    icon: "home-outline",
   },
   {
     name: "search",
     label: "Search",
-    icon: Search01Icon,
+    icon: "search-outline",
   },
   {
     name: "cart",
     label: "Cart",
-    icon: ShoppingCartCheck01Icon,
+    icon: "cart-outline",
   },
   {
     name: "account",
     label: "Account",
-    icon: User02FreeIcons,
+    icon: "person-outline",
   },
 ];
 
@@ -50,12 +43,12 @@ export default function TabsLayout() {
   // hidden there. Mobile web + native keep the exact legacy bottom bar.
   const isDesktop = isWeb && width >= BREAKPOINTS.desktopMin;
 
-  const ALL_TABS = [
+  const ALL_TABS: { name: string; label: string; icon: AppIconName; hidden?: boolean }[] = [
     ...TABS_CONFIG,
     {
       name: "rider",
       label: "Rider",
-      icon: DeliveryTruck01Icon,
+      icon: "bicycle-outline",
       hidden: !isRider,
     },
   ];
@@ -107,13 +100,11 @@ export default function TabsLayout() {
             href: "hidden" in tab && tab.hidden ? null : undefined,
             tabBarLabel: tab.label,
             tabBarIcon: ({ size, focused }) => {
-              const IconComp = HugeiconsIcon as any;
               return (
-                <IconComp
-                  icon={tab.icon}
+                <AppIcon
+                  name={tab.icon}
                   size={size}
                   color={focused ? theme.iconColor : theme.tertiaryText}
-                  strokeWidth={focused ? 2 : 1.5}
                 />
               );
             },

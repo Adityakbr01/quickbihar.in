@@ -2,7 +2,7 @@ import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { spacing } from "@/src/theme/spacing";
 import { BREAKPOINTS, getGridCardWidth, useProductColumns } from "@/src/utils/responsive";
 import { Ionicons } from "@expo/vector-icons";
-import { HugeiconsIcon } from "@hugeicons/react-native";
+import { AppIcon, type AppIconName } from "@/src/components/common/AppIcon";
 import { NativeModulesProxy } from "expo-modules-core";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
@@ -16,20 +16,6 @@ import {
   useWindowDimensions,
   View,
 } from "react-native";
-import {
-  Shirt01Icon,
-  GlassesIcon,
-  SparklesIcon,
-  ManIcon,
-  WomanIcon,
-  KidIcon,
-  ShoppingBag01Icon,
-  ShortsPantsIcon,
-  HoodieIcon,
-  HangerIcon,
-  SandalsIcon,
-  Kurta01Icon,
-} from "@hugeicons/core-free-icons";
 import { getPublicCategoriesRequest } from "@/src/features/common/category/api/category.api";
 import { getPublicProductsRequest } from "../../product/api/product.api";
 import { DealProductCard } from "../components/DealProductCard";
@@ -40,27 +26,27 @@ import { createMoreDealsSectionStyles } from "../style/MoreDealsSection.style";
 
 // ── Icon mapping for categories by keyword ──
 // ponytail: linear scan on small fixed-size list — perfectly fine
-const CATEGORY_ICON_MAP: { keywords: string[]; icon: any }[] = [
-  { keywords: ["shirt", "top", "tee", "t-shirt", "polo"], icon: Shirt01Icon },
-  { keywords: ["pant", "trouser", "chino", "jeans", "denim", "short"], icon: ShortsPantsIcon },
-  { keywords: ["jacket", "coat", "blazer", "overcoat", "windbreaker", "hoodie", "sweater", "sweat", "pullover"], icon: HoodieIcon },
-  { keywords: ["dress", "gown", "maxi", "midi", "skirt"], icon: HangerIcon },
-  { keywords: ["kurta", "kurti", "ethnic", "salwar", "lehenga", "saree"], icon: Kurta01Icon },
-  { keywords: ["shoe", "boot", "sneaker", "footwear", "sandal", "slipper", "chappal"], icon: SandalsIcon },
-  { keywords: ["accessories", "bag", "wallet", "belt", "watch", "glasses"], icon: GlassesIcon },
-  { keywords: ["kids", "child", "baby", "infant"], icon: KidIcon },
-  { keywords: ["women", "ladies", "girl", "female"], icon: WomanIcon },
-  { keywords: ["men", "gents", "male"], icon: ManIcon },
-  { keywords: ["shopping", "collection", "general"], icon: ShoppingBag01Icon },
-  { keywords: ["sparkle", "special", "ethnic", "traditional"], icon: SparklesIcon },
+const CATEGORY_ICON_MAP: { keywords: string[]; icon: AppIconName }[] = [
+  { keywords: ["shirt", "top", "tee", "t-shirt", "polo"], icon: "shirt-outline" },
+  { keywords: ["pant", "trouser", "chino", "jeans", "denim", "short"], icon: "cut-outline" },
+  { keywords: ["jacket", "coat", "blazer", "overcoat", "windbreaker", "hoodie", "sweater", "sweat", "pullover"], icon: "snow-outline" },
+  { keywords: ["dress", "gown", "maxi", "midi", "skirt"], icon: "flower-outline" },
+  { keywords: ["kurta", "kurti", "ethnic", "salwar", "lehenga", "saree"], icon: "layers-outline" },
+  { keywords: ["shoe", "boot", "sneaker", "footwear", "sandal", "slipper", "chappal"], icon: "walk-outline" },
+  { keywords: ["accessories", "bag", "wallet", "belt", "watch", "glasses"], icon: "glasses-outline" },
+  { keywords: ["kids", "child", "baby", "infant"], icon: "happy-outline" },
+  { keywords: ["women", "ladies", "girl", "female"], icon: "woman-outline" },
+  { keywords: ["men", "gents", "male"], icon: "man-outline" },
+  { keywords: ["shopping", "collection", "general"], icon: "bag-handle-outline" },
+  { keywords: ["sparkle", "special", "ethnic", "traditional"], icon: "sparkles-outline" },
 ];
 
-function getIconForCategory(title: string): any {
+function getIconForCategory(title: string): AppIconName {
   const lower = title.toLowerCase();
   for (const { keywords, icon } of CATEGORY_ICON_MAP) {
     if (keywords.some((kw) => lower.includes(kw))) return icon;
   }
-  return HangerIcon; // generic clothing fallback
+  return "flower-outline"; // generic clothing fallback
 }
 
 // ─────────────────────────────────────────────
@@ -542,7 +528,7 @@ export const MoreDealsFilters = ({
               ]}
             >
               {filter.icon && (
-                <HugeiconsIcon {...({ icon: filter.icon as any, size: 14, color: isActive ? "#fff" : theme.iconColor } as any)} />
+                <AppIcon name={filter.icon} size={14} color={isActive ? "#fff" : theme.iconColor} />
               )}
               <Text style={[styles.filterText, { color: isActive ? "#fff" : theme.text }]}>
                 {filter.displayTitle}

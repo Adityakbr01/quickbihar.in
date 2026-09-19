@@ -1,6 +1,5 @@
 import { Theme } from "@/src/theme/Provider/ThemeProvider";
-import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react-native";
+import { AppIcon } from "@/src/components/common/AppIcon";
 import * as Haptics from "expo-haptics";
 import React, { useState } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
@@ -81,11 +80,10 @@ const AccountOption = ({
         activeOpacity={0.7}
       >
         <View style={styles.iconContainer}>
-          <HugeiconsIcon
-            icon={icon}
+          <AppIcon
+            name={icon}
             size={22}
             color={danger ? "#FF3B30" : theme.primary}
-            strokeWidth={1.5}
           />
         </View>
 
@@ -95,8 +93,8 @@ const AccountOption = ({
 
         {showArrow && (
           <Animated.View style={chevronAnimatedStyle}>
-            <HugeiconsIcon
-              icon={hasSubItems ? ArrowRight01Icon : ArrowRight01Icon}
+            <AppIcon
+              name="chevron-forward"
               size={20}
               color={theme.tertiaryText}
               style={styles.chevron}
@@ -118,11 +116,10 @@ const AccountOption = ({
               activeOpacity={0.7}
             >
               <View style={styles.subIconContainer}>
-                <HugeiconsIcon
-                  icon={item.icon}
+                <AppIcon
+                  name={item.icon}
                   size={18}
                   color={theme.primary}
-                  strokeWidth={1.5}
                 />
               </View>
               <Text style={styles.subOptionLabel}>{item.label}</Text>

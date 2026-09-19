@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, TextInput } from "react-native";
 import { Controller } from "react-hook-form";
-import { HugeiconsIcon } from "@hugeicons/react-native";
+import { AppIcon } from "@/src/components/common/AppIcon";
 import { Theme } from "@/src/theme/Provider/ThemeProvider";
 
 interface AddressInputProps {
@@ -30,7 +30,7 @@ const AddressInput: React.FC<AddressInputProps> = ({
   return (
     <View style={styles.inputGroup}>
       <View style={styles.labelRow}>
-        <HugeiconsIcon icon={icon} size={18} color={theme.secondaryText} />
+        <AppIcon name={icon} size={18} color={theme.secondaryText} />
         <Text style={styles.inputLabel}>{label}</Text>
       </View>
       <Controller

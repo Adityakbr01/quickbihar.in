@@ -9,8 +9,7 @@ import {
 import { useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
 import { Ionicons } from "@expo/vector-icons";
-import { MapPinPlusIcon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react-native";
+import { AppIcon } from "@/src/components/common/AppIcon";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { createAddressStyles } from "../style/addressStyles";
 import { useAddresses, useAddressActions } from "../hooks/useAddress";
@@ -191,7 +190,7 @@ const SavedAddressesScreen = () => {
           style={styles.addButtonFloating}
           onPress={handleAddAddress}
         >
-          <HugeiconsIcon icon={MapPinPlusIcon} size={32} color="#fff" />
+          <AppIcon name="add-circle-outline" size={32} color="#fff" />
         </TouchableOpacity>
       )}
 

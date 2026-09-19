@@ -2,8 +2,7 @@ import React from "react";
 import { View, TouchableOpacity, Image, ActivityIndicator } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import * as Haptics from "expo-haptics";
-import { Camera01Icon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react-native";
+import { AppIcon } from "@/src/components/common/AppIcon";
 import { Theme } from "@/src/theme/Provider/ThemeProvider";
 
 interface ProfileAvatarProps {
@@ -81,7 +80,7 @@ const ProfileAvatar: React.FC<ProfileAvatarProps> = ({
         onPress={handlePickImage}
         disabled={isUpdating}
       >
-        <HugeiconsIcon icon={Camera01Icon} size={16} color="#fff" />
+        <AppIcon name="camera-outline" size={16} color="#fff" />
       </TouchableOpacity>
     </View>
   );

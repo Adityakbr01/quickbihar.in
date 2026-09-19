@@ -5,8 +5,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { createTopMallSectionStyles } from "../style/TopMallSection.style";
 import type { TopMall } from "../api/mall.api";
-import { StarIcon, Location01Icon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react-native";
+import { AppIcon } from "@/src/components/common/AppIcon";
 import { useRouter } from "expo-router";
 
 interface MallCardProps {
@@ -41,7 +40,7 @@ export const MallCard = ({ mall }: MallCardProps) => {
       
       {/* Dynamic Rating Badge */}
       <View style={styles.ratingBadge}>
-        <HugeiconsIcon icon={StarIcon} size={12} color="#facc15" />
+        <AppIcon name="star" size={12} color="#facc15" />
         <Text style={styles.ratingText}>{mall.rating}</Text>
       </View>
 
@@ -53,7 +52,7 @@ export const MallCard = ({ mall }: MallCardProps) => {
           {mall.name}
         </Text>
         <View style={styles.locationContainer}>
-          <HugeiconsIcon icon={Location01Icon} size={12} color="rgba(255, 255, 255, 0.8)" />
+          <AppIcon name="location-outline" size={12} color="rgba(255, 255, 255, 0.8)" />
           <Text style={styles.locationText} numberOfLines={1}>
             {mall.location}
           </Text>

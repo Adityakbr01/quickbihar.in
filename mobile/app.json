@@ -56,7 +56,6 @@
       "expo-web-browser",
       "expo-image",
       "expo-status-bar",
-      "expo-video",
       "expo-notifications"
     ],
     "experiments": {

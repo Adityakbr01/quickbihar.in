@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { HugeiconsIcon } from "@hugeicons/react-native";
+import { AppIcon } from "@/src/components/common/AppIcon";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import {
   Sheet,
@@ -281,12 +281,10 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
                     activeOpacity={0.7}
                   >
                     {option.icon && (
-                      <HugeiconsIcon
-                        {...({
-                          icon: option.icon,
-                          size: 16,
-                          color: isSelected ? "#fff" : theme.text,
-                        } as any)}
+                      <AppIcon
+                        name={option.icon}
+                        size={16}
+                        color={isSelected ? "#fff" : theme.text}
                       />
                     )}
                     <View style={{ flexDirection: "column" }}>
@@ -385,12 +383,10 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
                       }}
                     >
                       {group.icon && (
-                        <HugeiconsIcon
-                          {...({
-                            icon: group.icon,
-                            size: 15,
-                            color: isActiveTab ? "#fff" : theme.text,
-                          } as any)}
+                        <AppIcon
+                          name={group.icon}
+                          size={15}
+                          color={isActiveTab ? "#fff" : theme.text}
                         />
                       )}
                       <Text
@@ -535,12 +531,10 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
                         ]}
                       >
                         {sub.icon && (
-                          <HugeiconsIcon
-                            {...({
-                              icon: sub.icon,
-                              size: 15,
-                              color: isSelected ? "#fff" : theme.text,
-                            } as any)}
+                          <AppIcon
+                            name={sub.icon}
+                            size={15}
+                            color={isSelected ? "#fff" : theme.text}
                           />
                         )}
                         <Text
@@ -587,12 +581,10 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
                         style={{ flexDirection: "row", alignItems: "center", gap: 6 }}
                       >
                         {group.icon && (
-                          <HugeiconsIcon
-                            {...({
-                              icon: group.icon,
-                              size: 17,
-                              color: theme.primary,
-                            } as any)}
+                          <AppIcon
+                            name={group.icon}
+                            size={17}
+                            color={theme.primary}
                           />
                         )}
                         <Text style={{ fontSize: 14, fontWeight: "700", color: theme.text }}>
@@ -707,12 +699,10 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
                   activeOpacity={0.7}
                 >
                   {option.icon && (
-                    <HugeiconsIcon
-                      {...({
-                        icon: option.icon,
-                        size: 16,
-                        color: isSelected ? "#fff" : theme.text,
-                      } as any)}
+                    <AppIcon
+                      name={option.icon}
+                      size={16}
+                      color={isSelected ? "#fff" : theme.text}
                     />
                   )}
                   <Text

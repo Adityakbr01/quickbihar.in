@@ -2,8 +2,7 @@ import React, { useMemo } from "react";
 import { View, ScrollView, Text, Linking } from "react-native";
 import * as Haptics from "expo-haptics";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
-import { HugeiconsIcon } from "@hugeicons/react-native";
-import { Moon02Icon, Sun03Icon } from "@hugeicons/core-free-icons";
+import { AppIcon } from "@/src/components/common/AppIcon";
 import { ThemeToggle } from "@/src/components/common/ThemeToggle";
 import { createAccountStyles } from "../styles/accountStyles";
 import AccountHeader from "../components/AccountHeader";
@@ -149,11 +148,10 @@ const AccountMain = () => {
             <Text style={styles.sectionTitle}>Appearance</Text>
             <View style={styles.optionRow}>
               <View style={styles.iconContainer}>
-                <HugeiconsIcon
-                  icon={theme.isDark ? Moon02Icon : Sun03Icon}
+                <AppIcon
+                  name={theme.isDark ? "moon-outline" : "sunny-outline"}
                   size={22}
                   color={theme.primary}
-                  strokeWidth={1.5}
                 />
               </View>
               <Text style={styles.optionLabel}>

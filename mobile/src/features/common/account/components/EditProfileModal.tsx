@@ -10,8 +10,7 @@ import {
 } from "react-native";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Cancel01Icon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react-native";
+import { AppIcon } from "@/src/components/common/AppIcon";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
@@ -148,7 +147,7 @@ const EditProfileModal = () => {
               onPress={() => setVisible(false)}
               style={styles.closeButton}
             >
-              <HugeiconsIcon icon={Cancel01Icon} size={24} color={theme.text} />
+              <AppIcon name="close-outline" size={24} color={theme.text} />
             </TouchableOpacity>
           }
         />

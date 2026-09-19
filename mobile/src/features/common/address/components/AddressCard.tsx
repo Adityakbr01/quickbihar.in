@@ -1,14 +1,6 @@
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
-import { 
-  Home01Icon, 
-  Briefcase01Icon, 
-  Location01Icon, 
-  Edit02Icon, 
-  Delete02Icon,
-  CheckmarkCircle02Icon
-} from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react-native";
+import { AppIcon } from "@/src/components/common/AppIcon";
 import { AddressType, IAddress } from "../schema/address.schema";
 import { Theme } from "@/src/theme/Provider/ThemeProvider";
 
@@ -32,11 +24,11 @@ const AddressCard: React.FC<AddressCardProps> = ({
   const getTypeIcon = () => {
     switch (address.addressType) {
       case AddressType.HOME:
-        return Home01Icon;
+        return "home-outline";
       case AddressType.WORK:
-        return Briefcase01Icon;
+        return "briefcase-outline";
       default:
-        return Location01Icon;
+        return "location-outline";
     }
   };
 
@@ -62,7 +54,7 @@ const AddressCard: React.FC<AddressCardProps> = ({
 
         {address.latitude !== undefined && address.latitude !== 0 && (
           <View style={styles.pinBadge}>
-            <HugeiconsIcon icon={Location01Icon} size={12} color={theme.primary} />
+            <AppIcon name="location-outline" size={12} color={theme.primary} />
             <Text style={styles.pinText}>PINNED</Text>
           </View>
         )}
@@ -80,7 +72,7 @@ const AddressCard: React.FC<AddressCardProps> = ({
           style={styles.actionButton}
           onPress={() => onEdit(address)}
         >
-          <HugeiconsIcon icon={Edit02Icon} size={18} color={theme.text} />
+          <AppIcon name="create-outline" size={18} color={theme.text} />
           <Text style={styles.actionText}>Edit</Text>
         </TouchableOpacity>
 
@@ -88,7 +80,7 @@ const AddressCard: React.FC<AddressCardProps> = ({
           style={[styles.actionButton, styles.deleteAction]}
           onPress={() => onDelete(address._id)}
         >
-          <HugeiconsIcon icon={Delete02Icon} size={18} color="#FF3B30" />
+          <AppIcon name="trash-outline" size={18} color="#FF3B30" />
           <Text style={[styles.actionText, styles.deleteText]}>Delete</Text>
         </TouchableOpacity>
 
@@ -97,7 +89,7 @@ const AddressCard: React.FC<AddressCardProps> = ({
             style={styles.actionButton}
             onPress={() => onSetDefault(address._id)}
           >
-            <HugeiconsIcon icon={CheckmarkCircle02Icon} size={18} color={theme.primary} />
+            <AppIcon name="checkmark-circle-outline" size={18} color={theme.primary} />
             <Text style={[styles.actionText, { color: theme.primary }]}>Set Default</Text>
           </TouchableOpacity>
         )}

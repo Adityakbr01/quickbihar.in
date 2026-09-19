@@ -1,13 +1,6 @@
 import React from "react";
 import { View, TouchableOpacity, Text } from "react-native";
-import {
-  Mail01Icon,
-  CallIcon,
-  UserCircleIcon,
-  Calendar03Icon,
-  Edit02Icon
-} from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react-native";
+import { AppIcon } from "@/src/components/common/AppIcon";
 import { Theme } from "@/src/theme/Provider/ThemeProvider";
 import ProfileInfoRow from "./ProfileInfoRow";
 import { useAccountStore } from "@/src/features/common/account/store/accountStore";
@@ -39,28 +32,28 @@ const ProfileDetailsView: React.FC<ProfileDetailsViewProps> = ({
   return (
     <View style={styles.infoCard}>
       <ProfileInfoRow
-        icon={Mail01Icon}
+        icon="mail-outline"
         label="Email Address"
         value={email}
         theme={theme}
         styles={styles}
       />
       <ProfileInfoRow
-        icon={CallIcon}
+        icon="call-outline"
         label="Phone Number"
         value={phone}
         theme={theme}
         styles={styles}
       />
       <ProfileInfoRow
-        icon={UserCircleIcon}
+        icon="person-circle-outline"
         label="Account Type"
         value={role?.toUpperCase() || ""}
         theme={theme}
         styles={styles}
       />
       <ProfileInfoRow
-        icon={Calendar03Icon}
+        icon="calendar-outline"
         label="Member Since"
         value={dayjs(createdAt).format("MMM DD, YYYY")}
         theme={theme}
@@ -68,7 +61,7 @@ const ProfileDetailsView: React.FC<ProfileDetailsViewProps> = ({
       />
 
       <TouchableOpacity style={styles.editButton} onPress={onEdit}>
-        <HugeiconsIcon icon={Edit02Icon} size={20} color="#fff" />
+        <AppIcon name="create-outline" size={20} color="#fff" />
         <Text style={styles.editButtonText}>Edit Personal Details</Text>
       </TouchableOpacity>
 

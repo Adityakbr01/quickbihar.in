@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Text } from "react-native";
-import { HugeiconsIcon } from "@hugeicons/react-native";
+import { AppIcon } from "@/src/components/common/AppIcon";
 import { Theme } from "@/src/theme/Provider/ThemeProvider";
 
 interface ProfileInfoRowProps {
@@ -21,7 +21,7 @@ const ProfileInfoRow: React.FC<ProfileInfoRowProps> = ({
   return (
     <View style={styles.infoRow}>
       <View style={styles.iconContainer}>
-        <HugeiconsIcon icon={icon} size={20} color={theme.primary} />
+        <AppIcon name={icon} size={20} color={theme.primary} />
       </View>
       <View>
         <Text style={styles.infoLabel}>{label}</Text>
