@@ -27,6 +27,7 @@ import { reverseGeocodeRequest } from "../api/address.api";
 import { AddressFormValues, addressSchema, AddressType } from "../schema/address.schema";
 import { createAddressStyles } from "../style/addressStyles";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
+import { goBack } from "@/src/utils/navigation";
 
 const AddressFormScreen = () => {
   const theme = useTheme();
@@ -287,7 +288,7 @@ const AddressFormScreen = () => {
         await createAddress.mutateAsync(formData);
       }
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      router.back();
+      goBack(router, "/account/addresses");
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Failed to save address";
       showAlert("Save Failed", message);

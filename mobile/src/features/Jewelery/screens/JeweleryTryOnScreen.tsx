@@ -3,6 +3,7 @@ import { router } from "expo-router";
 import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import SafeViewWrapper from "@/src/provider/SafeViewWrapper";
+import { goBack } from "@/src/utils/navigation";
 
 import { useColors } from "../hooks/useColors";
 
@@ -18,7 +19,7 @@ export const JeweleryTryOnScreen = () => {
     <SafeViewWrapper>
       <View style={[styles.root, { backgroundColor: colors.ivory }]}>
         <View style={styles.header}>
-          <Pressable style={styles.closeBtn} onPress={() => router.back()} hitSlop={8}>
+          <Pressable style={styles.closeBtn} onPress={() => goBack(router)} hitSlop={8}>
             <Feather name="x" size={22} color={colors.ink} />
           </Pressable>
           <Text

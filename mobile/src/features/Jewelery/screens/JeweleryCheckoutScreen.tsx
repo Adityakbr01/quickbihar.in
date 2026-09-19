@@ -1,7 +1,7 @@
 import { Feather, Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { useFocusEffect, useRouter } from "expo-router";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Image,
@@ -32,6 +32,7 @@ import IOSAlertDialog, { AlertButton } from "@/src/components/ui/IOSAlertDialog"
 import { PhoneMissingBanner } from "@/src/features/common/order/components/PhoneMissingBanner";
 import { useColors } from "@/src/features/Jewelery/hooks/useColors";
 import { useTopPad } from "@/src/hooks/useTopPad";
+import { goBack } from "@/src/utils/navigation";
 
 export default function JeweleryCheckoutScreen() {
   const colors = useColors();
@@ -41,17 +42,26 @@ export default function JeweleryCheckoutScreen() {
   const bottomPad = Platform.OS === "web" ? 34 : insets.bottom;
 
   const {
-    items,
-    subtotal,
-    totalTax,
-    discountAmount,
-    appliedCoupon,
-    appliedCoupons = [],
+    items: allItems,
     clearCart,
     shippingRules,
     fetchShippingConfig,
   } = useCartStore();
-  const { user } = useAuthStore();
+
+  // Jewelery checkout operates on jewelery lines only. Clothing coupons
+  // are deliberately excluded — this flow has no coupon UI, so any
+  // applied clothing coupon must not leak into a jewelery order.
+  const items = useMemo(
+    () => allItems.filter((i) => (i.module ?? "clothing") === "jewelery"),
+    [allItems],
+  );
+  const { subtotal } = useMemo(
+    () => ({
+      subtotal: items.reduce((acc, i) => acc + (i.price || 0) * i.quantity, 0),
+    }),
+    [items],
+  );
+  const { user, isAuthenticated } = useAuthStore();
 
   useEffect(() => {
     fetchShippingConfig();
@@ -85,7 +95,7 @@ export default function JeweleryCheckoutScreen() {
   const hideAlert = () => setAlertConfig((p) => ({ ...p, visible: false }));
 
   const shipping = subtotal >= shippingRules.threshold ? 0 : shippingRules.fee;
-  const totalPayable = quote?.payableAmount ?? (subtotal + shipping - discountAmount);
+  const totalPayable = quote?.payableAmount ?? (subtotal + shipping);
   const displayShipping = quote?.shippingFee ?? shipping;
   const dynamicDeliverySurcharge = quote?.dynamicDeliverySurcharge ?? 0;
 
@@ -97,8 +107,12 @@ export default function JeweleryCheckoutScreen() {
 
   useFocusEffect(
     useCallback(() => {
+      if (!isAuthenticated) {
+        router.replace("/auth" as any);
+        return;
+      }
       fetchAddresses();
-    }, [])
+    }, [isAuthenticated])
   );
 
   const buildOrderData = () => ({
@@ -118,8 +132,7 @@ export default function JeweleryCheckoutScreen() {
       latitude: Number(selectedAddress.latitude),
       longitude: Number(selectedAddress.longitude),
     },
-    couponCode: appliedCoupon?.code,
-    couponCodes: (appliedCoupons || []).map((c) => c.code),
+    couponCodes: [] as string[],
     paymentMethod,
   });
 
@@ -151,7 +164,7 @@ export default function JeweleryCheckoutScreen() {
     };
     fetchQuote();
     return () => { cancelled = true; };
-  }, [selectedAddress, items, appliedCoupon?.code, appliedCoupons]);
+  }, [selectedAddress, items]);
 
   const fetchAddresses = async () => {
     try {
@@ -199,8 +212,12 @@ export default function JeweleryCheckoutScreen() {
             text: "Update Address",
             onPress: () =>
               router.push({
-                pathname: "/account/address-form",
-                params: { id: selectedAddress._id, data: JSON.stringify(selectedAddress) },
+                pathname: "/jewelery/address-form" as any,
+                params: {
+                  id: selectedAddress._id,
+                  data: JSON.stringify(selectedAddress),
+                  returnTo: "/jewelery/checkout",
+                },
               }),
           },
         ]
@@ -230,7 +247,7 @@ export default function JeweleryCheckoutScreen() {
       const { razorpayOrder, order } = orderResponse.data;
 
       if (paymentMethod === "COD" || !razorpayOrder) {
-        clearCart();
+        clearCart("jewelery");
         router.replace({ pathname: "/order-success", params: { orderId: order.orderId } });
         return;
       }
@@ -258,7 +275,7 @@ export default function JeweleryCheckoutScreen() {
               razorpayPaymentId: data.razorpay_payment_id,
               razorpaySignature: data.razorpay_signature,
             });
-            clearCart();
+            clearCart("jewelery");
             router.replace({ pathname: "/order-success", params: { orderId: order.orderId } });
           } catch (verifyError: any) {
             showAlert(
@@ -538,13 +555,21 @@ export default function JeweleryCheckoutScreen() {
     );
   }
 
+  if (!isAuthenticated) {
+    return (
+      <View style={[styles.root, { justifyContent: "center", alignItems: "center" }]}>
+        <ActivityIndicator size="small" color={colors.gold} />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.root}>
       {/* Header */}
       <View style={styles.header}>
         <Pressable style={styles.backBtn} onPress={() => {
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-          router.back();
+          goBack(router);
         }} hitSlop={8}>
           <Feather name="arrow-left" size={16} color={colors.ink} />
         </Pressable>
@@ -558,13 +583,20 @@ export default function JeweleryCheckoutScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Phone missing banner */}
-        {!user?.phone && <PhoneMissingBanner />}
+        {Boolean(isAuthenticated && !user?.phone) && <PhoneMissingBanner />}
 
         {/* Delivery Address */}
         <View style={styles.section}>
           <View style={styles.sectionRow}>
             <Text style={styles.sectionLabel}>DELIVERY ADDRESS</Text>
-            <TouchableOpacity onPress={() => router.push("/account/addresses")}>
+            <TouchableOpacity
+              onPress={() =>
+                router.push({
+                  pathname: "/jewelery/addresses" as any,
+                  params: { returnTo: "/jewelery/checkout" },
+                })
+              }
+            >
               <Text style={styles.changeText}>
                 {selectedAddress ? "Change" : "Add Address"}
               </Text>
@@ -595,7 +627,14 @@ export default function JeweleryCheckoutScreen() {
               </View>
             </>
           ) : (
-            <TouchableOpacity onPress={() => router.push("/account/addresses")}>
+            <TouchableOpacity
+              onPress={() =>
+                router.push({
+                  pathname: "/jewelery/addresses" as any,
+                  params: { returnTo: "/jewelery/checkout" },
+                })
+              }
+            >
               <Text style={styles.noAddress}>No address selected — tap to add one</Text>
             </TouchableOpacity>
           )}
@@ -689,15 +728,6 @@ export default function JeweleryCheckoutScreen() {
               <Text style={styles.summaryKey}>Dynamic Surcharge</Text>
               <Text style={styles.summaryVal}>
                 {APP_CURRENCY}{dynamicDeliverySurcharge.toLocaleString("en-IN")}
-              </Text>
-            </View>
-          )}
-
-          {discountAmount > 0 && (
-            <View style={styles.summaryRow}>
-              <Text style={styles.summaryKey}>Coupon ({appliedCoupon?.code || ""})</Text>
-              <Text style={[styles.summaryVal, { color: colors.gold }]}>
-                -{APP_CURRENCY}{discountAmount.toLocaleString("en-IN")}
               </Text>
             </View>
           )}

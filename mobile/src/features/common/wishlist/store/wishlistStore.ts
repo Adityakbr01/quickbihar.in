@@ -3,29 +3,69 @@ import { persist, createJSONStorage } from "zustand/middleware";
 import { getMyWishlistRequest, syncWishlistRequest, toggleWishlistRequest } from "../api/wishlist.api";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
 import { secureZustandStorage } from "@/src/lib/secureZustandStorage";
+import type { CartModule } from "@/src/features/common/cart/store/cartStore";
+
+/** Storefront module owning a wishlist entry. Mirrors the cart split. */
+export type WishlistModule = CartModule;
 
 interface WishlistState {
-  items: string[]; // Array of product IDs
+  items: string[]; // Array of product IDs (all modules)
+  /** Module stamped per wishlist id so clothing/jewelery lists stay separate. */
+  modules: Record<string, WishlistModule>;
   cachedProducts: Record<string, any>; // Cache of product details for instant UI
   isLoading: boolean;
 
   // Actions
-  toggleItem: (productId: string, productData?: any) => Promise<void>;
+  toggleItem: (productId: string, productData?: any, module?: WishlistModule) => Promise<void>;
   syncWithServer: () => Promise<void>;
   fetchServerWishlist: () => Promise<void>;
   clearLocal: () => void;
+}
+
+/**
+ * Resolves a wishlist id's owning module. The stamped value wins, then the
+ * cached/server product's vertical, then clothing (covers legacy entries
+ * saved before module tagging).
+ */
+export function resolveWishlistModule(
+  productId: string,
+  modules: Record<string, WishlistModule>,
+  cachedProducts: Record<string, any>,
+): WishlistModule {
+  const stamped = modules[productId];
+  if (stamped === "jewelery" || stamped === "clothing") return stamped;
+  const cached = cachedProducts[productId];
+  if (cached?.vertical === "JEWELERY") return "jewelery";
+  return "clothing";
+}
+
+/** Wishlist ids belonging to one module's list only. */
+export function selectWishlistIds(
+  state: Pick<WishlistState, "items" | "modules" | "cachedProducts">,
+  module: WishlistModule,
+): string[] {
+  return state.items.filter(
+    (id) => resolveWishlistModule(id, state.modules, state.cachedProducts) === module,
+  );
+}
+
+/** Derives the module for product data, preferring the authoritative vertical. */
+function moduleForProductData(productData: any, fallback: WishlistModule): WishlistModule {
+  if (productData?.vertical === "JEWELERY") return "jewelery";
+  return fallback;
 }
 
 export const useWishlistStore = create<WishlistState>()(
   persist(
     (set, get) => ({
       items: [],
+      modules: {},
       cachedProducts: {},
       isLoading: false,
 
-      toggleItem: async (productId: string, productData?: any) => {
+      toggleItem: async (productId: string, productData?: any, module: WishlistModule = "clothing") => {
         if (!productId) return;
-        const { items, cachedProducts } = get();
+        const { items, modules, cachedProducts } = get();
         const isAuthenticated = useAuthStore.getState().isAuthenticated;
 
         // Optimistic local update
@@ -35,13 +75,18 @@ export const useWishlistStore = create<WishlistState>()(
           : [productId, ...items];
 
         const newCached = { ...cachedProducts };
+        const newModules = { ...modules };
         if (exists) {
           delete newCached[productId];
-        } else if (productData) {
-          newCached[productId] = productData;
+          delete newModules[productId];
+        } else {
+          if (productData) {
+            newCached[productId] = productData;
+          }
+          newModules[productId] = moduleForProductData(productData, module);
         }
 
-        set({ items: newItems, cachedProducts: newCached });
+        set({ items: newItems, cachedProducts: newCached, modules: newModules });
 
         // If logged in, update server too. If it fails, revert.
         if (isAuthenticated && productId !== "mock") {
@@ -50,7 +95,7 @@ export const useWishlistStore = create<WishlistState>()(
           } catch (error) {
             console.error("Failed to toggle wishlist on server", error);
             // Revert optimistic update on failure
-            set({ items, cachedProducts });
+            set({ items, cachedProducts, modules });
           }
         }
       },
@@ -78,6 +123,7 @@ export const useWishlistStore = create<WishlistState>()(
           if (Array.isArray(serverWishlist)) {
             const serverItems: string[] = [];
             const newCached: Record<string, any> = { ...get().cachedProducts };
+            const newModules: Record<string, WishlistModule> = { ...get().modules };
 
             serverWishlist.forEach((item: any) => {
               const prod = item.product || item;
@@ -87,9 +133,13 @@ export const useWishlistStore = create<WishlistState>()(
                 if (prod && prod.title) {
                   newCached[pId] = prod;
                 }
+                // Server products carry vertical — stamp the module so each
+                // module's list classifies correctly.
+                if (prod?.vertical === "JEWELERY") newModules[pId] = "jewelery";
+                else if (newModules[pId] !== "jewelery") newModules[pId] = "clothing";
               }
             });
-            set({ items: serverItems, cachedProducts: newCached });
+            set({ items: serverItems, cachedProducts: newCached, modules: newModules });
           }
         } catch (error) {
           console.error("Failed to fetch server wishlist", error);
@@ -97,7 +147,7 @@ export const useWishlistStore = create<WishlistState>()(
       },
 
       clearLocal: () => {
-        set({ items: [], cachedProducts: {} });
+        set({ items: [], cachedProducts: {}, modules: {} });
       },
     }),
     {
@@ -105,6 +155,7 @@ export const useWishlistStore = create<WishlistState>()(
       storage: createJSONStorage(() => secureZustandStorage),
       partialize: (state) => ({
         items: state.items,
+        modules: state.modules,
         cachedProducts: state.cachedProducts,
       }),
     }

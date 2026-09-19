@@ -7,6 +7,7 @@ import { Text, View } from "react-native";
 import { useProductBySlug } from "@/src/features/clothing/product/hooks/useProducts";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import SafeViewWrapper from "@/src/provider/SafeViewWrapper";
+import { goBack } from "@/src/utils/navigation";
 
 /** Mongo ObjectId detector — ids stay id-fetched; anything else is treated as a canonical slug. */
 const isObjectId = (value: string) => /^[0-9a-fA-F]{24}$/.test(value || "");
@@ -59,7 +60,7 @@ export default function ProductRoute() {
       <>
         <Stack.Screen options={{ headerShown: false }} />
         <SafeViewWrapper>
-          <ProductDetailSkeleton theme={theme} onBack={() => router.back()} />
+          <ProductDetailSkeleton theme={theme} onBack={() => goBack(router)} />
         </SafeViewWrapper>
       </>
     );

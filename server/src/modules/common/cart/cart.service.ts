@@ -2,6 +2,28 @@ import * as cartDAO from "./cart.dao";
 import * as ProductDAO from "@/modules/clothing/products/product.dao";
 import * as appConfigService from "@/modules/common/appConfig/appConfig.service";
 import { ApiError } from "@/utils/ApiError";
+import { type CartModule } from "./cart.model";
+
+/**
+ * Maps a product vertical to the storefront cart module that owns it.
+ * Only JEWELERY gets its own bag; everything else (CLOTHING, FOOD,
+ * legacy products without a vertical) lives in the clothing cart.
+ */
+export function moduleFromVertical(vertical?: string): CartModule {
+    return vertical === "JEWELERY" ? "jewelery" : "clothing";
+}
+
+/**
+ * Resolves a cart line's module. The stamped value wins; otherwise it is
+ * derived from the populated product's vertical so pre-module legacy
+ * lines classify correctly without a data migration.
+ */
+function resolveItemModule(item: any): CartModule {
+    if (item?.module === "jewelery" || item?.module === "clothing") return item.module;
+    const product = item?.productId;
+    const vertical = product && typeof product === "object" ? (product as any).vertical : undefined;
+    return moduleFromVertical(vertical);
+}
 
 /**
  * Retrieves a user's cart with fully computed, display-ready pricing.
@@ -53,6 +75,7 @@ export async function getCart(userId: string) {
 
         return {
             ...item.toObject(),
+            module: resolveItemModule(item),
             productTitle: product.title,
             price: itemPrice,
             image: product.images[0]?.url,
@@ -115,6 +138,7 @@ export async function addToCart(userId: string, productId: string, sku: string, 
     if (!cart) throw new ApiError(500, "Failed to create/fetch cart");
 
     // 3. Update Items Logic
+    const module = moduleFromVertical((product as any).vertical);
     const existingItem = cart.items.find(item => item.sku === sku);
     if (existingItem) {
         const newQuantity = existingItem.quantity + quantity;
@@ -122,8 +146,10 @@ export async function addToCart(userId: string, productId: string, sku: string, 
             throw new ApiError(400, `Total quantity (${newQuantity}) exceeds available stock (${variant.stock})`);
         }
         existingItem.quantity = newQuantity;
+        // Heal pre-module lines stamped before the module field existed.
+        if (!existingItem.module) existingItem.module = module;
     } else {
-        cart.items.push({ productId: productId as any, sku, quantity });
+        cart.items.push({ productId: productId as any, sku, quantity, module });
     }
 
     return await cartDAO.updateItems(userId, cart.items);
@@ -174,13 +200,31 @@ export async function removeItem(userId: string, sku: string) {
 }
 
 /**
- * Empties the user's cart entirely.
+ * Empties the user's cart entirely, or only one module's lines when
+ * `module` is given (e.g. clearing the jewelery bag after a jewelery
+ * order without touching the clothing cart). Kept lines get their
+ * module backfilled, healing pre-module legacy data on the way.
  *
  * @param userId - Owning user's MongoDB ObjectId (as string).
+ * @param module - Optional module to clear exclusively.
  * @returns The cleared cart document, or `null` if no cart exists.
  */
-export async function clearCart(userId: string) {
-    return await cartDAO.clearCart(userId);
+export async function clearCart(userId: string, module?: CartModule) {
+    if (!module) return await cartDAO.clearCart(userId);
+
+    const cart = await cartDAO.findByUserId(userId);
+    if (!cart) return null;
+
+    const keep = cart.items
+        .filter((item: any) => resolveItemModule(item) !== module)
+        .map((item: any) => ({
+            productId: (item.productId?._id ?? item.productId) as any,
+            sku: item.sku as string,
+            quantity: item.quantity as number,
+            module: resolveItemModule(item),
+        }));
+
+    return await cartDAO.updateItems(userId, keep);
 }
 
 /**
@@ -201,12 +245,25 @@ export async function syncCart(userId: string, items: { productId: string; sku: 
 
     if (!cart) throw new ApiError(500, "Failed to create/fetch cart");
 
+    // Resolve each incoming product's module once so merged lines are
+    // stamped correctly even though the client never sends a module.
+    const verticalByProductId = new Map<string, string>();
+    await Promise.all(
+        items.map(async (item) => {
+            if (verticalByProductId.has(item.productId)) return;
+            const product = await ProductDAO.findById(item.productId).catch(() => null);
+            if (product) verticalByProductId.set(item.productId, (product as any).vertical);
+        })
+    );
+
     for (const item of items) {
+        const module = moduleFromVertical(verticalByProductId.get(item.productId));
         const existingItem = cart.items.find(i => i.sku === item.sku);
         if (existingItem) {
             existingItem.quantity += item.quantity;
+            if (!existingItem.module) existingItem.module = module;
         } else {
-            cart.items.push({ productId: item.productId as any, sku: item.sku, quantity: item.quantity });
+            cart.items.push({ productId: item.productId as any, sku: item.sku, quantity: item.quantity, module });
         }
     }
 

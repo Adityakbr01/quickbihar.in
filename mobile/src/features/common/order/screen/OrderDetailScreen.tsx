@@ -22,6 +22,7 @@ import * as Haptics from "expo-haptics";
 
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import SafeViewWrapper from "@/src/provider/SafeViewWrapper";
+import { goBack } from "@/src/utils/navigation";
 import { getOrderByIdRequest } from "../api/order.api";
 import { useSocketStore } from "@/src/store/useSocketStore";
 import { SocketEvents } from "@/src/constants/socketEvents";
@@ -315,7 +316,7 @@ export default function OrderDetailScreen() {
         <View style={styles.header}>
           <TouchableOpacity
             style={styles.backButton}
-            onPress={() => router.back()}
+            onPress={() => goBack(router, "/account/orders")}
           >
             <Ionicons name="arrow-back" size={22} color={theme.text} />
           </TouchableOpacity>
@@ -336,7 +337,7 @@ export default function OrderDetailScreen() {
         <View style={styles.header}>
           <TouchableOpacity
             style={styles.backButton}
-            onPress={() => router.back()}
+            onPress={() => goBack(router, "/account/orders")}
           >
             <Ionicons name="arrow-back" size={22} color={theme.text} />
           </TouchableOpacity>
@@ -420,7 +421,7 @@ export default function OrderDetailScreen() {
         <View style={styles.headerLeft}>
           <TouchableOpacity
             style={styles.backButton}
-            onPress={() => router.back()}
+            onPress={() => goBack(router, "/account/orders")}
             activeOpacity={0.7}
           >
             <Ionicons name="arrow-back" size={22} color={theme.text} />

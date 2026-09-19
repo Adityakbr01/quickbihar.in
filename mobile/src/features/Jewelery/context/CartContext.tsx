@@ -7,8 +7,8 @@ import React, {
   useMemo,
 } from "react";
 
-import { useCartStore, type CartItem as StoreCartItem } from "@/src/features/common/cart/store/cartStore";
-import { useWishlistStore } from "@/src/features/common/wishlist/store/wishlistStore";
+import { useCartStore, type CartItem as StoreCartItem, filterItemsByModule, totalsForItems } from "@/src/features/common/cart/store/cartStore";
+import { useWishlistStore, resolveWishlistModule } from "@/src/features/common/wishlist/store/wishlistStore";
 import { Product } from "@/src/features/Jewelery/data/products";
 
 interface CartItem {
@@ -61,16 +61,34 @@ function defaultSkuFor(raw: NonNullable<Product["_raw"]>): string | null {
 /**
  * Jewelery cart/wishlist bridge — delegates to the single shared commerce
  * stores (useCartStore + useWishlistStore) so jewelry flows through the same
- * server cart, quote → order → Razorpay pipeline as clothing.
+ * server cart, quote → order → Razorpay pipeline as clothing, while the
+ * module-scoped views below keep jewelery lines out of the clothing bag,
+ * wishlist, and checkout (and vice versa).
  *
  * Legacy local-only keys (jewelery_cart/jewelery_wishlist) are retired: the
  * shared stores persist + sync to the server themselves.
  */
 export function CartProvider({ children }: { children: React.ReactNode }) {
-  const storeItems = useCartStore((s) => s.items);
-  const storeCount = useCartStore((s) => s.itemCount);
-  const storeSubtotal = useCartStore((s) => s.subtotal);
-  const wishlistItems = useWishlistStore((s) => s.items);
+  // Jewelery bag sees ONLY jewelery lines — clothing lines live in the
+  // clothing cart even though both modules share the server cart.
+  const allStoreItems = useCartStore((s) => s.items);
+  const storeItems = useMemo(
+    () => filterItemsByModule(allStoreItems, "jewelery"),
+    [allStoreItems],
+  );
+  const totals = useMemo(() => totalsForItems(storeItems), [storeItems]);
+  const storeCount = totals.itemCount;
+  const storeSubtotal = totals.subtotal;
+  const allWishlistIds = useWishlistStore((s) => s.items);
+  const wishlistModules = useWishlistStore((s) => s.modules);
+  const wishlistCache = useWishlistStore((s) => s.cachedProducts);
+  const wishlistItems = useMemo(
+    () =>
+      allWishlistIds.filter(
+        (id) => resolveWishlistModule(id, wishlistModules, wishlistCache) === "jewelery",
+      ),
+    [allWishlistIds, wishlistModules, wishlistCache],
+  );
 
   useEffect(() => {
     AsyncStorage.multiRemove(["jewelery_cart", "jewelery_wishlist"]).catch(() => {});
@@ -86,7 +104,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     if (!raw) return;
     const sku = defaultSkuFor(raw);
     if (!sku) return;
-    void useCartStore.getState().addItem(raw, sku, 1);
+    void useCartStore.getState().addItem(raw, sku, 1, "jewelery");
   }, []);
 
   const removeFromCart = useCallback(
@@ -112,7 +130,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const toggleWishlist = useCallback((product: Product) => {
     if (!product?.id) return;
-    void useWishlistStore.getState().toggleItem(product.id, product._raw);
+    void useWishlistStore.getState().toggleItem(product.id, product._raw, "jewelery");
   }, []);
 
   const isWishlisted = useCallback(
@@ -121,7 +139,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   );
 
   const clearCart = useCallback(() => {
-    void useCartStore.getState().clearCart();
+    void useCartStore.getState().clearCart("jewelery");
   }, []);
 
   const cartItems = useMemo<CartItem[]>(

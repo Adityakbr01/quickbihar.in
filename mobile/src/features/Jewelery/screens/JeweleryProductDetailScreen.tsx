@@ -13,6 +13,7 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { goBack } from "@/src/utils/navigation";
 
 import { APP_CURRENCY } from "@/src/constants";
 import { ImageCarousel } from "@/src/features/Jewelery/components/ImageCarousel";
@@ -116,7 +117,7 @@ export default function JeweleryProductDetailScreen() {
         ]}
       >
         <Pressable
-          onPress={() => router.back()}
+          onPress={() => goBack(router)}
           style={[
             styles.backBtnInner,
             { backgroundColor: colors.card, borderColor: colors.midGray, borderWidth: 0.5 },

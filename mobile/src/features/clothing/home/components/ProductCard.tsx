@@ -39,7 +39,7 @@ export const ProductCard = ({ item, desktopWidth }: ProductCardProps) => {
     React.useCallback(
       (state) => {
         if (isSelectionApplicable) return false;
-        return state.items.some((cartItem) => cartItem.sku === sku);
+        return state.items.some((cartItem) => cartItem.sku === sku && (cartItem.module ?? "clothing") === "clothing");
       },
       [sku, isSelectionApplicable]
     )
@@ -57,7 +57,7 @@ export const ProductCard = ({ item, desktopWidth }: ProductCardProps) => {
     }
 
     try {
-      await addItem(item, sku, 1);
+      await addItem(item, sku, 1, "clothing");
     } catch {
       // silent — haptics already fired
     }

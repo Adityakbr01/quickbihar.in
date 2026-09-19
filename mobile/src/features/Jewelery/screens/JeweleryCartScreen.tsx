@@ -3,6 +3,7 @@ import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
 import React from "react";
 import {
+  Alert,
   Image,
   Platform,
   Pressable,
@@ -20,16 +21,23 @@ import {
 import { useTopPad } from "@/src/hooks/useTopPad";
 import { useCart } from "@/src/features/Jewelery/context/CartContext";
 import { useColors } from "@/src/features/Jewelery/hooks/useColors";
+import { useAuthStore } from "@/src/features/common/auth/store/authStore";
 
 export default function JeweleryCartScreen() {
   const colors = useColors();
   const topPad = useTopPad();
   const { cartItems, cartCount, removeFromCart, updateQuantity, cartTotal } =
     useCart();
+  const { isAuthenticated } = useAuthStore();
   const insets = useSafeAreaInsets();
   const bottomPad = Platform.OS === "web" ? 34 : insets.bottom;
 
   const handleCheckout = () => {
+    if (!isAuthenticated) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+      router.push("/auth" as any);
+      return;
+    }
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     router.push("/jewelery/checkout" as any);
   };

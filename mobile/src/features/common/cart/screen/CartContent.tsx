@@ -1,11 +1,11 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import { Platform, View, ScrollView, TouchableOpacity, Text, ActivityIndicator, useWindowDimensions } from "react-native";
 import { BREAKPOINTS, DESKTOP } from "@/src/utils/responsive";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { createCartStyles } from "../styles/cartStyles";
-import { useCartStore } from "../store/cartStore";
+import { useCartStore, filterItemsByModule, totalsForItems } from "../store/cartStore";
 import CartHeader from "../components/CartHeader";
 import CartItem from "../components/CartItem";
 import CartSummary from "../components/CartSummary";
@@ -20,9 +20,7 @@ const CartContent = () => {
   const theme = useTheme();
   const styles = createCartStyles(theme);
   const {
-    items,
-    subtotal,
-    totalTax,
+    items: allItems,
     updateQuantity,
     removeItem,
     fetchCart,
@@ -33,6 +31,11 @@ const CartContent = () => {
     shippingRules,
     fetchShippingConfig
   } = useCartStore();
+
+  // Clothing cart shows ONLY clothing lines — jewelery lines live in the
+  // jewelery bag even though both modules share the server cart.
+  const items = useMemo(() => filterItemsByModule(allItems, "clothing"), [allItems]);
+  const { subtotal, totalTax } = useMemo(() => totalsForItems(items), [items]);
 
   useEffect(() => {
     fetchCart();
@@ -65,6 +68,10 @@ const CartContent = () => {
 
   const handleCheckout = () => {
     if (!isAuthenticated) {
+      if (Platform.OS === "web") {
+        router.push("/auth" as any);
+        return;
+      }
       Alert.alert("Login Required", "Please login to place an order", [
         { text: "Cancel", style: "cancel" },
         { text: "Login", onPress: () => router.push("/auth" as any) },

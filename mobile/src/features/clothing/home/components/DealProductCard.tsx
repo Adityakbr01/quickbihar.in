@@ -48,7 +48,7 @@ export const DealProductCard = ({ product, width }: DealProductCardProps) => {
 
   const isInCart = React.useMemo(() => {
     if (isSelectionApplicable) return false;
-    return cartItems.some(cartItem => cartItem.sku === sku);
+    return cartItems.some(cartItem => cartItem.sku === sku && (cartItem.module ?? "clothing") === "clothing");
   }, [cartItems, sku, isSelectionApplicable]);
 
   const handleAddToCart = async () => {
@@ -63,7 +63,7 @@ export const DealProductCard = ({ product, width }: DealProductCardProps) => {
     }
 
     try {
-      await addItem(product, sku, 1);
+      await addItem(product, sku, 1, "clothing");
     } catch {
       // silent — haptics already fired
     }

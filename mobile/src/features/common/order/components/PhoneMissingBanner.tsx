@@ -4,6 +4,7 @@ import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
+import { useAuthStore } from "@/src/features/common/auth/store/authStore";
 
 /**
  * Banner shown at the top of checkout when the user has no phone
@@ -19,9 +20,12 @@ import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 export const PhoneMissingBanner: React.FC = () => {
   const theme = useTheme() as any;
   const router = useRouter();
+  const { isAuthenticated, user } = useAuthStore();
   const [editing, setEditing] = useState(false);
   const [phone, setPhone] = useState("");
   const [saving, setSaving] = useState(false);
+
+  if (!isAuthenticated || user?.phone) return null;
 
   const handleSave = async () => {
     const cleaned = phone.trim();

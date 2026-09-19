@@ -1,7 +1,7 @@
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useFocusEffect, useRouter } from "expo-router";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Image,
@@ -26,6 +26,7 @@ import IOSAlertDialog, {
   AlertButton,
 } from "@/src/components/ui/IOSAlertDialog";
 import * as Haptics from "expo-haptics";
+import { goBack } from "@/src/utils/navigation";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
 import { PhoneMissingBanner } from "../components/PhoneMissingBanner";
 
@@ -35,9 +36,7 @@ const CheckoutScreen = () => {
   const router = useRouter();
 
   const {
-    items,
-    subtotal,
-    totalTax,
+    items: allItems,
     discountAmount,
     appliedCoupon,
     appliedCoupons = [],
@@ -45,7 +44,21 @@ const CheckoutScreen = () => {
     shippingRules,
     fetchShippingConfig,
   } = useCartStore();
-  const { user } = useAuthStore();
+
+  // Clothing checkout operates on clothing lines only — jewelery lines
+  // stay in the jewelery bag for the jewelery checkout.
+  const items = useMemo(
+    () => allItems.filter((i) => (i.module ?? "clothing") === "clothing"),
+    [allItems],
+  );
+  const { subtotal, totalTax } = useMemo(
+    () => ({
+      subtotal: items.reduce((acc, i) => acc + (i.price || 0) * i.quantity, 0),
+      totalTax: items.reduce((acc, i) => acc + (i.taxAmount || 0) * i.quantity, 0),
+    }),
+    [items],
+  );
+  const { user, isAuthenticated } = useAuthStore();
 
   useEffect(() => {
     fetchShippingConfig();
@@ -114,8 +127,12 @@ const CheckoutScreen = () => {
   // so a newly-added address is never stale (the root cause of the bug).
   useFocusEffect(
     useCallback(() => {
+      if (!isAuthenticated) {
+        router.replace("/auth" as any);
+        return;
+      }
       fetchAddresses();
-    }, [])
+    }, [isAuthenticated])
   );
 
   useEffect(() => {
@@ -273,7 +290,7 @@ const CheckoutScreen = () => {
       // Cash on Delivery: the server confirms the order immediately (no gateway
       // step and no razorpayOrder), so go straight to the success screen.
       if (paymentMethod === "COD" || !razorpayOrder) {
-        clearCart();
+        clearCart("clothing");
         router.replace({
           pathname: "/order-success",
           params: { orderId: order.orderId },
@@ -313,7 +330,7 @@ const CheckoutScreen = () => {
             await verifyPaymentRequest(verificationData);
 
             // 4. Success!
-            clearCart();
+            clearCart("clothing");
             router.replace({
               pathname: "/order-success",
               params: { orderId: order.orderId },
@@ -342,6 +359,19 @@ const CheckoutScreen = () => {
     }
   };
 
+  if (!isAuthenticated) {
+    return (
+      <View
+        style={[
+          styles.container,
+          { justifyContent: "center", alignItems: "center" },
+        ]}
+      >
+        <ActivityIndicator size="small" color={theme.primary} />
+      </View>
+    );
+  }
+
   if (isLoading) {
     return (
       <View
@@ -361,7 +391,7 @@ const CheckoutScreen = () => {
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
-          onPress={() => router.back()}
+          onPress={() => goBack(router, "/clothing/cart")}
         >
           <Ionicons name="arrow-back" size={24} color={theme.text} />
         </TouchableOpacity>
@@ -376,7 +406,7 @@ const CheckoutScreen = () => {
         {/* Phone capture banner — sellers call to confirm orders, so
             users without a phone on file are nudged to add one before
             they can complete checkout. */}
-        {!user?.phone && <PhoneMissingBanner />}
+        {Boolean(isAuthenticated && !user?.phone) && <PhoneMissingBanner />}
 
         {/* Delivery Address */}
         <View style={styles.section}>

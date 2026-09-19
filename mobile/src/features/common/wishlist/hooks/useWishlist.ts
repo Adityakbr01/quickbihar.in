@@ -44,14 +44,22 @@ export const useWishlist = () => {
 
       if (allIds.length === 0) return [];
 
-      // Update store IDs if server had additional items
+      // Update store IDs + modules if server had additional items
       if (
         serverIds.length > 0 &&
         serverIds.some((sId) => !localItems.includes(sId))
       ) {
-        useWishlistStore.setState((s) => ({
-          items: Array.from(new Set([...s.items, ...serverIds])),
-        }));
+        useWishlistStore.setState((s) => {
+          const modules = { ...s.modules };
+          serverProductMap.forEach((prod, pId) => {
+            if (prod?.vertical === "JEWELERY") modules[pId] = "jewelery";
+            else if (modules[pId] !== "jewelery") modules[pId] = "clothing";
+          });
+          return {
+            items: Array.from(new Set([...s.items, ...serverIds])),
+            modules,
+          };
+        });
       }
 
       // Resolve complete product data for every ID
@@ -83,6 +91,12 @@ export const useWishlist = () => {
 
       const validProducts = resolvedProducts.filter(Boolean);
 
+      // Clothing wishlist shows clothing products only — jewelery pieces
+      // belong to the jewelery wishlist even though the id list is shared.
+      const clothingProducts = validProducts.filter(
+        (p: any) => p?.vertical !== "JEWELERY",
+      );
+
       // Cache all resolved products
       const newCache = { ...cachedProducts };
       validProducts.forEach((p: any) => {
@@ -91,7 +105,7 @@ export const useWishlist = () => {
       });
       useWishlistStore.setState({ cachedProducts: newCache });
 
-      return validProducts;
+      return clothingProducts;
     },
     staleTime: 1000 * 30, // 30 seconds
   });

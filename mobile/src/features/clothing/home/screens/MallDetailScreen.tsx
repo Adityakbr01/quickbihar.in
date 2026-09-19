@@ -22,6 +22,7 @@ import { SeoHead } from "@/src/components/seo/SeoHead";
 import { breadcrumbJsonLd, mallJsonLd, mallMeta } from "@/src/lib/seo";
 import { LinearGradient } from "expo-linear-gradient";
 import * as Haptics from "expo-haptics";
+import { goBack } from "@/src/utils/navigation";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
 
 interface MallDetailScreenProps {
@@ -90,7 +91,7 @@ const MallDetailScreen: React.FC<MallDetailScreenProps> = ({ id, initialMall }) 
           <Text style={[styles.errorText, { color: theme.text }]}>
             Could not load mall information.
           </Text>
-          <TouchableOpacity style={[styles.backBtn, { backgroundColor: theme.primary }]} onPress={() => router.back()}>
+          <TouchableOpacity style={[styles.backBtn, { backgroundColor: theme.primary }]} onPress={() => goBack(router)}>
             <Text style={styles.backBtnText}>Go Back</Text>
           </TouchableOpacity>
         </View>
@@ -199,7 +200,7 @@ const MallDetailScreen: React.FC<MallDetailScreenProps> = ({ id, initialMall }) 
 
           {/* Header Actions */}
           <View style={styles.headerRow}>
-            <TouchableOpacity onPress={() => router.back()} style={styles.navIconBtn}>
+            <TouchableOpacity onPress={() => goBack(router)} style={styles.navIconBtn}>
               <Ionicons name="arrow-back" size={24} color="#FFF" />
             </TouchableOpacity>
             <TouchableOpacity onPress={handleShare} style={styles.navIconBtn}>

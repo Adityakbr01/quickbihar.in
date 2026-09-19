@@ -17,6 +17,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { ProductCard } from "@/src/features/Jewelery/components/ProductCard";
 import { useJewelerySearch } from "@/src/features/Jewelery/hooks/useJeweleryCatalog";
+import { goBack } from "@/src/utils/navigation";
 import { useColors } from "@/src/features/Jewelery/hooks/useColors";
 
 const popularSearches = [
@@ -88,7 +89,7 @@ export default function JewelerySearchScreen() {
         </View>
         <Pressable onPress={() => {
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-          router.back();
+          goBack(router);
         }} hitSlop={8}>
           <Text
             style={[

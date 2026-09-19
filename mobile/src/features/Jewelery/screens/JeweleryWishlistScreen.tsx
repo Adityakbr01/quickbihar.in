@@ -14,7 +14,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ProductCard } from "@/src/features/Jewelery/components/ProductCard";
 import { useJeweleryProduct } from "@/src/features/Jewelery/hooks/useJeweleryCatalog";
 import { toJeweleryProduct } from "@/src/features/Jewelery/api/jewelery.api";
-import { useWishlistStore } from "@/src/features/common/wishlist/store/wishlistStore";
+import { useWishlistStore, selectWishlistIds } from "@/src/features/common/wishlist/store/wishlistStore";
 import { useColors } from "@/src/features/Jewelery/hooks/useColors";
 
 function WishlistRow({ id, cached }: { id: string; cached?: any }) {
@@ -27,7 +27,9 @@ function WishlistRow({ id, cached }: { id: string; cached?: any }) {
 export default function JeweleryWishlistScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const wishlistIds = useWishlistStore((s) => s.items);
+  // Jewelery wishlist shows jewelery pieces only — clothing ids live in
+  // the clothing wishlist even though the id list is shared.
+  const wishlistIds = useWishlistStore((s) => selectWishlistIds(s, "jewelery"));
   const cachedProducts = useWishlistStore((s) => s.cachedProducts);
   const topPad = Platform.OS === "web" ? 16 : insets.top;
 

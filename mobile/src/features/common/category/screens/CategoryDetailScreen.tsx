@@ -7,6 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import * as Haptics from "expo-haptics";
 
 import SafeViewWrapper from "@/src/provider/SafeViewWrapper";
+import { goBack } from "@/src/utils/navigation";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { SeoHead } from "@/src/components/seo/SeoHead";
 import {
@@ -65,7 +66,7 @@ const CategoryDetailScreen: React.FC<CategoryDetailScreenProps> = ({ slug }) => 
 
   const handleBack = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    router.back();
+    goBack(router);
   };
 
   if (categoryQuery.isLoading) {

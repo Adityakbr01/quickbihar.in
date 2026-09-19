@@ -17,3 +17,7 @@ export const syncCartSchema = z.object({
         quantity: z.number().int().positive(),
     })),
 });
+
+export const clearCartQuerySchema = z.object({
+    module: z.enum(["clothing", "jewelery"]).optional(),
+});

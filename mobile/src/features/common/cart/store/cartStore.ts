@@ -21,6 +21,47 @@ export interface CartItem {
   taxAmount?: number;
   sellerId?: string;
   storeId?: string;
+  /**
+   * Storefront module that owns this line. Optional so carts persisted
+   * before module tagging keep working — resolvers treat a missing
+   * module as "clothing".
+   */
+  module?: CartModule;
+}
+
+/** Storefront cart modules sharing the single server cart. */
+export type CartModule = "clothing" | "jewelery";
+
+/**
+ * Resolves a line's owning module. Lines persisted before module
+ * tagging (and any line the server couldn't classify) belong to the
+ * clothing cart.
+ */
+export function resolveCartItemModule(
+  item: Pick<CartItem, "module">,
+): CartModule {
+  return item.module ?? "clothing";
+}
+
+/** Lines belonging to one module's bag only. */
+export function filterItemsByModule(
+  items: CartItem[],
+  module: CartModule,
+): CartItem[] {
+  return items.filter((i) => resolveCartItemModule(i) === module);
+}
+
+/** Subtotal / tax / line-count for an explicit item list (usually one module's). */
+export function totalsForItems(items: CartItem[]): {
+  subtotal: number;
+  totalTax: number;
+  itemCount: number;
+} {
+  return {
+    subtotal: items.reduce((acc, item) => acc + (item.price || 0) * item.quantity, 0),
+    totalTax: items.reduce((acc, item) => acc + (item.taxAmount || 0) * item.quantity, 0),
+    itemCount: items.length,
+  };
 }
 
 /**
@@ -74,6 +115,46 @@ export interface AppliedCouponItemCoverage {
   lineSubtotal: number;
 }
 
+/**
+ * Recomputes every applied coupon against an explicit item list (used
+ * when a module's lines are cleared while other modules keep theirs).
+ * Coupons covering nothing in the remaining items are dropped.
+ */
+function pruneCouponsForItems(
+  coupons: AppliedCoupon[],
+  items: CartItem[],
+): { appliedCoupons: AppliedCoupon[]; discountAmount: number } {
+  const kept: AppliedCoupon[] = [];
+  for (const coupon of coupons) {
+    const appliedItems = pickCouponItems(coupon, items);
+    if (appliedItems.length === 0) continue;
+    const sub = appliedItems.reduce((acc, m) => acc + m.lineSubtotal, 0);
+    if (sub < (coupon.minOrderValue || 0)) continue;
+    let discount = 0;
+    if (coupon.discountType === "PERCENTAGE") {
+      discount = (sub * coupon.discountValue) / 100;
+      if (
+        coupon.maxDiscountAmount &&
+        coupon.maxDiscountAmount > 0 &&
+        discount > coupon.maxDiscountAmount
+      ) {
+        discount = coupon.maxDiscountAmount;
+      }
+    } else {
+      discount = Math.min(coupon.discountValue, sub);
+    }
+    kept.push({
+      ...coupon,
+      appliedDiscount: Math.round(discount),
+      appliedItems,
+    });
+  }
+  return {
+    appliedCoupons: kept,
+    discountAmount: kept.reduce((acc, c) => acc + (c.appliedDiscount || 0), 0),
+  };
+}
+
 /** Augments ICoupon with the items the coupon actually discounted and the final discount. */
 export type AppliedCoupon = ICoupon & {
   appliedDiscount: number;
@@ -97,13 +178,13 @@ interface CartState {
 
   // Actions
   fetchShippingConfig: () => Promise<void>;
-  addItem: (product: any, sku: string, quantity?: number) => Promise<void>;
+  addItem: (product: any, sku: string, quantity?: number, module?: CartModule) => Promise<void>;
   removeItem: (sku: string) => Promise<void>;
   updateQuantity: (sku: string, quantity: number) => Promise<void>;
   fetchCart: () => Promise<void>;
   syncLocalCart: () => Promise<void>;
-  clearCart: () => Promise<void>;
-  applyCoupon: (code: string, optimisticCoupon?: ICoupon) => Promise<void>;
+  clearCart: (module?: CartModule) => Promise<void>;
+  applyCoupon: (code: string, optimisticCoupon?: ICoupon, scopeItems?: CartItem[]) => Promise<void>;
   removeCoupon: (code?: string) => void;
   revalidateCoupon: () => Promise<void>;
   handleStockUpdate: (data: { productId: string; sku: string; newStock: number }) => void;
@@ -128,7 +209,7 @@ export const useCartStore = create<CartState>()(
       appliedCoupons: [],
       discountAmount: 0,
 
-      addItem: async (product, sku, quantity = 1) => {
+      addItem: async (product, sku, quantity = 1, module: CartModule = "clothing") => {
         const { isAuthenticated } = useAuthStore.getState();
         const { items } = get();
         const previousItems = items;
@@ -157,6 +238,7 @@ export const useCartStore = create<CartState>()(
             productId: typeof product._id === 'object' ? product._id.toString() : (product._id || product.id),
             sku,
             quantity,
+            module,
             productTitle: product.title,
             price: itemPrice,
             taxAmount, // Save tax per unit
@@ -447,16 +529,40 @@ export const useCartStore = create<CartState>()(
         }
       },
 
-      clearCart: async () => {
+      clearCart: async (module?: CartModule) => {
         const { isAuthenticated } = useAuthStore.getState();
         if (isAuthenticated) {
-          await axiosInstance.delete("/cart/clear");
+          await axiosInstance.delete("/cart/clear", module ? { params: { module } } : undefined);
         }
-        set({ items: [], subtotal: 0, itemCount: 0, appliedCoupon: null, appliedCoupons: [], discountAmount: 0 });
+        if (!module) {
+          set({ items: [], subtotal: 0, totalTax: 0, itemCount: 0, appliedCoupon: null, appliedCoupons: [], discountAmount: 0, error: null });
+          return;
+        }
+        // Scoped clear (e.g. after a jewelery order): drop only this
+        // module's lines, recompute totals, and prune coupons that no
+        // longer cover anything in the remaining items.
+        const { items, appliedCoupons } = get();
+        const remaining = items.filter((i) => resolveCartItemModule(i) !== module);
+        const totals = totalsForItems(remaining);
+        const coupons = pruneCouponsForItems(appliedCoupons, remaining);
+        set({
+          items: remaining,
+          subtotal: totals.subtotal,
+          totalTax: totals.totalTax,
+          itemCount: totals.itemCount,
+          appliedCoupons: coupons.appliedCoupons,
+          appliedCoupon: coupons.appliedCoupons[0] || null,
+          discountAmount: coupons.discountAmount,
+          error: null,
+        });
       },
 
-      applyCoupon: async (code: string, optimisticCoupon?: ICoupon) => {
-        const { items, appliedCoupons } = get();
+      applyCoupon: async (code: string, optimisticCoupon?: ICoupon, scopeItems?: CartItem[]) => {
+        const { appliedCoupons } = get();
+        // Coupon math runs against one module's lines (the bag the buyer
+        // is shopping) so a clothing coupon can never feed off jewelery
+        // lines or vice versa.
+        const items = scopeItems ?? get().items;
         const previousAppliedCoupons = appliedCoupons;
         const previousDiscountAmount = get().discountAmount;
 

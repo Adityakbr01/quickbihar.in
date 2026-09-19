@@ -18,6 +18,7 @@ import { googleAuthRequest } from "@/src/features/common/auth/api/auth.api";
 import { GoogleSignInButton } from "@/src/features/common/auth/components/GoogleSignInButton";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
 import { useCartStore } from "@/src/features/common/cart/store/cartStore";
+import { goBack } from "@/src/utils/navigation";
 import { useColors } from "@/src/features/Jewelery/hooks/useColors";
 import { JEWELERY_MODULE_CONFIG } from "@/src/constants/app.constants";
 
@@ -63,7 +64,7 @@ export default function SignInScreen() {
   return (
     <View style={[styles.root, { backgroundColor: colors.ivory }]}>
       <View style={[styles.topBar, { paddingTop: topPad + 8 }]}>
-        <Pressable onPress={() => router.back()} hitSlop={12}>
+        <Pressable onPress={() => goBack(router)} hitSlop={12}>
           <Feather name="arrow-left" size={22} color={colors.ink} />
         </Pressable>
       </View>

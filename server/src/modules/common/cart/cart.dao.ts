@@ -21,7 +21,7 @@ import { Cart, type ICartItem } from "./cart.model";
 export async function findByUserId(userId: string) {
     return await Cart.findOne({ userId }).populate(
         "items.productId",
-        "title price images originalPrice discountPercentage variants isGstApplicable gstPercentage sellerId storeId"
+        "title price images originalPrice discountPercentage variants isGstApplicable gstPercentage sellerId storeId vertical"
     );
 }
 

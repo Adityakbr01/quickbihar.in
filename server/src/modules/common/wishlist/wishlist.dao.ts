@@ -15,7 +15,7 @@ export class WishlistDAO {
 
     async findByUserId(userId: string) {
         return await Wishlist.find({ userId })
-            .populate("productId", "title price images originalPrice discountPercentage variants slug")
+            .populate("productId", "title price images originalPrice discountPercentage variants slug vertical")
             .sort({ createdAt: -1 });
     }
 

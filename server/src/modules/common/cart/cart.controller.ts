@@ -2,7 +2,7 @@ import type { Request, Response } from "express";
 import { ApiResponse } from "@/utils/ApiResponse";
 import { asyncHandler } from "@/utils/asyncHandler";
 import * as cartService from "./cart.service";
-import { addToCartSchema, updateQuantitySchema, syncCartSchema } from "./cart.validator";
+import { addToCartSchema, updateQuantitySchema, syncCartSchema, clearCartQuerySchema } from "./cart.validator";
 
 /**
  * Returns the authenticated user's cart with computed pricing and stock status.
@@ -82,13 +82,15 @@ export const removeItem = asyncHandler(async (req: Request, res: Response) => {
 });
 
 /**
- * Empties the authenticated user's cart entirely.
+ * Empties the authenticated user's cart entirely, or only one module's
+ * lines when `?module=clothing|jewelery` is given.
  *
  * @route DELETE /api/v1/cart/clear
  * @access Protected
  */
 export const clearCart = asyncHandler(async (req: Request, res: Response) => {
     const userId = (req as any).user._id;
-    const result = await cartService.clearCart(userId);
+    const query = clearCartQuerySchema.parse(req.query);
+    const result = await cartService.clearCart(userId, query.module);
     return res.status(200).json(new ApiResponse(200, result, "Cart cleared"));
 });

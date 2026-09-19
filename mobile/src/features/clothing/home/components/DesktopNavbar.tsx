@@ -32,7 +32,7 @@ export const DesktopNavbar = () => {
 
   const isDesktop =
     Platform.OS === "web" && width >= BREAKPOINTS.desktopMin;
-  const cartCount = useCartStore((s) => (s as any).itemCount ?? s.items.length ?? 0);
+  const cartCount = useCartStore((s) => s.items.filter((i) => (i.module ?? "clothing") === "clothing").length);
   const { isAuthenticated } = useAuthStore();
   const toggleMode = (theme as any).toggleMode;
   const isDark = (theme as any).isDark ?? theme.text === "#ffffff";

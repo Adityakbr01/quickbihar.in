@@ -16,19 +16,25 @@ import { getApplicableCouponsRequest } from "@/src/features/common/coupon/api/co
 import { ICoupon } from "@/src/features/common/coupon/types/coupon.types";
 import { CouponBottomSheet, calculateCouponApplicability } from "./CouponBottomSheet";
 
-const CouponInput = () => {
+const CouponInput = ({ module = "clothing" }: { module?: "clothing" | "jewelery" } = {}) => {
   const theme = useTheme() as any;
   const styles = createCartStyles(theme);
   const [code, setCode] = useState("");
   const [isBottomSheetVisible, setIsBottomSheetVisible] = useState(false);
   const {
-    items,
+    items: allItems,
     applyCoupon,
     removeCoupon,
     appliedCoupons = [],
     isLoading,
     error
   } = useCartStore();
+
+  // Coupon math runs against this bag's lines only.
+  const items = useMemo(
+    () => allItems.filter((i) => (i.module ?? "clothing") === module),
+    [allItems, module],
+  );
 
   const productIds = useMemo(
     () => Array.from(new Set(items.map((i) => i.productId).filter(Boolean))),
@@ -66,7 +72,7 @@ const CouponInput = () => {
     }
 
     try {
-      await applyCoupon(targetCode, optimisticCoupon);
+      await applyCoupon(targetCode, optimisticCoupon, items);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       if (!couponCodeToApply) {
         setCode("");

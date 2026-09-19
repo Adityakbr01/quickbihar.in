@@ -144,7 +144,7 @@ export const VariantSelectorBottomSheet = ({
 
   const isInCart = useMemo(() => {
     if (!isSelectionComplete || !selectedVariant) return false;
-    return cartItems.some((item) => item.sku === selectedVariant.sku);
+    return cartItems.some((item) => item.sku === selectedVariant.sku && (item.module ?? "clothing") === "clothing");
   }, [isSelectionComplete, selectedVariant, cartItems]);
 
   const isOutOfStock = useMemo(() => {
@@ -185,7 +185,7 @@ export const VariantSelectorBottomSheet = ({
 
     try {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      await addItem(product, sku, 1);
+      await addItem(product, sku, 1, "clothing");
       onClose();
     } catch {
       // silent — haptics already fired

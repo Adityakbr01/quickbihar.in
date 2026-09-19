@@ -45,6 +45,7 @@ import { useWishlistStore } from "@/src/features/common/wishlist/store/wishlistS
 import { useCartStore } from "@/src/features/common/cart/store/cartStore";
 import * as Haptics from "expo-haptics";
 import WishlistHeart from "@/src/components/common/WishlistHeart";
+import { goBack } from "@/src/utils/navigation";
 
 import { useSizeChart, useSizeCharts } from "@/src/features/clothing/sizeChart/hooks/useSizeCharts";
 
@@ -213,7 +214,7 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
 
   const isInCart = useMemo(() => {
     if (!isSelectionComplete || !selectedVariant) return false;
-    return cartItems.some((item) => item.sku === selectedVariant.sku);
+    return cartItems.some((item) => item.sku === selectedVariant.sku && (item.module ?? "clothing") === "clothing");
   }, [isSelectionComplete, selectedVariant, cartItems]);
 
   const handleAddToBag = async () => {
@@ -234,7 +235,7 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
 
     try {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      await addItem(dp, sku, 1);
+      await addItem(dp, sku, 1, "clothing");
     } catch {
       // silent — haptics already signalled error
     }
@@ -298,7 +299,7 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
     return (
       <SafeViewWrapper>
         {seoMeta && <SeoHead meta={seoMeta} jsonLd={seoJsonLd} />}
-        <ProductDetailSkeleton theme={theme} onBack={() => router.back()} />
+        <ProductDetailSkeleton theme={theme} onBack={() => goBack(router)} />
       </SafeViewWrapper>
     );
   }
@@ -336,7 +337,7 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
           {/* Floating Navigation */}
           <View style={s.galleryNav}>
             <TouchableOpacity
-              onPress={() => router.back()}
+              onPress={() => goBack(router)}
               style={[
                 s.navBtn,
                 {

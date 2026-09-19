@@ -23,6 +23,7 @@ import { NoIndexHead } from "@/src/components/seo/SeoHead";
 import { useSocketStore } from "@/src/store/useSocketStore";
 import { SocketEvents } from "@/src/constants/socketEvents";
 import * as Haptics from "expo-haptics";
+import { goBack } from "@/src/utils/navigation";
 
 export default function TrackOrderScreen() {
   const { id } = useLocalSearchParams();
@@ -184,7 +185,7 @@ export default function TrackOrderScreen() {
         <Text style={styles.errorText}>Order not found</Text>
         <TouchableOpacity
           style={styles.backButton}
-          onPress={() => router.back()}
+          onPress={() => goBack(router, `/order/${orderId}`)}
         >
           <Text style={styles.backButtonText}>Go Back</Text>
         </TouchableOpacity>
@@ -202,7 +203,7 @@ export default function TrackOrderScreen() {
           headerTitle: "",
           headerLeft: () => (
             <TouchableOpacity
-              onPress={() => router.back()}
+              onPress={() => goBack(router, `/order/${orderId}`)}
               style={styles.iconButton}
             >
               <Ionicons name="chevron-back" size={24} color="black" />

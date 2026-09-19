@@ -418,7 +418,7 @@ export default function JeweleryAccountScreen() {
                 icon="map-pin"
                 label="Saved Addresses"
                 sub="Manage delivery addresses"
-                route="/account/addresses"
+                route="/jewelery/addresses"
               />
               <MenuItem
                 icon="key"
