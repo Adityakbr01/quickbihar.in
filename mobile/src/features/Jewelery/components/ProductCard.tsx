@@ -15,6 +15,7 @@ import {
 import { useCart } from "@/src/features/Jewelery/context/CartContext";
 import { Product } from "@/src/features/Jewelery/data/products";
 import { useColors } from "@/src/features/Jewelery/hooks/useColors";
+import { APP_CURRENCY } from "@/src/constants";
 
 const { width } = Dimensions.get("window");
 const CARD_WIDTH = (width - 48) / 2;
@@ -132,11 +133,11 @@ export function ProductCard({ product, style }: ProductCardProps) {
         </View>
         <View style={styles.priceRow}>
           <Text style={[styles.price, { color: colors.ink, fontFamily: "DMSans_500Medium" }]}>
-            ₹{product.price.toLocaleString("en-IN")}
+            {APP_CURRENCY}{product.price.toLocaleString("en-IN")}
           </Text>
           {product.originalPrice && (
             <Text style={[styles.originalPrice, { color: colors.warmGray, fontFamily: "DMSans_400Regular" }]}>
-              ₹{product.originalPrice.toLocaleString("en-IN")}
+              {APP_CURRENCY}{product.originalPrice.toLocaleString("en-IN")}
             </Text>
           )}
         </View>

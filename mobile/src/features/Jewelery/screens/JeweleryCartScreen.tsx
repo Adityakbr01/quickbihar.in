@@ -186,7 +186,7 @@ export default function JeweleryCartScreen() {
                       { color: colors.ink, fontFamily: "DMSans_500Medium" },
                     ]}
                   >
-                    ₹{product.price.toLocaleString("en-IN")}
+                    {APP_CURRENCY}{product.price.toLocaleString("en-IN")}
                   </Text>
                   <View style={styles.qtyRow}>
                     <Pressable
@@ -275,7 +275,7 @@ export default function JeweleryCartScreen() {
                     { color: colors.ink, fontFamily: "DMSans_500Medium" },
                   ]}
                 >
-                  ₹{cartTotal.toLocaleString("en-IN")}
+                  {APP_CURRENCY}{cartTotal.toLocaleString("en-IN")}
                 </Text>
               </View>
               <View style={styles.summaryRow}>
@@ -296,7 +296,7 @@ export default function JeweleryCartScreen() {
                     { color: colors.gold, fontFamily: "DMSans_400Regular" },
                   ]}
                 >
-                  {cartTotal >= JEWELERY_MODULE_CONFIG.freeShippingThreshold ? "Free" : `${APP_CURRENCY}199`}
+                  {cartTotal >= JEWELERY_MODULE_CONFIG.freeShippingThreshold ? "Free" : "At checkout"}
                 </Text>
               </View>
               <View
@@ -318,9 +318,7 @@ export default function JeweleryCartScreen() {
                   ]}
                 >
                   {APP_CURRENCY}
-                  {(
-                    cartTotal + (cartTotal >= JEWELERY_MODULE_CONFIG.freeShippingThreshold ? 0 : 199)
-                  ).toLocaleString("en-IN")}
+                  {cartTotal.toLocaleString("en-IN")}
                 </Text>
               </View>
               <Text
@@ -333,9 +331,7 @@ export default function JeweleryCartScreen() {
                 ]}
               >
                 EMI available from {APP_CURRENCY}
-                {Math.round(
-                  (cartTotal + (cartTotal >= JEWELERY_MODULE_CONFIG.freeShippingThreshold ? 0 : 199)) / 12
-                ).toLocaleString("en-IN")}
+                {Math.round(cartTotal / 12).toLocaleString("en-IN")}
                 /month
               </Text>
             </View>
@@ -344,7 +340,7 @@ export default function JeweleryCartScreen() {
             <View style={[styles.trustRow, { borderTopColor: colors.midGray }]}>
               {[
                 { icon: "shield", text: "Hallmark Certified" },
-                { icon: "refresh-cw", text: "Free Returns 30d" },
+                { icon: "refresh-cw", text: `Free Returns ${JEWELERY_MODULE_CONFIG.returnPolicyDays}d` },
                 { icon: "gift", text: "Gift Box Included" },
               ].map((t) => (
                 <View key={t.text} style={styles.trustItem}>
@@ -383,7 +379,7 @@ export default function JeweleryCartScreen() {
                   { color: colors.ink, fontFamily: "DMSans_500Medium" },
                 ]}
               >
-                ₹{(cartTotal + (cartTotal >= 5000 ? 0 : 199)).toLocaleString("en-IN")}
+                {APP_CURRENCY}{cartTotal.toLocaleString("en-IN")}
               </Text>
               <Text
                 style={[

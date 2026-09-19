@@ -16,6 +16,7 @@ import {
 
 import { useColors } from "@/src/features/Jewelery/hooks/useColors";
 import type { Product } from "@/src/features/Jewelery/data/products";
+import { APP_CURRENCY } from "@/src/constants";
 
 const { width } = Dimensions.get("window");
 
@@ -85,7 +86,7 @@ export function HeroCarousel({ items }: { items?: Product[] }) {
         image: p.image,
         label: p.collection?.toUpperCase() || "FEATURED",
         headline: p.name,
-        body: `${p.subtitle} · ₹${p.price.toLocaleString("en-IN")}`,
+        body: `${p.subtitle} · ${APP_CURRENCY}${p.price.toLocaleString("en-IN")}`,
         ctaLabel: "Shop This Piece →",
         ctaRoute: `/jewelery/product/${p.id}`,
       }))
@@ -139,7 +140,8 @@ export function HeroCarousel({ items }: { items?: Product[] }) {
         <Image source={item.image} style={styles.slideImage} resizeMode="cover" />
       ) : (
         <View style={[styles.slideImage, { backgroundColor: colors.emerald }]} />
-      )}      <View style={styles.overlay} />
+      )}
+      <View style={styles.overlay} />
       <View style={styles.slideContent}>
         <Text
           style={[

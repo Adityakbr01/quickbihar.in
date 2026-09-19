@@ -14,7 +14,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { JEWELERY_MODULE_CONFIG } from "@/src/constants";
+import { JEWELERY_MODULE_CONFIG, APP_COUNTRY_CODE, APP_NAME } from "@/src/constants";
 import { useAuth } from "@/src/features/Jewelery/context/AuthContext";
 import { useCart } from "@/src/features/Jewelery/context/CartContext";
 import { getMyOrdersRequest } from "@/src/features/common/order/api/order.api";
@@ -28,8 +28,8 @@ const guestMenuItems = [
     label: "Help & Support",
     sub: "Sizing guide, returns, care",
   },
-  { icon: "message-circle", label: "WhatsApp Assist", sub: "+91 98765 00000" },
-  { icon: "info", label: "About QuickBihar", sub: "Our story and craft" },
+  { icon: "message-circle", label: "WhatsApp Assist", sub: JEWELERY_MODULE_CONFIG.whatsappPhone },
+  { icon: "info", label: `About ${APP_NAME}`, sub: "Our story and craft" },
 ];
 
 function MenuItem({
@@ -228,7 +228,7 @@ export default function JeweleryAccountScreen() {
                     },
                   ]}
                 >
-                  +91 {user.phone}
+                  {APP_COUNTRY_CODE} {user.phone}
                 </Text>
                 {user.email ? (
                   <Text
@@ -393,7 +393,7 @@ export default function JeweleryAccountScreen() {
               />
               <MenuItem
                 icon="info"
-                label="About QuickBihar"
+                label={`About ${APP_NAME}`}
                 sub="Our story and craft"
                 last
                 onPress={() =>
@@ -584,7 +584,7 @@ export default function JeweleryAccountScreen() {
               },
             ]}
           >
-            QuickBihar
+            {APP_NAME}
           </Text>
           <Text
             style={[

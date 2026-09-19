@@ -17,7 +17,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useAuth } from "@/src/features/Jewelery/context/AuthContext";
 import { useColors } from "@/src/features/Jewelery/hooks/useColors";
-import { JEWELERY_MODULE_CONFIG } from "@/src/constants/app.constants";
+import { JEWELERY_MODULE_CONFIG, APP_COUNTRY_CODE } from "@/src/constants/app.constants";
 
 export default function SignUpScreen() {
   const colors = useColors();
@@ -186,14 +186,14 @@ export default function SignUpScreen() {
                 { borderBottomColor: fieldBorder("phone") },
               ]}
             >
-              <Text
-                style={[
-                  styles.countryCode,
-                  { color: colors.ink, fontFamily: "DMSans_400Regular" },
-                ]}
-              >
-                +91
-              </Text>
+                <Text
+                  style={[
+                    styles.countryCode,
+                    { color: colors.ink, fontFamily: "DMSans_400Regular" },
+                  ]}
+                >
+                  {APP_COUNTRY_CODE}
+                </Text>
               <View
                 style={[styles.inputSep, { backgroundColor: colors.midGray }]}
               />

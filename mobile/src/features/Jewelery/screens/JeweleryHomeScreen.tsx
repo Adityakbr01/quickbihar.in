@@ -501,7 +501,7 @@ function GiftingSection() {
           { color: colors.warmGray, fontFamily: "DMSans_300Light" },
         ]}
       >
-        Every QuickBihar order ships in our signature ivory and gold gift box —
+        Every {APP_NAME} order ships in our signature ivory and gold gift box —
         complimentary. Add a handwritten note. Make it unforgettable.
       </Text>
       <Pressable

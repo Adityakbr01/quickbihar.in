@@ -224,7 +224,7 @@ Screenshot wali demand: Create Product me **catalog tabs (Clothing | Jewelry | F
 
 ## 16. DONE — Mock images purge (19 Sep 2026)
 
-- HeroCarousel ke 4 `image: null` mock slides delete. Ab hero **real catalog photos** se banta hai (bestsellers → shoppable slides with price + product link); catalog empty ho to emerald brand slides. Auto-scroll timer ko dynamic length-safe banaya (stale closure crash fix).
+- HeroCarousel ke 4 `image: null` mock slides delete. Ab hero **real product photos** se banta hai (bestsellers → shoppable slides with price + product link); catalog empty ho to emerald brand slides. Auto-scroll timer ko dynamic length-safe banaya (stale closure crash fix).
 - Koi `require()` image, koi jewelry asset file, koi `mock://` URL nahi bacha — grep verify kiya.
 - `tsc` clean.
 
@@ -254,3 +254,9 @@ Screenshot wali demand: Create Product me **catalog tabs (Clothing | Jewelry | F
 **Catalog changer arrow:** header switcher ka `swap-horizontal` icon → `arrow-forward`. Ek click = next catalog: **Clothing (default) → Jewelry → Food → wapas Clothing** (`APP_MODULES` order fix — pehle food 2nd tha). Button par accessibility label bhi hai ("Next catalog: Jewelry"). Clothing, Jewelry (pehle se tha) aur Food (shared `HomeHeader` use karta hai) — teeno headers me same arrow.
 
 **Last-catalog reopen:** pehle se persisted tha (`useModuleStore` → AsyncStorage `active-app-module-v1`) aur `app/index.tsx` hydration ke baad last module par redirect karta hai — verify kiya, koi reset-on-logout nahi hai. Jewelry se exit karke app dobara kholo → seedha Jewelry khulega. Koi code change nahi chahiye tha, sirf order fix tha.
+
+## 19. DONE — Text-node flood + company constants single-source (19 Sep 2026)
+
+**Console flood fix:** jewelry home par `Unexpected text node` error 100+ baar aa raha tha (har hero auto-scroll tick par 4). Playwright fiber-walk se pakda — hero slide JSX me `)}` ke baad same line par 6 spaces + `<View>` tha (purani edit ka side-effect), jo whitespace text node ban gaya tha. One-line JSX fix → **zero errors** (browser me verify). Timer + dots wapas on hai.
+
+**Company info single source (`src/constants/app.constants.ts`):** jewelry me hardcoded `₹` (7 jagah), `+91` (2 jagah), nakli WhatsApp number (`+91 98765 00000` guest menu me!), nakli shipping math (`+199` total me joda hua — server quote me real fee lagti hai), `Free Returns 30d`, brand strings — sab `APP_CURRENCY` / `APP_COUNTRY_CODE` (new) / `APP_NAME` / `JEWELERY_MODULE_CONFIG` (whatsapp, freeShippingThreshold, returnPolicyDays) se aata hai ab. Cart total me fabricated 199 hataya — shipping "At checkout" dikhta hai, EMI subtotal se banti hai. Grep verify: zero hardcoded bache. `tsc` clean.

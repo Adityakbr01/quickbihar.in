@@ -3,6 +3,7 @@ export const APP_NAME = "QuickBihar";
 export const APP_COMPANY_NAME = "QuickBihar Inc.";
 export const APP_VERSION = "1.0.0";
 export const APP_CURRENCY = "₹";
+export const APP_COUNTRY_CODE = "+91";
 export const APP_GENERAL_SUPPORT_EMAIL = "support@quickbihar.in";
 export const APP_GENERAL_SUPPORT_PHONE = "+91 98765 43210";
 
