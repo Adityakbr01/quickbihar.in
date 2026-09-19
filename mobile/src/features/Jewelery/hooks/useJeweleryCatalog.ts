@@ -68,6 +68,6 @@ export function useJeweleryCategories() {
   return useQuery({
     queryKey: ["jewelery-categories"],
     queryFn: getJeweleryCategories,
-    staleTime: 60 * 60 * 1000,
+    staleTime: 10 * 1000,
   });
 }

@@ -260,3 +260,17 @@ Screenshot wali demand: Create Product me **catalog tabs (Clothing | Jewelry | F
 **Console flood fix:** jewelry home par `Unexpected text node` error 100+ baar aa raha tha (har hero auto-scroll tick par 4). Playwright fiber-walk se pakda — hero slide JSX me `)}` ke baad same line par 6 spaces + `<View>` tha (purani edit ka side-effect), jo whitespace text node ban gaya tha. One-line JSX fix → **zero errors** (browser me verify). Timer + dots wapas on hai.
 
 **Company info single source (`src/constants/app.constants.ts`):** jewelry me hardcoded `₹` (7 jagah), `+91` (2 jagah), nakli WhatsApp number (`+91 98765 00000` guest menu me!), nakli shipping math (`+199` total me joda hua — server quote me real fee lagti hai), `Free Returns 30d`, brand strings — sab `APP_CURRENCY` / `APP_COUNTRY_CODE` (new) / `APP_NAME` / `JEWELERY_MODULE_CONFIG` (whatsapp, freeShippingThreshold, returnPolicyDays) se aata hai ab. Cart total me fabricated 199 hataya — shipping "At checkout" dikhta hai, EMI subtotal se banti hai. Grep verify: zero hardcoded bache. `tsc` clean.
+
+## 20. DONE — Jewelry auth = clothing one-tap flow (19 Sep 2026)
+
+**Sawaal tha:** jewelry me alag auth kyu? Ab same hai — clothing ke `auth.screen.tsx` jaisa single **one-tap Google screen** (server `/auth/google` par auto-register, koi password/OTP nahi). Sign-up/forgot/reset/otp routes redirect karte hai sign-in par (clothing me bhi ye screens nahi hai). Success par jewelry profile + guest cart sync.
+
+**Checkout pehle se same tha:** jewelry cart common `/checkout` kholta hai — address + GPS pin + **WhatsApp OTP phone verification** (bina verified phone ke order block) + quote → Razorpay/COD. Browser me sign-in screen verify: zero errors. `tsc` clean.
+
+## 21. DONE — All docs refresh (19 Sep 2026)
+
+Purane docs me "jewelery placeholder/mock" claims the — sab update kiye (archive/dated audits ko nahi chheda):
+- `README.md` + `readme.md`: live verticals clothing+jewelery, Hugeicons→AppIcon, roadmap items ✅ done mark.
+- `docs/developers-docs/`: `apps/mobile-app.md` (+ Jewelery status section), `getting-started/folder-structure.md`, `getting-started/overview.md`, `README.md`, `features/products.md` — jewelry live reflect.
+- `plan.md` (9 Sep SEO audit): top par dated addendum — jewelry noindex faisla real data ke saath re-evaluate karna hai.
+- Code-doc alignment: dead `requestOTPRequest`/`verifyOTPRequest` common `auth.api` se delete (doc pehle se kehta tha) — zero refs, `tsc` clean.

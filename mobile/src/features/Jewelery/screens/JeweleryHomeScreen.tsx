@@ -1,19 +1,21 @@
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
-import React, { useRef } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Dimensions,
   FlatList,
   Platform,
   Pressable,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
   useColorScheme,
   View,
 } from "react-native";
+import { useQueryClient } from "@tanstack/react-query";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { ModuleSwitcherButton } from "@/src/components/common/ModuleSwitcherButton";
@@ -205,17 +207,40 @@ function SectionHeader({
   );
 }
 
+const JEWELERY_COLLECTION_IMAGES: Record<string, string> = {
+  jewellery: "https://ik.imagekit.io/k2n57ywshu/categories/jewelry/jewelry_collection_showcase_1789811067982_KRVoN6-Ls6.jpg",
+  necklace: "https://ik.imagekit.io/k2n57ywshu/products/jewelry/jewelry_pear_ruby_pendant_1789811050387_6l5vvgrn4r.jpg",
+  ring: "https://ik.imagekit.io/k2n57ywshu/products/jewelry/jewelry_solitaire_diamond_ring_1789811055760_0Iahnr6TDz.jpg",
+  earrings: "https://ik.imagekit.io/k2n57ywshu/products/jewelry/jewelry_peacock_temple_jhumkas_1789811057899_dLFgtSO4C.jpg",
+  bangle: "https://ik.imagekit.io/k2n57ywshu/products/jewelry/jewelry_royal_gold_bangles_1789811053311_o1ORm92lY.jpg",
+  pendant: "https://ik.imagekit.io/k2n57ywshu/products/jewelry/jewelry_laxmi_temple_coin_pendant_1789811062952_VSOBuVmmqn.jpg",
+  "bridal-set": "https://ik.imagekit.io/k2n57ywshu/products/jewelry/jewelry_royal_kundan_bridal_set_1789811060450_aFO15AgH_J.jpg",
+  chain: "https://ik.imagekit.io/k2n57ywshu/products/jewelry/jewelry_solid_gold_curb_chain_1789811065544_yPAVEqRfy.jpg",
+};
+
+export function resolveJeweleryCollectionImage(c: any): string {
+  const slug = (c?.slug || c?.title?.toLowerCase()?.replace(/\s+/g, "-") || "").trim();
+  const raw = c?.image || "";
+  if (!raw || raw.includes("ethnic") || raw.includes("shirts") || raw.includes("kurtis") || raw.includes("jeans") || raw.includes("kids") || raw.includes("sarees")) {
+    return JEWELERY_COLLECTION_IMAGES[slug] || JEWELERY_COLLECTION_IMAGES.jewellery;
+  }
+  return raw;
+}
+
 function FeaturedCollections() {
   const colors = useColors();
   const { data: cats } = useJeweleryCategories();
-  const top: Collection[] = (cats ?? []).slice(0, 3).map((c) => ({
-    id: c._id,
-    name: c.title,
-    tagline: "",
-    mood: "",
-    pieceCount: 0,
-    image: c.image ? { uri: c.image } : null,
-  }));
+  const top: Collection[] = (cats ?? []).slice(0, 3).map((c) => {
+    const imgUri = resolveJeweleryCollectionImage(c);
+    return {
+      id: c._id,
+      name: c.title,
+      tagline: "",
+      mood: "",
+      pieceCount: 0,
+      image: imgUri ? { uri: imgUri } : null,
+    };
+  });
   if (!top.length) return null;
   return (
     <View style={[styles.section, { backgroundColor: colors.ivory }]}>
@@ -600,7 +625,24 @@ function NewsletterSection() {
 
 export default function JeweleryHomeScreen() {
   const colors = useColors();
+  const queryClient = useQueryClient();
+  const [refreshing, setRefreshing] = useState(false);
   const { data: heroItems } = useJeweleryBestsellers(4);
+
+  useEffect(() => {
+    queryClient.invalidateQueries({ queryKey: ["jewelery-categories"] });
+  }, [queryClient]);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await Promise.allSettled([
+      queryClient.invalidateQueries({ queryKey: ["jewelery-categories"] }),
+      queryClient.invalidateQueries({ queryKey: ["jewelery-bestsellers"] }),
+      queryClient.invalidateQueries({ queryKey: ["jewelery-new-arrivals"] }),
+      queryClient.invalidateQueries({ queryKey: ["jewelery-products"] }),
+    ]);
+    setRefreshing(false);
+  }, [queryClient]);
 
   return (
     <View style={[styles.root, { backgroundColor: colors.ivory }]}>
@@ -611,6 +653,14 @@ export default function JeweleryHomeScreen() {
           styles.scrollContent,
           { paddingBottom: Platform.OS === "web" ? 110 : 90 },
         ]}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={colors.gold}
+            colors={[colors.gold]}
+          />
+        }
       >
         <AnnouncementBar />
         <HeroCarousel items={heroItems} />

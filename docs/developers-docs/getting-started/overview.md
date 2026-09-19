@@ -11,11 +11,11 @@
 QuickBihar ek **hyperlocal multi-vertical e-commerce platform** hai. Simple shabdon mein: ek aisa app jaha **local sellers** apne saaman bech sakte hain, **customers** order kar sakte hain, aur **local riders** (delivery boys) order pickup karke deliver karte hain — sab kuch ek chhote geographic area (hyperlocal) ke andar.
 
 "Multi-vertical" ka matlab: platform ek se zyada business types (verticals) support karne ke liye design kiya gaya hai:
-- 👕 **Clothing** (apparel) — **abhi yeh LIVE hai**, poora working hai.
+- 👕 **Clothing** (apparel) — **LIVE hai**, poora working hai.
+- 💍 **Jewelery** — **LIVE hai** (Sep 2026): real catalog, cart, wishlist, checkout, one-tap auth.
 - 🍔 **Food** — abhi sirf placeholder/scaffold hai (screens hain par backend logic nahi).
-- 💍 **Jewelery** — abhi sirf placeholder/scaffold hai.
 
-> ⚠️ **Important honesty note:** Code mein `food` aur `jewelery` ke folders/screens toh dikhte hain, par unka koi real backend product model ya order flow nahi hai. Poora business logic abhi **clothing** ke around bana hai. Isko detail mein 28_Add_New_Business_Type.md aur 30_Tech_Debt.md mein samjhaaya gaya hai.
+> ✅ **Update (Sep 2026):** Jewelery ab clothing wale shared commerce flow par live hai (`vertical=JEWELERY`, strict BIS validation, 8 seeded categories, dash-web catalog tabs). Sirf **food** placeholder bacha hai.
 
 ---
 
@@ -176,7 +176,7 @@ Agar aap yeh 5 cheezein samajh lo, toh aap 80% system samajh gaye:
 
 ## RISKS — Is level pe kya dhyan rakhein
 
-- ⚠️ **Multi-vertical abhi adhoora hai.** Marketing/PM ko lagta hoga food/jewelery ready hai — nahi hai. Sirf clothing production-ready hai.
+- ⚠️ **Multi-vertical me sirf food bacha hai.** Jewelery Sep 2026 se production-ready hai (clothing ke saath). Sirf food placeholder hai.
 - ⚠️ **Single VPS deployment.** Abhi ek hi self-hosted VPS pe sab chalta hai (koi horizontal scaling nahi). Detail: 17_Deployment.md.
 
 ---

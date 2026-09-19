@@ -15,7 +15,7 @@ import { ApiError } from "@/utils/ApiError";
 /** GET /public — active storefront categories (public cache 5min; small taxonomy). */
 export const getAllCategories = asyncHandler(async (req: Request, res: Response) => {
     const categories = await CategoryService.getAllCategories(false, req.query);
-    res.set("Cache-Control", "public, max-age=300");
+    res.set("Cache-Control", "no-cache");
     return res
         .status(200)
         .json(new ApiResponse(200, categories, "Categories fetched successfully"));

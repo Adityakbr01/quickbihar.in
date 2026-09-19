@@ -50,12 +50,12 @@ mobile/app/
 ├── order-success.tsx     ← order placed confirmation
 ├── track-order/[id].tsx  ← live order tracking (socket)
 ├── food/                 ← ⚠️ PLACEHOLDER (koi real feature nahi)
-└── jewelery/             ← ⚠️ PLACEHOLDER
+└── jewelery/             ← ✅ LIVE (real catalog/cart/auth, Sec: Jewelery status)
 ```
 
 - `(tabs)` — parentheses waala folder **route group** hai (URL mein nahi aata, sirf layout ke liye).
 - `[id]` — dynamic segment (jaise `/product/123`).
-- `food/` aur `jewelery/` **placeholder** hain — confuse mat ho.
+- `food/` **placeholder** hai — confuse mat ho. `jewelery/` live jewelry storefront hai.
 
 ---
 
@@ -88,7 +88,7 @@ mobile/src/
     ├── Delivery/          ← rider components + screens
     ├── Onboarding/
     ├── Food/              ← ⚠️ placeholder
-    └── Jewelery/          ← ⚠️ placeholder
+    └── Jewelery/          ← ✅ LIVE (catalog, cart, wishlist, checkout, one-tap auth)
 ```
 
 **Yaha bhi `common` / `clothing` seam hai** (server jaisa). `common/` sab verticals ke liye, `clothing/` sirf clothing ke liye.
@@ -244,7 +244,7 @@ Data fetching **React Query** se (server state), UI state **Zustand** se. `Query
 
 ## RISKS
 
-- ⚠️ **food/jewelery placeholders** — inme real feature nahi. Naye dev ko lag sakta hai yeh working hai.
+- ⚠️ **food placeholder** — isme real feature nahi. Naye dev ko lag sakta hai yeh working hai. (Jewelery Sep 2026 se live hai — Sec: Jewelery status.)
 - ⚠️ **Web vs native differences** — token storage (SecureStore vs localStorage), refresh token (body vs cookie), push (native FCM vs skip on Expo Go). Platform-specific bugs yahi se aate hain.
 - ⚠️ **GPS pin mandatory** — customer agar address pin na kare toh order fail. UX pe dhyan.
 - ⚠️ **Expo Go pe push kaam nahi karta** — dev build zaroori push testing ke liye.
@@ -253,9 +253,21 @@ Data fetching **React Query** se (server state), UI state **Zustand** se. `Query
 
 ## IMPROVEMENTS
 
-- food/jewelery placeholders ko clearly "coming soon" mark karna (ya remove karna jab tak build na ho).
+- food placeholder ko clearly "coming soon" mark karna (ya remove karna jab tak build na ho).
 - Push notification testing ke liye proper dev build documentation.
 - `common`/`clothing` seam ko generalize karna (abhi clothing hardcoded jagah-jagah).
+
+---
+
+## Jewelery status (live since Sep 2026)
+
+`app/jewelery/` + `src/features/Jewelery/` real storefront hai (mock purge ho chuka hai):
+- Catalog: `api/jewelery.api.ts` + `hooks/useJeweleryCatalog.ts` — server `vertical=JEWELERY` reads, React Query.
+- Cart/wishlist: shared `useCartStore` / `useWishlistStore` par bridge (`context/CartContext.tsx`) — same server cart + `/checkout` flow (address + GPS + WhatsApp OTP + Razorpay/COD).
+- Auth: clothing jaisa one-tap Google (`app/jewelery/auth/sign-in.tsx`); sign-up/forgot/reset/otp → sign-in redirect.
+- Icons: single system `@expo/vector-icons` (`components/common/AppIcon.tsx`); company info `src/constants/app.constants.ts` se.
+- Server: `vertical=JEWELERY` + strict `jeweleryDetails` validation + 8 seeded categories (`bun run seed:jewelry`).
+- Dash-web: shared `features/catalog/` tabs (Clothing | Jewelry | Food) admin + seller panels me.
 
 ---
 

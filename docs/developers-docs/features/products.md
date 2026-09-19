@@ -8,7 +8,7 @@
 
 ## WHAT — Yeh doc kya cover karti hai?
 
-QuickBihar ka **catalog engine** — product create/update/delete, seller gating (kaun product bana sakta hai), image handling (ImageKit, max 5), category/size-chart/refund-policy validation, aur **hyperlocal discovery** (customer ko sirf woh products dikhein jo uske pate pe deliver ho sakti hain). Yeh **clothing vertical** ka core hai (`modules/clothing/products/`).
+QuickBihar ka **catalog engine** — product create/update/delete, seller gating (kaun product bana sakta hai), image handling (ImageKit, max 5), category/size-chart/refund-policy validation, aur **hyperlocal discovery** (customer ko sirf woh products dikhein jo uske pate pe deliver ho sakti hain). Yeh catalog engine ab **multi-vertical** hai (`modules/clothing/products/` shared model + `vertical`: `CLOTHING | FOOD | JEWELERY`) — jewelery Sep 2026 se live hai (strict `jeweleryDetails` validation, BIS fields).
 
 ---
 

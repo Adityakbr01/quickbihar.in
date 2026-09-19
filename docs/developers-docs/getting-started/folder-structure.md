@@ -304,7 +304,7 @@ mobile/
 │   ├── order-success.tsx
 │   ├── track-order/[id].tsx  ← live order tracking
 │   ├── food/                 ← ⚠️ placeholder only
-│   └── jewelery/             ← ⚠️ placeholder only
+│   └── jewelery/             ← ✅ LIVE storefront (real catalog/cart/auth)
 └── src/
     ├── api/
     │   └── axiosInstance.ts   ← ★ HTTP client (SecureStore token + refresh)
@@ -330,7 +330,7 @@ mobile/
         ├── Delivery/          ← rider components + screens
         ├── Onboarding/        ← onboarding slides
         ├── Food/              ← ⚠️ placeholder screen
-        └── Jewelery/          ← ⚠️ placeholder screen
+        └── Jewelery/          ← ✅ LIVE (catalog, cart, wishlist, checkout, one-tap auth)
 ```
 
 ### `mobile/src/features/<domain>/` layout
@@ -349,7 +349,7 @@ Detail: [05_Mobile_App.md](./../apps/mobile-app.md).
 
 ### ⚠️ Mobile mein kya dhyan rakhein
 
-- `food/` aur `jewelery/` folders **placeholder** hain — inme koi real feature nahi. Confuse mat ho.
+- `food/` folder **placeholder** hai — isme koi real feature nahi. Confuse mat ho. (`jewelery/` Sep 2026 se live hai.)
 - Token storage: mobile mein **SecureStore** use hota hai (web mein localStorage) via `authStorage.ts`.
 
 ---

@@ -1,5 +1,7 @@
 # Quick Bihar Web + Mobile SEO Implementation Plan
 
+> **ADDENDUM (19 Sep 2026):** Is audit ke baad jewelery vertical live ho gaya — mock data purge, real catalog/cart/wishlist/checkout/auth (`vertical=JEWELERY`), strict BIS validation, 8 seeded categories, dash-web catalog tabs. Niche jaha "jewelery mock/placeholder/noindex" likha hai, woh 9 Sep ki position hai; current status `docs/mobile-heavy-packages-jewelry-catalog-audit-2026-09-19.md` (Sec 15, 20) me hai. SEO index-faisla (jewelry pages noindex rakhe ya khole) ab real data ke saath dobara evaluate karna chahiye.
+
 > **PLAN ONLY — DO NOT IMPLEMENT.** No code was changed to produce this plan. Stop after reviewing and wait for explicit approval.
 > Generated: 2026-09-09 from direct codebase reads (mobile/ + server/ + web/ + vps-nginx/ + docker-compose.yml + docs/).
 

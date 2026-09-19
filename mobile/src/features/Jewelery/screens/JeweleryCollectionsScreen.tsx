@@ -17,6 +17,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ProductCard } from "@/src/features/Jewelery/components/ProductCard";
 import { useJeweleryCategories, useJeweleryProducts } from "@/src/features/Jewelery/hooks/useJeweleryCatalog";
 import { useColors } from "@/src/features/Jewelery/hooks/useColors";
+import { resolveJeweleryCollectionImage } from "@/src/features/Jewelery/screens/JeweleryHomeScreen";
 
 export default function JeweleryCollectionsScreen() {
   const colors = useColors();
@@ -30,7 +31,10 @@ export default function JeweleryCollectionsScreen() {
     [cats]
   );
   const chips = useMemo(
-    () => (cats ?? []).map((c) => ({ id: c._id, name: c.title, image: c.image ? { uri: c.image } : null })),
+    () => (cats ?? []).map((c) => {
+      const imgUri = resolveJeweleryCollectionImage(c);
+      return { id: c._id, name: c.title, image: imgUri ? { uri: imgUri } : null };
+    }),
     [cats]
   );
 
