@@ -14,42 +14,49 @@ export default function JeweleryTabLayout() {
   const { cartCount } = useCart();
 
   return (
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: colors.gold,
-        tabBarInactiveTintColor: colors.warmGray,
-        headerShown: false,
-        tabBarStyle: {
-          position: "absolute",
-          backgroundColor: isIOS ? "transparent" : colors.ivory,
-          borderTopWidth: 0.5,
-          borderTopColor: colors.midGray,
-          elevation: 0,
-          height: isWeb ? 84 : 60,
-        },
-        tabBarBackground: () =>
-          isIOS ? (
-            <BlurView
-              intensity={80}
-              tint="light"
-              style={StyleSheet.absoluteFill}
-            />
-          ) : isWeb ? (
-            <View
-              style={[
-                StyleSheet.absoluteFill,
-                { backgroundColor: colors.ivory },
-              ]}
-            />
-          ) : null,
-        tabBarLabelStyle: {
-          fontSize: 9,
-          letterSpacing: 0.8,
-          fontFamily: "DMSans_400Regular",
-          marginBottom: isWeb ? 10 : 0,
-        },
-      }}
-    >
+    <View style={{ flex: 1, backgroundColor: colors.ivory }}>
+      <Tabs
+        screenOptions={{
+          tabBarActiveTintColor: colors.gold,
+          tabBarInactiveTintColor: colors.warmGray,
+          headerShown: false,
+          sceneStyle: { flex: 1, backgroundColor: colors.ivory },
+          tabBarStyle: {
+            position: "absolute",
+            bottom: 0,
+            left: 0,
+            right: 0,
+            backgroundColor: isIOS ? "transparent" : colors.ivory,
+            borderTopWidth: 0.5,
+            borderTopColor: colors.midGray,
+            elevation: 0,
+            height: isWeb ? 64 : Platform.OS === "ios" ? 80 : 64,
+            paddingBottom: isWeb ? 8 : Platform.OS === "ios" ? 20 : 8,
+            paddingTop: 8,
+          },
+          tabBarBackground: () =>
+            isIOS ? (
+              <BlurView
+                intensity={80}
+                tint="light"
+                style={StyleSheet.absoluteFill}
+              />
+            ) : (
+              <View
+                style={[
+                  StyleSheet.absoluteFill,
+                  { backgroundColor: colors.ivory },
+                ]}
+              />
+            ),
+          tabBarLabelStyle: {
+            fontSize: 9,
+            letterSpacing: 0.8,
+            fontFamily: "DMSans_400Regular",
+            marginBottom: isWeb ? 4 : 0,
+          },
+        }}
+      >
       <Tabs.Screen
         name="index"
         options={{
@@ -101,6 +108,7 @@ export default function JeweleryTabLayout() {
           ),
         }}
       />
-    </Tabs>
+      </Tabs>
+    </View>
   );
 }

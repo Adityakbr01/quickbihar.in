@@ -1,26 +1,19 @@
-import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useState } from "react";
 import {
-  Dimensions,
-  FlatList,
   Image,
-  NativeScrollEvent,
-  NativeSyntheticEvent,
   Pressable,
   StyleSheet,
   Text,
+  useWindowDimensions,
   View,
-  ViewToken,
 } from "react-native";
+import Carousel from "react-native-reanimated-carousel";
 
 import { useColors } from "@/src/features/Jewelery/hooks/useColors";
 import type { Product } from "@/src/features/Jewelery/data/products";
 import { APP_CURRENCY } from "@/src/constants";
 
-const { width } = Dimensions.get("window");
-
-const HERO_HEIGHT = 520;
 const AUTO_SCROLL_INTERVAL = 4500;
 
 interface HeroSlide {
@@ -73,12 +66,17 @@ const BRAND_SLIDES: HeroSlide[] = [
 ];
 
 /**
- * Hero carousel. Feed it real catalog products and it builds shoppable
- * slides from their photos; otherwise brand slides render on emerald.
- * No mock imagery — every pixel is either server data or flat brand color.
+ * Hero carousel powered by react-native-reanimated-carousel for butter-smooth
+ * snapping, responsive resizing, and authentic luxury presentation.
  */
 export function HeroCarousel({ items }: { items?: Product[] }) {
   const colors = useColors();
+  const { width: windowWidth } = useWindowDimensions();
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  const carouselWidth = windowWidth;
+  const carouselHeight = Math.min(Math.max(windowWidth * 1.15, 380), 500);
+
   const withPhotos = (items ?? []).filter((p) => p.image);
   const slides: HeroSlide[] = withPhotos.length
     ? withPhotos.slice(0, 4).map((p) => ({
@@ -91,173 +89,156 @@ export function HeroCarousel({ items }: { items?: Product[] }) {
         ctaRoute: `/jewelery/product/${p.id}`,
       }))
     : BRAND_SLIDES;
-  const [activeIndex, setActiveIndex] = useState(0);
-  const flatListRef = useRef<FlatList>(null);
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  const slideCount = slides.length;
-
-  const startTimer = useCallback(() => {
-    if (timerRef.current) clearInterval(timerRef.current);
-    if (slideCount < 2) return;
-    timerRef.current = setInterval(() => {
-      setActiveIndex((prev) => {
-        const next = (prev + 1) % slideCount;
-        try {
-          flatListRef.current?.scrollToIndex({ index: next, animated: true });
-        } catch {}
-        return next;
-      });
-    }, AUTO_SCROLL_INTERVAL);
-  }, [slideCount]);
-
-  useEffect(() => {
-    setActiveIndex(0);
-    startTimer();
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
-  }, [startTimer]);
-
-  const onScrollEnd = useCallback(
-    (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-      const index = Math.round(e.nativeEvent.contentOffset.x / width);
-      setActiveIndex(index);
-      startTimer();
-    },
-    [startTimer]
-  );
-
-  const handleDotPress = (index: number) => {
-    flatListRef.current?.scrollToIndex({ index, animated: true });
-    setActiveIndex(index);
-    startTimer();
-  };
-
-  const renderSlide = ({ item }: { item: HeroSlide }) => (
-    <View style={styles.slide}>
-      {item.image ? (
-        <Image source={item.image} style={styles.slideImage} resizeMode="cover" />
-      ) : (
-        <View style={[styles.slideImage, { backgroundColor: colors.emerald }]} />
-      )}
-      <View style={styles.overlay} />
-      <View style={styles.slideContent}>
-        <Text
-          style={[
-            styles.slideLabel,
-            { color: colors.champagne, fontFamily: "DMSans_500Medium" },
-          ]}
-        >
-          {item.label}
-        </Text>
-        <Text
-          style={[
-            styles.slideHeadline,
-            {
-              color: "#F7F3EC",
-              fontFamily: "CormorantGaramond_300Light_Italic",
-            },
-          ]}
-        >
-          {item.headline}
-        </Text>
-        <Text
-          style={[
-            styles.slideBody,
-            { color: "rgba(247,243,236,0.82)", fontFamily: "DMSans_300Light" },
-          ]}
-        >
-          {item.body}
-        </Text>
-        <View style={styles.ctaRow}>
-          <Pressable
-            style={({ pressed }) => [
-              styles.ctaBtn,
-              {
-                borderColor: colors.gold,
-                backgroundColor: pressed
-                  ? "rgba(184,146,74,0.18)"
-                  : "transparent",
-              },
-            ]}
-            onPress={() => router.push(item.ctaRoute as any)}
-          >
-            <Text
-              style={[
-                styles.ctaBtnText,
-                { color: colors.champagne, fontFamily: "DMSans_400Regular" },
-              ]}
-            >
-              {item.ctaLabel}
-            </Text>
-          </Pressable>
-          {item.secondaryCta && (
-            <Pressable onPress={() => router.push(item.ctaRoute as any)}>
-              <Text
-                style={[
-                  styles.secondaryCta,
-                  {
-                    color: "rgba(247,243,236,0.7)",
-                    fontFamily: "DMSans_400Regular",
-                  },
-                ]}
-              >
-                {item.secondaryCta}
-              </Text>
-            </Pressable>
-          )}
-        </View>
-      </View>
-    </View>
-  );
 
   return (
-    <View style={styles.container}>
-      <FlatList
-        ref={flatListRef}
+    <View
+      style={[
+        styles.container,
+        { width: carouselWidth, height: carouselHeight },
+      ]}
+    >
+      <Carousel<HeroSlide>
+        width={carouselWidth}
+        height={carouselHeight}
         data={slides}
-        renderItem={renderSlide}
-        keyExtractor={(item) => item.id}
-        horizontal
-        pagingEnabled
-        showsHorizontalScrollIndicator={false}
-        onMomentumScrollEnd={onScrollEnd}
-        scrollEventThrottle={16}
-        getItemLayout={(_, index) => ({
-          length: width,
-          offset: width * index,
-          index,
-        })}
-        decelerationRate="fast"
+        autoPlay
+        loop
+        autoPlayInterval={AUTO_SCROLL_INTERVAL}
+        onSnapToItem={(index) => setActiveIndex(index)}
+        onConfigurePanGesture={(gesture) => {
+          "worklet";
+          gesture.activeOffsetX([-10, 10]);
+        }}
+        renderItem={({ item }) => (
+          <View
+            style={[
+              styles.slide,
+              { width: carouselWidth, height: carouselHeight },
+            ]}
+          >
+            {item.image ? (
+              <Image
+                source={
+                  typeof item.image === "string"
+                    ? { uri: item.image }
+                    : item.image
+                }
+                style={styles.slideImage}
+                resizeMode="cover"
+              />
+            ) : (
+              <View
+                style={[
+                  styles.slideImage,
+                  { backgroundColor: colors.emerald },
+                ]}
+              />
+            )}
+            <View style={styles.overlay} />
+            <View style={styles.slideContent}>
+              <Text
+                style={[
+                  styles.slideLabel,
+                  { color: colors.gold, fontFamily: "DMSans_500Medium" },
+                ]}
+              >
+                {item.label}
+              </Text>
+              <Text
+                style={[
+                  styles.slideHeadline,
+                  {
+                    color: "#F7F3EC",
+                    fontFamily: "CormorantGaramond_300Light_Italic",
+                  },
+                ]}
+                numberOfLines={3}
+              >
+                {item.headline}
+              </Text>
+              <Text
+                style={[
+                  styles.slideBody,
+                  {
+                    color: "rgba(247,243,236,0.85)",
+                    fontFamily: "DMSans_300Light",
+                  },
+                ]}
+                numberOfLines={2}
+              >
+                {item.body}
+              </Text>
+              <View style={styles.ctaRow}>
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.ctaBtn,
+                    {
+                      borderColor: colors.gold,
+                      backgroundColor: pressed
+                        ? "rgba(184,146,74,0.18)"
+                        : "transparent",
+                    },
+                  ]}
+                  onPress={() => router.push(item.ctaRoute as any)}
+                >
+                  <Text
+                    style={[
+                      styles.ctaBtnText,
+                      { color: colors.gold, fontFamily: "DMSans_400Regular" },
+                    ]}
+                  >
+                    {item.ctaLabel}
+                  </Text>
+                </Pressable>
+                {item.secondaryCta && (
+                  <Pressable onPress={() => router.push(item.ctaRoute as any)}>
+                    <Text
+                      style={[
+                        styles.secondaryCta,
+                        {
+                          color: "rgba(247,243,236,0.7)",
+                          fontFamily: "DMSans_400Regular",
+                        },
+                      ]}
+                    >
+                      {item.secondaryCta}
+                    </Text>
+                  </Pressable>
+                )}
+              </View>
+            </View>
+          </View>
+        )}
       />
 
       {/* Dot indicators */}
-      <View style={styles.dots}>
+      <View style={styles.dots} pointerEvents="none">
         {slides.map((_, i) => (
-          <Pressable key={i} onPress={() => handleDotPress(i)} hitSlop={8}>
-            <View
-              style={[
-                styles.dot,
-                {
-                  backgroundColor:
-                    i === activeIndex
-                      ? colors.gold
-                      : "rgba(247,243,236,0.45)",
-                  width: i === activeIndex ? 20 : 6,
-                },
-              ]}
-            />
-          </Pressable>
+          <View
+            key={i}
+            style={[
+              styles.dot,
+              {
+                backgroundColor:
+                  i === activeIndex
+                    ? colors.gold
+                    : "rgba(247,243,236,0.45)",
+                width: i === activeIndex ? 20 : 6,
+              },
+            ]}
+          />
         ))}
       </View>
 
       {/* Slide counter */}
-      <View style={styles.counter}>
+      <View style={styles.counter} pointerEvents="none">
         <Text
           style={[
             styles.counterText,
-            { color: "rgba(247,243,236,0.6)", fontFamily: "DMSans_400Regular" },
+            {
+              color: "rgba(247,243,236,0.6)",
+              fontFamily: "DMSans_400Regular",
+            },
           ]}
         >
           {activeIndex + 1} / {slides.length}
@@ -269,13 +250,12 @@ export function HeroCarousel({ items }: { items?: Product[] }) {
 
 const styles = StyleSheet.create({
   container: {
-    height: HERO_HEIGHT,
     position: "relative",
+    overflow: "hidden",
   },
   slide: {
-    width,
-    height: HERO_HEIGHT,
     position: "relative",
+    overflow: "hidden",
   },
   slideImage: {
     width: "100%",
@@ -284,7 +264,7 @@ const styles = StyleSheet.create({
   },
   overlay: {
     ...StyleSheet.absoluteFill,
-    backgroundColor: "rgba(26,22,20,0.40)",
+    backgroundColor: "rgba(18, 15, 13, 0.45)",
   },
   slideContent: {
     position: "absolute",
@@ -292,7 +272,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     padding: 24,
-    paddingBottom: 52,
+    paddingBottom: 48,
     gap: 10,
   },
   slideLabel: {
@@ -300,8 +280,8 @@ const styles = StyleSheet.create({
     letterSpacing: 2,
   },
   slideHeadline: {
-    fontSize: 40,
-    lineHeight: 44,
+    fontSize: 28,
+    lineHeight: 34,
   },
   slideBody: {
     fontSize: 13,

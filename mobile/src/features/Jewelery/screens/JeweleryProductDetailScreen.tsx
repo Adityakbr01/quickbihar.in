@@ -50,13 +50,17 @@ export default function JeweleryProductDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { addToCart, toggleWishlist, isWishlisted } = useCart();
+  const { addToCart, toggleWishlist, isWishlisted, cartItems } = useCart();
   const [addedToCart, setAddedToCart] = useState(false);
 
   const bottomPad = Platform.OS === "web" ? 34 : insets.bottom;
 
   const { data: product, isLoading } = useJeweleryProduct(id);
   const { data: related = [] } = useSimilarJewelery(id, 4);
+
+  const isInCart = Boolean(
+    product && cartItems.some((item) => item.product.id === product.id)
+  );
 
   if (isLoading) {
     return (
@@ -115,7 +119,7 @@ export default function JeweleryProductDetailScreen() {
           onPress={() => router.back()}
           style={[
             styles.backBtnInner,
-            { backgroundColor: "rgba(247,243,236,0.9)" },
+            { backgroundColor: colors.card, borderColor: colors.midGray, borderWidth: 0.5 },
           ]}
           hitSlop={8}
         >
@@ -128,7 +132,7 @@ export default function JeweleryProductDetailScreen() {
           }}
           style={[
             styles.backBtnInner,
-            { backgroundColor: "rgba(247,243,236,0.9)" },
+            { backgroundColor: colors.card, borderColor: colors.midGray, borderWidth: 0.5 },
           ]}
           hitSlop={8}
         >
@@ -410,20 +414,31 @@ export default function JeweleryProductDetailScreen() {
           </Pressable>
         )}
         <Pressable
-          onPress={handleAddToCart}
+          onPress={
+            isInCart
+              ? () => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  router.push("/jewelery/(tabs)/cart" as any);
+                }
+              : handleAddToCart
+          }
           style={({ pressed }) => [
             styles.addToCartBtn,
             {
-              backgroundColor: addedToCart
-                ? colors.emerald
-                : pressed
+              backgroundColor: isInCart
+                ? pressed
                   ? colors.goldLight
-                  : colors.gold,
+                  : colors.emerald
+                : addedToCart
+                  ? colors.emerald
+                  : pressed
+                    ? colors.goldLight
+                    : colors.gold,
             },
           ]}
         >
           <Feather
-            name={addedToCart ? "check" : "shopping-bag"}
+            name={isInCart ? "arrow-right" : addedToCart ? "check" : "shopping-bag"}
             size={16}
             color={colors.ivory}
           />
@@ -433,7 +448,11 @@ export default function JeweleryProductDetailScreen() {
               { color: colors.ivory, fontFamily: "DMSans_500Medium" },
             ]}
           >
-            {addedToCart ? "Added to Bag" : "Add to Bag"}
+            {isInCart
+              ? "Go to Cart →"
+              : addedToCart
+                ? "Added to Bag"
+                : "Add to Bag"}
           </Text>
         </Pressable>
       </View>

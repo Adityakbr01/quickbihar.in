@@ -21,6 +21,8 @@ import { getMyOrdersRequest } from "@/src/features/common/order/api/order.api";
 import { useColors } from "@/src/features/Jewelery/hooks/useColors";
 import { useTopPad } from "@/src/hooks/useTopPad";
 import { useQuery } from "@tanstack/react-query";
+import { useTheme } from "@/src/theme/Provider/ThemeProvider";
+import { ThemeToggle } from "@/src/components/common/ThemeToggle";
 
 const guestMenuItems = [
   {
@@ -103,6 +105,65 @@ function MenuItem({
         <Feather name="chevron-right" size={14} color={colors.midGray} />
       )}
     </Pressable>
+  );
+}
+
+function AppearanceSection() {
+  const colors = useColors();
+  const theme = useTheme();
+
+  return (
+    <View style={styles.appearanceSection}>
+      <Text
+        style={[
+          styles.appearanceTitle,
+          { color: colors.warmGray, fontFamily: "DMSans_500Medium" },
+        ]}
+      >
+        APPEARANCE
+      </Text>
+      <View
+        style={[
+          styles.appearanceRow,
+          {
+            backgroundColor: colors.ivory,
+            borderTopColor: colors.midGray,
+            borderBottomColor: colors.midGray,
+          },
+        ]}
+      >
+        <Feather
+          name={theme.isDark ? "moon" : "sun"}
+          size={16}
+          color={colors.gold}
+        />
+        <View style={styles.appearanceContent}>
+          <Text
+            style={[
+              styles.menuLabel,
+              { color: colors.ink, fontFamily: "DMSans_500Medium" },
+            ]}
+          >
+            {theme.isDark ? "Dark Mode" : "Light Mode"}
+          </Text>
+          <Text
+            style={[
+              styles.menuSub,
+              { color: colors.warmGray, fontFamily: "DMSans_400Regular" },
+            ]}
+          >
+            {theme.isDark ? "Currently using dark theme" : "Currently using light theme"}
+          </Text>
+        </View>
+        <ThemeToggle
+          value={theme.isDark}
+          onToggle={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            theme.toggleMode();
+          }}
+        />
+      </View>
+    </View>
   );
 }
 
@@ -535,7 +596,7 @@ export default function JeweleryAccountScreen() {
                   <View
                     style={[
                       styles.perkIconWrap,
-                      { backgroundColor: colors.ivory },
+                      { backgroundColor: colors.pearl },
                     ]}
                   >
                     <Feather
@@ -547,7 +608,7 @@ export default function JeweleryAccountScreen() {
                   <Text
                     style={[
                       styles.perkText,
-                      { fontFamily: "DMSans_400Regular" },
+                      { color: colors.ink, fontFamily: "DMSans_400Regular" },
                     ]}
                   >
                     {p.text}
@@ -572,6 +633,9 @@ export default function JeweleryAccountScreen() {
             </View>
           </>
         )}
+
+        {/* Appearance Switcher */}
+        <AppearanceSection />
 
         {/* Footer brand */}
         <View style={styles.bottomBrand}>
@@ -749,4 +813,26 @@ const styles = StyleSheet.create({
   brandName: { fontSize: 18, letterSpacing: 4 },
   brandSub: { fontSize: 10, letterSpacing: 0.5 },
   version: { fontSize: 10, marginTop: 4 },
+
+  appearanceSection: {
+    marginTop: 16,
+  },
+  appearanceTitle: {
+    fontSize: 10,
+    letterSpacing: 1.5,
+    paddingHorizontal: 20,
+    marginBottom: 8,
+  },
+  appearanceRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    gap: 14,
+    borderTopWidth: 0.5,
+    borderBottomWidth: 0.5,
+  },
+  appearanceContent: {
+    flex: 1,
+  },
 });

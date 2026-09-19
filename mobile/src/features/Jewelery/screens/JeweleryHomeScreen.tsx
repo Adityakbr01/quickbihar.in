@@ -265,10 +265,17 @@ function FeaturedCollections() {
 
 function NewArrivals() {
   const colors = useColors();
+  const scheme = useColorScheme();
+  const isDark = scheme === "dark";
   const { data: newItems = [], isLoading } = useJeweleryNewArrivals(8);
   if (!isLoading && newItems.length === 0) return null;
   return (
-    <View style={[styles.section, { backgroundColor: colors.champagne }]}>
+    <View
+      style={[
+        styles.section,
+        { backgroundColor: isDark ? colors.card : colors.champagne },
+      ]}
+    >
       <SectionHeader
         label="JUST IN"
         title="New Arrivals"
@@ -534,7 +541,7 @@ function GiftingSection() {
           styles.giftingBtn,
           {
             borderColor: colors.gold,
-            backgroundColor: pressed ? colors.gold : "transparent",
+            backgroundColor: pressed ? colors.pearl : "transparent",
           },
         ]}
       >
