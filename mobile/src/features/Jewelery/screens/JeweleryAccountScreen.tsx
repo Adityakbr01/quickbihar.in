@@ -3,7 +3,6 @@ import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import {
-  Alert,
   Linking,
   Platform,
   Pressable,
@@ -18,9 +17,12 @@ import { JEWELERY_MODULE_CONFIG, APP_COUNTRY_CODE, APP_NAME, SUPPORT_WHATSAPP_IN
 import { useAuth } from "@/src/features/Jewelery/context/AuthContext";
 import { useCart } from "@/src/features/Jewelery/context/CartContext";
 import { getMyOrdersRequest } from "@/src/features/common/order/api/order.api";
+import { logoutRequest } from "@/src/features/common/auth/api/auth.api";
+import { useAuthStore } from "@/src/features/common/auth/store/authStore";
+import { useCartStore } from "@/src/features/common/cart/store/cartStore";
 import { useColors } from "@/src/features/Jewelery/hooks/useColors";
 import { useTopPad } from "@/src/hooks/useTopPad";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { ThemeToggle } from "@/src/components/common/ThemeToggle";
 import { HelpSupportSheet } from "@/src/features/Jewelery/components/HelpSupportSheet";
@@ -175,7 +177,7 @@ export default function JeweleryAccountScreen() {
   const insets = useSafeAreaInsets();
   const topPad = useTopPad();
   const bottomPad = Platform.OS === "web" ? 34 : 0;
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const { wishlist } = useCart();
   const setPasswordSheetVisible = useAccountStore(
     (state) => state.setPasswordSheetVisible,
@@ -211,18 +213,19 @@ export default function JeweleryAccountScreen() {
     (o) => !TERMINAL_ORDER_STATUS.includes(o.status),
   );
 
-  const handleSignOut = () => {
-    Alert.alert("Sign Out", "Are you sure you want to sign out?", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Sign Out",
-        style: "destructive",
-        onPress: () => {
-          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-          signOut();
-        },
-      },
-    ]);
+  const queryClient = useQueryClient();
+
+  const handleSignOut = async () => {
+    // Direct logout like clothing's useLogout — no native Alert confirm
+    // (Alert buttons never fire on web, which made this row look dead).
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+    try {
+      await logoutRequest();
+    } catch {}
+    await useAuthStore.getState().clearAuth();
+    queryClient.removeQueries({ queryKey: ["userProfile"] });
+    await useCartStore.getState().clearCart().catch(() => {});
+    router.replace("/jewelery/auth/sign-in" as any);
   };
 
   const initials = user?.name

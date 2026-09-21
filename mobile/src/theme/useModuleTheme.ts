@@ -29,5 +29,8 @@ export function useModuleTheme(variant: ModuleVariant = "default"): any {
     tertiaryBackground: jewelry.champagne,
     border: jewelry.midGray,
     error: "#dc2626",
+    // Jewellery surfaces are sharp-cornered (radius 2); the default theme
+    // carries no radius token, so components fall back to their own radii.
+    radius: 2,
   };
 }

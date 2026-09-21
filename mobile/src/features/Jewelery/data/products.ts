@@ -19,6 +19,8 @@ export interface Product {
   stone?: string;
   weight?: string;
   purity?: string;
+  /** True when the server piece carries a hallmark/BIS mark. */
+  hallmarked?: boolean;
   occasions: string[];
   description: string;
   craftDetail: string;

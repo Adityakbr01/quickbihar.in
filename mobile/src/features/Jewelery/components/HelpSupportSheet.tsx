@@ -107,6 +107,7 @@ export const HelpSupportSheet: React.FC<HelpSupportSheetProps> = ({
       ref={sheet}
       onDidDismiss={onClose}
       backgroundColor={colors.ivory}
+      cornerRadius={2}
     >
       <SheetHeader
         title="Help & Support"
@@ -215,7 +216,7 @@ const s = StyleSheet.create({
     alignItems: "center",
     gap: 12,
     padding: 16,
-    borderRadius: 14,
+    borderRadius: 2,
     borderWidth: 0.5,
   },
   channelIcon: {
@@ -247,7 +248,7 @@ const s = StyleSheet.create({
   },
   faqCard: {
     padding: 14,
-    borderRadius: 12,
+    borderRadius: 2,
     borderWidth: 0.5,
   },
   faqQ: {

@@ -189,6 +189,7 @@ const PasswordEmailSetupSheet = ({ variant = "default" }: { variant?: ModuleVari
       ref={sheet}
       detents={["auto", 0.65]}
       backgroundColor={theme.background}
+      cornerRadius={theme.radius ?? 24}
       onDidDismiss={() => {
         if (isVisible) setVisible(false);
       }}
@@ -216,13 +217,14 @@ const PasswordEmailSetupSheet = ({ variant = "default" }: { variant?: ModuleVari
           {success ? (
             <Animated.View
               entering={FadeInDown}
-              style={[
-                styles.successCard,
-                {
-                  backgroundColor: theme.tertiaryBackground,
-                  borderColor: theme.border,
-                },
-              ]}
+                style={[
+                  styles.successCard,
+                  {
+                    backgroundColor: theme.tertiaryBackground,
+                    borderColor: theme.border,
+                    borderRadius: theme.radius ?? 20,
+                  },
+                ]}
             >
               <View style={styles.successIconCircle}>
                 <Ionicons
@@ -249,7 +251,10 @@ const PasswordEmailSetupSheet = ({ variant = "default" }: { variant?: ModuleVari
                   layout={LinearTransition}
                   style={[
                     styles.errorBanner,
-                    { backgroundColor: "rgba(239, 68, 68, 0.12)" },
+                    {
+                      backgroundColor: "rgba(239, 68, 68, 0.12)",
+                      borderRadius: theme.radius ?? 12,
+                    },
                   ]}
                 >
                   <Ionicons name="alert-circle" size={18} color="#fca5a5" />
@@ -293,7 +298,7 @@ const PasswordEmailSetupSheet = ({ variant = "default" }: { variant?: ModuleVari
                   containerStyle={{ marginBottom: 0, opacity: isEmailLocked ? 0.6 : 1 }}
                   inputContainerStyle={{
                     backgroundColor: inputBg,
-                    borderRadius: 14,
+                    borderRadius: theme.radius ?? 14,
                     height: 52,
                     paddingHorizontal: 14,
                     borderWidth: 1,
@@ -353,14 +358,13 @@ const PasswordEmailSetupSheet = ({ variant = "default" }: { variant?: ModuleVari
                   containerStyle={{ marginBottom: 0 }}
                   inputContainerStyle={{
                     backgroundColor: inputBg,
-                    borderRadius: 14,
+                    borderRadius: theme.radius ?? 14,
                     height: 52,
                     paddingHorizontal: 14,
                     borderWidth: 1,
                   }}
                   style={{ fontSize: 15, fontWeight: "600", color: inputText }}
                 />
-
                 {password.length > 0 && (
                   <Animated.View
                     entering={FadeInDown}
@@ -437,7 +441,7 @@ const PasswordEmailSetupSheet = ({ variant = "default" }: { variant?: ModuleVari
                   containerStyle={{ marginBottom: 0 }}
                   inputContainerStyle={{
                     backgroundColor: inputBg,
-                    borderRadius: 14,
+                    borderRadius: theme.radius ?? 14,
                     height: 52,
                     paddingHorizontal: 14,
                     borderWidth: 1,
@@ -452,6 +456,7 @@ const PasswordEmailSetupSheet = ({ variant = "default" }: { variant?: ModuleVari
                   styles.primaryBtn,
                   {
                     backgroundColor: theme.primary,
+                    borderRadius: theme.radius ?? 16,
                     opacity: loading ? 0.7 : 1,
                   },
                 ]}

@@ -107,11 +107,12 @@ export const WriteReviewModal: React.FC<WriteReviewModalProps> = ({
   };
 
   return (
-    <Sheet ref={sheet} onDidDismiss={onClose} backgroundColor={theme.background}>
+      <Sheet ref={sheet} onDidDismiss={onClose} backgroundColor={theme.background}>
       <SheetHeader
         title="Write a Review"
         subtitle={productTitle}
         onClose={onClose}
+        themeOverride={theme}
       />
 
       <ScrollView

@@ -22,6 +22,13 @@ import type { Product as JeweleryProduct } from "@/src/features/Jewelery/data/pr
 import { useJeweleryProduct, useSimilarJewelery } from "@/src/features/Jewelery/hooks/useJeweleryCatalog";
 import { useCart } from "@/src/features/Jewelery/context/CartContext";
 import { useColors } from "@/src/features/Jewelery/hooks/useColors";
+import {
+  useCreateProductReview,
+  useProductReviews,
+  useVoteHelpfulReview,
+} from "@/src/features/clothing/product/hooks/useProducts";
+import { WriteReviewModal } from "@/src/features/clothing/product/components/modals/WriteReviewModal";
+import { useModuleTheme } from "@/src/theme/useModuleTheme";
 
 function Stars({ rating, count }: { rating: number; count: number }) {
   const colors = useColors();
@@ -58,6 +65,39 @@ export default function JeweleryProductDetailScreen() {
 
   const { data: product, isLoading } = useJeweleryProduct(id);
   const { data: related = [] } = useSimilarJewelery(id, 4);
+
+  // Reviews run on the server product id through the same review
+  // pipeline as clothing (fetch/create/helpful-vote).
+  const rawReviewId = (product?._raw as any)?._id;
+  const reviewProductId = String(rawReviewId || product?.id || "");
+  const { data: reviewsData } = useProductReviews(reviewProductId);
+  const createReviewMutation = useCreateProductReview(reviewProductId);
+  const voteHelpfulMutation = useVoteHelpfulReview(reviewProductId);
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const modalTheme = useModuleTheme("jewelery");
+
+  const totalReviews =
+    reviewsData?.stats?.totalReviews ?? product?.reviewCount ?? 0;
+  const averageRating =
+    reviewsData?.stats?.averageRating ?? product?.rating ?? 0;
+  const distribution = reviewsData?.stats?.distribution || {
+    5: 0,
+    4: 0,
+    3: 0,
+    2: 0,
+    1: 0,
+  };
+  const reviewsList = reviewsData?.reviews || [];
+
+  const handleHelpfulVote = async (reviewId: string) => {
+    try {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      await voteHelpfulMutation.mutateAsync(reviewId);
+    } catch {
+      // silent — error haptic already fired
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+    }
+  };
 
   const isInCart = Boolean(
     product && cartItems.some((item) => item.product.id === product.id)
@@ -152,15 +192,17 @@ export default function JeweleryProductDetailScreen() {
 
         {/* Content */}
         <View style={[styles.content, { backgroundColor: colors.ivory }]}>
-          {/* Breadcrumb */}
-          <Text
-            style={[
-              styles.breadcrumb,
-              { color: colors.warmGray, fontFamily: "DMSans_400Regular" },
-            ]}
-          >
-            {product.collection} · Rings
-          </Text>
+          {/* Breadcrumb — real collection only, never a hardcoded category */}
+          {product.collection ? (
+            <Text
+              style={[
+                styles.breadcrumb,
+                { color: colors.warmGray, fontFamily: "DMSans_400Regular" },
+              ]}
+            >
+              {product.collection}
+            </Text>
+          ) : null}
 
           {/* Name & rating */}
           <Text
@@ -174,7 +216,30 @@ export default function JeweleryProductDetailScreen() {
           >
             {product.name}
           </Text>
-          <Stars rating={product.rating} count={product.reviewCount} />
+          {totalReviews > 0 ? (
+            <Stars rating={averageRating} count={totalReviews} />
+          ) : (
+            <Pressable
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                setShowReviewModal(true);
+              }}
+              style={[
+                styles.firstReviewTeaser,
+                { borderColor: colors.gold, backgroundColor: colors.champagne },
+              ]}
+            >
+              <Feather name="star" size={14} color={colors.gold} />
+              <Text
+                style={[
+                  styles.firstReviewText,
+                  { color: colors.ink, fontFamily: "DMSans_500Medium" },
+                ]}
+              >
+                Be the first to review this piece
+              </Text>
+            </Pressable>
+          )}
 
           {/* Price */}
           <View style={styles.priceRow}>
@@ -249,7 +314,11 @@ export default function JeweleryProductDetailScreen() {
             {[
               { icon: "truck", text: "Ships in 3–5 days" },
               { icon: "refresh-cw", text: `Free returns ${JEWELERY_MODULE_CONFIG.returnPolicyDays} days` },
-              { icon: "award", text: "Hallmark certified" },
+              // Hallmark is a real-data claim — only shown when the piece
+              // actually carries a hallmark/BIS mark.
+              ...(product.hallmarked
+                ? [{ icon: "award", text: "Hallmark certified" }]
+                : []),
               { icon: "gift", text: "Gift box included" },
             ].map((t) => (
               <View key={t.text} style={styles.trustItem}>
@@ -283,10 +352,11 @@ export default function JeweleryProductDetailScreen() {
             </Text>
             <View style={styles.specGrid}>
               {[
-                { key: "Metal", val: product.metal },
+                product.metal ? { key: "Metal", val: product.metal } : null,
                 product.stone ? { key: "Stone", val: product.stone } : null,
                 product.weight ? { key: "Weight", val: product.weight } : null,
-                { key: "Purity", val: product.purity ?? "22K BIS Hallmarked" },
+                // No fallback purity claim — the row only renders for real data.
+                product.purity ? { key: "Purity", val: product.purity } : null,
               ]
                 .filter(Boolean)
                 .map((spec) => (
@@ -313,17 +383,313 @@ export default function JeweleryProductDetailScreen() {
                   </View>
                 ))}
             </View>
+            {product.craftDetail ? (
+              <Text
+                style={[
+                  styles.craftDetail,
+                  {
+                    color: colors.warmGray,
+                    fontFamily: "CormorantGaramond_400Regular_Italic",
+                  },
+                ]}
+              >
+                {product.craftDetail}
+              </Text>
+            ) : null}
+          </View>
+
+          {/* Ratings & Reviews — same review pipeline as clothing,
+              dressed in the jewellery theme */}
+          <View
+            style={[styles.reviewsSection, { borderTopColor: colors.midGray }]}
+          >
             <Text
               style={[
-                styles.craftDetail,
+                styles.reviewsLabel,
+                { color: colors.gold, fontFamily: "DMSans_500Medium" },
+              ]}
+            >
+              RATINGS & REVIEWS
+              {totalReviews > 0 ? ` (${totalReviews})` : ""}
+            </Text>
+
+            {totalReviews > 0 ? (
+              <View style={styles.summaryRow}>
+                <View style={styles.summaryLeft}>
+                  <Text
+                    style={[
+                      styles.bigRating,
+                      {
+                        color: colors.ink,
+                        fontFamily: "CormorantGaramond_600SemiBold",
+                      },
+                    ]}
+                  >
+                    {averageRating > 0 ? averageRating.toFixed(1) : "0.0"}
+                  </Text>
+                  <Stars rating={averageRating} count={totalReviews} />
+                  <Text
+                    style={[
+                      styles.summaryCount,
+                      {
+                        color: colors.warmGray,
+                        fontFamily: "DMSans_400Regular",
+                      },
+                    ]}
+                  >
+                    {totalReviews} verified rating
+                    {totalReviews === 1 ? "" : "s"}
+                  </Text>
+                </View>
+                <View style={styles.distCol}>
+                  {[5, 4, 3, 2, 1].map((star) => {
+                    const count = (distribution as any)[star] || 0;
+                    const pct =
+                      totalReviews > 0
+                        ? Math.round((count / totalReviews) * 100)
+                        : 0;
+                    return (
+                      <View key={star} style={styles.distRow}>
+                        <Text
+                          style={[
+                            styles.distStar,
+                            {
+                              color: colors.warmGray,
+                              fontFamily: "DMSans_500Medium",
+                            },
+                          ]}
+                        >
+                          {star}★
+                        </Text>
+                        <View
+                          style={[
+                            styles.distTrack,
+                            { backgroundColor: colors.pearl },
+                          ]}
+                        >
+                          <View
+                            style={[
+                              styles.distFill,
+                              {
+                                backgroundColor: colors.gold,
+                                width: `${pct}%` as any,
+                              },
+                            ]}
+                          />
+                        </View>
+                        <Text
+                          style={[
+                            styles.distCount,
+                            {
+                              color: colors.warmGray,
+                              fontFamily: "DMSans_400Regular",
+                            },
+                          ]}
+                        >
+                          {count}
+                        </Text>
+                      </View>
+                    );
+                  })}
+                </View>
+              </View>
+            ) : null}
+
+            <Pressable
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                setShowReviewModal(true);
+              }}
+              style={[
+                styles.rateBtn,
                 {
-                  color: colors.warmGray,
-                  fontFamily: "CormorantGaramond_400Regular_Italic",
+                  borderColor: colors.gold,
+                  backgroundColor: colors.champagne,
                 },
               ]}
             >
-              {product.craftDetail}
-            </Text>
+              <Feather name="edit-3" size={14} color={colors.gold} />
+              <Text
+                style={[
+                  styles.rateBtnText,
+                  { color: colors.gold, fontFamily: "DMSans_500Medium" },
+                ]}
+              >
+                Rate & Review
+              </Text>
+            </Pressable>
+
+            {reviewsList.length === 0 ? (
+              <View style={styles.emptyReviewsWrap}>
+                <Text
+                  style={[
+                    styles.emptyReviewsTitle,
+                    {
+                      color: colors.ink,
+                      fontFamily: "CormorantGaramond_500Medium_Italic",
+                    },
+                  ]}
+                >
+                  No reviews yet
+                </Text>
+                <Text
+                  style={[
+                    styles.emptyReviewsSub,
+                    {
+                      color: colors.warmGray,
+                      fontFamily: "DMSans_400Regular",
+                    },
+                  ]}
+                >
+                  Bought this piece? Share your experience with other shoppers.
+                </Text>
+              </View>
+            ) : (
+              <View>
+                {reviewsList.map((review: any, idx: number) => {
+                  const userName =
+                    review.user?.fullName || review.user || "Customer";
+                  const formattedDate = review.createdAt
+                    ? new Date(review.createdAt).toLocaleDateString("en-IN", {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                      })
+                    : "Verified Purchase";
+                  const voted = Boolean(review.hasVotedHelpful);
+                  const pillBg =
+                    review.rating >= 4
+                      ? colors.emerald
+                      : review.rating >= 3
+                        ? colors.gold
+                        : colors.maroon;
+                  return (
+                    <View
+                      key={review._id || review.id || idx}
+                      style={[
+                        styles.reviewCard,
+                        { borderBottomColor: colors.midGray },
+                      ]}
+                    >
+                      <View style={styles.reviewTopRow}>
+                        <View
+                          style={[styles.ratingPill, { backgroundColor: pillBg }]}
+                        >
+                          <Text style={[styles.ratingPillText, { color: colors.onBrand }]}>
+                            {review.rating} ★
+                          </Text>
+                        </View>
+                        <Text
+                          style={[
+                            styles.reviewTitle,
+                            {
+                              color: colors.ink,
+                              fontFamily: "DMSans_500Medium",
+                            },
+                          ]}
+                          numberOfLines={1}
+                        >
+                          {review.title || "Customer Review"}
+                        </Text>
+                      </View>
+                      <Text
+                        style={[
+                          styles.reviewBody,
+                          {
+                            color: colors.warmGray,
+                            fontFamily: "DMSans_400Regular",
+                          },
+                        ]}
+                      >
+                        {review.comment}
+                      </Text>
+                      <View style={styles.reviewerRow}>
+                        <Text
+                          style={[
+                            styles.reviewerName,
+                            {
+                              color: colors.ink,
+                              fontFamily: "DMSans_500Medium",
+                            },
+                          ]}
+                          numberOfLines={1}
+                        >
+                          {userName}
+                        </Text>
+                        {review.isVerifiedBuyer ? (
+                          <View style={styles.verifiedRow}>
+                            <Feather
+                              name="check-circle"
+                              size={12}
+                              color={colors.gold}
+                            />
+                            <Text
+                              style={[
+                                styles.verifiedText,
+                                {
+                                  color: colors.gold,
+                                  fontFamily: "DMSans_500Medium",
+                                },
+                              ]}
+                            >
+                              Verified Buyer
+                            </Text>
+                          </View>
+                        ) : null}
+                        <Text
+                          style={[
+                            styles.reviewerDate,
+                            {
+                              color: colors.warmGray,
+                              fontFamily: "DMSans_400Regular",
+                            },
+                          ]}
+                        >
+                          · {formattedDate}
+                        </Text>
+                        <View style={{ flex: 1 }} />
+                        <Pressable
+                          onPress={() =>
+                            review._id && handleHelpfulVote(review._id)
+                          }
+                          hitSlop={8}
+                          style={[
+                            styles.helpfulBtn,
+                            {
+                              borderColor: voted
+                                ? colors.gold
+                                : colors.midGray,
+                              backgroundColor: voted
+                                ? colors.champagne
+                                : "transparent",
+                            },
+                          ]}
+                        >
+                          <Feather
+                            name="thumbs-up"
+                            size={12}
+                            color={voted ? colors.gold : colors.warmGray}
+                          />
+                          <Text
+                            style={[
+                              styles.helpfulText,
+                              {
+                                color: voted
+                                  ? colors.gold
+                                  : colors.warmGray,
+                                fontFamily: "DMSans_500Medium",
+                              },
+                            ]}
+                          >
+                            {review.helpfulCount ?? review.helpful ?? 0}
+                          </Text>
+                        </Pressable>
+                      </View>
+                    </View>
+                  );
+                })}
+              </View>
+            )}
           </View>
 
           {/* Related products */}
@@ -449,6 +815,18 @@ export default function JeweleryProductDetailScreen() {
           </Text>
         </Pressable>
       </View>
+
+      {/* Write-a-review sheet — same review pipeline as clothing,
+          rendered in the jewellery palette */}
+      <WriteReviewModal
+        visible={showReviewModal}
+        onClose={() => setShowReviewModal(false)}
+        onSubmit={async (reviewData) => {
+          await createReviewMutation.mutateAsync(reviewData);
+        }}
+        productTitle={product.name}
+        theme={modalTheme}
+      />
     </View>
   );
 }
@@ -528,6 +906,75 @@ const styles = StyleSheet.create({
   specKey: { fontSize: 10, letterSpacing: 0.5 },
   specVal: { fontSize: 13, marginTop: 2 },
   craftDetail: { fontSize: 14, lineHeight: 22 },
+  firstReviewTeaser: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginTop: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderWidth: 0.5,
+    borderRadius: 2,
+  },
+  firstReviewText: { fontSize: 13 },
+  reviewsSection: {
+    borderTopWidth: 0.5,
+    paddingTop: 16,
+    gap: 14,
+  },
+  reviewsLabel: { fontSize: 9, letterSpacing: 2 },
+  summaryRow: { flexDirection: "row", gap: 20 },
+  summaryLeft: { alignItems: "center", gap: 4, minWidth: 110 },
+  bigRating: { fontSize: 38, lineHeight: 44 },
+  summaryCount: { fontSize: 11, textAlign: "center" },
+  distCol: { flex: 1, gap: 6, justifyContent: "center" },
+  distRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+  distStar: { fontSize: 11, width: 22 },
+  distTrack: { flex: 1, height: 6, borderRadius: 3, overflow: "hidden" },
+  distFill: { height: 6, borderRadius: 3 },
+  distCount: { fontSize: 11, width: 20, textAlign: "right" },
+  rateBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    paddingVertical: 13,
+    borderWidth: 1,
+    borderRadius: 2,
+  },
+  rateBtnText: { fontSize: 13, letterSpacing: 1 },
+  emptyReviewsWrap: { alignItems: "center", gap: 6, paddingVertical: 8 },
+  emptyReviewsTitle: { fontSize: 18 },
+  emptyReviewsSub: { fontSize: 12, textAlign: "center", lineHeight: 18 },
+  reviewCard: {
+    paddingVertical: 14,
+    borderBottomWidth: 0.5,
+    gap: 8,
+  },
+  reviewTopRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+  ratingPill: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 2,
+  },
+  ratingPillText: { fontSize: 11, fontWeight: "800" },
+  reviewTitle: { fontSize: 13, flex: 1 },
+  reviewBody: { fontSize: 13, lineHeight: 19 },
+  reviewerRow: { flexDirection: "row", alignItems: "center", gap: 6 },
+  reviewerName: { fontSize: 12, maxWidth: 140 },
+  verifiedRow: { flexDirection: "row", alignItems: "center", gap: 3 },
+  verifiedText: { fontSize: 11 },
+  reviewerDate: { fontSize: 11 },
+  helpfulBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderWidth: 0.5,
+    borderRadius: 2,
+  },
+  helpfulText: { fontSize: 11 },
   relatedSection: { gap: 10 },
   relatedLabel: { fontSize: 9, letterSpacing: 2 },
   relatedTitle: { fontSize: 22, lineHeight: 28 },

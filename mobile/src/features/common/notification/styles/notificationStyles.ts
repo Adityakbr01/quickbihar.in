@@ -1,7 +1,6 @@
 import { Platform, StyleSheet } from "react-native";
-import { Theme } from "@/src/theme/colors";
 
-export const createNotificationStyles = (theme: Theme) =>
+export const createNotificationStyles = (theme: any) =>
   StyleSheet.create({
     // Layout shell
     container: {
@@ -32,7 +31,7 @@ export const createNotificationStyles = (theme: Theme) =>
     backButton: {
       width: 40,
       height: 40,
-      borderRadius: 20,
+      borderRadius: theme.radius ?? 20,
       backgroundColor: theme.secondaryBackground,
       alignItems: "center",
       justifyContent: "center",
@@ -59,7 +58,7 @@ export const createNotificationStyles = (theme: Theme) =>
       gap: 6,
       paddingHorizontal: 12,
       height: 36,
-      borderRadius: 18,
+      borderRadius: theme.radius ?? 18,
       backgroundColor: theme.primary + "18",
     },
     markAllBtnDisabled: {
@@ -80,7 +79,7 @@ export const createNotificationStyles = (theme: Theme) =>
     tabsContainer: {
       flexDirection: "row",
       padding: 4,
-      borderRadius: 14,
+      borderRadius: theme.radius ?? 14,
       backgroundColor: theme.secondaryBackground,
       gap: 2,
     },
@@ -91,7 +90,7 @@ export const createNotificationStyles = (theme: Theme) =>
       justifyContent: "center",
       paddingHorizontal: 10,
       paddingVertical: 9,
-      borderRadius: 11,
+      borderRadius: theme.radius ?? 11,
       gap: 6,
     },
     activeTabButton: {
@@ -121,7 +120,7 @@ export const createNotificationStyles = (theme: Theme) =>
       minWidth: 18,
       paddingHorizontal: 5,
       height: 16,
-      borderRadius: 8,
+      borderRadius: theme.radius ?? 8,
       backgroundColor: theme.primary,
       alignItems: "center",
       justifyContent: "center",
@@ -164,7 +163,7 @@ export const createNotificationStyles = (theme: Theme) =>
     card: {
       flexDirection: "row",
       padding: 14,
-      borderRadius: 16,
+      borderRadius: theme.radius ?? 16,
       backgroundColor: theme.tertiaryBackground,
       borderWidth: 1,
       borderColor: theme.border,
@@ -183,13 +182,13 @@ export const createNotificationStyles = (theme: Theme) =>
       bottom: 0,
       width: 3,
       backgroundColor: theme.primary,
-      borderTopLeftRadius: 16,
-      borderBottomLeftRadius: 16,
+      borderTopLeftRadius: theme.radius ?? 16,
+      borderBottomLeftRadius: theme.radius ?? 16,
     },
     iconWrap: {
       width: 44,
       height: 44,
-      borderRadius: 14,
+      borderRadius: theme.radius ?? 14,
       alignItems: "center",
       justifyContent: "center",
       marginRight: 12,
@@ -218,7 +217,7 @@ export const createNotificationStyles = (theme: Theme) =>
     pinnedBadge: {
       width: 18,
       height: 18,
-      borderRadius: 9,
+      borderRadius: theme.radius ?? 9,
       backgroundColor: theme.tertiaryBackground,
       alignItems: "center",
       justifyContent: "center",
@@ -233,7 +232,7 @@ export const createNotificationStyles = (theme: Theme) =>
     channelTag: {
       paddingHorizontal: 7,
       paddingVertical: 2,
-      borderRadius: 6,
+      borderRadius: theme.radius ?? 6,
       backgroundColor: theme.background,
       borderWidth: 1,
       borderColor: theme.border,
@@ -263,7 +262,7 @@ export const createNotificationStyles = (theme: Theme) =>
     richBanner: {
       width: "100%",
       height: 150,
-      borderRadius: 12,
+      borderRadius: theme.radius ?? 12,
       marginTop: 12,
       marginBottom: 10,
       backgroundColor: theme.secondaryBackground,
@@ -280,7 +279,7 @@ export const createNotificationStyles = (theme: Theme) =>
       gap: 6,
       paddingHorizontal: 14,
       height: 36,
-      borderRadius: 18,
+      borderRadius: theme.radius ?? 18,
       backgroundColor: theme.primary,
     },
     richActionBtnText: {
@@ -295,7 +294,7 @@ export const createNotificationStyles = (theme: Theme) =>
       gap: 4,
       paddingHorizontal: 10,
       height: 32,
-      borderRadius: 16,
+      borderRadius: theme.radius ?? 16,
     },
     dismissText: {
       fontSize: 12,
@@ -309,7 +308,7 @@ export const createNotificationStyles = (theme: Theme) =>
       right: 14,
       width: 8,
       height: 8,
-      borderRadius: 4,
+      borderRadius: theme.radius ?? 4,
       backgroundColor: theme.primary,
     },
 
@@ -324,7 +323,7 @@ export const createNotificationStyles = (theme: Theme) =>
     emptyIconWrap: {
       width: 110,
       height: 110,
-      borderRadius: 55,
+      borderRadius: theme.radius ?? 55,
       alignItems: "center",
       justifyContent: "center",
       marginBottom: 18,

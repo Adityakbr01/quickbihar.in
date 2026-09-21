@@ -92,6 +92,7 @@ export function toJeweleryProduct(p: IProduct): Product {
     images: (p.images ?? []).map((img) => ({ uri: img.url })),
     inStock: p.totalStock ?? 0,
     tryOn: undefined,
+    hallmarked: Boolean(jd.hallmark || (jd as any).bisMark || (jd as any).huid),
     _raw: p,
   };
 }
