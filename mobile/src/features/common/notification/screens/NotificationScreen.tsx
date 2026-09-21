@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { useTheme } from "@/src/theme/Provider/ThemeProvider";
+import { useModuleTheme, type ModuleVariant } from "@/src/theme/useModuleTheme";
 import { createNotificationStyles } from "../styles/notificationStyles";
 import {
   useNotifications,
@@ -95,8 +95,10 @@ const CHANNEL_META: Record<
   },
 };
 
-const NotificationScreen = () => {
-  const theme = useTheme() as any;
+const NotificationScreen = ({ variant = "default" }: { variant?: ModuleVariant } = {}) => {
+  // In the jewelery catalogue the same screen renders in the jewellery
+  // palette via the module theme — data, tabs, and actions stay identical.
+  const theme = useModuleTheme(variant);
   const styles = createNotificationStyles(theme);
   const router = useRouter();
 
@@ -401,7 +403,7 @@ const NotificationScreen = () => {
                 () => null,
               );
               if (router.canGoBack()) router.back();
-              else router.replace("/account/profile-info" as any);
+              else router.replace((variant === "jewelery" ? "/jewelery/account" : "/account/profile-info") as any);
             }}
             style={styles.backButton}
             activeOpacity={0.7}

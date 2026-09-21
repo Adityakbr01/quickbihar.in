@@ -55,6 +55,8 @@ export interface SheetHeaderProps {
   /** Hide the default close button (e.g. when the right slot already has one). */
   hideCloseButton?: boolean;
   style?: StyleProp<ViewStyle>;
+  /** Override the theme tokens (e.g. a module palette) — defaults to the app theme. */
+  themeOverride?: any;
 }
 
 /* -------------------------------------------------------------------------- */

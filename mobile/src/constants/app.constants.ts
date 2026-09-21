@@ -9,7 +9,8 @@ export const APP_GENERAL_SUPPORT_PHONE = "+91 98765 43210";
 
 // Real customer-support contacts (single business number for now —
 // used by Help & Support, WhatsApp Assist, and call fallbacks).
-export const SUPPORT_WHATSAPP_NUMBER = "9304922632"; // digits only, for wa.me links
+export const SUPPORT_WHATSAPP_NUMBER = "9304922632"; // national format, for display + tel: links
+export const SUPPORT_WHATSAPP_INTL = "919304922632"; // full international format — wa.me links REQUIRE this (country code + number, no "+"); a bare national number is rejected as invalid
 export const SUPPORT_WHATSAPP_DISPLAY = "+91 93049 22632";
 export const SUPPORT_CALL_NUMBER = "9304922632"; // digits only, for tel: links
 export const SUPPORT_EMAIL = APP_GENERAL_SUPPORT_EMAIL;

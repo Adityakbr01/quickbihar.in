@@ -97,13 +97,19 @@ export const useWishlist = () => {
         (p: any) => p?.vertical !== "JEWELERY",
       );
 
-      // Cache all resolved products
+      // Cache newly resolved products without re-mutating if identical
+      let hasNew = false;
       const newCache = { ...cachedProducts };
       validProducts.forEach((p: any) => {
         const pId = String(p._id || p.id);
-        if (pId) newCache[pId] = p;
+        if (pId && !cachedProducts[pId]) {
+          newCache[pId] = p;
+          hasNew = true;
+        }
       });
-      useWishlistStore.setState({ cachedProducts: newCache });
+      if (hasNew) {
+        useWishlistStore.setState({ cachedProducts: newCache });
+      }
 
       return clothingProducts;
     },

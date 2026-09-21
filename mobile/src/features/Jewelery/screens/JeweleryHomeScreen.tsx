@@ -664,6 +664,7 @@ function NewsletterSection() {
           >
             <TextInput
               value={email}
+              bare
               onChangeText={(t) => {
                 setEmail(t);
                 if (status === "error") setStatus("idle");

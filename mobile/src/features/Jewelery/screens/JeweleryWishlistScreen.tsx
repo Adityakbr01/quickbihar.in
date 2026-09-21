@@ -1,6 +1,6 @@
 import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
-import React from "react";
+import React, { useMemo } from "react";
 import {
   Platform,
   Pressable,
@@ -19,7 +19,10 @@ import { useColors } from "@/src/features/Jewelery/hooks/useColors";
 
 function WishlistRow({ id, cached }: { id: string; cached?: any }) {
   const { data } = useJeweleryProduct(cached ? undefined : id);
-  const product = cached ? toJeweleryProduct(cached) : data;
+  const product = useMemo(
+    () => (cached ? toJeweleryProduct(cached) : data),
+    [cached, data]
+  );
   if (!product) return null;
   return <ProductCard product={product} />;
 }
@@ -27,10 +30,17 @@ function WishlistRow({ id, cached }: { id: string; cached?: any }) {
 export default function JeweleryWishlistScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  // Jewelery wishlist shows jewelery pieces only — clothing ids live in
-  // the clothing wishlist even though the id list is shared.
-  const wishlistIds = useWishlistStore((s) => selectWishlistIds(s, "jewelery"));
+  // Stable primitive store subscriptions — compute wishlistIds with useMemo
+  // rather than returning a fresh array from the selector on every render.
+  const items = useWishlistStore((s) => s.items);
+  const modules = useWishlistStore((s) => s.modules);
   const cachedProducts = useWishlistStore((s) => s.cachedProducts);
+
+  const wishlistIds = useMemo(
+    () => selectWishlistIds({ items, modules, cachedProducts }, "jewelery"),
+    [items, modules, cachedProducts]
+  );
+
   const topPad = Platform.OS === "web" ? 16 : insets.top;
 
   return (

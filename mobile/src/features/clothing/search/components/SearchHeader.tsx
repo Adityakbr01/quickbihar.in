@@ -68,6 +68,7 @@ const SearchHeader = ({
       >
         <TextInput
           ref={inputRef}
+          bare
           value={query}
           onChangeText={setQuery}
           placeholder="Search products"

@@ -23,8 +23,10 @@ export const SheetHeader: React.FC<SheetHeaderProps> = ({
   onClose,
   hideCloseButton = false,
   style,
+  themeOverride,
 }) => {
-  const theme = useTheme() as any;
+  const appTheme = useTheme() as any;
+  const theme = themeOverride ?? appTheme;
   const styles = useMemo(() => createStyles(theme), [theme]);
 
   const showClose = !hideCloseButton && !!onClose;

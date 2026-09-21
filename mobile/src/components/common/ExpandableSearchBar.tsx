@@ -97,6 +97,7 @@ export const ExpandableSearchBar: React.FC<ExpandableSearchBarProps> = ({
       {isSearchOpen && (
         <TextInput
           ref={inputRef}
+          bare
           placeholder={placeholder}
           placeholderTextColor={theme.tertiaryText}
           returnKeyType="search"

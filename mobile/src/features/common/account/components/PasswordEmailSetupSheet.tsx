@@ -14,7 +14,7 @@ import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import Animated, { FadeInDown, LinearTransition } from "react-native-reanimated";
 
-import { useTheme } from "@/src/theme/Provider/ThemeProvider";
+import { useModuleTheme, type ModuleVariant } from "@/src/theme/useModuleTheme";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
 import axiosInstance from "@/src/api/axiosInstance";
 import { Sheet, SheetHeader, useSheet } from "@/src/components/common/BottomSheet";
@@ -43,8 +43,10 @@ import { TextInput } from "@/src/theme/components/TextInput";
  *    email (or no email at all): they must type a real address once, so the
  *    field stays editable until a real email is saved.
  */
-const PasswordEmailSetupSheet = () => {
-  const theme = useTheme() as any;
+const PasswordEmailSetupSheet = ({ variant = "default" }: { variant?: ModuleVariant } = {}) => {
+  // In the jewelery account tab the same sheet renders in the jewellery
+  // palette (ivory/gold) via the module theme — all logic stays identical.
+  const theme = useModuleTheme(variant);
   const { user, token, refreshToken, setAuth } = useAuthStore();
   const isVisible = useAccountStore((state) => state.isPasswordSheetVisible);
   const setVisible = useAccountStore((state) => state.setPasswordSheetVisible);
@@ -199,6 +201,7 @@ const PasswordEmailSetupSheet = () => {
         title="Password & Email Setup"
         subtitle="Link your email and set a secure password for password login."
         hideCloseButton
+        themeOverride={theme}
       />
 
       <KeyboardAvoidingView

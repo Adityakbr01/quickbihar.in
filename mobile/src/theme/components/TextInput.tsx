@@ -21,10 +21,16 @@ export interface TextInputProps extends RNTextInputProps {
   inputContainerStyle?: object;
   /** Border color while focused. Defaults to theme.primary. */
   focusBorderColor?: string;
+  /**
+   * Bare mode for embedding inside a custom chrome (e.g. an animated
+   * search container): skips the internal focus/error background wash so
+   * only the outer container paints. Border logic still applies.
+   */
+  bare?: boolean;
 }
 
 export const TextInput = React.forwardRef<RNTextInput, TextInputProps>(
-  ({ label, icon, rightIcon, error, variant = "default", containerStyle, inputContainerStyle, focusBorderColor, ...props }, ref) => {
+  ({ label, icon, rightIcon, error, variant = "default", containerStyle, inputContainerStyle, focusBorderColor, bare = false, ...props }, ref) => {
     const theme = useTheme() as any;
     const [isFocused, setIsFocused] = useState(false);
 
@@ -101,8 +107,8 @@ export const TextInput = React.forwardRef<RNTextInput, TextInputProps>(
           style={[
             styles.inputContainer, 
             inputContainerStyle,
-            isFocused && styles.inputContainerFocused,
-            error ? styles.inputContainerError : null,
+            !bare && isFocused && styles.inputContainerFocused,
+            !bare && error ? styles.inputContainerError : null,
           ]}
         >
           {icon && icon}

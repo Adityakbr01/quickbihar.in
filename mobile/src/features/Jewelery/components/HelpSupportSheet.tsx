@@ -14,7 +14,8 @@ import { Sheet, SheetHeader, useSheet } from "@/src/components/common/BottomShee
 import {
   JEWELERY_MODULE_CONFIG,
   SUPPORT_EMAIL,
-  SUPPORT_WHATSAPP_NUMBER,
+  SUPPORT_WHATSAPP_DISPLAY,
+  SUPPORT_WHATSAPP_INTL,
 } from "@/src/constants";
 import { useColors } from "@/src/features/Jewelery/hooks/useColors";
 
@@ -84,10 +85,12 @@ export const HelpSupportSheet: React.FC<HelpSupportSheetProps> = ({
   const openChannel = (faq: Faq) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     const message = `Hi QuickBihar Jewellery support! I need help with: ${faq.q}`;
+    // wa.me needs the full international number (91 + mobile) — a bare
+    // national number is rejected by WhatsApp as invalid.
     const url =
       channel === "email"
         ? `mailto:${JEWELERY_MODULE_CONFIG.supportEmail}?subject=${encodeURIComponent(`Help: ${faq.q}`)}&body=${encodeURIComponent(`${message}\n\nOrder ID (if any): `)}`
-        : `https://wa.me/${SUPPORT_WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+        : `https://wa.me/${SUPPORT_WHATSAPP_INTL}?text=${encodeURIComponent(message)}`;
     onClose();
     Linking.openURL(url).catch(() => {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
@@ -135,10 +138,7 @@ export const HelpSupportSheet: React.FC<HelpSupportSheetProps> = ({
                   WhatsApp
                 </Text>
                 <Text style={[s.channelSub, { color: colors.warmGray }]}>
-                  {SUPPORT_WHATSAPP_NUMBER.replace(
-                    /(\d{2})(\d{5})(\d{5})/,
-                    "+91 $2 $3",
-                  )} · replies within minutes
+                  {SUPPORT_WHATSAPP_DISPLAY} · replies within minutes
                 </Text>
               </View>
               <Feather name="chevron-right" size={18} color={colors.gold} />

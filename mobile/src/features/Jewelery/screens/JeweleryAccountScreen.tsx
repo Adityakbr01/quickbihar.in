@@ -14,7 +14,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { JEWELERY_MODULE_CONFIG, APP_COUNTRY_CODE, APP_NAME, SUPPORT_WHATSAPP_NUMBER, SUPPORT_WHATSAPP_DISPLAY } from "@/src/constants";
+import { JEWELERY_MODULE_CONFIG, APP_COUNTRY_CODE, APP_NAME, SUPPORT_WHATSAPP_INTL, SUPPORT_WHATSAPP_DISPLAY } from "@/src/constants";
 import { useAuth } from "@/src/features/Jewelery/context/AuthContext";
 import { useCart } from "@/src/features/Jewelery/context/CartContext";
 import { getMyOrdersRequest } from "@/src/features/common/order/api/order.api";
@@ -184,9 +184,11 @@ export default function JeweleryAccountScreen() {
 
   const openWhatsapp = (message?: string) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    // wa.me needs the full international number (91 + mobile) — a bare
+    // national number is rejected by WhatsApp as invalid.
     const url = message
-      ? `https://wa.me/${SUPPORT_WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`
-      : `https://wa.me/${SUPPORT_WHATSAPP_NUMBER}`;
+      ? `https://wa.me/${SUPPORT_WHATSAPP_INTL}?text=${encodeURIComponent(message)}`
+      : `https://wa.me/${SUPPORT_WHATSAPP_INTL}`;
     Linking.openURL(url).catch(() => {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     });
@@ -473,7 +475,7 @@ export default function JeweleryAccountScreen() {
                 icon="bell"
                 label="Notifications"
                 sub="Drops, restocks, offers"
-                route="/account/notifications"
+                route="/jewelery/notifications"
               />
               <MenuItem
                 icon="help-circle"
@@ -708,7 +710,7 @@ export default function JeweleryAccountScreen() {
       {/* Password & Email Setup bottom sheet (same sheet as clothing
           account — opened via the account store, single instance per
           module tree) */}
-      <PasswordEmailSetupSheet />
+      <PasswordEmailSetupSheet variant="jewelery" />
 
       {/* Help & Support bottom sheet (channel → question → redirect) */}
       <HelpSupportSheet
