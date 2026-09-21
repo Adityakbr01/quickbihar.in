@@ -1,0 +1,247 @@
+[
+ {
+  "_id": "6aa7bc0e084d533336d615d2",
+  "subOrderId": "QB-5259642924-S1",
+  "parentOrderId": "6aa7bbf5084d533336d615cd",
+  "sellerId": "6a9c2739a9693d1c9e7603da",
+  "storeId": "6a9c30b4443d4e1d0c9729fb",
+  "items": [
+   {
+    "productId": "6aa2c2bd2d4e39dc14563dbc",
+    "title": "Boys Festive Jacquard Silk Kurta Pajama Set with Pocket Square",
+    "sku": "KID-YEL-23",
+    "size": "2-3Y",
+    "color": "Marigold Yellow",
+    "image": "https://ik.imagekit.io/k2n57ywshu/products/aditya_kids_festive_kurta_1789051578078_Nhw34q13h.jpg",
+    "quantity": 1,
+    "price": 799,
+    "sellerSubtotal": 799
+   }
+  ],
+  "subtotal": 799,
+  "tax": 0,
+  "shippingFee": 40,
+  "dynamicDeliverySurcharge": 0,
+  "platformCommission": 119.85,
+  "sellerNet": 679.15,
+  "appNetAfterRider": -340.15,
+  "pricingSnapshot": {
+   "sellerId": "6a9c2739a9693d1c9e7603da",
+   "storeId": "6a9c30b4443d4e1d0c9729fb",
+   "sellerItemSubtotal": 799,
+   "sellerCouponShare": 0,
+   "customerDeliveryFeeShare": 40,
+   "customerDynamicSurchargeShare": 0,
+   "platformCommission": 119.85,
+   "commissionPercent": 15,
+   "sellerNet": 679.15,
+   "distanceKm": 98.93,
+   "riderBasePayout": 500,
+   "riderPayoutEstimate": 500,
+   "riderBonuses": {
+    "rain": 0,
+    "peak": 0,
+    "festival": 0,
+    "night": 0
+   },
+   "bonusFlags": {
+    "rain": false,
+    "peak": false,
+    "festival": false,
+    "night": false
+   },
+   "appGrossRevenue": 159.85,
+   "appNetAfterRider": -340.15
+  },
+  "payableAmount": 839,
+  "status": "DELIVERED",
+  "packageDetails": {
+   "weight": 500,
+   "packageCount": 1,
+   "isFragile": false,
+   "isCod": false,
+   "otpRequired": true,
+   "pickupNotes": "",
+   "pickupTiming": "2026-09-14T09:22:46.511Z",
+   "lockedAt": "2026-09-14T09:22:46.511Z"
+  },
+  "delivery": {
+   "status": "DELIVERED",
+   "pickupOtp": "458283",
+   "deliveryOtp": "540711",
+   "payoutAmount": 500,
+   "distanceKm": 98.93,
+   "bonuses": {
+    "rain": 0,
+    "peak": 0,
+    "festival": 0,
+    "night": 0
+   },
+   "currentLocation": {
+    "latitude": 25.584465,
+    "longitude": 84.1515667,
+    "heading": 0,
+    "updatedAt": "2026-09-14T09:28:39.983Z"
+   },
+   "events": [],
+   "assignedAt": "2026-09-14T09:24:34.462Z",
+   "riderId": "6aa37c4452f6dd360267a92c",
+   "riderProfileId": "6aa37cbf52f6dd360267a944",
+   "pickupPhoto": "https://ik.imagekit.io/k2n57ywshu/delivery-proofs/pickup_6aa37c4452f6dd360267a92c_pickup_1789377943063_sXqbnAb6d.jpeg",
+   "deliveryPhoto": "https://ik.imagekit.io/k2n57ywshu/delivery-proofs/delivery_6aa37c4452f6dd360267a92c_delivery_1789378141587_yzu_aSSjA6.jpeg"
+  },
+  "sellerConfirmation": {
+   "confirmedAt": "2026-09-14T09:21:43.769Z",
+   "confirmedBy": "6a9c2739a9693d1c9e7603da",
+   "method": "phone_call"
+  },
+  "timeline": [
+   {
+    "status": "PENDING_SELLER_CONFIRMATION",
+    "actor": "SYSTEM",
+    "timestamp": "2026-09-14T09:19:10.626Z",
+    "ipAddress": "0.0.0.0",
+    "deviceInfo": "Unknown Device",
+    "metadata": {
+     "message": "Payment verified — seller must call the customer to confirm"
+    }
+   },
+   {
+    "status": "CONFIRMED",
+    "actor": "SELLER",
+    "actorId": "6a9c2739a9693d1c9e7603da",
+    "timestamp": "2026-09-14T09:21:43.769Z",
+    "ipAddress": "0.0.0.0",
+    "deviceInfo": "Unknown Device",
+    "metadata": {
+     "message": "Seller confirmed the order after a phone call.",
+     "method": "phone_call"
+    }
+   },
+   {
+    "status": "PROCESSING",
+    "actor": "SELLER",
+    "actorId": "6a9c2739a9693d1c9e7603da",
+    "timestamp": "2026-09-14T09:21:52.622Z",
+    "ipAddress": "172.19.0.1",
+    "deviceInfo": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36",
+    "metadata": {
+     "message": "Seller accepted and started processing the order"
+    }
+   },
+   {
+    "status": "PACKED",
+    "actor": "SELLER",
+    "actorId": "6a9c2739a9693d1c9e7603da",
+    "timestamp": "2026-09-14T09:22:19.167Z",
+    "ipAddress": "172.19.0.1",
+    "deviceInfo": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36",
+    "metadata": {
+     "message": "Seller packed the items"
+    }
+   },
+   {
+    "status": "READY_FOR_PICKUP",
+    "actor": "SELLER",
+    "actorId": "6a9c2739a9693d1c9e7603da",
+    "timestamp": "2026-09-14T09:22:46.514Z",
+    "ipAddress": "172.19.0.1",
+    "deviceInfo": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36",
+    "metadata": {
+     "message": "Package details locked. Ready for rider assignment."
+    }
+   },
+   {
+    "status": "RIDER_ASSIGNED",
+    "actor": "RIDER",
+    "actorId": "6aa37c4452f6dd360267a92c",
+    "timestamp": "2026-09-14T09:24:34.463Z",
+    "ipAddress": "172.19.0.1",
+    "deviceInfo": "okhttp/4.12.0",
+    "metadata": {
+     "message": "Order assigned to rider 6aa37cbf52f6dd360267a944",
+     "riderPhone": "9798666046",
+     "payout": 500,
+     "distanceKm": 0.00004492285166949155,
+     "riderAcceptedCountInWindow": 1,
+     "riderMaxAcceptedOrders": 15,
+     "riderAcceptanceWindowHours": 12
+    }
+   },
+   {
+    "status": "RIDER_ARRIVING",
+    "actor": "RIDER",
+    "actorId": "6aa37c4452f6dd360267a92c",
+    "timestamp": "2026-09-14T09:24:38.582Z",
+    "ipAddress": "172.19.0.1",
+    "deviceInfo": "okhttp/4.12.0",
+    "metadata": {
+     "message": "Rider is heading to the pickup store."
+    }
+   },
+   {
+    "status": "RIDER_REACHED_STORE",
+    "actor": "RIDER",
+    "actorId": "6aa37c4452f6dd360267a92c",
+    "timestamp": "2026-09-14T09:24:52.735Z",
+    "ipAddress": "172.19.0.1",
+    "deviceInfo": "okhttp/4.12.0",
+    "metadata": {
+     "message": "Rider reached store",
+     "distanceMeters": 70
+    }
+   },
+   {
+    "status": "PICKED_UP",
+    "actor": "RIDER",
+    "actorId": "6aa37c4452f6dd360267a92c",
+    "timestamp": "2026-09-14T09:25:50.619Z",
+    "ipAddress": "172.19.0.1",
+    "deviceInfo": "okhttp/4.12.0",
+    "metadata": {
+     "message": "OTP verified. Package picked up by rider.",
+     "pickupPhoto": "https://ik.imagekit.io/k2n57ywshu/delivery-proofs/pickup_6aa37c4452f6dd360267a92c_pickup_1789377943063_sXqbnAb6d.jpeg"
+    }
+   },
+   {
+    "status": "IN_TRANSIT",
+    "actor": "RIDER",
+    "actorId": "6aa37c4452f6dd360267a92c",
+    "timestamp": "2026-09-14T09:25:53.938Z",
+    "ipAddress": "172.19.0.1",
+    "deviceInfo": "okhttp/4.12.0",
+    "metadata": {
+     "message": "Rider departed and is on the way to your shipping address."
+    }
+   },
+   {
+    "status": "NEAR_CUSTOMER",
+    "actor": "RIDER",
+    "actorId": "6aa37c4452f6dd360267a92c",
+    "timestamp": "2026-09-14T09:28:39.984Z",
+    "ipAddress": "172.19.0.1",
+    "deviceInfo": "okhttp/4.12.0",
+    "metadata": {
+     "message": "Rider is near customer location",
+     "distanceMeters": 61,
+     "customerGpsSource": "order_shipping_address"
+    }
+   },
+   {
+    "status": "DELIVERED",
+    "actor": "RIDER",
+    "actorId": "6aa37c4452f6dd360267a92c",
+    "timestamp": "2026-09-14T09:29:05.948Z",
+    "ipAddress": "172.19.0.1",
+    "deviceInfo": "okhttp/4.12.0",
+    "metadata": {
+     "message": "Delivery OTP verified. Package handed over successfully.",
+     "deliveryPhoto": "https://ik.imagekit.io/k2n57ywshu/delivery-proofs/delivery_6aa37c4452f6dd360267a92c_delivery_1789378141587_yzu_aSSjA6.jpeg"
+    }
+   }
+  ],
+  "createdAt": "2026-09-14T09:19:10.637Z",
+  "updatedAt": "2026-09-14T09:29:05.952Z",
+  "__v": 9
+ }
+]

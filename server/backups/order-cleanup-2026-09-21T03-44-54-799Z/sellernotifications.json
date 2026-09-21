@@ -1,0 +1,66 @@
+[
+ {
+  "_id": "6aa147e0083b964e7511ac5b",
+  "sellerId": "6a9c2739a9693d1c9e7603da",
+  "type": "APPROVAL",
+  "title": "banners approved",
+  "message": "Your banners submission has been approved.",
+  "severity": "SUCCESS",
+  "resourceType": "banners",
+  "resourceId": "6aa1477c083b964e7511ac4e",
+  "isRead": true,
+  "createdAt": "2026-09-09T11:49:52.253Z",
+  "updatedAt": "2026-09-17T14:44:37.094Z"
+ },
+ {
+  "_id": "6aa147e3083b964e7511ac5e",
+  "sellerId": "6a9c2739a9693d1c9e7603da",
+  "type": "APPROVAL",
+  "title": "banners approved",
+  "message": "Your banners submission has been approved.",
+  "severity": "SUCCESS",
+  "resourceType": "banners",
+  "resourceId": "6aa14711083b964e7511ac43",
+  "isRead": true,
+  "createdAt": "2026-09-09T11:49:55.277Z",
+  "updatedAt": "2026-09-17T14:44:34.294Z"
+ },
+ {
+  "_id": "6aa7bc0e084d533336d615d3",
+  "sellerId": "6a9c2739a9693d1c9e7603da",
+  "type": "ORDER",
+  "title": "Order QB-5259642924 PENDING_SELLER_CONFIRMATION",
+  "message": "New paid order QB-5259642924 — please call the customer to confirm.",
+  "severity": "INFO",
+  "resourceType": "ORDER",
+  "resourceId": "6aa7bbf5084d533336d615cd",
+  "isRead": true,
+  "createdAt": "2026-09-14T09:19:10.659Z",
+  "updatedAt": "2026-09-17T14:44:33.603Z"
+ },
+ {
+  "_id": "6aa7bca7084d533336d61608",
+  "sellerId": "6a9c2739a9693d1c9e7603da",
+  "type": "ORDER",
+  "title": "Order QB-5259642924 CONFIRMED",
+  "message": "Order QB-5259642924 is confirmed by all sellers and ready for fulfillment.",
+  "severity": "INFO",
+  "resourceType": "ORDER",
+  "resourceId": "6aa7bbf5084d533336d615cd",
+  "isRead": true,
+  "createdAt": "2026-09-14T09:21:43.902Z",
+  "updatedAt": "2026-09-17T14:44:32.736Z"
+ },
+ {
+  "_id": "6aae352a75bfde2333f981cf",
+  "sellerId": "6a9c2739a9693d1c9e7603da",
+  "type": "PAYOUT",
+  "title": "Payout method submitted",
+  "message": "Your payout method is waiting for admin verification.",
+  "severity": "INFO",
+  "resourceType": "PAYOUT_METHOD",
+  "isRead": false,
+  "createdAt": "2026-09-19T07:09:30.772Z",
+  "updatedAt": "2026-09-19T07:09:30.772Z"
+ }
+]

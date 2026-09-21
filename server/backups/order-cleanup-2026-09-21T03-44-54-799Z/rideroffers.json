@@ -1,0 +1,72 @@
+[
+ {
+  "_id": "6aa7bce62d4e39dc14572392",
+  "status": "EXPIRED",
+  "riderId": "6aa37c4452f6dd360267a92c",
+  "subOrderObjectId": "6aa7bc0e084d533336d615d2",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:22:46.848Z",
+  "distanceKm": 0,
+  "expiresAt": "2026-09-14T09:23:16.848Z",
+  "metadata": {
+   "storeName": "Aditya Fashion Mall",
+   "storeAddress": {
+    "line1": "एनएच-84Bhojpur Kadim",
+    "city": "Dumraon",
+    "state": "Buxar",
+    "pincode": "802133",
+    "country": "India",
+    "postalCode": "802133"
+   },
+   "riderAcceptedCountInWindow": 0,
+   "riderMaxAcceptedOrders": 15,
+   "riderAcceptanceWindowHours": 12
+  },
+  "offerId": "offer_1789377766850_7tb4ie4m",
+  "parentOrderId": "6aa7bbf5084d533336d615cd",
+  "payoutAmount": 500,
+  "radiusKm": 3,
+  "riderDistanceToStoreKm": 0.09,
+  "riderProfileId": "6aa37cbf52f6dd360267a944",
+  "sellerId": "6a9c2739a9693d1c9e7603da",
+  "stage": 1,
+  "subOrderId": "QB-5259642924-S1",
+  "updatedAt": "2026-09-14T09:23:26.057Z",
+  "respondedAt": "2026-09-14T09:23:26.057Z"
+ },
+ {
+  "_id": "6aa7bd0e2d4e39dc145723ab",
+  "status": "ACCEPTED",
+  "subOrderObjectId": "6aa7bc0e084d533336d615d2",
+  "riderId": "6aa37c4452f6dd360267a92c",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:23:26.130Z",
+  "distanceKm": 0,
+  "expiresAt": "2026-09-14T09:24:41.137Z",
+  "metadata": {
+   "storeName": "Aditya Fashion Mall",
+   "storeAddress": {
+    "line1": "एनएच-84Bhojpur Kadim",
+    "city": "Dumraon",
+    "state": "Buxar",
+    "pincode": "802133",
+    "country": "India",
+    "postalCode": "802133"
+   },
+   "riderAcceptedCountInWindow": 0,
+   "riderMaxAcceptedOrders": 15,
+   "riderAcceptanceWindowHours": 12
+  },
+  "offerId": "offer_1789377806130_wg1yabgl",
+  "parentOrderId": "6aa7bbf5084d533336d615cd",
+  "payoutAmount": 500,
+  "radiusKm": 6,
+  "riderDistanceToStoreKm": 0.09,
+  "riderProfileId": "6aa37cbf52f6dd360267a944",
+  "sellerId": "6a9c2739a9693d1c9e7603da",
+  "stage": 2,
+  "subOrderId": "QB-5259642924-S1",
+  "updatedAt": "2026-09-14T09:24:34.470Z",
+  "respondedAt": "2026-09-14T09:24:34.470Z"
+ }
+]

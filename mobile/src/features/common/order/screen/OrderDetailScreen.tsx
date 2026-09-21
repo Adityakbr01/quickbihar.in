@@ -28,6 +28,7 @@ import { getOrderByIdRequest } from "../api/order.api";
 import { useSocketStore } from "@/src/store/useSocketStore";
 import { SocketEvents } from "@/src/constants/socketEvents";
 import { createOrderDetailStyles } from "../style/OrderDetailScreen.style";
+import { filterOrderItemsByModule } from "../lib/orderModule";
 
 const ORDER_STEP_STAGES = [
   { key: "CONFIRMED", label: "Order Placed", shortLabel: "Confirmed" },
@@ -432,7 +433,10 @@ export default function OrderDetailScreen() {
     );
   }
 
-  const itemsToDisplay = currentSubOrder?.items || order?.items || [];
+  const itemsToDisplay = filterOrderItemsByModule(
+    currentSubOrder?.items || order?.items || [],
+    "clothing",
+  );
   const assignedRider = currentSubOrder?.delivery?.riderId || order?.delivery?.partnerUserId;
   const isCod = order?.paymentInfo?.razorpayOrderId === "COD" || currentSubOrder?.packageDetails?.isCod;
   const totalItemCount = itemsToDisplay.reduce((sum: number, it: any) => sum + (it.quantity || 1), 0);

@@ -13,6 +13,7 @@ import * as Haptics from "expo-haptics";
 import { OrderCardSkeleton } from "../components/OrderCardSkeleton";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { getMyOrdersRequest } from "../api/order.api";
+import { orderHasModule } from "../lib/orderModule";
 import { socketClient } from "@/src/lib/socket";
 import { SocketEvents } from "@/src/constants/socketEvents";
 import SafeViewWrapper from "@/src/provider/SafeViewWrapper";
@@ -51,7 +52,9 @@ const OrderListScreen = () => {
     try {
       setIsLoading(true);
       const response = await getMyOrdersRequest();
-      setOrders(response.data || []);
+      // Clothing catalogue shows clothing orders only — jewellery orders
+      // live in the jewellery order history.
+      setOrders((response.data || []).filter((o: any) => orderHasModule(o, "clothing")));
     } catch (error) {
       console.error("Failed to fetch orders:", error);
     } finally {
@@ -86,24 +89,11 @@ const OrderListScreen = () => {
   };
 
   const renderOrderItem = ({ item }: { item: any }) => {
+    // Shared module check (vertical/module/jeweleryDetails aware).
+    // The list itself is clothing-filtered; jewellery rows route to the
+    // jewellery detail screen if they ever appear (e.g. deep links).
     const isJeweleryOrder =
-      String(item.module || "").toLowerCase() === "jewelery" ||
-      String(item.module || "").toLowerCase() === "jewellery" ||
-      String(item.vertical || "").toLowerCase() === "jewelery" ||
-      String(item.vertical || "").toLowerCase() === "jewellery" ||
-      item.items?.some((i: any) => {
-        const p = typeof i.productId === "object" ? i.productId : null;
-        const v = String(i.vertical || p?.vertical || "").toLowerCase();
-        const m = String(i.module || p?.module || "").toLowerCase();
-        return (
-          v === "jewelery" ||
-          v === "jewellery" ||
-          m === "jewelery" ||
-          m === "jewellery" ||
-          Boolean(i.jeweleryDetails) ||
-          Boolean(p?.jeweleryDetails)
-        );
-      });
+      orderHasModule(item, "jewelery") && !orderHasModule(item, "clothing");
 
     return (
       <TouchableOpacity

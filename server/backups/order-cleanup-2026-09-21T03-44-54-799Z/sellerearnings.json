@@ -1,0 +1,27 @@
+[
+ {
+  "_id": "6aa7be62084d533336d617d9",
+  "sellerId": "6a9c2739a9693d1c9e7603da",
+  "storeId": "6a9c30b4443d4e1d0c9729fb",
+  "orderId": "QB-5259642924",
+  "orderObjectId": "6aa7bbf5084d533336d615cd",
+  "subOrderObjectId": "6aa7bc0e084d533336d615d2",
+  "subOrderId": "QB-5259642924-S1",
+  "idempotencyKey": "seller-suborder:6aa7bc0e084d533336d615d2",
+  "quantity": 1,
+  "grossAmount": 799,
+  "commissionAmount": 119.85,
+  "netAmount": 679.15,
+  "status": "AVAILABLE",
+  "creditedAt": "2026-09-14T09:29:06.022Z",
+  "settlementSource": "RIDER_DELIVERY",
+  "settlementNote": "Delivery OTP and proof verified by assigned rider.",
+  "metadata": {
+   "subOrderStatus": "DELIVERED",
+   "payableAmount": 839,
+   "deliveryStatus": "DELIVERED"
+  },
+  "createdAt": "2026-09-14T09:29:06.023Z",
+  "updatedAt": "2026-09-14T09:29:06.023Z"
+ }
+]

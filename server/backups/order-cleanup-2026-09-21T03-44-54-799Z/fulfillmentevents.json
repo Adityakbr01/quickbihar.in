@@ -1,0 +1,374 @@
+[
+ {
+  "_id": "6aa7bcb0084d533336d61618",
+  "sequence": 1,
+  "type": "seller_accepted",
+  "orderId": "QB-5259642924",
+  "orderObjectId": "6aa7bbf5084d533336d615cd",
+  "subOrderId": "QB-5259642924-S1",
+  "subOrderObjectId": "6aa7bc0e084d533336d615d2",
+  "status": "PROCESSING",
+  "actor": "SELLER",
+  "actorId": "6a9c2739a9693d1c9e7603da",
+  "recipientIds": [
+   "6a9c2739a9693d1c9e7603da"
+  ],
+  "rooms": [
+   "admin",
+   "seller:6a9c2739a9693d1c9e7603da",
+   "order:QB-5259642924",
+   "order_QB-5259642924",
+   "suborder:QB-5259642924-S1",
+   "suborder_QB-5259642924-S1",
+   "user:6a9c2739a9693d1c9e7603da"
+  ],
+  "metadata": {
+   "message": "Seller accepted and started processing sub-order QB-5259642924-S1.",
+   "deliveryStatus": "UNASSIGNED"
+  },
+  "occurredAt": "2026-09-14T09:21:52.702Z",
+  "eventId": "evt_1789377712708_7ki7h3y5",
+  "createdAt": "2026-09-14T09:21:52.711Z",
+  "updatedAt": "2026-09-14T09:21:52.711Z",
+  "__v": 0
+ },
+ {
+  "_id": "6aa7bccb084d533336d6164c",
+  "sequence": 2,
+  "type": "suborder_packed",
+  "orderId": "QB-5259642924",
+  "orderObjectId": "6aa7bbf5084d533336d615cd",
+  "subOrderId": "QB-5259642924-S1",
+  "subOrderObjectId": "6aa7bc0e084d533336d615d2",
+  "status": "PACKED",
+  "actor": "SELLER",
+  "actorId": "6a9c2739a9693d1c9e7603da",
+  "recipientIds": [
+   "6a9c2739a9693d1c9e7603da"
+  ],
+  "rooms": [
+   "admin",
+   "seller:6a9c2739a9693d1c9e7603da",
+   "order:QB-5259642924",
+   "order_QB-5259642924",
+   "suborder:QB-5259642924-S1",
+   "suborder_QB-5259642924-S1",
+   "user:6a9c2739a9693d1c9e7603da"
+  ],
+  "metadata": {
+   "message": "Sub-order QB-5259642924-S1 has been packed.",
+   "deliveryStatus": "UNASSIGNED"
+  },
+  "occurredAt": "2026-09-14T09:22:19.192Z",
+  "eventId": "evt_1789377739193_anl8cw1d",
+  "createdAt": "2026-09-14T09:22:19.193Z",
+  "updatedAt": "2026-09-14T09:22:19.193Z",
+  "__v": 0
+ },
+ {
+  "_id": "6aa7bce6084d533336d61665",
+  "sequence": 3,
+  "type": "ready_for_pickup",
+  "orderId": "QB-5259642924",
+  "orderObjectId": "6aa7bbf5084d533336d615cd",
+  "subOrderId": "QB-5259642924-S1",
+  "subOrderObjectId": "6aa7bc0e084d533336d615d2",
+  "status": "READY_FOR_PICKUP",
+  "actor": "SELLER",
+  "actorId": "6a9c2739a9693d1c9e7603da",
+  "recipientIds": [
+   "6a9c2739a9693d1c9e7603da"
+  ],
+  "rooms": [
+   "admin",
+   "seller:6a9c2739a9693d1c9e7603da",
+   "order:QB-5259642924",
+   "order_QB-5259642924",
+   "suborder:QB-5259642924-S1",
+   "suborder_QB-5259642924-S1",
+   "user:6a9c2739a9693d1c9e7603da"
+  ],
+  "metadata": {
+   "message": "Sub-order QB-5259642924-S1 is ready for pickup. Searching for nearby riders.",
+   "deliveryStatus": "ASSIGNMENT_OPEN",
+   "packageDetails": {
+    "dimensions": null,
+    "weight": 500,
+    "packageCount": 1,
+    "isFragile": false,
+    "isCod": false,
+    "otpRequired": true,
+    "pickupNotes": "",
+    "pickupTiming": "2026-09-14T09:22:46.511Z",
+    "lockedAt": "2026-09-14T09:22:46.511Z"
+   }
+  },
+  "occurredAt": "2026-09-14T09:22:46.542Z",
+  "eventId": "evt_1789377766543_ackrit42",
+  "createdAt": "2026-09-14T09:22:46.543Z",
+  "updatedAt": "2026-09-14T09:22:46.543Z",
+  "__v": 0
+ },
+ {
+  "_id": "6aa7bd52084d533336d616f5",
+  "sequence": 4,
+  "type": "rider_assigned",
+  "orderId": "QB-5259642924",
+  "orderObjectId": "6aa7bbf5084d533336d615cd",
+  "subOrderId": "QB-5259642924-S1",
+  "subOrderObjectId": "6aa7bc0e084d533336d615d2",
+  "status": "RIDER_ASSIGNED",
+  "actor": "RIDER",
+  "actorId": "6aa37c4452f6dd360267a92c",
+  "recipientIds": [
+   "6a9c2739a9693d1c9e7603da",
+   "6aa37c4452f6dd360267a92c"
+  ],
+  "rooms": [
+   "admin",
+   "seller:6a9c2739a9693d1c9e7603da",
+   "rider:6aa37c4452f6dd360267a92c",
+   "order:QB-5259642924",
+   "order_QB-5259642924",
+   "suborder:QB-5259642924-S1",
+   "suborder_QB-5259642924-S1",
+   "user:6a9c2739a9693d1c9e7603da",
+   "user:6aa37c4452f6dd360267a92c"
+  ],
+  "metadata": {
+   "message": "Rider assigned for sub-order QB-5259642924-S1.",
+   "deliveryStatus": "ASSIGNED",
+   "payout": 500,
+   "distanceKm": 0.00004492285166949155,
+   "riderAcceptedCountInWindow": 1,
+   "riderMaxAcceptedOrders": 15,
+   "riderAcceptanceWindowHours": 12
+  },
+  "occurredAt": "2026-09-14T09:24:34.520Z",
+  "eventId": "evt_1789377874521_97f2q9yy",
+  "createdAt": "2026-09-14T09:24:34.521Z",
+  "updatedAt": "2026-09-14T09:24:34.521Z",
+  "__v": 0
+ },
+ {
+  "_id": "6aa7bd56084d533336d6170c",
+  "sequence": 5,
+  "type": "rider_arriving_at_store",
+  "orderId": "QB-5259642924",
+  "orderObjectId": "6aa7bbf5084d533336d615cd",
+  "subOrderId": "QB-5259642924-S1",
+  "subOrderObjectId": "6aa7bc0e084d533336d615d2",
+  "status": "RIDER_ARRIVING",
+  "actor": "RIDER",
+  "actorId": "6aa37c4452f6dd360267a92c",
+  "recipientIds": [
+   "6a9c2739a9693d1c9e7603da",
+   "6aa37c4452f6dd360267a92c"
+  ],
+  "rooms": [
+   "admin",
+   "seller:6a9c2739a9693d1c9e7603da",
+   "rider:6aa37c4452f6dd360267a92c",
+   "order:QB-5259642924",
+   "order_QB-5259642924",
+   "suborder:QB-5259642924-S1",
+   "suborder_QB-5259642924-S1",
+   "user:6a9c2739a9693d1c9e7603da",
+   "user:6aa37c4452f6dd360267a92c"
+  ],
+  "metadata": {
+   "message": "Rider is heading to the store for sub-order QB-5259642924-S1.",
+   "deliveryStatus": "ARRIVING_AT_STORE"
+  },
+  "occurredAt": "2026-09-14T09:24:38.596Z",
+  "eventId": "evt_1789377878597_hz25iijg",
+  "createdAt": "2026-09-14T09:24:38.597Z",
+  "updatedAt": "2026-09-14T09:24:38.597Z",
+  "__v": 0
+ },
+ {
+  "_id": "6aa7bd64084d533336d61723",
+  "sequence": 6,
+  "type": "rider_reached_store",
+  "orderId": "QB-5259642924",
+  "orderObjectId": "6aa7bbf5084d533336d615cd",
+  "subOrderId": "QB-5259642924-S1",
+  "subOrderObjectId": "6aa7bc0e084d533336d615d2",
+  "status": "RIDER_REACHED_STORE",
+  "actor": "RIDER",
+  "actorId": "6aa37c4452f6dd360267a92c",
+  "recipientIds": [
+   "6a9c2739a9693d1c9e7603da",
+   "6aa37c4452f6dd360267a92c"
+  ],
+  "rooms": [
+   "admin",
+   "seller:6a9c2739a9693d1c9e7603da",
+   "rider:6aa37c4452f6dd360267a92c",
+   "order:QB-5259642924",
+   "order_QB-5259642924",
+   "suborder:QB-5259642924-S1",
+   "suborder_QB-5259642924-S1",
+   "user:6a9c2739a9693d1c9e7603da",
+   "user:6aa37c4452f6dd360267a92c"
+  ],
+  "metadata": {
+   "message": "Rider reached the store for sub-order QB-5259642924-S1.",
+   "deliveryStatus": "REACHED_STORE",
+   "distanceMeters": 70
+  },
+  "occurredAt": "2026-09-14T09:24:52.746Z",
+  "eventId": "evt_1789377892747_thsankji",
+  "createdAt": "2026-09-14T09:24:52.747Z",
+  "updatedAt": "2026-09-14T09:24:52.747Z",
+  "__v": 0
+ },
+ {
+  "_id": "6aa7bd9e084d533336d61744",
+  "sequence": 7,
+  "type": "order_picked_up",
+  "orderId": "QB-5259642924",
+  "orderObjectId": "6aa7bbf5084d533336d615cd",
+  "subOrderId": "QB-5259642924-S1",
+  "subOrderObjectId": "6aa7bc0e084d533336d615d2",
+  "status": "PICKED_UP",
+  "actor": "RIDER",
+  "actorId": "6aa37c4452f6dd360267a92c",
+  "recipientIds": [
+   "6a9c2739a9693d1c9e7603da",
+   "6aa37c4452f6dd360267a92c"
+  ],
+  "rooms": [
+   "admin",
+   "seller:6a9c2739a9693d1c9e7603da",
+   "rider:6aa37c4452f6dd360267a92c",
+   "order:QB-5259642924",
+   "order_QB-5259642924",
+   "suborder:QB-5259642924-S1",
+   "suborder_QB-5259642924-S1",
+   "user:6a9c2739a9693d1c9e7603da",
+   "user:6aa37c4452f6dd360267a92c"
+  ],
+  "metadata": {
+   "message": "Sub-order QB-5259642924-S1 was picked up from the seller.",
+   "deliveryStatus": "PICKED_UP",
+   "pickupPhoto": "https://ik.imagekit.io/k2n57ywshu/delivery-proofs/pickup_6aa37c4452f6dd360267a92c_pickup_1789377943063_sXqbnAb6d.jpeg"
+  },
+  "occurredAt": "2026-09-14T09:25:50.643Z",
+  "eventId": "evt_1789377950643_51oufq11",
+  "createdAt": "2026-09-14T09:25:50.643Z",
+  "updatedAt": "2026-09-14T09:25:50.643Z",
+  "__v": 0
+ },
+ {
+  "_id": "6aa7bda1084d533336d6175b",
+  "sequence": 8,
+  "type": "in_transit",
+  "orderId": "QB-5259642924",
+  "orderObjectId": "6aa7bbf5084d533336d615cd",
+  "subOrderId": "QB-5259642924-S1",
+  "subOrderObjectId": "6aa7bc0e084d533336d615d2",
+  "status": "IN_TRANSIT",
+  "actor": "RIDER",
+  "actorId": "6aa37c4452f6dd360267a92c",
+  "recipientIds": [
+   "6a9c2739a9693d1c9e7603da",
+   "6aa37c4452f6dd360267a92c"
+  ],
+  "rooms": [
+   "admin",
+   "seller:6a9c2739a9693d1c9e7603da",
+   "rider:6aa37c4452f6dd360267a92c",
+   "order:QB-5259642924",
+   "order_QB-5259642924",
+   "suborder:QB-5259642924-S1",
+   "suborder_QB-5259642924-S1",
+   "user:6a9c2739a9693d1c9e7603da",
+   "user:6aa37c4452f6dd360267a92c"
+  ],
+  "metadata": {
+   "message": "Rider is in transit with sub-order QB-5259642924-S1.",
+   "deliveryStatus": "IN_TRANSIT"
+  },
+  "occurredAt": "2026-09-14T09:25:53.966Z",
+  "eventId": "evt_1789377953967_dtrpfsh8",
+  "createdAt": "2026-09-14T09:25:53.967Z",
+  "updatedAt": "2026-09-14T09:25:53.967Z",
+  "__v": 0
+ },
+ {
+  "_id": "6aa7be48084d533336d617c2",
+  "sequence": 9,
+  "type": "near_customer",
+  "orderId": "QB-5259642924",
+  "orderObjectId": "6aa7bbf5084d533336d615cd",
+  "subOrderId": "QB-5259642924-S1",
+  "subOrderObjectId": "6aa7bc0e084d533336d615d2",
+  "status": "NEAR_CUSTOMER",
+  "actor": "RIDER",
+  "actorId": "6aa37c4452f6dd360267a92c",
+  "recipientIds": [
+   "6a9c2739a9693d1c9e7603da",
+   "6aa37c4452f6dd360267a92c"
+  ],
+  "rooms": [
+   "admin",
+   "seller:6a9c2739a9693d1c9e7603da",
+   "rider:6aa37c4452f6dd360267a92c",
+   "order:QB-5259642924",
+   "order_QB-5259642924",
+   "suborder:QB-5259642924-S1",
+   "suborder_QB-5259642924-S1",
+   "user:6a9c2739a9693d1c9e7603da",
+   "user:6aa37c4452f6dd360267a92c"
+  ],
+  "metadata": {
+   "message": "Rider is near the customer for sub-order QB-5259642924-S1.",
+   "deliveryStatus": "NEAR_CUSTOMER",
+   "distanceMeters": 61,
+   "customerGpsSource": "order_shipping_address"
+  },
+  "occurredAt": "2026-09-14T09:28:40.001Z",
+  "eventId": "evt_1789378120002_gkdtkhwg",
+  "createdAt": "2026-09-14T09:28:40.003Z",
+  "updatedAt": "2026-09-14T09:28:40.003Z",
+  "__v": 0
+ },
+ {
+  "_id": "6aa7be62084d533336d617da",
+  "sequence": 10,
+  "type": "delivered",
+  "orderId": "QB-5259642924",
+  "orderObjectId": "6aa7bbf5084d533336d615cd",
+  "subOrderId": "QB-5259642924-S1",
+  "subOrderObjectId": "6aa7bc0e084d533336d615d2",
+  "status": "DELIVERED",
+  "actor": "RIDER",
+  "actorId": "6aa37c4452f6dd360267a92c",
+  "recipientIds": [
+   "6a9c2739a9693d1c9e7603da",
+   "6aa37c4452f6dd360267a92c"
+  ],
+  "rooms": [
+   "admin",
+   "seller:6a9c2739a9693d1c9e7603da",
+   "rider:6aa37c4452f6dd360267a92c",
+   "order:QB-5259642924",
+   "order_QB-5259642924",
+   "suborder:QB-5259642924-S1",
+   "suborder_QB-5259642924-S1",
+   "user:6a9c2739a9693d1c9e7603da",
+   "user:6aa37c4452f6dd360267a92c"
+  ],
+  "metadata": {
+   "message": "Sub-order QB-5259642924-S1 has been delivered successfully.",
+   "deliveryStatus": "DELIVERED",
+   "deliveryPhoto": "https://ik.imagekit.io/k2n57ywshu/delivery-proofs/delivery_6aa37c4452f6dd360267a92c_delivery_1789378141587_yzu_aSSjA6.jpeg"
+  },
+  "occurredAt": "2026-09-14T09:29:06.117Z",
+  "eventId": "evt_1789378146117_992loyhc",
+  "createdAt": "2026-09-14T09:29:06.118Z",
+  "updatedAt": "2026-09-14T09:29:06.118Z",
+  "__v": 0
+ }
+]

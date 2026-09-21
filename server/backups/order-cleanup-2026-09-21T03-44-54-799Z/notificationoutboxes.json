@@ -1,0 +1,2852 @@
+[
+ {
+  "_id": "6aa7bcb0084d533336d61619",
+  "idempotencyKey": "evt_1789377712708_7ki7h3y5:SOCKET:admin",
+  "eventId": "evt_1789377712708_7ki7h3y5",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "admin",
+  "payload": {
+   "eventId": "evt_1789377712708_7ki7h3y5",
+   "sequence": 1,
+   "type": "seller_accepted",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "PROCESSING",
+   "actor": "SELLER",
+   "actorId": "6a9c2739a9693d1c9e7603da",
+   "timestamp": "2026-09-14T09:21:52.702Z",
+   "metadata": {
+    "message": "Seller accepted and started processing sub-order QB-5259642924-S1.",
+    "deliveryStatus": "UNASSIGNED"
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:21:52.733Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:21:52.739Z",
+  "updatedAt": "2026-09-14T09:21:52.739Z"
+ },
+ {
+  "_id": "6aa7bcb0084d533336d6161a",
+  "idempotencyKey": "evt_1789377712708_7ki7h3y5:SOCKET:seller:6a9c2739a9693d1c9e7603da",
+  "eventId": "evt_1789377712708_7ki7h3y5",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "seller:6a9c2739a9693d1c9e7603da",
+  "payload": {
+   "eventId": "evt_1789377712708_7ki7h3y5",
+   "sequence": 1,
+   "type": "seller_accepted",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "PROCESSING",
+   "actor": "SELLER",
+   "actorId": "6a9c2739a9693d1c9e7603da",
+   "timestamp": "2026-09-14T09:21:52.702Z",
+   "metadata": {
+    "message": "Seller accepted and started processing sub-order QB-5259642924-S1.",
+    "deliveryStatus": "UNASSIGNED"
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:21:52.733Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:21:52.740Z",
+  "updatedAt": "2026-09-14T09:21:52.740Z"
+ },
+ {
+  "_id": "6aa7bcb0084d533336d6161b",
+  "idempotencyKey": "evt_1789377712708_7ki7h3y5:SOCKET:order:QB-5259642924",
+  "eventId": "evt_1789377712708_7ki7h3y5",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "order:QB-5259642924",
+  "payload": {
+   "eventId": "evt_1789377712708_7ki7h3y5",
+   "sequence": 1,
+   "type": "seller_accepted",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "PROCESSING",
+   "actor": "SELLER",
+   "actorId": "6a9c2739a9693d1c9e7603da",
+   "timestamp": "2026-09-14T09:21:52.702Z",
+   "metadata": {
+    "message": "Seller accepted and started processing sub-order QB-5259642924-S1.",
+    "deliveryStatus": "UNASSIGNED"
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:21:52.733Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:21:52.740Z",
+  "updatedAt": "2026-09-14T09:21:52.740Z"
+ },
+ {
+  "_id": "6aa7bcb0084d533336d6161c",
+  "idempotencyKey": "evt_1789377712708_7ki7h3y5:SOCKET:order_QB-5259642924",
+  "eventId": "evt_1789377712708_7ki7h3y5",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "order_QB-5259642924",
+  "payload": {
+   "eventId": "evt_1789377712708_7ki7h3y5",
+   "sequence": 1,
+   "type": "seller_accepted",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "PROCESSING",
+   "actor": "SELLER",
+   "actorId": "6a9c2739a9693d1c9e7603da",
+   "timestamp": "2026-09-14T09:21:52.702Z",
+   "metadata": {
+    "message": "Seller accepted and started processing sub-order QB-5259642924-S1.",
+    "deliveryStatus": "UNASSIGNED"
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:21:52.733Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:21:52.740Z",
+  "updatedAt": "2026-09-14T09:21:52.740Z"
+ },
+ {
+  "_id": "6aa7bcb0084d533336d6161d",
+  "idempotencyKey": "evt_1789377712708_7ki7h3y5:SOCKET:suborder:QB-5259642924-S1",
+  "eventId": "evt_1789377712708_7ki7h3y5",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "suborder:QB-5259642924-S1",
+  "payload": {
+   "eventId": "evt_1789377712708_7ki7h3y5",
+   "sequence": 1,
+   "type": "seller_accepted",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "PROCESSING",
+   "actor": "SELLER",
+   "actorId": "6a9c2739a9693d1c9e7603da",
+   "timestamp": "2026-09-14T09:21:52.702Z",
+   "metadata": {
+    "message": "Seller accepted and started processing sub-order QB-5259642924-S1.",
+    "deliveryStatus": "UNASSIGNED"
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:21:52.733Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:21:52.740Z",
+  "updatedAt": "2026-09-14T09:21:52.740Z"
+ },
+ {
+  "_id": "6aa7bcb0084d533336d6161e",
+  "idempotencyKey": "evt_1789377712708_7ki7h3y5:SOCKET:suborder_QB-5259642924-S1",
+  "eventId": "evt_1789377712708_7ki7h3y5",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "suborder_QB-5259642924-S1",
+  "payload": {
+   "eventId": "evt_1789377712708_7ki7h3y5",
+   "sequence": 1,
+   "type": "seller_accepted",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "PROCESSING",
+   "actor": "SELLER",
+   "actorId": "6a9c2739a9693d1c9e7603da",
+   "timestamp": "2026-09-14T09:21:52.702Z",
+   "metadata": {
+    "message": "Seller accepted and started processing sub-order QB-5259642924-S1.",
+    "deliveryStatus": "UNASSIGNED"
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:21:52.733Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:21:52.740Z",
+  "updatedAt": "2026-09-14T09:21:52.740Z"
+ },
+ {
+  "_id": "6aa7bcb0084d533336d6161f",
+  "idempotencyKey": "evt_1789377712708_7ki7h3y5:SOCKET:user:6a9c2739a9693d1c9e7603da",
+  "eventId": "evt_1789377712708_7ki7h3y5",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "user:6a9c2739a9693d1c9e7603da",
+  "payload": {
+   "eventId": "evt_1789377712708_7ki7h3y5",
+   "sequence": 1,
+   "type": "seller_accepted",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "PROCESSING",
+   "actor": "SELLER",
+   "actorId": "6a9c2739a9693d1c9e7603da",
+   "timestamp": "2026-09-14T09:21:52.702Z",
+   "metadata": {
+    "message": "Seller accepted and started processing sub-order QB-5259642924-S1.",
+    "deliveryStatus": "UNASSIGNED"
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:21:52.733Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:21:52.740Z",
+  "updatedAt": "2026-09-14T09:21:52.740Z"
+ },
+ {
+  "_id": "6aa7bcb0084d533336d61620",
+  "idempotencyKey": "evt_1789377712708_7ki7h3y5:PUSH:6a9c2739a9693d1c9e7603da",
+  "eventId": "evt_1789377712708_7ki7h3y5",
+  "channel": "PUSH",
+  "status": "SENT",
+  "recipientId": "6a9c2739a9693d1c9e7603da",
+  "title": "Order update",
+  "body": "Seller accepted and started processing sub-order QB-5259642924-S1.",
+  "payload": {
+   "eventId": "evt_1789377712708_7ki7h3y5",
+   "sequence": 1,
+   "type": "seller_accepted",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "PROCESSING",
+   "actor": "SELLER",
+   "actorId": "6a9c2739a9693d1c9e7603da",
+   "timestamp": "2026-09-14T09:21:52.702Z",
+   "metadata": {
+    "message": "Seller accepted and started processing sub-order QB-5259642924-S1.",
+    "deliveryStatus": "UNASSIGNED"
+   }
+  },
+  "attempts": 1,
+  "nextAttemptAt": "2026-09-14T09:21:52.761Z",
+  "createdAt": "2026-09-14T09:21:52.762Z",
+  "updatedAt": "2026-09-14T09:21:53.361Z",
+  "__v": 0,
+  "sentAt": "2026-09-14T09:21:53.358Z"
+ },
+ {
+  "_id": "6aa7bccb084d533336d6164d",
+  "idempotencyKey": "evt_1789377739193_anl8cw1d:SOCKET:admin",
+  "eventId": "evt_1789377739193_anl8cw1d",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "admin",
+  "payload": {
+   "eventId": "evt_1789377739193_anl8cw1d",
+   "sequence": 2,
+   "type": "suborder_packed",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "PACKED",
+   "actor": "SELLER",
+   "actorId": "6a9c2739a9693d1c9e7603da",
+   "timestamp": "2026-09-14T09:22:19.192Z",
+   "metadata": {
+    "message": "Sub-order QB-5259642924-S1 has been packed.",
+    "deliveryStatus": "UNASSIGNED"
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:22:19.200Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:22:19.202Z",
+  "updatedAt": "2026-09-14T09:22:19.202Z"
+ },
+ {
+  "_id": "6aa7bccb084d533336d6164e",
+  "idempotencyKey": "evt_1789377739193_anl8cw1d:SOCKET:seller:6a9c2739a9693d1c9e7603da",
+  "eventId": "evt_1789377739193_anl8cw1d",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "seller:6a9c2739a9693d1c9e7603da",
+  "payload": {
+   "eventId": "evt_1789377739193_anl8cw1d",
+   "sequence": 2,
+   "type": "suborder_packed",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "PACKED",
+   "actor": "SELLER",
+   "actorId": "6a9c2739a9693d1c9e7603da",
+   "timestamp": "2026-09-14T09:22:19.192Z",
+   "metadata": {
+    "message": "Sub-order QB-5259642924-S1 has been packed.",
+    "deliveryStatus": "UNASSIGNED"
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:22:19.200Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:22:19.202Z",
+  "updatedAt": "2026-09-14T09:22:19.202Z"
+ },
+ {
+  "_id": "6aa7bccb084d533336d6164f",
+  "idempotencyKey": "evt_1789377739193_anl8cw1d:SOCKET:order:QB-5259642924",
+  "eventId": "evt_1789377739193_anl8cw1d",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "order:QB-5259642924",
+  "payload": {
+   "eventId": "evt_1789377739193_anl8cw1d",
+   "sequence": 2,
+   "type": "suborder_packed",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "PACKED",
+   "actor": "SELLER",
+   "actorId": "6a9c2739a9693d1c9e7603da",
+   "timestamp": "2026-09-14T09:22:19.192Z",
+   "metadata": {
+    "message": "Sub-order QB-5259642924-S1 has been packed.",
+    "deliveryStatus": "UNASSIGNED"
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:22:19.200Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:22:19.202Z",
+  "updatedAt": "2026-09-14T09:22:19.202Z"
+ },
+ {
+  "_id": "6aa7bccb084d533336d61650",
+  "idempotencyKey": "evt_1789377739193_anl8cw1d:SOCKET:order_QB-5259642924",
+  "eventId": "evt_1789377739193_anl8cw1d",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "order_QB-5259642924",
+  "payload": {
+   "eventId": "evt_1789377739193_anl8cw1d",
+   "sequence": 2,
+   "type": "suborder_packed",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "PACKED",
+   "actor": "SELLER",
+   "actorId": "6a9c2739a9693d1c9e7603da",
+   "timestamp": "2026-09-14T09:22:19.192Z",
+   "metadata": {
+    "message": "Sub-order QB-5259642924-S1 has been packed.",
+    "deliveryStatus": "UNASSIGNED"
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:22:19.200Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:22:19.202Z",
+  "updatedAt": "2026-09-14T09:22:19.202Z"
+ },
+ {
+  "_id": "6aa7bccb084d533336d61651",
+  "idempotencyKey": "evt_1789377739193_anl8cw1d:SOCKET:suborder:QB-5259642924-S1",
+  "eventId": "evt_1789377739193_anl8cw1d",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "suborder:QB-5259642924-S1",
+  "payload": {
+   "eventId": "evt_1789377739193_anl8cw1d",
+   "sequence": 2,
+   "type": "suborder_packed",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "PACKED",
+   "actor": "SELLER",
+   "actorId": "6a9c2739a9693d1c9e7603da",
+   "timestamp": "2026-09-14T09:22:19.192Z",
+   "metadata": {
+    "message": "Sub-order QB-5259642924-S1 has been packed.",
+    "deliveryStatus": "UNASSIGNED"
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:22:19.200Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:22:19.203Z",
+  "updatedAt": "2026-09-14T09:22:19.203Z"
+ },
+ {
+  "_id": "6aa7bccb084d533336d61652",
+  "idempotencyKey": "evt_1789377739193_anl8cw1d:SOCKET:suborder_QB-5259642924-S1",
+  "eventId": "evt_1789377739193_anl8cw1d",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "suborder_QB-5259642924-S1",
+  "payload": {
+   "eventId": "evt_1789377739193_anl8cw1d",
+   "sequence": 2,
+   "type": "suborder_packed",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "PACKED",
+   "actor": "SELLER",
+   "actorId": "6a9c2739a9693d1c9e7603da",
+   "timestamp": "2026-09-14T09:22:19.192Z",
+   "metadata": {
+    "message": "Sub-order QB-5259642924-S1 has been packed.",
+    "deliveryStatus": "UNASSIGNED"
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:22:19.200Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:22:19.203Z",
+  "updatedAt": "2026-09-14T09:22:19.203Z"
+ },
+ {
+  "_id": "6aa7bccb084d533336d61653",
+  "idempotencyKey": "evt_1789377739193_anl8cw1d:SOCKET:user:6a9c2739a9693d1c9e7603da",
+  "eventId": "evt_1789377739193_anl8cw1d",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "user:6a9c2739a9693d1c9e7603da",
+  "payload": {
+   "eventId": "evt_1789377739193_anl8cw1d",
+   "sequence": 2,
+   "type": "suborder_packed",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "PACKED",
+   "actor": "SELLER",
+   "actorId": "6a9c2739a9693d1c9e7603da",
+   "timestamp": "2026-09-14T09:22:19.192Z",
+   "metadata": {
+    "message": "Sub-order QB-5259642924-S1 has been packed.",
+    "deliveryStatus": "UNASSIGNED"
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:22:19.200Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:22:19.203Z",
+  "updatedAt": "2026-09-14T09:22:19.203Z"
+ },
+ {
+  "_id": "6aa7bccb084d533336d61654",
+  "idempotencyKey": "evt_1789377739193_anl8cw1d:PUSH:6a9c2739a9693d1c9e7603da",
+  "eventId": "evt_1789377739193_anl8cw1d",
+  "channel": "PUSH",
+  "status": "SENT",
+  "recipientId": "6a9c2739a9693d1c9e7603da",
+  "title": "Order update",
+  "body": "Sub-order QB-5259642924-S1 has been packed.",
+  "payload": {
+   "eventId": "evt_1789377739193_anl8cw1d",
+   "sequence": 2,
+   "type": "suborder_packed",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "PACKED",
+   "actor": "SELLER",
+   "actorId": "6a9c2739a9693d1c9e7603da",
+   "timestamp": "2026-09-14T09:22:19.192Z",
+   "metadata": {
+    "message": "Sub-order QB-5259642924-S1 has been packed.",
+    "deliveryStatus": "UNASSIGNED"
+   }
+  },
+  "attempts": 1,
+  "nextAttemptAt": "2026-09-14T09:22:19.213Z",
+  "createdAt": "2026-09-14T09:22:19.214Z",
+  "updatedAt": "2026-09-14T09:22:19.366Z",
+  "__v": 0,
+  "sentAt": "2026-09-14T09:22:19.366Z"
+ },
+ {
+  "_id": "6aa7bce6084d533336d61666",
+  "idempotencyKey": "evt_1789377766543_ackrit42:SOCKET:admin",
+  "eventId": "evt_1789377766543_ackrit42",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "admin",
+  "payload": {
+   "eventId": "evt_1789377766543_ackrit42",
+   "sequence": 3,
+   "type": "ready_for_pickup",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "READY_FOR_PICKUP",
+   "actor": "SELLER",
+   "actorId": "6a9c2739a9693d1c9e7603da",
+   "timestamp": "2026-09-14T09:22:46.542Z",
+   "metadata": {
+    "message": "Sub-order QB-5259642924-S1 is ready for pickup. Searching for nearby riders.",
+    "deliveryStatus": "ASSIGNMENT_OPEN",
+    "packageDetails": {
+     "dimensions": null,
+     "weight": 500,
+     "packageCount": 1,
+     "isFragile": false,
+     "isCod": false,
+     "otpRequired": true,
+     "pickupNotes": "",
+     "pickupTiming": "2026-09-14T09:22:46.511Z",
+     "lockedAt": "2026-09-14T09:22:46.511Z"
+    }
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:22:46.552Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:22:46.554Z",
+  "updatedAt": "2026-09-14T09:22:46.554Z"
+ },
+ {
+  "_id": "6aa7bce6084d533336d61667",
+  "idempotencyKey": "evt_1789377766543_ackrit42:SOCKET:seller:6a9c2739a9693d1c9e7603da",
+  "eventId": "evt_1789377766543_ackrit42",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "seller:6a9c2739a9693d1c9e7603da",
+  "payload": {
+   "eventId": "evt_1789377766543_ackrit42",
+   "sequence": 3,
+   "type": "ready_for_pickup",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "READY_FOR_PICKUP",
+   "actor": "SELLER",
+   "actorId": "6a9c2739a9693d1c9e7603da",
+   "timestamp": "2026-09-14T09:22:46.542Z",
+   "metadata": {
+    "message": "Sub-order QB-5259642924-S1 is ready for pickup. Searching for nearby riders.",
+    "deliveryStatus": "ASSIGNMENT_OPEN",
+    "packageDetails": {
+     "dimensions": null,
+     "weight": 500,
+     "packageCount": 1,
+     "isFragile": false,
+     "isCod": false,
+     "otpRequired": true,
+     "pickupNotes": "",
+     "pickupTiming": "2026-09-14T09:22:46.511Z",
+     "lockedAt": "2026-09-14T09:22:46.511Z"
+    }
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:22:46.552Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:22:46.554Z",
+  "updatedAt": "2026-09-14T09:22:46.554Z"
+ },
+ {
+  "_id": "6aa7bce6084d533336d61668",
+  "idempotencyKey": "evt_1789377766543_ackrit42:SOCKET:order:QB-5259642924",
+  "eventId": "evt_1789377766543_ackrit42",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "order:QB-5259642924",
+  "payload": {
+   "eventId": "evt_1789377766543_ackrit42",
+   "sequence": 3,
+   "type": "ready_for_pickup",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "READY_FOR_PICKUP",
+   "actor": "SELLER",
+   "actorId": "6a9c2739a9693d1c9e7603da",
+   "timestamp": "2026-09-14T09:22:46.542Z",
+   "metadata": {
+    "message": "Sub-order QB-5259642924-S1 is ready for pickup. Searching for nearby riders.",
+    "deliveryStatus": "ASSIGNMENT_OPEN",
+    "packageDetails": {
+     "dimensions": null,
+     "weight": 500,
+     "packageCount": 1,
+     "isFragile": false,
+     "isCod": false,
+     "otpRequired": true,
+     "pickupNotes": "",
+     "pickupTiming": "2026-09-14T09:22:46.511Z",
+     "lockedAt": "2026-09-14T09:22:46.511Z"
+    }
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:22:46.552Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:22:46.554Z",
+  "updatedAt": "2026-09-14T09:22:46.554Z"
+ },
+ {
+  "_id": "6aa7bce6084d533336d61669",
+  "idempotencyKey": "evt_1789377766543_ackrit42:SOCKET:order_QB-5259642924",
+  "eventId": "evt_1789377766543_ackrit42",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "order_QB-5259642924",
+  "payload": {
+   "eventId": "evt_1789377766543_ackrit42",
+   "sequence": 3,
+   "type": "ready_for_pickup",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "READY_FOR_PICKUP",
+   "actor": "SELLER",
+   "actorId": "6a9c2739a9693d1c9e7603da",
+   "timestamp": "2026-09-14T09:22:46.542Z",
+   "metadata": {
+    "message": "Sub-order QB-5259642924-S1 is ready for pickup. Searching for nearby riders.",
+    "deliveryStatus": "ASSIGNMENT_OPEN",
+    "packageDetails": {
+     "dimensions": null,
+     "weight": 500,
+     "packageCount": 1,
+     "isFragile": false,
+     "isCod": false,
+     "otpRequired": true,
+     "pickupNotes": "",
+     "pickupTiming": "2026-09-14T09:22:46.511Z",
+     "lockedAt": "2026-09-14T09:22:46.511Z"
+    }
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:22:46.552Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:22:46.554Z",
+  "updatedAt": "2026-09-14T09:22:46.554Z"
+ },
+ {
+  "_id": "6aa7bce6084d533336d6166a",
+  "idempotencyKey": "evt_1789377766543_ackrit42:SOCKET:suborder:QB-5259642924-S1",
+  "eventId": "evt_1789377766543_ackrit42",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "suborder:QB-5259642924-S1",
+  "payload": {
+   "eventId": "evt_1789377766543_ackrit42",
+   "sequence": 3,
+   "type": "ready_for_pickup",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "READY_FOR_PICKUP",
+   "actor": "SELLER",
+   "actorId": "6a9c2739a9693d1c9e7603da",
+   "timestamp": "2026-09-14T09:22:46.542Z",
+   "metadata": {
+    "message": "Sub-order QB-5259642924-S1 is ready for pickup. Searching for nearby riders.",
+    "deliveryStatus": "ASSIGNMENT_OPEN",
+    "packageDetails": {
+     "dimensions": null,
+     "weight": 500,
+     "packageCount": 1,
+     "isFragile": false,
+     "isCod": false,
+     "otpRequired": true,
+     "pickupNotes": "",
+     "pickupTiming": "2026-09-14T09:22:46.511Z",
+     "lockedAt": "2026-09-14T09:22:46.511Z"
+    }
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:22:46.552Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:22:46.554Z",
+  "updatedAt": "2026-09-14T09:22:46.554Z"
+ },
+ {
+  "_id": "6aa7bce6084d533336d6166b",
+  "idempotencyKey": "evt_1789377766543_ackrit42:SOCKET:suborder_QB-5259642924-S1",
+  "eventId": "evt_1789377766543_ackrit42",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "suborder_QB-5259642924-S1",
+  "payload": {
+   "eventId": "evt_1789377766543_ackrit42",
+   "sequence": 3,
+   "type": "ready_for_pickup",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "READY_FOR_PICKUP",
+   "actor": "SELLER",
+   "actorId": "6a9c2739a9693d1c9e7603da",
+   "timestamp": "2026-09-14T09:22:46.542Z",
+   "metadata": {
+    "message": "Sub-order QB-5259642924-S1 is ready for pickup. Searching for nearby riders.",
+    "deliveryStatus": "ASSIGNMENT_OPEN",
+    "packageDetails": {
+     "dimensions": null,
+     "weight": 500,
+     "packageCount": 1,
+     "isFragile": false,
+     "isCod": false,
+     "otpRequired": true,
+     "pickupNotes": "",
+     "pickupTiming": "2026-09-14T09:22:46.511Z",
+     "lockedAt": "2026-09-14T09:22:46.511Z"
+    }
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:22:46.552Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:22:46.554Z",
+  "updatedAt": "2026-09-14T09:22:46.554Z"
+ },
+ {
+  "_id": "6aa7bce6084d533336d6166c",
+  "idempotencyKey": "evt_1789377766543_ackrit42:SOCKET:user:6a9c2739a9693d1c9e7603da",
+  "eventId": "evt_1789377766543_ackrit42",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "user:6a9c2739a9693d1c9e7603da",
+  "payload": {
+   "eventId": "evt_1789377766543_ackrit42",
+   "sequence": 3,
+   "type": "ready_for_pickup",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "READY_FOR_PICKUP",
+   "actor": "SELLER",
+   "actorId": "6a9c2739a9693d1c9e7603da",
+   "timestamp": "2026-09-14T09:22:46.542Z",
+   "metadata": {
+    "message": "Sub-order QB-5259642924-S1 is ready for pickup. Searching for nearby riders.",
+    "deliveryStatus": "ASSIGNMENT_OPEN",
+    "packageDetails": {
+     "dimensions": null,
+     "weight": 500,
+     "packageCount": 1,
+     "isFragile": false,
+     "isCod": false,
+     "otpRequired": true,
+     "pickupNotes": "",
+     "pickupTiming": "2026-09-14T09:22:46.511Z",
+     "lockedAt": "2026-09-14T09:22:46.511Z"
+    }
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:22:46.552Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:22:46.555Z",
+  "updatedAt": "2026-09-14T09:22:46.555Z"
+ },
+ {
+  "_id": "6aa7bce6084d533336d6166d",
+  "idempotencyKey": "evt_1789377766543_ackrit42:PUSH:6a9c2739a9693d1c9e7603da",
+  "eventId": "evt_1789377766543_ackrit42",
+  "channel": "PUSH",
+  "status": "SENT",
+  "recipientId": "6a9c2739a9693d1c9e7603da",
+  "title": "Order update",
+  "body": "Sub-order QB-5259642924-S1 is ready for pickup. Searching for nearby riders.",
+  "payload": {
+   "eventId": "evt_1789377766543_ackrit42",
+   "sequence": 3,
+   "type": "ready_for_pickup",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "READY_FOR_PICKUP",
+   "actor": "SELLER",
+   "actorId": "6a9c2739a9693d1c9e7603da",
+   "timestamp": "2026-09-14T09:22:46.542Z",
+   "metadata": {
+    "message": "Sub-order QB-5259642924-S1 is ready for pickup. Searching for nearby riders.",
+    "deliveryStatus": "ASSIGNMENT_OPEN",
+    "packageDetails": {
+     "dimensions": null,
+     "weight": 500,
+     "packageCount": 1,
+     "isFragile": false,
+     "isCod": false,
+     "otpRequired": true,
+     "pickupNotes": "",
+     "pickupTiming": "2026-09-14T09:22:46.511Z",
+     "lockedAt": "2026-09-14T09:22:46.511Z"
+    }
+   }
+  },
+  "attempts": 1,
+  "nextAttemptAt": "2026-09-14T09:22:46.565Z",
+  "createdAt": "2026-09-14T09:22:46.566Z",
+  "updatedAt": "2026-09-14T09:22:46.745Z",
+  "__v": 0,
+  "sentAt": "2026-09-14T09:22:46.745Z"
+ },
+ {
+  "_id": "6aa7bd52084d533336d616f6",
+  "idempotencyKey": "evt_1789377874521_97f2q9yy:SOCKET:admin",
+  "eventId": "evt_1789377874521_97f2q9yy",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "admin",
+  "payload": {
+   "eventId": "evt_1789377874521_97f2q9yy",
+   "sequence": 4,
+   "type": "rider_assigned",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "RIDER_ASSIGNED",
+   "actor": "RIDER",
+   "actorId": "6aa37c4452f6dd360267a92c",
+   "timestamp": "2026-09-14T09:24:34.520Z",
+   "metadata": {
+    "message": "Rider assigned for sub-order QB-5259642924-S1.",
+    "deliveryStatus": "ASSIGNED",
+    "payout": 500,
+    "distanceKm": 0.00004492285166949155,
+    "riderAcceptedCountInWindow": 1,
+    "riderMaxAcceptedOrders": 15,
+    "riderAcceptanceWindowHours": 12
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:24:34.526Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:24:34.529Z",
+  "updatedAt": "2026-09-14T09:24:34.529Z"
+ },
+ {
+  "_id": "6aa7bd52084d533336d616f7",
+  "idempotencyKey": "evt_1789377874521_97f2q9yy:SOCKET:seller:6a9c2739a9693d1c9e7603da",
+  "eventId": "evt_1789377874521_97f2q9yy",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "seller:6a9c2739a9693d1c9e7603da",
+  "payload": {
+   "eventId": "evt_1789377874521_97f2q9yy",
+   "sequence": 4,
+   "type": "rider_assigned",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "RIDER_ASSIGNED",
+   "actor": "RIDER",
+   "actorId": "6aa37c4452f6dd360267a92c",
+   "timestamp": "2026-09-14T09:24:34.520Z",
+   "metadata": {
+    "message": "Rider assigned for sub-order QB-5259642924-S1.",
+    "deliveryStatus": "ASSIGNED",
+    "payout": 500,
+    "distanceKm": 0.00004492285166949155,
+    "riderAcceptedCountInWindow": 1,
+    "riderMaxAcceptedOrders": 15,
+    "riderAcceptanceWindowHours": 12
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:24:34.526Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:24:34.529Z",
+  "updatedAt": "2026-09-14T09:24:34.529Z"
+ },
+ {
+  "_id": "6aa7bd52084d533336d616f8",
+  "idempotencyKey": "evt_1789377874521_97f2q9yy:SOCKET:rider:6aa37c4452f6dd360267a92c",
+  "eventId": "evt_1789377874521_97f2q9yy",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "rider:6aa37c4452f6dd360267a92c",
+  "payload": {
+   "eventId": "evt_1789377874521_97f2q9yy",
+   "sequence": 4,
+   "type": "rider_assigned",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "RIDER_ASSIGNED",
+   "actor": "RIDER",
+   "actorId": "6aa37c4452f6dd360267a92c",
+   "timestamp": "2026-09-14T09:24:34.520Z",
+   "metadata": {
+    "message": "Rider assigned for sub-order QB-5259642924-S1.",
+    "deliveryStatus": "ASSIGNED",
+    "payout": 500,
+    "distanceKm": 0.00004492285166949155,
+    "riderAcceptedCountInWindow": 1,
+    "riderMaxAcceptedOrders": 15,
+    "riderAcceptanceWindowHours": 12
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:24:34.526Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:24:34.529Z",
+  "updatedAt": "2026-09-14T09:24:34.529Z"
+ },
+ {
+  "_id": "6aa7bd52084d533336d616f9",
+  "idempotencyKey": "evt_1789377874521_97f2q9yy:SOCKET:order:QB-5259642924",
+  "eventId": "evt_1789377874521_97f2q9yy",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "order:QB-5259642924",
+  "payload": {
+   "eventId": "evt_1789377874521_97f2q9yy",
+   "sequence": 4,
+   "type": "rider_assigned",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "RIDER_ASSIGNED",
+   "actor": "RIDER",
+   "actorId": "6aa37c4452f6dd360267a92c",
+   "timestamp": "2026-09-14T09:24:34.520Z",
+   "metadata": {
+    "message": "Rider assigned for sub-order QB-5259642924-S1.",
+    "deliveryStatus": "ASSIGNED",
+    "payout": 500,
+    "distanceKm": 0.00004492285166949155,
+    "riderAcceptedCountInWindow": 1,
+    "riderMaxAcceptedOrders": 15,
+    "riderAcceptanceWindowHours": 12
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:24:34.526Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:24:34.529Z",
+  "updatedAt": "2026-09-14T09:24:34.529Z"
+ },
+ {
+  "_id": "6aa7bd52084d533336d616fa",
+  "idempotencyKey": "evt_1789377874521_97f2q9yy:SOCKET:order_QB-5259642924",
+  "eventId": "evt_1789377874521_97f2q9yy",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "order_QB-5259642924",
+  "payload": {
+   "eventId": "evt_1789377874521_97f2q9yy",
+   "sequence": 4,
+   "type": "rider_assigned",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "RIDER_ASSIGNED",
+   "actor": "RIDER",
+   "actorId": "6aa37c4452f6dd360267a92c",
+   "timestamp": "2026-09-14T09:24:34.520Z",
+   "metadata": {
+    "message": "Rider assigned for sub-order QB-5259642924-S1.",
+    "deliveryStatus": "ASSIGNED",
+    "payout": 500,
+    "distanceKm": 0.00004492285166949155,
+    "riderAcceptedCountInWindow": 1,
+    "riderMaxAcceptedOrders": 15,
+    "riderAcceptanceWindowHours": 12
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:24:34.526Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:24:34.529Z",
+  "updatedAt": "2026-09-14T09:24:34.529Z"
+ },
+ {
+  "_id": "6aa7bd52084d533336d616fb",
+  "idempotencyKey": "evt_1789377874521_97f2q9yy:SOCKET:suborder:QB-5259642924-S1",
+  "eventId": "evt_1789377874521_97f2q9yy",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "suborder:QB-5259642924-S1",
+  "payload": {
+   "eventId": "evt_1789377874521_97f2q9yy",
+   "sequence": 4,
+   "type": "rider_assigned",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "RIDER_ASSIGNED",
+   "actor": "RIDER",
+   "actorId": "6aa37c4452f6dd360267a92c",
+   "timestamp": "2026-09-14T09:24:34.520Z",
+   "metadata": {
+    "message": "Rider assigned for sub-order QB-5259642924-S1.",
+    "deliveryStatus": "ASSIGNED",
+    "payout": 500,
+    "distanceKm": 0.00004492285166949155,
+    "riderAcceptedCountInWindow": 1,
+    "riderMaxAcceptedOrders": 15,
+    "riderAcceptanceWindowHours": 12
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:24:34.526Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:24:34.529Z",
+  "updatedAt": "2026-09-14T09:24:34.529Z"
+ },
+ {
+  "_id": "6aa7bd52084d533336d616fc",
+  "idempotencyKey": "evt_1789377874521_97f2q9yy:SOCKET:suborder_QB-5259642924-S1",
+  "eventId": "evt_1789377874521_97f2q9yy",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "suborder_QB-5259642924-S1",
+  "payload": {
+   "eventId": "evt_1789377874521_97f2q9yy",
+   "sequence": 4,
+   "type": "rider_assigned",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "RIDER_ASSIGNED",
+   "actor": "RIDER",
+   "actorId": "6aa37c4452f6dd360267a92c",
+   "timestamp": "2026-09-14T09:24:34.520Z",
+   "metadata": {
+    "message": "Rider assigned for sub-order QB-5259642924-S1.",
+    "deliveryStatus": "ASSIGNED",
+    "payout": 500,
+    "distanceKm": 0.00004492285166949155,
+    "riderAcceptedCountInWindow": 1,
+    "riderMaxAcceptedOrders": 15,
+    "riderAcceptanceWindowHours": 12
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:24:34.526Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:24:34.529Z",
+  "updatedAt": "2026-09-14T09:24:34.529Z"
+ },
+ {
+  "_id": "6aa7bd52084d533336d616fd",
+  "idempotencyKey": "evt_1789377874521_97f2q9yy:SOCKET:user:6a9c2739a9693d1c9e7603da",
+  "eventId": "evt_1789377874521_97f2q9yy",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "user:6a9c2739a9693d1c9e7603da",
+  "payload": {
+   "eventId": "evt_1789377874521_97f2q9yy",
+   "sequence": 4,
+   "type": "rider_assigned",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "RIDER_ASSIGNED",
+   "actor": "RIDER",
+   "actorId": "6aa37c4452f6dd360267a92c",
+   "timestamp": "2026-09-14T09:24:34.520Z",
+   "metadata": {
+    "message": "Rider assigned for sub-order QB-5259642924-S1.",
+    "deliveryStatus": "ASSIGNED",
+    "payout": 500,
+    "distanceKm": 0.00004492285166949155,
+    "riderAcceptedCountInWindow": 1,
+    "riderMaxAcceptedOrders": 15,
+    "riderAcceptanceWindowHours": 12
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:24:34.526Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:24:34.529Z",
+  "updatedAt": "2026-09-14T09:24:34.529Z"
+ },
+ {
+  "_id": "6aa7bd52084d533336d616fe",
+  "idempotencyKey": "evt_1789377874521_97f2q9yy:SOCKET:user:6aa37c4452f6dd360267a92c",
+  "eventId": "evt_1789377874521_97f2q9yy",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "user:6aa37c4452f6dd360267a92c",
+  "payload": {
+   "eventId": "evt_1789377874521_97f2q9yy",
+   "sequence": 4,
+   "type": "rider_assigned",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "RIDER_ASSIGNED",
+   "actor": "RIDER",
+   "actorId": "6aa37c4452f6dd360267a92c",
+   "timestamp": "2026-09-14T09:24:34.520Z",
+   "metadata": {
+    "message": "Rider assigned for sub-order QB-5259642924-S1.",
+    "deliveryStatus": "ASSIGNED",
+    "payout": 500,
+    "distanceKm": 0.00004492285166949155,
+    "riderAcceptedCountInWindow": 1,
+    "riderMaxAcceptedOrders": 15,
+    "riderAcceptanceWindowHours": 12
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:24:34.526Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:24:34.529Z",
+  "updatedAt": "2026-09-14T09:24:34.529Z"
+ },
+ {
+  "_id": "6aa7bd52084d533336d616ff",
+  "idempotencyKey": "evt_1789377874521_97f2q9yy:PUSH:6a9c2739a9693d1c9e7603da",
+  "eventId": "evt_1789377874521_97f2q9yy",
+  "channel": "PUSH",
+  "status": "SENT",
+  "recipientId": "6a9c2739a9693d1c9e7603da",
+  "title": "Order update",
+  "body": "Rider assigned for sub-order QB-5259642924-S1.",
+  "payload": {
+   "eventId": "evt_1789377874521_97f2q9yy",
+   "sequence": 4,
+   "type": "rider_assigned",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "RIDER_ASSIGNED",
+   "actor": "RIDER",
+   "actorId": "6aa37c4452f6dd360267a92c",
+   "timestamp": "2026-09-14T09:24:34.520Z",
+   "metadata": {
+    "message": "Rider assigned for sub-order QB-5259642924-S1.",
+    "deliveryStatus": "ASSIGNED",
+    "payout": 500,
+    "distanceKm": 0.00004492285166949155,
+    "riderAcceptedCountInWindow": 1,
+    "riderMaxAcceptedOrders": 15,
+    "riderAcceptanceWindowHours": 12
+   }
+  },
+  "attempts": 1,
+  "nextAttemptAt": "2026-09-14T09:24:34.540Z",
+  "createdAt": "2026-09-14T09:24:34.540Z",
+  "updatedAt": "2026-09-14T09:24:34.717Z",
+  "__v": 0,
+  "sentAt": "2026-09-14T09:24:34.717Z"
+ },
+ {
+  "_id": "6aa7bd56084d533336d6170d",
+  "idempotencyKey": "evt_1789377878597_hz25iijg:SOCKET:admin",
+  "eventId": "evt_1789377878597_hz25iijg",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "admin",
+  "payload": {
+   "eventId": "evt_1789377878597_hz25iijg",
+   "sequence": 5,
+   "type": "rider_arriving_at_store",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "RIDER_ARRIVING",
+   "actor": "RIDER",
+   "actorId": "6aa37c4452f6dd360267a92c",
+   "timestamp": "2026-09-14T09:24:38.596Z",
+   "metadata": {
+    "message": "Rider is heading to the store for sub-order QB-5259642924-S1.",
+    "deliveryStatus": "ARRIVING_AT_STORE"
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:24:38.604Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:24:38.606Z",
+  "updatedAt": "2026-09-14T09:24:38.606Z"
+ },
+ {
+  "_id": "6aa7bd56084d533336d6170e",
+  "idempotencyKey": "evt_1789377878597_hz25iijg:SOCKET:seller:6a9c2739a9693d1c9e7603da",
+  "eventId": "evt_1789377878597_hz25iijg",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "seller:6a9c2739a9693d1c9e7603da",
+  "payload": {
+   "eventId": "evt_1789377878597_hz25iijg",
+   "sequence": 5,
+   "type": "rider_arriving_at_store",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "RIDER_ARRIVING",
+   "actor": "RIDER",
+   "actorId": "6aa37c4452f6dd360267a92c",
+   "timestamp": "2026-09-14T09:24:38.596Z",
+   "metadata": {
+    "message": "Rider is heading to the store for sub-order QB-5259642924-S1.",
+    "deliveryStatus": "ARRIVING_AT_STORE"
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:24:38.604Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:24:38.606Z",
+  "updatedAt": "2026-09-14T09:24:38.606Z"
+ },
+ {
+  "_id": "6aa7bd56084d533336d6170f",
+  "idempotencyKey": "evt_1789377878597_hz25iijg:SOCKET:rider:6aa37c4452f6dd360267a92c",
+  "eventId": "evt_1789377878597_hz25iijg",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "rider:6aa37c4452f6dd360267a92c",
+  "payload": {
+   "eventId": "evt_1789377878597_hz25iijg",
+   "sequence": 5,
+   "type": "rider_arriving_at_store",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "RIDER_ARRIVING",
+   "actor": "RIDER",
+   "actorId": "6aa37c4452f6dd360267a92c",
+   "timestamp": "2026-09-14T09:24:38.596Z",
+   "metadata": {
+    "message": "Rider is heading to the store for sub-order QB-5259642924-S1.",
+    "deliveryStatus": "ARRIVING_AT_STORE"
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:24:38.604Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:24:38.606Z",
+  "updatedAt": "2026-09-14T09:24:38.606Z"
+ },
+ {
+  "_id": "6aa7bd56084d533336d61710",
+  "idempotencyKey": "evt_1789377878597_hz25iijg:SOCKET:order:QB-5259642924",
+  "eventId": "evt_1789377878597_hz25iijg",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "order:QB-5259642924",
+  "payload": {
+   "eventId": "evt_1789377878597_hz25iijg",
+   "sequence": 5,
+   "type": "rider_arriving_at_store",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "RIDER_ARRIVING",
+   "actor": "RIDER",
+   "actorId": "6aa37c4452f6dd360267a92c",
+   "timestamp": "2026-09-14T09:24:38.596Z",
+   "metadata": {
+    "message": "Rider is heading to the store for sub-order QB-5259642924-S1.",
+    "deliveryStatus": "ARRIVING_AT_STORE"
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:24:38.604Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:24:38.606Z",
+  "updatedAt": "2026-09-14T09:24:38.606Z"
+ },
+ {
+  "_id": "6aa7bd56084d533336d61711",
+  "idempotencyKey": "evt_1789377878597_hz25iijg:SOCKET:order_QB-5259642924",
+  "eventId": "evt_1789377878597_hz25iijg",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "order_QB-5259642924",
+  "payload": {
+   "eventId": "evt_1789377878597_hz25iijg",
+   "sequence": 5,
+   "type": "rider_arriving_at_store",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "RIDER_ARRIVING",
+   "actor": "RIDER",
+   "actorId": "6aa37c4452f6dd360267a92c",
+   "timestamp": "2026-09-14T09:24:38.596Z",
+   "metadata": {
+    "message": "Rider is heading to the store for sub-order QB-5259642924-S1.",
+    "deliveryStatus": "ARRIVING_AT_STORE"
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:24:38.604Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:24:38.606Z",
+  "updatedAt": "2026-09-14T09:24:38.606Z"
+ },
+ {
+  "_id": "6aa7bd56084d533336d61712",
+  "idempotencyKey": "evt_1789377878597_hz25iijg:SOCKET:suborder:QB-5259642924-S1",
+  "eventId": "evt_1789377878597_hz25iijg",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "suborder:QB-5259642924-S1",
+  "payload": {
+   "eventId": "evt_1789377878597_hz25iijg",
+   "sequence": 5,
+   "type": "rider_arriving_at_store",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "RIDER_ARRIVING",
+   "actor": "RIDER",
+   "actorId": "6aa37c4452f6dd360267a92c",
+   "timestamp": "2026-09-14T09:24:38.596Z",
+   "metadata": {
+    "message": "Rider is heading to the store for sub-order QB-5259642924-S1.",
+    "deliveryStatus": "ARRIVING_AT_STORE"
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:24:38.604Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:24:38.607Z",
+  "updatedAt": "2026-09-14T09:24:38.607Z"
+ },
+ {
+  "_id": "6aa7bd56084d533336d61713",
+  "idempotencyKey": "evt_1789377878597_hz25iijg:SOCKET:suborder_QB-5259642924-S1",
+  "eventId": "evt_1789377878597_hz25iijg",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "suborder_QB-5259642924-S1",
+  "payload": {
+   "eventId": "evt_1789377878597_hz25iijg",
+   "sequence": 5,
+   "type": "rider_arriving_at_store",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "RIDER_ARRIVING",
+   "actor": "RIDER",
+   "actorId": "6aa37c4452f6dd360267a92c",
+   "timestamp": "2026-09-14T09:24:38.596Z",
+   "metadata": {
+    "message": "Rider is heading to the store for sub-order QB-5259642924-S1.",
+    "deliveryStatus": "ARRIVING_AT_STORE"
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:24:38.604Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:24:38.607Z",
+  "updatedAt": "2026-09-14T09:24:38.607Z"
+ },
+ {
+  "_id": "6aa7bd56084d533336d61714",
+  "idempotencyKey": "evt_1789377878597_hz25iijg:SOCKET:user:6a9c2739a9693d1c9e7603da",
+  "eventId": "evt_1789377878597_hz25iijg",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "user:6a9c2739a9693d1c9e7603da",
+  "payload": {
+   "eventId": "evt_1789377878597_hz25iijg",
+   "sequence": 5,
+   "type": "rider_arriving_at_store",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "RIDER_ARRIVING",
+   "actor": "RIDER",
+   "actorId": "6aa37c4452f6dd360267a92c",
+   "timestamp": "2026-09-14T09:24:38.596Z",
+   "metadata": {
+    "message": "Rider is heading to the store for sub-order QB-5259642924-S1.",
+    "deliveryStatus": "ARRIVING_AT_STORE"
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:24:38.604Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:24:38.607Z",
+  "updatedAt": "2026-09-14T09:24:38.607Z"
+ },
+ {
+  "_id": "6aa7bd56084d533336d61715",
+  "idempotencyKey": "evt_1789377878597_hz25iijg:SOCKET:user:6aa37c4452f6dd360267a92c",
+  "eventId": "evt_1789377878597_hz25iijg",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "user:6aa37c4452f6dd360267a92c",
+  "payload": {
+   "eventId": "evt_1789377878597_hz25iijg",
+   "sequence": 5,
+   "type": "rider_arriving_at_store",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "RIDER_ARRIVING",
+   "actor": "RIDER",
+   "actorId": "6aa37c4452f6dd360267a92c",
+   "timestamp": "2026-09-14T09:24:38.596Z",
+   "metadata": {
+    "message": "Rider is heading to the store for sub-order QB-5259642924-S1.",
+    "deliveryStatus": "ARRIVING_AT_STORE"
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:24:38.604Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:24:38.607Z",
+  "updatedAt": "2026-09-14T09:24:38.607Z"
+ },
+ {
+  "_id": "6aa7bd56084d533336d61716",
+  "idempotencyKey": "evt_1789377878597_hz25iijg:PUSH:6a9c2739a9693d1c9e7603da",
+  "eventId": "evt_1789377878597_hz25iijg",
+  "channel": "PUSH",
+  "status": "SENT",
+  "recipientId": "6a9c2739a9693d1c9e7603da",
+  "title": "Order update",
+  "body": "Rider is heading to the store for sub-order QB-5259642924-S1.",
+  "payload": {
+   "eventId": "evt_1789377878597_hz25iijg",
+   "sequence": 5,
+   "type": "rider_arriving_at_store",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "RIDER_ARRIVING",
+   "actor": "RIDER",
+   "actorId": "6aa37c4452f6dd360267a92c",
+   "timestamp": "2026-09-14T09:24:38.596Z",
+   "metadata": {
+    "message": "Rider is heading to the store for sub-order QB-5259642924-S1.",
+    "deliveryStatus": "ARRIVING_AT_STORE"
+   }
+  },
+  "attempts": 1,
+  "nextAttemptAt": "2026-09-14T09:24:38.617Z",
+  "createdAt": "2026-09-14T09:24:38.617Z",
+  "updatedAt": "2026-09-14T09:24:38.784Z",
+  "__v": 0,
+  "sentAt": "2026-09-14T09:24:38.784Z"
+ },
+ {
+  "_id": "6aa7bd64084d533336d61724",
+  "idempotencyKey": "evt_1789377892747_thsankji:SOCKET:admin",
+  "eventId": "evt_1789377892747_thsankji",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "admin",
+  "payload": {
+   "eventId": "evt_1789377892747_thsankji",
+   "sequence": 6,
+   "type": "rider_reached_store",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "RIDER_REACHED_STORE",
+   "actor": "RIDER",
+   "actorId": "6aa37c4452f6dd360267a92c",
+   "timestamp": "2026-09-14T09:24:52.746Z",
+   "metadata": {
+    "message": "Rider reached the store for sub-order QB-5259642924-S1.",
+    "deliveryStatus": "REACHED_STORE",
+    "distanceMeters": 70
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:24:52.752Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:24:52.754Z",
+  "updatedAt": "2026-09-14T09:24:52.754Z"
+ },
+ {
+  "_id": "6aa7bd64084d533336d61725",
+  "idempotencyKey": "evt_1789377892747_thsankji:SOCKET:seller:6a9c2739a9693d1c9e7603da",
+  "eventId": "evt_1789377892747_thsankji",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "seller:6a9c2739a9693d1c9e7603da",
+  "payload": {
+   "eventId": "evt_1789377892747_thsankji",
+   "sequence": 6,
+   "type": "rider_reached_store",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "RIDER_REACHED_STORE",
+   "actor": "RIDER",
+   "actorId": "6aa37c4452f6dd360267a92c",
+   "timestamp": "2026-09-14T09:24:52.746Z",
+   "metadata": {
+    "message": "Rider reached the store for sub-order QB-5259642924-S1.",
+    "deliveryStatus": "REACHED_STORE",
+    "distanceMeters": 70
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:24:52.752Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:24:52.754Z",
+  "updatedAt": "2026-09-14T09:24:52.754Z"
+ },
+ {
+  "_id": "6aa7bd64084d533336d61726",
+  "idempotencyKey": "evt_1789377892747_thsankji:SOCKET:rider:6aa37c4452f6dd360267a92c",
+  "eventId": "evt_1789377892747_thsankji",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "rider:6aa37c4452f6dd360267a92c",
+  "payload": {
+   "eventId": "evt_1789377892747_thsankji",
+   "sequence": 6,
+   "type": "rider_reached_store",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "RIDER_REACHED_STORE",
+   "actor": "RIDER",
+   "actorId": "6aa37c4452f6dd360267a92c",
+   "timestamp": "2026-09-14T09:24:52.746Z",
+   "metadata": {
+    "message": "Rider reached the store for sub-order QB-5259642924-S1.",
+    "deliveryStatus": "REACHED_STORE",
+    "distanceMeters": 70
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:24:52.752Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:24:52.754Z",
+  "updatedAt": "2026-09-14T09:24:52.754Z"
+ },
+ {
+  "_id": "6aa7bd64084d533336d61727",
+  "idempotencyKey": "evt_1789377892747_thsankji:SOCKET:order:QB-5259642924",
+  "eventId": "evt_1789377892747_thsankji",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "order:QB-5259642924",
+  "payload": {
+   "eventId": "evt_1789377892747_thsankji",
+   "sequence": 6,
+   "type": "rider_reached_store",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "RIDER_REACHED_STORE",
+   "actor": "RIDER",
+   "actorId": "6aa37c4452f6dd360267a92c",
+   "timestamp": "2026-09-14T09:24:52.746Z",
+   "metadata": {
+    "message": "Rider reached the store for sub-order QB-5259642924-S1.",
+    "deliveryStatus": "REACHED_STORE",
+    "distanceMeters": 70
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:24:52.752Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:24:52.754Z",
+  "updatedAt": "2026-09-14T09:24:52.754Z"
+ },
+ {
+  "_id": "6aa7bd64084d533336d61728",
+  "idempotencyKey": "evt_1789377892747_thsankji:SOCKET:order_QB-5259642924",
+  "eventId": "evt_1789377892747_thsankji",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "order_QB-5259642924",
+  "payload": {
+   "eventId": "evt_1789377892747_thsankji",
+   "sequence": 6,
+   "type": "rider_reached_store",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "RIDER_REACHED_STORE",
+   "actor": "RIDER",
+   "actorId": "6aa37c4452f6dd360267a92c",
+   "timestamp": "2026-09-14T09:24:52.746Z",
+   "metadata": {
+    "message": "Rider reached the store for sub-order QB-5259642924-S1.",
+    "deliveryStatus": "REACHED_STORE",
+    "distanceMeters": 70
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:24:52.752Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:24:52.754Z",
+  "updatedAt": "2026-09-14T09:24:52.754Z"
+ },
+ {
+  "_id": "6aa7bd64084d533336d61729",
+  "idempotencyKey": "evt_1789377892747_thsankji:SOCKET:suborder:QB-5259642924-S1",
+  "eventId": "evt_1789377892747_thsankji",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "suborder:QB-5259642924-S1",
+  "payload": {
+   "eventId": "evt_1789377892747_thsankji",
+   "sequence": 6,
+   "type": "rider_reached_store",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "RIDER_REACHED_STORE",
+   "actor": "RIDER",
+   "actorId": "6aa37c4452f6dd360267a92c",
+   "timestamp": "2026-09-14T09:24:52.746Z",
+   "metadata": {
+    "message": "Rider reached the store for sub-order QB-5259642924-S1.",
+    "deliveryStatus": "REACHED_STORE",
+    "distanceMeters": 70
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:24:52.752Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:24:52.754Z",
+  "updatedAt": "2026-09-14T09:24:52.754Z"
+ },
+ {
+  "_id": "6aa7bd64084d533336d6172a",
+  "idempotencyKey": "evt_1789377892747_thsankji:SOCKET:suborder_QB-5259642924-S1",
+  "eventId": "evt_1789377892747_thsankji",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "suborder_QB-5259642924-S1",
+  "payload": {
+   "eventId": "evt_1789377892747_thsankji",
+   "sequence": 6,
+   "type": "rider_reached_store",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "RIDER_REACHED_STORE",
+   "actor": "RIDER",
+   "actorId": "6aa37c4452f6dd360267a92c",
+   "timestamp": "2026-09-14T09:24:52.746Z",
+   "metadata": {
+    "message": "Rider reached the store for sub-order QB-5259642924-S1.",
+    "deliveryStatus": "REACHED_STORE",
+    "distanceMeters": 70
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:24:52.752Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:24:52.755Z",
+  "updatedAt": "2026-09-14T09:24:52.755Z"
+ },
+ {
+  "_id": "6aa7bd64084d533336d6172b",
+  "idempotencyKey": "evt_1789377892747_thsankji:SOCKET:user:6a9c2739a9693d1c9e7603da",
+  "eventId": "evt_1789377892747_thsankji",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "user:6a9c2739a9693d1c9e7603da",
+  "payload": {
+   "eventId": "evt_1789377892747_thsankji",
+   "sequence": 6,
+   "type": "rider_reached_store",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "RIDER_REACHED_STORE",
+   "actor": "RIDER",
+   "actorId": "6aa37c4452f6dd360267a92c",
+   "timestamp": "2026-09-14T09:24:52.746Z",
+   "metadata": {
+    "message": "Rider reached the store for sub-order QB-5259642924-S1.",
+    "deliveryStatus": "REACHED_STORE",
+    "distanceMeters": 70
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:24:52.752Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:24:52.755Z",
+  "updatedAt": "2026-09-14T09:24:52.755Z"
+ },
+ {
+  "_id": "6aa7bd64084d533336d6172c",
+  "idempotencyKey": "evt_1789377892747_thsankji:SOCKET:user:6aa37c4452f6dd360267a92c",
+  "eventId": "evt_1789377892747_thsankji",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "user:6aa37c4452f6dd360267a92c",
+  "payload": {
+   "eventId": "evt_1789377892747_thsankji",
+   "sequence": 6,
+   "type": "rider_reached_store",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "RIDER_REACHED_STORE",
+   "actor": "RIDER",
+   "actorId": "6aa37c4452f6dd360267a92c",
+   "timestamp": "2026-09-14T09:24:52.746Z",
+   "metadata": {
+    "message": "Rider reached the store for sub-order QB-5259642924-S1.",
+    "deliveryStatus": "REACHED_STORE",
+    "distanceMeters": 70
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:24:52.752Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:24:52.755Z",
+  "updatedAt": "2026-09-14T09:24:52.755Z"
+ },
+ {
+  "_id": "6aa7bd64084d533336d6172d",
+  "idempotencyKey": "evt_1789377892747_thsankji:PUSH:6a9c2739a9693d1c9e7603da",
+  "eventId": "evt_1789377892747_thsankji",
+  "channel": "PUSH",
+  "status": "SENT",
+  "recipientId": "6a9c2739a9693d1c9e7603da",
+  "title": "Order update",
+  "body": "Rider reached the store for sub-order QB-5259642924-S1.",
+  "payload": {
+   "eventId": "evt_1789377892747_thsankji",
+   "sequence": 6,
+   "type": "rider_reached_store",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "RIDER_REACHED_STORE",
+   "actor": "RIDER",
+   "actorId": "6aa37c4452f6dd360267a92c",
+   "timestamp": "2026-09-14T09:24:52.746Z",
+   "metadata": {
+    "message": "Rider reached the store for sub-order QB-5259642924-S1.",
+    "deliveryStatus": "REACHED_STORE",
+    "distanceMeters": 70
+   }
+  },
+  "attempts": 1,
+  "nextAttemptAt": "2026-09-14T09:24:52.764Z",
+  "createdAt": "2026-09-14T09:24:52.765Z",
+  "updatedAt": "2026-09-14T09:24:52.900Z",
+  "__v": 0,
+  "sentAt": "2026-09-14T09:24:52.900Z"
+ },
+ {
+  "_id": "6aa7bd9e084d533336d61745",
+  "idempotencyKey": "evt_1789377950643_51oufq11:SOCKET:admin",
+  "eventId": "evt_1789377950643_51oufq11",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "admin",
+  "payload": {
+   "eventId": "evt_1789377950643_51oufq11",
+   "sequence": 7,
+   "type": "order_picked_up",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "PICKED_UP",
+   "actor": "RIDER",
+   "actorId": "6aa37c4452f6dd360267a92c",
+   "timestamp": "2026-09-14T09:25:50.643Z",
+   "metadata": {
+    "message": "Sub-order QB-5259642924-S1 was picked up from the seller.",
+    "deliveryStatus": "PICKED_UP",
+    "pickupPhoto": "https://ik.imagekit.io/k2n57ywshu/delivery-proofs/pickup_6aa37c4452f6dd360267a92c_pickup_1789377943063_sXqbnAb6d.jpeg"
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:25:50.657Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:25:50.658Z",
+  "updatedAt": "2026-09-14T09:25:50.658Z"
+ },
+ {
+  "_id": "6aa7bd9e084d533336d61746",
+  "idempotencyKey": "evt_1789377950643_51oufq11:SOCKET:seller:6a9c2739a9693d1c9e7603da",
+  "eventId": "evt_1789377950643_51oufq11",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "seller:6a9c2739a9693d1c9e7603da",
+  "payload": {
+   "eventId": "evt_1789377950643_51oufq11",
+   "sequence": 7,
+   "type": "order_picked_up",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "PICKED_UP",
+   "actor": "RIDER",
+   "actorId": "6aa37c4452f6dd360267a92c",
+   "timestamp": "2026-09-14T09:25:50.643Z",
+   "metadata": {
+    "message": "Sub-order QB-5259642924-S1 was picked up from the seller.",
+    "deliveryStatus": "PICKED_UP",
+    "pickupPhoto": "https://ik.imagekit.io/k2n57ywshu/delivery-proofs/pickup_6aa37c4452f6dd360267a92c_pickup_1789377943063_sXqbnAb6d.jpeg"
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:25:50.657Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:25:50.658Z",
+  "updatedAt": "2026-09-14T09:25:50.658Z"
+ },
+ {
+  "_id": "6aa7bd9e084d533336d61747",
+  "idempotencyKey": "evt_1789377950643_51oufq11:SOCKET:rider:6aa37c4452f6dd360267a92c",
+  "eventId": "evt_1789377950643_51oufq11",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "rider:6aa37c4452f6dd360267a92c",
+  "payload": {
+   "eventId": "evt_1789377950643_51oufq11",
+   "sequence": 7,
+   "type": "order_picked_up",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "PICKED_UP",
+   "actor": "RIDER",
+   "actorId": "6aa37c4452f6dd360267a92c",
+   "timestamp": "2026-09-14T09:25:50.643Z",
+   "metadata": {
+    "message": "Sub-order QB-5259642924-S1 was picked up from the seller.",
+    "deliveryStatus": "PICKED_UP",
+    "pickupPhoto": "https://ik.imagekit.io/k2n57ywshu/delivery-proofs/pickup_6aa37c4452f6dd360267a92c_pickup_1789377943063_sXqbnAb6d.jpeg"
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:25:50.657Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:25:50.658Z",
+  "updatedAt": "2026-09-14T09:25:50.658Z"
+ },
+ {
+  "_id": "6aa7bd9e084d533336d61748",
+  "idempotencyKey": "evt_1789377950643_51oufq11:SOCKET:order:QB-5259642924",
+  "eventId": "evt_1789377950643_51oufq11",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "order:QB-5259642924",
+  "payload": {
+   "eventId": "evt_1789377950643_51oufq11",
+   "sequence": 7,
+   "type": "order_picked_up",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "PICKED_UP",
+   "actor": "RIDER",
+   "actorId": "6aa37c4452f6dd360267a92c",
+   "timestamp": "2026-09-14T09:25:50.643Z",
+   "metadata": {
+    "message": "Sub-order QB-5259642924-S1 was picked up from the seller.",
+    "deliveryStatus": "PICKED_UP",
+    "pickupPhoto": "https://ik.imagekit.io/k2n57ywshu/delivery-proofs/pickup_6aa37c4452f6dd360267a92c_pickup_1789377943063_sXqbnAb6d.jpeg"
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:25:50.657Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:25:50.658Z",
+  "updatedAt": "2026-09-14T09:25:50.658Z"
+ },
+ {
+  "_id": "6aa7bd9e084d533336d61749",
+  "idempotencyKey": "evt_1789377950643_51oufq11:SOCKET:order_QB-5259642924",
+  "eventId": "evt_1789377950643_51oufq11",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "order_QB-5259642924",
+  "payload": {
+   "eventId": "evt_1789377950643_51oufq11",
+   "sequence": 7,
+   "type": "order_picked_up",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "PICKED_UP",
+   "actor": "RIDER",
+   "actorId": "6aa37c4452f6dd360267a92c",
+   "timestamp": "2026-09-14T09:25:50.643Z",
+   "metadata": {
+    "message": "Sub-order QB-5259642924-S1 was picked up from the seller.",
+    "deliveryStatus": "PICKED_UP",
+    "pickupPhoto": "https://ik.imagekit.io/k2n57ywshu/delivery-proofs/pickup_6aa37c4452f6dd360267a92c_pickup_1789377943063_sXqbnAb6d.jpeg"
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:25:50.657Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:25:50.659Z",
+  "updatedAt": "2026-09-14T09:25:50.659Z"
+ },
+ {
+  "_id": "6aa7bd9e084d533336d6174a",
+  "idempotencyKey": "evt_1789377950643_51oufq11:SOCKET:suborder:QB-5259642924-S1",
+  "eventId": "evt_1789377950643_51oufq11",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "suborder:QB-5259642924-S1",
+  "payload": {
+   "eventId": "evt_1789377950643_51oufq11",
+   "sequence": 7,
+   "type": "order_picked_up",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "PICKED_UP",
+   "actor": "RIDER",
+   "actorId": "6aa37c4452f6dd360267a92c",
+   "timestamp": "2026-09-14T09:25:50.643Z",
+   "metadata": {
+    "message": "Sub-order QB-5259642924-S1 was picked up from the seller.",
+    "deliveryStatus": "PICKED_UP",
+    "pickupPhoto": "https://ik.imagekit.io/k2n57ywshu/delivery-proofs/pickup_6aa37c4452f6dd360267a92c_pickup_1789377943063_sXqbnAb6d.jpeg"
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:25:50.657Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:25:50.659Z",
+  "updatedAt": "2026-09-14T09:25:50.659Z"
+ },
+ {
+  "_id": "6aa7bd9e084d533336d6174b",
+  "idempotencyKey": "evt_1789377950643_51oufq11:SOCKET:suborder_QB-5259642924-S1",
+  "eventId": "evt_1789377950643_51oufq11",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "suborder_QB-5259642924-S1",
+  "payload": {
+   "eventId": "evt_1789377950643_51oufq11",
+   "sequence": 7,
+   "type": "order_picked_up",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "PICKED_UP",
+   "actor": "RIDER",
+   "actorId": "6aa37c4452f6dd360267a92c",
+   "timestamp": "2026-09-14T09:25:50.643Z",
+   "metadata": {
+    "message": "Sub-order QB-5259642924-S1 was picked up from the seller.",
+    "deliveryStatus": "PICKED_UP",
+    "pickupPhoto": "https://ik.imagekit.io/k2n57ywshu/delivery-proofs/pickup_6aa37c4452f6dd360267a92c_pickup_1789377943063_sXqbnAb6d.jpeg"
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:25:50.657Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:25:50.659Z",
+  "updatedAt": "2026-09-14T09:25:50.659Z"
+ },
+ {
+  "_id": "6aa7bd9e084d533336d6174c",
+  "idempotencyKey": "evt_1789377950643_51oufq11:SOCKET:user:6a9c2739a9693d1c9e7603da",
+  "eventId": "evt_1789377950643_51oufq11",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "user:6a9c2739a9693d1c9e7603da",
+  "payload": {
+   "eventId": "evt_1789377950643_51oufq11",
+   "sequence": 7,
+   "type": "order_picked_up",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "PICKED_UP",
+   "actor": "RIDER",
+   "actorId": "6aa37c4452f6dd360267a92c",
+   "timestamp": "2026-09-14T09:25:50.643Z",
+   "metadata": {
+    "message": "Sub-order QB-5259642924-S1 was picked up from the seller.",
+    "deliveryStatus": "PICKED_UP",
+    "pickupPhoto": "https://ik.imagekit.io/k2n57ywshu/delivery-proofs/pickup_6aa37c4452f6dd360267a92c_pickup_1789377943063_sXqbnAb6d.jpeg"
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:25:50.657Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:25:50.659Z",
+  "updatedAt": "2026-09-14T09:25:50.659Z"
+ },
+ {
+  "_id": "6aa7bd9e084d533336d6174d",
+  "idempotencyKey": "evt_1789377950643_51oufq11:SOCKET:user:6aa37c4452f6dd360267a92c",
+  "eventId": "evt_1789377950643_51oufq11",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "user:6aa37c4452f6dd360267a92c",
+  "payload": {
+   "eventId": "evt_1789377950643_51oufq11",
+   "sequence": 7,
+   "type": "order_picked_up",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "PICKED_UP",
+   "actor": "RIDER",
+   "actorId": "6aa37c4452f6dd360267a92c",
+   "timestamp": "2026-09-14T09:25:50.643Z",
+   "metadata": {
+    "message": "Sub-order QB-5259642924-S1 was picked up from the seller.",
+    "deliveryStatus": "PICKED_UP",
+    "pickupPhoto": "https://ik.imagekit.io/k2n57ywshu/delivery-proofs/pickup_6aa37c4452f6dd360267a92c_pickup_1789377943063_sXqbnAb6d.jpeg"
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:25:50.657Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:25:50.659Z",
+  "updatedAt": "2026-09-14T09:25:50.659Z"
+ },
+ {
+  "_id": "6aa7bd9e084d533336d6174e",
+  "idempotencyKey": "evt_1789377950643_51oufq11:PUSH:6a9c2739a9693d1c9e7603da",
+  "eventId": "evt_1789377950643_51oufq11",
+  "channel": "PUSH",
+  "status": "SENT",
+  "recipientId": "6a9c2739a9693d1c9e7603da",
+  "title": "Order update",
+  "body": "Sub-order QB-5259642924-S1 was picked up from the seller.",
+  "payload": {
+   "eventId": "evt_1789377950643_51oufq11",
+   "sequence": 7,
+   "type": "order_picked_up",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "PICKED_UP",
+   "actor": "RIDER",
+   "actorId": "6aa37c4452f6dd360267a92c",
+   "timestamp": "2026-09-14T09:25:50.643Z",
+   "metadata": {
+    "message": "Sub-order QB-5259642924-S1 was picked up from the seller.",
+    "deliveryStatus": "PICKED_UP",
+    "pickupPhoto": "https://ik.imagekit.io/k2n57ywshu/delivery-proofs/pickup_6aa37c4452f6dd360267a92c_pickup_1789377943063_sXqbnAb6d.jpeg"
+   }
+  },
+  "attempts": 1,
+  "nextAttemptAt": "2026-09-14T09:25:50.695Z",
+  "createdAt": "2026-09-14T09:25:50.695Z",
+  "updatedAt": "2026-09-14T09:25:50.889Z",
+  "__v": 0,
+  "sentAt": "2026-09-14T09:25:50.889Z"
+ },
+ {
+  "_id": "6aa7bda1084d533336d6175c",
+  "idempotencyKey": "evt_1789377953967_dtrpfsh8:SOCKET:admin",
+  "eventId": "evt_1789377953967_dtrpfsh8",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "admin",
+  "payload": {
+   "eventId": "evt_1789377953967_dtrpfsh8",
+   "sequence": 8,
+   "type": "in_transit",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "IN_TRANSIT",
+   "actor": "RIDER",
+   "actorId": "6aa37c4452f6dd360267a92c",
+   "timestamp": "2026-09-14T09:25:53.966Z",
+   "metadata": {
+    "message": "Rider is in transit with sub-order QB-5259642924-S1.",
+    "deliveryStatus": "IN_TRANSIT"
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:25:53.973Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:25:53.975Z",
+  "updatedAt": "2026-09-14T09:25:53.975Z"
+ },
+ {
+  "_id": "6aa7bda1084d533336d6175d",
+  "idempotencyKey": "evt_1789377953967_dtrpfsh8:SOCKET:seller:6a9c2739a9693d1c9e7603da",
+  "eventId": "evt_1789377953967_dtrpfsh8",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "seller:6a9c2739a9693d1c9e7603da",
+  "payload": {
+   "eventId": "evt_1789377953967_dtrpfsh8",
+   "sequence": 8,
+   "type": "in_transit",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "IN_TRANSIT",
+   "actor": "RIDER",
+   "actorId": "6aa37c4452f6dd360267a92c",
+   "timestamp": "2026-09-14T09:25:53.966Z",
+   "metadata": {
+    "message": "Rider is in transit with sub-order QB-5259642924-S1.",
+    "deliveryStatus": "IN_TRANSIT"
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:25:53.973Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:25:53.975Z",
+  "updatedAt": "2026-09-14T09:25:53.975Z"
+ },
+ {
+  "_id": "6aa7bda1084d533336d6175e",
+  "idempotencyKey": "evt_1789377953967_dtrpfsh8:SOCKET:rider:6aa37c4452f6dd360267a92c",
+  "eventId": "evt_1789377953967_dtrpfsh8",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "rider:6aa37c4452f6dd360267a92c",
+  "payload": {
+   "eventId": "evt_1789377953967_dtrpfsh8",
+   "sequence": 8,
+   "type": "in_transit",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "IN_TRANSIT",
+   "actor": "RIDER",
+   "actorId": "6aa37c4452f6dd360267a92c",
+   "timestamp": "2026-09-14T09:25:53.966Z",
+   "metadata": {
+    "message": "Rider is in transit with sub-order QB-5259642924-S1.",
+    "deliveryStatus": "IN_TRANSIT"
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:25:53.973Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:25:53.975Z",
+  "updatedAt": "2026-09-14T09:25:53.975Z"
+ },
+ {
+  "_id": "6aa7bda1084d533336d6175f",
+  "idempotencyKey": "evt_1789377953967_dtrpfsh8:SOCKET:order:QB-5259642924",
+  "eventId": "evt_1789377953967_dtrpfsh8",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "order:QB-5259642924",
+  "payload": {
+   "eventId": "evt_1789377953967_dtrpfsh8",
+   "sequence": 8,
+   "type": "in_transit",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "IN_TRANSIT",
+   "actor": "RIDER",
+   "actorId": "6aa37c4452f6dd360267a92c",
+   "timestamp": "2026-09-14T09:25:53.966Z",
+   "metadata": {
+    "message": "Rider is in transit with sub-order QB-5259642924-S1.",
+    "deliveryStatus": "IN_TRANSIT"
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:25:53.973Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:25:53.975Z",
+  "updatedAt": "2026-09-14T09:25:53.975Z"
+ },
+ {
+  "_id": "6aa7bda1084d533336d61760",
+  "idempotencyKey": "evt_1789377953967_dtrpfsh8:SOCKET:order_QB-5259642924",
+  "eventId": "evt_1789377953967_dtrpfsh8",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "order_QB-5259642924",
+  "payload": {
+   "eventId": "evt_1789377953967_dtrpfsh8",
+   "sequence": 8,
+   "type": "in_transit",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "IN_TRANSIT",
+   "actor": "RIDER",
+   "actorId": "6aa37c4452f6dd360267a92c",
+   "timestamp": "2026-09-14T09:25:53.966Z",
+   "metadata": {
+    "message": "Rider is in transit with sub-order QB-5259642924-S1.",
+    "deliveryStatus": "IN_TRANSIT"
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:25:53.973Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:25:53.975Z",
+  "updatedAt": "2026-09-14T09:25:53.975Z"
+ },
+ {
+  "_id": "6aa7bda1084d533336d61761",
+  "idempotencyKey": "evt_1789377953967_dtrpfsh8:SOCKET:suborder:QB-5259642924-S1",
+  "eventId": "evt_1789377953967_dtrpfsh8",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "suborder:QB-5259642924-S1",
+  "payload": {
+   "eventId": "evt_1789377953967_dtrpfsh8",
+   "sequence": 8,
+   "type": "in_transit",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "IN_TRANSIT",
+   "actor": "RIDER",
+   "actorId": "6aa37c4452f6dd360267a92c",
+   "timestamp": "2026-09-14T09:25:53.966Z",
+   "metadata": {
+    "message": "Rider is in transit with sub-order QB-5259642924-S1.",
+    "deliveryStatus": "IN_TRANSIT"
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:25:53.973Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:25:53.976Z",
+  "updatedAt": "2026-09-14T09:25:53.976Z"
+ },
+ {
+  "_id": "6aa7bda1084d533336d61762",
+  "idempotencyKey": "evt_1789377953967_dtrpfsh8:SOCKET:suborder_QB-5259642924-S1",
+  "eventId": "evt_1789377953967_dtrpfsh8",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "suborder_QB-5259642924-S1",
+  "payload": {
+   "eventId": "evt_1789377953967_dtrpfsh8",
+   "sequence": 8,
+   "type": "in_transit",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "IN_TRANSIT",
+   "actor": "RIDER",
+   "actorId": "6aa37c4452f6dd360267a92c",
+   "timestamp": "2026-09-14T09:25:53.966Z",
+   "metadata": {
+    "message": "Rider is in transit with sub-order QB-5259642924-S1.",
+    "deliveryStatus": "IN_TRANSIT"
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:25:53.973Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:25:53.976Z",
+  "updatedAt": "2026-09-14T09:25:53.976Z"
+ },
+ {
+  "_id": "6aa7bda1084d533336d61763",
+  "idempotencyKey": "evt_1789377953967_dtrpfsh8:SOCKET:user:6a9c2739a9693d1c9e7603da",
+  "eventId": "evt_1789377953967_dtrpfsh8",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "user:6a9c2739a9693d1c9e7603da",
+  "payload": {
+   "eventId": "evt_1789377953967_dtrpfsh8",
+   "sequence": 8,
+   "type": "in_transit",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "IN_TRANSIT",
+   "actor": "RIDER",
+   "actorId": "6aa37c4452f6dd360267a92c",
+   "timestamp": "2026-09-14T09:25:53.966Z",
+   "metadata": {
+    "message": "Rider is in transit with sub-order QB-5259642924-S1.",
+    "deliveryStatus": "IN_TRANSIT"
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:25:53.973Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:25:53.976Z",
+  "updatedAt": "2026-09-14T09:25:53.976Z"
+ },
+ {
+  "_id": "6aa7bda1084d533336d61764",
+  "idempotencyKey": "evt_1789377953967_dtrpfsh8:SOCKET:user:6aa37c4452f6dd360267a92c",
+  "eventId": "evt_1789377953967_dtrpfsh8",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "user:6aa37c4452f6dd360267a92c",
+  "payload": {
+   "eventId": "evt_1789377953967_dtrpfsh8",
+   "sequence": 8,
+   "type": "in_transit",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "IN_TRANSIT",
+   "actor": "RIDER",
+   "actorId": "6aa37c4452f6dd360267a92c",
+   "timestamp": "2026-09-14T09:25:53.966Z",
+   "metadata": {
+    "message": "Rider is in transit with sub-order QB-5259642924-S1.",
+    "deliveryStatus": "IN_TRANSIT"
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:25:53.973Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:25:53.976Z",
+  "updatedAt": "2026-09-14T09:25:53.976Z"
+ },
+ {
+  "_id": "6aa7bda1084d533336d61765",
+  "idempotencyKey": "evt_1789377953967_dtrpfsh8:PUSH:6a9c2739a9693d1c9e7603da",
+  "eventId": "evt_1789377953967_dtrpfsh8",
+  "channel": "PUSH",
+  "status": "SENT",
+  "recipientId": "6a9c2739a9693d1c9e7603da",
+  "title": "Order update",
+  "body": "Rider is in transit with sub-order QB-5259642924-S1.",
+  "payload": {
+   "eventId": "evt_1789377953967_dtrpfsh8",
+   "sequence": 8,
+   "type": "in_transit",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "IN_TRANSIT",
+   "actor": "RIDER",
+   "actorId": "6aa37c4452f6dd360267a92c",
+   "timestamp": "2026-09-14T09:25:53.966Z",
+   "metadata": {
+    "message": "Rider is in transit with sub-order QB-5259642924-S1.",
+    "deliveryStatus": "IN_TRANSIT"
+   }
+  },
+  "attempts": 1,
+  "nextAttemptAt": "2026-09-14T09:25:53.995Z",
+  "createdAt": "2026-09-14T09:25:53.996Z",
+  "updatedAt": "2026-09-14T09:25:54.182Z",
+  "__v": 0,
+  "sentAt": "2026-09-14T09:25:54.182Z"
+ },
+ {
+  "_id": "6aa7be48084d533336d617c3",
+  "idempotencyKey": "evt_1789378120002_gkdtkhwg:SOCKET:admin",
+  "eventId": "evt_1789378120002_gkdtkhwg",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "admin",
+  "payload": {
+   "eventId": "evt_1789378120002_gkdtkhwg",
+   "sequence": 9,
+   "type": "near_customer",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "NEAR_CUSTOMER",
+   "actor": "RIDER",
+   "actorId": "6aa37c4452f6dd360267a92c",
+   "timestamp": "2026-09-14T09:28:40.001Z",
+   "metadata": {
+    "message": "Rider is near the customer for sub-order QB-5259642924-S1.",
+    "deliveryStatus": "NEAR_CUSTOMER",
+    "distanceMeters": 61,
+    "customerGpsSource": "order_shipping_address"
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:28:40.010Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:28:40.012Z",
+  "updatedAt": "2026-09-14T09:28:40.012Z"
+ },
+ {
+  "_id": "6aa7be48084d533336d617c4",
+  "idempotencyKey": "evt_1789378120002_gkdtkhwg:SOCKET:seller:6a9c2739a9693d1c9e7603da",
+  "eventId": "evt_1789378120002_gkdtkhwg",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "seller:6a9c2739a9693d1c9e7603da",
+  "payload": {
+   "eventId": "evt_1789378120002_gkdtkhwg",
+   "sequence": 9,
+   "type": "near_customer",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "NEAR_CUSTOMER",
+   "actor": "RIDER",
+   "actorId": "6aa37c4452f6dd360267a92c",
+   "timestamp": "2026-09-14T09:28:40.001Z",
+   "metadata": {
+    "message": "Rider is near the customer for sub-order QB-5259642924-S1.",
+    "deliveryStatus": "NEAR_CUSTOMER",
+    "distanceMeters": 61,
+    "customerGpsSource": "order_shipping_address"
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:28:40.010Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:28:40.012Z",
+  "updatedAt": "2026-09-14T09:28:40.012Z"
+ },
+ {
+  "_id": "6aa7be48084d533336d617c5",
+  "idempotencyKey": "evt_1789378120002_gkdtkhwg:SOCKET:rider:6aa37c4452f6dd360267a92c",
+  "eventId": "evt_1789378120002_gkdtkhwg",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "rider:6aa37c4452f6dd360267a92c",
+  "payload": {
+   "eventId": "evt_1789378120002_gkdtkhwg",
+   "sequence": 9,
+   "type": "near_customer",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "NEAR_CUSTOMER",
+   "actor": "RIDER",
+   "actorId": "6aa37c4452f6dd360267a92c",
+   "timestamp": "2026-09-14T09:28:40.001Z",
+   "metadata": {
+    "message": "Rider is near the customer for sub-order QB-5259642924-S1.",
+    "deliveryStatus": "NEAR_CUSTOMER",
+    "distanceMeters": 61,
+    "customerGpsSource": "order_shipping_address"
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:28:40.010Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:28:40.012Z",
+  "updatedAt": "2026-09-14T09:28:40.012Z"
+ },
+ {
+  "_id": "6aa7be48084d533336d617c6",
+  "idempotencyKey": "evt_1789378120002_gkdtkhwg:SOCKET:order:QB-5259642924",
+  "eventId": "evt_1789378120002_gkdtkhwg",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "order:QB-5259642924",
+  "payload": {
+   "eventId": "evt_1789378120002_gkdtkhwg",
+   "sequence": 9,
+   "type": "near_customer",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "NEAR_CUSTOMER",
+   "actor": "RIDER",
+   "actorId": "6aa37c4452f6dd360267a92c",
+   "timestamp": "2026-09-14T09:28:40.001Z",
+   "metadata": {
+    "message": "Rider is near the customer for sub-order QB-5259642924-S1.",
+    "deliveryStatus": "NEAR_CUSTOMER",
+    "distanceMeters": 61,
+    "customerGpsSource": "order_shipping_address"
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:28:40.010Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:28:40.012Z",
+  "updatedAt": "2026-09-14T09:28:40.012Z"
+ },
+ {
+  "_id": "6aa7be48084d533336d617c7",
+  "idempotencyKey": "evt_1789378120002_gkdtkhwg:SOCKET:order_QB-5259642924",
+  "eventId": "evt_1789378120002_gkdtkhwg",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "order_QB-5259642924",
+  "payload": {
+   "eventId": "evt_1789378120002_gkdtkhwg",
+   "sequence": 9,
+   "type": "near_customer",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "NEAR_CUSTOMER",
+   "actor": "RIDER",
+   "actorId": "6aa37c4452f6dd360267a92c",
+   "timestamp": "2026-09-14T09:28:40.001Z",
+   "metadata": {
+    "message": "Rider is near the customer for sub-order QB-5259642924-S1.",
+    "deliveryStatus": "NEAR_CUSTOMER",
+    "distanceMeters": 61,
+    "customerGpsSource": "order_shipping_address"
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:28:40.010Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:28:40.012Z",
+  "updatedAt": "2026-09-14T09:28:40.012Z"
+ },
+ {
+  "_id": "6aa7be48084d533336d617c8",
+  "idempotencyKey": "evt_1789378120002_gkdtkhwg:SOCKET:suborder:QB-5259642924-S1",
+  "eventId": "evt_1789378120002_gkdtkhwg",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "suborder:QB-5259642924-S1",
+  "payload": {
+   "eventId": "evt_1789378120002_gkdtkhwg",
+   "sequence": 9,
+   "type": "near_customer",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "NEAR_CUSTOMER",
+   "actor": "RIDER",
+   "actorId": "6aa37c4452f6dd360267a92c",
+   "timestamp": "2026-09-14T09:28:40.001Z",
+   "metadata": {
+    "message": "Rider is near the customer for sub-order QB-5259642924-S1.",
+    "deliveryStatus": "NEAR_CUSTOMER",
+    "distanceMeters": 61,
+    "customerGpsSource": "order_shipping_address"
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:28:40.010Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:28:40.012Z",
+  "updatedAt": "2026-09-14T09:28:40.012Z"
+ },
+ {
+  "_id": "6aa7be48084d533336d617c9",
+  "idempotencyKey": "evt_1789378120002_gkdtkhwg:SOCKET:suborder_QB-5259642924-S1",
+  "eventId": "evt_1789378120002_gkdtkhwg",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "suborder_QB-5259642924-S1",
+  "payload": {
+   "eventId": "evt_1789378120002_gkdtkhwg",
+   "sequence": 9,
+   "type": "near_customer",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "NEAR_CUSTOMER",
+   "actor": "RIDER",
+   "actorId": "6aa37c4452f6dd360267a92c",
+   "timestamp": "2026-09-14T09:28:40.001Z",
+   "metadata": {
+    "message": "Rider is near the customer for sub-order QB-5259642924-S1.",
+    "deliveryStatus": "NEAR_CUSTOMER",
+    "distanceMeters": 61,
+    "customerGpsSource": "order_shipping_address"
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:28:40.010Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:28:40.012Z",
+  "updatedAt": "2026-09-14T09:28:40.012Z"
+ },
+ {
+  "_id": "6aa7be48084d533336d617ca",
+  "idempotencyKey": "evt_1789378120002_gkdtkhwg:SOCKET:user:6a9c2739a9693d1c9e7603da",
+  "eventId": "evt_1789378120002_gkdtkhwg",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "user:6a9c2739a9693d1c9e7603da",
+  "payload": {
+   "eventId": "evt_1789378120002_gkdtkhwg",
+   "sequence": 9,
+   "type": "near_customer",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "NEAR_CUSTOMER",
+   "actor": "RIDER",
+   "actorId": "6aa37c4452f6dd360267a92c",
+   "timestamp": "2026-09-14T09:28:40.001Z",
+   "metadata": {
+    "message": "Rider is near the customer for sub-order QB-5259642924-S1.",
+    "deliveryStatus": "NEAR_CUSTOMER",
+    "distanceMeters": 61,
+    "customerGpsSource": "order_shipping_address"
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:28:40.010Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:28:40.012Z",
+  "updatedAt": "2026-09-14T09:28:40.012Z"
+ },
+ {
+  "_id": "6aa7be48084d533336d617cb",
+  "idempotencyKey": "evt_1789378120002_gkdtkhwg:SOCKET:user:6aa37c4452f6dd360267a92c",
+  "eventId": "evt_1789378120002_gkdtkhwg",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "user:6aa37c4452f6dd360267a92c",
+  "payload": {
+   "eventId": "evt_1789378120002_gkdtkhwg",
+   "sequence": 9,
+   "type": "near_customer",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "NEAR_CUSTOMER",
+   "actor": "RIDER",
+   "actorId": "6aa37c4452f6dd360267a92c",
+   "timestamp": "2026-09-14T09:28:40.001Z",
+   "metadata": {
+    "message": "Rider is near the customer for sub-order QB-5259642924-S1.",
+    "deliveryStatus": "NEAR_CUSTOMER",
+    "distanceMeters": 61,
+    "customerGpsSource": "order_shipping_address"
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:28:40.010Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:28:40.013Z",
+  "updatedAt": "2026-09-14T09:28:40.013Z"
+ },
+ {
+  "_id": "6aa7be48084d533336d617cc",
+  "idempotencyKey": "evt_1789378120002_gkdtkhwg:PUSH:6a9c2739a9693d1c9e7603da",
+  "eventId": "evt_1789378120002_gkdtkhwg",
+  "channel": "PUSH",
+  "status": "SENT",
+  "recipientId": "6a9c2739a9693d1c9e7603da",
+  "title": "Order update",
+  "body": "Rider is near the customer for sub-order QB-5259642924-S1.",
+  "payload": {
+   "eventId": "evt_1789378120002_gkdtkhwg",
+   "sequence": 9,
+   "type": "near_customer",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "NEAR_CUSTOMER",
+   "actor": "RIDER",
+   "actorId": "6aa37c4452f6dd360267a92c",
+   "timestamp": "2026-09-14T09:28:40.001Z",
+   "metadata": {
+    "message": "Rider is near the customer for sub-order QB-5259642924-S1.",
+    "deliveryStatus": "NEAR_CUSTOMER",
+    "distanceMeters": 61,
+    "customerGpsSource": "order_shipping_address"
+   }
+  },
+  "attempts": 1,
+  "nextAttemptAt": "2026-09-14T09:28:40.023Z",
+  "createdAt": "2026-09-14T09:28:40.024Z",
+  "updatedAt": "2026-09-14T09:28:40.198Z",
+  "__v": 0,
+  "sentAt": "2026-09-14T09:28:40.198Z"
+ },
+ {
+  "_id": "6aa7be62084d533336d617db",
+  "idempotencyKey": "evt_1789378146117_992loyhc:SOCKET:admin",
+  "eventId": "evt_1789378146117_992loyhc",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "admin",
+  "payload": {
+   "eventId": "evt_1789378146117_992loyhc",
+   "sequence": 10,
+   "type": "delivered",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "DELIVERED",
+   "actor": "RIDER",
+   "actorId": "6aa37c4452f6dd360267a92c",
+   "timestamp": "2026-09-14T09:29:06.117Z",
+   "metadata": {
+    "message": "Sub-order QB-5259642924-S1 has been delivered successfully.",
+    "deliveryStatus": "DELIVERED",
+    "deliveryPhoto": "https://ik.imagekit.io/k2n57ywshu/delivery-proofs/delivery_6aa37c4452f6dd360267a92c_delivery_1789378141587_yzu_aSSjA6.jpeg"
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:29:06.124Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:29:06.126Z",
+  "updatedAt": "2026-09-14T09:29:06.126Z"
+ },
+ {
+  "_id": "6aa7be62084d533336d617dc",
+  "idempotencyKey": "evt_1789378146117_992loyhc:SOCKET:seller:6a9c2739a9693d1c9e7603da",
+  "eventId": "evt_1789378146117_992loyhc",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "seller:6a9c2739a9693d1c9e7603da",
+  "payload": {
+   "eventId": "evt_1789378146117_992loyhc",
+   "sequence": 10,
+   "type": "delivered",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "DELIVERED",
+   "actor": "RIDER",
+   "actorId": "6aa37c4452f6dd360267a92c",
+   "timestamp": "2026-09-14T09:29:06.117Z",
+   "metadata": {
+    "message": "Sub-order QB-5259642924-S1 has been delivered successfully.",
+    "deliveryStatus": "DELIVERED",
+    "deliveryPhoto": "https://ik.imagekit.io/k2n57ywshu/delivery-proofs/delivery_6aa37c4452f6dd360267a92c_delivery_1789378141587_yzu_aSSjA6.jpeg"
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:29:06.124Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:29:06.126Z",
+  "updatedAt": "2026-09-14T09:29:06.126Z"
+ },
+ {
+  "_id": "6aa7be62084d533336d617dd",
+  "idempotencyKey": "evt_1789378146117_992loyhc:SOCKET:rider:6aa37c4452f6dd360267a92c",
+  "eventId": "evt_1789378146117_992loyhc",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "rider:6aa37c4452f6dd360267a92c",
+  "payload": {
+   "eventId": "evt_1789378146117_992loyhc",
+   "sequence": 10,
+   "type": "delivered",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "DELIVERED",
+   "actor": "RIDER",
+   "actorId": "6aa37c4452f6dd360267a92c",
+   "timestamp": "2026-09-14T09:29:06.117Z",
+   "metadata": {
+    "message": "Sub-order QB-5259642924-S1 has been delivered successfully.",
+    "deliveryStatus": "DELIVERED",
+    "deliveryPhoto": "https://ik.imagekit.io/k2n57ywshu/delivery-proofs/delivery_6aa37c4452f6dd360267a92c_delivery_1789378141587_yzu_aSSjA6.jpeg"
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:29:06.124Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:29:06.126Z",
+  "updatedAt": "2026-09-14T09:29:06.126Z"
+ },
+ {
+  "_id": "6aa7be62084d533336d617de",
+  "idempotencyKey": "evt_1789378146117_992loyhc:SOCKET:order:QB-5259642924",
+  "eventId": "evt_1789378146117_992loyhc",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "order:QB-5259642924",
+  "payload": {
+   "eventId": "evt_1789378146117_992loyhc",
+   "sequence": 10,
+   "type": "delivered",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "DELIVERED",
+   "actor": "RIDER",
+   "actorId": "6aa37c4452f6dd360267a92c",
+   "timestamp": "2026-09-14T09:29:06.117Z",
+   "metadata": {
+    "message": "Sub-order QB-5259642924-S1 has been delivered successfully.",
+    "deliveryStatus": "DELIVERED",
+    "deliveryPhoto": "https://ik.imagekit.io/k2n57ywshu/delivery-proofs/delivery_6aa37c4452f6dd360267a92c_delivery_1789378141587_yzu_aSSjA6.jpeg"
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:29:06.124Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:29:06.126Z",
+  "updatedAt": "2026-09-14T09:29:06.126Z"
+ },
+ {
+  "_id": "6aa7be62084d533336d617df",
+  "idempotencyKey": "evt_1789378146117_992loyhc:SOCKET:order_QB-5259642924",
+  "eventId": "evt_1789378146117_992loyhc",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "order_QB-5259642924",
+  "payload": {
+   "eventId": "evt_1789378146117_992loyhc",
+   "sequence": 10,
+   "type": "delivered",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "DELIVERED",
+   "actor": "RIDER",
+   "actorId": "6aa37c4452f6dd360267a92c",
+   "timestamp": "2026-09-14T09:29:06.117Z",
+   "metadata": {
+    "message": "Sub-order QB-5259642924-S1 has been delivered successfully.",
+    "deliveryStatus": "DELIVERED",
+    "deliveryPhoto": "https://ik.imagekit.io/k2n57ywshu/delivery-proofs/delivery_6aa37c4452f6dd360267a92c_delivery_1789378141587_yzu_aSSjA6.jpeg"
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:29:06.124Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:29:06.126Z",
+  "updatedAt": "2026-09-14T09:29:06.126Z"
+ },
+ {
+  "_id": "6aa7be62084d533336d617e0",
+  "idempotencyKey": "evt_1789378146117_992loyhc:SOCKET:suborder:QB-5259642924-S1",
+  "eventId": "evt_1789378146117_992loyhc",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "suborder:QB-5259642924-S1",
+  "payload": {
+   "eventId": "evt_1789378146117_992loyhc",
+   "sequence": 10,
+   "type": "delivered",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "DELIVERED",
+   "actor": "RIDER",
+   "actorId": "6aa37c4452f6dd360267a92c",
+   "timestamp": "2026-09-14T09:29:06.117Z",
+   "metadata": {
+    "message": "Sub-order QB-5259642924-S1 has been delivered successfully.",
+    "deliveryStatus": "DELIVERED",
+    "deliveryPhoto": "https://ik.imagekit.io/k2n57ywshu/delivery-proofs/delivery_6aa37c4452f6dd360267a92c_delivery_1789378141587_yzu_aSSjA6.jpeg"
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:29:06.124Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:29:06.126Z",
+  "updatedAt": "2026-09-14T09:29:06.126Z"
+ },
+ {
+  "_id": "6aa7be62084d533336d617e1",
+  "idempotencyKey": "evt_1789378146117_992loyhc:SOCKET:suborder_QB-5259642924-S1",
+  "eventId": "evt_1789378146117_992loyhc",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "suborder_QB-5259642924-S1",
+  "payload": {
+   "eventId": "evt_1789378146117_992loyhc",
+   "sequence": 10,
+   "type": "delivered",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "DELIVERED",
+   "actor": "RIDER",
+   "actorId": "6aa37c4452f6dd360267a92c",
+   "timestamp": "2026-09-14T09:29:06.117Z",
+   "metadata": {
+    "message": "Sub-order QB-5259642924-S1 has been delivered successfully.",
+    "deliveryStatus": "DELIVERED",
+    "deliveryPhoto": "https://ik.imagekit.io/k2n57ywshu/delivery-proofs/delivery_6aa37c4452f6dd360267a92c_delivery_1789378141587_yzu_aSSjA6.jpeg"
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:29:06.124Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:29:06.126Z",
+  "updatedAt": "2026-09-14T09:29:06.126Z"
+ },
+ {
+  "_id": "6aa7be62084d533336d617e2",
+  "idempotencyKey": "evt_1789378146117_992loyhc:SOCKET:user:6a9c2739a9693d1c9e7603da",
+  "eventId": "evt_1789378146117_992loyhc",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "user:6a9c2739a9693d1c9e7603da",
+  "payload": {
+   "eventId": "evt_1789378146117_992loyhc",
+   "sequence": 10,
+   "type": "delivered",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "DELIVERED",
+   "actor": "RIDER",
+   "actorId": "6aa37c4452f6dd360267a92c",
+   "timestamp": "2026-09-14T09:29:06.117Z",
+   "metadata": {
+    "message": "Sub-order QB-5259642924-S1 has been delivered successfully.",
+    "deliveryStatus": "DELIVERED",
+    "deliveryPhoto": "https://ik.imagekit.io/k2n57ywshu/delivery-proofs/delivery_6aa37c4452f6dd360267a92c_delivery_1789378141587_yzu_aSSjA6.jpeg"
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:29:06.124Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:29:06.126Z",
+  "updatedAt": "2026-09-14T09:29:06.126Z"
+ },
+ {
+  "_id": "6aa7be62084d533336d617e3",
+  "idempotencyKey": "evt_1789378146117_992loyhc:SOCKET:user:6aa37c4452f6dd360267a92c",
+  "eventId": "evt_1789378146117_992loyhc",
+  "channel": "SOCKET",
+  "status": "SENT",
+  "room": "user:6aa37c4452f6dd360267a92c",
+  "payload": {
+   "eventId": "evt_1789378146117_992loyhc",
+   "sequence": 10,
+   "type": "delivered",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "DELIVERED",
+   "actor": "RIDER",
+   "actorId": "6aa37c4452f6dd360267a92c",
+   "timestamp": "2026-09-14T09:29:06.117Z",
+   "metadata": {
+    "message": "Sub-order QB-5259642924-S1 has been delivered successfully.",
+    "deliveryStatus": "DELIVERED",
+    "deliveryPhoto": "https://ik.imagekit.io/k2n57ywshu/delivery-proofs/delivery_6aa37c4452f6dd360267a92c_delivery_1789378141587_yzu_aSSjA6.jpeg"
+   }
+  },
+  "attempts": 1,
+  "sentAt": "2026-09-14T09:29:06.124Z",
+  "__v": 0,
+  "createdAt": "2026-09-14T09:29:06.126Z",
+  "updatedAt": "2026-09-14T09:29:06.126Z"
+ },
+ {
+  "_id": "6aa7be62084d533336d617e4",
+  "idempotencyKey": "evt_1789378146117_992loyhc:PUSH:6a9c2739a9693d1c9e7603da",
+  "eventId": "evt_1789378146117_992loyhc",
+  "channel": "PUSH",
+  "status": "SENT",
+  "recipientId": "6a9c2739a9693d1c9e7603da",
+  "title": "Order update",
+  "body": "Sub-order QB-5259642924-S1 has been delivered successfully.",
+  "payload": {
+   "eventId": "evt_1789378146117_992loyhc",
+   "sequence": 10,
+   "type": "delivered",
+   "orderId": "QB-5259642924",
+   "subOrderId": "QB-5259642924-S1",
+   "status": "DELIVERED",
+   "actor": "RIDER",
+   "actorId": "6aa37c4452f6dd360267a92c",
+   "timestamp": "2026-09-14T09:29:06.117Z",
+   "metadata": {
+    "message": "Sub-order QB-5259642924-S1 has been delivered successfully.",
+    "deliveryStatus": "DELIVERED",
+    "deliveryPhoto": "https://ik.imagekit.io/k2n57ywshu/delivery-proofs/delivery_6aa37c4452f6dd360267a92c_delivery_1789378141587_yzu_aSSjA6.jpeg"
+   }
+  },
+  "attempts": 1,
+  "nextAttemptAt": "2026-09-14T09:29:06.137Z",
+  "createdAt": "2026-09-14T09:29:06.137Z",
+  "updatedAt": "2026-09-14T09:29:06.287Z",
+  "__v": 0,
+  "sentAt": "2026-09-14T09:29:06.287Z"
+ }
+]

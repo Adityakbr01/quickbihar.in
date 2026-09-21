@@ -1,0 +1,24 @@
+[
+ {
+  "_id": "6aac15ed75bfde2333f981ae",
+  "title": "Alert Test",
+  "description": "That is system alert",
+  "body": "That is system alert",
+  "channel": "system",
+  "deliveryChannel": "BOTH",
+  "deliveryType": "ALERT",
+  "targetType": "ALL",
+  "status": "SENT",
+  "redirectType": "none",
+  "notificationType": "NORMAL",
+  "priority": "MEDIUM",
+  "sentCount": 1,
+  "deliveryCount": 1,
+  "openCount": 1,
+  "failedCount": 22,
+  "createdAt": "2026-09-17T16:31:41.695Z",
+  "updatedAt": "2026-09-19T14:46:01.347Z",
+  "__v": 0,
+  "jobId": "1"
+ }
+]

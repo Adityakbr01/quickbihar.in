@@ -19,6 +19,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { APP_CURRENCY } from "@/src/constants";
 import { SocketEvents } from "@/src/constants/socketEvents";
 import { getMyOrdersRequest } from "@/src/features/common/order/api/order.api";
+import { orderHasModule } from "@/src/features/common/order/lib/orderModule";
 import { useColors } from "@/src/features/Jewelery/hooks/useColors";
 import { useTopPad } from "@/src/hooks/useTopPad";
 import { socketClient } from "@/src/lib/socket";
@@ -38,7 +39,9 @@ export default function JeweleryOrdersScreen() {
     try {
       setIsLoading(true);
       const res = await getMyOrdersRequest();
-      setOrders(res.data || []);
+      // Jewellery catalogue shows jewellery orders only — clothing
+      // orders live in the clothing order history.
+      setOrders((res.data || []).filter((o: any) => orderHasModule(o, "jewelery")));
     } catch (e) {
       console.error("Failed to fetch jewelry orders:", e);
     } finally {

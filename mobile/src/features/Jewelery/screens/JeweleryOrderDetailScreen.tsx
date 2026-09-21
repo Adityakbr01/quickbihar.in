@@ -21,6 +21,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { APP_CURRENCY } from "@/src/constants";
 import { SocketEvents } from "@/src/constants/socketEvents";
 import { getOrderByIdRequest } from "@/src/features/common/order/api/order.api";
+import { filterOrderItemsByModule } from "@/src/features/common/order/lib/orderModule";
 import { useColors } from "@/src/features/Jewelery/hooks/useColors";
 import { useTopPad } from "@/src/hooks/useTopPad";
 import { socketClient } from "@/src/lib/socket";
@@ -45,6 +46,13 @@ export default function JeweleryOrderDetailScreen() {
   const [order, setOrder] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Jewellery catalogue shows jewellery lines only (order totals stay
+  // order-level — they reflect what was actually paid).
+  const jeweleryItems = React.useMemo(
+    () => filterOrderItemsByModule(order?.items, "jewelery"),
+    [order],
+  );
 
   const fetchOrderDetail = async () => {
     if (!orderId) return;
@@ -81,9 +89,11 @@ export default function JeweleryOrderDetailScreen() {
 
   const handleShare = async () => {
     if (!order) return;
+    // Share only this catalogue's pieces.
+    const shareItems = jeweleryItems;
     try {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      const itemsText = (order.items || [])
+      const itemsText = shareItems
         .map(
           (i: any) =>
             `• ${i.title || i.productTitle || "Jewellery Piece"} (x${i.quantity}) - ${APP_CURRENCY}${(
@@ -332,11 +342,11 @@ export default function JeweleryOrderDetailScreen() {
                   },
                 ]}
               >
-                YOUR ACQUISITIONS ({(order.items || []).length})
+                YOUR ACQUISITIONS ({jeweleryItems.length})
               </Text>
 
               <View style={{ gap: 12 }}>
-                {(order.items || []).map((item: any, idx: number) => {
+                {jeweleryItems.map((item: any, idx: number) => {
                   const imgUri =
                     typeof item.image === "string"
                       ? item.image
@@ -352,7 +362,7 @@ export default function JeweleryOrderDetailScreen() {
                         {
                           borderBottomColor: colors.border,
                           borderBottomWidth:
-                            idx < (order.items || []).length - 1 ? 0.5 : 0,
+                            idx < jeweleryItems.length - 1 ? 0.5 : 0,
                         },
                       ]}
                       onPress={() => handleNavigateToProduct(item)}
