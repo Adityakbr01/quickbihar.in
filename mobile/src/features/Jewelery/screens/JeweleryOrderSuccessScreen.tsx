@@ -236,12 +236,12 @@ export default function JeweleryOrderSuccessScreen() {
           <Text
             style={[
               styles.primaryBtnText,
-              { color: colors.ivory, fontFamily: "DMSans_600SemiBold" },
+              { color: colors.onBrand, fontFamily: "DMSans_600SemiBold" },
             ]}
           >
             VIEW ORDER DETAILS
           </Text>
-          <Feather name="arrow-right" size={14} color={colors.ivory} />
+          <Feather name="arrow-right" size={14} color={colors.onBrand} />
         </TouchableOpacity>
 
         <TouchableOpacity

@@ -456,7 +456,7 @@ function FestiveCampaign() {
         <Text
           style={[
             styles.festiveBtnText,
-            { color: colors.ivory, fontFamily: "DMSans_500Medium" },
+            { color: colors.onBrand, fontFamily: "DMSans_500Medium" },
           ]}
         >
           Shop Festive Edit
@@ -707,12 +707,12 @@ function NewsletterSection() {
               disabled={status === "loading"}
             >
               {status === "loading" ? (
-                <ActivityIndicator size="small" color={colors.ivory} />
+                <ActivityIndicator size="small" color={colors.onBrand} />
               ) : (
                 <Text
                   style={[
                     styles.joinBtnText,
-                    { color: colors.ivory, fontFamily: "DMSans_500Medium" },
+                    { color: colors.onBrand, fontFamily: "DMSans_500Medium" },
                   ]}
                 >
                   Join the Circle

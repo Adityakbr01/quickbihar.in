@@ -46,15 +46,28 @@ export function ProductCard({ product, style }: ProductCardProps) {
   const colors = useColors();
   const { toggleWishlist, isWishlisted, addToCart } = useCart();
   const wishlisted = isWishlisted(product.id);
+  const [justAdded, setJustAdded] = React.useState(false);
+  const addedTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  React.useEffect(
+    () => () => {
+      if (addedTimer.current) clearTimeout(addedTimer.current);
+    },
+    [],
+  );
 
   const handleWishlist = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     toggleWishlist(product);
   };
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    addToCart(product);
+    const ok = await addToCart(product);
+    if (!ok) return;
+    setJustAdded(true);
+    if (addedTimer.current) clearTimeout(addedTimer.current);
+    addedTimer.current = setTimeout(() => setJustAdded(false), 1500);
   };
 
   const handlePress = () => {
@@ -87,7 +100,7 @@ export function ProductCard({ product, style }: ProductCardProps) {
           <View
             style={[styles.badge, { backgroundColor: colors.gold }]}
           >
-            <Text style={[styles.badgeText, { color: colors.ivory }]}>
+            <Text style={[styles.badgeText, { color: colors.onBrand }]}>
               {product.badge.toUpperCase()}
             </Text>
           </View>
@@ -147,12 +160,13 @@ export function ProductCard({ product, style }: ProductCardProps) {
             styles.addBtn,
             {
               borderColor: colors.gold,
-              backgroundColor: pressed ? colors.champagne : "transparent",
+              backgroundColor:
+                justAdded || pressed ? colors.champagne : "transparent",
             },
           ]}
         >
-          <Text style={[styles.addBtnText, { color: colors.gold, fontFamily: "DMSans_400Regular" }]}>
-            Add to Bag
+          <Text style={[styles.addBtnText, { color: justAdded ? colors.ink : colors.gold, fontFamily: "DMSans_400Regular" }]}>
+            {justAdded ? "Added ✓" : "Add to Bag"}
           </Text>
         </Pressable>
       </View>

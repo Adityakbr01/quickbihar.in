@@ -1,4 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as Haptics from "expo-haptics";
 import React, {
   createContext,
   useCallback,
@@ -21,7 +22,8 @@ interface CartItem {
 interface CartContextType {
   cartItems: CartItem[];
   wishlist: string[];
-  addToCart: (product: Product) => void;
+  /** Adds one unit; resolves false (with an error haptic) when there is no sellable variant or the server rejects — never fails silently. */
+  addToCart: (product: Product) => Promise<boolean>;
   removeFromCart: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
   toggleWishlist: (product: Product) => void;
@@ -99,12 +101,34 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     [storeItems]
   );
 
-  const addToCart = useCallback((product: Product) => {
+  const addToCart = useCallback(async (product: Product): Promise<boolean> => {
     const raw = product._raw;
-    if (!raw) return;
-    const sku = defaultSkuFor(raw);
-    if (!sku) return;
-    void useCartStore.getState().addItem(raw, sku, 1, "jewelery");
+    if (!raw) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      return false;
+    }
+    // SKU fallback chain: in-stock variant → first variant with any sku →
+    // product-level sku (simple products without variants).
+    const variants = raw.variants ?? [];
+    const sku =
+      defaultSkuFor(raw) ??
+      variants.find((v: any) => v?.sku)?.sku ??
+      (raw as any).sku ??
+      null;
+    if (!sku) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      return false;
+    }
+    try {
+      await useCartStore.getState().addItem(raw, sku, 1, "jewelery");
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      return true;
+    } catch {
+      // Server rejections (e.g. just went out of stock → optimistic
+      // rollback) previously vanished into `void`; now they buzz + report.
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      return false;
+    }
   }, []);
 
   const removeFromCart = useCallback(
@@ -174,7 +198,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 const defaultCartContext: CartContextType = {
   cartItems: [],
   wishlist: [],
-  addToCart: () => {},
+  addToCart: async () => false,
   removeFromCart: () => {},
   updateQuantity: () => {},
   toggleWishlist: () => {},

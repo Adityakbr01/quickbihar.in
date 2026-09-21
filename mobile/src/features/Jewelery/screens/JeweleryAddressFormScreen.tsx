@@ -883,21 +883,21 @@ export default function JeweleryAddressFormScreen() {
             activeOpacity={0.88}
           >
             {isSaving ? (
-              <ActivityIndicator color={colors.ivory} size="small" />
+              <ActivityIndicator color={colors.onBrand} size="small" />
             ) : (
               <View style={styles.submitBtnContent}>
                 <Text
                   style={[
                     styles.submitBtnText,
                     {
-                      color: colors.ivory,
+                      color: colors.onBrand,
                       fontFamily: "DMSans_600SemiBold",
                     },
                   ]}
                 >
                   {isEditing ? "UPDATE ADDRESS" : "SAVE ADDRESS"}
                 </Text>
-                <Feather name="arrow-right" size={14} color={colors.ivory} />
+                <Feather name="arrow-right" size={14} color={colors.onBrand} />
               </View>
             )}
           </TouchableOpacity>

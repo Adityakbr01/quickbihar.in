@@ -116,7 +116,7 @@ export function ImageCarousel({ images }: ImageCarouselProps) {
             { backgroundColor: `${colors.ink}8C` },
           ]}
         >
-          <Feather name="image" size={10} color={colors.ivory} style={{ marginRight: 4 }} />
+          <Feather name="image" size={10} color={colors.onBrand} style={{ marginRight: 4 }} />
           <View style={{ width: 0 }} />
         </View>
 

@@ -258,7 +258,7 @@ export default function JeweleryOrderDetailScreen() {
                           ]}
                         >
                           {isDone ? (
-                            <Feather name="check" size={10} color={colors.ivory} />
+                            <Feather name="check" size={10} color={colors.onBrand} />
                           ) : (
                             <View
                               style={[

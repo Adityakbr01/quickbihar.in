@@ -64,7 +64,7 @@ export const JeweleryTryOnScreen = () => {
             <Text
               style={[
                 styles.btnText,
-                { color: colors.ivory, fontFamily: "DMSans_500Medium" },
+                { color: colors.onBrand, fontFamily: "DMSans_500Medium" },
               ]}
             >
               Browse Collections →

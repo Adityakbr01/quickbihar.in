@@ -98,7 +98,7 @@ function MenuItem({
           <Text
             style={[
               styles.badgeText,
-              { color: colors.ivory, fontFamily: "DMSans_500Medium" },
+              { color: colors.onBrand, fontFamily: "DMSans_500Medium" },
             ]}
           >
             {badge}
@@ -285,7 +285,7 @@ export default function JeweleryAccountScreen() {
                   style={[
                     styles.avatarText,
                     {
-                      color: colors.ivory,
+                      color: colors.onBrand,
                       fontFamily: "CormorantGaramond_600SemiBold",
                     },
                   ]}
@@ -573,7 +573,7 @@ export default function JeweleryAccountScreen() {
                   <Text
                     style={[
                       styles.guestSignInText,
-                      { color: colors.ivory, fontFamily: "DMSans_500Medium" },
+                      { color: colors.onBrand, fontFamily: "DMSans_500Medium" },
                     ]}
                   >
                     Sign In

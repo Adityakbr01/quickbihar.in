@@ -85,9 +85,10 @@ export default function JeweleryProductDetailScreen() {
   const tryOnConfig = product.tryOn;
   const canTryOn = Boolean(tryOnConfig?.modelUrl);
 
-  const handleAddToCart = () => {
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    addToCart(product);
+  const handleAddToCart = async () => {
+    // Haptics come from the bridge (success/error) — don't pre-fire here.
+    const ok = await addToCart(product);
+    if (!ok) return;
     setAddedToCart(true);
     setTimeout(() => setAddedToCart(false), 1500);
   };
@@ -432,12 +433,12 @@ export default function JeweleryProductDetailScreen() {
           <Feather
             name={isInCart ? "arrow-right" : addedToCart ? "check" : "shopping-bag"}
             size={16}
-            color={colors.ivory}
+            color={colors.onBrand}
           />
           <Text
             style={[
               styles.addToCartText,
-              { color: colors.ivory, fontFamily: "DMSans_500Medium" },
+              { color: colors.onBrand, fontFamily: "DMSans_500Medium" },
             ]}
           >
             {isInCart

@@ -516,7 +516,7 @@ export default function JeweleryCheckoutScreen() {
     placeBtnLeft: { gap: 2 },
     placeBtnAmount: {
       fontSize: 18,
-      color: colors.ivory,
+      color: colors.onBrand,
       fontFamily: "CormorantGaramond_600SemiBold",
     },
     placeBtnLabel: {
@@ -526,7 +526,7 @@ export default function JeweleryCheckoutScreen() {
     },
     placeBtnText: {
       fontSize: 12,
-      color: colors.ivory,
+      color: colors.onBrand,
       fontFamily: "DMSans_500Medium",
       letterSpacing: 1.5,
     },
@@ -789,13 +789,13 @@ export default function JeweleryCheckoutScreen() {
             <Text style={styles.placeBtnLabel}>inclusive of all taxes</Text>
           </View>
           {isProcessingPayment ? (
-            <ActivityIndicator color={colors.ivory} size="small" />
+            <ActivityIndicator color={colors.onBrand} size="small" />
           ) : (
             <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
               <Text style={styles.placeBtnText}>
                 {paymentMethod === "COD" ? "PLACE ORDER" : "PAY & ORDER"}
               </Text>
-              <Feather name="arrow-right" size={14} color={colors.ivory} />
+              <Feather name="arrow-right" size={14} color={colors.onBrand} />
             </View>
           )}
         </TouchableOpacity>

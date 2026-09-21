@@ -27,6 +27,10 @@ export const jeweleryColors = {
   ivory: "#F7F3EC",
   pearl: "#EDE8DF",
   gold: "#B8924A",
+  // Fixed cream for content sitting on brand fills (gold/emerald buttons,
+  // badges). Unlike `ivory` it does NOT flip in dark mode, where ivory
+  // becomes near-black and vanishes on dark fills.
+  onBrand: "#F7F3EC",
   radius: 2,
   light: {
     text: "#1A1614",
@@ -57,6 +61,7 @@ export const jeweleryColors = {
     ivory: "#F7F3EC",
     pearl: "#EDE8DF",
     gold: "#B8924A",
+    onBrand: "#F7F3EC",
   },
   dark: {
     text: "#F0E8D8",
@@ -87,6 +92,7 @@ export const jeweleryColors = {
     ivory: "#120F0D",
     pearl: "#1E1915",
     gold: "#C9A05A",
+    onBrand: "#F7F3EC",
   },
 };
 

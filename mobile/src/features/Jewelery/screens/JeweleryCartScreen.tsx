@@ -365,7 +365,7 @@ export default function JeweleryCartScreen() {
               <Text
                 style={[
                   styles.checkoutBtnText,
-                  { color: colors.ivory, fontFamily: "DMSans_500Medium" },
+                  { color: colors.onBrand, fontFamily: "DMSans_500Medium" },
                 ]}
               >
                 Place Order

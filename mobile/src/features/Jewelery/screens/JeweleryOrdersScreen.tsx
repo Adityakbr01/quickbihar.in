@@ -429,14 +429,14 @@ export default function JeweleryOrdersScreen() {
                 style={[
                   styles.emptyBtnText,
                   {
-                    color: colors.ivory,
+                    color: colors.onBrand,
                     fontFamily: "DMSans_600SemiBold",
                   },
                 ]}
               >
                 EXPLORE COLLECTIONS
               </Text>
-              <Feather name="arrow-right" size={14} color={colors.ivory} />
+              <Feather name="arrow-right" size={14} color={colors.onBrand} />
             </TouchableOpacity>
           </View>
         )}

@@ -274,11 +274,11 @@ export default function JeweleryAddressesScreen() {
                             { backgroundColor: colors.gold },
                           ]}
                         >
-                          <Feather name="check" size={10} color={colors.ivory} />
+                          <Feather name="check" size={10} color={colors.onBrand} />
                           <Text
                             style={[
                               styles.badgeText,
-                              { color: colors.ivory, fontFamily: "DMSans_700Bold" },
+                              { color: colors.onBrand, fontFamily: "DMSans_700Bold" },
                             ]}
                           >
                             DEFAULT
@@ -482,11 +482,11 @@ export default function JeweleryAddressesScreen() {
               onPress={handleAddAddress}
               activeOpacity={0.88}
             >
-              <Feather name="plus" size={15} color={colors.ivory} />
+              <Feather name="plus" size={15} color={colors.onBrand} />
               <Text
                 style={[
                   styles.addFirstBtnText,
-                  { color: colors.ivory, fontFamily: "DMSans_600SemiBold" },
+                  { color: colors.onBrand, fontFamily: "DMSans_600SemiBold" },
                 ]}
               >
                 ADD DELIVERY ADDRESS
@@ -509,7 +509,7 @@ export default function JeweleryAddressesScreen() {
           onPress={handleAddAddress}
           activeOpacity={0.88}
         >
-          <Feather name="plus" size={22} color={colors.ivory} />
+          <Feather name="plus" size={22} color={colors.onBrand} />
         </TouchableOpacity>
       )}
 
