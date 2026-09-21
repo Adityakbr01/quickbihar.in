@@ -7,6 +7,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  useWindowDimensions,
   View,
 } from "react-native";
 
@@ -71,6 +72,7 @@ export const HelpSupportSheet: React.FC<HelpSupportSheetProps> = ({
   const colors = useColors();
   const sheet = useSheet();
   const [channel, setChannel] = useState<Channel | null>(null);
+  const { height: winH } = useWindowDimensions();
 
   // Imperative present/dismiss from the parent `visible` prop.
   useEffect(() => {
@@ -123,6 +125,10 @@ export const HelpSupportSheet: React.FC<HelpSupportSheetProps> = ({
 
       <ScrollView
         showsVerticalScrollIndicator={false}
+        nestedScrollEnabled
+        // Bounded height is what makes this scroll: inside the auto-sized
+        // sheet an unbounded ScrollView grows past the screen instead.
+        style={{ maxHeight: Math.round(winH * 0.62) }}
         contentContainerStyle={s.content}
       >
         {channel === null ? (

@@ -31,7 +31,7 @@ interface WriteReviewModalProps {
     comment: string;
   }) => Promise<void>;
   productTitle?: string;
-  theme: Theme;
+  theme: Theme & { radius?: number };
 }
 
 const RATING_LABELS: Record<number, string> = {
@@ -107,7 +107,7 @@ export const WriteReviewModal: React.FC<WriteReviewModalProps> = ({
   };
 
   return (
-      <Sheet ref={sheet} onDidDismiss={onClose} backgroundColor={theme.background}>
+      <Sheet ref={sheet} onDidDismiss={onClose} backgroundColor={theme.background} cornerRadius={theme.radius ?? 24}>
       <SheetHeader
         title="Write a Review"
         subtitle={productTitle}
@@ -159,7 +159,7 @@ export const WriteReviewModal: React.FC<WriteReviewModalProps> = ({
             containerStyle={{ marginBottom: 0 }}
             inputContainerStyle={{
               backgroundColor: theme.tertiaryBackground,
-              borderRadius: 10,
+              borderRadius: theme.radius ?? 10,
               borderWidth: 1,
               paddingHorizontal: 14,
               height: 48,
@@ -184,7 +184,7 @@ export const WriteReviewModal: React.FC<WriteReviewModalProps> = ({
             containerStyle={{ marginBottom: 0 }}
             inputContainerStyle={{
               backgroundColor: theme.tertiaryBackground,
-              borderRadius: 10,
+              borderRadius: theme.radius ?? 10,
               borderWidth: 1,
               paddingHorizontal: 14,
               paddingVertical: 12,
@@ -203,7 +203,11 @@ export const WriteReviewModal: React.FC<WriteReviewModalProps> = ({
         <TouchableOpacity
           style={[
             styles.submitBtn,
-            { backgroundColor: theme.primary, opacity: isSubmitting ? 0.7 : 1 },
+            {
+              backgroundColor: theme.primary,
+              borderRadius: theme.radius ?? 10,
+              opacity: isSubmitting ? 0.7 : 1,
+            },
           ]}
           disabled={isSubmitting}
           onPress={handleSubmit}
