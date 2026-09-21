@@ -2,10 +2,9 @@ import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import React, { useRef } from "react";
 import {
-  Platform,
   Pressable,
   StyleSheet,
-  TextInput,
+  TextInput as RNTextInput,
   View,
 } from "react-native";
 import Animated, {
@@ -14,6 +13,7 @@ import Animated, {
   withSpring,
 } from "react-native-reanimated";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
+import { TextInput } from "@/src/theme/components/TextInput";
 
 interface SearchHeaderProps {
   query: string;
@@ -31,7 +31,7 @@ const SearchHeader = ({
   onBack
 }: SearchHeaderProps) => {
   const theme = useTheme();
-  const inputRef = useRef<TextInput>(null);
+  const inputRef = useRef<RNTextInput>(null);
 
   // Animations
   const focusAnim = useSharedValue(0);
@@ -66,30 +66,40 @@ const SearchHeader = ({
           containerStyle,
         ]}
       >
-        <Ionicons
-          name="search-outline"
-          size={20}
-          color={theme.secondaryText}
-          style={styles.searchIcon}
-        />
         <TextInput
           ref={inputRef}
           value={query}
           onChangeText={setQuery}
           placeholder="Search products"
           placeholderTextColor={theme.tertiaryText}
-          style={[styles.input, { color: theme.text }]}
-          onFocus={handleFocus}
-          onBlur={handleBlur}
           autoFocus={false}
           returnKeyType="search"
           onSubmitEditing={onSubmit}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
+          icon={
+            <Ionicons
+              name="search-outline"
+              size={20}
+              color={theme.secondaryText}
+            />
+          }
+          rightIcon={
+            query.length > 0 ? (
+              <Pressable onPress={handleClear} style={styles.clearBtn}>
+                <Ionicons name="close-circle" size={20} color={theme.tertiaryText} />
+              </Pressable>
+            ) : undefined
+          }
+          containerStyle={{ marginBottom: 0, flex: 1 }}
+          inputContainerStyle={{
+            backgroundColor: "transparent",
+            borderWidth: 0,
+            paddingHorizontal: 0,
+            paddingVertical: 0,
+          }}
+          style={{ fontSize: 16, color: theme.text }}
         />
-        {query.length > 0 && (
-          <Pressable onPress={handleClear} style={styles.clearBtn}>
-            <Ionicons name="close-circle" size={20} color={theme.tertiaryText} />
-          </Pressable>
-        )}
       </Animated.View>
     </View>
   );
@@ -106,18 +116,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: 12,
     height: 48,
-  },
-  searchIcon: {
-    marginRight: 8,
-  },
-  input: {
-    flex: 1,
-    fontSize: 16,
-    height: "100%",
-    paddingVertical: 0,
-    ...Platform.select({
-      web: { outlineStyle: "none" } as any,
-    }),
   },
   clearBtn: {
     padding: 4,

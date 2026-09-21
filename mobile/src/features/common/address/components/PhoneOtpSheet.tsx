@@ -14,7 +14,7 @@ import {
   Modal,
   Platform,
   Text,
-  TextInput,
+  TextInput as RNTextInput,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -23,6 +23,7 @@ import { sendPhoneOtpRequest, verifyPhoneOtpRequest } from "../api/address.api";
 import { createAddressStyles } from "../style/addressStyles";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
+import { TextInput } from "@/src/theme/components/TextInput";
 
 
 interface PhoneOtpSheetProps {
@@ -49,7 +50,7 @@ const PhoneOtpSheet: React.FC<PhoneOtpSheetProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [countdown, setCountdown] = useState(0);
 
-  const otpInputRef = useRef<TextInput>(null);
+  const otpInputRef = useRef<RNTextInput>(null);
   const slideAnim = useRef(new Animated.Value(400)).current;
 
   // Reset state when sheet opens
@@ -175,9 +176,8 @@ const PhoneOtpSheet: React.FC<PhoneOtpSheetProps> = ({
                 We'll send a 6-digit OTP to your WhatsApp
               </Text>
 
-              {/* Phone input reusing existing input style */}
+              {/* Phone input */}
               <TextInput
-                style={[styles.input, error ? { borderColor: "#FF3B30" } : {}]}
                 placeholder="e.g. 9876543210"
                 placeholderTextColor={theme.tertiaryText}
                 keyboardType="phone-pad"
@@ -190,11 +190,15 @@ const PhoneOtpSheet: React.FC<PhoneOtpSheetProps> = ({
                 autoFocus
                 returnKeyType="send"
                 onSubmitEditing={handleSendOtp}
+                error={error ?? undefined}
+                icon={
+                  <Text style={{ color: theme.secondaryText, fontWeight: "600" }}>
+                    +91
+                  </Text>
+                }
+                containerStyle={{ marginBottom: 0 }}
+                style={{ color: theme.text }}
               />
-
-              {error && (
-                <Text style={styles.errorText}>{error}</Text>
-              )}
 
               <TouchableOpacity
                 style={styles.otpPrimaryButton}
@@ -241,8 +245,8 @@ const PhoneOtpSheet: React.FC<PhoneOtpSheetProps> = ({
                   ))}
                 </TouchableOpacity>
 
-                {/* Hidden real text input */}
-                <TextInput
+                {/* Hidden real text input (invisible 6-digit capture) */}
+                <RNTextInput
                   ref={otpInputRef}
                   style={styles.otpHiddenInput}
                   keyboardType="number-pad"

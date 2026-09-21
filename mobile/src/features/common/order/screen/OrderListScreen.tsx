@@ -87,15 +87,23 @@ const OrderListScreen = () => {
 
   const renderOrderItem = ({ item }: { item: any }) => {
     const isJeweleryOrder =
-      item.module === "jewelery" ||
-      item.vertical === "JEWELERY" ||
-      item.items?.some(
-        (i: any) =>
-          i.module === "jewelery" ||
-          i.vertical === "JEWELERY" ||
-          i.productId?.vertical === "JEWELERY" ||
-          Boolean(i.productId?.jeweleryDetails)
-      );
+      String(item.module || "").toLowerCase() === "jewelery" ||
+      String(item.module || "").toLowerCase() === "jewellery" ||
+      String(item.vertical || "").toLowerCase() === "jewelery" ||
+      String(item.vertical || "").toLowerCase() === "jewellery" ||
+      item.items?.some((i: any) => {
+        const p = typeof i.productId === "object" ? i.productId : null;
+        const v = String(i.vertical || p?.vertical || "").toLowerCase();
+        const m = String(i.module || p?.module || "").toLowerCase();
+        return (
+          v === "jewelery" ||
+          v === "jewellery" ||
+          m === "jewelery" ||
+          m === "jewellery" ||
+          Boolean(i.jeweleryDetails) ||
+          Boolean(p?.jeweleryDetails)
+        );
+      });
 
     return (
       <TouchableOpacity

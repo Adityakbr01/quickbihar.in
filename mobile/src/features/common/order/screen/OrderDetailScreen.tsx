@@ -184,6 +184,38 @@ export default function OrderDetailScreen() {
     }
   };
 
+  // If a jewelery order was opened on the clothing order detail route,
+  // seamlessly redirect to the dedicated jewelery order detail screen.
+  useEffect(() => {
+    if (order && order.orderId) {
+      const isJeweleryOrder =
+        String(order.module || "").toLowerCase() === "jewelery" ||
+        String(order.module || "").toLowerCase() === "jewellery" ||
+        String(order.vertical || "").toLowerCase() === "jewelery" ||
+        String(order.vertical || "").toLowerCase() === "jewellery" ||
+        order.items?.some((i: any) => {
+          const p = typeof i.productId === "object" ? i.productId : null;
+          const v = String(i.vertical || p?.vertical || "").toLowerCase();
+          const m = String(i.module || p?.module || "").toLowerCase();
+          return (
+            v === "jewelery" ||
+            v === "jewellery" ||
+            m === "jewelery" ||
+            m === "jewellery" ||
+            Boolean(i.jeweleryDetails) ||
+            Boolean(p?.jeweleryDetails)
+          );
+        });
+
+      if (isJeweleryOrder) {
+        router.replace({
+          pathname: "/jewelery/orders/[id]" as any,
+          params: { id: order.orderId },
+        });
+      }
+    }
+  }, [order, router]);
+
   const handleRefresh = async () => {
     setIsRefreshing(true);
     await fetchOrderDetails(false);

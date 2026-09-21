@@ -4,7 +4,7 @@ import type { IOrder, OrderStatus } from "./order.type";
 const orderPopulate = [
     { path: "userId", select: "fullName email phone" },
     { path: "delivery.partnerUserId", select: "fullName email phone" },
-    { path: "items.productId", select: "title images thumbnail mainImage vertical" },
+    { path: "items.productId", select: "title images thumbnail mainImage vertical module jeweleryDetails slug" },
 ];
 
 export class OrderDAO {
@@ -34,7 +34,7 @@ export class OrderDAO {
 
     async findByUserId(userId: string) {
         return await Order.find({ userId })
-            .populate("delivery.partnerUserId", "fullName email phone")
+            .populate(orderPopulate)
             .sort({ createdAt: -1 });
     }
 

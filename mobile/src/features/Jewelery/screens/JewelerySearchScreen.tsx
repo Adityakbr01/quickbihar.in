@@ -10,7 +10,6 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -19,6 +18,7 @@ import { ProductCard } from "@/src/features/Jewelery/components/ProductCard";
 import { useJewelerySearch } from "@/src/features/Jewelery/hooks/useJeweleryCatalog";
 import { goBack } from "@/src/utils/navigation";
 import { useColors } from "@/src/features/Jewelery/hooks/useColors";
+import { TextInput } from "@/src/theme/components/TextInput";
 
 const popularSearches = [
   "Gold pendant",
@@ -61,32 +61,38 @@ export default function JewelerySearchScreen() {
           },
         ]}
       >
-        <View
-          style={[
-            styles.searchBar,
-            { backgroundColor: colors.pearl, borderColor: colors.midGray },
-          ]}
-        >
-          <Feather name="search" size={16} color={colors.warmGray} />
-          <TextInput
-            style={[
-              styles.input,
-              { color: colors.ink, fontFamily: "DMSans_400Regular" },
-            ]}
-            placeholder="Search for jewellery..."
-            placeholderTextColor={colors.warmGray}
-            value={query}
-            onChangeText={setQuery}
-            autoFocus
-            returnKeyType="search"
-            onSubmitEditing={Keyboard.dismiss}
-          />
-          {query.length > 0 && (
-            <Pressable onPress={() => setQuery("")} hitSlop={8}>
-              <Feather name="x" size={16} color={colors.warmGray} />
-            </Pressable>
-          )}
-        </View>
+        <TextInput
+          value={query}
+          onChangeText={setQuery}
+          placeholder="Search for jewellery..."
+          placeholderTextColor={colors.warmGray}
+          autoFocus
+          returnKeyType="search"
+          onSubmitEditing={Keyboard.dismiss}
+          icon={<Feather name="search" size={16} color={colors.warmGray} />}
+          rightIcon={
+            query.length > 0 ? (
+              <Pressable onPress={() => setQuery("")} hitSlop={8}>
+                <Feather name="x" size={16} color={colors.warmGray} />
+              </Pressable>
+            ) : undefined
+          }
+          focusBorderColor={colors.gold}
+          containerStyle={{ marginBottom: 0, flex: 1 }}
+          inputContainerStyle={{
+            backgroundColor: colors.pearl,
+            borderWidth: 0.5,
+            borderRadius: 2,
+            paddingHorizontal: 12,
+            paddingVertical: 10,
+            minHeight: 44,
+          }}
+          style={{
+            fontSize: 14,
+            color: colors.ink,
+            fontFamily: "DMSans_400Regular",
+          }}
+        />
         <Pressable onPress={() => {
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
           goBack(router);
@@ -214,17 +220,6 @@ const styles = StyleSheet.create({
     paddingBottom: 14,
     borderBottomWidth: 0.5,
   },
-  searchBar: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderWidth: 0.5,
-    borderRadius: 2,
-  },
-  input: { flex: 1, fontSize: 14 },
   cancelText: { fontSize: 13 },
   suggestions: { padding: 20, gap: 14 },
   sugLabel: { fontSize: 9, letterSpacing: 2 },

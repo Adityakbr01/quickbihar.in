@@ -4,7 +4,6 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -18,6 +17,7 @@ import {
   useSheet,
 } from "@/src/components/common/BottomSheet";
 import { spacing } from "@/src/theme/spacing";
+import { TextInput } from "@/src/theme/components/TextInput";
 
 /** A short summary of a cart line that a coupon applies to. */
 export interface MatchingItem {
@@ -446,41 +446,50 @@ export const CouponBottomSheet: React.FC<CouponBottomSheetProps> = ({
       />
 
       {/* Manual Coupon Input inside Sheet */}
-      <View style={styles.inputContainer}>
-        <Ionicons
-          name="pricetag-outline"
-          size={18}
-          color={theme.secondaryText}
-          style={{ marginRight: 8 }}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Enter coupon code"
-          placeholderTextColor={theme.secondaryText}
-          value={manualCode}
-          onChangeText={setManualCode}
-          autoCapitalize="characters"
-          autoCorrect={false}
-        />
-        <TouchableOpacity
-          style={[
-            styles.manualApplyBtn,
-            {
-              backgroundColor: manualCode.trim()
-                ? theme.primary
-                : theme.border,
-            },
-          ]}
-          onPress={() => handleApply(manualCode)}
-          disabled={!manualCode.trim() || isLoading}
-        >
-          {applyingCode === manualCode.trim().toUpperCase() ? (
-            <ActivityIndicator size="small" color="#fff" />
-          ) : (
-            <Text style={styles.manualApplyBtnText}>Apply</Text>
-          )}
-        </TouchableOpacity>
-      </View>
+      <TextInput
+        placeholder="Enter coupon code"
+        placeholderTextColor={theme.secondaryText}
+        value={manualCode}
+        onChangeText={setManualCode}
+        autoCapitalize="characters"
+        autoCorrect={false}
+        icon={
+          <Ionicons
+            name="pricetag-outline"
+            size={18}
+            color={theme.secondaryText}
+          />
+        }
+        rightIcon={
+          <TouchableOpacity
+            style={[
+              styles.manualApplyBtn,
+              {
+                backgroundColor: manualCode.trim()
+                  ? theme.primary
+                  : theme.border,
+              },
+            ]}
+            onPress={() => handleApply(manualCode)}
+            disabled={!manualCode.trim() || isLoading}
+          >
+            {applyingCode === manualCode.trim().toUpperCase() ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <Text style={styles.manualApplyBtnText}>Apply</Text>
+            )}
+          </TouchableOpacity>
+        }
+        containerStyle={{ marginBottom: 16, marginHorizontal: spacing.lg }}
+        inputContainerStyle={{
+          backgroundColor: theme.tertiaryBackground,
+          borderRadius: 12,
+          paddingHorizontal: 12,
+          height: 48,
+          borderWidth: 1,
+        }}
+        style={{ fontSize: 14, fontWeight: "600", color: theme.text }}
+      />
 
       {/* Coupon List */}
       <ScrollView
@@ -566,24 +575,6 @@ export const CouponBottomSheet: React.FC<CouponBottomSheetProps> = ({
 
 const createStyles = (theme: any) =>
   StyleSheet.create({
-    inputContainer: {
-      flexDirection: "row",
-      alignItems: "center",
-      backgroundColor: theme.tertiaryBackground,
-      borderRadius: 12,
-      paddingHorizontal: 12,
-      height: 48,
-      borderWidth: 1,
-      borderColor: theme.border,
-      marginHorizontal: spacing.lg,
-      marginBottom: 16,
-    },
-    input: {
-      flex: 1,
-      fontSize: 14,
-      fontWeight: "600",
-      color: theme.text,
-    },
     manualApplyBtn: {
       paddingHorizontal: 14,
       paddingVertical: 6,

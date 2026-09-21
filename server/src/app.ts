@@ -86,6 +86,7 @@ import mallRouter from "./modules/common/mall/mall.router";
 import deliveryRouter from "./modules/common/delivery/delivery.router";
 import fulfillmentEventRouter from "./modules/common/fulfillment/fulfillmentEvent.router";
 import notificationRouter from "./modules/common/notification/notification.router";
+import newsletterRouter from "./modules/common/newsletter/newsletter.router";
 import contentRouter from "./modules/common/content/content.router";
 import seoRouter from "./modules/common/seo/seo.router";
 import { ApiResponse } from "./utils/ApiResponse";
@@ -98,6 +99,7 @@ app.use("/api/v1/malls", mallRouter);
 app.use("/api/v1/delivery", deliveryRouter);
 app.use("/api/v1/events", fulfillmentEventRouter);
 app.use("/api/v1/notifications", notificationRouter);
+app.use("/api/v1/newsletter", newsletterRouter);
 app.use("/api/v1/onboarding", onboardingRouter); // working
 app.use("/api/v1/stores", storeRouter);  // working
 app.use("/api/v1/categories", categoryRouter);

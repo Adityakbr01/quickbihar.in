@@ -2,7 +2,6 @@ import React, { useState, useMemo } from "react";
 import {
   View,
   Text,
-  TextInput,
   TouchableOpacity,
   Image,
   StyleSheet,
@@ -18,6 +17,7 @@ import SafeViewWrapper from "@/src/provider/SafeViewWrapper";
 import { usePublicMalls } from "@/src/features/clothing/home/hooks/useMalls";
 import { LinearGradient } from "expo-linear-gradient";
 import { SeoHead } from "@/src/components/seo/SeoHead";
+import { TextInput } from "@/src/theme/components/TextInput";
 import { staticPageMeta } from "@/src/lib/seo";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
@@ -110,21 +110,29 @@ export default function AllMallsScreen() {
 
       {/* Search Header */}
       <View style={[styles.searchContainer, { borderBottomColor: theme.border }]}>
-        <View style={[styles.searchBar, { backgroundColor: theme.secondaryBackground, borderColor: theme.border }]}>
-          <Ionicons name="search-outline" size={20} color={theme.tertiaryText} style={styles.searchIcon} />
-          <TextInput
-            placeholder="Search malls by name or city..."
-            placeholderTextColor={theme.tertiaryText}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            style={[styles.searchInput, { color: theme.text }]}
-          />
-          {searchQuery ? (
-            <TouchableOpacity onPress={() => setSearchQuery("")}>
-              <Ionicons name="close-circle" size={18} color={theme.tertiaryText} />
-            </TouchableOpacity>
-          ) : null}
-        </View>
+        <TextInput
+          placeholder="Search malls by name or city..."
+          placeholderTextColor={theme.tertiaryText}
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          icon={<Ionicons name="search-outline" size={20} color={theme.tertiaryText} />}
+          rightIcon={
+            searchQuery ? (
+              <TouchableOpacity onPress={() => setSearchQuery("")}>
+                <Ionicons name="close-circle" size={18} color={theme.tertiaryText} />
+              </TouchableOpacity>
+            ) : undefined
+          }
+          containerStyle={{ marginBottom: 0 }}
+          inputContainerStyle={{
+            backgroundColor: theme.secondaryBackground,
+            borderRadius: 12,
+            paddingHorizontal: 12,
+            height: 44,
+            borderWidth: 1,
+          }}
+          style={{ fontSize: 14, color: theme.text }}
+        />
       </View>
 
       <FlashList
@@ -226,23 +234,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-  },
-  searchBar: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderWidth: 1,
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    height: 44,
-  },
-  searchIcon: {
-    marginRight: 8,
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: 14,
-    height: "100%",
-    padding: 0,
   },
   listContent: {
     padding: 16,

@@ -4,7 +4,6 @@ import {
   Keyboard,
   ScrollView,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -26,6 +25,7 @@ import {
   useSheet,
 } from "@/src/components/common/BottomSheet";
 import PhoneOtpSheet from "@/src/features/common/address/components/PhoneOtpSheet";
+import { TextInput } from "@/src/theme/components/TextInput";
 
 const EditProfileModal = () => {
   const theme = useTheme();
@@ -164,21 +164,17 @@ const EditProfileModal = () => {
               name="fullName"
               render={({ field: { onChange, onBlur, value } }) => (
                 <TextInput
-                  style={[
-                    styles.input,
-                    errors.fullName && { borderColor: theme.error },
-                  ]}
                   onBlur={onBlur}
                   onChangeText={onChange}
                   value={value}
                   placeholder="Enter your full name"
                   placeholderTextColor={theme.tertiaryText}
+                  error={errors.fullName?.message}
+                  containerStyle={{ marginBottom: 0 }}
+                  style={{ color: theme.text }}
                 />
               )}
             />
-            {errors.fullName && (
-              <Text style={styles.errorText}>{errors.fullName.message}</Text>
-            )}
           </View>
 
           {/* Phone Field — read-only; user must tap Verify/Change to update via OTP */}
@@ -186,12 +182,14 @@ const EditProfileModal = () => {
             <Text style={styles.inputLabel}>Phone Number</Text>
             <View style={{ flexDirection: "row", gap: 8, alignItems: "center" }}>
               <TextInput
-                style={[styles.input, { flex: 1 }, errors.phone && { borderColor: theme.error }]}
                 value={currentPhone}
                 placeholder="Tap 'Verify' to add"
                 placeholderTextColor={theme.tertiaryText}
                 editable={false}
                 keyboardType="phone-pad"
+                error={errors.phone?.message}
+                containerStyle={{ marginBottom: 0, flex: 1 }}
+                style={{ color: theme.text }}
               />
               <TouchableOpacity
                 onPress={() => setOtpSheetVisible(true)}
@@ -224,9 +222,6 @@ const EditProfileModal = () => {
                 </Text>
               </View>
             ) : null}
-            {errors.phone && (
-              <Text style={styles.errorText}>{errors.phone.message}</Text>
-            )}
           </View>
 
           <TouchableOpacity

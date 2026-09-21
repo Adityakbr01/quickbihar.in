@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Keyboard, Platform, Pressable, StyleSheet, TextInput } from "react-native";
+import { Keyboard, Platform, Pressable, StyleSheet, TextInput as RNTextInput } from "react-native";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -9,6 +9,7 @@ import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
+import { TextInput } from "@/src/theme/components/TextInput";
 
 const SEARCH_COLLAPSED = 38;
 
@@ -31,7 +32,7 @@ export const ExpandableSearchBar: React.FC<ExpandableSearchBarProps> = ({
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchText, setSearchText] = useState("");
   const isSearchOpenRef = useRef(false);
-  const inputRef = useRef<TextInput>(null);
+  const inputRef = useRef<RNTextInput>(null);
 
   const openSearch = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -96,17 +97,21 @@ export const ExpandableSearchBar: React.FC<ExpandableSearchBarProps> = ({
       {isSearchOpen && (
         <TextInput
           ref={inputRef}
-          style={[
-            styles.expandedInput,
-            { color: theme.text },
-            isWeb && ({ outline: "none", backgroundColor: "transparent" } as any),
-          ]}
           placeholder={placeholder}
           placeholderTextColor={theme.tertiaryText}
           returnKeyType="search"
           value={searchText}
           onChangeText={setSearchText}
           onSubmitEditing={handleSearchSubmit}
+          containerStyle={{ marginBottom: 0, flex: 1 }}
+          inputContainerStyle={{
+            backgroundColor: "transparent",
+            borderWidth: 0,
+            paddingHorizontal: 0,
+            paddingVertical: 0,
+            height: 38,
+          }}
+          style={{ fontSize: 14, color: theme.text }}
         />
       )}
     </Animated.View>
@@ -126,11 +131,5 @@ const styles = StyleSheet.create({
     height: 38,
     alignItems: "center",
     justifyContent: "center",
-  },
-  expandedInput: {
-    flex: 1,
-    height: 38,
-    paddingRight: 12,
-    fontSize: 14,
   },
 });

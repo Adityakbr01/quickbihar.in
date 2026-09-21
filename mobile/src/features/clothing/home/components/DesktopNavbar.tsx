@@ -4,7 +4,6 @@ import {
   Pressable,
   StyleSheet,
   Text,
-  TextInput,
   View,
   useWindowDimensions,
 } from "react-native";
@@ -17,6 +16,7 @@ import { useCartStore } from "@/src/features/common/cart/store/cartStore";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
 import { ModuleSwitcherButton } from "@/src/components/common/ModuleSwitcherButton";
 import { BREAKPOINTS, DESKTOP } from "@/src/utils/responsive";
+import { TextInput } from "@/src/theme/components/TextInput";
 
 /**
  * Desktop-only top navbar for the clothing catalog (web >= 1024px).
@@ -149,43 +149,48 @@ export const DesktopNavbar = () => {
         </Pressable>
 
         {/* Search */}
-        <View
-          style={[
-            styles.searchBar,
-            {
-              backgroundColor: theme.secondaryBackground,
-              borderColor: focused ? theme.primary : theme.border,
-            },
-          ]}
-        >
-          <Ionicons
-            name="search"
-            size={18}
-            color={focused ? theme.primary : theme.secondaryText}
-          />
-          <TextInput
-            value={query}
-            onChangeText={setQuery}
-            onSubmitEditing={submitSearch}
-            onFocus={() => setFocused(true)}
-            onBlur={() => setFocused(false)}
-            placeholder="Search for sarees, kurtas, jeans, shoes…"
-            placeholderTextColor={theme.tertiaryText}
-            returnKeyType="search"
-            style={[styles.searchInput, { color: theme.text }]}
-          />
-          {query.length > 0 ? (
-            <Pressable onPress={() => setQuery("")} style={styles.searchClear}>
-              <Ionicons name="close-circle" size={18} color={theme.secondaryText} />
-            </Pressable>
-          ) : null}
-          <Pressable
-            onPress={submitSearch}
-            style={[styles.searchBtn, { backgroundColor: theme.primary }]}
-          >
-            <Text style={styles.searchBtnText}>Search</Text>
-          </Pressable>
-        </View>
+        <TextInput
+          value={query}
+          onChangeText={setQuery}
+          onSubmitEditing={submitSearch}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          placeholder="Search for sarees, kurtas, jeans, shoes…"
+          placeholderTextColor={theme.tertiaryText}
+          returnKeyType="search"
+          icon={
+            <Ionicons
+              name="search"
+              size={18}
+              color={focused ? theme.primary : theme.secondaryText}
+            />
+          }
+          rightIcon={
+            <>
+              {query.length > 0 ? (
+                <Pressable onPress={() => setQuery("")} style={styles.searchClear}>
+                  <Ionicons name="close-circle" size={18} color={theme.secondaryText} />
+                </Pressable>
+              ) : null}
+              <Pressable
+                onPress={submitSearch}
+                style={[styles.searchBtn, { backgroundColor: theme.primary }]}
+              >
+                <Text style={styles.searchBtnText}>Search</Text>
+              </Pressable>
+            </>
+          }
+          containerStyle={{ marginBottom: 0, flex: 1, maxWidth: 560 }}
+          inputContainerStyle={{
+            backgroundColor: theme.secondaryBackground,
+            borderWidth: 1.5,
+            borderRadius: 999,
+            paddingLeft: 16,
+            paddingRight: 6,
+            paddingVertical: 5,
+          }}
+          style={{ fontSize: 15, fontWeight: "500", color: theme.text }}
+        />
 
         {/* Nav */}
         <View style={styles.navRow}>
@@ -252,19 +257,6 @@ const styles = StyleSheet.create({
   },
   brandName: { fontSize: 19, fontWeight: "900", letterSpacing: -0.4, lineHeight: 22 },
   brandSub: { fontSize: 10, fontWeight: "800", letterSpacing: 1.6, marginTop: 1 },
-  searchBar: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    borderWidth: 1.5,
-    borderRadius: 999,
-    paddingLeft: 16,
-    paddingRight: 6,
-    paddingVertical: 5,
-    gap: 10,
-    maxWidth: 560,
-  },
-  searchInput: { flex: 1, fontSize: 15, fontWeight: "500", paddingVertical: 8, outlineStyle: "none" as any },
   searchClear: { padding: 4 },
   searchBtn: { paddingHorizontal: 20, paddingVertical: 10, borderRadius: 999 },
   searchBtnText: { color: "#fff", fontWeight: "800", fontSize: 14 },

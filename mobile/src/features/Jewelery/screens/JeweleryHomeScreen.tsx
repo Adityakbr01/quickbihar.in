@@ -34,6 +34,8 @@ import {
 import { useJeweleryBestsellers, useJeweleryCategories, useJeweleryNewArrivals } from "@/src/features/Jewelery/hooks/useJeweleryCatalog";
 import type { Collection } from "@/src/features/Jewelery/data/collections";
 import { useColors } from "@/src/features/Jewelery/hooks/useColors";
+import { TextInput } from "@/src/theme/components/TextInput";
+import axiosInstance from "@/src/api/axiosInstance";
 
 const { width } = Dimensions.get("window");
 
@@ -561,6 +563,42 @@ function GiftingSection() {
 function NewsletterSection() {
   const colors = useColors();
   const [email, setEmail] = React.useState("");
+  const [status, setStatus] = React.useState<"idle" | "loading" | "done" | "error">("idle");
+  const [message, setMessage] = React.useState("");
+  const [focused, setFocused] = React.useState(false);
+
+  const subscribe = async () => {
+    const value = email.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      setStatus("error");
+      setMessage("Please enter a valid email address.");
+      return;
+    }
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    setStatus("loading");
+    setMessage("");
+    try {
+      const res = await axiosInstance.post("/newsletter/subscribe", {
+        email: value,
+        vertical: "JEWELERY",
+        source: "jewelery-home-newsletter",
+      });
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      setStatus("done");
+      setMessage(
+        res?.data?.message || "You're on the list. Welcome to the Circle!",
+      );
+      setEmail("");
+    } catch (err: any) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      setStatus("error");
+      setMessage(
+        err?.response?.data?.message ||
+          "Couldn't subscribe right now. Please try again.",
+      );
+    }
+  };
 
   return (
     <View
@@ -593,31 +631,106 @@ function NewsletterSection() {
       >
         New collections. Artisan stories. Early access. Festive drops.
       </Text>
-      <View style={[styles.newsletterInput, { borderColor: colors.midGray }]}>
-        <Text
+      {status === "done" ? (
+        <View
           style={[
-            styles.newsletterPlaceholder,
-            { color: colors.warmGray, fontFamily: "DMSans_400Regular" },
+            styles.newsletterDone,
+            { borderColor: colors.gold, backgroundColor: colors.champagne },
           ]}
-        >
-          Your email →
-        </Text>
-        <Pressable
-          style={[styles.joinBtn, { backgroundColor: colors.gold }]}
-          onPress={() =>
-            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
-          }
         >
           <Text
             style={[
-              styles.joinBtnText,
-              { color: colors.ivory, fontFamily: "DMSans_500Medium" },
+              styles.newsletterDoneText,
+              { color: colors.ink, fontFamily: "DMSans_500Medium" },
             ]}
           >
-            Join the Circle
+            {message || "You're on the list. Welcome to the Circle!"}
           </Text>
-        </Pressable>
-      </View>
+        </View>
+      ) : (
+        <>
+          <View
+            style={[
+              styles.newsletterInput,
+              {
+                borderColor:
+                  status === "error"
+                    ? "#dc2626"
+                    : focused
+                      ? colors.gold
+                      : colors.midGray,
+              },
+            ]}
+          >
+            <TextInput
+              value={email}
+              onChangeText={(t) => {
+                setEmail(t);
+                if (status === "error") setStatus("idle");
+              }}
+              placeholder="Your email"
+              placeholderTextColor={colors.warmGray}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoCorrect={false}
+              returnKeyType="done"
+              onSubmitEditing={subscribe}
+              editable={status !== "loading"}
+              onFocus={() => setFocused(true)}
+              onBlur={() => setFocused(false)}
+              focusBorderColor={colors.gold}
+              containerStyle={{ marginBottom: 0, flex: 1 }}
+              inputContainerStyle={{
+                borderWidth: 0,
+                backgroundColor: "transparent",
+                paddingHorizontal: 14,
+                paddingVertical: 0,
+                borderRadius: 0,
+              }}
+              style={{
+                fontSize: 14,
+                color: colors.ink,
+                fontFamily: "DMSans_400Regular",
+                minHeight: 48,
+              }}
+            />
+            <Pressable
+              style={[
+                styles.joinBtn,
+                {
+                  backgroundColor: colors.gold,
+                  opacity: status === "loading" ? 0.7 : 1,
+                },
+              ]}
+              onPress={subscribe}
+              disabled={status === "loading"}
+            >
+              {status === "loading" ? (
+                <ActivityIndicator size="small" color={colors.ivory} />
+              ) : (
+                <Text
+                  style={[
+                    styles.joinBtnText,
+                    { color: colors.ivory, fontFamily: "DMSans_500Medium" },
+                  ]}
+                >
+                  Join the Circle
+                </Text>
+              )}
+            </Pressable>
+          </View>
+          {status === "error" && message ? (
+            <Text
+              style={[
+                styles.newsletterError,
+                { color: "#dc2626", fontFamily: "DMSans_400Regular" },
+              ]}
+            >
+              {message}
+            </Text>
+          ) : null}
+        </>
+      )}
       <Text
         style={[
           styles.newsletterFine,
@@ -891,17 +1004,29 @@ const styles = StyleSheet.create({
   },
   newsletterInput: {
     flexDirection: "row",
+    alignItems: "center",
     borderWidth: 1,
-    borderRadius: 1,
+    borderRadius: 2,
     overflow: "hidden",
     alignSelf: "stretch",
+    marginTop: 12,
+  },
+  newsletterError: {
+    fontSize: 12,
     marginTop: 8,
   },
-  newsletterPlaceholder: {
-    flex: 1,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 13,
+  newsletterDone: {
+    alignSelf: "stretch",
+    marginTop: 12,
+    padding: 16,
+    borderWidth: 0.5,
+    borderRadius: 2,
+    alignItems: "center",
+  },
+  newsletterDoneText: {
+    fontSize: 14,
+    textAlign: "center",
+    lineHeight: 20,
   },
   joinBtn: {
     paddingHorizontal: 16,

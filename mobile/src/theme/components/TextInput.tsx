@@ -4,6 +4,7 @@ import {
   View,
   TextInputProps as RNTextInputProps,
   StyleSheet,
+  Platform,
 } from "react-native";
 import { useTheme } from "../Provider/ThemeProvider";
 import ThemedText from "./ThemedText";
@@ -16,14 +17,19 @@ export interface TextInputProps extends RNTextInputProps {
   error?: string;
   variant?: "default" | "glass";
   containerStyle?: object;
+  /** Extra style for the bordered input row (bg, radius, padding). */
+  inputContainerStyle?: object;
+  /** Border color while focused. Defaults to theme.primary. */
+  focusBorderColor?: string;
 }
 
 export const TextInput = React.forwardRef<RNTextInput, TextInputProps>(
-  ({ label, icon, rightIcon, error, variant = "default", containerStyle, ...props }, ref) => {
+  ({ label, icon, rightIcon, error, variant = "default", containerStyle, inputContainerStyle, focusBorderColor, ...props }, ref) => {
     const theme = useTheme() as any;
     const [isFocused, setIsFocused] = useState(false);
 
     const isGlass = variant === "glass";
+    const activeBorder = focusBorderColor ?? theme.primary;
 
     const styles = StyleSheet.create({
       container: {
@@ -53,7 +59,7 @@ export const TextInput = React.forwardRef<RNTextInput, TextInputProps>(
               : isFocused
                 ? (theme.background === "#ffffff" ? "rgba(0, 0, 0, 0.4)" : "rgba(255, 255, 255, 0.6)")
                 : (theme.background === "#ffffff" ? "rgba(0, 0, 0, 0.08)" : "rgba(255, 255, 255, 0.15)"))
-          : (error ? theme.error : isFocused ? theme.primary : theme.border),
+          : (error ? theme.error : isFocused ? activeBorder : theme.border),
         gap: isGlass ? 12 : 10,
       },
       inputContainerFocused: {
@@ -72,6 +78,12 @@ export const TextInput = React.forwardRef<RNTextInput, TextInputProps>(
         fontSize: 16,
         color: theme.text,
         fontWeight: "500",
+        // Kill the browser's default focus outline on web — the container's
+        // focus border is the visible affordance everywhere.
+        ...Platform.select({
+          web: { outlineStyle: "none" } as any,
+          default: {},
+        }),
       },
       errorText: {
         fontSize: isGlass ? 13 : 12,
@@ -88,8 +100,9 @@ export const TextInput = React.forwardRef<RNTextInput, TextInputProps>(
         <View 
           style={[
             styles.inputContainer, 
+            inputContainerStyle,
             isFocused && styles.inputContainerFocused,
-            error ? styles.inputContainerError : null
+            error ? styles.inputContainerError : null,
           ]}
         >
           {icon && icon}

@@ -3,7 +3,6 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -12,6 +11,7 @@ import { Ionicons } from "@expo/vector-icons";
 import SafeViewWrapper from "@/src/provider/SafeViewWrapper";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { SeoHead } from "@/src/components/seo/SeoHead";
+import { TextInput } from "@/src/theme/components/TextInput";
 import { staticPageMeta, breadcrumbJsonLd, faqJsonLd } from "@/src/lib/seo";
 import HomeDeliveryLocations from "@/src/features/clothing/home/components/HomeDeliveryLocations";
 import { ALL_BUXAR_PAGES } from "@/src/constants/locations/buxar";
@@ -133,14 +133,6 @@ export default function InstantDeliveryRoute() {
 
             <View style={styles.pinInputRow}>
               <TextInput
-                style={[
-                  styles.pinInput,
-                  {
-                    backgroundColor: theme.background,
-                    color: theme.text,
-                    borderColor: theme.border || "#CBD5E1",
-                  },
-                ]}
                 placeholder="e.g. 802101"
                 placeholderTextColor="#94A3B8"
                 keyboardType="numeric"
@@ -150,6 +142,15 @@ export default function InstantDeliveryRoute() {
                   setPinQuery(t);
                   setPinResult(null);
                 }}
+                containerStyle={{ marginBottom: 0, flex: 1 }}
+                inputContainerStyle={{
+                  backgroundColor: theme.background,
+                  borderRadius: 10,
+                  paddingHorizontal: 12,
+                  height: 44,
+                  borderWidth: 1,
+                }}
+                style={{ fontSize: 15, fontWeight: "600", color: theme.text }}
               />
               <TouchableOpacity
                 style={styles.checkBtn}
@@ -283,15 +284,6 @@ const styles = StyleSheet.create({
   pinInputRow: {
     flexDirection: "row",
     gap: 8,
-  },
-  pinInput: {
-    flex: 1,
-    height: 44,
-    borderWidth: 1,
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    fontSize: 15,
-    fontWeight: "600",
   },
   checkBtn: {
     backgroundColor: "#4F46E5",

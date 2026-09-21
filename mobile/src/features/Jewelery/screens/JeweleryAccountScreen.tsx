@@ -343,7 +343,7 @@ export default function JeweleryAccountScreen() {
             </View>
 
             {/* Stats row */}
-            <Pressable
+            <View
               style={[
                 styles.statsRow,
                 {
@@ -351,15 +351,32 @@ export default function JeweleryAccountScreen() {
                   borderBottomColor: colors.midGray,
                 },
               ]}
-              onPress={() => router.push("/account/orders")}
             >
               {[
-                { label: "Orders", value: String(realOrders.length) },
-                { label: "Active", value: String(activeOrders.length) },
-                { label: "Wishlist", value: String(wishlist.length) },
+                {
+                  label: "Orders",
+                  value: String(realOrders.length),
+                  onPress: () => router.push("/jewelery/orders" as any),
+                },
+                {
+                  label: "Active",
+                  value: String(activeOrders.length),
+                  onPress: () => router.push("/jewelery/orders" as any),
+                },
+                {
+                  label: "Wishlist",
+                  value: String(wishlist.length),
+                  onPress: () => router.push("/jewelery/(tabs)/wishlist" as any),
+                },
               ].map((s, i) => (
                 <React.Fragment key={s.label}>
-                  <View style={styles.stat}>
+                  <Pressable
+                    style={styles.stat}
+                    onPress={() => {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                      s.onPress();
+                    }}
+                  >
                     <Text
                       style={[
                         styles.statValue,
@@ -382,7 +399,7 @@ export default function JeweleryAccountScreen() {
                     >
                       {s.label}
                     </Text>
-                  </View>
+                  </Pressable>
                   {i < 2 && (
                     <View
                       style={[
@@ -393,7 +410,7 @@ export default function JeweleryAccountScreen() {
                   )}
                 </React.Fragment>
               ))}
-            </Pressable>
+            </View>
 
             {/* Active order banner */}
             {activeOrders.length > 0 && (

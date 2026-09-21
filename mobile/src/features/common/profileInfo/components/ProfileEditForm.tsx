@@ -1,8 +1,9 @@
 import React from "react";
-import { View, Text, TextInput, TouchableOpacity, ActivityIndicator } from "react-native";
+import { View, Text, TouchableOpacity, ActivityIndicator } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Controller } from "react-hook-form";
 import { Theme } from "@/src/theme/Provider/ThemeProvider";
+import { TextInput } from "@/src/theme/components/TextInput";
 
 interface ProfileEditFormProps {
   control: any;
@@ -41,21 +42,17 @@ const ProfileEditForm: React.FC<ProfileEditFormProps> = ({
           name="fullName"
           render={({ field: { onChange, onBlur, value } }) => (
             <TextInput
-              style={[
-                styles.input,
-                errors.fullName && { borderColor: theme.error },
-              ]}
               onBlur={onBlur}
               onChangeText={onChange}
               value={value}
               placeholder="Full Name"
               placeholderTextColor={theme.tertiaryText}
+              error={errors.fullName?.message}
+              containerStyle={{ marginBottom: 0 }}
+              style={{ color: theme.text }}
             />
           )}
         />
-        {errors.fullName && (
-          <Text style={styles.errorText}>{errors.fullName.message}</Text>
-        )}
       </View>
 
       {/* Phone — read-only, must verify via OTP to change */}
@@ -63,16 +60,14 @@ const ProfileEditForm: React.FC<ProfileEditFormProps> = ({
         <Text style={styles.inputLabel}>Phone Number</Text>
         <View style={{ flexDirection: "row", gap: 8, alignItems: "center" }}>
           <TextInput
-            style={[
-              styles.input,
-              { flex: 1 },
-              errors.phone && { borderColor: theme.error },
-            ]}
             value={currentPhone}
             placeholder="Tap Verify to add"
             placeholderTextColor={theme.tertiaryText}
             editable={false}
             keyboardType="phone-pad"
+            error={errors.phone?.message}
+            containerStyle={{ marginBottom: 0, flex: 1 }}
+            style={{ color: theme.text }}
           />
           {onRequestPhoneVerify && (
             <TouchableOpacity
@@ -107,9 +102,6 @@ const ProfileEditForm: React.FC<ProfileEditFormProps> = ({
             </Text>
           </View>
         ) : null}
-        {errors.phone && (
-          <Text style={styles.errorText}>{errors.phone.message}</Text>
-        )}
       </View>
 
       <View style={styles.buttonRow}>

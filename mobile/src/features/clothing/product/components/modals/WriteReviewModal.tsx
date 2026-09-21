@@ -4,7 +4,6 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -13,6 +12,7 @@ import { Theme } from "@/src/theme/Provider/ThemeProvider";
 import * as Haptics from "expo-haptics";
 
 import { useRouter } from "expo-router";
+import { TextInput } from "@/src/theme/components/TextInput";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
 import {
   Sheet,
@@ -150,19 +150,20 @@ export const WriteReviewModal: React.FC<WriteReviewModalProps> = ({
             Review Title (Optional)
           </Text>
           <TextInput
-            style={[
-              styles.input,
-              {
-                backgroundColor: theme.tertiaryBackground,
-                borderColor: theme.border,
-                color: theme.text,
-              },
-            ]}
             placeholder="e.g. Great fabric and perfect fit"
             placeholderTextColor={theme.tertiaryText}
             value={title}
             onChangeText={setTitle}
             maxLength={80}
+            containerStyle={{ marginBottom: 0 }}
+            inputContainerStyle={{
+              backgroundColor: theme.tertiaryBackground,
+              borderRadius: 10,
+              borderWidth: 1,
+              paddingHorizontal: 14,
+              height: 48,
+            }}
+            style={{ fontSize: 14, color: theme.text }}
           />
         </View>
 
@@ -172,22 +173,23 @@ export const WriteReviewModal: React.FC<WriteReviewModalProps> = ({
             Your Experience *
           </Text>
           <TextInput
-            style={[
-              styles.textArea,
-              {
-                backgroundColor: theme.tertiaryBackground,
-                borderColor: theme.border,
-                color: theme.text,
-              },
-            ]}
             placeholder="How was the quality, fit, color, and delivery? Share details that will help other shoppers..."
             placeholderTextColor={theme.tertiaryText}
             value={comment}
             onChangeText={setComment}
             multiline
             numberOfLines={4}
-            textAlignVertical="top"
             maxLength={1000}
+            containerStyle={{ marginBottom: 0 }}
+            inputContainerStyle={{
+              backgroundColor: theme.tertiaryBackground,
+              borderRadius: 10,
+              borderWidth: 1,
+              paddingHorizontal: 14,
+              paddingVertical: 12,
+              minHeight: 110,
+            }}
+            style={{ fontSize: 14, color: theme.text, textAlignVertical: "top" }}
           />
           <Text style={[styles.charCount, { color: theme.tertiaryText }]}>
             {comment.length}/1000
@@ -249,20 +251,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: "600",
     marginBottom: 8,
-  },
-  input: {
-    height: 48,
-    borderRadius: 10,
-    borderWidth: 1,
-    paddingHorizontal: 14,
-    fontSize: 14,
-  },
-  textArea: {
-    minHeight: 110,
-    borderRadius: 10,
-    borderWidth: 1,
-    padding: 14,
-    fontSize: 14,
   },
   charCount: {
     fontSize: 11,

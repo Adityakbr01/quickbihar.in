@@ -11,7 +11,6 @@ import {
   Platform,
   ScrollView,
   Text,
-  TextInput,
   TouchableOpacity,
   useWindowDimensions,
   View,
@@ -23,6 +22,7 @@ import { DealProductSkeleton } from "../components/DealProductSkeleton";
 import { FilterBottomSheet } from "../components/FilterBottomSheet";
 import { FILTERS, GENDER_OPTIONS } from "../lib/dealsConfig";
 import { createMoreDealsSectionStyles } from "../style/MoreDealsSection.style";
+import { TextInput } from "@/src/theme/components/TextInput";
 
 // ── Icon mapping for categories by keyword ──
 // ponytail: linear scan on small fixed-size list — perfectly fine
@@ -432,51 +432,46 @@ export const MoreDealsFilters = ({
       <View
         style={{ paddingHorizontal: spacing.lg, marginBottom: 18, marginTop: 14 }}
       >
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
+        <TextInput
+          placeholder="Search products, brands..."
+          placeholderTextColor={theme.tertiaryText}
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          autoCapitalize="none"
+          returnKeyType="search"
+          selectionColor={theme.primary}
+          icon={
+            <View style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: theme.tertiaryBackground, alignItems: "center", justifyContent: "center" }}>
+              <Ionicons name="search" size={17} color={searchQuery ? theme.primary : theme.secondaryText} />
+            </View>
+          }
+          rightIcon={
+            <>
+              {searchQuery.length > 0 && Platform.OS !== "ios" ? (
+                <TouchableOpacity onPress={() => setSearchQuery("")} style={{ padding: 4, marginRight: 4 }}>
+                  <Ionicons name="close-circle" size={20} color={theme.secondaryText} />
+                </TouchableOpacity>
+              ) : null}
+              <TouchableOpacity
+                onPress={handleMicPress}
+                activeOpacity={0.8}
+                disabled={!isSpeechModuleAvailable}
+                style={{ width: 28, height: 28, borderRadius: 14, alignItems: "center", justifyContent: "center", backgroundColor: isListening ? theme.primary : "transparent", opacity: isSpeechModuleAvailable ? 1 : 0.5 }}
+              >
+                <Ionicons name={isListening ? "mic" : "mic-outline"} size={18} color={isListening ? "#fff" : theme.tertiaryText} />
+              </TouchableOpacity>
+            </>
+          }
+          containerStyle={{ marginBottom: 0 }}
+          inputContainerStyle={{
             backgroundColor: theme.secondaryBackground,
             borderRadius: 50,
             paddingHorizontal: 16,
-            paddingVertical: Platform.OS === "ios" ? 12 : 6,
+            paddingVertical: 9,
             borderWidth: 1,
-            borderColor: searchQuery ? theme.primary : theme.border,
-            shadowColor: theme.shadow,
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: searchQuery ? 0.16 : 0.08,
-            shadowRadius: 10,
-            elevation: searchQuery ? 4 : 2,
           }}
-        >
-          <View style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: theme.tertiaryBackground, alignItems: "center", justifyContent: "center", marginRight: 10 }}>
-            <Ionicons name="search" size={17} color={searchQuery ? theme.primary : theme.secondaryText} />
-          </View>
-          <TextInput
-            placeholder="Search products, brands..."
-            placeholderTextColor={theme.tertiaryText}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            autoCapitalize="none"
-            returnKeyType="search"
-            style={{ flex: 1, color: theme.text, fontSize: 16, fontWeight: "500", letterSpacing: -0.2 }}
-            selectionColor={theme.primary}
-            clearButtonMode="while-editing"
-          />
-          {searchQuery.length > 0 && Platform.OS !== "ios" ? (
-            <TouchableOpacity onPress={() => setSearchQuery("")} style={{ padding: 4, marginRight: 4 }}>
-              <Ionicons name="close-circle" size={20} color={theme.secondaryText} />
-            </TouchableOpacity>
-          ) : null}
-          <TouchableOpacity
-            onPress={handleMicPress}
-            activeOpacity={0.8}
-            disabled={!isSpeechModuleAvailable}
-            style={{ width: 28, height: 28, borderRadius: 14, alignItems: "center", justifyContent: "center", backgroundColor: isListening ? theme.primary : "transparent", opacity: isSpeechModuleAvailable ? 1 : 0.5 }}
-          >
-            <Ionicons name={isListening ? "mic" : "mic-outline"} size={18} color={isListening ? "#fff" : theme.tertiaryText} />
-          </TouchableOpacity>
-        </View>
+          style={{ color: theme.text, fontSize: 16, fontWeight: "500", letterSpacing: -0.2 }}
+        />
 
         {searchQuery.length > 0 && (
           <View style={{ marginTop: 10, paddingHorizontal: 6, flexDirection: "row", alignItems: "center" }}>

@@ -15,7 +15,6 @@ import {
   StyleSheet,
   Switch,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -31,6 +30,7 @@ import {
   AddressType,
 } from "@/src/features/common/address/schema/address.schema";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
+import { TextInput } from "@/src/theme/components/TextInput";
 import { useColors } from "@/src/features/Jewelery/hooks/useColors";
 import { useTopPad } from "@/src/hooks/useTopPad";
 
@@ -504,26 +504,28 @@ export default function JeweleryAddressFormScreen() {
               name="fullName"
               render={({ field: { onChange, onBlur, value } }) => (
                 <TextInput
-                  style={[
-                    styles.input,
-                    {
-                      backgroundColor: colors.cardBg,
-                      borderColor: errors.fullName ? "#dc2626" : colors.border,
-                      color: colors.ink,
-                      fontFamily: "DMSans_400Regular",
-                    },
-                  ]}
                   placeholder="e.g. Aditya Kumar"
                   placeholderTextColor={colors.warmGray}
                   onBlur={onBlur}
                   onChangeText={onChange}
                   value={value}
+                  error={errors.fullName?.message}
+                  focusBorderColor={colors.gold}
+                  containerStyle={{ marginBottom: 0 }}
+                  inputContainerStyle={{
+                    backgroundColor: colors.cardBg,
+                    borderRadius: 2,
+                    height: 48,
+                    paddingHorizontal: 14,
+                  }}
+                  style={{
+                    fontSize: 14,
+                    color: colors.ink,
+                    fontFamily: "DMSans_400Regular",
+                  }}
                 />
               )}
             />
-            {errors.fullName && (
-              <Text style={styles.errorText}>{errors.fullName.message}</Text>
-            )}
           </View>
 
           {/* Mobile Number & Verification */}
@@ -584,15 +586,6 @@ export default function JeweleryAddressFormScreen() {
               name="phone"
               render={({ field: { onChange, onBlur, value } }) => (
                 <TextInput
-                  style={[
-                    styles.input,
-                    {
-                      backgroundColor: colors.cardBg,
-                      borderColor: errors.phone ? "#dc2626" : colors.border,
-                      color: colors.ink,
-                      fontFamily: "DMSans_400Regular",
-                    },
-                  ]}
                   placeholder="10-digit mobile number"
                   placeholderTextColor={colors.warmGray}
                   keyboardType="phone-pad"
@@ -603,12 +596,23 @@ export default function JeweleryAddressFormScreen() {
                     if (isPhoneVerified) setIsPhoneVerified(false);
                   }}
                   value={value}
+                  error={errors.phone?.message}
+                  focusBorderColor={colors.gold}
+                  containerStyle={{ marginBottom: 0 }}
+                  inputContainerStyle={{
+                    backgroundColor: colors.cardBg,
+                    borderRadius: 2,
+                    height: 48,
+                    paddingHorizontal: 14,
+                  }}
+                  style={{
+                    fontSize: 14,
+                    color: colors.ink,
+                    fontFamily: "DMSans_400Regular",
+                  }}
                 />
               )}
             />
-            {errors.phone && (
-              <Text style={styles.errorText}>{errors.phone.message}</Text>
-            )}
           </View>
 
           {/* House / Flat / Street */}
@@ -626,16 +630,6 @@ export default function JeweleryAddressFormScreen() {
               name="street"
               render={({ field: { onChange, onBlur, value } }) => (
                 <TextInput
-                  style={[
-                    styles.input,
-                    styles.multilineInput,
-                    {
-                      backgroundColor: colors.cardBg,
-                      borderColor: errors.street ? "#dc2626" : colors.border,
-                      color: colors.ink,
-                      fontFamily: "DMSans_400Regular",
-                    },
-                  ]}
                   placeholder="Flat / House no, Building name, Street, Area"
                   placeholderTextColor={colors.warmGray}
                   multiline
@@ -643,12 +637,25 @@ export default function JeweleryAddressFormScreen() {
                   onBlur={onBlur}
                   onChangeText={onChange}
                   value={value}
+                  error={errors.street?.message}
+                  focusBorderColor={colors.gold}
+                  containerStyle={{ marginBottom: 0 }}
+                  inputContainerStyle={{
+                    backgroundColor: colors.cardBg,
+                    borderRadius: 2,
+                    height: 72,
+                    paddingHorizontal: 14,
+                    paddingVertical: 10,
+                  }}
+                  style={{
+                    fontSize: 14,
+                    color: colors.ink,
+                    fontFamily: "DMSans_400Regular",
+                    textAlignVertical: "top",
+                  }}
                 />
               )}
             />
-            {errors.street && (
-              <Text style={styles.errorText}>{errors.street.message}</Text>
-            )}
           </View>
 
           {/* Landmark */}
@@ -666,20 +673,24 @@ export default function JeweleryAddressFormScreen() {
               name="landmark"
               render={({ field: { onChange, onBlur, value } }) => (
                 <TextInput
-                  style={[
-                    styles.input,
-                    {
-                      backgroundColor: colors.cardBg,
-                      borderColor: colors.border,
-                      color: colors.ink,
-                      fontFamily: "DMSans_400Regular",
-                    },
-                  ]}
                   placeholder="Near temple, school, or landmark"
                   placeholderTextColor={colors.warmGray}
                   onBlur={onBlur}
                   onChangeText={onChange}
                   value={value || ""}
+                  focusBorderColor={colors.gold}
+                  containerStyle={{ marginBottom: 0 }}
+                  inputContainerStyle={{
+                    backgroundColor: colors.cardBg,
+                    borderRadius: 2,
+                    height: 48,
+                    paddingHorizontal: 14,
+                  }}
+                  style={{
+                    fontSize: 14,
+                    color: colors.ink,
+                    fontFamily: "DMSans_400Regular",
+                  }}
                 />
               )}
             />
@@ -699,28 +710,30 @@ export default function JeweleryAddressFormScreen() {
               <Controller
                 control={control}
                 name="city"
-                render={({ field: { onChange, onBlur, value } }) => (
-                  <TextInput
-                    style={[
-                      styles.input,
-                      {
-                        backgroundColor: colors.cardBg,
-                        borderColor: errors.city ? "#dc2626" : colors.border,
-                        color: colors.ink,
-                        fontFamily: "DMSans_400Regular",
-                      },
-                    ]}
-                    placeholder="e.g. Patna"
-                    placeholderTextColor={colors.warmGray}
-                    onBlur={onBlur}
-                    onChangeText={onChange}
-                    value={value}
-                  />
-                )}
-              />
-              {errors.city && (
-                <Text style={styles.errorText}>{errors.city.message}</Text>
+              render={({ field: { onChange, onBlur, value } }) => (
+                <TextInput
+                  placeholder="e.g. Patna"
+                  placeholderTextColor={colors.warmGray}
+                  onBlur={onBlur}
+                  onChangeText={onChange}
+                  value={value}
+                  error={errors.city?.message}
+                  focusBorderColor={colors.gold}
+                  containerStyle={{ marginBottom: 0 }}
+                  inputContainerStyle={{
+                    backgroundColor: colors.cardBg,
+                    borderRadius: 2,
+                    height: 48,
+                    paddingHorizontal: 14,
+                  }}
+                  style={{
+                    fontSize: 14,
+                    color: colors.ink,
+                    fontFamily: "DMSans_400Regular",
+                  }}
+                />
               )}
+            />
             </View>
 
             <View style={[styles.fieldGroup, { flex: 1 }]}>
@@ -735,28 +748,30 @@ export default function JeweleryAddressFormScreen() {
               <Controller
                 control={control}
                 name="state"
-                render={({ field: { onChange, onBlur, value } }) => (
-                  <TextInput
-                    style={[
-                      styles.input,
-                      {
-                        backgroundColor: colors.cardBg,
-                        borderColor: errors.state ? "#dc2626" : colors.border,
-                        color: colors.ink,
-                        fontFamily: "DMSans_400Regular",
-                      },
-                    ]}
-                    placeholder="e.g. Bihar"
-                    placeholderTextColor={colors.warmGray}
-                    onBlur={onBlur}
-                    onChangeText={onChange}
-                    value={value}
-                  />
-                )}
-              />
-              {errors.state && (
-                <Text style={styles.errorText}>{errors.state.message}</Text>
+              render={({ field: { onChange, onBlur, value } }) => (
+                <TextInput
+                  placeholder="e.g. Bihar"
+                  placeholderTextColor={colors.warmGray}
+                  onBlur={onBlur}
+                  onChangeText={onChange}
+                  value={value}
+                  error={errors.state?.message}
+                  focusBorderColor={colors.gold}
+                  containerStyle={{ marginBottom: 0 }}
+                  inputContainerStyle={{
+                    backgroundColor: colors.cardBg,
+                    borderRadius: 2,
+                    height: 48,
+                    paddingHorizontal: 14,
+                  }}
+                  style={{
+                    fontSize: 14,
+                    color: colors.ink,
+                    fontFamily: "DMSans_400Regular",
+                  }}
+                />
               )}
+            />
             </View>
           </View>
 
@@ -775,15 +790,6 @@ export default function JeweleryAddressFormScreen() {
               name="pincode"
               render={({ field: { onChange, onBlur, value } }) => (
                 <TextInput
-                  style={[
-                    styles.input,
-                    {
-                      backgroundColor: colors.cardBg,
-                      borderColor: errors.pincode ? "#dc2626" : colors.border,
-                      color: colors.ink,
-                      fontFamily: "DMSans_400Regular",
-                    },
-                  ]}
                   placeholder="6-digit postal code"
                   placeholderTextColor={colors.warmGray}
                   keyboardType="numeric"
@@ -791,12 +797,23 @@ export default function JeweleryAddressFormScreen() {
                   onBlur={onBlur}
                   onChangeText={onChange}
                   value={value}
+                  error={errors.pincode?.message}
+                  focusBorderColor={colors.gold}
+                  containerStyle={{ marginBottom: 0 }}
+                  inputContainerStyle={{
+                    backgroundColor: colors.cardBg,
+                    borderRadius: 2,
+                    height: 48,
+                    paddingHorizontal: 14,
+                  }}
+                  style={{
+                    fontSize: 14,
+                    color: colors.ink,
+                    fontFamily: "DMSans_400Regular",
+                  }}
                 />
               )}
             />
-            {errors.pincode && (
-              <Text style={styles.errorText}>{errors.pincode.message}</Text>
-            )}
           </View>
 
           {/* Default Address Toggle */}
@@ -1007,27 +1024,9 @@ const styles = StyleSheet.create({
     fontSize: 12,
     letterSpacing: 0.5,
   },
-  input: {
-    height: 48,
-    borderWidth: 1,
-    borderRadius: 2,
-    paddingHorizontal: 14,
-    fontSize: 14,
-  },
-  multilineInput: {
-    height: 72,
-    paddingTop: 12,
-    paddingBottom: 12,
-    textAlignVertical: "top",
-  },
   row: {
     flexDirection: "row",
     gap: 12,
-  },
-  errorText: {
-    color: "#dc2626",
-    fontSize: 11,
-    marginTop: 4,
   },
   defaultRow: {
     flexDirection: "row",

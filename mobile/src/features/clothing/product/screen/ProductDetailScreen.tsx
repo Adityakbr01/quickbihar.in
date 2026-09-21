@@ -69,6 +69,28 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
   const { data: similarProducts } = useSimilarProducts(id);
   const { data: reviewsData } = useProductReviews(id);
 
+  // Jewelery products have a dedicated luxury detail screen — redirect
+  // rather than rendering an incomplete clothing view.
+  useEffect(() => {
+    if (product) {
+      const prodAny = product as any;
+      const isJewelery =
+        prodAny.vertical === "JEWELERY" ||
+        String(prodAny.vertical || "").toLowerCase() === "jewelery" ||
+        String(prodAny.vertical || "").toLowerCase() === "jewellery" ||
+        prodAny.module === "jewelery" ||
+        prodAny.module === "jewellery" ||
+        Boolean(prodAny.jeweleryDetails);
+
+      if (isJewelery) {
+        router.replace({
+          pathname: "/jewelery/product/[id]" as any,
+          params: { id: prodAny.slug || prodAny._id || id },
+        });
+      }
+    }
+  }, [product, id, router]);
+
   const createReviewMutation = useCreateProductReview(id);
   const voteHelpfulMutation = useVoteHelpfulReview(id);
 

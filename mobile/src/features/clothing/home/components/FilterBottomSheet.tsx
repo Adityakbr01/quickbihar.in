@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { AppIcon } from "@/src/components/common/AppIcon";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
@@ -10,6 +10,7 @@ import {
   useSheet,
 } from "@/src/components/common/BottomSheet";
 import { spacing } from "@/src/theme/spacing";
+import { TextInput } from "@/src/theme/components/TextInput";
 
 export interface FilterOption {
   title: string;
@@ -163,39 +164,31 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
       <SheetHeader title={title} onClose={onClose} />
 
       {/* Search bar */}
-      <View
-        style={{
-          marginHorizontal: spacing.lg,
-          marginBottom: spacing.xs,
-          flexDirection: "row",
-          alignItems: "center",
-          backgroundColor: theme.secondaryBackground,
-          borderRadius: 50,
-          paddingHorizontal: 14,
-          paddingVertical: 9,
-          borderWidth: 1,
-          borderColor: searchText ? theme.primary : theme.border,
-        }}
-      >
-        <Ionicons name="search" size={16} color={theme.tertiaryText} style={{ marginRight: 8 }} />
+      <View style={{ marginHorizontal: spacing.lg, marginBottom: spacing.xs }}>
         <TextInput
           placeholder={isCategoryFilter ? "Search category or subcategory..." : `Search ${title.toLowerCase()}...`}
           placeholderTextColor={theme.tertiaryText}
           value={searchText}
           onChangeText={setSearchText}
           autoCapitalize="none"
-          style={{
-            flex: 1,
-            color: theme.text,
-            fontSize: 14,
-            fontWeight: "500",
+          icon={<Ionicons name="search" size={16} color={theme.tertiaryText} />}
+          rightIcon={
+            searchText.length > 0 ? (
+              <TouchableOpacity onPress={() => setSearchText("")}>
+                <Ionicons name="close-circle" size={17} color={theme.tertiaryText} />
+              </TouchableOpacity>
+            ) : undefined
+          }
+          containerStyle={{ marginBottom: 0 }}
+          inputContainerStyle={{
+            backgroundColor: theme.secondaryBackground,
+            borderRadius: 50,
+            paddingHorizontal: 14,
+            paddingVertical: 9,
+            borderWidth: 1,
           }}
+          style={{ color: theme.text, fontSize: 14, fontWeight: "500" }}
         />
-        {searchText.length > 0 && (
-          <TouchableOpacity onPress={() => setSearchText("")}>
-            <Ionicons name="close-circle" size={17} color={theme.tertiaryText} />
-          </TouchableOpacity>
-        )}
       </View>
 
       {/* Active selection pills summary strip */}

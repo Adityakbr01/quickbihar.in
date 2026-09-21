@@ -66,7 +66,8 @@ export default function ProductRoute() {
     );
   }
 
-  const resolvedId = (slugQuery.data as any)?._id;
+  const productData = slugQuery.data as any;
+  const resolvedId = productData?._id;
   if (slugQuery.isError || !resolvedId) {
     return (
       <>
@@ -77,6 +78,22 @@ export default function ProductRoute() {
         </View>
       </>
     );
+  }
+
+  const isJewelery =
+    productData?.vertical === "JEWELERY" ||
+    String(productData?.vertical || "").toLowerCase() === "jewelery" ||
+    String(productData?.vertical || "").toLowerCase() === "jewellery" ||
+    productData?.module === "jewelery" ||
+    productData?.module === "jewellery" ||
+    Boolean(productData?.jeweleryDetails);
+
+  if (isJewelery) {
+    router.replace({
+      pathname: "/jewelery/product/[id]" as any,
+      params: { id: productData.slug || productData._id || param },
+    });
+    return null;
   }
 
   return (

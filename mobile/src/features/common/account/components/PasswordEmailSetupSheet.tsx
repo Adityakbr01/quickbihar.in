@@ -7,7 +7,6 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -20,6 +19,7 @@ import { useAuthStore } from "@/src/features/common/auth/store/authStore";
 import axiosInstance from "@/src/api/axiosInstance";
 import { Sheet, SheetHeader, useSheet } from "@/src/components/common/BottomSheet";
 import { useAccountStore } from "../store/accountStore";
+import { TextInput } from "@/src/theme/components/TextInput";
 
 /**
  * Bottom sheet version of the "Password & Email Setup" form.
@@ -179,7 +179,6 @@ const PasswordEmailSetupSheet = () => {
 
   // Theme tokens (re-derived so they're obvious in the JSX below)
   const inputBg = theme.secondaryBackground; // subtle surface, works in both modes
-  const inputBorder = theme.border;
   const inputText = theme.text;
   const inputPlaceholder = theme.tertiaryText; // muted so it never competes with real text
 
@@ -260,43 +259,44 @@ const PasswordEmailSetupSheet = () => {
                 <Text style={[styles.label, { color: theme.text }]}>
                   Email Address
                 </Text>
-                <View
-                  style={[
-                    styles.inputRow,
-                    {
-                      backgroundColor: inputBg,
-                      borderColor: inputBorder,
-                      opacity: isEmailLocked ? 0.6 : 1,
-                    },
-                  ]}
-                >
-                  <Ionicons
-                    name="mail-outline"
-                    size={18}
-                    color={theme.secondaryText}
-                  />
-                  <TextInput
-                    style={[styles.input, { color: inputText }]}
-                    placeholder="Please add your email"
-                    placeholderTextColor={inputPlaceholder}
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                    value={email}
-                    onChangeText={setEmail}
-                    returnKeyType="next"
-                    onSubmitEditing={() => confirmRef.current?.focus()}
-                    editable={!isEmailLocked}
-                    selectTextOnFocus={!isEmailLocked}
-                  />
-                  {isEmailLocked ? (
+                <TextInput
+                  placeholder="Please add your email"
+                  placeholderTextColor={inputPlaceholder}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  value={email}
+                  onChangeText={setEmail}
+                  returnKeyType="next"
+                  onSubmitEditing={() => confirmRef.current?.focus()}
+                  editable={!isEmailLocked}
+                  selectTextOnFocus={!isEmailLocked}
+                  icon={
                     <Ionicons
-                      name="lock-closed-outline"
-                      size={16}
+                      name="mail-outline"
+                      size={18}
                       color={theme.secondaryText}
                     />
-                  ) : null}
-                </View>
+                  }
+                  rightIcon={
+                    isEmailLocked ? (
+                      <Ionicons
+                        name="lock-closed-outline"
+                        size={16}
+                        color={theme.secondaryText}
+                      />
+                    ) : undefined
+                  }
+                  containerStyle={{ marginBottom: 0, opacity: isEmailLocked ? 0.6 : 1 }}
+                  inputContainerStyle={{
+                    backgroundColor: inputBg,
+                    borderRadius: 14,
+                    height: 52,
+                    paddingHorizontal: 14,
+                    borderWidth: 1,
+                  }}
+                  style={{ fontSize: 15, fontWeight: "600", color: inputText }}
+                />
                 {isEmailLocked ? (
                   <Text
                     style={{
@@ -316,42 +316,47 @@ const PasswordEmailSetupSheet = () => {
                 <Text style={[styles.label, { color: theme.text }]}>
                   New Password
                 </Text>
-                <View
-                  style={[
-                    styles.inputRow,
-                    { backgroundColor: inputBg, borderColor: inputBorder },
-                  ]}
-                >
-                  <Ionicons
-                    name="lock-closed-outline"
-                    size={18}
-                    color={theme.secondaryText}
-                  />
-                  <TextInput
-                    style={[styles.input, { color: inputText }]}
-                    placeholder="At least 6 characters"
-                    placeholderTextColor={inputPlaceholder}
-                    secureTextEntry={!showPassword}
-                    value={password}
-                    onChangeText={setPassword}
-                    onSubmitEditing={() => confirmRef.current?.focus()}
-                    returnKeyType="next"
-                  />
-                  <Pressable
-                    onPress={() => {
-                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                      setShowPassword(!showPassword);
-                    }}
-                    hitSlop={10}
-                    style={styles.eyeBtn}
-                  >
+                <TextInput
+                  placeholder="At least 6 characters"
+                  placeholderTextColor={inputPlaceholder}
+                  secureTextEntry={!showPassword}
+                  value={password}
+                  onChangeText={setPassword}
+                  onSubmitEditing={() => confirmRef.current?.focus()}
+                  returnKeyType="next"
+                  icon={
                     <Ionicons
-                      name={showPassword ? "eye-off-outline" : "eye-outline"}
-                      size={20}
+                      name="lock-closed-outline"
+                      size={18}
                       color={theme.secondaryText}
                     />
-                  </Pressable>
-                </View>
+                  }
+                  rightIcon={
+                    <Pressable
+                      onPress={() => {
+                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        setShowPassword(!showPassword);
+                      }}
+                      hitSlop={10}
+                      style={styles.eyeBtn}
+                    >
+                      <Ionicons
+                        name={showPassword ? "eye-off-outline" : "eye-outline"}
+                        size={20}
+                        color={theme.secondaryText}
+                      />
+                    </Pressable>
+                  }
+                  containerStyle={{ marginBottom: 0 }}
+                  inputContainerStyle={{
+                    backgroundColor: inputBg,
+                    borderRadius: 14,
+                    height: 52,
+                    paddingHorizontal: 14,
+                    borderWidth: 1,
+                  }}
+                  style={{ fontSize: 15, fontWeight: "600", color: inputText }}
+                />
 
                 {password.length > 0 && (
                   <Animated.View
@@ -394,43 +399,48 @@ const PasswordEmailSetupSheet = () => {
                 <Text style={[styles.label, { color: theme.text }]}>
                   Confirm Password
                 </Text>
-                <View
-                  style={[
-                    styles.inputRow,
-                    { backgroundColor: inputBg, borderColor: inputBorder },
-                  ]}
-                >
-                  <Ionicons
-                    name="shield-checkmark-outline"
-                    size={18}
-                    color={theme.secondaryText}
-                  />
-                  <TextInput
-                    ref={confirmRef}
-                    style={[styles.input, { color: inputText }]}
-                    placeholder="Re-enter password"
-                    placeholderTextColor={inputPlaceholder}
-                    secureTextEntry={!showConfirm}
-                    value={confirmPassword}
-                    onChangeText={setConfirmPassword}
-                    onSubmitEditing={handleSubmit}
-                    returnKeyType="done"
-                  />
-                  <Pressable
-                    onPress={() => {
-                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                      setShowConfirm(!showConfirm);
-                    }}
-                    hitSlop={10}
-                    style={styles.eyeBtn}
-                  >
+                <TextInput
+                  ref={confirmRef}
+                  placeholder="Re-enter password"
+                  placeholderTextColor={inputPlaceholder}
+                  secureTextEntry={!showConfirm}
+                  value={confirmPassword}
+                  onChangeText={setConfirmPassword}
+                  onSubmitEditing={handleSubmit}
+                  returnKeyType="done"
+                  icon={
                     <Ionicons
-                      name={showConfirm ? "eye-off-outline" : "eye-outline"}
-                      size={20}
+                      name="shield-checkmark-outline"
+                      size={18}
                       color={theme.secondaryText}
                     />
-                  </Pressable>
-                </View>
+                  }
+                  rightIcon={
+                    <Pressable
+                      onPress={() => {
+                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        setShowConfirm(!showConfirm);
+                      }}
+                      hitSlop={10}
+                      style={styles.eyeBtn}
+                    >
+                      <Ionicons
+                        name={showConfirm ? "eye-off-outline" : "eye-outline"}
+                        size={20}
+                        color={theme.secondaryText}
+                      />
+                    </Pressable>
+                  }
+                  containerStyle={{ marginBottom: 0 }}
+                  inputContainerStyle={{
+                    backgroundColor: inputBg,
+                    borderRadius: 14,
+                    height: 52,
+                    paddingHorizontal: 14,
+                    borderWidth: 1,
+                  }}
+                  style={{ fontSize: 15, fontWeight: "600", color: inputText }}
+                />
               </View>
 
               {/* Primary CTA — WHITE text on brand primary */}
@@ -502,22 +512,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
 
-  // Input row — icon + TextInput + (optional) eye button
-  inputRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 14,
-    height: 52,
-    borderRadius: 14,
-    borderWidth: 1,
-    gap: 10,
-  },
-  input: {
-    flex: 1,
-    fontSize: 15,
-    fontWeight: "600",
-    paddingVertical: 0,
-  },
+  // Eye toggle inside the shared TextInput's rightIcon slot
   eyeBtn: {
     width: 32,
     height: 32,

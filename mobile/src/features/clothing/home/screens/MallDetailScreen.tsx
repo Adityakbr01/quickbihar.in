@@ -5,7 +5,6 @@ import {
   ScrollView,
   Image,
   TouchableOpacity,
-  TextInput,
   ActivityIndicator,
   StyleSheet,
   Share,
@@ -18,6 +17,7 @@ import { Image as ExpoImage } from "expo-image";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import SafeViewWrapper from "@/src/provider/SafeViewWrapper";
 import { useMallDetail, useSubmitMallReview } from "../hooks/useMalls";
+import { TextInput } from "@/src/theme/components/TextInput";
 import { SeoHead } from "@/src/components/seo/SeoHead";
 import { breadcrumbJsonLd, mallJsonLd, mallMeta } from "@/src/lib/seo";
 import { LinearGradient } from "expo-linear-gradient";
@@ -350,13 +350,26 @@ const MallDetailScreen: React.FC<MallDetailScreenProps> = ({ id, initialMall }) 
               ))}
             </View>
             <TextInput
-              style={[styles.commentInput, { backgroundColor: theme.background, color: theme.text, borderColor: theme.border }]}
               placeholder="Tell us about the stores, parking, ambiance, etc. (optional)"
               placeholderTextColor={theme.tertiaryText}
               multiline
               numberOfLines={4}
               value={comment}
               onChangeText={setComment}
+              containerStyle={{ marginBottom: 16 }}
+              inputContainerStyle={{
+                backgroundColor: theme.background,
+                borderRadius: 8,
+                borderWidth: 1,
+                paddingHorizontal: 12,
+                paddingVertical: 10,
+                minHeight: 80,
+              }}
+              style={{
+                fontSize: 13,
+                color: theme.text,
+                textAlignVertical: "top",
+              }}
             />
             <TouchableOpacity
               style={[styles.submitReviewBtn, { backgroundColor: theme.primary }]}
@@ -691,15 +704,6 @@ const styles = StyleSheet.create({
   },
   starTouch: {
     padding: 4,
-  },
-  commentInput: {
-    borderRadius: 8,
-    borderWidth: 1,
-    padding: 12,
-    height: 80,
-    textAlignVertical: "top",
-    fontSize: 13,
-    marginBottom: 16,
   },
   submitReviewBtn: {
     justifyContent: "center",
