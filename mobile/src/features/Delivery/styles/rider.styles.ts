@@ -1,6 +1,23 @@
 import { Platform, StyleSheet } from "react-native";
 import type { Theme } from "@/src/theme/Provider/ThemeProvider";
 
+/**
+ * Shared chrome for every rider form field rendered with the theme
+ * TextInput — one definition so all Delivery inputs stay identical.
+ */
+export const riderInputChrome = (theme: Theme) => ({
+  containerStyle: { marginBottom: 0 },
+  inputContainerStyle: {
+    backgroundColor: theme.background,
+    borderRadius: 14,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 11,
+    minHeight: 48,
+  },
+  style: { fontSize: 15, color: theme.text },
+});
+
 export const createRiderStyles = (theme: Theme) =>
   StyleSheet.create({
     keyboard: { flex: 1, backgroundColor: theme.background },
@@ -369,27 +386,9 @@ export const createRiderStyles = (theme: Theme) =>
     cancelText: { color: theme.error, fontWeight: "800" },
     statusText: { color: theme.primary, fontSize: 13, fontWeight: "800", marginTop: 2 },
     formBlock: { gap: 10 },
-    input: {
-      backgroundColor: theme.background,
-      color: theme.text,
-      borderRadius: 14,
-      borderWidth: 1,
-      borderColor: theme.border,
-      paddingHorizontal: 12,
-      paddingVertical: 11,
-      fontSize: 15,
-      minHeight: 48,
-    },
-    multilineInput: {
-      minHeight: 88,
-      textAlignVertical: "top",
-    },
     inlineInputs: {
       flexDirection: "row",
       gap: 10,
-    },
-    dateInput: {
-      flex: 1,
     },
     dateFieldWrap: {
       flex: 1,

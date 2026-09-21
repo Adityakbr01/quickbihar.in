@@ -1,7 +1,9 @@
 import React from "react";
-import { ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import type { Theme } from "@/src/theme/Provider/ThemeProvider";
+import { TextInput } from "@/src/theme/components/TextInput";
+import { riderInputChrome } from "../../styles/rider.styles";
 import { deliveryApi, type RiderOffer } from "../../api/delivery.api";
 import { activeStatuses, label, money, subOrderIdOf } from "../../theme/riderTheme";
 import { currentLocation, pickProofPhoto } from "../../utils/riderMedia";
@@ -181,6 +183,7 @@ function SelectedJobCard({
   const proof = proofFor(jobId);
   const pickupPhoto = proof.pickupPhoto || order.delivery?.pickupPhoto;
   const deliveryPhoto = proof.deliveryPhoto || order.delivery?.deliveryPhoto;
+  const inputChrome = riderInputChrome(theme);
 
   return (
     <View style={styles.jobCard}>
@@ -197,7 +200,7 @@ function SelectedJobCard({
       {order.status === "RIDER_REACHED_STORE" && (
         <View style={styles.formBlock}>
           <TextInput
-            style={styles.input}
+            {...inputChrome}
             value={proof.pickupOtp}
             onChangeText={(value) => updateProof(jobId, { pickupOtp: value })}
             placeholder="Pickup OTP"
@@ -214,7 +217,7 @@ function SelectedJobCard({
       {order.status === "NEAR_CUSTOMER" && (
         <View style={styles.formBlock}>
           <TextInput
-            style={styles.input}
+            {...inputChrome}
             value={proof.deliveryOtp}
             onChangeText={(value) => updateProof(jobId, { deliveryOtp: value })}
             placeholder="Delivery OTP"

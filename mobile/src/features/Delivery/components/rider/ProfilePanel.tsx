@@ -1,10 +1,12 @@
 import React from "react";
-import { Text, TextInput, TouchableOpacity, View } from "react-native";
+import { Text, TouchableOpacity, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import type { Theme } from "@/src/theme/Provider/ThemeProvider";
 import type { RiderProfile } from "../../api/delivery.api";
 import type { ProfileForm, RiderStyles } from "../../types/rider.types";
 import { SectionTitle, StatusPill } from "./RiderShared";
+import { TextInput } from "@/src/theme/components/TextInput";
+import { riderInputChrome } from "../../styles/rider.styles";
 
 export function ProfilePanel({
   styles,
@@ -38,6 +40,9 @@ export function ProfilePanel({
       : "Admin needs to approve your rider profile before you can accept offers.";
   const saveLabel = canAcceptOffers && !requiresApprovalAfterSave ? "Save Profile" : "Submit for Approval";
 
+  // Shared chrome for every rider form field (managed by theme TextInput).
+  const inputChrome = riderInputChrome(theme);
+
   return (
     <View style={styles.panel}>
       <SectionTitle
@@ -69,7 +74,7 @@ export function ProfilePanel({
       </View>
       <View style={styles.formCard}>
         <TextInput
-          style={styles.input}
+          {...inputChrome}
           value={profileForm.phone}
           onChangeText={(value) => onFieldChange("phone", value)}
           placeholder="Phone"
@@ -77,14 +82,14 @@ export function ProfilePanel({
           keyboardType="phone-pad"
         />
         <TextInput
-          style={styles.input}
+          {...inputChrome}
           value={profileForm.vehicleType}
           onChangeText={(value) => onFieldChange("vehicleType", value)}
           placeholder="Vehicle type"
           placeholderTextColor={theme.secondaryText}
         />
         <TextInput
-          style={styles.input}
+          {...inputChrome}
           value={profileForm.vehicleNumber}
           onChangeText={(value) => onFieldChange("vehicleNumber", value)}
           placeholder="Vehicle number"
@@ -92,38 +97,42 @@ export function ProfilePanel({
           autoCapitalize="characters"
         />
         <TextInput
-          style={styles.input}
+          {...inputChrome}
           value={profileForm.licenseNumber}
           onChangeText={(value) => onFieldChange("licenseNumber", value)}
           placeholder="License number"
           placeholderTextColor={theme.secondaryText}
         />
         <TextInput
-          style={[styles.input, styles.multilineInput]}
+          {...inputChrome}
           value={profileForm.address}
           onChangeText={(value) => onFieldChange("address", value)}
           placeholder="Address"
           placeholderTextColor={theme.secondaryText}
           multiline
+          inputContainerStyle={{ ...inputChrome.inputContainerStyle, minHeight: 88 }}
+          style={[inputChrome.style, { textAlignVertical: "top" }]}
         />
         <View style={styles.inlineInputs}>
           <TextInput
-            style={[styles.input, styles.dateInput]}
+            {...inputChrome}
             value={profileForm.city}
             onChangeText={(value) => onFieldChange("city", value)}
             placeholder="City"
             placeholderTextColor={theme.secondaryText}
+            containerStyle={{ marginBottom: 0, flex: 1 }}
           />
           <TextInput
-            style={[styles.input, styles.dateInput]}
+            {...inputChrome}
             value={profileForm.state}
             onChangeText={(value) => onFieldChange("state", value)}
             placeholder="State"
             placeholderTextColor={theme.secondaryText}
+            containerStyle={{ marginBottom: 0, flex: 1 }}
           />
         </View>
         <TextInput
-          style={styles.input}
+          {...inputChrome}
           value={profileForm.pincode}
           onChangeText={(value) => onFieldChange("pincode", value)}
           placeholder="Pincode"
@@ -135,7 +144,7 @@ export function ProfilePanel({
       <SectionTitle styles={styles} title="Bank Details" meta="" />
       <View style={styles.formCard}>
         <TextInput
-          style={styles.input}
+          {...inputChrome}
           value={profileForm.upi}
           onChangeText={(value) => onFieldChange("upi", value)}
           placeholder="UPI"
@@ -143,7 +152,7 @@ export function ProfilePanel({
           autoCapitalize="none"
         />
         <TextInput
-          style={styles.input}
+          {...inputChrome}
           value={profileForm.accountNumber}
           onChangeText={(value) => onFieldChange("accountNumber", value)}
           placeholder="Account number"
@@ -151,7 +160,7 @@ export function ProfilePanel({
           keyboardType="number-pad"
         />
         <TextInput
-          style={styles.input}
+          {...inputChrome}
           value={profileForm.ifsc}
           onChangeText={(value) => onFieldChange("ifsc", value)}
           placeholder="IFSC"
@@ -159,14 +168,14 @@ export function ProfilePanel({
           autoCapitalize="characters"
         />
         <TextInput
-          style={styles.input}
+          {...inputChrome}
           value={profileForm.bankName}
           onChangeText={(value) => onFieldChange("bankName", value)}
           placeholder="Bank name"
           placeholderTextColor={theme.secondaryText}
         />
         <TextInput
-          style={styles.input}
+          {...inputChrome}
           value={profileForm.pan}
           onChangeText={(value) => onFieldChange("pan", value)}
           placeholder="PAN"
@@ -174,7 +183,7 @@ export function ProfilePanel({
           autoCapitalize="characters"
         />
         <TextInput
-          style={styles.input}
+          {...inputChrome}
           value={profileForm.aadhar}
           onChangeText={(value) => onFieldChange("aadhar", value)}
           placeholder="Aadhar"

@@ -2,7 +2,6 @@ import React, { useState, useMemo } from "react";
 import {
   View,
   Text,
-  TextInput,
   TouchableOpacity,
   ActivityIndicator,
 } from "react-native";

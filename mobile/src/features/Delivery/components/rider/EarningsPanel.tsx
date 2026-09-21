@@ -1,7 +1,9 @@
 import React from "react";
-import { ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import type { Theme } from "@/src/theme/Provider/ThemeProvider";
+import { TextInput } from "@/src/theme/components/TextInput";
+import { riderInputChrome } from "../../styles/rider.styles";
 import type {
   RiderEarningsResponse,
   RiderPayoutMethod,
@@ -84,24 +86,27 @@ export function EarningsPanel({
   onSetDefault: (methodId: string) => void;
 }) {
   const verifiedMethods = payoutRequestMethods.filter((method) => method.status === "VERIFIED");
+  const inputChrome = riderInputChrome(theme);
 
   return (
     <View style={styles.panel}>
       <SectionTitle styles={styles} title="Earnings" meta={`${earnings?.ledger?.length || 0} ledger entries`} />
       <View style={styles.inlineInputs}>
         <TextInput
-          style={[styles.input, styles.dateInput]}
+          {...inputChrome}
           value={earningsDateFrom}
           onChangeText={onEarningsDateFromChange}
           placeholder="From YYYY-MM-DD"
           placeholderTextColor={theme.secondaryText}
+          containerStyle={{ marginBottom: 0, flex: 1 }}
         />
         <TextInput
-          style={[styles.input, styles.dateInput]}
+          {...inputChrome}
           value={earningsDateTo}
           onChangeText={onEarningsDateToChange}
           placeholder="To YYYY-MM-DD"
           placeholderTextColor={theme.secondaryText}
+          containerStyle={{ marginBottom: 0, flex: 1 }}
         />
       </View>
       <View style={styles.summaryGrid}>
@@ -165,15 +170,15 @@ export function EarningsPanel({
             <Text style={[styles.secondaryText, payoutType === "BANK" && styles.segmentSelectedText]}>Bank</Text>
           </TouchableOpacity>
         </View>
-        <TextInput style={styles.input} value={methodLabel} onChangeText={onMethodLabelChange} placeholder="Label" placeholderTextColor={theme.secondaryText} />
+        <TextInput {...inputChrome} value={methodLabel} onChangeText={onMethodLabelChange} placeholder="Label" placeholderTextColor={theme.secondaryText} />
         {payoutType === "UPI" ? (
-          <TextInput style={styles.input} value={upiId} onChangeText={onUpiIdChange} placeholder="UPI ID" placeholderTextColor={theme.secondaryText} autoCapitalize="none" />
+          <TextInput {...inputChrome} value={upiId} onChangeText={onUpiIdChange} placeholder="UPI ID" placeholderTextColor={theme.secondaryText} autoCapitalize="none" />
         ) : (
           <>
-            <TextInput style={styles.input} value={accountHolderName} onChangeText={onAccountHolderNameChange} placeholder="Account holder" placeholderTextColor={theme.secondaryText} />
-            <TextInput style={styles.input} value={accountNumber} onChangeText={onAccountNumberChange} placeholder="Account number" placeholderTextColor={theme.secondaryText} keyboardType="number-pad" />
-            <TextInput style={styles.input} value={ifsc} onChangeText={onIfscChange} placeholder="IFSC" placeholderTextColor={theme.secondaryText} autoCapitalize="characters" />
-            <TextInput style={styles.input} value={bankName} onChangeText={onBankNameChange} placeholder="Bank name" placeholderTextColor={theme.secondaryText} />
+            <TextInput {...inputChrome} value={accountHolderName} onChangeText={onAccountHolderNameChange} placeholder="Account holder" placeholderTextColor={theme.secondaryText} />
+            <TextInput {...inputChrome} value={accountNumber} onChangeText={onAccountNumberChange} placeholder="Account number" placeholderTextColor={theme.secondaryText} keyboardType="number-pad" />
+            <TextInput {...inputChrome} value={ifsc} onChangeText={onIfscChange} placeholder="IFSC" placeholderTextColor={theme.secondaryText} autoCapitalize="characters" />
+            <TextInput {...inputChrome} value={bankName} onChangeText={onBankNameChange} placeholder="Bank name" placeholderTextColor={theme.secondaryText} />
           </>
         )}
         <TouchableOpacity style={styles.primaryButton} onPress={onSubmitPayoutMethod} disabled={busy}>
@@ -207,8 +212,8 @@ export function EarningsPanel({
             })}
           </ScrollView>
         )}
-        <TextInput style={styles.input} value={requestAmount} onChangeText={onRequestAmountChange} placeholder="Amount" placeholderTextColor={theme.secondaryText} keyboardType="numeric" />
-        <TextInput style={styles.input} value={requestNote} onChangeText={onRequestNoteChange} placeholder="Note" placeholderTextColor={theme.secondaryText} />
+        <TextInput {...inputChrome} value={requestAmount} onChangeText={onRequestAmountChange} placeholder="Amount" placeholderTextColor={theme.secondaryText} keyboardType="numeric" />
+        <TextInput {...inputChrome} value={requestNote} onChangeText={onRequestNoteChange} placeholder="Note" placeholderTextColor={theme.secondaryText} />
         <TouchableOpacity style={styles.primaryButton} onPress={onRequestPayout} disabled={busy || !verifiedMethods.length}>
           <Ionicons name="cash-outline" size={16} color="#fff" />
           <Text style={styles.primaryText}>Request Payout</Text>
