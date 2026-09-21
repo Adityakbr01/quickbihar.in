@@ -85,17 +85,36 @@ const OrderListScreen = () => {
     }
   };
 
-  const renderOrderItem = ({ item }: { item: any }) => (
-    <TouchableOpacity
-      style={styles.orderCard}
-      activeOpacity={0.8}
-      onPress={() =>
-        router.push({
-          pathname: "/order/[id]" as any,
-          params: { id: item.orderId },
-        })
-      }
-    >
+  const renderOrderItem = ({ item }: { item: any }) => {
+    const isJeweleryOrder =
+      item.module === "jewelery" ||
+      item.vertical === "JEWELERY" ||
+      item.items?.some(
+        (i: any) =>
+          i.module === "jewelery" ||
+          i.vertical === "JEWELERY" ||
+          i.productId?.vertical === "JEWELERY" ||
+          Boolean(i.productId?.jeweleryDetails)
+      );
+
+    return (
+      <TouchableOpacity
+        style={styles.orderCard}
+        activeOpacity={0.8}
+        onPress={() => {
+          if (isJeweleryOrder) {
+            router.push({
+              pathname: "/jewelery/orders/[id]" as any,
+              params: { id: item.orderId },
+            });
+          } else {
+            router.push({
+              pathname: "/order/[id]" as any,
+              params: { id: item.orderId },
+            });
+          }
+        }}
+      >
       <View style={styles.orderHeader}>
         <View>
           <Text style={styles.orderId}>Order #{item.orderId}</Text>
@@ -161,6 +180,7 @@ const OrderListScreen = () => {
       </View>
     </TouchableOpacity>
   );
+  };
 
   const renderEmpty = () => (
     <View style={styles.emptyContainer}>

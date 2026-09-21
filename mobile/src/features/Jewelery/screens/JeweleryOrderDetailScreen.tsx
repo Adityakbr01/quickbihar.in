@@ -105,6 +105,21 @@ export default function JeweleryOrderDetailScreen() {
     } catch {}
   };
 
+  const handleNavigateToProduct = (item: any) => {
+    const prod =
+      item.productId && typeof item.productId === "object"
+        ? item.productId
+        : null;
+    const prodId = prod?.slug || prod?._id || item.productId || item._id;
+    if (prodId && typeof prodId === "string") {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      router.push({
+        pathname: "/jewelery/product/[id]" as any,
+        params: { id: prodId },
+      });
+    }
+  };
+
   const getCurrentStepIndex = (status: string) => {
     const s = (status || "").toUpperCase();
     if (s === "DELIVERED") return 3;
@@ -330,7 +345,7 @@ export default function JeweleryOrderDetailScreen() {
                         item.productId?.image;
 
                   return (
-                    <View
+                    <TouchableOpacity
                       key={item.sku || idx}
                       style={[
                         styles.itemCard,
@@ -340,6 +355,8 @@ export default function JeweleryOrderDetailScreen() {
                             idx < (order.items || []).length - 1 ? 0.5 : 0,
                         },
                       ]}
+                      onPress={() => handleNavigateToProduct(item)}
+                      activeOpacity={0.8}
                     >
                       {imgUri ? (
                         <Image
@@ -415,7 +432,7 @@ export default function JeweleryOrderDetailScreen() {
                           </Text>
                         </View>
                       </View>
-                    </View>
+                    </TouchableOpacity>
                   );
                 })}
               </View>

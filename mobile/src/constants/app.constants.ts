@@ -7,6 +7,13 @@ export const APP_COUNTRY_CODE = "+91";
 export const APP_GENERAL_SUPPORT_EMAIL = "support@quickbihar.in";
 export const APP_GENERAL_SUPPORT_PHONE = "+91 98765 43210";
 
+// Real customer-support contacts (single business number for now —
+// used by Help & Support, WhatsApp Assist, and call fallbacks).
+export const SUPPORT_WHATSAPP_NUMBER = "9304922632"; // digits only, for wa.me links
+export const SUPPORT_WHATSAPP_DISPLAY = "+91 93049 22632";
+export const SUPPORT_CALL_NUMBER = "9304922632"; // digits only, for tel: links
+export const SUPPORT_EMAIL = APP_GENERAL_SUPPORT_EMAIL;
+
 // Module-Specific Vertical Configuration Interface
 export interface ModuleVerticalConfig {
   id: "clothing" | "jewelery" | "food";
@@ -45,8 +52,8 @@ export const MODULE_CONFIGS: Record<
     slogan: "Handcrafted Fine Jewellery",
     tagline: "Sacred heirloom, Hallmarked gold & silver craftsmanship",
     supportEmail: "jewelery-support@quickbihar.in",
-    supportPhone: "+91 98765 43212",
-    whatsappPhone: "+91 98765 43212",
+    supportPhone: "+91 93049 22632",
+    whatsappPhone: "+91 93049 22632",
     freeShippingThreshold: 5000,
     returnPolicyDays: 30,
   },

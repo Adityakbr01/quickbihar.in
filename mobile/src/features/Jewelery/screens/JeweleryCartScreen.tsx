@@ -109,44 +109,6 @@ export default function JeweleryCartScreen() {
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.scrollContent}
           >
-            {/* Gift option */}
-            <View
-              style={[
-                styles.giftOption,
-                {
-                  backgroundColor: colors.champagne,
-                  borderColor: colors.gold,
-                },
-              ]}
-            >
-              <Feather name="gift" size={16} color={colors.gold} />
-              <View style={{ flex: 1 }}>
-                <Text
-                  style={[
-                    styles.giftTitle,
-                    {
-                      color: colors.ink,
-                      fontFamily: "CormorantGaramond_500Medium_Italic",
-                    },
-                  ]}
-                >
-                  Add gift packaging
-                </Text>
-                <Text
-                  style={[
-                    styles.giftSub,
-                    {
-                      color: colors.warmGray,
-                      fontFamily: "DMSans_400Regular",
-                    },
-                  ]}
-                >
-                  Signature ivory & gold box — complimentary
-                </Text>
-              </View>
-              <Feather name="chevron-right" size={16} color={colors.gold} />
-            </View>
-
             {/* Cart items */}
             {cartItems.map(({ product, quantity }) => (
               <View
@@ -329,19 +291,6 @@ export default function JeweleryCartScreen() {
                   {cartTotal.toLocaleString("en-IN")}
                 </Text>
               </View>
-              <Text
-                style={[
-                  styles.emiNote,
-                  {
-                    color: colors.warmGray,
-                    fontFamily: "DMSans_400Regular",
-                  },
-                ]}
-              >
-                EMI available from {APP_CURRENCY}
-                {Math.round(cartTotal / 12).toLocaleString("en-IN")}
-                /month
-              </Text>
             </View>
 
             {/* Trust signals */}
@@ -462,17 +411,6 @@ const styles = StyleSheet.create({
   },
   browseBtnText: { fontSize: 12, letterSpacing: 1 },
   scrollContent: { paddingBottom: 16 },
-  giftOption: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    margin: 16,
-    padding: 14,
-    borderWidth: 0.5,
-    borderRadius: 2,
-  },
-  giftTitle: { fontSize: 15 },
-  giftSub: { fontSize: 11, marginTop: 2 },
   cartItem: {
     flexDirection: "row",
     padding: 16,
@@ -511,7 +449,6 @@ const styles = StyleSheet.create({
   divider: { height: 0.5, marginVertical: 4 },
   totalKey: { fontSize: 15 },
   totalVal: { fontSize: 20 },
-  emiNote: { fontSize: 10, fontStyle: "italic", marginTop: 4 },
   trustRow: {
     flexDirection: "row",
     justifyContent: "space-around",

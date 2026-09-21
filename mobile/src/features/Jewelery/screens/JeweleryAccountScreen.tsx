@@ -1,7 +1,7 @@
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
-import React from "react";
+import React, { useState } from "react";
 import {
   Alert,
   Linking,
@@ -14,7 +14,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { JEWELERY_MODULE_CONFIG, APP_COUNTRY_CODE, APP_NAME } from "@/src/constants";
+import { JEWELERY_MODULE_CONFIG, APP_COUNTRY_CODE, APP_NAME, SUPPORT_WHATSAPP_NUMBER, SUPPORT_WHATSAPP_DISPLAY } from "@/src/constants";
 import { useAuth } from "@/src/features/Jewelery/context/AuthContext";
 import { useCart } from "@/src/features/Jewelery/context/CartContext";
 import { getMyOrdersRequest } from "@/src/features/common/order/api/order.api";
@@ -23,6 +23,9 @@ import { useTopPad } from "@/src/hooks/useTopPad";
 import { useQuery } from "@tanstack/react-query";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { ThemeToggle } from "@/src/components/common/ThemeToggle";
+import { HelpSupportSheet } from "@/src/features/Jewelery/components/HelpSupportSheet";
+import PasswordEmailSetupSheet from "@/src/features/common/account/components/PasswordEmailSetupSheet";
+import { useAccountStore } from "@/src/features/common/account/store/accountStore";
 
 const guestMenuItems = [
   {
@@ -174,6 +177,26 @@ export default function JeweleryAccountScreen() {
   const bottomPad = Platform.OS === "web" ? 34 : 0;
   const { user, signOut } = useAuth();
   const { wishlist } = useCart();
+  const setPasswordSheetVisible = useAccountStore(
+    (state) => state.setPasswordSheetVisible,
+  );
+  const [helpVisible, setHelpVisible] = useState(false);
+
+  const openWhatsapp = (message?: string) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    const url = message
+      ? `https://wa.me/${SUPPORT_WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`
+      : `https://wa.me/${SUPPORT_WHATSAPP_NUMBER}`;
+    Linking.openURL(url).catch(() => {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+    });
+  };
+
+  // Guest menu rows that need a real action (the rest are informational).
+  const handleGuestMenu = (label: string) => {
+    if (label === "Help & Support") setHelpVisible(true);
+    else if (label === "WhatsApp Assist") openWhatsapp();
+  };
 
   const TERMINAL_ORDER_STATUS = ["DELIVERED", "CANCELLED", "REFUNDED", "REJECTED", "FAILED"];
   const { data: ordersResp } = useQuery({
@@ -424,33 +447,28 @@ export default function JeweleryAccountScreen() {
                 icon="key"
                 label="Password & Email Setup"
                 sub="Update password or link email address for password login"
-                route="/account/set-password"
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  setPasswordSheetVisible(true);
+                }}
               />
               <MenuItem
                 icon="bell"
                 label="Notifications"
                 sub="Drops, restocks, offers"
-                onPress={() =>
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-                }
+                route="/account/notifications"
               />
               <MenuItem
                 icon="help-circle"
                 label="Help & Support"
                 sub="Sizing guide, returns, care"
-                onPress={() =>
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-                }
+                onPress={() => setHelpVisible(true)}
               />
               <MenuItem
                 icon="message-circle"
                 label="WhatsApp Assist"
-                sub={JEWELERY_MODULE_CONFIG.whatsappPhone}
-                onPress={() =>
-                  Linking.openURL(
-                    `https://wa.me/${JEWELERY_MODULE_CONFIG.whatsappPhone.replace(/[^0-9]/g, "")}`,
-                  )
-                }
+                sub={SUPPORT_WHATSAPP_DISPLAY}
+                onPress={() => openWhatsapp()}
               />
               <MenuItem
                 icon="info"
@@ -627,6 +645,7 @@ export default function JeweleryAccountScreen() {
                 <MenuItem
                   key={item.label}
                   {...item}
+                  onPress={() => handleGuestMenu(item.label)}
                   last={i === guestMenuItems.length - 1}
                 />
               ))}
@@ -668,6 +687,17 @@ export default function JeweleryAccountScreen() {
           </Text>
         </View>
       </ScrollView>
+
+      {/* Password & Email Setup bottom sheet (same sheet as clothing
+          account — opened via the account store, single instance per
+          module tree) */}
+      <PasswordEmailSetupSheet />
+
+      {/* Help & Support bottom sheet (channel → question → redirect) */}
+      <HelpSupportSheet
+        visible={helpVisible}
+        onClose={() => setHelpVisible(false)}
+      />
     </View>
   );
 }

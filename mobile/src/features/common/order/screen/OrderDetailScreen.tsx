@@ -21,6 +21,7 @@ import dayjs from "dayjs";
 import * as Haptics from "expo-haptics";
 
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
+import { SUPPORT_CALL_NUMBER } from "@/src/constants";
 import SafeViewWrapper from "@/src/provider/SafeViewWrapper";
 import { goBack } from "@/src/utils/navigation";
 import { getOrderByIdRequest } from "../api/order.api";
@@ -287,7 +288,7 @@ export default function OrderDetailScreen() {
 
   const handleHelp = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    Linking.openURL("tel:9304922632").catch(() => {
+    Linking.openURL(`tel:${SUPPORT_CALL_NUMBER}`).catch(() => {
       // Haptic-only fallback — dialer failures are rare and the Help
       // button itself already signals the tap.
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
@@ -300,9 +301,43 @@ export default function OrderDetailScreen() {
   };
 
   const handleNavigateToProduct = (item: any) => {
-    const prodId = item.productId?.slug || item.productId?._id || item.productId || item._id;
+    const prod =
+      item.productId && typeof item.productId === "object"
+        ? item.productId
+        : null;
+    const prodId = prod?.slug || prod?._id || item.productId || item._id;
     if (prodId && typeof prodId === "string") {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      // Jewelery lines open the jewelery detail screen — the clothing
+      // detail screen can't render jewelery products.
+      const vertical = prod?.vertical || item.vertical;
+      const isJewelery =
+        vertical === "JEWELERY" ||
+        String(vertical || "").toLowerCase() === "jewelery" ||
+        String(vertical || "").toLowerCase() === "jewellery" ||
+        item.module === "jewelery" ||
+        item.module === "jewellery" ||
+        prod?.module === "jewelery" ||
+        prod?.module === "jewellery" ||
+        Boolean(prod?.jeweleryDetails) ||
+        Boolean(item.jeweleryDetails) ||
+        order?.module === "jewelery" ||
+        order?.vertical === "JEWELERY" ||
+        String(order?.module || "").toLowerCase() === "jewelery" ||
+        String(order?.vertical || "").toLowerCase() === "jewelery";
+
+      if (isJewelery) {
+        const rawId = prod?._id || prodId || item.productId;
+        const jeweleryId =
+          typeof rawId === "object" ? rawId?._id : rawId;
+        if (jeweleryId) {
+          router.push({
+            pathname: "/jewelery/product/[id]" as any,
+            params: { id: String(jeweleryId) },
+          });
+          return;
+        }
+      }
       router.push({
         pathname: "/product/[id]" as any,
         params: { id: prodId },

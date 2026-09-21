@@ -15,7 +15,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { goBack } from "@/src/utils/navigation";
 
-import { APP_CURRENCY } from "@/src/constants";
+import { APP_CURRENCY, JEWELERY_MODULE_CONFIG } from "@/src/constants";
 import { ImageCarousel } from "@/src/features/Jewelery/components/ImageCarousel";
 import { ProductCard } from "@/src/features/Jewelery/components/ProductCard";
 import type { Product as JeweleryProduct } from "@/src/features/Jewelery/data/products";
@@ -199,15 +199,6 @@ export default function JeweleryProductDetailScreen() {
               </Text>
             )}
           </View>
-          <Text
-            style={[
-              styles.emiNote,
-              { color: colors.warmGray, fontFamily: "DMSans_400Regular" },
-            ]}
-          >
-            {APP_CURRENCY}{Math.round(product.price / 12).toLocaleString("en-IN")}/month with
-            no-cost EMI
-          </Text>
 
           {/* Description */}
           <Text
@@ -256,7 +247,7 @@ export default function JeweleryProductDetailScreen() {
           >
             {[
               { icon: "truck", text: "Ships in 3–5 days" },
-              { icon: "refresh-cw", text: "Free returns 30 days" },
+              { icon: "refresh-cw", text: `Free returns ${JEWELERY_MODULE_CONFIG.returnPolicyDays} days` },
               { icon: "award", text: "Hallmark certified" },
               { icon: "gift", text: "Gift box included" },
             ].map((t) => (
@@ -504,7 +495,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textDecorationLine: "line-through",
   },
-  emiNote: { fontSize: 11, fontStyle: "italic" },
   description: { fontSize: 16, lineHeight: 26 },
   occasionRow: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
   occasionTag: {

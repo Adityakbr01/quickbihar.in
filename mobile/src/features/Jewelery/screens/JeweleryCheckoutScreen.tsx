@@ -754,10 +754,6 @@ export default function JeweleryCheckoutScreen() {
               {APP_CURRENCY}{totalPayable.toLocaleString("en-IN")}
             </Text>
           </View>
-
-          <Text style={[styles.summaryKey, { fontStyle: "italic", marginTop: 6, fontSize: 10 }]}>
-            EMI available from {APP_CURRENCY}{Math.round(totalPayable / 12).toLocaleString("en-IN")}/month
-          </Text>
         </View>
 
         {/* Trust Signals */}
