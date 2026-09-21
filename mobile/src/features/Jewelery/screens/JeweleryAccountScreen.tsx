@@ -377,21 +377,21 @@ export default function JeweleryAccountScreen() {
               <Pressable
                 style={[
                   styles.activeOrderBanner,
-                  { backgroundColor: "#EBF4FB", borderColor: "#2980b9" },
+                  { backgroundColor: colors.champagne, borderColor: colors.gold },
                 ]}
-                onPress={() => router.push("/account/orders")}
+                onPress={() => router.push("/jewelery/orders" as any)}
               >
-                <Feather name="truck" size={14} color="#2980b9" />
+                <Feather name="truck" size={14} color={colors.gold} />
                 <Text
                   style={[
                     styles.activeOrderText,
-                    { color: "#1a5276", fontFamily: "DMSans_400Regular" },
+                    { color: colors.ink, fontFamily: "DMSans_400Regular" },
                   ]}
                 >
                   {activeOrders.length} order
                   {activeOrders.length > 1 ? "s" : ""} on the way — Tap to track
                 </Text>
-                <Feather name="chevron-right" size={13} color="#2980b9" />
+                <Feather name="chevron-right" size={13} color={colors.gold} />
               </Pressable>
             )}
 
@@ -406,7 +406,7 @@ export default function JeweleryAccountScreen() {
                     ? String(activeOrders.length)
                     : undefined
                 }
-                route="/account/orders"
+                route="/jewelery/orders"
               />
               <MenuItem
                 icon="heart"

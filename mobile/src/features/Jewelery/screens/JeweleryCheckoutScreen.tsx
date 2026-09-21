@@ -248,7 +248,7 @@ export default function JeweleryCheckoutScreen() {
 
       if (paymentMethod === "COD" || !razorpayOrder) {
         clearCart("jewelery");
-        router.replace({ pathname: "/order-success", params: { orderId: order.orderId } });
+        router.replace({ pathname: "/jewelery/order-success" as any, params: { orderId: order.orderId } });
         return;
       }
 
@@ -276,7 +276,7 @@ export default function JeweleryCheckoutScreen() {
               razorpaySignature: data.razorpay_signature,
             });
             clearCart("jewelery");
-            router.replace({ pathname: "/order-success", params: { orderId: order.orderId } });
+            router.replace({ pathname: "/jewelery/order-success" as any, params: { orderId: order.orderId } });
           } catch (verifyError: any) {
             showAlert(
               "Payment Verification Failed",
