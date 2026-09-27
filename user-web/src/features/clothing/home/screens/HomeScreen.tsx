@@ -97,6 +97,10 @@ const HomeScreen = ({ rootSlug }: { rootSlug?: string }) => {
             {/* Not Started */}
             <TopMallSection />
             <TopSellingSection />
+            {/* Mid-page products promo banner (embla carousel; null when empty) */}
+            <View style={{ marginTop: isDesktop ? 20 : 12, width: "100%" }}>
+              <TopHomeCarousel placement="home_middle" />
+            </View>
             <MoreDealsHeader {...moreDealsState} />
           </View>
 

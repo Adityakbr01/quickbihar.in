@@ -11,11 +11,11 @@ import { BREAKPOINTS, DESKTOP } from "@/src/utils/responsive";
 
 const MAX_WIDTH = 800;
 
-const TopHomeCarousel = () => {
+const TopHomeCarousel = ({ placement = "home_top" }: { placement?: string } = {}) => {
   const { width: windowWidth } = useWindowDimensions();
   const progressValue = useSharedValue(0);
 
-  const { data: banners, isLoading } = useBanners("home_top");
+  const { data: banners, isLoading } = useBanners(placement);
 
   const isDesktop = Platform.OS === "web" && windowWidth >= BREAKPOINTS.desktopMin;
   const isTablet = Platform.OS === "web" && windowWidth >= BREAKPOINTS.tabletMin;

@@ -4,7 +4,32 @@ import { useNavigate, useParams, useSearchParams, useLocation, Link as RRLink, N
 function cleanWebPath(url: any): string {
   if (!url) return '/';
   let path = typeof url === 'string' ? url : url?.pathname || '/';
-  const query = typeof url === 'object' && url?.params ? '?' + new URLSearchParams(url.params).toString() : '';
+  const params =
+    typeof url === 'object' && url?.params && typeof url.params === 'object'
+      ? { ...url.params }
+      : null;
+  // Substitute dynamic segments like /jewelery/product/[id] (expo-router
+  // style) with actual values so react-router matches a real route instead
+  // of bouncing to the catch-all. Leftover params become a query string.
+  if (params) {
+    path = path.replace(/\[([^\]/]+)\]/g, (_m: string, key: string) => {
+      if (params[key] !== undefined && params[key] !== null) {
+        const value = String(params[key]);
+        delete params[key];
+        return encodeURIComponent(value);
+      }
+      return _m;
+    });
+  }
+  const remaining = params
+    ? Object.fromEntries(
+        Object.entries(params).filter(([, v]) => v !== undefined && v !== null),
+      )
+    : null;
+  const query =
+    remaining && Object.keys(remaining).length
+      ? '?' + new URLSearchParams(remaining as Record<string, string>).toString()
+      : '';
   path = path.replace(/\/\([^)]+\)/g, '').replace(/^\([^)]+\)/g, '');
   if (!path.startsWith('/')) {
     path = '/' + path;

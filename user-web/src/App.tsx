@@ -15,6 +15,7 @@ import BottomTabBar from "@/src/components/common/BottomTabBar";
 
 // Import Screens
 import ClothingHomeScreen from "@/src/features/clothing/home/screens/HomeScreen";
+import ClothingSearchScreen from "@/src/features/clothing/search/screens/ClothingSearchScreen";
 import { FoodHomeScreen } from "@/src/features/Food/screens/FoodHomeScreen";
 import TopSellingScreen from "@/src/features/clothing/home/screens/TopSellingScreen";
 import MallDetailScreen from "@/src/features/clothing/home/screens/MallDetailScreen";
@@ -32,6 +33,7 @@ import WishlistScreen from "@/src/features/common/wishlist/screen/WishlistScreen
 import NotificationScreen from "@/src/features/common/notification/screens/NotificationScreen";
 import RiderWorkspaceScreen from "@/src/features/Delivery/screens/RiderWorkspaceScreen";
 import OnboardingScreen from "@/src/features/Onboarding/screens/OnboardingScreen";
+import { AuthScreen } from "@/src/features/common/auth";
 
 // Jewelery Screens
 import JeweleryHomeScreen from "@/src/features/Jewelery/screens/JeweleryHomeScreen";
@@ -111,15 +113,15 @@ function MainLayout() {
           <Route path="/" element={<RootRedirect />} />
           {/* Legacy Expo URLs: "/(tabs)/clothing/home" -> "/clothing/home" */}
           <Route path="/(tabs)/clothing/home" element={<ClothingHomeScreen />} />
-          <Route path="/(tabs)/clothing/search" element={<JewelerySearchScreen />} />
+          <Route path="/(tabs)/clothing/search" element={<ClothingSearchScreen />} />
           <Route path="/(tabs)/clothing/cart" element={<CartContent />} />
           <Route path="/(tabs)/clothing/account" element={<AccountMain />} />
           <Route path="/(tabs)/clothing/checkout" element={<CheckoutScreen />} />
           <Route path="/(tabs)/clothing/rider" element={<RiderWorkspaceScreen />} />
-          
+
           {/* Clothing & Main Routes */}
           <Route path="/clothing/home" element={<ClothingHomeScreen />} />
-          <Route path="/clothing/search" element={<JewelerySearchScreen />} />
+          <Route path="/clothing/search" element={<ClothingSearchScreen />} />
           <Route path="/clothing/cart" element={<CartContent />} />
           <Route path="/clothing/account" element={<AccountMain />} />
           <Route path="/clothing/checkout" element={<CheckoutScreen />} />
@@ -148,6 +150,9 @@ function MainLayout() {
           <Route path="/rider" element={<RiderWorkspaceScreen />} />
           <Route path="/Onboarding" element={<OnboardingScreen />} />
           
+          {/* Auth (common sign-in used by every module's guest flows) */}
+          <Route path="/auth" element={<AuthScreen />} />
+
           {/* Jewelery Module */}
           <Route path="/jewelery" element={<JeweleryHomeScreen />} />
           <Route path="/jewelery/collections" element={<JeweleryCollectionsScreen />} />
@@ -155,13 +160,20 @@ function MainLayout() {
           <Route path="/jewelery/checkout" element={<JeweleryCheckoutScreen />} />
           <Route path="/jewelery/try-on" element={<JeweleryTryOnScreen />} />
           <Route path="/jewelery/account" element={<JeweleryAccountScreen />} />
+          {/* Mobile profile tab renders the same account screen */}
+          <Route path="/jewelery/profile" element={<JeweleryAccountScreen />} />
           <Route path="/jewelery/addresses" element={<JeweleryAddressesScreen />} />
           <Route path="/jewelery/address-form" element={<JeweleryAddressFormScreen />} />
           <Route path="/jewelery/orders" element={<JeweleryOrdersScreen />} />
           <Route path="/jewelery/order-detail" element={<JeweleryOrderDetailScreen />} />
+          {/* Mobile dynamic route /jewelery/orders/[id] */}
+          <Route path="/jewelery/orders/:id" element={<JeweleryOrderDetailScreen />} />
           <Route path="/jewelery/order-success" element={<JeweleryOrderSuccessScreen />} />
           <Route path="/jewelery/wishlist" element={<JeweleryWishlistScreen />} />
           <Route path="/jewelery/search" element={<JewelerySearchScreen />} />
+          <Route path="/jewelery/notifications" element={<NotificationScreen />} />
+          <Route path="/jewelery/auth/sign-in" element={<AuthScreen />} />
+          <Route path="/jewelery/auth/sign-up" element={<AuthScreen />} />
           <Route path="/jewelery/product/:id" element={<JeweleryProductDetailScreen />} />
 
           {/* Catch-all: normalize legacy Expo paths, else module home */}

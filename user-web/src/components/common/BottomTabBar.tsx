@@ -8,13 +8,91 @@ import {
   useWindowDimensions,
 } from "react-native";
 import { usePathname, useRouter } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
+import { Feather, Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
-import { useCartStore } from "@/src/features/common/cart/store/cartStore";
+import { filterItemsByModule, useCartStore } from "@/src/features/common/cart/store/cartStore";
 import { getRoleName, RIDER_ROLE_ALIAS, RoleEnum, useAuthStore } from "@/src/features/common/auth/store/authStore";
 import { useModuleStore } from "@/src/store/useModuleStore";
+import { useColors as useJeweleryColors } from "@/src/features/Jewelery/hooks/useColors";
 import { BREAKPOINTS } from "@/src/utils/responsive";
+
+/**
+ * Jewelry tab bar — mirrors mobile `app/jewelery/(tabs)/_layout.tsx`:
+ * Home · Collections · Wishlist · Bag · Account, Feather icons,
+ * gold active tint. Shown on every /jewelery* route so jewelry
+ * never renders the clothing tab set.
+ */
+const JeweleryTabBar: React.FC<{
+  pathname: string;
+  onPress: (route: string) => void;
+}> = ({ pathname, onPress }) => {
+  const colors = useJeweleryColors();
+  const jeweleryCount = useCartStore((s) => filterItemsByModule(s.items, "jewelery").length);
+
+  const tabs = [
+    { name: "home", label: "Home", icon: "home", route: "/jewelery" },
+    { name: "collections", label: "Collections", icon: "grid", route: "/jewelery/collections" },
+    { name: "wishlist", label: "Wishlist", icon: "heart", route: "/jewelery/wishlist" },
+    { name: "bag", label: "Bag", icon: "shopping-bag", route: "/jewelery/cart", badge: jeweleryCount },
+    { name: "account", label: "Account", icon: "user", route: "/jewelery/account" },
+  ];
+
+  const isActive = (route: string) =>
+    route === "/jewelery"
+      ? pathname === "/jewelery" || pathname === "/jewelery/"
+      : pathname === route || pathname.startsWith(`${route}/`);
+
+  return (
+    <View
+      style={[
+        styles.container,
+        {
+          backgroundColor: colors.ivory,
+          borderTopColor: colors.midGray,
+          shadowColor: "#000",
+        },
+      ]}
+    >
+      {tabs.map((tab) => {
+        const active = isActive(tab.route);
+        const color = active ? colors.gold : colors.warmGray;
+        return (
+          <Pressable
+            key={tab.name}
+            onPress={() => onPress(tab.route)}
+            style={({ pressed }) => [
+              styles.tabItem,
+              pressed && { opacity: 0.7 },
+            ]}
+            accessibilityRole="tab"
+            accessibilityLabel={tab.label}
+          >
+            <View style={styles.iconWrapper}>
+              <Feather name={tab.icon as any} size={21} color={color} />
+              {typeof tab.badge === "number" && tab.badge > 0 ? (
+                <View style={[styles.badge, { backgroundColor: colors.gold }]}>
+                  <Text style={styles.badgeText}>
+                    {tab.badge > 99 ? "99+" : tab.badge}
+                  </Text>
+                </View>
+              ) : null}
+            </View>
+            <Text
+              style={[
+                styles.jeweleryLabel,
+                { color },
+              ]}
+              numberOfLines={1}
+            >
+              {tab.label}
+            </Text>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+};
 
 export const BottomTabBar: React.FC = () => {
   const { width } = useWindowDimensions();
@@ -33,14 +111,35 @@ export const BottomTabBar: React.FC = () => {
   // Bottom tab bar only renders on mobile screen sizes (< 1024px)
   if (isDesktop) return null;
 
-  // Determine current active routes based on current catalog module
-  const isJewelery = currentModule.id === "jewelery" || pathname.startsWith("/jewelery");
-  const isFood = currentModule.id === "food" || pathname.startsWith("/food");
+  // Determine current active routes from the URL first — the persisted
+  // module in the store can be stale (e.g. user was on jewelery, then opened
+  // /clothing/home directly), which previously sent clothing taps to
+  // /jewelery/search and /jewelery/cart.
+  const isJeweleryPath = pathname.startsWith("/jewelery");
+  const isFoodPath =
+    pathname.startsWith("/food") || pathname.startsWith("/(tabs)/food");
+  const isClothingPath =
+    pathname.startsWith("/clothing") || pathname.startsWith("/(tabs)/clothing");
 
-  const homeRoute = isJewelery ? "/jewelery" : isFood ? "/food" : "/clothing/home";
-  const searchRoute = isJewelery ? "/jewelery/search" : "/clothing/search";
-  const cartRoute = isJewelery ? "/jewelery/cart" : "/clothing/cart";
-  const accountRoute = isJewelery ? "/jewelery/account" : "/clothing/account";
+  const isJewelery = isJeweleryPath || (!isClothingPath && !isFoodPath && currentModule.id === "jewelery");
+  const isFood = isFoodPath || (!isClothingPath && !isJeweleryPath && currentModule.id === "food");
+
+  const pressTab = (route: string) => {
+    try {
+      (Haptics as any)?.impactAsync?.((Haptics as any)?.ImpactFeedbackStyle?.Heavy);
+    } catch {}
+    router.push(route as any);
+  };
+
+  // Jewelry gets its own 5-tab bar (mobile parity) — never the clothing set.
+  if (isJewelery) {
+    return <JeweleryTabBar pathname={pathname} onPress={pressTab} />;
+  }
+
+  const homeRoute = isFood ? "/food" : "/clothing/home";
+  const searchRoute = "/clothing/search";
+  const cartRoute = "/clothing/cart";
+  const accountRoute = "/clothing/account";
 
   const tabs = [
     {
@@ -59,9 +158,9 @@ export const BottomTabBar: React.FC = () => {
     },
     {
       name: "cart",
-      label: isJewelery ? "Bag" : "Cart",
-      icon: isJewelery ? "bag-handle-outline" : "cart-outline",
-      activeIcon: isJewelery ? "bag-handle" : "cart",
+      label: "Cart",
+      icon: "cart-outline",
+      activeIcon: "cart",
       route: cartRoute,
       badge: cartCount,
     },
@@ -212,6 +311,11 @@ const styles = StyleSheet.create({
     fontSize: 10,
     marginTop: 2,
     letterSpacing: 0.2,
+  },
+  jeweleryLabel: {
+    fontSize: 9,
+    marginTop: 2,
+    letterSpacing: 0.8,
   },
 });
 

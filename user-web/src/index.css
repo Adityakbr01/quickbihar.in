@@ -17,6 +17,18 @@ body,
   box-sizing: border-box;
 }
 
+/* Hide scrollbars globally — scrolling still works via
+   touch / wheel / drag / keyboard, just no visible bars. */
+* {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+*::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
 #root {
   flex: 1;
 }

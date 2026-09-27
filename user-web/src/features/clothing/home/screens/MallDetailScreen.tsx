@@ -21,6 +21,7 @@ import { TextInput } from "@/src/theme/components/TextInput";
 import { SeoHead } from "@/src/components/seo/SeoHead";
 import { breadcrumbJsonLd, mallJsonLd, mallMeta } from "@/src/lib/seo";
 import { LinearGradient } from "expo-linear-gradient";
+import Carousel from "react-native-reanimated-carousel";
 import * as Haptics from "expo-haptics";
 import { goBack } from "@/src/utils/navigation";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
@@ -169,23 +170,19 @@ const MallDetailScreen: React.FC<MallDetailScreenProps> = ({ id, initialMall }) 
     <SafeViewWrapper>
       {seoMeta && <SeoHead meta={seoMeta} jsonLd={seoJsonLd} />}
       <ScrollView style={[styles.container, { backgroundColor: theme.background }]} showsVerticalScrollIndicator={false}>
-        {/* Cover Image Slider & Header */}
+        {/* Cover Image Slider & Header (embla carousel on web via the
+            reanimated-carousel shim, native carousel on mobile) */}
         <View style={styles.heroContainer}>
-          {/* Plain ScrollView slider (not FlashList): with 1–5 covers a
-              virtualized list adds nothing but its web cell-measurement
-              can collapse to zero height and blank the hero. */}
-          <ScrollView
-            horizontal
-            pagingEnabled
-            showsHorizontalScrollIndicator={false}
-            style={styles.heroSlider}
-            onMomentumScrollEnd={(event) => {
-              const slideSize = event.nativeEvent.layoutMeasurement.width;
-              const index = Math.round(event.nativeEvent.contentOffset.x / slideSize);
-              setActiveImageIndex(index);
-            }}
-          >
-            {heroImages.map((uri, index) => (
+          <Carousel
+            width={windowWidth}
+            height={300}
+            data={heroImages}
+            loop={heroImages.length > 1}
+            autoPlay={heroImages.length > 1}
+            autoPlayInterval={4000}
+            scrollAnimationDuration={300}
+            onSnapToItem={setActiveImageIndex}
+            renderItem={({ item: uri, index }) => (
               <ExpoImage
                 key={`${index}-${uri}`}
                 source={{ uri }}
@@ -194,8 +191,8 @@ const MallDetailScreen: React.FC<MallDetailScreenProps> = ({ id, initialMall }) 
                 alt={index === 0 ? `${mall.name} — cover photo` : `${mall.name} — photo ${index + 1}`}
                 priority={index === 0 ? "high" : "normal"}
               />
-            ))}
-          </ScrollView>
+            )}
+          />
           <LinearGradient colors={["rgba(0,0,0,0.4)", "rgba(0,0,0,0.0)", "rgba(0,0,0,0.85)"]} style={[styles.gradientOverlay, { pointerEvents: "none" }]} />
 
           {/* Header Actions */}
