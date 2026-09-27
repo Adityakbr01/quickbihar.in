@@ -15,6 +15,7 @@ import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { createOrderStyles } from "../style/orderStyles";
 import * as Haptics from "expo-haptics";
+import successConfetti from "@/assets/lottie/successConfetti.json";
 import { getOrderByIdRequest } from "../api/order.api";
 
 const OrderSuccessScreen = () => {
@@ -104,7 +105,7 @@ const OrderSuccessScreen = () => {
       >
         <View style={{ alignItems: "center" }}>
           <LazyLottie
-            source={require("@/assets/lottie/successConfetti.json")}
+            source={successConfetti}
             autoPlay
             loop={false}
             style={{ width: 200, height: 200 }}

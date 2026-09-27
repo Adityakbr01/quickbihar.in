@@ -1,34 +1,20 @@
-import { QueryClient } from "@tanstack/react-query";
-import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persister";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import type { ReactNode } from "react";
+import React from "react";
+import { queryClient } from "./queryClient";
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 2,
-      refetchOnWindowFocus: false,
-      gcTime: 1000 * 60 * 60 * 24, // 24 hours
-      staleTime: 1000 * 60 * 5,    // 5 minutes
-    },
-  },
+const asyncStoragePersister = createAsyncStoragePersister({
+  storage: AsyncStorage,
 });
 
-export { queryClient };
-
-const localStoragePersister = createSyncStoragePersister({
-  storage: typeof window !== "undefined" ? window.localStorage : undefined,
-});
-
-export const QueryProvider = ({ children }: { children: ReactNode }) => {
+export const QueryProvider = ({ children }: { children: React.ReactNode }) => {
   return (
     <PersistQueryClientProvider
       client={queryClient}
-      persistOptions={{ persister: localStoragePersister }}
+      persistOptions={{ persister: asyncStoragePersister }}
     >
       {children}
-      {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
     </PersistQueryClientProvider>
   );
 };

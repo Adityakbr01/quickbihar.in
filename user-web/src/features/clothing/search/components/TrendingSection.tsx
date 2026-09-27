@@ -11,7 +11,7 @@ import LazyLottie from "@/src/components/common/LazyLottie";
 import * as Haptics from "expo-haptics";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 
-const fireLottie = require("@/assets/lottie/Fire.json");
+import fireLottie from "@/assets/lottie/Fire.json";
 
 interface TrendingSectionProps {
   trendingItems: string[];

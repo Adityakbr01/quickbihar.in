@@ -21,8 +21,9 @@ import {
   GestureHandlerRootView,
 } from "react-native-gesture-handler";
 
+import fireLottie from "@/assets/lottie/LoadingCat.json";
+
 const AnimatedLottieView = Animated.createAnimatedComponent(LazyLottie);
-const fireLottie = require("@/assets/lottie/LoadingCat.json");
 const REFRESH_THRESHOLD = 90;
 const MAX_PULL = 150;
 const HOLD_OFFSET = 110;

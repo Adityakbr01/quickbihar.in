@@ -3,6 +3,7 @@ import { View, TouchableOpacity, Image, ActivityIndicator } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import * as Haptics from "expo-haptics";
 import { AppIcon } from "@/src/components/common/AppIcon";
+import defaultAvatar from "@/assets/images/default-avatar.svg";
 import { Theme } from "@/src/theme/Provider/ThemeProvider";
 
 interface ProfileAvatarProps {
@@ -66,7 +67,7 @@ const ProfileAvatar: React.FC<ProfileAvatarProps> = ({
         source={
           avatarUrl
             ? { uri: avatarUrl }
-            : require("@/assets/images/default-avatar.svg")
+            : defaultAvatar
         }
         style={[styles.avatar, isUpdating && { opacity: 0.6 }]}
       />

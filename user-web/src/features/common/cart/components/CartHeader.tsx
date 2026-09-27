@@ -5,7 +5,7 @@ import LazyLottie from "@/src/components/common/LazyLottie";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { createCartStyles } from "../styles/cartStyles";
 
-const walletLottie = require("@/assets/lottie/Wallet.json");
+import walletLottie from "@/assets/lottie/Wallet.json";
 
 interface CartHeaderProps {
   productsCount: number;

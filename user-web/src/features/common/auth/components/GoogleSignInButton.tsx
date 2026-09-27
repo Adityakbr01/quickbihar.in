@@ -16,6 +16,7 @@ import {
 } from "@react-native-google-signin/google-signin";
 
 import { signOutGoogleNative } from "../config/googleSignInConfig";
+import googleIconLogo from "@/assets/svg/google-icon-logo.svg";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 
 interface GoogleSignInButtonProps {
@@ -138,7 +139,7 @@ export const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({
         <View style={styles.row}>
           <View style={styles.gBadge}>
             <Image
-              source={require("@/assets/svg/google-icon-logo.svg")}
+              source={googleIconLogo}
               style={{ width: 18, height: 18 }}
               contentFit="contain"
             />

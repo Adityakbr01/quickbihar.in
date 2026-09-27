@@ -26,3 +26,36 @@ export function goBack(
     router.replace(fallbackHref);
   }
 }
+
+/**
+ * Normalize Expo Router paths to web (react-router) paths.
+ *
+ * The codebase shares screen code with the Expo native app, so many
+ * call-sites still navigate to mobile routes like:
+ *   "/(tabs)/clothing/home", "/(tabs)/clothing/cart",
+ *   "/(tabs)/clothing/search", "/jewelery/(tabs)/cart", ...
+ *
+ * The web router only defines "/clothing/home", "/jewelery/cart", etc.
+ * Without normalization those navigations (or a pasted URL) hit the
+ * catch-all "*" route and render a blank redirect loop.
+ */
+export function normalizeExpoPathForWeb(input: string): string {
+  if (!input || typeof input !== "string") return "/";
+  // Split off query/hash, normalize pathname only.
+  const qIndex = input.search(/[?#]/);
+  const pathname = qIndex === -1 ? input : input.slice(0, qIndex);
+  const suffix = qIndex === -1 ? "" : input.slice(qIndex);
+
+  let normalized = pathname
+    // "/(tabs)/clothing/home" -> "/clothing/home"
+    // "/jewelery/(tabs)/cart" -> "/jewelery/cart"
+    .replace(/\/\(tabs\)/g, "")
+    // "(tabs)/clothing/home" (missing leading slash) -> "/clothing/home"
+    .replace(/(^|\/)\(tabs\)\/?/g, "$1");
+
+  if (!normalized.startsWith("/")) normalized = `/${normalized}`;
+  // Collapse accidental "//".
+  normalized = normalized.replace(/\/{2,}/g, "/");
+
+  return `${normalized}${suffix}`;
+}

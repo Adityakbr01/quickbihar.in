@@ -1,21 +1,14 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import { BrowserRouter } from 'react-router-dom'
-import './index.css'
-import App from './App.tsx'
-import { QueryProvider } from './provider/QueryProvider'
-import { ThemeProvider } from './theme/Provider/ThemeProvider'
-import { Toaster } from './components/ui/sonner'
+import React from 'react';
+import { createRoot } from 'react-dom/client';
+import './index.css';
+import App from './App';
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <BrowserRouter>
-      <QueryProvider>
-        <ThemeProvider>
-          <App />
-          <Toaster position="top-right" />
-        </ThemeProvider>
-      </QueryProvider>
-    </BrowserRouter>
-  </StrictMode>,
-)
+const container = document.getElementById('root');
+if (container) {
+  const root = createRoot(container);
+  root.render(
+    <React.StrictMode>
+      <App />
+    </React.StrictMode>
+  );
+}

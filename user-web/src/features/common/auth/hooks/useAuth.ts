@@ -14,7 +14,7 @@ import {
 } from "../api/auth.api";
 import { getRoleLandingRoute, useAuthStore } from "../store/authStore";
 import { useCartStore } from "@/src/features/common/cart/store/cartStore";
-import { queryClient } from "@/src/provider/QueryProvider";
+import { queryClient } from "@/src/provider/queryClient";
 
 /**
  * Runs after any successful auth response (login, register, Google).

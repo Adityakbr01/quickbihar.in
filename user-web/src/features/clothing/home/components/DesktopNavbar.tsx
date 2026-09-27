@@ -17,6 +17,7 @@ import { useAuthStore } from "@/src/features/common/auth/store/authStore";
 import { ModuleSwitcherButton } from "@/src/components/common/ModuleSwitcherButton";
 import { BREAKPOINTS, DESKTOP } from "@/src/utils/responsive";
 import { TextInput } from "@/src/theme/components/TextInput";
+import splashIcon from "@/assets/images/icons/splash-icon.png";
 
 /**
  * Desktop-only top navbar for the clothing catalog (web >= 1024px).
@@ -131,7 +132,7 @@ export const DesktopNavbar = () => {
         >
           <View style={styles.brandRow}>
             <Image
-              source={require("@/assets/images/icons/splash-icon.png")}
+              source={splashIcon}
               style={styles.logoImage}
               contentFit="contain"
               alt="Quick Bihar logo"

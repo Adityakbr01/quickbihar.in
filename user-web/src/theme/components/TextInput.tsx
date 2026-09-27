@@ -29,8 +29,9 @@ export interface TextInputProps extends RNTextInputProps {
   bare?: boolean;
 }
 
-export const TextInput = React.forwardRef<RNTextInput, TextInputProps>(
-  ({ label, icon, rightIcon, error, variant = "default", containerStyle, inputContainerStyle, focusBorderColor, bare = false, ...props }, ref) => {
+export const TextInput = React.forwardRef<any, TextInputProps>(
+  (props: any, ref) => {
+    const { label, icon, rightIcon, error, variant = "default", containerStyle, inputContainerStyle, focusBorderColor, bare = false, ...restProps } = props;
     const theme = useTheme() as any;
     const [isFocused, setIsFocused] = useState(false);
 
@@ -84,8 +85,6 @@ export const TextInput = React.forwardRef<RNTextInput, TextInputProps>(
         fontSize: 16,
         color: theme.text,
         fontWeight: "500",
-        // Kill the browser's default focus outline on web — the container's
-        // focus border is the visible affordance everywhere.
         ...Platform.select({
           web: { outlineStyle: "none" } as any,
           default: {},
@@ -114,19 +113,19 @@ export const TextInput = React.forwardRef<RNTextInput, TextInputProps>(
           {icon && icon}
           <RNTextInput
             ref={ref}
-            {...props}
-            style={[styles.input, props.style]}
+            {...restProps}
+            style={[styles.input, restProps.style]}
             placeholderTextColor={theme.secondaryText}
-            onFocus={(e) => {
+            onFocus={(e: any) => {
               setIsFocused(true);
-              props.onFocus?.(e);
+              restProps.onFocus?.(e);
             }}
-            onBlur={(e) => {
+            onBlur={(e: any) => {
               setIsFocused(false);
-              props.onBlur?.(e);
+              restProps.onBlur?.(e);
             }}
-            accessibilityLabel={props.accessibilityLabel || label}
-            accessibilityHint={props.accessibilityHint}
+            accessibilityLabel={restProps.accessibilityLabel || label}
+            accessibilityHint={restProps.accessibilityHint}
           />
           {rightIcon && rightIcon}
         </View>

@@ -5,6 +5,7 @@ import React, { useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
+import { TextInput } from "@/src/theme/components/TextInput";
 
 /**
  * Banner shown at the top of checkout when the user has no phone
@@ -152,7 +153,6 @@ const PhoneInputInline: React.FC<{
   onChange: (v: string) => void;
   theme: any;
 }> = ({ value, onChange, theme }) => {
-  const { TextInput } = require("@/src/theme/components/TextInput");
   return (
     <View style={{ flex: 1, marginLeft: 6 }}>
       <TextInput

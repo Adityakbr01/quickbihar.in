@@ -18,7 +18,7 @@ import { MallCardSkeleton } from "../components/MallCardSkeleton";
 import { MallCard } from "../components/MallCard";
 import { getTopMallsRequest } from "../api/mall.api";
 
-const fireLottie = require("@/assets/lottie/Fire.json");
+import fireLottie from "@/assets/lottie/Fire.json";
 
 const TopMallSection = () => {
   const theme = useTheme() as any;

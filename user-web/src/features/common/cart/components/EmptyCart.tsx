@@ -8,7 +8,7 @@ import { createCartStyles } from "../styles/cartStyles";
 
 import { Ionicons } from "@expo/vector-icons";
 
-const cartLottie = require("@/assets/lottie/shoppingCart.json");
+import cartLottie from "@/assets/lottie/shoppingCart.json";
 
 const EmptyCart = () => {
   const theme = useTheme();

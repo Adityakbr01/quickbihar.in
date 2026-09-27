@@ -1,2 +1,4 @@
-export * from "./openRazorpayCheckout.web";
-export { default } from "./openRazorpayCheckout.web";
+import { openRazorpayCheckout } from './openRazorpayCheckout.web';
+
+export { openRazorpayCheckout };
+export default openRazorpayCheckout;

@@ -1,3 +1,5 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as Haptics from "expo-haptics";
 import React, {
   createContext,
   useCallback,
@@ -5,7 +7,6 @@ import React, {
   useEffect,
   useMemo,
 } from "react";
-import { triggerHaptic } from "@/lib/haptics";
 
 import { useCartStore, type CartItem as StoreCartItem, filterItemsByModule, totalsForItems } from "@/src/features/common/cart/store/cartStore";
 import { useWishlistStore, resolveWishlistModule } from "@/src/features/common/wishlist/store/wishlistStore";
@@ -92,10 +93,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   );
 
   useEffect(() => {
-    try {
-      localStorage.removeItem("jewelery_cart");
-      localStorage.removeItem("jewelery_wishlist");
-    } catch {}
+    AsyncStorage.multiRemove(["jewelery_cart", "jewelery_wishlist"]).catch(() => {});
   }, []);
 
   const skuForProduct = useCallback(
@@ -106,7 +104,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const addToCart = useCallback(async (product: Product): Promise<boolean> => {
     const raw = product._raw;
     if (!raw) {
-      triggerHaptic("error");
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       return false;
     }
     // SKU fallback chain: in-stock variant → first variant with any sku →
@@ -118,17 +116,17 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       (raw as any).sku ??
       null;
     if (!sku) {
-      triggerHaptic("error");
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       return false;
     }
     try {
       await useCartStore.getState().addItem(raw, sku, 1, "jewelery");
-      triggerHaptic("success");
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       return true;
     } catch {
       // Server rejections (e.g. just went out of stock → optimistic
       // rollback) previously vanished into `void`; now they buzz + report.
-      triggerHaptic("error");
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       return false;
     }
   }, []);

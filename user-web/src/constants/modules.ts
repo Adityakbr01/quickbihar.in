@@ -16,7 +16,7 @@ export const APP_MODULES: AppModule[] = [
     label: "Clothing",
     iconName: "shirt-outline",
     badgeColor: "#4F46E5",
-    route: "/(tabs)/clothing/home",
+    route: "/clothing/home",
   },
   {
     id: "jewelery",

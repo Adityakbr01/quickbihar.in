@@ -195,7 +195,7 @@ export default function JeweleryAddressFormScreen() {
         return;
       }
 
-      let location = null;
+      let location: any = null;
       try {
         location = await Location.getCurrentPositionAsync({
           accuracy: Location.Accuracy.BestForNavigation,

@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import { APP_MODULES, type AppModule, type ModuleId } from "../constants/modules";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { APP_MODULES, AppModule, ModuleId } from "../constants/modules";
 
 interface ModuleState {
   currentModuleId: ModuleId;
@@ -16,7 +17,7 @@ export const useModuleStore = create<ModuleState>()(
     (set, get) => ({
       currentModuleId: "clothing",
       currentModule: APP_MODULES[0],
-      isHydrated: false,
+      isHydrated: true,
 
       switchModule: () => {
         const currentIndex = APP_MODULES.findIndex(
@@ -37,7 +38,7 @@ export const useModuleStore = create<ModuleState>()(
     }),
     {
       name: "active-app-module-v1",
-      storage: createJSONStorage(() => localStorage),
+      storage: createJSONStorage(() => (typeof window !== 'undefined' ? window.localStorage : (AsyncStorage as any))),
       onRehydrateStorage: () => (state) => {
         state?.setHydrated(true);
       },

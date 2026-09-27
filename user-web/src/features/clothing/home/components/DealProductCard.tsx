@@ -14,7 +14,7 @@ import { DealProduct as MockProduct } from "../lib/dealsConfig";
 import { createDealProductCardStyles } from "../style/DealProductCard.style";
 import { VariantSelectorBottomSheet } from "../../product/components/modals/VariantSelectorBottomSheet";
 
-const cyclerLottie = require("@/assets/lottie/Cycler.json");
+import cyclerLottie from "@/assets/lottie/Cycler.json";
 
 interface DealProductCardProps {
   product: IProduct | MockProduct;

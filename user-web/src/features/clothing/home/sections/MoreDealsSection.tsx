@@ -52,15 +52,7 @@ function getIconForCategory(title: string): AppIconName {
 // ─────────────────────────────────────────────
 
 const getSpeechRecognitionModule = () => {
-  if (!(NativeModulesProxy as any)?.ExpoSpeechRecognition) return null;
-  try {
-    // Dynamic import keeps the native module optional (Expo Go safe).
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const speech = require("expo-speech-recognition");
-    return speech?.ExpoSpeechRecognitionModule ?? null;
-  } catch {
-    return null;
-  }
+  return null;
 };
 
 const useDebouncedValue = <T,>(value: T, delay = 500) => {
@@ -346,7 +338,7 @@ export const MoreDealsFilters = ({
   const isDesktop = propIsDesktop ?? (Platform.OS === "web" && winW >= BREAKPOINTS.desktopMin);
   const [isListening, setIsListening] = useState(false);
   const [speechError, setSpeechError] = useState<string | null>(null);
-  const speechModule = useMemo(() => getSpeechRecognitionModule(), []);
+  const speechModule = useMemo<any>(() => getSpeechRecognitionModule(), []);
   const isSpeechModuleAvailable = !!speechModule;
 
   useEffect(() => {

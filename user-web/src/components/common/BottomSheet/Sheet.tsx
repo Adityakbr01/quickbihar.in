@@ -58,6 +58,8 @@ export const Sheet = forwardRef<SheetRef, SheetProps>(function Sheet(
         tsRef.current?.present(index, animated) ?? Promise.resolve(),
       dismiss: (animated) =>
         tsRef.current?.dismiss(animated) ?? Promise.resolve(),
+      detent: (index, animated) =>
+        tsRef.current?.detent(index, animated) ?? Promise.resolve(),
       resize: (index) => tsRef.current?.resize(index) ?? Promise.resolve(),
       dismissStack: (animated) =>
         tsRef.current?.dismissStack(animated) ?? Promise.resolve(),

@@ -1,20 +1,25 @@
-import colors from "../constants/jeweleryColors";
-import { useTheme } from "@/theme/Provider/ThemeProvider";
+import { useColorScheme } from "react-native";
+
+import colors from "@/src/features/Jewelery/constants/jeweleryColors";
+import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 
 /**
- * Returns the design tokens for the active app theme mode (light/dark) for the Jewelery module.
- * Synchronized with the global ThemeProvider.
+ * Returns the design tokens for the active app theme mode (light/dark).
+ * Synchronized with the global ThemeProvider switcher.
  */
 export function useColors() {
-  const theme = useTheme();
-  const isDark = theme.isDark;
+  const scheme = useColorScheme();
+  let isDark = scheme === "dark";
+  try {
+    const theme = useTheme();
+    if (theme && typeof theme.isDark === "boolean") {
+      isDark = theme.isDark;
+    }
+  } catch {}
 
   const palette =
     isDark && "dark" in colors
       ? (colors as any).dark
       : colors.light;
-
   return { ...palette, isDark, radius: colors.radius };
 }
-
-export default useColors;

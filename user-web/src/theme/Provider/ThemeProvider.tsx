@@ -1,37 +1,45 @@
-import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
+// src/theme/ThemeProvider.tsx
+import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { Platform } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { lightTheme, darkTheme, type Theme } from "../colors";
-import { useModuleStore } from "@/store/useModuleStore";
-import type { ModuleId } from "@/constants/modules";
 
 export type { Theme };
+
 export type ThemeMode = "light" | "dark";
 
-export interface ThemeContextValue extends Theme {
+interface ThemeContextValue extends Theme {
+  /** Active mode: "dark" or "light". Default is "dark". Manual toggle only. */
   mode: ThemeMode;
   isDark: boolean;
-  activeModule: ModuleId;
+  /** False until persisted choice is restored on native — gate splash-hide on this. */
+  ready: boolean;
+  /** Persisted manual choice from the Profile toggle. */
   setMode: (mode: ThemeMode) => void;
+  /** Flip dark ↔ light. Same as setMode, for toggle buttons. */
   toggleMode: () => void;
-  setModule: (module: ModuleId) => void;
 }
 
 const STORAGE_KEY = "quickbihar-theme-mode-v1";
 
+// ponytail: on web, read localStorage synchronously in the initializer so a
+// page reload paints the saved theme on the very first frame (0ms flash).
+// On native (Android/iOS), async restoration runs in useEffect while the splash screen covers it.
 function getStoredMode(): ThemeMode {
-  if (typeof window !== "undefined") {
+  if (Platform.OS === "web" && typeof window !== "undefined") {
     try {
       const saved = window.localStorage?.getItem(STORAGE_KEY);
       if (saved === "light" || saved === "dark") return saved;
-      if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
-        return "dark";
-      }
     } catch {}
   }
   return "dark";
 }
 
 function persistMode(next: ThemeMode) {
-  if (typeof window !== "undefined") {
+  AsyncStorage.setItem(STORAGE_KEY, next).catch((err: unknown) => {
+    console.warn("AsyncStorage theme write error:", err);
+  });
+  if (Platform.OS === "web" && typeof window !== "undefined") {
     try {
       window.localStorage?.setItem(STORAGE_KEY, next);
       document.cookie = `${STORAGE_KEY}=${next}; path=/; max-age=31536000; SameSite=Lax`;
@@ -43,30 +51,38 @@ const fallbackValue: ThemeContextValue = {
   ...darkTheme,
   mode: "dark",
   isDark: true,
-  activeModule: "clothing",
+  ready: false,
   setMode: () => {},
   toggleMode: () => {},
-  setModule: () => {},
 };
 
 const ThemeContext = createContext<ThemeContextValue>(fallbackValue);
 
-export const ThemeProvider = ({ children }: { children: ReactNode }) => {
+export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
   const [mode, setModeState] = useState<ThemeMode>(getStoredMode);
-  const currentModuleId = useModuleStore((s) => s.currentModuleId);
-  const setStoreModule = useModuleStore((s) => s.setModule);
-
-  const isDark = mode === "dark";
+  const [ready, setReady] = useState(() => Platform.OS === "web");
 
   useEffect(() => {
-    const root = document.documentElement;
-    if (isDark) {
-      root.classList.add("dark");
-    } else {
-      root.classList.remove("dark");
-    }
-    root.setAttribute("data-module", currentModuleId);
-  }, [isDark, currentModuleId]);
+    let active = true;
+    AsyncStorage.getItem(STORAGE_KEY)
+      .then((saved) => {
+        if (active && (saved === "light" || saved === "dark")) {
+          setModeState(saved);
+        }
+      })
+      .catch((err: unknown) => {
+        console.warn("AsyncStorage theme read error:", err);
+      })
+      .finally(() => {
+        if (active) {
+          setReady(true);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const setMode = useCallback((next: ThemeMode) => {
     setModeState(next);
@@ -81,14 +97,14 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
     });
   }, []);
 
+  const isDark = mode === "dark";
   const value: ThemeContextValue = {
     ...(isDark ? darkTheme : lightTheme),
     mode,
     isDark,
-    activeModule: currentModuleId,
+    ready,
     setMode,
     toggleMode,
-    setModule: setStoreModule,
   };
 
   return (

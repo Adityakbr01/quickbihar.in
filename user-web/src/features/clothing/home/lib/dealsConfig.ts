@@ -1,30 +1,35 @@
 import type { AppIconName } from "@/src/components/common/AppIcon";
+import heartImg from "@/assets/images/campaigns/heart.webp";
+import bagImg from "@/assets/images/campaigns/bag.webp";
+import discountTagImg from "@/assets/images/campaigns/DiscountTag.webp";
+import deliveryCarImg from "@/assets/images/campaigns/DeliveryCar.webp";
+import bellImg from "@/assets/images/campaigns/bell.webp";
 
 export const CAMPAIGNS = [
   {
     id: "1",
     title: "For You",
-    image: require("@/assets/images/campaigns/heart.webp"),
+    image: heartImg,
   },
   {
     id: "2",
     title: "What's New",
-    image: require("@/assets/images/campaigns/bag.webp"),
+    image: bagImg,
   },
   {
     id: "3",
     title: "Deal of the Day",
-    image: require("@/assets/images/campaigns/DiscountTag.webp"),
+    image: discountTagImg,
   },
   {
     id: "4",
     title: "Express Delivery",
-    image: require("@/assets/images/campaigns/DeliveryCar.webp"),
+    image: deliveryCarImg,
   },
   {
     id: "5",
     title: "Get Notify",
-    image: require("@/assets/images/campaigns/bell.webp"),
+    image: bellImg,
   },
 ];
 

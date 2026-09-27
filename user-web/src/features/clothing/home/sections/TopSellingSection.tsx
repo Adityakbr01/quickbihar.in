@@ -24,7 +24,7 @@ import {
 } from "../../product/api/product.api";
 import { IProduct } from "../../product/types/product.types";
 
-const arrowLottie = require("@/assets/lottie/arrow.json");
+import arrowLottie from "@/assets/lottie/arrow.json";
 const CARD_WIDTH = 240;
 const GAP = 12;
 const TopSellingSection = ({ category }: { category?: string } = {}) => {

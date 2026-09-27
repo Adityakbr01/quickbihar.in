@@ -1,55 +1,49 @@
-import React, { Component, ComponentType, PropsWithChildren } from "react";
-import { CommonErrorFallback, ErrorFallbackProps } from "./ErrorFallback";
+import React, { Component, ErrorInfo, ReactNode } from "react";
 
-export type { ErrorFallbackProps };
+export interface Props {
+  children: ReactNode;
+}
 
-export type ErrorBoundaryProps = PropsWithChildren<{
-  FallbackComponent?: ComponentType<ErrorFallbackProps>;
-  onError?: (error: Error, stackTrace: string) => void;
-}>;
+export type ErrorBoundaryProps = Props;
+export type ErrorFallbackProps = { error: Error; resetErrorBoundary: () => void };
 
-type ErrorBoundaryState = { error: Error | null };
+interface State {
+  hasError: boolean;
+  error: Error | null;
+}
 
-/**
- * Generic React error boundary.
- *
- * ponytail: moved from Jewelery/components/ — error boundaries have zero
- * business logic and should be available to all verticals.
- *
- * React only provides error boundary functionality through lifecycle methods
- * (componentDidCatch and getDerivedStateFromError) which are not available
- * in functional components.
- * https://react.dev/reference/react/Component#catching-rendering-errors-with-an-error-boundary
- */
-export class ErrorBoundary extends Component<
-  ErrorBoundaryProps,
-  ErrorBoundaryState
-> {
-  state: ErrorBoundaryState = { error: null };
-
-  static defaultProps: { FallbackComponent: ComponentType<ErrorFallbackProps> } =
-    { FallbackComponent: CommonErrorFallback };
-
-  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
-    return { error };
-  }
-
-  componentDidCatch(error: Error, info: { componentStack: string }): void {
-    if (typeof this.props.onError === "function") {
-      this.props.onError(error, info.componentStack);
-    }
-  }
-
-  resetError = (): void => {
-    this.setState({ error: null });
+export class ErrorBoundary extends Component<Props, State> {
+  public state: State = {
+    hasError: false,
+    error: null,
   };
 
-  render() {
-    const { FallbackComponent } = this.props;
-    return this.state.error && FallbackComponent ? (
-      <FallbackComponent error={this.state.error} resetError={this.resetError} />
-    ) : (
-      this.props.children
-    );
+  public static getDerivedStateFromError(error: Error): State {
+    return { hasError: true, error };
+  }
+
+  public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error("Uncaught Error Boundary error:", error, errorInfo);
+  }
+
+  public render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ padding: 24, color: "#333", fontFamily: "sans-serif", backgroundColor: "#fff", minHeight: "100vh" }}>
+          <h2>Something went wrong in the application.</h2>
+          <pre style={{ color: "#d32f2f", backgroundColor: "#ffebee", padding: 16, borderRadius: 8, overflowX: "auto" }}>
+            {this.state.error?.toString()}
+          </pre>
+          <button
+            onClick={() => window.location.reload()}
+            style={{ padding: "10px 16px", backgroundColor: "#007AFF", color: "#fff", border: "none", borderRadius: 6, cursor: "pointer", marginTop: 12 }}
+          >
+            Reload Page
+          </button>
+        </div>
+      );
+    }
+
+    return this.props.children;
   }
 }
