@@ -1,0 +1,138 @@
+import React, { useState } from "react";
+import {
+  TextInput as RNTextInput,
+  View,
+  TextInputProps as RNTextInputProps,
+  StyleSheet,
+  Platform,
+} from "react-native";
+import { useTheme } from "../Provider/ThemeProvider";
+import ThemedText from "./ThemedText";
+import { spacing } from "../spacing";
+
+export interface TextInputProps extends RNTextInputProps {
+  label?: string;
+  icon?: React.ReactNode;
+  rightIcon?: React.ReactNode;
+  error?: string;
+  variant?: "default" | "glass";
+  containerStyle?: object;
+  /** Extra style for the bordered input row (bg, radius, padding). */
+  inputContainerStyle?: object;
+  /** Border color while focused. Defaults to theme.primary. */
+  focusBorderColor?: string;
+  /**
+   * Bare mode for embedding inside a custom chrome (e.g. an animated
+   * search container): skips the internal focus/error background wash so
+   * only the outer container paints. Border logic still applies.
+   */
+  bare?: boolean;
+}
+
+export const TextInput = React.forwardRef<RNTextInput, TextInputProps>(
+  ({ label, icon, rightIcon, error, variant = "default", containerStyle, inputContainerStyle, focusBorderColor, bare = false, ...props }, ref) => {
+    const theme = useTheme() as any;
+    const [isFocused, setIsFocused] = useState(false);
+
+    const isGlass = variant === "glass";
+    const activeBorder = focusBorderColor ?? theme.primary;
+
+    const styles = StyleSheet.create({
+      container: {
+        marginBottom: isGlass ? 0 : 16,
+        gap: isGlass ? 6 : 0,
+      },
+      label: {
+        fontSize: 16,
+        fontWeight: "600",
+        color: theme.text,
+        marginBottom: isGlass ? 0 : 8,
+      },
+      inputContainer: {
+        flexDirection: "row",
+        alignItems: "center",
+        height: isGlass ? 60 : undefined,
+        paddingHorizontal: isGlass ? 16 : 12,
+        paddingVertical: isGlass ? 0 : 4,
+        borderRadius: isGlass ? 16 : spacing.xl,
+        backgroundColor: isGlass
+          ? (theme.background === "#ffffff" ? "rgba(0, 0, 0, 0.04)" : "rgba(255, 255, 255, 0.06)")
+          : theme.secondaryBackground,
+        borderWidth: 1.5,
+        borderColor: isGlass
+          ? (error
+              ? "#ef4444"
+              : isFocused
+                ? (theme.background === "#ffffff" ? "rgba(0, 0, 0, 0.4)" : "rgba(255, 255, 255, 0.6)")
+                : (theme.background === "#ffffff" ? "rgba(0, 0, 0, 0.08)" : "rgba(255, 255, 255, 0.15)"))
+          : (error ? theme.error : isFocused ? activeBorder : theme.border),
+        gap: isGlass ? 12 : 10,
+      },
+      inputContainerFocused: {
+        backgroundColor: isGlass
+          ? (theme.background === "#ffffff" ? "rgba(0, 0, 0, 0.06)" : "rgba(255, 255, 255, 0.12)")
+          : theme.secondaryBackground,
+      },
+      inputContainerError: {
+        backgroundColor: isGlass
+          ? (theme.background === "#ffffff" ? "rgba(239, 68, 68, 0.03)" : "rgba(239, 68, 68, 0.05)")
+          : theme.secondaryBackground,
+      },
+      input: {
+        flex: 1,
+        height: isGlass ? "100%" : undefined,
+        fontSize: 16,
+        color: theme.text,
+        fontWeight: "500",
+        // Kill the browser's default focus outline on web — the container's
+        // focus border is the visible affordance everywhere.
+        ...Platform.select({
+          web: { outlineStyle: "none" } as any,
+          default: {},
+        }),
+      },
+      errorText: {
+        fontSize: isGlass ? 13 : 12,
+        color: isGlass ? "#f87171" : theme.error,
+        marginTop: isGlass ? 0 : 6,
+        marginLeft: isGlass ? 4 : 0,
+        fontWeight: "500",
+      },
+    });
+
+    return (
+      <View style={[styles.container, containerStyle]}>
+        {label && <ThemedText style={styles.label}>{label}</ThemedText>}
+        <View 
+          style={[
+            styles.inputContainer, 
+            inputContainerStyle,
+            !bare && isFocused && styles.inputContainerFocused,
+            !bare && error ? styles.inputContainerError : null,
+          ]}
+        >
+          {icon && icon}
+          <RNTextInput
+            ref={ref}
+            {...props}
+            style={[styles.input, props.style]}
+            placeholderTextColor={theme.secondaryText}
+            onFocus={(e) => {
+              setIsFocused(true);
+              props.onFocus?.(e);
+            }}
+            onBlur={(e) => {
+              setIsFocused(false);
+              props.onBlur?.(e);
+            }}
+            accessibilityLabel={props.accessibilityLabel || label}
+            accessibilityHint={props.accessibilityHint}
+          />
+          {rightIcon && rightIcon}
+        </View>
+        {error ? <ThemedText style={styles.errorText}>{error}</ThemedText> : null}
+      </View>
+    );
+  },
+);
+TextInput.displayName = "TextInput";

@@ -1,0 +1,63 @@
+import React from "react";
+import { View, Text, TouchableOpacity } from "react-native";
+import { Image } from "expo-image";
+import { LinearGradient } from "expo-linear-gradient";
+import { useTheme } from "@/src/theme/Provider/ThemeProvider";
+import { createTopMallSectionStyles } from "../style/TopMallSection.style";
+import type { TopMall } from "../api/mall.api";
+import { AppIcon } from "@/src/components/common/AppIcon";
+import { useRouter } from "expo-router";
+
+interface MallCardProps {
+  mall: TopMall;
+}
+
+export const MallCard = ({ mall }: MallCardProps) => {
+  const router = useRouter();
+  const theme = useTheme() as any;
+  const styles = React.useMemo(() => createTopMallSectionStyles(theme), [theme]);
+
+  const mallTitle = mall.name || "Shopping Mall";
+  const mallLoc = mall.location || "Bihar";
+
+  return (
+    <TouchableOpacity
+      activeOpacity={0.9}
+      style={styles.cardContainer}
+      accessibilityRole="link"
+      accessibilityLabel={`Visit ${mallTitle} in ${mallLoc}`}
+      {...({ title: `Explore ${mallTitle} stores and offers in ${mallLoc}` } as any)}
+      onPress={() => router.push(`/mall/${mall.id || mall._id}` as any)}
+    >
+      <Image
+        source={{ uri: mall.image }}
+        style={styles.cardImage}
+        contentFit="cover"
+        alt={`${mallTitle} - Shopping Mall in ${mallLoc}`}
+        accessibilityLabel={`${mallTitle} Mall`}
+        {...({ title: `${mallTitle} | QuickBihar Local Mall` } as any)}
+      />
+      
+      {/* Dynamic Rating Badge */}
+      <View style={styles.ratingBadge}>
+        <AppIcon name="star" size={12} color="#facc15" />
+        <Text style={styles.ratingText}>{mall.rating}</Text>
+      </View>
+
+      <LinearGradient
+        colors={["transparent", "rgba(0,0,0,0.8)"]}
+        style={styles.gradientOverlay}
+      >
+        <Text style={styles.mallName} numberOfLines={1}>
+          {mall.name}
+        </Text>
+        <View style={styles.locationContainer}>
+          <AppIcon name="location-outline" size={12} color="rgba(255, 255, 255, 0.8)" />
+          <Text style={styles.locationText} numberOfLines={1}>
+            {mall.location}
+          </Text>
+        </View>
+      </LinearGradient>
+    </TouchableOpacity>
+  );
+};

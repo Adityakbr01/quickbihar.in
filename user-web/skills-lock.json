@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "web-haptics": {
+      "source": "lochie/web-haptics",
+      "sourceType": "github",
+      "skillPath": "SKILL.md",
+      "computedHash": "5d7681493bd00cd4197f637c5a868f1ad683b41201707688c004aded3e2f2700"
+    }
+  }
+}

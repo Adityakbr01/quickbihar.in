@@ -4,7 +4,6 @@ import { useModuleStore } from "@/store/useModuleStore";
 import type { ModuleId } from "@/constants/modules";
 
 export type { Theme };
-
 export type ThemeMode = "light" | "dark";
 
 export interface ThemeContextValue extends Theme {
@@ -28,7 +27,7 @@ function getStoredMode(): ThemeMode {
       }
     } catch {}
   }
-  return "dark"; // Default is dark matching mobile
+  return "dark";
 }
 
 function persistMode(next: ThemeMode) {
@@ -59,7 +58,6 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
 
   const isDark = mode === "dark";
 
-  // Synchronize DOM attributes for both Tailwind dark mode and module color palette
   useEffect(() => {
     const root = document.documentElement;
     if (isDark) {

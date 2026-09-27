@@ -1,0 +1,273 @@
+import React, { useEffect, useState } from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  RefreshControl,
+  ScrollView,
+} from "react-native";
+import { FlashList } from "@shopify/flash-list";
+import { useRouter } from "expo-router";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import * as Haptics from "expo-haptics";
+import { OrderCardSkeleton } from "../components/OrderCardSkeleton";
+import { useTheme } from "@/src/theme/Provider/ThemeProvider";
+import { getMyOrdersRequest } from "../api/order.api";
+import { orderHasModule } from "../lib/orderModule";
+import { socketClient } from "@/src/lib/socket";
+import { SocketEvents } from "@/src/constants/socketEvents";
+import SafeViewWrapper from "@/src/provider/SafeViewWrapper";
+import dayjs from "dayjs";
+import { createStyles } from "../style/OrderListScreen.style";
+
+const OrderListScreen = () => {
+  const theme = useTheme();
+  const styles = createStyles(theme);
+  const router = useRouter();
+
+  const [orders, setOrders] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  useEffect(() => {
+    fetchOrders();
+
+    // Listen for status updates in real-time
+    console.log(
+      "[OrderListScreen] Socket connected:",
+      socketClient.isConnected,
+    );
+
+    socketClient.on(SocketEvents.ORDER_STATUS_UPDATE, (data) => {
+      console.log("[OrderListScreen] Received update event:", data);
+      fetchOrders();
+    });
+
+    return () => {
+      socketClient.off(SocketEvents.ORDER_STATUS_UPDATE);
+    };
+  }, []);
+
+  const fetchOrders = async () => {
+    try {
+      setIsLoading(true);
+      const response = await getMyOrdersRequest();
+      // Clothing catalogue shows clothing orders only — jewellery orders
+      // live in the jewellery order history.
+      setOrders((response.data || []).filter((o: any) => orderHasModule(o, "clothing")));
+    } catch (error) {
+      console.error("Failed to fetch orders:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await fetchOrders();
+    setIsRefreshing(false);
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status.toUpperCase()) {
+      case "PENDING":
+      case "PENDING_PAYMENT":
+        return "#F59E0B";
+      case "CONFIRMED":
+      case "PROCESSING":
+        return "#10B981";
+      case "SHIPPED":
+        return "#3B82F6";
+      case "DELIVERED":
+        return "#8B5CF6";
+      case "CANCELLED":
+      case "REJECTED":
+        return "#EF4444";
+      default:
+        return theme.secondaryText;
+    }
+  };
+
+  const renderOrderItem = ({ item }: { item: any }) => {
+    // Shared module check (vertical/module/jeweleryDetails aware).
+    // The list itself is clothing-filtered; jewellery rows route to the
+    // jewellery detail screen if they ever appear (e.g. deep links).
+    const isJeweleryOrder =
+      orderHasModule(item, "jewelery") && !orderHasModule(item, "clothing");
+
+    return (
+      <TouchableOpacity
+        style={styles.orderCard}
+        activeOpacity={0.8}
+        onPress={() => {
+          if (isJeweleryOrder) {
+            router.push({
+              pathname: "/jewelery/orders/[id]" as any,
+              params: { id: item.orderId },
+            });
+          } else {
+            router.push({
+              pathname: "/order/[id]" as any,
+              params: { id: item.orderId },
+            });
+          }
+        }}
+      >
+      <View style={styles.orderHeader}>
+        <View>
+          <Text style={styles.orderId}>Order #{item.orderId}</Text>
+          <Text style={styles.orderDate}>
+            {dayjs(item.createdAt).format("DD MMM, YYYY")}
+          </Text>
+        </View>
+        <View
+          style={[
+            styles.statusBadge,
+            { backgroundColor: getStatusColor(item.status) + "15" },
+          ]}
+        >
+          <Text
+            style={[styles.statusText, { color: getStatusColor(item.status) }]}
+          >
+            {item.status.replace("_", " ")}
+          </Text>
+        </View>
+      </View>
+
+      <View style={styles.itemsPreview}>
+        <View style={styles.itemThumb}>
+          <MaterialCommunityIcons
+            name="package-variant-closed"
+            size={24}
+            color={theme.primary}
+          />
+        </View>
+        <Text style={styles.itemsText} numberOfLines={1}>
+          {item.items.length} {item.items.length === 1 ? "item" : "items"} in
+          this order
+        </Text>
+        {item.items.length > 1 && (
+          <View style={styles.moreCount}>
+            <Text style={styles.moreText}>+{item.items.length - 1}</Text>
+          </View>
+        )}
+      </View>
+
+      <View style={styles.orderFooter}>
+        <View>
+          <Text style={styles.totalLabel}>Total Amount</Text>
+          <Text style={styles.totalValue}>
+            ₹{item.payableAmount.toLocaleString()}
+          </Text>
+        </View>
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
+          {/* {["CONFIRMED", "PROCESSING", "SHIPPED"].includes(item.status.toUpperCase()) && (
+            <TouchableOpacity 
+              style={[styles.detailButton, { backgroundColor: theme.primary + '15', marginRight: 10, paddingHorizontal: 12 }]}
+              onPress={() => router.push(`/track-order/${item.orderId}`)}
+            >
+              <MaterialCommunityIcons name="map-marker-distance" size={16} color={theme.primary} />
+              <Text style={[styles.detailButtonText, { color: theme.primary, marginLeft: 4 }]}>Track</Text>
+            </TouchableOpacity>
+          )} */}
+          <View style={styles.detailButton}>
+            <Text style={styles.detailButtonText}>Details</Text>
+            <Ionicons name="chevron-forward" size={14} color={theme.primary} />
+          </View>
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
+  };
+
+  const renderEmpty = () => (
+    <View style={styles.emptyContainer}>
+      <View
+        style={[
+          styles.emptyIconWrap,
+          { backgroundColor: theme.primary + "15" },
+        ]}
+      >
+        <Ionicons name="bag-handle-outline" size={52} color={theme.primary} />
+      </View>
+      <Text style={styles.emptyTitle}>No Orders Yet</Text>
+      <Text style={styles.emptySubtitle}>
+        You haven&apos;t placed any orders yet. Start shopping to see them here!
+      </Text>
+      <TouchableOpacity
+        style={styles.shopButton}
+        onPress={() => router.replace("/(tabs)/clothing/home")}
+      >
+        <Text style={styles.shopButtonText}>Explore Products</Text>
+      </TouchableOpacity>
+    </View>
+  );
+
+  const renderSkeletons = () => (
+    <ScrollView
+      contentContainerStyle={styles.listContent}
+      showsVerticalScrollIndicator={false}
+    >
+      {[0, 1, 2, 3].map((i) => (
+        <OrderCardSkeleton key={i} />
+      ))}
+    </ScrollView>
+  );
+
+  return (
+    <SafeViewWrapper>
+      <View style={styles.container}>
+        {/* Top app bar (same language as Notifications) */}
+        <View style={styles.appBar}>
+          <TouchableOpacity
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(
+                () => null,
+              );
+              if (router.canGoBack()) router.back();
+              else router.replace("/(tabs)/clothing/home");
+            }}
+            style={styles.backButton}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="chevron-back" size={22} color={theme.text} />
+          </TouchableOpacity>
+
+          <View style={styles.appBarTitleWrap}>
+            <Text style={styles.appBarTitle}>My Orders</Text>
+            <Text style={styles.appBarSubtitle}>
+              {orders.length > 0
+                ? `${orders.length} order${orders.length === 1 ? "" : "s"}`
+                : "Track and manage your orders"}
+            </Text>
+          </View>
+
+          <View style={{ width: 40 }} />
+        </View>
+
+        {isLoading && !isRefreshing ? (
+          renderSkeletons()
+        ) : (
+          <FlashList
+            data={orders}
+            renderItem={renderOrderItem}
+            keyExtractor={(item) => item._id}
+            contentContainerStyle={styles.listContent}
+            showsVerticalScrollIndicator={false}
+            refreshControl={
+              <RefreshControl
+                refreshing={isRefreshing}
+                onRefresh={handleRefresh}
+                tintColor={theme.primary}
+                colors={[theme.primary]}
+              />
+            }
+            ListEmptyComponent={renderEmpty}
+          />
+        )}
+      </View>
+    </SafeViewWrapper>
+  );
+};
+
+export default OrderListScreen;

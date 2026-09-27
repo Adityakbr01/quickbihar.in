@@ -1,5 +1,6 @@
 // src/theme/colors.ts
 export type Theme = typeof lightTheme;
+export const Theme = {};
 
 export const lightTheme = {
   background: "#ffffff",

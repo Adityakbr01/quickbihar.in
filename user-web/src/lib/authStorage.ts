@@ -18,3 +18,5 @@ export const authStorage = {
     }
   },
 };
+
+export default authStorage;

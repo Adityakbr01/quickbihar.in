@@ -1,15 +1,18 @@
 import axios from "axios";
-import { useAuthStore } from "@/features/common/auth/store/authStore";
-import { authStorage } from "@/lib/authStorage";
+import { useAuthStore } from "../features/common/auth/store/authStore";
+import { authStorage } from "../lib/authStorage";
 
 const trimTrailingSlash = (value: string) => value.replace(/\/+$/, "");
 
 // Single source of truth for server URLs
 export const API_ORIGIN = trimTrailingSlash(
-  import.meta.env.VITE_API_ORIGIN || ""
+  process.env.EXPO_PUBLIC_API_ORIGIN || "",
 );
-
+console.log("[API Configuration] API_ORIGIN:", API_ORIGIN);
 export const API_URL = `${API_ORIGIN}/api/v1`;
+
+console.log("[API Configuration] API_ORIGIN:", API_ORIGIN);
+console.log("[API Configuration] API_URL:", API_URL);
 
 const axiosInstance = axios.create({
   baseURL: API_URL,
@@ -53,7 +56,7 @@ axiosInstance.interceptors.request.use(
   },
   (error) => {
     return Promise.reject(error);
-  }
+  },
 );
 
 // Response Interceptor: Handle global errors and token refresh
@@ -62,13 +65,18 @@ axiosInstance.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
+    // Distinguish between Network Error and Server Error
     if (error.code === "ERR_NETWORK") {
       return Promise.reject(
-        new Error(`Network Error: Could not reach server at ${API_URL}. Check your internet connection.`)
+        new Error(
+          `Network Error: Could not reach server at ${API_URL}. Ensure your phone is on the same Wi-Fi as your PC.`,
+        ),
       );
     }
 
+    // Handle 401 Unauthorized
     if (error.response?.status === 401 && !originalRequest._retry) {
+      // If we are already refreshing, queue the request
       if (isRefreshing) {
         return new Promise(function (resolve, reject) {
           failedQueue.push({ resolve, reject });
@@ -82,7 +90,8 @@ axiosInstance.interceptors.response.use(
           });
       }
 
-      if (originalRequest.url?.includes("/auth/refresh-token")) {
+      // If the error is from the refresh token endpoint itself, logout
+      if (originalRequest.url.includes("/auth/refresh-token")) {
         await useAuthStore.getState().clearAuth();
         return Promise.reject(error);
       }
@@ -107,10 +116,12 @@ axiosInstance.interceptors.response.use(
           user,
         } = response.data.data;
 
+        // Update auth store and persisted session data.
         await useAuthStore
           .getState()
           .setAuth(user, accessToken, newRefreshToken);
 
+        // Update header and retry original request
         axiosInstance.defaults.headers.common["Authorization"] =
           `Bearer ${accessToken}`;
         originalRequest.headers["Authorization"] = `Bearer ${accessToken}`;
@@ -128,7 +139,7 @@ axiosInstance.interceptors.response.use(
 
     const message = error.response?.data?.message || "Something went wrong";
     return Promise.reject(new Error(message));
-  }
+  },
 );
 
 export default axiosInstance;

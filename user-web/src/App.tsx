@@ -6,8 +6,9 @@ import { useFoodColors } from "@/features/Food/hooks/useFoodColors";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Sun, Moon, Sparkles, Shirt, UtensilsCrossed, CheckCircle2, ArrowRight } from "lucide-react";
+import { Sun, Moon, Sparkles, Shirt, UtensilsCrossed, CheckCircle2, ArrowRight, Vibrate } from "lucide-react";
 import { toast } from "sonner";
+import { triggerHaptic } from "@/lib/haptics";
 
 export default function App() {
   const { mode, toggleMode, isDark } = useTheme();
@@ -16,6 +17,7 @@ export default function App() {
   const foodColors = useFoodColors();
 
   const handleModuleChange = (id: ModuleId) => {
+    triggerHaptic("selection");
     setModule(id);
     const mod = APP_MODULES.find((m) => m.id === id);
     toast.success(`Switched to ${mod?.name} Module`, {
@@ -23,10 +25,15 @@ export default function App() {
     });
   };
 
+  const handleToggleMode = () => {
+    triggerHaptic("light");
+    toggleMode();
+  };
+
   return (
     <div className="min-h-screen transition-colors duration-300 bg-background text-foreground flex flex-col">
       {/* Header */}
-      <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <header className="sticky top-0 z-40 w-full border-b bg-background/95 supports-backdrop-filter:bg-background/60">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-primary-foreground font-black text-xl shadow-md">
@@ -77,7 +84,7 @@ export default function App() {
             <Button
               variant="outline"
               size="icon"
-              onClick={toggleMode}
+              onClick={handleToggleMode}
               className="rounded-xl ml-1 cursor-pointer"
               title={`Switch to ${isDark ? "Light" : "Dark"} mode`}
             >
@@ -140,11 +147,12 @@ export default function App() {
 
             <div className="flex gap-2">
               <Button
-                onClick={() =>
+                onClick={() => {
+                  triggerHaptic("medium");
                   toast.info(`Active Theme: ${currentModuleId.toUpperCase()}`, {
                     description: `Mode: ${mode.toUpperCase()} | Ready for component migration.`,
-                  })
-                }
+                  });
+                }}
               >
                 Explore {currentModuleId}
                 <ArrowRight className="w-4 h-4 ml-1" />

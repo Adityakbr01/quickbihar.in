@@ -1,0 +1,27 @@
+{
+  "aditya-fashion-mall": {
+    "_id": "6aa2c2ad2d4e39dc14563daf",
+    "slug": "aditya-fashion-mall",
+    "name": "Aditya Fashion Mall",
+    "description": "Dumraon's premier fashion & lifestyle mall featuring high fashion apparel, ethnic wear, Banarasi sarees, casual wear, and kids collection with instant hyperlocal delivery.",
+    "coverImageUrl": "https://ik.imagekit.io/k2n57ywshu/malls/covers/aditya_fashion_mall_exterior_1789053606505_rF71WTj5f.jpg",
+    "logoUrl": "https://ik.imagekit.io/k2n57ywshu/malls/logos/aditya_fashion_mall_logo_1789051559435_GZSbjLXlr.jpg",
+    "images": [
+      {
+        "url": "https://ik.imagekit.io/k2n57ywshu/malls/covers/aditya_fashion_mall_exterior_1789053606505_rF71WTj5f.jpg",
+        "fileId": "6aa2caaaead997d09a896c9b",
+        "_id": "6aac115261e2c72af9d3fbd8"
+      }
+    ],
+    "address": {
+      "line1": "NH-84, Bhojpur Kadim",
+      "city": "Dumraon",
+      "state": "Bihar",
+      "pincode": "802133",
+      "latitude": 25.5941,
+      "longitude": 85.1376
+    },
+    "location": "NH-84, Bhojpur Kadim, Dumraon",
+    "isActive": true
+  }
+}
