@@ -23,6 +23,7 @@ import { useJeweleryProduct, useSimilarJewelery } from "@/src/features/Jewelery/
 import { useCart } from "@/src/features/Jewelery/context/CartContext";
 import { useColors } from "@/src/features/Jewelery/hooks/useColors";
 import { useStickyBarBottomOffset } from "@/src/utils/responsive";
+import { useAuthStore } from "@/src/features/common/auth/store/authStore";
 import {
   useCreateProductReview,
   useProductReviews,
@@ -94,6 +95,11 @@ export default function JeweleryProductDetailScreen() {
   const reviewsList = reviewsData?.reviews || [];
 
   const handleHelpfulVote = async (reviewId: string) => {
+    if (!useAuthStore.getState().isAuthenticated) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+      router.push("/jewelery/auth/sign-in" as any);
+      return;
+    }
     try {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       await voteHelpfulMutation.mutateAsync(reviewId);
@@ -101,6 +107,16 @@ export default function JeweleryProductDetailScreen() {
       // silent — error haptic already fired
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     }
+  };
+
+  const handleRateAndReview = () => {
+    if (!useAuthStore.getState().isAuthenticated) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+      router.push("/jewelery/auth/sign-in" as any);
+      return;
+    }
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setShowReviewModal(true);
   };
 
   const isInCart = Boolean(
@@ -224,10 +240,7 @@ export default function JeweleryProductDetailScreen() {
             <Stars rating={averageRating} count={totalReviews} />
           ) : (
             <Pressable
-              onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                setShowReviewModal(true);
-              }}
+              onPress={handleRateAndReview}
               style={[
                 styles.firstReviewTeaser,
                 { borderColor: colors.gold, backgroundColor: colors.champagne },
@@ -500,10 +513,7 @@ export default function JeweleryProductDetailScreen() {
             ) : null}
 
             <Pressable
-              onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                setShowReviewModal(true);
-              }}
+              onPress={handleRateAndReview}
               style={[
                 styles.rateBtn,
                 {
@@ -726,19 +736,33 @@ export default function JeweleryProductDetailScreen() {
             </View>
           )}
 
-          <View style={{ height: 100 }} />
+          <View style={{ height: 100 + stickyBarOffset }} />
         </View>
       </ScrollView>
 
-      {/* Sticky bottom bar */}
+      {/* Sticky bottom bar — viewport-fixed on web so it is always
+          visible (the page scrolls at document level, so in-flow would
+          park it at the end of the content). Native keeps it in-flow
+          below its bounded ScrollView. */}
       <View
         style={[
           styles.stickyBar,
           {
             backgroundColor: colors.ivory,
             borderTopColor: colors.midGray,
-            paddingBottom: bottomPad + 12,
-            marginBottom: stickyBarOffset,
+            // Web: the bar is fixed above the 60px tab bar, so no safe-area
+            // padding needed — the old bottomPad+12 left a cream gap.
+            // Native keeps the inset for the home indicator.
+            paddingBottom: Platform.OS === "web" ? 12 : bottomPad + 12,
+            ...(Platform.OS === "web"
+              ? ({
+                  position: "fixed",
+                  bottom: stickyBarOffset,
+                  left: 0,
+                  right: 0,
+                  zIndex: 60,
+                } as any)
+              : null),
           },
         ]}
       >
@@ -830,6 +854,7 @@ export default function JeweleryProductDetailScreen() {
           await createReviewMutation.mutateAsync(reviewData);
         }}
         productTitle={product.name}
+        authRoute="/jewelery/auth/sign-in"
         theme={modalTheme}
       />
     </View>
@@ -837,7 +862,7 @@ export default function JeweleryProductDetailScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1 },
+  root: { flex: 1, overflow: "hidden" },
   notFound: { textAlign: "center", marginTop: 100, fontSize: 16 },
   backBtn: {
     position: "absolute",
@@ -996,10 +1021,12 @@ const styles = StyleSheet.create({
     paddingTop: 14,
     gap: 12,
     borderTopWidth: 0.5,
+    width: "100%",
   },
   wishlistStickyBtn: {
     width: 48,
     height: 52,
+    flexShrink: 0,
     borderWidth: 1,
     borderRadius: 2,
     alignItems: "center",
@@ -1007,6 +1034,7 @@ const styles = StyleSheet.create({
   },
   tryOnBtn: {
     height: 52,
+    flexShrink: 0,
     borderWidth: 1,
     borderRadius: 2,
     paddingHorizontal: 12,
@@ -1018,6 +1046,8 @@ const styles = StyleSheet.create({
   tryOnText: { fontSize: 12, letterSpacing: 1.1 },
   addToCartBtn: {
     flex: 1,
+    flexShrink: 1,
+    minWidth: 0,
     height: 52,
     flexDirection: "row",
     alignItems: "center",

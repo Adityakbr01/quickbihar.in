@@ -32,6 +32,9 @@ interface WriteReviewModalProps {
   }) => Promise<void>;
   productTitle?: string;
   theme: Theme & { radius?: number };
+  /** Where guests go when they try to review. Defaults to the common
+   *  sign-in; jewellery passes its own sign-in route to stay in-module. */
+  authRoute?: string;
 }
 
 const RATING_LABELS: Record<number, string> = {
@@ -48,6 +51,7 @@ export const WriteReviewModal: React.FC<WriteReviewModalProps> = ({
   onSubmit,
   productTitle,
   theme,
+  authRoute = "/auth",
 }) => {
   const router = useRouter();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -76,7 +80,7 @@ export const WriteReviewModal: React.FC<WriteReviewModalProps> = ({
     if (!isAuthenticated) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
       onClose();
-      router.push("/auth" as any);
+      router.push(authRoute as any);
       return;
     }
 

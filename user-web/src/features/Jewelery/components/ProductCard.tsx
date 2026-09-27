@@ -3,22 +3,19 @@ import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
 import React from "react";
 import {
-  Dimensions,
   Image,
   Platform,
   Pressable,
   StyleSheet,
   Text,
   View,
+  useWindowDimensions,
 } from "react-native";
 
 import { useCart } from "@/src/features/Jewelery/context/CartContext";
 import { Product } from "@/src/features/Jewelery/data/products";
 import { useColors } from "@/src/features/Jewelery/hooks/useColors";
 import { APP_CURRENCY } from "@/src/constants";
-
-const { width } = Dimensions.get("window");
-const CARD_WIDTH = (width - 48) / 2;
 
 interface ProductCardProps {
   product: Product;
@@ -44,6 +41,10 @@ function Stars({ rating }: { rating: number }) {
 
 export function ProductCard({ product, style }: ProductCardProps) {
   const colors = useColors();
+  // Live viewport width — a module-level Dimensions.get() goes stale on
+  // resize/device-emulation/rotation and makes grid cards overflow the page.
+  const { width: windowWidth } = useWindowDimensions();
+  const cardWidth = (windowWidth - 48) / 2;
   const { toggleWishlist, isWishlisted, addToCart } = useCart();
   const wishlisted = isWishlisted(product.id);
   const [justAdded, setJustAdded] = React.useState(false);
@@ -79,7 +80,7 @@ export function ProductCard({ product, style }: ProductCardProps) {
       onPress={handlePress}
       style={({ pressed }) => [
         styles.card,
-        { backgroundColor: colors.pearl, width: CARD_WIDTH },
+        { backgroundColor: colors.pearl, width: cardWidth },
         pressed && { opacity: 0.92 },
         style,
       ]}

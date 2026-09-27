@@ -1,7 +1,6 @@
 import { Feather } from "@expo/vector-icons";
 import React, { useRef, useState } from "react";
 import {
-  Dimensions,
   FlatList,
   Image,
   NativeScrollEvent,
@@ -9,12 +8,10 @@ import {
   Pressable,
   StyleSheet,
   View,
+  useWindowDimensions,
 } from "react-native";
 
 import { useColors } from "@/src/features/Jewelery/hooks/useColors";
-
-const { width } = Dimensions.get("window");
-const IMAGE_HEIGHT = width * (4 / 3);
 
 interface ImageCarouselProps {
   images: any[];
@@ -22,6 +19,13 @@ interface ImageCarouselProps {
 
 export function ImageCarousel({ images }: ImageCarouselProps) {
   const colors = useColors();
+  // Live viewport width — a module-level Dimensions.get() goes stale on
+  // resize/device-emulation/rotation and makes images wider than the
+  // screen, which stretches the whole page (incl. the sticky action bar).
+  const { width } = useWindowDimensions();
+  // Square 1:1 gallery — the old 4:3 frame was far too tall and pushed
+  // the details + Add to Bag bar way down the page.
+  const imageHeight = width;
   const [activeIndex, setActiveIndex] = useState(0);
   const flatListRef = useRef<FlatList>(null);
   const thumbListRef = useRef<FlatList>(null);
@@ -51,7 +55,7 @@ export function ImageCarousel({ images }: ImageCarouselProps) {
     return (
       <View
         style={{
-          height: IMAGE_HEIGHT,
+          height: imageHeight,
           alignItems: "center",
           justifyContent: "center",
           backgroundColor: colors.champagne,
@@ -65,7 +69,7 @@ export function ImageCarousel({ images }: ImageCarouselProps) {
   return (
     <View>
       {/* Main image pager */}
-      <View style={{ height: IMAGE_HEIGHT }}>
+      <View style={{ height: imageHeight }}>
         <FlatList
           ref={flatListRef}
           data={safeImages}
@@ -84,7 +88,7 @@ export function ImageCarousel({ images }: ImageCarouselProps) {
           renderItem={({ item }) => (
             <Image
               source={item}
-              style={{ width, height: IMAGE_HEIGHT }}
+              style={{ width, height: imageHeight }}
               resizeMode="cover"
             />
           )}

@@ -417,9 +417,13 @@ export const styles = StyleSheet.create({
     paddingBottom: 12,
     borderTopWidth: 1,
     gap: 12,
+    zIndex: 50,
+    width: "100%",
   },
   wishlistBtn: {
     flex: 1,
+    flexShrink: 1,
+    minWidth: 0,
     height: 48,
     flexDirection: "row",
     alignItems: "center",
@@ -431,6 +435,8 @@ export const styles = StyleSheet.create({
   wishlistBtnText: { fontSize: 13, fontWeight: "700", letterSpacing: 0.5 },
   addToBagBtn: {
     flex: 1.5,
+    flexShrink: 1,
+    minWidth: 0,
     height: 48,
     flexDirection: "row",
     alignItems: "center",

@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   Image,
   Share,
+  Platform,
   useWindowDimensions,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -43,6 +44,7 @@ import { SeoHead } from "@/src/components/seo/SeoHead";
 import { breadcrumbJsonLd, productJsonLd, productMeta } from "@/src/lib/seo";
 import { useWishlistStore } from "@/src/features/common/wishlist/store/wishlistStore";
 import { useCartStore } from "@/src/features/common/cart/store/cartStore";
+import { useAuthStore } from "@/src/features/common/auth/store/authStore";
 import * as Haptics from "expo-haptics";
 import WishlistHeart from "@/src/components/common/WishlistHeart";
 import { goBack } from "@/src/utils/navigation";
@@ -104,6 +106,7 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
   const wishlistItems = useWishlistStore(state => state.items);
   const toggleWishlist = useWishlistStore(state => state.toggleItem);
   const isWishlisted = wishlistItems.includes(id);
+  const { isAuthenticated } = useAuthStore();
   // Mobile web tab bar is fixed-position and overlays the viewport bottom —
   // lift the sticky action bar above it (0 on desktop/native, no visual diff).
   const stickyBarOffset = useStickyBarBottomOffset();
@@ -268,12 +271,26 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
   };
 
   const handleHelpfulVote = async (reviewId: string) => {
+    if (!isAuthenticated) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+      router.push("/auth" as any);
+      return;
+    }
     try {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       await voteHelpfulMutation.mutateAsync(reviewId);
     } catch {
       // silent
     }
+  };
+
+  const handleRateAndReview = () => {
+    if (!isAuthenticated) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+      router.push("/auth" as any);
+      return;
+    }
+    setShowReviewModal(true);
   };
 
   // ── Ratings & Reviews Derived State ──
@@ -1091,7 +1108,7 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
               </Text>
               <TouchableOpacity
                 style={[s.writeReviewBtn, { borderColor: theme.primary, backgroundColor: theme.primary + "10" }]}
-                onPress={() => setShowReviewModal(true)}
+                onPress={handleRateAndReview}
                 activeOpacity={0.7}
               >
                 <Ionicons name="star" size={14} color={theme.primary} />
@@ -1246,12 +1263,16 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
           <SimilarProducts products={similarProducts} theme={theme} />
         )}
 
-        {/* Bottom spacer */}
-        <View style={{ height: 100 }} />
+        {/* Bottom spacer — clears the fixed action bar + tab bar */}
+        <View style={{ height: 100 + stickyBarOffset }} />
       </ScrollView>
 
       {/* ═══════════════════════════════════════════
-          BOTTOM ACTION BAR
+          BOTTOM ACTION BAR — viewport-fixed on web so it is always
+          visible (the page scrolls at document level, so `absolute`
+          would park it at the end of the content). Native keeps
+          `absolute` inside its bounded screen. Bottom offset lifts it
+          above the fixed tab bar on mobile web.
       ═══════════════════════════════════════════ */}
       <Animated.View
         entering={FadeInUp.delay(300).duration(400)}
@@ -1260,7 +1281,15 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
           {
             backgroundColor: theme.background,
             borderTopColor: theme.border,
-            bottom: stickyBarOffset,
+            ...(Platform.OS === "web"
+              ? ({
+                  position: "fixed",
+                  bottom: stickyBarOffset,
+                  left: 0,
+                  right: 0,
+                  zIndex: 60,
+                } as any)
+              : { bottom: stickyBarOffset }),
           },
         ]}
       >
