@@ -89,6 +89,26 @@ function isApprovedForPublic(product: any): boolean {
 }
 
 /**
+ * Storefront navigates with the canonical slug (`slug || _id`), so
+ * `GET /:id`, `GET /:id/similar` and review endpoints receive slugs.
+ * Resolve either form to the product doc — ObjectId first, slug fallback —
+ * instead of letting Mongoose throw a CastError (500).
+ */
+function isObjectIdLike(value: string): boolean {
+    return /^[0-9a-fA-F]{24}$/.test(value);
+}
+
+async function resolveProduct(idOrSlug: string) {
+    const raw = String(idOrSlug || "").trim();
+    if (!raw) return null;
+    if (isObjectIdLike(raw)) {
+        const byId = await ProductDAO.findById(raw);
+        if (byId) return byId;
+    }
+    return await ProductDAO.findBySlug(raw);
+}
+
+/**
  * Owner id of a product doc — findById/findBySlug populate `sellerId`, so
  * unwrap {_id} first (populated.toString() is "[object Object]" and would
  * wrongly deny sellers their own products).
@@ -417,10 +437,11 @@ export async function getProductBySlug(slug: string) {
 }
 
 /**
- * Fetch a specific product by its ID (only if active/approved).
+ * Fetch a specific product by its ID or slug (only if active/approved).
+ * The storefront navigates with the canonical slug, so both forms resolve.
  */
-export async function getProductById(id: string) {
-    const product = await ProductDAO.findById(id);
+export async function getProductById(idOrSlug: string) {
+    const product = await resolveProduct(idOrSlug);
     if (!product) throw new ApiError(404, "Product not found");
     if (!isApprovedForPublic(product)) throw new ApiError(404, "Product not found");
     return product;
@@ -538,12 +559,14 @@ export async function deleteProduct(id: string, sellerId: string, role: string) 
 
 /**
  * Find similar products using source product specs.
+ * Accepts a product id or slug (storefront navigates with the slug).
  */
-export async function getSimilarProducts(productId: string, limit = 10) {
+export async function getSimilarProducts(idOrSlug: string, limit = 10) {
     const safeLimit = Math.min(50, Math.max(1, Number(limit) || 10));
-    const product = await ProductDAO.findById(productId);
+    const product = await resolveProduct(idOrSlug);
     if (!product) throw new ApiError(404, "Product not found");
 
+    const productId = (product as any)._id?.toString() || idOrSlug;
     const similar = await ProductDAO.findSimilar(
         productId,
         {

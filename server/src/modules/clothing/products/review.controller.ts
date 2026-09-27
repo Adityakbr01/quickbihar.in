@@ -43,8 +43,30 @@ async function updateProductRatingStats(productId: Types.ObjectId | string) {
 }
 
 /**
+ * Storefront navigates with the canonical product slug (`slug || _id`), so
+ * review endpoints receive slugs. Resolve either form to the product's
+ * ObjectId instead of `new Types.ObjectId(slug)` (which threw a 500).
+ */
+async function resolveProductObjectId(idOrSlug: string) {
+    const raw = String(idOrSlug || "").trim();
+    if (!raw) throw new ApiError(404, "Product not found");
+    if (Types.ObjectId.isValid(raw)) {
+        const byId = await Product.findOne({ _id: raw, isDeleted: false })
+            .select("_id")
+            .lean();
+        if (byId) return byId._id as Types.ObjectId;
+    }
+    const bySlug = await Product.findOne({ slug: raw, isDeleted: false })
+        .select("_id")
+        .lean();
+    if (!bySlug) throw new ApiError(404, "Product not found");
+    return bySlug._id as Types.ObjectId;
+}
+
+/**
  * GET /api/v1/products/:id/reviews
  * Fetch paginated reviews and aggregate rating breakdown for a product.
+ * `:id` accepts a product ObjectId or slug.
  */
 export const getProductReviews = asyncHandler(async (req: Request, res: Response) => {
     const { id } = req.params;
@@ -52,8 +74,9 @@ export const getProductReviews = asyncHandler(async (req: Request, res: Response
     const limit = Math.min(50, Math.max(1, parseInt(req.query.limit as string) || 10));
     const skip = (page - 1) * limit;
 
+    const productObjectId = await resolveProductObjectId(id as string);
     const filter = {
-        productId: new Types.ObjectId(id as string),
+        productId: productObjectId,
         status: "APPROVED",
     };
 
@@ -153,7 +176,11 @@ export const createProductReview = asyncHandler(async (req: Request, res: Respon
         throw new ApiError(400, "Review comment is required");
     }
 
-    const product = await Product.findById(id);
+    const productObjectId = await resolveProductObjectId(id as string);
+    const product = await Product.findOne({
+        $or: [{ _id: productObjectId }, { slug: String(id) }],
+        isDeleted: false,
+    });
     if (!product) {
         throw new ApiError(404, "Product not found");
     }
@@ -162,14 +189,14 @@ export const createProductReview = asyncHandler(async (req: Request, res: Respon
     const deliveredParentOrders = await Order.find({
         userId: new Types.ObjectId(userId.toString()),
         status: { $in: [SubOrderStatus.DELIVERED, SubOrderStatus.COMPLETED, SubOrderStatus.DELIVERY_CONFIRMED] },
-        "items.productId": new Types.ObjectId(id as string),
+        "items.productId": productObjectId,
     }).select("_id");
 
     const isVerifiedBuyer = deliveredParentOrders.length > 0;
 
     // Check if user already reviewed this product -> update existing or create new
     let review = await Review.findOne({
-        productId: new Types.ObjectId(id as string),
+        productId: productObjectId,
         userId: new Types.ObjectId(userId.toString()),
     });
 
@@ -185,7 +212,7 @@ export const createProductReview = asyncHandler(async (req: Request, res: Respon
         await review.save();
     } else {
         review = await Review.create({
-            productId: new Types.ObjectId(id as string),
+            productId: productObjectId,
             userId: new Types.ObjectId(userId.toString()),
             rating,
             title: title ? title.trim() : "",
@@ -198,7 +225,7 @@ export const createProductReview = asyncHandler(async (req: Request, res: Respon
     }
 
     // Update product ratings average and count
-    await updateProductRatingStats(id as string);
+    await updateProductRatingStats(productObjectId);
 
     return res.status(201).json(
         new ApiResponse(201, review, "Review submitted successfully")

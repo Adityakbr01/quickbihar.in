@@ -48,6 +48,7 @@ import WishlistHeart from "@/src/components/common/WishlistHeart";
 import { goBack } from "@/src/utils/navigation";
 
 import { useSizeChart, useSizeCharts } from "@/src/features/clothing/sizeChart/hooks/useSizeCharts";
+import { useStickyBarBottomOffset } from "@/src/utils/responsive";
 
 interface ProductDetailProps {
   id: string;
@@ -103,6 +104,9 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
   const wishlistItems = useWishlistStore(state => state.items);
   const toggleWishlist = useWishlistStore(state => state.toggleItem);
   const isWishlisted = wishlistItems.includes(id);
+  // Mobile web tab bar is fixed-position and overlays the viewport bottom —
+  // lift the sticky action bar above it (0 on desktop/native, no visual diff).
+  const stickyBarOffset = useStickyBarBottomOffset();
 
   const queryClient = useQueryClient();
 
@@ -1256,6 +1260,7 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
           {
             backgroundColor: theme.background,
             borderTopColor: theme.border,
+            bottom: stickyBarOffset,
           },
         ]}
       >

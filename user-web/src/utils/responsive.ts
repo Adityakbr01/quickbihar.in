@@ -31,6 +31,23 @@ export function getViewportKind(width: number, platform = Platform.OS) {
   return "mobile" as const;
 }
 
+/** Height of the mobile BottomTabBar (see components/common/BottomTabBar). */
+export const BOTTOM_TAB_BAR_HEIGHT = 60;
+
+/**
+ * Height a sticky bottom bar (Add to Bag, checkout CTA, ...) must be lifted
+ * so the tab bar never covers it.
+ *
+ * Only mobile web overlays: there the tab bar is `position: fixed` (out of
+ * flow, 60px over the viewport bottom). Desktop web renders no tab bar at
+ * all, and native lays it in-flow below the screen — both need offset 0.
+ */
+export function useStickyBarBottomOffset() {
+  const { width } = useWindowDimensions();
+  const isMobileWeb = Platform.OS === "web" && width < BREAKPOINTS.desktopMin;
+  return isMobileWeb ? BOTTOM_TAB_BAR_HEIGHT : 0;
+}
+
 /** True only on web + width >= 1024. Safe gate for ALL desktop-only UI. */
 export function useIsDesktop() {
   const { width } = useWindowDimensions();

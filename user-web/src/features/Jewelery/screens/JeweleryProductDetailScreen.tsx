@@ -22,6 +22,7 @@ import type { Product as JeweleryProduct } from "@/src/features/Jewelery/data/pr
 import { useJeweleryProduct, useSimilarJewelery } from "@/src/features/Jewelery/hooks/useJeweleryCatalog";
 import { useCart } from "@/src/features/Jewelery/context/CartContext";
 import { useColors } from "@/src/features/Jewelery/hooks/useColors";
+import { useStickyBarBottomOffset } from "@/src/utils/responsive";
 import {
   useCreateProductReview,
   useProductReviews,
@@ -60,6 +61,9 @@ export default function JeweleryProductDetailScreen() {
   const insets = useSafeAreaInsets();
   const { addToCart, toggleWishlist, isWishlisted, cartItems } = useCart();
   const [addedToCart, setAddedToCart] = useState(false);
+  // Mobile web tab bar is fixed-position and overlays the viewport bottom —
+  // lift the sticky bar above it (0 on desktop/native, no visual diff).
+  const stickyBarOffset = useStickyBarBottomOffset();
 
   const bottomPad = Platform.OS === "web" ? 34 : insets.bottom;
 
@@ -734,6 +738,7 @@ export default function JeweleryProductDetailScreen() {
             backgroundColor: colors.ivory,
             borderTopColor: colors.midGray,
             paddingBottom: bottomPad + 12,
+            marginBottom: stickyBarOffset,
           },
         ]}
       >

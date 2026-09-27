@@ -62,25 +62,40 @@ export function useRouter() {
   };
 }
 
+/**
+ * SPA navigation for the module-level `router` singleton.
+ *
+ * Screens/components that `import { router } from "expo-router"` (most of
+ * the Jewelery module: ProductCard, CollectionCard, HeroCarousel, home,
+ * cart, wishlist, ...) go through here. A full `window.location.href`
+ * assignment forces a browser reload and destroys SPA state — so push via
+ * the History API and notify react-router with a popstate event instead.
+ * Identical destination, no reload, scroll/state preserved.
+ */
+function spaNavigate(url: any, replace = false) {
+  if (typeof window === 'undefined') return;
+  const path = cleanWebPath(url);
+  if (replace) {
+    window.history.replaceState(null, '', path);
+  } else {
+    window.history.pushState(null, '', path);
+  }
+  window.dispatchEvent(new PopStateEvent('popstate'));
+}
+
 export const router = {
   push: (url: any) => {
-    if (typeof window !== 'undefined') {
-      window.location.href = cleanWebPath(url);
-    }
+    spaNavigate(url, false);
   },
   replace: (url: any) => {
-    if (typeof window !== 'undefined') {
-      window.location.replace(cleanWebPath(url));
-    }
+    spaNavigate(url, true);
   },
   back: () => {
     if (typeof window !== 'undefined') window.history.back();
   },
   canGoBack: () => true,
   navigate: (url: any) => {
-    if (typeof window !== 'undefined') {
-      window.location.href = cleanWebPath(url);
-    }
+    spaNavigate(url, false);
   },
 };
 
