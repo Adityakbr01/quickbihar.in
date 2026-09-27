@@ -1,1 +1,175 @@
 @import "tailwindcss";
+@import "leaflet/dist/leaflet.css";
+
+/* Base Default / Brand Tokens */
+:root {
+  --background: 0 0% 100%;
+  --foreground: 240 10% 3.9%;
+  --card: 0 0% 100%;
+  --card-foreground: 240 10% 3.9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 240 10% 3.9%;
+  --primary: 83 81% 42%; /* QuickBihar Lime #80C314 */
+  --primary-foreground: 0 0% 100%;
+  --secondary: 240 4.8% 95.9%;
+  --secondary-foreground: 240 5.9% 10%;
+  --muted: 240 4.8% 95.9%;
+  --muted-foreground: 240 3.8% 46.1%;
+  --accent: 240 4.8% 95.9%;
+  --accent-foreground: 240 5.9% 10%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 240 5.9% 90%;
+  --input: 240 5.9% 90%;
+  --ring: 83 81% 42%;
+  --radius: 0.75rem;
+
+  /* Module Brand Colors */
+  --color-brand-green: #80c314;
+  --color-clothing: #4f46e5;
+  --color-jewelery: #d97706;
+  --color-food: #e11d48;
+}
+
+/* Global Dark Mode */
+.dark {
+  --background: 0 0% 5.9%; /* #0f0f0f */
+  --foreground: 0 0% 100%;
+  --card: 240 3.7% 11%; /* #1c1c1e */
+  --card-foreground: 0 0% 100%;
+  --popover: 240 3.7% 11%;
+  --popover-foreground: 0 0% 100%;
+  --primary: 83 81% 42%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 240 3.7% 17%;
+  --secondary-foreground: 0 0% 98%;
+  --muted: 240 3.7% 17%;
+  --muted-foreground: 240 5% 64.9%;
+  --accent: 240 3.7% 17%;
+  --accent-foreground: 0 0% 98%;
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 240 2.9% 26.5%; /* #424245 */
+  --input: 240 2.9% 26.5%;
+  --ring: 83 81% 42%;
+}
+
+/* ========================================================
+   MODULE 1: CLOTHING (#4F46E5 Indigo)
+   ======================================================== */
+[data-module="clothing"] {
+  --primary: 243 75% 59%; /* #4F46E5 */
+  --primary-foreground: 0 0% 100%;
+  --ring: 243 75% 59%;
+}
+
+/* ========================================================
+   MODULE 2: JEWELERY (#B8924A Gold / Ivory / Noir)
+   ======================================================== */
+[data-module="jewelery"] {
+  --background: 38 32% 95%; /* #F7F3EC Ivory */
+  --foreground: 24 13% 9%; /* #1A1614 Ink */
+  --card: 38 22% 90%; /* #EDE8DF Pearl */
+  --card-foreground: 24 13% 9%;
+  --popover: 38 32% 95%;
+  --popover-foreground: 24 13% 9%;
+  --primary: 39 44% 51%; /* #B8924A Gold */
+  --primary-foreground: 38 32% 95%;
+  --secondary: 39 52% 87%; /* #F0E4CC Champagne */
+  --secondary-foreground: 24 13% 9%;
+  --muted: 38 22% 90%;
+  --muted-foreground: 33 6% 51%; /* #8A847C Warm Gray */
+  --accent: 39 59% 59%; /* #D4A85A Gold Light */
+  --accent-foreground: 24 13% 9%;
+  --destructive: 348 51% 24%; /* #5C1E2A Maroon */
+  --destructive-foreground: 38 32% 95%;
+  --border: 36 10% 74%; /* #C4BDB4 Mid Gray */
+  --input: 36 10% 74%;
+  --ring: 39 44% 51%;
+  --radius: 0.125rem; /* Sharp 2px luxury radius */
+}
+
+.dark[data-module="jewelery"],
+.dark [data-module="jewelery"] {
+  --background: 24 17% 6%; /* #120F0D Deep Noir */
+  --foreground: 40 43% 89%; /* #F0E8D8 */
+  --card: 27 19% 10%; /* #1E1915 */
+  --card-foreground: 40 43% 89%;
+  --popover: 24 17% 6%;
+  --popover-foreground: 40 43% 89%;
+  --primary: 38 52% 57%; /* #C9A05A */
+  --primary-foreground: 24 17% 6%;
+  --secondary: 29 23% 13%; /* #2A221A */
+  --secondary-foreground: 40 43% 89%;
+  --muted: 29 23% 13%;
+  --muted-foreground: 33 10% 60%; /* #A39A8E */
+  --accent: 39 59% 59%;
+  --accent-foreground: 24 17% 6%;
+  --destructive: 350 46% 42%; /* #9B3A4A */
+  --destructive-foreground: 40 43% 89%;
+  --border: 27 19% 19%; /* #3A3028 */
+  --input: 27 19% 19%;
+  --ring: 38 52% 57%;
+}
+
+/* ========================================================
+   MODULE 3: FOOD (#E11D48 Crimson / Rose)
+   ======================================================== */
+[data-module="food"] {
+  --primary: 347 77% 50%; /* #E11D48 */
+  --primary-foreground: 0 0% 100%;
+  --ring: 347 77% 50%;
+  --secondary: 350 100% 98%; /* #FFF1F2 */
+  --secondary-foreground: 347 77% 40%;
+  --accent: 351 95% 95%; /* #FFE4E6 */
+  --accent-foreground: 347 77% 40%;
+  --border: 348 94% 88%; /* #FECDD3 */
+}
+
+.dark[data-module="food"],
+.dark [data-module="food"] {
+  --primary: 347 77% 50%; /* #E11D48 */
+  --primary-foreground: 0 0% 100%;
+  --ring: 347 77% 50%;
+  --secondary: 347 77% 15%;
+  --secondary-foreground: 349 96% 89%;
+  --accent: 347 77% 18%;
+  --accent-foreground: 349 96% 89%;
+  --border: 347 77% 25%;
+}
+
+* {
+  border-color: hsl(var(--border));
+}
+
+body {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-feature-settings: "rlig" 1, "calt" 1;
+}
+
+@theme {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
