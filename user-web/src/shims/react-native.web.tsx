@@ -34,6 +34,14 @@ export function processStyle(style: any): React.CSSProperties {
     const val = style[key];
     if (val === undefined || val === null) continue;
 
+    // React Native treats lineHeight as absolute px; CSS treats a unitless
+    // number as a font-size multiplier (lineHeight 38 on 30px text = 1140px
+    // line box). This single mismatch blew up every text block on web.
+    if (key === 'lineHeight' && typeof val === 'number') {
+      processed.lineHeight = `${val}px`;
+      continue;
+    }
+
     switch (key) {
       case 'paddingVertical':
         processed.paddingTop = val;
@@ -589,15 +597,23 @@ export const TextInput = forwardRef<any, TextInputProps>(({
   autoFocus,
   ...props
 }, ref) => {
+  // Transparent chrome: the themed TextInput wrapper (and every other
+  // caller) paints its own container. A hardcoded white bg + border here
+  // rendered a nested white box inside dark containers on web.
   const baseStyle: React.CSSProperties = {
     boxSizing: 'border-box',
     outline: 'none',
-    border: '1px solid #ccc',
-    padding: '8px 12px',
+    border: 'none',
+    borderWidth: 0,
+    padding: 0,
+    margin: 0,
     fontSize: '14px',
-    borderRadius: '4px',
+    borderRadius: 0,
     fontFamily: 'inherit',
-    backgroundColor: editable ? '#fff' : '#f0f0f0',
+    backgroundColor: 'transparent',
+    width: '100%',
+    color: 'inherit',
+    opacity: editable ? 1 : 0.6,
   };
   const combinedStyle = { ...baseStyle, ...processStyle(style) };
 

@@ -13,6 +13,7 @@ import {
   StyleSheet,
   Text,
   useColorScheme,
+  useWindowDimensions,
   View,
 } from "react-native";
 import { useQueryClient } from "@tanstack/react-query";
@@ -20,6 +21,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { ModuleSwitcherButton } from "@/src/components/common/ModuleSwitcherButton";
 import { useTopPad } from "@/src/hooks/useTopPad";
+import { BREAKPOINTS } from "@/src/utils/responsive";
 import {
   APP_CURRENCY,
   APP_NAME,
@@ -91,13 +93,21 @@ function AnnouncementBar() {
 function Header() {
   const colors = useColors();
   const topPad = useTopPad();
+  const { width: windowWidth } = useWindowDimensions();
+  // Desktop web uses the global JeweleryDesktopNavbar — hide the mobile
+  // brand row there so we don't render two headers. Mobile untouched.
+  if (Platform.OS === "web" && windowWidth >= BREAKPOINTS.desktopMin)
+    return null;
+  // Narrow phones: icon-only switcher so logo + search + pill fit 360px.
+  const compactSwitcher = windowWidth < 400;
 
   return (
     <View
       style={[
         styles.header,
         {
-          paddingTop: topPad + 12,
+          paddingHorizontal: 16,
+          paddingVertical: 20,
           backgroundColor: colors.ivory,
           borderBottomColor: colors.midGray,
         },
@@ -111,11 +121,9 @@ function Header() {
       >
         {APP_NAME}
       </Text>
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-        <Pressable onPress={() => router.push("/jewelery/search")} hitSlop={8}>
-          <Feather name="search" size={20} color={colors.ink} />
-        </Pressable>
-        <ModuleSwitcherButton />
+      <View style={{ flexDirection: "row", alignItems: "center", gap: compactSwitcher ? 10 : 12 }}>
+        
+        <ModuleSwitcherButton compact={compactSwitcher} />
       </View>
     </View>
   );
@@ -817,7 +825,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 20,
-    paddingBottom: 14,
+    paddingBottom: 16,
     borderBottomWidth: 0.5,
     zIndex: 10,
   },

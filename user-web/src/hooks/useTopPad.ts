@@ -3,7 +3,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 /**
  * Returns the correct top padding for screens with a custom header.
- * - Web: fixed 16px breathing room (no status bar / notch on web)
+ * - Web: 0 (browser chrome is the safe area; every screen already adds
+ *   its own +8/+12 breathing room — anything more is a dead gap)
  * - Native: safe area inset top
  *
  * ponytail: eliminates the repeated `Platform.OS === "web" ? 16 : insets.top`
@@ -11,5 +12,5 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
  */
 export function useTopPad(): number {
   const insets = useSafeAreaInsets();
-  return Platform.OS === "web" ? 16 : insets.top;
+  return Platform.OS === "web" ? 0 : insets.top;
 }

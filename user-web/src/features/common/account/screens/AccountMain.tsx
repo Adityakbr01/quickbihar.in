@@ -7,6 +7,7 @@ import { ThemeToggle } from "@/src/components/common/ThemeToggle";
 import { createAccountStyles } from "../styles/accountStyles";
 import AccountHeader from "../components/AccountHeader";
 import AccountOption from "../components/AccountOption";
+import GuestAccountView from "../components/GuestAccountView";
 import { ACCOUNT_SECTIONS, LOGOUT_OPTION } from "../lib/accountData";
 import { ActivityIndicator } from "react-native";
 import EditProfileModal from "../components/EditProfileModal";
@@ -27,6 +28,7 @@ const AccountMain = () => {
   const theme = useTheme();
   const styles = createAccountStyles(theme);
   const user = useAuthStore((state) => state.user);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const { mutate: logout, isPending: isLoggingOut } = useLogout();
   const router = useRouter();
   const setPasswordSheetVisible = useAccountStore(
@@ -99,6 +101,13 @@ const AccountMain = () => {
       })).filter((section) => section.options.length > 0),
     [isAdmin],
   );
+
+  // Logged-out guard — guests never see orders, wishlist, profile,
+  // addresses, security or logout. They get the jewelry-style guest
+  // tab (info + perks + appearance toggle + sign-in entry).
+  if (!isAuthenticated) {
+    return <GuestAccountView />;
+  }
 
   return (
     <View style={styles.container}>

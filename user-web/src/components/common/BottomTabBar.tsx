@@ -33,7 +33,7 @@ const JeweleryTabBar: React.FC<{
   const tabs = [
     { name: "home", label: "Home", icon: "home", route: "/jewelery" },
     { name: "collections", label: "Collections", icon: "grid", route: "/jewelery/collections" },
-    { name: "wishlist", label: "Wishlist", icon: "heart", route: "/jewelery/wishlist" },
+    { name: "search", label: "Search", icon: "search", route: "/jewelery/search" },
     { name: "bag", label: "Bag", icon: "shopping-bag", route: "/jewelery/cart", badge: jeweleryCount },
     { name: "account", label: "Account", icon: "user", route: "/jewelery/account" },
   ];

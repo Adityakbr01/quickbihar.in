@@ -11,6 +11,7 @@ import { ErrorBoundary } from "@/src/components/common/ErrorBoundary";
 import { normalizeExpoPathForWeb } from "@/src/utils/navigation";
 import { View } from "react-native";
 import DesktopNavbar from "@/src/features/clothing/home/components/DesktopNavbar";
+import JeweleryDesktopNavbar from "@/src/features/Jewelery/components/JeweleryDesktopNavbar";
 import BottomTabBar from "@/src/components/common/BottomTabBar";
 
 // Import Screens
@@ -103,12 +104,16 @@ function ThemedChrome() {
 
 function MainLayout() {
   const theme = useTheme();
+  const location = useLocation();
+  const isJeweleryRoute =
+    location.pathname === "/jewelery" ||
+    location.pathname.startsWith("/jewelery/");
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.background, minHeight: "100vh" }}>
       <ThemedChrome />
       <SocketListenerProvider>
-        <DesktopNavbar />
+        {isJeweleryRoute ? <JeweleryDesktopNavbar /> : <DesktopNavbar />}
         <Routes>
           <Route path="/" element={<RootRedirect />} />
           {/* Legacy Expo URLs: "/(tabs)/clothing/home" -> "/clothing/home" */}

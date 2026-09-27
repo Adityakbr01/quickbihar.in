@@ -10,15 +10,20 @@ import { APP_MODULES } from "@/src/constants/modules";
 /**
  * Catalog switcher pill — shows WHERE the tap goes (next catalog's icon +
  * name), so users instantly understand it. One tap cycles
- * Clothing → Jewelry → Food. Persists via useModuleStore.
+ * Clothing <-> Jewelry (Food hidden for now). Persists via useModuleStore.
  */
-export const ModuleSwitcherButton: React.FC = () => {
+export const ModuleSwitcherButton: React.FC<{ compact?: boolean }> = ({
+  compact = false,
+}) => {
   const theme = useTheme();
   const router = useRouter();
-  const { currentModule, switchModule } = useModuleStore();
+  const { currentModule, setModule } = useModuleStore();
   const isNavigating = useRef(false);
-  const currentIndex = APP_MODULES.findIndex((m) => m.id === currentModule.id);
-  const nextModule = APP_MODULES[(currentIndex + 1) % APP_MODULES.length];
+  // Food module hidden for now — switcher cycles Clothing <-> Jewelry only.
+  const visibleModules = APP_MODULES.filter((m) => m.id !== "food");
+  const currentIndex = visibleModules.findIndex((m) => m.id === currentModule.id);
+  const nextModule =
+    visibleModules[(currentIndex + 1 + visibleModules.length) % visibleModules.length];
   const nextLabel = nextModule?.label ?? "next catalog";
 
   const handlePress = useCallback(() => {
@@ -30,16 +35,16 @@ export const ModuleSwitcherButton: React.FC = () => {
 
     // Defer heavy route replacement to next animation frame for 60 FPS press animation
     requestAnimationFrame(() => {
-      const next = switchModule();
-      if (next?.route) {
-        router.replace(next.route as any);
+      setModule(nextModule.id);
+      if (nextModule?.route) {
+        router.replace(nextModule.route as any);
       }
 
       setTimeout(() => {
         isNavigating.current = false;
       }, 300);
     });
-  }, [router, switchModule]);
+  }, [router, setModule, nextModule]);
 
   return (
     <Pressable
@@ -52,6 +57,7 @@ export const ModuleSwitcherButton: React.FC = () => {
         {
           backgroundColor: theme.tertiaryBackground,
           borderColor: (nextModule?.badgeColor ?? theme.text) + "90",
+          ...(compact ? { paddingHorizontal: 10, gap: 4 } : null),
         },
         pressed && styles.pressed,
       ]}
@@ -64,7 +70,11 @@ export const ModuleSwitcherButton: React.FC = () => {
       <Text
         style={[
           styles.label,
-          { color: theme.text, fontFamily: "DMSans_500Medium" },
+          {
+            color: theme.text,
+            fontFamily: "DMSans_500Medium",
+            ...(compact ? { fontSize: 11 } : null),
+          },
         ]}
         numberOfLines={1}
       >
