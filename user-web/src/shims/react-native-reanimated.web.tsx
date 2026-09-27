@@ -1,5 +1,32 @@
-import React, { useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, Image, ScrollView } from './react-native.web';
+
+/**
+ * Web equivalent of Reanimated's useReducedMotion: tracks the
+ * `prefers-reduced-motion: reduce` media query and updates live.
+ */
+export function useReducedMotion(): boolean {
+  const query = "(prefers-reduced-motion: reduce)";
+  const [reduced, setReduced] = useState<boolean>(() => {
+    if (typeof window === "undefined" || typeof window.matchMedia !== "function")
+      return false;
+    return window.matchMedia(query).matches;
+  });
+  useEffect(() => {
+    if (typeof window === "undefined" || typeof window.matchMedia !== "function")
+      return;
+    const mql = window.matchMedia(query);
+    const onChange = (e: MediaQueryListEvent) => setReduced(e.matches);
+    if (typeof mql.addEventListener === "function") {
+      mql.addEventListener("change", onChange);
+      return () => mql.removeEventListener("change", onChange);
+    }
+    // Legacy Safari (< 14).
+    (mql as any).addListener?.(onChange);
+    return () => (mql as any).removeListener?.(onChange);
+  }, []);
+  return reduced;
+}
 
 export function useSharedValue<T>(initialValue: T) {
   const ref = useRef({ value: initialValue });

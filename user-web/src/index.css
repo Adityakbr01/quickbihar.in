@@ -19,6 +19,24 @@ body,
   box-sizing: border-box;
 }
 
+/* Auth entrance motion: staggered rise, honoring reduced-motion. Stagger
+   per element via inline animation-delay. */
+@keyframes auth-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .auth-rise {
+    animation: auth-rise 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+}
+
 /* Neutralize browser autofill styling (Chrome paints a pale blue/white
    background + dark text that clashes with dark theme). The delayed
    transition freezes Chrome's autofill paint, while currentColor keeps

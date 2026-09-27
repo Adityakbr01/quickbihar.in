@@ -108,12 +108,21 @@ function MainLayout() {
   const isJeweleryRoute =
     location.pathname === "/jewelery" ||
     location.pathname.startsWith("/jewelery/");
+  // Auth flows are full-screen tasks — no navbars behind them.
+  const isAuthRoute =
+    location.pathname === "/auth" ||
+    location.pathname.startsWith("/auth/") ||
+    location.pathname.startsWith("/jewelery/auth/");
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.background, minHeight: "100vh" }}>
       <ThemedChrome />
       <SocketListenerProvider>
-        {isJeweleryRoute ? <JeweleryDesktopNavbar /> : <DesktopNavbar />}
+        {isAuthRoute ? null : isJeweleryRoute ? (
+          <JeweleryDesktopNavbar />
+        ) : (
+          <DesktopNavbar />
+        )}
         <Routes>
           <Route path="/" element={<RootRedirect />} />
           {/* Legacy Expo URLs: "/(tabs)/clothing/home" -> "/clothing/home" */}

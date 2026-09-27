@@ -111,6 +111,15 @@ export const BottomTabBar: React.FC = () => {
   // Bottom tab bar only renders on mobile screen sizes (< 1024px)
   if (isDesktop) return null;
 
+  // Auth flows are full-screen tasks — never show tabs behind them.
+  if (
+    pathname === "/auth" ||
+    pathname.startsWith("/auth/") ||
+    pathname.startsWith("/jewelery/auth/")
+  ) {
+    return null;
+  }
+
   // Determine current active routes from the URL first — the persisted
   // module in the store can be stale (e.g. user was on jewelery, then opened
   // /clothing/home directly), which previously sent clothing taps to

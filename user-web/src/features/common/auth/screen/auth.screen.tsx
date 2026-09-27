@@ -1,17 +1,20 @@
 import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
 import React, { useState } from "react";
 import {
+  Platform,
+  ScrollView,
   StatusBar,
   StyleSheet,
   Text,
   View,
+  useWindowDimensions,
 } from "react-native";
-import LivingPixelOcean from "@/src/components/LivingPixelOcean";
 import { LinearGradient } from "expo-linear-gradient";
 import Animated, {
   FadeInDown,
   FadeInUp,
-  LinearTransition,
+  useReducedMotion,
 } from "react-native-reanimated";
 import * as Haptics from "expo-haptics";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -19,29 +22,43 @@ import { createAuthStyles } from "../styles/auth.style";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { useGoogleAuth } from "../hooks/useAuth";
 import { GoogleSignInButton } from "../components/GoogleSignInButton";
+import { APP_NAME } from "@/src/constants/app.constants";
+import { useIsDesktop } from "@/src/utils/responsive";
+import splashIcon from "@/assets/images/icons/splash-icon.png";
 
 /**
- * Auth screen — post-OTP cutover.
+ * Auth screen (native) — Google one-tap only. Web uses auth.screen.web.tsx.
  *
- *   Primary path:   Google sign-in (one-tap)
- *   Secondary path: email + password
- *
- * OTP code is gone. Legacy OTP users hit a forced email-capture
- * screen once they successfully authenticate (the hook redirects
- * there if `user.legacyOtpOnly === true`).
+ * One unified design: calm dark hero (logo medallion + gold eyebrow,
+ * parked ~10% above centre) with a sheet overlapping it — white in
+ * light mode, dark surface in dark mode. Compact rhythm on short
+ * screens so the sheet never expands into a scroll.
  */
+const GOLD = "#C9A05A";
+
+const ASSURANCES = [
+  { icon: "flash-outline" as const, label: "Express delivery" },
+  { icon: "shield-checkmark-outline" as const, label: "100% genuine" },
+  { icon: "storefront-outline" as const, label: "Local stores" },
+];
+
 export default function AuthScreen() {
   const insets = useSafeAreaInsets();
   const theme = useTheme() as any;
   const styles = createAuthStyles(theme);
+  const isDesktop = useIsDesktop();
+  const { height: windowHeight } = useWindowDimensions();
+  const compact = windowHeight < 740;
+  const reduceMotion = useReducedMotion();
   const [apiError, setApiError] = useState<string | null>(null);
-  const [apiSuccess, setApiSuccess] = useState<string | null>(null);
+
+  const enter = (delayMs: number) =>
+    reduceMotion ? undefined : FadeInDown.delay(delayMs).duration(550);
 
   const { mutate: googleAuth, isPending: googlePending } = useGoogleAuth();
 
   const handleGoogleSuccess = async (idToken: string) => {
     setApiError(null);
-    setApiSuccess(null);
     await new Promise<void>((resolve, reject) => {
       googleAuth(
         { idToken, client: "mobile" },
@@ -62,103 +79,140 @@ export default function AuthScreen() {
   };
 
   return (
-    <View style={styles.screen}>
-      {/* Top 35% Ocean background with smooth gradient fade */}
-      <View style={localStyles.oceanContainer} pointerEvents="none">
-        <LivingPixelOcean />
-        <LinearGradient
-          colors={["transparent", theme.background]}
-          style={StyleSheet.absoluteFill}
-        />
-      </View>
+    <View style={[styles.screen, { backgroundColor: theme.background }]}>
       <StatusBar
-        barStyle={
-          theme.background === "#ffffff" ? "dark-content" : "light-content"
-        }
+        barStyle="light-content"
         translucent
         backgroundColor="transparent"
       />
 
-      <View
-        style={[
-          styles.scrollContent,
-          {
-            paddingTop: insets.top + 30,
-            paddingBottom: insets.bottom + 20,
-            justifyContent: "space-between",
-          },
-        ]}
+      <ScrollView
+        style={{ flex: 1 }}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ flexGrow: 1 }}
       >
-        {/* Top Spacer / Branding Area */}
-        <View style={{ alignItems: "center", marginTop: 40 }}>
-          <Animated.View
-            entering={FadeInDown.delay(200).duration(600)}
-            style={{ alignItems: "center", marginTop: 16 }}
-          >
-            <Text style={styles.title}>QuickBihar</Text>
+        <View
+          style={[
+            localStyles.hero,
+            { height: isDesktop ? 340 : compact ? 232 : 260 },
+          ]}
+        >
+          <LinearGradient
+            colors={["#211913", "#14110D", "#0E0C09"]}
+            locations={[0, 0.55, 1]}
+            style={StyleSheet.absoluteFill}
+          />
+          <LinearGradient
+            colors={[`${GOLD}24`, `${GOLD}0A`, "transparent"]}
+            locations={[0, 0.55, 1]}
+            style={StyleSheet.absoluteFill}
+          />
 
-          </Animated.View>
-
-          {/* Value props / Trust badges */}
           <Animated.View
-            entering={FadeInDown.delay(300).duration(600)}
-            style={localStyles.featuresList}
+            entering={enter(100)}
+            style={[
+              localStyles.heroMarkBlock,
+              { paddingTop: compact ? 56 : 70 },
+            ]}
           >
-            <View style={localStyles.featureItem}>
-              <Ionicons name="speedometer-outline" size={18} color="#38bdf8" />
-              <Text style={[localStyles.featureText, { color: theme.secondaryText }]}>
-                30-Min Express Delivery
-              </Text>
+            <View style={localStyles.glowWrap}>
+              <View
+                style={[localStyles.glow, { backgroundColor: `${GOLD}14` }]}
+              />
+              <View style={localStyles.logoRing}>
+                <Image
+                  source={splashIcon}
+                  style={localStyles.logoImage}
+                  contentFit="contain"
+                  alt="QuickBihar logo"
+                  accessibilityLabel="QuickBihar logo"
+                />
+              </View>
             </View>
-            <View style={localStyles.featureItem}>
-              <Ionicons name="storefront-outline" size={18} color="#4ade80" />
-              <Text style={[localStyles.featureText, { color: theme.secondaryText }]}>
-                Best Local Stores & Malls
-              </Text>
-            </View>
-            <View style={localStyles.featureItem}>
-              <Ionicons name="shield-checkmark-outline" size={18} color="#a78bfa" />
-              <Text style={[localStyles.featureText, { color: theme.secondaryText }]}>
-                100% Genuine Products
-              </Text>
-            </View>
+            <Text style={localStyles.heroEyebrow}>
+              BIHAR'S OWN MARKETPLACE
+            </Text>
           </Animated.View>
         </View>
 
-        {/* Action Center: Single Google Sign In Button */}
-        <View style={{ width: "100%", paddingHorizontal: 4, marginBottom: 20 }}>
-          {/* Success Banner */}
-          {apiSuccess && (
-            <Animated.View
-              entering={FadeInDown}
-              layout={LinearTransition}
-              style={localStyles.successBanner}
+        <View
+          style={[
+            localStyles.sheet,
+            {
+              backgroundColor: theme.background,
+              paddingBottom: insets.bottom + 20,
+              paddingTop: compact ? 20 : 28,
+            },
+            isDesktop && [
+              localStyles.sheetDesktop,
+              { borderColor: theme.border },
+            ],
+          ]}
+        >
+          <Animated.View entering={enter(220)} style={localStyles.titleBlock}>
+            <Text
+              style={[
+                localStyles.title,
+                { color: theme.text, fontSize: compact ? 27 : 30 },
+              ]}
             >
-              <Ionicons
-                name="checkmark-circle-outline"
-                size={20}
-                color="#86efac"
-              />
-              <Text style={localStyles.successBannerText}>{apiSuccess}</Text>
-            </Animated.View>
-          )}
-
-          {/* Error Banner */}
-          {apiError && (
-            <Animated.View
-              entering={FadeInDown}
-              layout={LinearTransition}
-              style={styles.errorBanner}
+              Welcome to {APP_NAME}
+            </Text>
+            <Text
+              style={[
+                localStyles.subtitle,
+                { color: theme.secondaryText, marginTop: compact ? 6 : 8 },
+              ]}
             >
-              <Ionicons name="warning-outline" size={20} color="#fca5a5" />
-              <Text style={styles.errorBannerText}>{apiError}</Text>
-            </Animated.View>
-          )}
+              One-tap sign in to shop faster, track orders and share reviews.
+            </Text>
+          </Animated.View>
 
           <Animated.View
-            entering={FadeInDown.delay(400).duration(600)}
-            style={{ width: "100%" }}
+            entering={enter(320)}
+            style={[
+              localStyles.assuranceRow,
+              {
+                backgroundColor: theme.secondaryBackground,
+                borderColor: theme.border,
+                marginTop: compact ? 16 : 24,
+              },
+            ]}
           >
+            {ASSURANCES.map((item, i) => (
+              <View
+                key={item.label}
+                style={[
+                  localStyles.assuranceCell,
+                  compact && { paddingVertical: 12 },
+                  i > 0 && {
+                    borderLeftWidth: StyleSheet.hairlineWidth,
+                    borderLeftColor: theme.border,
+                  },
+                ]}
+              >
+                <Ionicons name={item.icon} size={20} color={theme.primary} />
+                <Text style={[localStyles.assuranceLabel, { color: theme.text }]}>
+                  {item.label}
+                </Text>
+              </View>
+            ))}
+          </Animated.View>
+
+          <Animated.View
+            entering={enter(420)}
+            style={[localStyles.ctaBlock, compact && { marginTop: 16 }]}
+          >
+            {apiError && (
+              <View
+                style={styles.errorBanner}
+                accessibilityRole="alert"
+                accessibilityLiveRegion="assertive"
+              >
+                <Ionicons name="warning-outline" size={20} color="#fca5a5" />
+                <Text style={styles.errorBannerText}>{apiError}</Text>
+              </View>
+            )}
             <GoogleSignInButton
               mode="signin"
               disabled={googlePending}
@@ -169,110 +223,160 @@ export default function AuthScreen() {
               }}
               onError={(msg) => setApiError(msg)}
             />
+            <View style={[localStyles.secureRow, compact && { marginTop: 10 }]}>
+              <Ionicons
+                name="lock-closed"
+                size={12}
+                color={theme.secondaryText}
+              />
+              <Text
+                style={[localStyles.secureText, { color: theme.secondaryText }]}
+              >
+                Secured by Google — we never see your password. New here? Your
+                account is created automatically.
+              </Text>
+            </View>
           </Animated.View>
 
           <Animated.View
-            entering={FadeInDown.delay(500).duration(600)}
-            style={{ marginTop: 12, alignItems: "center" }}
+            entering={
+              reduceMotion ? undefined : FadeInUp.delay(520).duration(550)
+            }
+            style={[localStyles.termsBlock, compact && { marginTop: 16 }]}
           >
-            <Text style={{ color: theme.tertiaryText, fontSize: 13, textAlign: "center", lineHeight: 18 }}>
-              One-tap sign in{"\n"}New users will be registered automatically
+            <Text style={[localStyles.termsText, { color: theme.secondaryText }]}>
+              By continuing, you agree to our Terms of Service and Privacy
+              Policy.
             </Text>
           </Animated.View>
         </View>
-
-        {/* Terms Footer */}
-        <Animated.View
-          entering={FadeInUp.delay(600).duration(600)}
-          style={{ alignItems: "center", marginBottom: 10 }}
-        >
-          <Text
-            style={{
-              color: theme.tertiaryText,
-              fontSize: 12,
-              textAlign: "center",
-              lineHeight: 18,
-            }}
-          >
-            By continuing, you agree to our{" "}
-            <Text
-              style={{
-                fontWeight: "600",
-                color: theme.secondaryText,
-                textDecorationLine: "underline",
-              }}
-            >
-              Terms of Service
-            </Text>{" "}
-            and{" "}
-            <Text
-              style={{
-                fontWeight: "600",
-                color: theme.secondaryText,
-                textDecorationLine: "underline",
-              }}
-            >
-              Privacy Policy
-            </Text>
-            .
-          </Text>
-        </Animated.View>
-      </View>
+      </ScrollView>
     </View>
   );
 }
 
 const localStyles = StyleSheet.create({
-  oceanContainer: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    height: "35%",
+  hero: {
     overflow: "hidden",
   },
-  logoBadge: {
-    width: 68,
-    height: 68,
-    borderRadius: 34,
+  heroMarkBlock: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "flex-start",
+  },
+  glowWrap: {
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 1,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 4,
   },
-  featuresList: {
-    marginTop: 28,
-    gap: 12,
-    alignItems: "flex-start",
+  glow: {
+    position: "absolute",
+    width: 148,
+    height: 148,
+    borderRadius: 74,
   },
-  featureItem: {
-    flexDirection: "row",
+  logoRing: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    borderWidth: 1.5,
+    borderColor: GOLD,
     alignItems: "center",
-    gap: 10,
+    justifyContent: "center",
+    backgroundColor: "#0E0C09",
   },
-  featureText: {
-    fontSize: 14,
-    fontWeight: "500",
-  },
-  successBanner: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "rgba(34, 197, 94, 0.15)",
-    padding: 14,
+  logoImage: {
+    width: 52,
+    height: 56,
     borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "rgba(34, 197, 94, 0.5)",
-    marginBottom: 20,
-    gap: 10,
   },
-  successBannerText: {
-    color: "#86efac",
-    fontSize: 14,
-    fontWeight: "500",
+  heroEyebrow: {
+    marginTop: 12,
+    fontSize: 11,
+    fontWeight: "800",
+    letterSpacing: 2.6,
+    color: GOLD,
+  },
+  sheet: {
     flex: 1,
+    marginTop: -28,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    paddingHorizontal: 24,
+    ...Platform.select({
+      web: { maxWidth: 520, width: "100%", alignSelf: "center" } as any,
+      default: {},
+    }),
+  },
+  sheetDesktop: {
+    marginTop: -48,
+    borderRadius: 24,
+    borderWidth: 1,
+    paddingBottom: 32,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.18,
+    shadowRadius: 32,
+    elevation: 8,
+  },
+  titleBlock: {
+    alignItems: "center",
+  },
+  title: {
+    fontWeight: "900",
+    letterSpacing: -0.6,
+    textAlign: "center",
+  },
+  subtitle: {
+    fontSize: 14,
+    lineHeight: 21,
+    textAlign: "center",
+    paddingHorizontal: 8,
+  },
+  assuranceRow: {
+    flexDirection: "row",
+    borderWidth: 1,
+    borderRadius: 16,
+    overflow: "hidden",
+  },
+  assuranceCell: {
+    flex: 1,
+    alignItems: "center",
+    gap: 8,
+    paddingVertical: 16,
+    paddingHorizontal: 6,
+  },
+  assuranceLabel: {
+    fontSize: 11.5,
+    fontWeight: "700",
+    textAlign: "center",
+    lineHeight: 15,
+  },
+  ctaBlock: {
+    marginTop: 24,
+    width: "100%",
+  },
+  secureRow: {
+    marginTop: 14,
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "center",
+    gap: 6,
+    paddingHorizontal: 16,
+  },
+  secureText: {
+    flex: 1,
+    fontSize: 12,
+    lineHeight: 17,
+    textAlign: "center",
+  },
+  termsBlock: {
+    alignItems: "center",
+    marginTop: 24,
+  },
+  termsText: {
+    fontSize: 11.5,
+    lineHeight: 17,
+    textAlign: "center",
+    paddingHorizontal: 24,
   },
 });
