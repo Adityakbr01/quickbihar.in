@@ -2,9 +2,8 @@ import { ArrowRight, X } from "lucide-react";
 import * as Haptics from "@/lib/haptics";
 import React from "react";
 import { StyleSheet, TouchableOpacity, View, Text } from "react-native";
-import Animated, { LinearTransition } from "react-native-reanimated";
 
-const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity);
+
 
 export interface PaginationControlsProps {
   currentStep: number;
@@ -35,8 +34,7 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
       {/* Dots */}
       <View style={styles.dots}>
         {Array.from({ length: totalSteps }).map((_, idx) => (
-          <Animated.View
-            layout={LinearTransition.springify().damping(14).stiffness(120)}
+          <View
             key={idx}
             style={[
               styles.dot,
@@ -47,7 +45,7 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
       </View>
 
       {/* Next */}
-      <AnimatedTouchableOpacity layout={LinearTransition.springify().damping(14).stiffness(80)}
+      <TouchableOpacity
         onPress={() => {
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
           onNext();
@@ -63,7 +61,7 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
         ) : (
           <ArrowRight size={24} color="#fff" />
         )}
-      </AnimatedTouchableOpacity>
+      </TouchableOpacity>
     </View>
   );
 };

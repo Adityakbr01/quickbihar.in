@@ -18,7 +18,6 @@ import {
   View,
 } from "react-native";
 import { useQueryClient } from "@tanstack/react-query";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { ModuleSwitcherButton } from "@/src/components/common/ModuleSwitcherButton";
 import { useTopPad } from "@/src/hooks/useTopPad";

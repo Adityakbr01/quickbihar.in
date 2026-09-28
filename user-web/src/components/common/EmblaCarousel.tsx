@@ -3,22 +3,13 @@ import useEmblaCarousel from 'embla-carousel-react';
 import Autoplay from 'embla-carousel-autoplay';
 
 /**
- * Web implementation of `react-native-reanimated-carousel` backed by
- * Embla Carousel (already a project dependency: embla-carousel-react +
+ * App carousel backed by Embla Carousel (embla-carousel-react +
  * embla-carousel-autoplay).
  *
- * Previously this was a plain horizontal ScrollView, so on web every
- * slider degraded: no autoplay, no looping, no snap, and callbacks like
- * `onSnapToItem` / `onProgressChange` never fired (dots, counters and
- * dash indicators stayed frozen).
- *
- * Mobile is untouched — this file only ships on web (vite `.web.tsx`
- * alias). The prop surface mirrors the native library subset used across
- * the app (TopHomeCarousel banners, HeroCarousel, product gallery,
- * mall hero): data, renderItem, width/height, loop, autoPlay,
- * autoPlayInterval, defaultIndex, scrollAnimationDuration,
- * onSnapToItem, onProgressChange. Native-only props (mode, modeConfig,
- * onConfigurePanGesture, …) are accepted and ignored.
+ * Props used across the app (TopHomeCarousel banners, HeroCarousel,
+ * product gallery, mall hero): data, renderItem, width/height, loop,
+ * autoPlay, autoPlayInterval, defaultIndex, scrollAnimationDuration,
+ * onSnapToItem, onProgressChange.
  */
 export function Carousel<T = any>({
   data = [],

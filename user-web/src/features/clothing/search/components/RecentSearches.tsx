@@ -2,12 +2,12 @@ import { Clock, X } from "lucide-react";
 import * as Haptics from "@/lib/haptics";
 import React from "react";
 import {
+  FlatList,
   Pressable,
   StyleSheet,
   Text,
   View,
 } from "react-native";
-import { FlashList } from "@shopify/flash-list";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 
 interface RecentSearchesProps {
@@ -36,7 +36,7 @@ const RecentSearches = ({
         </Pressable>
       </View>
 
-      <FlashList data={history}
+      <FlatList data={history}
         keyExtractor={(item) => item}
         renderItem={({ item }) => (
           <Pressable style={styles.item}

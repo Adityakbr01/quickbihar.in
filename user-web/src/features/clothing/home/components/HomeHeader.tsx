@@ -1,14 +1,14 @@
 import React from "react";
 import { Platform, StyleSheet, Text, View, useWindowDimensions } from "react-native";
 import { BREAKPOINTS } from "@/src/utils/responsive";
-import { SharedValue } from "react-native-reanimated";
+
 
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { homeStyles as styles } from "../style/homeStyles";
 import { ModuleSwitcherButton } from "@/src/components/common/ModuleSwitcherButton";
 
 interface HomeHeaderProps {
-  menuOpen?: SharedValue<number>;
+  menuOpen?: boolean;
   toggleMenu?: () => void;
 }
 

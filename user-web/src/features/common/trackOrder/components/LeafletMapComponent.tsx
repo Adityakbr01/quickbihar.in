@@ -1,6 +1,5 @@
 import React, { useRef, useEffect, useState, useCallback } from "react";
 import { StyleSheet, View, ActivityIndicator, TouchableOpacity } from "react-native";
-import { WebView } from "react-native-webview";
 import { LocateFixed } from "lucide-react";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 
@@ -23,7 +22,7 @@ export const LeafletMapComponent: React.FC<LeafletMapComponentProps> = ({
   origin,
   heading,
 }) => {
-  const webViewRef = useRef<WebView>(null);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
   const [isWebViewLoaded, setIsWebViewLoaded] = useState(false);
   const theme = useTheme() as any;
   // ponytail: dark basemap tiles (CARTO, free) instead of a CSS filter —
@@ -33,23 +32,25 @@ export const LeafletMapComponent: React.FC<LeafletMapComponentProps> = ({
     ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
     : "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
 
-  // Send update to WebView helper
+  // Send update to the map iframe
+  const postToMap = useCallback((message: object) => {
+    iframeRef.current?.contentWindow?.postMessage(JSON.stringify(message), "*");
+  }, []);
+
   const sendUpdate = useCallback((loc: LatLng | null, head: number) => {
-    if (webViewRef.current && isWebViewLoaded) {
-      webViewRef.current.postMessage(
-        JSON.stringify({
-          type: "UPDATE_RIDER",
-          lat: loc ? loc.latitude : null,
-          lng: loc ? loc.longitude : null,
-          heading: head || 0,
-        })
-      );
+    if (isWebViewLoaded) {
+      postToMap({
+        type: "UPDATE_RIDER",
+        lat: loc ? loc.latitude : null,
+        lng: loc ? loc.longitude : null,
+        heading: head || 0,
+      });
     }
-  }, [isWebViewLoaded]);
+  }, [isWebViewLoaded, postToMap]);
 
   const handleRecenter = () => {
-    if (webViewRef.current && isWebViewLoaded) {
-      webViewRef.current.postMessage(JSON.stringify({ type: "RECENTER" }));
+    if (isWebViewLoaded) {
+      postToMap({ type: "RECENTER" });
     }
   };
 
@@ -289,29 +290,40 @@ export const LeafletMapComponent: React.FC<LeafletMapComponentProps> = ({
     }
   }, [riderLocation, heading, sendUpdate]);
 
-  return (
-    <View style={styles.container}>
-      <WebView ref={webViewRef}
-        originWhitelist={["*"]}
-        source={{ html: leafletHTML }}
-        style={styles.webview}
-        scrollEnabled={false}
-        javaScriptEnabled={true}
-        domStorageEnabled={true}
-        onLoadEnd={() => {
+  // Bridge for window.ReactNativeWebView.postMessage inside the iframe
+  // (the map HTML was written for react-native-webview).
+  const bridgedHTML = leafletHTML.replace(
+    "</head>",
+    `<script>window.ReactNativeWebView={postMessage:function(m){window.parent.postMessage(m,"*");}};</script></head>`
+  );
+
+  // Map -> parent messages (READY).
+  useEffect(() => {
+    const onMapMessage = (event: MessageEvent) => {
+      if (event.source !== iframeRef.current?.contentWindow) return;
+      try {
+        const data = JSON.parse(event.data);
+        if (data && data.type === "READY") {
           setIsWebViewLoaded(true);
           if (riderLocation) sendUpdate(riderLocation, heading);
-        }}
-        onMessage={(event) => {
-          try {
-            const data = JSON.parse(event.nativeEvent.data);
-            if (data.type === "READY") {
-              setIsWebViewLoaded(true);
-              if (riderLocation) sendUpdate(riderLocation, heading);
-            }
-          } catch {
-            // Ignore parse errors
-          }
+        }
+      } catch {
+        // Ignore parse errors
+      }
+    };
+    window.addEventListener("message", onMapMessage);
+    return () => window.removeEventListener("message", onMapMessage);
+  }, [riderLocation, heading, sendUpdate]);
+
+  return (
+    <View style={styles.container}>
+      <iframe ref={iframeRef}
+        srcDoc={bridgedHTML}
+        title="Delivery tracking map"
+        style={{ border: "none", width: "100%", height: "100%" }}
+        onLoad={() => {
+          setIsWebViewLoaded(true);
+          if (riderLocation) sendUpdate(riderLocation, heading);
         }}
       />
 

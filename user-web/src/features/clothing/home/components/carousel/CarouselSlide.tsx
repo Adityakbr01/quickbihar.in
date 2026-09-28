@@ -1,9 +1,8 @@
 import React from "react";
 import { View, Pressable, StyleSheet } from "react-native";
-import { Image } from "expo-image";
+
 import { useNavigate } from "react-router-dom";
 import { goTo } from "@/src/utils/navigation";
-import * as WebBrowser from "expo-web-browser";
 import * as Haptics from "@/lib/haptics";
 import { useTrackClick } from "@/src/features/common/banner/hooks/useBanners";
 import { Banner } from "@/src/features/common/banner/types/banner.types";
@@ -53,7 +52,7 @@ const CarouselSlide = ({ item, desktop }: CarouselSlideProps) => {
         break;
       case "external":
         if (item.externalUrl) {
-          await WebBrowser.openBrowserAsync(item.externalUrl);
+          window.open(item.externalUrl, "_blank");
         }
         break;
       default:
@@ -81,23 +80,9 @@ const CarouselSlide = ({ item, desktop }: CarouselSlideProps) => {
       >
         {desktop ? (
           /* Full creative, fitted — solid dark backdrop, no blur fill. */
-          <Image
-            source={{ uri: item.image }}
-            style={styles.desktopFit}
-            contentFit="contain"
-            alt={item.title || "QuickBihar Fashion Sale Banner"}
-            accessibilityLabel={item.title || "Fashion Sale Banner"}
-            {...({ title: item.title || "QuickBihar Online Fashion Deals" } as any)}
-          />
+          <img src={item.image} alt={item.title || "QuickBihar Fashion Sale Banner"} aria-label={item.title || "Fashion Sale Banner"} style={Object.assign({}, styles.desktopFit, { objectFit: "contain" as const })} {...({ title: item.title || "QuickBihar Online Fashion Deals" } as any)} />
         ) : (
-          <Image
-            source={{ uri: item.image }}
-            style={styles.slideImage}
-            contentFit="cover"
-            alt={item.title || "QuickBihar Fashion Sale Banner"}
-            accessibilityLabel={item.title || "Fashion Sale Banner"}
-            {...({ title: item.title || "QuickBihar Online Fashion Deals" } as any)}
-          />
+          <img src={item.image} alt={item.title || "QuickBihar Fashion Sale Banner"} aria-label={item.title || "Fashion Sale Banner"} style={Object.assign({}, styles.slideImage, { objectFit: "cover" as const })} {...({ title: item.title || "QuickBihar Online Fashion Deals" } as any)} />
         )}
       </Pressable>
     </View>

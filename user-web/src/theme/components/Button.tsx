@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Pressable,
   StyleSheet,
+  View,
   ViewStyle,
   TextStyle,
   ActivityIndicator,
@@ -9,11 +10,7 @@ import {
 import * as Haptics from "@/lib/haptics";
 import { useTheme } from "../Provider/ThemeProvider";
 import ThemedText from "./ThemedText";
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-} from "react-native-reanimated";
+
 
 interface ButtonProps {
   title: string;
@@ -39,19 +36,15 @@ export const Button: React.FC<ButtonProps> = ({
   accessibilityHint,
 }) => {
   const theme = useTheme() as any;
-  const scale = useSharedValue(1);
+  const [pressed, setPressed] = useState(false);
 
   const handlePressIn = () => {
-    scale.value = withSpring(0.97);
+    setPressed(true);
   };
 
   const handlePressOut = () => {
-    scale.value = withSpring(1);
+    setPressed(false);
   };
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
 
   const handlePress = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -133,7 +126,7 @@ export const Button: React.FC<ButtonProps> = ({
   });
 
   return (
-    <Animated.View style={[animatedStyle, style]}>
+    <View style={[style, { transform: [{ scale: pressed ? 0.97 : 1 }], transition: "transform 0.15s ease-out" }]}>
       <Pressable
         onPress={handlePress}
         onPressIn={handlePressIn}
@@ -151,6 +144,6 @@ export const Button: React.FC<ButtonProps> = ({
           <ThemedText style={styles.text}>{title}</ThemedText>
         )}
       </Pressable>
-    </Animated.View>
+    </View>
   );
 };

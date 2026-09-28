@@ -13,15 +13,15 @@ import {
 } from "react-native";
 import { ArrowLeft, CircleAlert, Map as MapIcon, MapPin, MessageCircle, Phone, Share2, ShoppingBag, SquarePen, Star, StarHalf } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import { Image as ExpoImage } from "expo-image";
+
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import SafeViewWrapper from "@/src/provider/SafeViewWrapper";
 import { useMallDetail, useSubmitMallReview } from "../hooks/useMalls";
 import { TextInput } from "@/src/theme/components/TextInput";
 import { SeoHead } from "@/src/components/seo/SeoHead";
 import { breadcrumbJsonLd, mallJsonLd, mallMeta } from "@/src/lib/seo";
-import { LinearGradient } from "expo-linear-gradient";
-import Carousel from "react-native-reanimated-carousel";
+import { Gradient } from "@/src/components/common/Gradient";
+import Carousel from "@/src/components/common/EmblaCarousel";
 import * as Haptics from "@/lib/haptics";
 import { goBack, goTo } from "@/src/utils/navigation";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
@@ -182,16 +182,10 @@ const MallDetailScreen: React.FC<MallDetailScreenProps> = ({ id, initialMall }) 
             scrollAnimationDuration={300}
             onSnapToItem={setActiveImageIndex}
             renderItem={({ item: uri, index }) => (
-              <ExpoImage key={`${index}-${uri}`}
-                source={{ uri }}
-                style={[styles.coverImage, { width: windowWidth }]}
-                contentFit="cover"
-                alt={index === 0 ? `${mall.name} — cover photo` : `${mall.name} — photo ${index + 1}`}
-                priority={index === 0 ? "high" : "normal"}
-              />
+              <img key={`${index}-${uri}`} src={uri} alt={index === 0 ? `${mall.name} — cover photo` : `${mall.name} — photo ${index + 1}`} style={Object.assign({}, styles.coverImage, { width: windowWidth }, { objectFit: "cover" as const })} />
             )}
           />
-          <LinearGradient colors={["rgba(0,0,0,0.4)", "rgba(0,0,0,0.0)", "rgba(0,0,0,0.85)"]} style={[styles.gradientOverlay, { pointerEvents: "none" }]} />
+          <Gradient colors={["rgba(0,0,0,0.4)", "rgba(0,0,0,0.0)", "rgba(0,0,0,0.85)"]} style={[styles.gradientOverlay, { pointerEvents: "none" }]} />
 
           {/* Header Actions */}
           <View style={styles.headerRow}>

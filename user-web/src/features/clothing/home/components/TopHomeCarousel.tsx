@@ -1,7 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
 import { Platform, StyleSheet, View, useWindowDimensions } from "react-native";
-import Carousel from "react-native-reanimated-carousel";
-import { useSharedValue } from "react-native-reanimated";
+import Carousel from "@/src/components/common/EmblaCarousel";
+
 import { useBanners } from "@/src/features/common/banner/hooks/useBanners";
 import { Banner } from "@/src/features/common/banner/types/banner.types";
 import DashIndicator from "./carousel/DashIndicator";
@@ -13,7 +13,7 @@ const MAX_WIDTH = 800;
 
 const TopHomeCarousel = ({ placement = "home_top" }: { placement?: string } = {}) => {
   const { width: windowWidth } = useWindowDimensions();
-  const progressValue = useSharedValue(0);
+  const [progress, setProgress] = useState(0);
 
   const { data: banners, isLoading } = useBanners(placement);
 
@@ -97,7 +97,7 @@ const TopHomeCarousel = ({ placement = "home_top" }: { placement?: string } = {}
             parallaxScrollingOffset: isSmallScreen ? 25 : 10,
           }}
           onProgressChange={(_, absoluteProgress) => {
-            progressValue.value = absoluteProgress;
+            setProgress(absoluteProgress);
           }}
           onConfigurePanGesture={(gesture) => {
             "worklet";
@@ -114,7 +114,7 @@ const TopHomeCarousel = ({ placement = "home_top" }: { placement?: string } = {}
             <DashIndicator
               key={i}
               index={i}
-              progressValue={progressValue}
+              progress={progress}
               dataLength={banners.length}
             />
           ))}

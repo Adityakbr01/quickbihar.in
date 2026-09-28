@@ -1,12 +1,5 @@
-import React, { useEffect } from 'react';
-import { StyleSheet, ViewStyle } from 'react-native';
-import Animated, {
-    useAnimatedStyle,
-    useSharedValue,
-    withRepeat,
-    withSequence,
-    withTiming
-} from 'react-native-reanimated';
+import React from 'react';
+import { StyleSheet, View, ViewStyle } from 'react-native';
 import { useTheme } from '../../theme/Provider/ThemeProvider';
 
 interface SkeletonProps {
@@ -18,25 +11,9 @@ interface SkeletonProps {
 
 const Skeleton = ({ width, height, borderRadius = 8, style }: SkeletonProps) => {
     const theme = useTheme();
-    const opacity = useSharedValue(0.3);
-
-    useEffect(() => {
-        opacity.value = withRepeat(
-            withSequence(
-                withTiming(0.7, { duration: 800 }),
-                withTiming(0.3, { duration: 800 })
-            ),
-            -1,
-            true
-        );
-    }, []);
-
-    const animatedStyle = useAnimatedStyle(() => ({
-        opacity: opacity.value,
-    }));
 
     return (
-        <Animated.View
+        <View
             style={[
                 styles.skeleton,
                 {
@@ -45,7 +22,7 @@ const Skeleton = ({ width, height, borderRadius = 8, style }: SkeletonProps) => 
                     borderRadius,
                     backgroundColor: theme.border,
                 } as any,
-                animatedStyle,
+                { animation: 'qb-skeleton-pulse 1.6s ease-in-out infinite' },
                 style,
             ]}
         />

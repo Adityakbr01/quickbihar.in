@@ -18,7 +18,6 @@ import {
   ShoppingBag,
   Sparkles,
 } from "lucide-react";
-import { NativeModulesProxy } from "expo-modules-core";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {

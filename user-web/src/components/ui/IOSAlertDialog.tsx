@@ -8,7 +8,6 @@ import {
   Dimensions,
   Platform,
 } from "react-native";
-import { BlurView } from "expo-blur";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 
 export interface AlertButton {
@@ -46,15 +45,15 @@ const IOSAlertDialog: React.FC<IOSAlertDialogProps> = ({
     >
       <View style={styles.overlay}>
         <View style={styles.container}>
-          <BlurView
-            intensity={100}
-            tint={isDark ? "dark" : "light"}
+          <View
             style={[
               styles.alertContent,
               {
                 backgroundColor: isDark
                   ? "rgba(30,30,30)"
                   : "rgba(255,255,255)",
+                backdropFilter: "blur(20px)",
+                WebkitBackdropFilter: "blur(20px)",
               },
             ]}
           >
@@ -110,7 +109,7 @@ const IOSAlertDialog: React.FC<IOSAlertDialogProps> = ({
                 );
               })}
             </View>
-          </BlurView>
+          </View>
         </View>
       </View>
     </Modal>

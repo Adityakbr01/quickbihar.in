@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import { View, StyleSheet, Platform } from "react-native";
-import { WebView } from "react-native-webview";
+
 
 const htmlContent = `
 <!DOCTYPE html>
@@ -116,13 +116,10 @@ const LivingPixelOcean: React.FC = () => {
   if (Platform.OS !== "web") {
     return (
       <View style={StyleSheet.absoluteFill} pointerEvents="none">
-        <WebView
-          originWhitelist={["*"]}
-          source={{ html: htmlContent }}
-          style={styles.webView}
-          scrollEnabled={false}
-          overScrollMode="never"
-          pointerEvents="none"
+        <iframe
+          srcDoc={htmlContent}
+          title="Decorative background"
+          style={{ border: "none", width: "100%", height: "100%", pointerEvents: "none" }}
         />
       </View>
     );

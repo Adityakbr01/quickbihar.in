@@ -1,6 +1,6 @@
 import React from "react";
 import { View, TouchableOpacity, Image, ActivityIndicator } from "react-native";
-import * as ImagePicker from "expo-image-picker";
+import * as ImagePicker from "@/src/lib/photoPicker";
 import * as Haptics from "@/lib/haptics";
 import { AppIcon } from "@/src/components/common/AppIcon";
 import { Camera } from "lucide-react";
@@ -42,17 +42,22 @@ const ProfileAvatar: React.FC<ProfileAvatarProps> = ({
       });
 
       if (!result.canceled && result.assets[0].uri) {
-        const uri = result.assets[0].uri;
-        const filename = uri.split("/").pop();
+        const asset = result.assets[0];
+        const uri = asset.uri;
+        const filename = asset.fileName || uri.split("/").pop();
         const match = /\.(\w+)$/.exec(filename || "");
-        const type = match ? `image/${match[1]}` : `image`;
+        const type = asset.type || (match ? `image/${match[1]}` : `image`);
 
         const formData = new FormData();
-        formData.append("avatar", {
-          uri,
-          name: filename,
-          type,
-        } as any);
+        if (asset.file) {
+          formData.append("avatar", asset.file, filename);
+        } else {
+          formData.append("avatar", {
+            uri,
+            name: filename,
+            type,
+          } as any);
+        }
 
         await onUpdateAvatar(formData);
       }

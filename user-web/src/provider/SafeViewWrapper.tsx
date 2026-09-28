@@ -1,17 +1,17 @@
 import { StyleSheet } from "react-native";
 import React from "react";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { View } from "react-native";
 import { useTheme } from "../theme/Provider/ThemeProvider";
 
 const SafeViewWrapper = ({ children }: { children: React.ReactNode }) => {
   const theme = useTheme();
 
   return (
-    <SafeAreaView
+    <View
       style={[styles.container, { backgroundColor: theme.background }]}
     >
       {children}
-    </SafeAreaView>
+    </View>
   );
 };
 

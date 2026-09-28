@@ -1,13 +1,14 @@
 import React, { useMemo, useState } from "react";
 import {
-  View,
-  Text,
-  Image,
-  TouchableOpacity,
   ActivityIndicator,
-  RefreshControl,
+  FlatList,
+  Image,
   Linking,
   Pressable,
+  RefreshControl,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import type { LucideIcon } from "lucide-react";
 import { ArrowRight, Bell, BellOff, CheckCheck, ChevronLeft, Circle, CircleAlert, Inbox, Layers, MessageCircle, ShoppingBag, Tag } from "lucide-react";
@@ -24,7 +25,6 @@ import {
 import SafeViewWrapper from "@/src/provider/SafeViewWrapper";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
-import { FlashList } from "@shopify/flash-list";
 import * as Haptics from "@/lib/haptics";
 
 dayjs.extend(relativeTime);
@@ -422,7 +422,7 @@ const NotificationScreen = ({ variant = "default" }: { variant?: ModuleVariant }
         {renderTabs()}
 
         {/* Notification list */}
-        <FlashList data={rows}
+        <FlatList data={rows}
           renderItem={({ item: row }) =>
             row.type === "header" ? (
               renderSectionHeader(row.label, row.count)

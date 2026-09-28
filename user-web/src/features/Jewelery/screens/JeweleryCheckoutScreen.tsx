@@ -13,7 +13,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "@/src/hooks/useSafeAreaInsets";
 
 import { APP_CURRENCY, JEWELERY_MODULE_CONFIG } from "@/src/constants";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";

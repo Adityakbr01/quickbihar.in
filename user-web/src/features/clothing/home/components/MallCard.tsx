@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
-import { Image } from "expo-image";
-import { LinearGradient } from "expo-linear-gradient";
+
+import { Gradient } from "@/src/components/common/Gradient";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { createTopMallSectionStyles } from "../style/TopMallSection.style";
 import type { TopMall } from "../api/mall.api";
@@ -31,14 +31,7 @@ export const MallCard = ({ mall }: MallCardProps) => {
       {...({ title: `Explore ${mallTitle} stores and offers in ${mallLoc}` } as any)}
       onPress={() => goTo(navigate, `/mall/${mall.id || mall._id}` as any)}
     >
-      <Image
-        source={{ uri: mall.image }}
-        style={styles.cardImage}
-        contentFit="cover"
-        alt={`${mallTitle} - Shopping Mall in ${mallLoc}`}
-        accessibilityLabel={`${mallTitle} Mall`}
-        {...({ title: `${mallTitle} | QuickBihar Local Mall` } as any)}
-      />
+      <img src={mall.image} alt={`${mallTitle} - Shopping Mall in ${mallLoc}`} aria-label={`${mallTitle} Mall`} style={Object.assign({}, styles.cardImage, { objectFit: "cover" as const })} {...({ title: `${mallTitle} | QuickBihar Local Mall` } as any)} />
       
       {/* Dynamic Rating Badge */}
       <View style={styles.ratingBadge}>
@@ -46,7 +39,7 @@ export const MallCard = ({ mall }: MallCardProps) => {
         <Text style={styles.ratingText}>{mall.rating}</Text>
       </View>
 
-      <LinearGradient
+      <Gradient
         colors={["transparent", "rgba(0,0,0,0.8)"]}
         style={styles.gradientOverlay}
       >
@@ -59,7 +52,7 @@ export const MallCard = ({ mall }: MallCardProps) => {
             {mall.location}
           </Text>
         </View>
-      </LinearGradient>
+      </Gradient>
     </TouchableOpacity>
   );
 };

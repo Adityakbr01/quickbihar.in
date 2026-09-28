@@ -1,9 +1,9 @@
 import React, { useState } from "react";
-import { Platform, Text, TouchableOpacity, View } from "react-native";
-import DateTimePicker, { type DateTimePickerEvent } from "@react-native-community/datetimepicker";
+import { Text, TouchableOpacity, View } from "react-native";
+import { useEffect, useRef } from "react";
 import { Calendar } from "lucide-react";
 import type { Theme } from "@/src/theme/Provider/ThemeProvider";
-import { dateInputToDate, dateToInputValue } from "../../theme/riderTheme";
+import { dateToInputValue } from "../../theme/riderTheme";
 import type { RiderStyles } from "../../types/rider.types";
 
 export function RiderDateField({
@@ -21,13 +21,17 @@ export function RiderDateField({
 }) {
   const [open, setOpen] = useState(false);
 
-  const handleChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
-    if (event.type === "dismissed") {
-      setOpen(false);
-      return;
-    }
-    if (selectedDate) {
-      onChange(dateToInputValue(selectedDate));
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Native date picker opens as a popover; close our inline state on change.
+  useEffect(() => {
+    if (open) inputRef.current?.showPicker?.();
+  }, [open]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const picked = e.target.valueAsDate || (e.target.value ? new Date(e.target.value) : undefined);
+    if (picked) {
+      onChange(dateToInputValue(picked));
     }
     setOpen(false);
   };
@@ -42,9 +46,9 @@ export function RiderDateField({
         <Calendar size={18} color={theme.primary} />
       </TouchableOpacity>
       {open && (
-        <DateTimePicker value={dateInputToDate(value)}
-          mode="date"
-          display={Platform.OS === "ios" ? "spinner" : "default"}
+        <input ref={inputRef}
+          type="date"
+          value={value || ""}
           onChange={handleChange}
         />
       )}

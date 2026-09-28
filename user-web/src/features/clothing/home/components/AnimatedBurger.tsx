@@ -1,14 +1,8 @@
 import React from "react";
-import { Pressable, StyleSheet } from "react-native";
-import Animated, {
-  useAnimatedStyle,
-  withTiming,
-  interpolate,
-  SharedValue,
-} from "react-native-reanimated";
+import { Pressable, StyleSheet, View } from "react-native";
 
 interface AnimatedBurgerProps {
-  isOpen: SharedValue<number>;
+  isOpen: boolean;
   onPress: () => void;
   color?: string;
   size?: number;
@@ -22,41 +16,9 @@ const AnimatedBurger: React.FC<AnimatedBurgerProps> = ({
 }) => {
   const barHeight = 1.8;
   const gap = size * 0.26;
+  const shift = gap + barHeight;
 
-  const topBarStyle = useAnimatedStyle(() => {
-    const rotate = interpolate(isOpen.value, [0, 1], [0, 45]);
-    const translateY = interpolate(isOpen.value, [0, 1], [0, gap + barHeight]);
-    return {
-      transform: [
-        { translateY: withTiming(translateY, { duration: 300 }) },
-        { rotateZ: withTiming(`${rotate}deg`, { duration: 300 }) },
-      ],
-    };
-  });
-
-  const middleBarStyle = useAnimatedStyle(() => {
-    const opacity = interpolate(isOpen.value, [0, 0.5, 1], [1, 0, 0]);
-    const scaleX = interpolate(isOpen.value, [0, 1], [1, 0]);
-    return {
-      opacity: withTiming(opacity, { duration: 200 }),
-      transform: [{ scaleX: withTiming(scaleX, { duration: 300 }) }],
-    };
-  });
-
-  const bottomBarStyle = useAnimatedStyle(() => {
-    const rotate = interpolate(isOpen.value, [0, 1], [0, -45]);
-    const translateY = interpolate(
-      isOpen.value,
-      [0, 1],
-      [0, -(gap + barHeight)]
-    );
-    return {
-      transform: [
-        { translateY: withTiming(translateY, { duration: 300 }) },
-        { rotateZ: withTiming(`${rotate}deg`, { duration: 300 }) },
-      ],
-    };
-  });
+  const barTransition = "transform 0.3s ease-out, opacity 0.2s ease-out";
 
   return (
     <Pressable
@@ -64,14 +26,20 @@ const AnimatedBurger: React.FC<AnimatedBurgerProps> = ({
       style={[styles.container, { width: size + 12, height: size + 12 }]}
       hitSlop={10}
     >
-      <Animated.View
+      <View
         style={[
           styles.bar,
           { width: size, height: barHeight, backgroundColor: color },
-          topBarStyle,
+          {
+            transform: [
+              { translateY: isOpen ? shift : 0 },
+              { rotateZ: isOpen ? "45deg" : "0deg" },
+            ],
+            transition: barTransition,
+          },
         ]}
       />
-      <Animated.View
+      <View
         style={[
           styles.bar,
           {
@@ -80,14 +48,24 @@ const AnimatedBurger: React.FC<AnimatedBurgerProps> = ({
             backgroundColor: color,
             marginVertical: gap,
           },
-          middleBarStyle,
+          {
+            opacity: isOpen ? 0 : 1,
+            transform: [{ scaleX: isOpen ? 0 : 1 }],
+            transition: barTransition,
+          },
         ]}
       />
-      <Animated.View
+      <View
         style={[
           styles.bar,
           { width: size, height: barHeight, backgroundColor: color },
-          bottomBarStyle,
+          {
+            transform: [
+              { translateY: isOpen ? -shift : 0 },
+              { rotateZ: isOpen ? "-45deg" : "0deg" },
+            ],
+            transition: barTransition,
+          },
         ]}
       />
     </Pressable>

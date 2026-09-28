@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
-import { Pressable, StyleSheet } from "react-native";
-import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
+import { Pressable, StyleSheet, View } from "react-native";
+
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 
 // iOS switch metrics — fixed so it renders identically on Android, iOS, web.
@@ -20,15 +20,10 @@ interface ThemeToggleProps {
  */
 export const ThemeToggle: React.FC<ThemeToggleProps> = ({ value, onToggle }) => {
   const theme = useTheme() as any;
-  const progress = useSharedValue(value ? 1 : 0);
-
-  useEffect(() => {
-    progress.value = withTiming(value ? 1 : 0, { duration: 200 });
-  }, [value, progress]);
-
-  const knobStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: progress.value * (TRACK_W - KNOB - PAD * 2) }],
-  }));
+  const knobStyle = {
+    transform: [{ translateX: (value ? 1 : 0) * (TRACK_W - KNOB - PAD * 2) }],
+    transition: "transform 0.2s ease-out",
+  };
 
   return (
     <Pressable
@@ -41,7 +36,7 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({ value, onToggle }) => 
         { backgroundColor: value ? "#34C759" : theme.isDark ? "#3A3A3C" : "#E9E9EA" },
       ]}
     >
-      <Animated.View style={[styles.knob, knobStyle]} />
+      <View style={[styles.knob, knobStyle]} />
     </Pressable>
   );
 };

@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
 import {
-  View,
-  Text,
-  TouchableOpacity,
+  FlatList,
   RefreshControl,
   ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
-import { FlashList } from "@shopify/flash-list";
 import { useNavigate } from "react-router-dom";
 import { goBack, goTo, replaceTo } from "@/src/utils/navigation";
 import { ChevronLeft, ChevronRight, MapPin, Package, ShoppingBag } from "lucide-react";
@@ -236,7 +236,7 @@ const OrderListScreen = () => {
         {isLoading && !isRefreshing ? (
           renderSkeletons()
         ) : (
-          <FlashList data={orders}
+          <FlatList data={orders}
             renderItem={renderOrderItem}
             keyExtractor={(item) => item._id}
             contentContainerStyle={styles.listContent}

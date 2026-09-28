@@ -23,19 +23,11 @@ export type SheetDetent = any;
 export const TrueSheetProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => <>{children}</>;
 
 /**
- * Web implementation of TrueSheet backed by vaul (the shadcn Drawer
- * primitive — already a project dependency, transform-only animations,
- * no extra animation runtime).
+ * Bottom sheet backed by vaul (the shadcn Drawer primitive —
+ * transform-only animations, no extra animation runtime).
  *
- * Previously this was a passthrough (`<>{children}</>`) so every bottom
- * sheet (Edit Profile, Password & Email Setup, OTP, Help & Support)
- * rendered inline on the page — and looked "automatically opened".
- * Now sheets stay closed until `present()` is called and render as a
- * proper drag-to-dismiss bottom drawer, matching mobile behaviour.
- *
- * Mobile is untouched — this file only ships on web (vite `.web.tsx`
- * alias). Native-only props (detents, cornerRadius, grabber, …) are
- * accepted and ignored.
+ * Sheets stay closed until `present()` is called and render as a
+ * proper drag-to-dismiss bottom drawer.
  */
 export const TrueSheet = forwardRef<TrueSheetMethods, any>(function TrueSheet(
   {

@@ -1,29 +1,12 @@
 import SafeViewWrapper from "@/src/provider/SafeViewWrapper";
 import React, { useCallback, useRef, useState } from "react";
-import { StyleSheet } from "react-native";
-import Animated, {
-  Extrapolate,
-  interpolate,
-  runOnJS,
-  useAnimatedProps,
-  useAnimatedScrollHandler,
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-  withTiming,
-} from "react-native-reanimated";
+import { ScrollView, StyleSheet, View } from "react-native";
 import LazyLottie from "@/src/components/common/LazyLottie";
 import * as Haptics from "@/lib/haptics";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
-import {
-  Gesture,
-  GestureDetector,
-  GestureHandlerRootView,
-} from "react-native-gesture-handler";
 
 import fireLottie from "@/assets/lottie/LoadingCat.json";
 
-const AnimatedLottieView = Animated.createAnimatedComponent(LazyLottie);
 const REFRESH_THRESHOLD = 90;
 const MAX_PULL = 150;
 const HOLD_OFFSET = 110;
@@ -40,21 +23,22 @@ export default function SnapchatPullToRefresh({
   stickyHeaderIndices,
 }: SnapchatPullToRefreshProps) {
   const theme = useTheme() as any;
-  const lottieRef = useRef<any>(null);
   const [isRefreshingState, setIsRefreshingState] = useState(false);
-  const scrollY = useSharedValue(0);
-  const pullOffset = useSharedValue(0);
-  const isRefreshing = useSharedValue(false);
-  const hasTriggeredHaptic = useSharedValue(false);
+  const [pullOffset, setPullOffset] = useState(0);
+  const [dragging, setDragging] = useState(false);
+  const scrollY = useRef(0);
+  const refreshingRef = useRef(false);
+  const hapticFiredRef = useRef(false);
+  const dragStartY = useRef(0);
 
   const performRefresh = useCallback(async () => {
-    if (isRefreshing.value) {
+    if (refreshingRef.current) {
       return;
     }
 
     setIsRefreshingState(true);
-    isRefreshing.value = true;
-    lottieRef.current?.play();
+    refreshingRef.current = true;
+    setPullOffset(HOLD_OFFSET);
 
     try {
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -66,167 +50,114 @@ export default function SnapchatPullToRefresh({
       await onRefresh();
     } finally {
       setIsRefreshingState(false);
-      pullOffset.value = withTiming(0, { duration: 320 });
-
+      setPullOffset(0);
       setTimeout(() => {
-        lottieRef.current?.reset();
-        isRefreshing.value = false;
-        hasTriggeredHaptic.value = false;
+        refreshingRef.current = false;
+        hapticFiredRef.current = false;
       }, 320);
     }
-    // Shared values (.value) are Reanimated refs — not React deps.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [onRefresh]);
 
-  const scrollHandler = useAnimatedScrollHandler({
-    onScroll: (event) => {
-      scrollY.value = event.contentOffset.y;
-    },
-  });
+  const handleScroll = (event: any) => {
+    const top =
+      event?.nativeEvent?.contentOffset?.y ?? event?.currentTarget?.scrollTop ?? 0;
+    scrollY.current = top;
+  };
 
-  const panGesture = Gesture.Pan()
-    .enabled(!isRefreshingState)
-    .onTouchesDown((_event, stateManager) => {
-      if (scrollY.value > 0 || isRefreshing.value) {
-        stateManager.fail();
-      }
-    })
-    .onTouchesMove((_event, stateManager) => {
-      if (scrollY.value > 0 || isRefreshing.value) {
-        stateManager.fail();
-      }
-    })
-    .activeOffsetY([10, 9999])
-    .failOffsetX([-20, 20])
-    .onUpdate((event) => {
-      if (isRefreshing.value || event.translationY <= 0 || scrollY.value > 0) {
-        return;
-      }
+  const handlePointerDown = (event: React.PointerEvent) => {
+    if (scrollY.current > 0 || refreshingRef.current) return;
+    dragStartY.current = event.clientY;
+    setDragging(true);
+  };
 
-      const nextOffset = Math.min(event.translationY * 0.55, MAX_PULL);
-      pullOffset.value = nextOffset;
-
-      if (nextOffset >= REFRESH_THRESHOLD && !hasTriggeredHaptic.value) {
-        runOnJS(Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Light);
-        hasTriggeredHaptic.value = true;
-      }
-
-      if (nextOffset < REFRESH_THRESHOLD && hasTriggeredHaptic.value) {
-        hasTriggeredHaptic.value = false;
-      }
-    })
-    // Worklet: reading .value inside gesture handlers is the Reanimated pattern.
-    // eslint-disable-next-line react-hooks/refs
-    .onEnd(() => {
-      if (isRefreshing.value) {
-        return;
-      }
-
-      if (scrollY.value > 0) {
-        pullOffset.value = withSpring(0, { damping: 14, stiffness: 120 });
-        hasTriggeredHaptic.value = false;
-        return;
-      }
-
-      if (pullOffset.value >= REFRESH_THRESHOLD) {
-        pullOffset.value = withSpring(HOLD_OFFSET, {
-          damping: 15,
-          stiffness: 120,
-        });
-        runOnJS(performRefresh)();
-      } else {
-        pullOffset.value = withSpring(0, { damping: 14, stiffness: 120 });
-      }
-    })
-    .onFinalize(() => {
-      if (!isRefreshing.value && pullOffset.value < REFRESH_THRESHOLD) {
-        pullOffset.value = withSpring(0, { damping: 14, stiffness: 120 });
-      }
-    });
-
-  const nativeGesture = Gesture.Native();
-  const composedGesture = Gesture.Simultaneous(nativeGesture, panGesture);
-
-  const wrapperStyle = useAnimatedStyle(() => {
-    return {
-      transform: [{ translateY: pullOffset.value }],
-    };
-  });
-
-  const headerStyle = useAnimatedStyle(() => {
-    const scale = interpolate(
-      pullOffset.value,
-      [0, REFRESH_THRESHOLD],
-      [0.35, 1],
-      Extrapolate.CLAMP,
-    );
-    const opacity = interpolate(
-      pullOffset.value,
-      [0, REFRESH_THRESHOLD / 2],
-      [0, 1],
-      Extrapolate.CLAMP,
-    );
-
-    return {
-      opacity,
-      transform: [{ scale }],
-      position: "absolute",
-      top: -120,
-      left: 0,
-      right: 0,
-      alignItems: "center",
-      justifyContent: "center",
-      height: 120,
-      zIndex: 2,
-    };
-  });
-
-  const lottieAnimatedProps = useAnimatedProps<any>(() => {
-    if (isRefreshing.value) {
-      return {};
+  const handlePointerMove = (event: React.PointerEvent) => {
+    if (!dragging || refreshingRef.current || scrollY.current > 0) return;
+    const dy = event.clientY - dragStartY.current;
+    if (dy <= 0) {
+      if (pullOffset !== 0) setPullOffset(0);
+      return;
     }
+    const nextOffset = Math.min(dy * 0.55, MAX_PULL);
+    setPullOffset(nextOffset);
 
-    return {
-      progress: interpolate(
-        pullOffset.value,
-        [0, REFRESH_THRESHOLD],
-        [0, 1],
-        Extrapolate.CLAMP,
-      ),
-    };
-  });
+    if (nextOffset >= REFRESH_THRESHOLD && !hapticFiredRef.current) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+      hapticFiredRef.current = true;
+    }
+    if (nextOffset < REFRESH_THRESHOLD && hapticFiredRef.current) {
+      hapticFiredRef.current = false;
+    }
+  };
+
+  const endDrag = () => {
+    if (!dragging) return;
+    setDragging(false);
+    if (refreshingRef.current) return;
+    if (pullOffset >= REFRESH_THRESHOLD) {
+      void performRefresh();
+    } else {
+      setPullOffset(0);
+      hapticFiredRef.current = false;
+    }
+  };
+
+  const pullRatio = Math.min(Math.max(pullOffset / REFRESH_THRESHOLD, 0), 1);
 
   return (
-    <GestureHandlerRootView style={styles.container}>
+    <View style={styles.container}>
       <SafeViewWrapper>
-        <GestureDetector gesture={composedGesture}>
-          <Animated.View style={[styles.container, wrapperStyle]}>
-            <Animated.View style={[headerStyle, { pointerEvents: "none" }]}>
-              <AnimatedLottieView
-                ref={lottieRef}
-                source={fireLottie}
-                autoPlay={false}
-                loop={isRefreshingState}
-                style={styles.fireLoader}
-                animatedProps={lottieAnimatedProps}
-              />
-            </Animated.View>
+        <View
+          style={[
+            styles.container,
+            {
+              transform: [{ translateY: pullOffset }],
+              transition: dragging ? undefined : "transform 0.25s ease-out",
+            },
+          ]}
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={endDrag}
+          onPointerCancel={endDrag}
+        >
+          <View
+            style={[
+              {
+                opacity: pullRatio,
+                transform: [{ scale: 0.35 + pullRatio * 0.65 }],
+                transition: dragging ? undefined : "opacity 0.25s ease-out, transform 0.25s ease-out",
+                position: "absolute",
+                top: -120,
+                left: 0,
+                right: 0,
+                alignItems: "center",
+                justifyContent: "center",
+                height: 120,
+                zIndex: 2,
+              },
+              { pointerEvents: "none" },
+            ]}
+          >
+            <LazyLottie
+              source={fireLottie}
+              autoPlay={isRefreshingState}
+              loop={isRefreshingState}
+              style={styles.fireLoader}
+            />
+          </View>
 
-            <Animated.ScrollView
-              style={[styles.scrollView, { backgroundColor: theme.background }]}
-              showsVerticalScrollIndicator={false}
-              stickyHeaderIndices={stickyHeaderIndices}
-              onScroll={scrollHandler}
-              scrollEventThrottle={16}
-              bounces={false}
-              overScrollMode="never"
-            >
-              {children}
-            </Animated.ScrollView>
-          </Animated.View>
-        </GestureDetector>
+          <ScrollView
+            style={[styles.scrollView, { backgroundColor: theme.background }]}
+            showsVerticalScrollIndicator={false}
+            stickyHeaderIndices={stickyHeaderIndices}
+            onScroll={handleScroll}
+            bounces={false}
+            overScrollMode="never"
+          >
+            {children}
+          </ScrollView>
+        </View>
       </SafeViewWrapper>
-    </GestureHandlerRootView>
+    </View>
   );
 }
 
@@ -236,6 +167,7 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
+    overflowY: "auto",
   },
   fireLoader: {
     width: 90,

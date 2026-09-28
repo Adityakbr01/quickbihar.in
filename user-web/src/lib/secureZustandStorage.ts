@@ -2,8 +2,7 @@ import { StateStorage } from "zustand/middleware";
 import { authStorage } from "@/src/lib/authStorage";
 
 /**
- * A Zustand `StateStorage` adapter backed by `authStorage` (SecureStore on
- * native, localStorage on web).
+ * A Zustand `StateStorage` adapter backed by `authStorage` (localStorage).
  *
  * ponytail: this adapter was duplicated verbatim in cartStore.ts and
  * wishlistStore.ts. Import from here instead of re-defining.

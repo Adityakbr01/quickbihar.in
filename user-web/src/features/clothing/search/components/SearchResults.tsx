@@ -1,16 +1,16 @@
 import React from "react";
 import {
+  ActivityIndicator,
+  FlatList,
   Platform,
+  Pressable,
   StyleSheet,
   Text,
-  View,
-  Pressable,
-  ActivityIndicator,
   useWindowDimensions,
+  View,
 } from "react-native";
-import { FlashList } from "@shopify/flash-list";
 import { Shirt, Star } from "lucide-react";
-import { Image as ExpoImage } from "expo-image";
+
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { BREAKPOINTS } from "@/src/utils/responsive";
 import { IProduct } from "../../product/types/product.types";
@@ -92,7 +92,7 @@ const SearchResults = ({
   };
 
   return (
-    <FlashList data={results}
+    <FlatList data={results}
       keyExtractor={(item) => item._id}
       numColumns={numColumns}
       key={numColumns}
@@ -128,11 +128,7 @@ const SearchResults = ({
           onPress={() => onItemPress(item.slug || item._id)}
         >
           <View style={styles.imageContainer}>
-            <ExpoImage source={{ uri: item.images?.[0]?.url }}
-              contentFit="cover"
-              style={styles.productImage}
-              transition={200}
-            />
+            <img src={item.images?.[0]?.url} style={Object.assign({}, styles.productImage, { objectFit: "cover" as const })} />
             {item.discountPercentage > 0 && (
               <View style={[styles.discountBadge, { backgroundColor: theme.primary }]}>
                 <Text style={styles.discountText}>{Math.round(item.discountPercentage)}% OFF</Text>

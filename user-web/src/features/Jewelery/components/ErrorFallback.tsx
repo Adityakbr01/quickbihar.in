@@ -1,5 +1,4 @@
 import { CircleAlert, X } from "lucide-react";
-import { reloadAppAsync } from "expo";
 import React, { useState } from "react";
 import {
   Modal,
@@ -10,7 +9,7 @@ import {
   Text,
   View,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "@/src/hooks/useSafeAreaInsets";
 
 import { useColors } from "@/src/features/Jewelery/hooks/useColors";
 
@@ -27,7 +26,7 @@ export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
 
   const handleRestart = async () => {
     try {
-      await reloadAppAsync();
+      window.location.reload();
     } catch (restartError) {
       console.error("Failed to restart app:", restartError);
       resetError();

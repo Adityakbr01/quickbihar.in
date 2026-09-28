@@ -24,13 +24,9 @@ import { useQueryClient } from "@tanstack/react-query";
 import { socketClient } from "@/src/lib/socket";
 import { SocketEvents } from "@/src/constants/socketEvents";
 import { Link, useNavigate } from "react-router-dom";
-import { Image as ExpoImage } from "expo-image";
+
 import { IProduct } from "../types/product.types";
-import Animated, {
-  FadeIn,
-  FadeInUp,
-} from "react-native-reanimated";
-import Carousel from "react-native-reanimated-carousel";
+import Carousel from "@/src/components/common/EmblaCarousel";
 
 // --- Imports from modular structure ---
 import { styles as s } from "./ProductDetail/styles";
@@ -366,12 +362,7 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
             scrollAnimationDuration={300}
             onSnapToItem={setCarouselIndex}
             renderItem={({ item, index }) => (
-              <ExpoImage source={{ uri: item.url }}
-                style={s.galleryImage}
-                contentFit="cover"
-                alt={dp.title || "Product image"}
-                priority={index === 0 ? "high" : "normal"}
-              />
+              <img src={item.url} alt={dp.title || "Product image"} style={Object.assign({}, s.galleryImage, { objectFit: "cover" as const })} />
             )}
           />
 
@@ -500,24 +491,22 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
             </Text>
           </View>
           {/* Brand */}
-          <Animated.Text
-            entering={FadeIn.delay(100)}
+          <Text
             style={[s.brandName, { color: theme.text }]}
           >
             {dp.brand || "Brand"}
-          </Animated.Text>
+          </Text>
 
           {/* Title */}
-          <Animated.Text
-            entering={FadeIn.delay(150)}
+          <Text
             style={[s.productTitle, { color: theme.secondaryText }]}
           >
             {dp.title}
-          </Animated.Text>
+          </Text>
 
           {/* Rating Chip */}
           {totalReviews > 0 && (
-            <Animated.View entering={FadeIn.delay(200)} style={s.ratingChip}>
+            <View style={s.ratingChip}>
               <View style={s.ratingChipInner}>
                 <Text style={s.ratingChipScore}>{averageRating}</Text>
                 <Star size={11} color="#fff" fill="#fff" />
@@ -526,11 +515,11 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
               <Text style={[s.ratingChipCount, { color: theme.secondaryText }]}>
                 {totalReviews} Ratings
               </Text>
-            </Animated.View>
+            </View>
           )}
 
           {/* Pricing Block */}
-          <Animated.View entering={FadeIn.delay(250)} style={s.priceBlock}>
+          <View style={s.priceBlock}>
             <Text style={[s.currentPrice, { color: theme.text }]}>
               ₹{(dp.isGstApplicable ? dp.price! * (1 + dp.gstPercentage! / 100) : dp.price!)?.toLocaleString()}
             </Text>
@@ -547,7 +536,7 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
                 </View>
               </>
             )}
-          </Animated.View>
+          </View>
           <Text style={[s.taxInfo, { color: theme.success || "#34C759" }]}>
             {dp.isGstApplicable ? `Price inclusive of ${dp.gstPercentage}% GST` : "inclusive of all taxes"}
           </Text>
@@ -675,7 +664,7 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
             {selectedSize &&
               sizesForColor.find((v) => v.size === selectedSize)?.stock! <=
               5 && (
-                <Animated.View entering={FadeIn} style={s.lowStockRow}>
+                <View style={s.lowStockRow}>
                   <Zap size={14} color={theme.warning} />
                   <Text style={[s.lowStockText, { color: theme.warning }]}>
                     Only{" "}
@@ -685,7 +674,7 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
                     }{" "}
                     left! Order soon
                   </Text>
-                </Animated.View>
+                </View>
               )}
           </View>
         )}
@@ -1214,8 +1203,7 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
           `absolute` inside its bounded screen. Bottom offset lifts it
           above the fixed tab bar on mobile web.
       ═══════════════════════════════════════════ */}
-      <Animated.View
-        entering={FadeInUp.delay(300).duration(400)}
+      <View
         style={[
           s.bottomBar,
           {
@@ -1315,7 +1303,7 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
             </TouchableOpacity>
           );
         })()}
-      </Animated.View>
+      </View>
 
       {/* Modals */}
       <SizeChartModal visible={showSizeChart}

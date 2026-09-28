@@ -8,7 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { goTo } from "@/src/utils/navigation";
 import LazyLottie from "@/src/components/common/LazyLottie";
 import React from "react";
-import { Image } from "expo-image";
+
 import { useCartStore } from "@/src/features/common/cart/store/cartStore";
 import { useWishlistStore } from "@/src/features/common/wishlist/store/wishlistStore";
 import { DealProduct as MockProduct } from "../lib/dealsConfig";
@@ -151,13 +151,7 @@ export const DealProductCard = ({ product, width }: DealProductCardProps) => {
             : null,
         ]}
       >
-        <Image source={{ uri: productData.image }} 
-          style={styles.productImage}
-          contentFit="cover"
-          alt={`${productData.title} - Fashion Deal in Bihar`}
-          accessibilityLabel={productData.title}
-          {...({ title: `${productData.title} - QuickBihar Deals` } as any)}
-        />
+        <img src={productData.image} alt={`${productData.title} - Fashion Deal in Bihar`} aria-label={productData.title} style={Object.assign({}, styles.productImage, { objectFit: "cover" as const })} {...({ title: `${productData.title} - QuickBihar Deals` } as any)} />
 
         {/* Top-Left Discount Badge */}
         {productData.discount ? (

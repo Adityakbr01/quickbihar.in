@@ -5,7 +5,7 @@ import React, {
   useRef,
 } from "react";
 import { View } from "react-native";
-import { TrueSheet, type TrueSheetMethods } from "@lodev09/react-native-true-sheet";
+import { TrueSheet, type TrueSheetMethods } from "./TrueSheetWeb";
 import type { SheetProps, SheetRef } from "./types";
 
 /** 2rem in px (RN default). Applied as top padding to all sheet content. */

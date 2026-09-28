@@ -1,7 +1,7 @@
 import { ArrowLeft, ArrowRight, Briefcase, House, MapPin, Navigation as NavigationIcon, Shield, ShieldCheck } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as Haptics from "@/lib/haptics";
-import * as Location from "expo-location";
+import * as Location from "@/src/lib/location";
 import { useNavigate } from "react-router-dom";
 import { goBack, replaceTo, useRouteParams } from "@/src/utils/navigation";
 import React, { useEffect, useState } from "react";
@@ -19,7 +19,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "@/src/hooks/useSafeAreaInsets";
 
 import IOSAlertDialog, { AlertButton } from "@/src/components/ui/IOSAlertDialog";
 import { reverseGeocodeRequest } from "@/src/features/common/address/api/address.api";

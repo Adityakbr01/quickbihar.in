@@ -10,7 +10,6 @@ import {
   View,
   useWindowDimensions,
 } from "react-native";
-import { useSharedValue } from "react-native-reanimated";
 import HomeCategories from "@/src/features/common/category/components/HomeCategories";
 import HomeHeader from "../components/HomeHeader";
 import { DesktopFooter } from "../components/DesktopFooter";
@@ -26,14 +25,12 @@ import TopSellingSection from "../sections/TopSellingSection";
 import { BREAKPOINTS, DESKTOP } from "@/src/utils/responsive";
 
 const HomeScreen = ({ rootSlug }: { rootSlug?: string }) => {
-  const menuOpen = useSharedValue(0);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const toggleMenu = useCallback(() => {
-    // Reanimated shared value — intentional mutation outside React state.
-    // eslint-disable-next-line react-hooks/immutability
-    menuOpen.value = menuOpen.value === 0 ? 1 : 0;
-  }, [menuOpen]);
+    setMenuOpen((v) => !v);
+  }, []);
 
   const moreDealsState = useMoreDealsLogic();
   const queryClient = useQueryClient();

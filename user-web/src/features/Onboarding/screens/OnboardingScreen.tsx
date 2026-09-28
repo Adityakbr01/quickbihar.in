@@ -1,14 +1,7 @@
-import { LinearGradient } from "expo-linear-gradient";
+import { Gradient } from "@/src/components/common/Gradient";
 import React, { useEffect, useRef, useState } from "react";
 import { PanResponder, StatusBar, StyleSheet, View } from "react-native";
-import {
-  Easing,
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-  withTiming,
-} from "react-native-reanimated";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "@/src/hooks/useSafeAreaInsets";
 
 import { lightTheme } from "@/src/theme/colors";
 import { OnboardingSlide, steps } from "../components";
@@ -22,46 +15,23 @@ export default function OnboardingScreen({ onDone }: { onDone?: () => void }) {
   const [displayStep, setDisplayStep] = useState(0);
   const [complete, setComplete] = useState(false);
 
-  const topOpacity = useSharedValue(1);
-  const topY = useSharedValue(0);
-  const iconScale = useSharedValue(1);
-  const iconOpacity = useSharedValue(1);
-  const bottomOpacity = useSharedValue(1);
-  const bottomY = useSharedValue(0);
-  const completionScale = useSharedValue(0.8);
-  const completionOpacity = useSharedValue(0);
+  // Step transition phases (CSS transitions replace reanimated shared values)
+  const [phase, setPhase] = useState<"visible" | "leaving" | "entering">("visible");
 
   const transition = (nextStep: number | null) => {
     // Fade out
-    topOpacity.value = withTiming(0, { duration: 280 });
-    topY.value = withTiming(-16, { duration: 280 });
-    iconScale.value = withTiming(0.88, { duration: 280 });
-    iconOpacity.value = withTiming(0, { duration: 280 });
-    bottomOpacity.value = withTiming(0, { duration: 280 });
-    bottomY.value = withTiming(16, { duration: 280 });
+    setPhase("leaving");
 
     setTimeout(() => {
       if (nextStep === null) {
         setComplete(true);
-        completionScale.value = withSpring(1, { damping: 14, stiffness: 120 });
-        completionOpacity.value = withTiming(1, { duration: 400 });
       } else {
         setDisplayStep(nextStep);
-        topY.value = 16;
-        bottomY.value = -16;
-
-        topOpacity.value = withTiming(1, { duration: 320 });
-        topY.value = withTiming(0, {
-          duration: 320,
-          easing: Easing.out(Easing.cubic),
-        });
-        iconScale.value = withSpring(1, { damping: 14, stiffness: 140 });
-        iconOpacity.value = withTiming(1, { duration: 320 });
-        bottomOpacity.value = withTiming(1, { duration: 320 });
-        bottomY.value = withTiming(0, {
-          duration: 320,
-          easing: Easing.out(Easing.cubic),
-        });
+        setPhase("entering");
+        // Settle into place on the next frame so the CSS transition runs
+        requestAnimationFrame(() =>
+          requestAnimationFrame(() => setPhase("visible"))
+        );
       }
     }, 300);
   };
@@ -118,22 +88,26 @@ export default function OnboardingScreen({ onDone }: { onDone?: () => void }) {
     }),
   ).current;
 
-  const topStyle = useAnimatedStyle(() => ({
-    opacity: topOpacity.value,
-    transform: [{ translateY: topY.value }],
-  }));
-  const iconStyle = useAnimatedStyle(() => ({
-    opacity: iconOpacity.value,
-    transform: [{ scale: iconScale.value }],
-  }));
-  const bottomStyle = useAnimatedStyle(() => ({
-    opacity: bottomOpacity.value,
-    transform: [{ translateY: bottomY.value }],
-  }));
-  const completionStyle = useAnimatedStyle(() => ({
-    opacity: completionOpacity.value,
-    transform: [{ scale: completionScale.value }],
-  }));
+  const animTransition = "opacity 0.3s ease-out, transform 0.32s cubic-bezier(0.16, 1, 0.3, 1)";
+  const topStyle = {
+    opacity: phase === "visible" ? 1 : 0,
+    transform: [
+      { translateY: phase === "leaving" ? -16 : phase === "entering" ? 16 : 0 },
+    ],
+    transition: animTransition,
+  };
+  const iconStyle = {
+    opacity: phase === "visible" ? 1 : 0,
+    transform: [{ scale: phase === "visible" ? 1 : 0.88 }],
+    transition: animTransition,
+  };
+  const bottomStyle = {
+    opacity: phase === "visible" ? 1 : 0,
+    transform: [
+      { translateY: phase === "leaving" ? 16 : phase === "entering" ? -16 : 0 },
+    ],
+    transition: animTransition,
+  };
 
   const step = steps[displayStep];
 
@@ -148,7 +122,7 @@ export default function OnboardingScreen({ onDone }: { onDone?: () => void }) {
         translucent
         backgroundColor="transparent"
       />
-      <LinearGradient
+      <Gradient
         colors={lightTheme.spgradient}
         locations={[0, 0.28, 0.52, 0.78, 1]}
         start={{ x: 0.2, y: 0 }}

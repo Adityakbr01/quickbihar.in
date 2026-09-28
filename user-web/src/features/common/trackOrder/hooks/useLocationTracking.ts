@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import * as Location from "expo-location";
+import * as Location from "@/src/lib/location";
 import { useSocketStore } from "@/src/store/useSocketStore";
 import { SocketEvents } from "@/src/constants/socketEvents";
 

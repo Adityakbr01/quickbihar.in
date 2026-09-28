@@ -9,7 +9,7 @@ import {
   useWindowDimensions,
   View,
 } from "react-native";
-import Carousel from "react-native-reanimated-carousel";
+import Carousel from "@/src/components/common/EmblaCarousel";
 
 import { APP_CURRENCY } from "@/src/constants";
 import type { Product } from "@/src/features/Jewelery/data/products";
@@ -67,8 +67,8 @@ const BRAND_SLIDES: HeroSlide[] = [
 ];
 
 /**
- * Hero carousel powered by react-native-reanimated-carousel for butter-smooth
- * snapping, responsive resizing, and authentic luxury presentation.
+ * Hero carousel powered by Embla for butter-smooth snapping,
+ * responsive resizing, and authentic luxury presentation.
  */
 export function HeroCarousel({ items }: { items?: Product[] }) {
   const navigate = useNavigate();

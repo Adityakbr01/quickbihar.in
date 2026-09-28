@@ -7,7 +7,7 @@ import type {
   SheetDetent,
   TrueSheetMethods,
   TrueSheetProps,
-} from "@lodev09/react-native-true-sheet";
+} from "./TrueSheetWeb";
 
 /**
  * Imperative handle exposed by the global <Sheet /> component.

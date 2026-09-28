@@ -1,5 +1,5 @@
 import { ChevronRight } from "lucide-react";
-import { Image } from "expo-image";
+
 import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -8,7 +8,6 @@ import {
   Text,
   View,
 } from "react-native";
-import Constants from "expo-constants";
 import googleIconLogo from "@/assets/svg/google-icon-logo.svg";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 
@@ -38,8 +37,8 @@ export const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({
   const [gisReady, setGisReady] = useState(false);
   const gisMountRef = useRef<any>(null);
 
-  const extra = (Constants.expoConfig?.extra as any) ?? {};
-  const google = extra.google ?? {};
+  // Web build has no app.json extra block — client ID comes from env.
+  const google: any = {};
   const webClientId =
     google.webClientId ||
     process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ||
@@ -176,10 +175,7 @@ export const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({
         ) : (
           <View style={styles.row}>
             <View style={styles.gBadge}>
-              <Image source={googleIconLogo}
-                style={{ width: 18, height: 18 }}
-                contentFit="contain"
-              />
+              <img src={googleIconLogo} style={Object.assign({}, { width: 18, height: 18 }, { objectFit: "contain" as const })} />
             </View>
             <Text style={[styles.label, { color: theme.text }]}>{label}</Text>
             <ChevronRight size={16} color={theme.secondaryText} style={{ marginLeft: "auto" }} />

@@ -1,10 +1,9 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
-import Animated from "react-native-reanimated";
 import { ArrowDown } from "lucide-react";
 import { OnboardingStepData } from "./types";
 import { PaginationControls, PaginationControlsProps } from "./PaginationControls";
-import { EdgeInsets } from "react-native-safe-area-context";
+import { EdgeInsets } from "@/src/hooks/useSafeAreaInsets";
 
 export interface OnboardingSlideProps extends PaginationControlsProps {
   step: OnboardingStepData;
@@ -25,24 +24,24 @@ export const OnboardingSlide: React.FC<OnboardingSlideProps> = ({
   return (
     <>
       {/* Top section */}
-      <Animated.View
+      <View
         style={[styles.topSection, { paddingTop: insets.top + 40 }, topStyle]}
       >
         <Text style={styles.caption}>{step.caption}</Text>
         {/* <ArrowDown size={18} color="rgba(255,255,255,0.6)" style={{ marginVertical: 8 }} /> */}
         <Text style={styles.topTitle}>{step.title}</Text>
-      </Animated.View>
+      </View>
 
       {/* Icon section */}
       <View style={styles.iconSection}>
-        <Animated.View style={iconStyle}>{step.icon}</Animated.View>
+        <View style={iconStyle}>{step.icon}</View>
       </View>
 
       {/* Bottom section (fades out during swipe) */}
-      <Animated.View style={[styles.bottomSection, bottomStyle]}>
+      <View style={[styles.bottomSection, bottomStyle]}>
         <Text style={styles.bottomTitle}>{step.bottomTitle}</Text>
         <Text style={styles.bottomDesc}>{step.bottomDesc}</Text>
-      </Animated.View>
+      </View>
 
       {/* Controls (static layout anchored to bottom) */}
       <View style={[styles.controlsSection, { paddingBottom: insets.bottom + 24 }]}>

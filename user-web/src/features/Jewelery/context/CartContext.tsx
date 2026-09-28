@@ -1,4 +1,4 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
+
 import * as Haptics from "@/lib/haptics";
 import React, {
   createContext,
@@ -93,7 +93,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   );
 
   useEffect(() => {
-    AsyncStorage.multiRemove(["jewelery_cart", "jewelery_wishlist"]).catch(() => {});
+    try {
+      window.localStorage?.removeItem("jewelery_cart");
+      window.localStorage?.removeItem("jewelery_wishlist");
+    } catch {}
   }, []);
 
   const skuForProduct = useCallback(

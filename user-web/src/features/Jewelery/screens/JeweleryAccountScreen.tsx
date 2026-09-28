@@ -13,7 +13,7 @@ import {
   Text,
   View,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "@/src/hooks/useSafeAreaInsets";
 
 import { JEWELERY_MODULE_CONFIG, APP_COUNTRY_CODE, APP_NAME, SUPPORT_WHATSAPP_INTL, SUPPORT_WHATSAPP_DISPLAY } from "@/src/constants";
 import { useAuth } from "@/src/features/Jewelery/context/AuthContext";

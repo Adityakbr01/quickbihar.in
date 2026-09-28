@@ -1,13 +1,9 @@
-import React from "react";
+import React, { useState } from "react";
 import { Pressable, StyleSheet, ViewStyle, View } from "react-native";
 import { Square, SquareCheckBig } from "lucide-react";
 import { useTheme } from "../Provider/ThemeProvider";
 import ThemedText from "./ThemedText";
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-} from "react-native-reanimated";
+
 
 interface CheckboxProps {
   label: string;
@@ -23,19 +19,15 @@ export const Checkbox: React.FC<CheckboxProps> = ({
   style,
 }) => {
   const theme = useTheme() as any;
-  const scale = useSharedValue(1);
+  const [pressed, setPressed] = useState(false);
 
   const handlePressIn = () => {
-    scale.value = withSpring(0.9);
+    setPressed(true);
   };
 
   const handlePressOut = () => {
-    scale.value = withSpring(1);
+    setPressed(false);
   };
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
 
   const styles = StyleSheet.create({
     container: {
@@ -61,13 +53,13 @@ export const Checkbox: React.FC<CheckboxProps> = ({
       accessibilityState={{ checked }}
       accessibilityLabel={label}
     >
-      <Animated.View style={[styles.iconContainer, animatedStyle]}>
+      <View style={[styles.iconContainer, { transform: [{ scale: pressed ? 0.9 : 1 }], transition: "transform 0.15s ease-out" }]}>
         {checked ? (
           <SquareCheckBig size={24} color={theme.primary} />
         ) : (
           <Square size={24} color={theme.secondaryText} />
         )}
-      </Animated.View>
+      </View>
       <ThemedText style={styles.label}>{label}</ThemedText>
     </Pressable>
   );

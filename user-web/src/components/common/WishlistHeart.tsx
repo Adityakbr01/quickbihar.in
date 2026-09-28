@@ -1,12 +1,6 @@
-import React from "react";
-import { TouchableOpacity, Platform, ViewStyle } from "react-native";
+import React, { useState } from "react";
+import { TouchableOpacity, Platform, View, ViewStyle } from "react-native";
 import { Heart } from "lucide-react";
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  withSequence,
-} from "react-native-reanimated";
 import * as Haptics from "@/lib/haptics";
 
 interface WishlistHeartProps {
@@ -26,11 +20,7 @@ const WishlistHeart: React.FC<WishlistHeartProps> = ({
   inactiveColor = "#020617",
   style,
 }) => {
-  const scale = useSharedValue(1);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
+  const [popping, setPopping] = useState(false);
 
   const handlePress = () => {
     // 1. Trigger haptics
@@ -38,11 +28,9 @@ const WishlistHeart: React.FC<WishlistHeartProps> = ({
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
 
-    // 2. Trigger animation
-    scale.value = withSequence(
-      withSpring(1.4, { damping: 10, stiffness: 100 }),
-      withSpring(1, { damping: 12, stiffness: 90 })
-    );
+    // 2. Pop animation (CSS transition replaces the reanimated spring)
+    setPopping(true);
+    setTimeout(() => setPopping(false), 220);
 
     // 3. Trigger callback
     onToggle();
@@ -53,13 +41,13 @@ const WishlistHeart: React.FC<WishlistHeartProps> = ({
       onPress={handlePress}
       style={style}
     >
-      <Animated.View style={animatedStyle}>
+      <View style={{ transform: [{ scale: popping ? 1.4 : 1 }], transition: "transform 0.2s ease-out" }}>
         <Heart
           size={size}
           color={isWishlisted ? activeColor : inactiveColor}
           fill={isWishlisted ? activeColor : "none"}
         />
-      </Animated.View>
+      </View>
     </TouchableOpacity>
   );
 };

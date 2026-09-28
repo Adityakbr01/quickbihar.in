@@ -1,17 +1,13 @@
 import { CircleX, Search } from "lucide-react";
 import * as Haptics from "@/lib/haptics";
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import {
   Pressable,
   StyleSheet,
   TextInput as RNTextInput,
   View,
 } from "react-native";
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-} from "react-native-reanimated";
+
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { TextInput } from "@/src/theme/components/TextInput";
 
@@ -33,22 +29,23 @@ const SearchHeader = ({
   const theme = useTheme();
   const inputRef = useRef<RNTextInput>(null);
 
-  // Animations
-  const focusAnim = useSharedValue(0);
+  // Focus ring (CSS transition replaces the reanimated spring)
+  const [focused, setFocused] = useState(false);
 
-  const containerStyle = useAnimatedStyle(() => ({
+  const containerStyle = {
     borderColor: theme.primary,
-    borderWidth: withSpring(focusAnim.value * 2),
-    transform: [{ scale: withSpring(1 + focusAnim.value * 0.01) }],
-  }));
+    borderWidth: focused ? 2 : 0,
+    transform: [{ scale: focused ? 1.01 : 1 }],
+    transition: "border-width 0.2s ease-out, transform 0.2s ease-out",
+  };
 
   const handleFocus = () => {
-    focusAnim.value = 1;
+    setFocused(true);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   };
 
   const handleBlur = () => {
-    focusAnim.value = 0;
+    setFocused(false);
   };
 
   const handleClear = () => {
@@ -59,7 +56,7 @@ const SearchHeader = ({
 
   return (
     <View style={[styles.header, { backgroundColor: theme.background }]}>
-      <Animated.View
+      <View
         style={[
           styles.searchContainer,
           { backgroundColor: theme.tertiaryBackground },
@@ -96,7 +93,7 @@ const SearchHeader = ({
           }}
           style={{ fontSize: 16, color: theme.text }}
         />
-      </Animated.View>
+      </View>
     </View>
   );
 };

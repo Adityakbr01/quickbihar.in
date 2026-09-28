@@ -15,7 +15,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "@/src/hooks/useSafeAreaInsets";
 
 import IOSAlertDialog, { AlertButton } from "@/src/components/ui/IOSAlertDialog";
 import { useAddressActions, useAddresses } from "@/src/features/common/address/hooks/useAddress";

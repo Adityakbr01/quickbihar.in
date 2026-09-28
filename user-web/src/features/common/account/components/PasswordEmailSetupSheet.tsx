@@ -12,7 +12,6 @@ import {
 } from "react-native";
 import { CircleAlert, CircleCheck, Eye, EyeOff, Lock, Mail, ShieldCheck } from "lucide-react";
 import * as Haptics from "@/lib/haptics";
-import Animated, { FadeInDown, LinearTransition } from "react-native-reanimated";
 
 import { useModuleTheme, type ModuleVariant } from "@/src/theme/useModuleTheme";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
@@ -211,8 +210,7 @@ const PasswordEmailSetupSheet = ({ variant = "default" }: { variant?: ModuleVari
           showsVerticalScrollIndicator={false}
         >
           {success ? (
-            <Animated.View
-              entering={FadeInDown}
+            <View
                 style={[
                   styles.successCard,
                   {
@@ -232,14 +230,12 @@ const PasswordEmailSetupSheet = ({ variant = "default" }: { variant?: ModuleVari
               >
                 Your email and password are saved. Closing…
               </Text>
-            </Animated.View>
+            </View>
           ) : (
             <>
               {/* Error banner */}
               {error ? (
-                <Animated.View
-                  entering={FadeInDown}
-                  layout={LinearTransition}
+                <View
                   style={[
                     styles.errorBanner,
                     {
@@ -250,7 +246,7 @@ const PasswordEmailSetupSheet = ({ variant = "default" }: { variant?: ModuleVari
                 >
                   <CircleAlert size={18} color="#fca5a5" />
                   <Text style={styles.errorBannerText}>{error}</Text>
-                </Animated.View>
+                </View>
               ) : null}
 
               {/* ── Field: Email ─────────────────────────────────────── */}
@@ -341,8 +337,7 @@ const PasswordEmailSetupSheet = ({ variant = "default" }: { variant?: ModuleVari
                   style={{ fontSize: 15, fontWeight: "600", color: inputText }}
                 />
                 {password.length > 0 && (
-                  <Animated.View
-                    entering={FadeInDown}
+                  <View
                     style={{ marginTop: 10 }}
                   >
                     <View style={styles.strengthTrack}>
@@ -370,7 +365,7 @@ const PasswordEmailSetupSheet = ({ variant = "default" }: { variant?: ModuleVari
                     >
                       {strengthLabel[strength]}
                     </Text>
-                  </Animated.View>
+                  </View>
                 )}
               </View>
 

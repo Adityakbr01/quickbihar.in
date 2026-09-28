@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
-import { Image } from "expo-image";
+
 import { ArrowRight, CircleX, ShoppingBag, Star } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { goTo } from "@/src/utils/navigation";
@@ -122,13 +122,7 @@ export const ProductCard = ({ item, desktopWidth }: ProductCardProps) => {
     >
       {/* Image & Overlays */}
       <View style={styles.imageContainer}>
-        <Image source={{ uri: productData.image }}
-          style={styles.image}
-          contentFit="cover"
-          alt={`${productData.title} - Shop Online in Bihar`}
-          accessibilityLabel={productData.title}
-          {...({ title: `${productData.title} | QuickBihar` } as any)}
-        />
+        <img src={productData.image} alt={`${productData.title} - Shop Online in Bihar`} aria-label={productData.title} style={Object.assign({}, styles.image, { objectFit: "cover" as const })} {...({ title: `${productData.title} | QuickBihar` } as any)} />
 
         {productData.discount ? (
           <View style={styles.discountBadge}>

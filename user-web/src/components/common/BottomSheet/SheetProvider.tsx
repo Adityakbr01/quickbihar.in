@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useMemo, useRef } from "react";
-import { useTrueSheet } from "@lodev09/react-native-true-sheet";
+import { useTrueSheet } from "./TrueSheetWeb";
 
 /**
  * Global sheet manager — present any registered sheet by name from

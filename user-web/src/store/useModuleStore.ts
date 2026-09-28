@@ -1,6 +1,5 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { APP_MODULES, AppModule, ModuleId } from "../constants/modules";
 
 interface ModuleState {
@@ -38,7 +37,7 @@ export const useModuleStore = create<ModuleState>()(
     }),
     {
       name: "active-app-module-v1",
-      storage: createJSONStorage(() => (typeof window !== 'undefined' ? window.localStorage : (AsyncStorage as any))),
+      storage: createJSONStorage(() => window.localStorage),
       onRehydrateStorage: () => (state) => {
         state?.setHydrated(true);
       },

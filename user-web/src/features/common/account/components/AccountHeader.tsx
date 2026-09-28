@@ -1,10 +1,10 @@
 import React from "react";
 import { View, Text, TouchableOpacity, ActivityIndicator } from "react-native";
-import { Image } from "expo-image";
+
 import { AppIcon } from "@/src/components/common/AppIcon";
 import { Camera, Pencil } from "lucide-react";
 import * as Haptics from "@/lib/haptics";
-import * as ImagePicker from "expo-image-picker";
+import * as ImagePicker from "@/src/lib/photoPicker";
 import { Theme } from "@/src/theme/Provider/ThemeProvider";
 import IOSAlertDialog from "@/src/components/ui/IOSAlertDialog";
 import { useAccount } from "../hooks/useAccount";
@@ -63,11 +63,19 @@ const AccountHeader = ({ theme, styles, name, email, avatarUrl }: AccountHeaderP
 
       const formData = new FormData();
       // @ts-ignore
-      formData.append("avatar", {
-        uri: selectedImage.uri,
-        name: `avatar_${Date.now()}.jpg`,
-        type: "image/jpeg",
-      });
+      if (selectedImage.file) {
+        formData.append(
+          "avatar",
+          selectedImage.file,
+          selectedImage.fileName || `avatar_${Date.now()}.jpg`
+        );
+      } else {
+        formData.append("avatar", {
+          uri: selectedImage.uri,
+          name: `avatar_${Date.now()}.jpg`,
+          type: "image/jpeg",
+        } as any);
+      }
 
       updateAvatar.mutate(formData, {
         onSuccess: () => {
@@ -95,12 +103,7 @@ const AccountHeader = ({ theme, styles, name, email, avatarUrl }: AccountHeaderP
         activeOpacity={0.7}
       >
         {avatarUrl ? (
-          <Image
-            source={{ uri: avatarUrl }}
-            style={{ width: "100%", height: "100%", borderRadius: 40 }}
-            contentFit="cover"
-            transition={300}
-          />
+          <img src={avatarUrl} style={Object.assign({}, { width: "100%", height: "100%", borderRadius: 40 }, { objectFit: "cover" as const })} />
         ) : (
           // Initials fallback — works on all platforms, no SVG transformer needed
           <View

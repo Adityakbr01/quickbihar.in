@@ -1,11 +1,10 @@
 import { Platform } from "react-native";
-import * as Device from "expo-device";
-import Constants from "expo-constants";
 
 export async function registerForPushNotificationsAsync() {
-  // Check if running in Expo Go (remote notifications removed in SDK 53+)
-  if (Constants.appOwnership === "expo") {
-    console.log("[Notification] Skipping registration in Expo Go.");
+  // Web has no native push — real Web Push needs a service worker + backend
+  // (see EXPO_REMOVAL_RESEARCH.md §6 Phase 5). Skip like before.
+  if (Platform.OS === "web") {
+    console.log("[Notification] Skipping registration on web.");
     return;
   }
 
@@ -42,15 +41,12 @@ export async function registerForPushNotificationsAsync() {
     return;
   }
 
-  if (Device.isDevice) {
-    try {
-      token = (await Notifications.getDevicePushTokenAsync()).data;
-      console.log("[Notification] Direct FCM Device Token retrieved successfully");
-    } catch (e) {
-      console.error("[Notification] Error getting native device token:", e);
-    }
-  } else {
-    console.log("[Notification] Simulator detected - permission requested but skipping FCM token retrieval");
+  // Reachable only off-web (early return above): retrieve the native token.
+  try {
+    token = (await Notifications.getDevicePushTokenAsync()).data;
+    console.log("[Notification] Direct FCM Device Token retrieved successfully");
+  } catch (e) {
+    console.error("[Notification] Error getting native device token:", e);
   }
 
   return token;
@@ -61,7 +57,7 @@ export async function registerForPushNotificationsAsync() {
  * Call this only in non-Expo-Go environments.
  */
 export async function initializeNotificationHandler() {
-  if (Constants.appOwnership === "expo") return;
+  if (Platform.OS === "web") return;
 
   const Notifications = await import("expo-notifications");
 

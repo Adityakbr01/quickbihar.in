@@ -144,6 +144,21 @@ Pehle `@expo/vector-icons` naam ka koi package installed nahi tha — sirf alias
 
 ---
 
+## 8. Full expo-removal migration (2026-09-28) — DONE (research: `EXPO_REMOVAL_RESEARCH.md`)
+
+Phases 0–4 + location/photo upload complete — bina koi naya npm package lagaye:
+
+- **Phase 0:** dead shims delete (linking, splash, status-bar, expo core, svg) + `reloadAppAsync` → `window.location.reload()`
+- **Phase 1:** secure-store/async-storage → localStorage; constants/device guards → `Platform.OS`; web-browser → `window.open`; blur → CSS; webview → `<iframe>` (Leaflet map fix); modules-core import delete; query-persister → installed sync-storage-persister
+- **Phase 2:** Lottie ON (`lottie-react` v3); google-signin → web no-op module; `**/*.native.*` tsconfig exclude; `react-icons` package removed
+- **Phase 3:** expo-image (17 files) → `<img>`; gradients → `Gradient` component; safe-area → real `env()` hook; datetimepicker → date input; flash-list → `FlatList`
+- **Phase 4:** carousel → `EmblaCarousel`; BottomSheet → `TrueSheetWeb` (vaul); pull-to-refresh → Pointer Events; reanimated → CSS transitions + 13 keyframes in `index.css`
+- **Phase 5:** location → real Geolocation (`src/lib/location.ts`); photo → real file input (`src/lib/photoPicker.ts` + File upload fix)
+
+**Bacha hua:** `react-native` core UI (171 files, apna shim — zero expo package, Phase 6 optional) + `expo-notifications` (push = backend decision, doc me likha hai). Naye files: `Gradient.tsx`, `EmblaCarousel.tsx`, `TrueSheetWeb.tsx`, `useSafeAreaInsets.ts`, `location.ts`, `photoPicker.ts`, `BrandIcons.tsx`, `EXPO_REMOVAL_RESEARCH.md`.
+
+---
+
 ## 6. Router migration (2026-09-28) — `expo-router` → `react-router-dom`
 
 Pehle `expo-router` naam ka koi package installed nahi tha — sirf 2 alias + 2 shim (`src/shims/expo-router.web.tsx`, `expo-router-head.web.tsx`) the jo `react-router-dom` ko wrap karte the. Ab beech ka expo naam hata diya — navigation seedha react-router par hai:

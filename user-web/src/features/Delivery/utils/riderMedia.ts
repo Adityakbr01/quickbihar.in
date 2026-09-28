@@ -1,5 +1,5 @@
-import * as ImagePicker from "expo-image-picker";
-import * as Location from "expo-location";
+import * as ImagePicker from "@/src/lib/photoPicker";
+import * as Location from "@/src/lib/location";
 import { deliveryApi, type DeliveryLocationPayload, type RiderOffer } from "../api/delivery.api";
 import { money, storeNameOf } from "../theme/riderTheme";
 import type { ShowDialog } from "../types/rider.types";
@@ -28,12 +28,13 @@ export async function pickProofPhoto(showDialog: ShowDialog, kind: "pickup" | "d
   if (result.canceled) return "";
   const localUri = result.assets[0]?.uri;
   if (!localUri) return "";
+  const assetFile = result.assets[0]?.file;
 
   // Upload the captured image to the server so we submit a hosted URL the whole
   // platform can render — not the device-local file:// path, which is a stub
   // that only exists on this phone.
   try {
-    const { url } = await deliveryApi.uploadProof(localUri, kind);
+    const { url } = await deliveryApi.uploadProof(localUri, kind, assetFile);
     return url;
   } catch (error: any) {
     showDialog("Upload Failed", error?.message || "Could not upload the proof photo. Please try again.");

@@ -4,12 +4,7 @@ import { ChevronRight } from "lucide-react";
 import * as Haptics from "@/lib/haptics";
 import React, { useState } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
-import Animated, {
-  interpolate,
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming
-} from "react-native-reanimated";
+
 
 interface SubItem {
   label: string;
@@ -41,13 +36,10 @@ const AccountOption = ({
   subItems = [],
 }: AccountOptionProps) => {
   const [expanded, setExpanded] = useState(false);
-  const animation = useSharedValue(0);
   const hasSubItems = subItems.length > 0;
 
   const toggleExpand = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    const newValue = expanded ? 0 : 1;
-    animation.value = withTiming(newValue, { duration: 300 });
     setExpanded(!expanded);
   };
 
@@ -60,18 +52,17 @@ const AccountOption = ({
     }
   };
 
-  const contentAnimatedStyle = useAnimatedStyle(() => {
-    return {
-      height: interpolate(animation.value, [0, 1], [0, subItems.length * 56]), // Approx 56px per row
-      opacity: animation.value,
-    };
-  });
+  const contentAnimatedStyle = {
+    height: expanded ? subItems.length * 56 : 0, // Approx 56px per row
+    opacity: expanded ? 1 : 0,
+    overflow: "hidden" as const,
+    transition: "height 0.3s ease-out, opacity 0.3s ease-out",
+  };
 
-  const chevronAnimatedStyle = useAnimatedStyle(() => {
-    return {
-      transform: [{ rotate: `${animation.value * 90}deg` }],
-    };
-  });
+  const chevronAnimatedStyle = {
+    transform: [{ rotate: expanded ? "90deg" : "0deg" }],
+    transition: "transform 0.3s ease-out",
+  };
 
   return (
     <View>
@@ -93,19 +84,19 @@ const AccountOption = ({
         </Text>
 
         {showArrow && (
-          <Animated.View style={chevronAnimatedStyle}>
+          <View style={chevronAnimatedStyle}>
             <AppIcon
               icon={ChevronRight}
               size={20}
               color={theme.tertiaryText}
               style={styles.chevron}
             />
-          </Animated.View>
+          </View>
         )}
       </TouchableOpacity>
 
       {hasSubItems && (
-        <Animated.View style={[styles.subItemsContainer, contentAnimatedStyle]}>
+        <View style={[styles.subItemsContainer, contentAnimatedStyle]}>
           {subItems.map((item, index) => (
             <TouchableOpacity
               key={item.label}
@@ -127,7 +118,7 @@ const AccountOption = ({
               {index !== subItems.length - 1 && <View style={styles.subDivider} />}
             </TouchableOpacity>
           ))}
-        </Animated.View>
+        </View>
       )}
 
       {!isLast && !expanded && <View style={styles.divider} />}

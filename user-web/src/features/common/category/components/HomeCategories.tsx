@@ -3,16 +3,16 @@ import { spacing } from "@/src/theme/spacing";
 import { BREAKPOINTS } from "@/src/utils/responsive";
 import React from "react";
 import {
+  FlatList,
   Platform,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
-  View,
   useWindowDimensions,
+  View,
 } from "react-native";
-import { FlashList } from "@shopify/flash-list";
-import { Image } from "expo-image";
+
 import { useCategories } from "../hooks/useCategories";
 import { Category } from "../types/category.types";
 import CategorySkeleton from "./CategorySkeleton";
@@ -59,15 +59,7 @@ const HomeCategories = ({ rootSlug = "clothing" }: { rootSlug?: string }) => {
       }}
     >
       <View style={[styles.imageContainer, { borderColor: theme.border }]}>
-        <Image
-          source={{ uri: item.image }}
-          style={styles.image}
-          contentFit="cover"
-          transition={200}
-          alt={`${item.title} - Clothing Category in Bihar`}
-          accessibilityLabel={`${item.title} Category`}
-          {...({ title: `${item.title} | QuickBihar Online Shopping` } as any)}
-        />
+        <img src={item.image} alt={`${item.title} - Clothing Category in Bihar`} aria-label={`${item.title} Category`} style={Object.assign({}, styles.image, { objectFit: "cover" as const })} {...({ title: `${item.title} | QuickBihar Online Shopping` } as any)} />
       </View>
       <Text style={[styles.title, { color: theme.text }]} numberOfLines={1}>
         {item.title}
@@ -134,7 +126,7 @@ const HomeCategories = ({ rootSlug = "clothing" }: { rootSlug?: string }) => {
   if (isLoading) {
     return (
       <View style={styles.container}>
-        <FlashList
+        <FlatList
           data={[1, 2, 3, 4, 5]}
           renderItem={() => <CategorySkeleton />}
           keyExtractor={(item) => item.toString()}
@@ -220,12 +212,7 @@ const HomeCategories = ({ rootSlug = "clothing" }: { rootSlug?: string }) => {
                   },
                 ]}
               >
-                <Image
-                  source={{ uri: item.image }}
-                  style={desktopStyles.img}
-                  contentFit="cover"
-                  transition={200}
-                />
+                <img src={item.image} style={Object.assign({}, desktopStyles.img, { objectFit: "cover" as const })} />
               </View>
               <Text style={[desktopStyles.label, { color: theme.text }]} numberOfLines={1}>
                 {item.title}
@@ -266,7 +253,7 @@ const HomeCategories = ({ rootSlug = "clothing" }: { rootSlug?: string }) => {
 
   return (
     <View style={styles.container}>
-      <FlashList
+      <FlatList
         className="gap-28"
         data={visibleCategories}
         renderItem={renderItem}

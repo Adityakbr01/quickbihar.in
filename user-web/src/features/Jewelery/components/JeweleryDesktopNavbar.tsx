@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { useLocation, useNavigate } from "react-router-dom";
 import { goTo } from "@/src/utils/navigation";
-import { Image } from "expo-image";
+
 
 import * as Haptics from "@/lib/haptics";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
@@ -145,12 +145,7 @@ export const JeweleryDesktopNavbar = () => {
           accessibilityLabel="Quick Bihar jewellery home"
         >
           <View style={styles.brandRow}>
-            <Image source={splashIcon}
-              style={styles.logoImage}
-              contentFit="contain"
-              alt="Quick Bihar logo"
-              accessibilityLabel="Quick Bihar logo"
-            />
+            <img src={splashIcon} alt="Quick Bihar logo" aria-label="Quick Bihar logo" style={Object.assign({}, styles.logoImage, { objectFit: "contain" as const })} />
             <View>
               <Text style={[styles.brandName, { color: colors.ink }]}>
                 Quick Bihar

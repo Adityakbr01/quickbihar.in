@@ -325,11 +325,16 @@ export const deliveryApi = {
   uploadProof: async (
     uri: string,
     kind: "pickup" | "delivery" | "signature",
+    file?: File,
   ): Promise<{ url: string; fileId: string }> => {
     const ext = (uri.split(".").pop() || "jpg").split("?")[0].toLowerCase();
     const type = ext === "png" ? "image/png" : ext === "webp" ? "image/webp" : "image/jpeg";
     const form = new FormData();
-    form.append("file", { uri, name: `${kind}.${ext}`, type } as any);
+    if (file) {
+      form.append("file", file, file.name || `${kind}.${ext}`);
+    } else {
+      form.append("file", { uri, name: `${kind}.${ext}`, type } as any);
+    }
     form.append("kind", kind);
     const response = await axiosInstance.post("/delivery/proof-upload", form, {
       headers: { "Content-Type": "multipart/form-data" },

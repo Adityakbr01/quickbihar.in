@@ -10,7 +10,7 @@ import {
   Linking,
   Platform,
 } from "react-native";
-import { Image } from "expo-image";
+
 import { useNavigate } from "react-router-dom";
 import { goTo, replaceTo, useRouteParams } from "@/src/utils/navigation";
 import { ArrowLeft, Banknote, Bike, Check, ChevronDown, ChevronRight, ChevronUp, CircleHelp, Copy, CreditCard, Info, MapPin, PackageMinus, Phone, Send, ShieldCheck, ShoppingBag, Store, Trophy } from "lucide-react";
@@ -593,11 +593,7 @@ export default function OrderDetailScreen() {
                   onPress={() => handleNavigateToProduct(item)}
                 >
                   {imageUrl ? (
-                    <Image source={{ uri: imageUrl }}
-                      style={styles.productImage}
-                      contentFit="cover"
-                      transition={250}
-                    />
+                    <img src={imageUrl} style={Object.assign({}, styles.productImage, { objectFit: "cover" as const })} />
                   ) : (
                     <ShoppingBag size={32} color={theme.primary} />
                   )}

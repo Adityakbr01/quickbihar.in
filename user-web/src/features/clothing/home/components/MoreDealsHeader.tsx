@@ -8,8 +8,8 @@ import {
   View,
   useWindowDimensions,
 } from "react-native";
-import { Image } from "expo-image";
-import { LinearGradient } from "expo-linear-gradient";
+
+import { Gradient } from "@/src/components/common/Gradient";
 import { CAMPAIGNS } from "../lib/dealsConfig";
 import { BREAKPOINTS } from "@/src/utils/responsive";
 
@@ -67,7 +67,7 @@ export const MoreDealsHeader = ({
         {...({ title: `Explore ${camp.title} Deals on QuickBihar` } as any)}
         onPress={() => handlePress(camp.id)}
       >
-        <LinearGradient
+        <Gradient
           colors={isActive ? ["#F15E48", "#FDCE7F"] : idleGradient}
           style={[
             styles.campaignCard,
@@ -90,15 +90,8 @@ export const MoreDealsHeader = ({
           >
             {formatTitle(camp.title)}
           </Text>
-          <Image
-            source={imageUri ? { uri: imageUri } : camp.image}
-            style={[styles.campaignImage, isDesktop && desktopStyles.image]}
-            contentFit="contain"
-            alt={`${camp.title} Deals in Bihar`}
-            accessibilityLabel={`${camp.title} campaign`}
-            {...({ title: `${camp.title} | QuickBihar Deals` } as any)}
-          />
-        </LinearGradient>
+          <img src={imageUri || camp.image} alt={`${camp.title} Deals in Bihar`} aria-label={`${camp.title} campaign`} style={Object.assign({}, styles.campaignImage, ...isDesktop && desktopStyles.image, { objectFit: "contain" as const })} {...({ title: `${camp.title} | QuickBihar Deals` } as any)} />
+        </Gradient>
       </TouchableOpacity>
     );
   };
@@ -154,7 +147,7 @@ export const MoreDealsHeader = ({
               {...({ title: `Explore ${camp.title} Deals on QuickBihar` } as any)}
               onPress={() => handlePress(camp.id)}
             >
-              <LinearGradient
+              <Gradient
                 colors={
                   isActive ? ["#F15E48", "#FDCE7F"] : idleGradient
                 }
@@ -176,19 +169,8 @@ export const MoreDealsHeader = ({
                 >
                   {formatTitle(camp.title)}
                 </Text>
-                <Image
-                  source={
-                    imageUri
-                      ? { uri: imageUri }
-                      : camp.image
-                  }
-                  style={styles.campaignImage}
-                  contentFit="contain"
-                  alt={`${camp.title} Deals in Bihar`}
-                  accessibilityLabel={`${camp.title} campaign`}
-                  {...({ title: `${camp.title} | QuickBihar Deals` } as any)}
-                />
-              </LinearGradient>
+                <img src={imageUri || camp.image} alt={`${camp.title} Deals in Bihar`} aria-label={`${camp.title} campaign`} style={Object.assign({}, styles.campaignImage, { objectFit: "contain" as const })} {...({ title: `${camp.title} | QuickBihar Deals` } as any)} />
+              </Gradient>
             </TouchableOpacity>
           );
         })}

@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { useLocation, useNavigate } from "react-router-dom";
 import { goTo } from "@/src/utils/navigation";
-import { Image } from "expo-image";
+
 import type { LucideIcon } from "lucide-react";
 import { Bell, CircleX, House, Moon, Search, ShoppingBag, Sun, User } from "lucide-react";
 import * as Haptics from "@/lib/haptics";
@@ -126,12 +126,7 @@ export const DesktopNavbar = () => {
           accessibilityLabel="Quick Bihar home"
         >
           <View style={styles.brandRow}>
-            <Image source={splashIcon}
-              style={styles.logoImage}
-              contentFit="contain"
-              alt="Quick Bihar logo"
-              accessibilityLabel="Quick Bihar logo"
-            />
+            <img src={splashIcon} alt="Quick Bihar logo" aria-label="Quick Bihar logo" style={Object.assign({}, styles.logoImage, { objectFit: "contain" as const })} />
             <View>
               <Text style={[styles.brandName, { color: theme.text }]}>
                 Quick Bihar

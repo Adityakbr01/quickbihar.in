@@ -1,6 +1,5 @@
 import { useEffect } from "react";
 import { Linking, Platform } from "react-native";
-import Constants from "expo-constants";
 import { registerForPushNotificationsAsync, initializeNotificationHandler } from "../lib/notification";
 import { useAuthStore } from "../features/common/auth/store/authStore";
 import { updateFcmTokenRequest } from "../features/common/profileInfo/api/profile.api";
@@ -65,9 +64,7 @@ export const usePushNotifications = () => {
                 } else if (redirectType === "mall" && redirectId) {
                   goTo(navigate, `/mall/${redirectId}` as any);
                 } else if (redirectType === "external" && externalUrl) {
-                  import("expo-web-browser").then((WebBrowser) => {
-                    WebBrowser.openBrowserAsync(externalUrl);
-                  });
+                  window.open(externalUrl, "_blank");
                 }
               };
 
@@ -110,12 +107,6 @@ export const usePushNotifications = () => {
 
   useEffect(() => {
     if (!isInitialized) return;
-
-    const isExpoGo = Constants.appOwnership === "expo";
-    if (isExpoGo) {
-      console.log("🚫 Push notifications disabled in Expo Go (SDK 53 Compatibility Mode)");
-      return;
-    }
 
     const setupNotifications = async () => {
       try {

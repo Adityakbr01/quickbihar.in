@@ -5,7 +5,7 @@ import { AppIcon } from "@/src/components/common/AppIcon";
 import { Bookmark, ChevronLeft, MapPin, Navigation, Phone, ShieldCheck, User } from "lucide-react";
 import { WhatsappIcon } from "@/src/components/common/BrandIcons";
 import * as Haptics from "@/lib/haptics";
-import * as Location from "expo-location";
+import * as Location from "@/src/lib/location";
 import { useNavigate } from "react-router-dom";
 import { goBack, useRouteParams } from "@/src/utils/navigation";
 import React, { useEffect, useState } from "react";

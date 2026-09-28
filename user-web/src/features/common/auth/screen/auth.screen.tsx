@@ -1,5 +1,5 @@
 import { Lock, ShieldCheck, Store, TriangleAlert, Zap } from "lucide-react";
-import { Image } from "expo-image";
+
 import React, { useState } from "react";
 import {
   Platform,
@@ -10,14 +10,9 @@ import {
   View,
   useWindowDimensions,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
-import Animated, {
-  FadeInDown,
-  FadeInUp,
-  useReducedMotion,
-} from "react-native-reanimated";
+import { Gradient } from "@/src/components/common/Gradient";
 import * as Haptics from "@/lib/haptics";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "@/src/hooks/useSafeAreaInsets";
 import { createAuthStyles } from "../styles/auth.style";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { useGoogleAuth } from "../hooks/useAuth";
@@ -49,11 +44,7 @@ export default function AuthScreen() {
   const isDesktop = useIsDesktop();
   const { height: windowHeight } = useWindowDimensions();
   const compact = windowHeight < 740;
-  const reduceMotion = useReducedMotion();
   const [apiError, setApiError] = useState<string | null>(null);
-
-  const enter = (delayMs: number) =>
-    reduceMotion ? undefined : FadeInDown.delay(delayMs).duration(550);
 
   const { mutate: googleAuth, isPending: googlePending } = useGoogleAuth();
 
@@ -94,17 +85,16 @@ export default function AuthScreen() {
             { height: isDesktop ? 340 : compact ? 232 : 260 },
           ]}
         >
-          <LinearGradient colors={["#211913", "#14110D", "#0E0C09"]}
+          <Gradient colors={["#211913", "#14110D", "#0E0C09"]}
             locations={[0, 0.55, 1]}
             style={StyleSheet.absoluteFill}
           />
-          <LinearGradient colors={[`${GOLD}24`, `${GOLD}0A`, "transparent"]}
+          <Gradient colors={[`${GOLD}24`, `${GOLD}0A`, "transparent"]}
             locations={[0, 0.55, 1]}
             style={StyleSheet.absoluteFill}
           />
 
-          <Animated.View
-            entering={enter(100)}
+          <View
             style={[
               localStyles.heroMarkBlock,
               { paddingTop: compact ? 56 : 70 },
@@ -114,18 +104,13 @@ export default function AuthScreen() {
               <View style={[localStyles.glow, { backgroundColor: `${GOLD}14` }]}
               />
               <View style={localStyles.logoRing}>
-                <Image source={splashIcon}
-                  style={localStyles.logoImage}
-                  contentFit="contain"
-                  alt="QuickBihar logo"
-                  accessibilityLabel="QuickBihar logo"
-                />
+                <img src={splashIcon} alt="QuickBihar logo" aria-label="QuickBihar logo" style={Object.assign({}, localStyles.logoImage, { objectFit: "contain" as const })} />
               </View>
             </View>
             <Text style={localStyles.heroEyebrow}>
               BIHAR'S OWN MARKETPLACE
             </Text>
-          </Animated.View>
+          </View>
         </View>
 
         <View style={[
@@ -141,7 +126,7 @@ export default function AuthScreen() {
             ],
           ]}
         >
-          <Animated.View entering={enter(220)} style={localStyles.titleBlock}>
+          <View style={localStyles.titleBlock}>
             <Text style={[
                 localStyles.title,
                 { color: theme.text, fontSize: compact ? 27 : 30 },
@@ -156,10 +141,9 @@ export default function AuthScreen() {
             >
               One-tap sign in to shop faster, track orders and share reviews.
             </Text>
-          </Animated.View>
+          </View>
 
-          <Animated.View
-            entering={enter(320)}
+          <View
             style={[
               localStyles.assuranceRow,
               {
@@ -186,10 +170,9 @@ export default function AuthScreen() {
                 </Text>
               </View>
             ))}
-          </Animated.View>
+          </View>
 
-          <Animated.View
-            entering={enter(420)}
+          <View
             style={[localStyles.ctaBlock, compact && { marginTop: 16 }]}
           >
             {apiError && (
@@ -218,19 +201,16 @@ export default function AuthScreen() {
                 account is created automatically.
               </Text>
             </View>
-          </Animated.View>
+          </View>
 
-          <Animated.View
-            entering={
-              reduceMotion ? undefined : FadeInUp.delay(520).duration(550)
-            }
+          <View
             style={[localStyles.termsBlock, compact && { marginTop: 16 }]}
           >
             <Text style={[localStyles.termsText, { color: theme.secondaryText }]}>
               By continuing, you agree to our Terms of Service and Privacy
               Policy.
             </Text>
-          </Animated.View>
+          </View>
         </View>
       </ScrollView>
     </View>

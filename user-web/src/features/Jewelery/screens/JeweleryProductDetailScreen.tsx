@@ -13,7 +13,7 @@ import {
   Text,
   View,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "@/src/hooks/useSafeAreaInsets";
 import { goBack } from "@/src/utils/navigation";
 
 import { APP_CURRENCY, JEWELERY_MODULE_CONFIG } from "@/src/constants";

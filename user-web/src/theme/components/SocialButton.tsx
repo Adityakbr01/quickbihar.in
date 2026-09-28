@@ -1,10 +1,6 @@
-import React from "react";
-import { Pressable, StyleSheet, ViewStyle, Text } from "react-native";
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-} from "react-native-reanimated";
+import React, { useState } from "react";
+import { Pressable, StyleSheet, View, ViewStyle, Text } from "react-native";
+
 import { AppleIcon, GoogleIcon } from "@/src/components/common/BrandIcons";
 import * as Haptics from "@/lib/haptics";
 import { useTheme } from "../Provider/ThemeProvider";
@@ -23,19 +19,15 @@ export const SocialButton: React.FC<SocialButtonProps> = ({
   style,
 }) => {
   const theme = useTheme() as any;
-  const scale = useSharedValue(1);
+  const [pressed, setPressed] = useState(false);
 
   const handlePressIn = () => {
-    scale.value = withSpring(0.95);
+    setPressed(true);
   };
 
   const handlePressOut = () => {
-    scale.value = withSpring(1);
+    setPressed(false);
   };
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
 
   const handlePress = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -77,7 +69,7 @@ export const SocialButton: React.FC<SocialButtonProps> = ({
   });
 
   return (
-    <Animated.View style={[animatedStyle, style, styles.container]}>
+    <View style={[style, styles.container, { transform: [{ scale: pressed ? 0.95 : 1 }], transition: "transform 0.15s ease-out" }]}>
       <Pressable
         onPress={handlePress}
         onPressIn={handlePressIn}
@@ -99,6 +91,6 @@ export const SocialButton: React.FC<SocialButtonProps> = ({
           )}
         </Text>
       </Pressable>
-    </Animated.View>
+    </View>
   );
 };

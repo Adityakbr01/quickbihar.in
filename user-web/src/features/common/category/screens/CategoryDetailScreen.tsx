@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { ActivityIndicator, FlatList, Text, TouchableOpacity, View } from "react-native";
-import { Image as ExpoImage } from "expo-image";
+
 import { ChevronLeft } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -141,12 +141,7 @@ const CategoryDetailScreen: React.FC<CategoryDetailScreenProps> = ({ slug }) => 
                 overflow: "hidden",
               }}
             >
-              <ExpoImage source={{ uri: item.images?.[0]?.url }}
-                contentFit="cover"
-                style={{ width: "100%", height: 180 }}
-                transition={200}
-                alt={`${item.title}`}
-              />
+              <img src={item.images?.[0]?.url} alt={`${item.title}`} style={Object.assign({}, { width: "100%", height: 180 }, { objectFit: "cover" as const })} />
               <View style={{ padding: 8 }}>
                 <Text numberOfLines={1} style={{ fontWeight: "600", color: theme.text }}>
                   {item.brand || "QuickBihar"}

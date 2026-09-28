@@ -12,7 +12,7 @@ import {
   Text,
   View,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "@/src/hooks/useSafeAreaInsets";
 
 import { ProductCard } from "@/src/features/Jewelery/components/ProductCard";
 import { useJewelerySearch } from "@/src/features/Jewelery/hooks/useJeweleryCatalog";

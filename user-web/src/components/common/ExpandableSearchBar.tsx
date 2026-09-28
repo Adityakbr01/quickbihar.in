@@ -1,10 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Keyboard, Platform, Pressable, StyleSheet, TextInput as RNTextInput } from "react-native";
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-} from "react-native-reanimated";
+import { Keyboard, Platform, Pressable, StyleSheet, TextInput as RNTextInput, View } from "react-native";
+
 import { Search } from "lucide-react";
 import * as Haptics from "@/lib/haptics";
 import { useNavigate } from "react-router-dom";
@@ -29,7 +25,6 @@ export const ExpandableSearchBar: React.FC<ExpandableSearchBarProps> = ({
   const expandedWidth = isWeb ? 220 : 210;
   const theme = useTheme();
   const navigate = useNavigate();
-  const searchWidth = useSharedValue(SEARCH_COLLAPSED);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchText, setSearchText] = useState("");
   const isSearchOpenRef = useRef(false);
@@ -37,18 +32,16 @@ export const ExpandableSearchBar: React.FC<ExpandableSearchBarProps> = ({
 
   const openSearch = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    searchWidth.value = withTiming(expandedWidth, { duration: 300 });
     setIsSearchOpen(true);
     isSearchOpenRef.current = true;
     setTimeout(() => inputRef.current?.focus(), 200);
-  }, [searchWidth, expandedWidth]);
+  }, [expandedWidth]);
 
   const collapseSearch = useCallback(() => {
-    searchWidth.value = withTiming(SEARCH_COLLAPSED, { duration: 300 });
     setIsSearchOpen(false);
     isSearchOpenRef.current = false;
     setSearchText("");
-  }, [searchWidth]);
+  }, []);
 
   const handleSearchSubmit = useCallback(() => {
     if (searchText.trim()) {
@@ -75,14 +68,15 @@ export const ExpandableSearchBar: React.FC<ExpandableSearchBarProps> = ({
     return () => sub.remove();
   }, [collapseSearch]);
 
-  const searchAnimStyle = useAnimatedStyle(() => ({
-    width: searchWidth.value,
-  }));
+  const searchAnimStyle = {
+    width: isSearchOpen ? expandedWidth : SEARCH_COLLAPSED,
+    transition: "width 0.3s ease-out",
+  };
 
   const webPressableStyle = isWeb ? ({ cursor: "pointer" } as any) : {};
 
   return (
-    <Animated.View
+    <View
       style={[
         styles.searchBtn,
         { backgroundColor: theme.tertiaryBackground },
@@ -114,7 +108,7 @@ export const ExpandableSearchBar: React.FC<ExpandableSearchBarProps> = ({
           style={{ fontSize: 14, color: theme.text }}
         />
       )}
-    </Animated.View>
+    </View>
   );
 };
 
