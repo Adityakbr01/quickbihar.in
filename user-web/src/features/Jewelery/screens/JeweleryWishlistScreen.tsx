@@ -1,7 +1,7 @@
 import { Heart } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { goTo } from "@/src/utils/navigation";
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo } from "react";
 import {
   Platform,
   Pressable,
@@ -16,6 +16,7 @@ import { ProductCard } from "@/src/features/Jewelery/components/ProductCard";
 import { useJeweleryProduct } from "@/src/features/Jewelery/hooks/useJeweleryCatalog";
 import { toJeweleryProduct } from "@/src/features/Jewelery/api/jewelery.api";
 import { useWishlistStore, selectWishlistIds } from "@/src/features/common/wishlist/store/wishlistStore";
+import { useAuthStore } from "@/src/features/common/auth/store/authStore";
 import { useColors } from "@/src/features/Jewelery/hooks/useColors";
 
 function WishlistRow({ id, cached }: { id: string; cached?: any }) {
@@ -37,6 +38,15 @@ export default function JeweleryWishlistScreen() {
   const items = useWishlistStore((s) => s.items);
   const modules = useWishlistStore((s) => s.modules);
   const cachedProducts = useWishlistStore((s) => s.cachedProducts);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const isInitialized = useAuthStore((s) => s.isInitialized);
+
+  // Wishlist needs an account — guests go to login first.
+  useEffect(() => {
+    if (isInitialized && !isAuthenticated) {
+      navigate("/auth", { replace: true });
+    }
+  }, [isInitialized, isAuthenticated, navigate]);
 
   const wishlistIds = useMemo(
     () => selectWishlistIds({ items, modules, cachedProducts }, "jewelery"),

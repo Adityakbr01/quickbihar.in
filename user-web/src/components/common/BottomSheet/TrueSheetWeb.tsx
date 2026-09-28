@@ -90,7 +90,13 @@ export const TrueSheet = forwardRef<TrueSheetMethods, any>(function TrueSheet(
       dismissible={dismissible !== false}
     >
       <Drawer.Portal>
+        {/* stopPropagation: portal content still bubbles through the React
+            tree, so without this every tap inside a sheet (variant select,
+            close-X) — or on the overlay — would also fire onPress handlers
+            of ancestors like product cards and navigate away. Vaul's own
+            overlay-dismiss runs on the overlay element itself, unaffected. */}
         <Drawer.Overlay
+          onClick={(e) => e.stopPropagation()}
           style={{
             position: 'fixed',
             inset: 0,
@@ -99,6 +105,7 @@ export const TrueSheet = forwardRef<TrueSheetMethods, any>(function TrueSheet(
           }}
         />
         <Drawer.Content
+          onClick={(e) => e.stopPropagation()}
           style={{
             position: 'fixed',
             bottom: 0,

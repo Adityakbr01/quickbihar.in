@@ -14,6 +14,7 @@ import {
 } from "react-native";
 
 import { useCart } from "@/src/features/Jewelery/context/CartContext";
+import { useAuthStore } from "@/src/features/common/auth/store/authStore";
 import { Product } from "@/src/features/Jewelery/data/products";
 import { useColors } from "@/src/features/Jewelery/hooks/useColors";
 import { APP_CURRENCY } from "@/src/constants";
@@ -53,7 +54,12 @@ export function ProductCard({ product, style }: ProductCardProps) {
     [],
   );
 
+  const { isAuthenticated } = useAuthStore();
   const handleWishlist = () => {
+    if (!isAuthenticated) {
+      navigate("/auth");
+      return;
+    }
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     toggleWishlist(product);
   };

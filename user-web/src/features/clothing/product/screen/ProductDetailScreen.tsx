@@ -102,7 +102,10 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
 
   const wishlistItems = useWishlistStore(state => state.items);
   const toggleWishlist = useWishlistStore(state => state.toggleItem);
-  const isWishlisted = wishlistItems.includes(id);
+  // Store keys are product _ids while the route carries the slug —
+  // always compare/toggle by _id once the product has loaded.
+  const wishlistId = (product as any)?._id || id;
+  const isWishlisted = wishlistItems.includes(wishlistId);
   const { isAuthenticated } = useAuthStore();
   // Mobile web tab bar is fixed-position and overlays the viewport bottom —
   // lift the sticky action bar above it (0 on desktop/native, no visual diff).
@@ -387,7 +390,7 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
             </TouchableOpacity>
             <View style={s.navRight}>
               <WishlistHeart isWishlisted={isWishlisted}
-                onToggle={() => toggleWishlist(id, product)}
+                onToggle={() => toggleWishlist(wishlistId, product)}
                 size={20}
                 activeColor="#FF3B30"
                 inactiveColor={isDark ? "#ffffff" : "#111827"}
@@ -1222,8 +1225,12 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
         ]}
       >
         <TouchableOpacity onPress={() => {
+            if (!isAuthenticated) {
+              navigate("/auth");
+              return;
+            }
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-            toggleWishlist(id, product);
+            toggleWishlist(wishlistId, product);
           }}
           style={[
             s.wishlistBtn,

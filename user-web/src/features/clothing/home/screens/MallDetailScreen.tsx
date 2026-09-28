@@ -44,11 +44,6 @@ const MallDetailScreen: React.FC<MallDetailScreenProps> = ({ id, initialMall }) 
   // Use manifest seed for the initial SSG pass; live query takes over post-hydration.
   const seoMall = (data?.mall || initialMall);
 
-  React.useEffect(() => {
-    if (data) {
-      console.log("[CLIENT_DEBUG] MallDetailScreen loaded data:", JSON.stringify(data, null, 2));
-    }
-  }, [data]);
 
   // Review states
   const [showReviewForm, setShowReviewForm] = useState(false);

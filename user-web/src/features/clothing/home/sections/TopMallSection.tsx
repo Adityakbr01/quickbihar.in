@@ -97,24 +97,13 @@ const TopMallSection = () => {
           </Text>
           <View style={localStyles.lottieWrapper}>
             <LazyLottie
-              key={theme.text}
               source={fireLottie}
               autoPlay
               loop
               resizeMode="contain"
-              style={[
-                localStyles.fireLottie,
-                Platform.OS === "web" &&
-                ({
-                  filter: theme.text === "#ffffff" ? "invert(1)" : "none",
-                } as any),
-              ]}
-              colorFilters={[
-                {
-                  keypath: "**",
-                  color: theme.text,
-                },
-              ]}
+              // NOTE: fire keeps its original colors in every theme —
+              // no invert filter here (it would turn the flame blue).
+              style={[localStyles.fireLottie]}
             />
           </View>
         </View>

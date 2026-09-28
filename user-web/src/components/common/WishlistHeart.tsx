@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { TouchableOpacity, Platform, View, ViewStyle } from "react-native";
 import { Heart } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useAuthStore } from "@/src/features/common/auth/store/authStore";
 import * as Haptics from "@/lib/haptics";
 
 interface WishlistHeartProps {
@@ -21,8 +23,19 @@ const WishlistHeart: React.FC<WishlistHeartProps> = ({
   style,
 }) => {
   const [popping, setPopping] = useState(false);
+  const navigate = useNavigate();
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
-  const handlePress = () => {
+  const handlePress = (e?: { stopPropagation?: () => void }) => {
+    // Don't bubble to parent pressables (e.g. product card → detail page).
+    e?.stopPropagation?.();
+
+    // Wishlist needs an account — guests go to login first.
+    if (!isAuthenticated) {
+      navigate("/auth");
+      return;
+    }
+
     // 1. Trigger haptics
     if (Platform.OS !== "web") {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);

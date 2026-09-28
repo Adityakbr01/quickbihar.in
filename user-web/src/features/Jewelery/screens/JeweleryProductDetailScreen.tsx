@@ -182,6 +182,10 @@ export default function JeweleryProductDetailScreen() {
           <ArrowLeft size={18} color={colors.ink} />
         </Pressable>
         <Pressable onPress={() => {
+            if (!useAuthStore.getState().isAuthenticated) {
+              navigate("/auth");
+              return;
+            }
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
             toggleWishlist(product);
           }}
@@ -709,6 +713,10 @@ export default function JeweleryProductDetailScreen() {
       >
         <Pressable style={[styles.wishlistStickyBtn, { borderColor: colors.midGray }]}
           onPress={() => {
+            if (!useAuthStore.getState().isAuthenticated) {
+              navigate("/auth");
+              return;
+            }
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
             toggleWishlist(product);
           }}

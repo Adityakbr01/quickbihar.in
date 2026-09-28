@@ -152,13 +152,9 @@ const TopSellingSection = ({ category }: { category?: string } = {}) => {
               autoPlay
               loop
               resizeMode="contain"
-              style={[
-                localStyles.arrowLottie,
-                Platform.OS === "web" &&
-                  ({
-                    filter: theme.text === "#ffffff" ? "invert(1)" : "none",
-                  } as any),
-              ]}
+              // NOTE: dark-theme invert lives on the wrapper above
+              // (double invert would turn the arrow black again).
+              style={[localStyles.arrowLottie]}
               colorFilters={
                 theme.text === "#ffffff"
                   ? [

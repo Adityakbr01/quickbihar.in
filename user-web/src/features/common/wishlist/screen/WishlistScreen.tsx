@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   View,
   Text,
@@ -15,6 +15,7 @@ import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { createWishlistStyles } from "../styles/wishlistStyles";
 import { useWishlist } from "../hooks/useWishlist";
 import { useWishlistStore } from "../store/wishlistStore";
+import { useAuthStore } from "@/src/features/common/auth/store/authStore";
 import { WishlistCardSkeleton } from "../components/WishlistCardSkeleton";
 import SafeViewWrapper from "@/src/provider/SafeViewWrapper";
 
@@ -24,6 +25,15 @@ const WishlistScreen = () => {
   const navigate = useNavigate();
   const { data: items = [], isLoading, refetch } = useWishlist();
   const toggleWishlist = useWishlistStore((state) => state.toggleItem);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const isInitialized = useAuthStore((state) => state.isInitialized);
+
+  // Wishlist needs an account — guests go to login first.
+  useEffect(() => {
+    if (isInitialized && !isAuthenticated) {
+      navigate("/auth", { replace: true });
+    }
+  }, [isInitialized, isAuthenticated, navigate]);
 
   const handleRemove = (productId: string) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
