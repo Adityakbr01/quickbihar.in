@@ -2,9 +2,10 @@ import WishlistHeart from "@/src/components/common/WishlistHeart";
 import { IProduct } from "@/src/features/clothing/product/types/product.types";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { Ionicons } from "@expo/vector-icons";
-import * as Haptics from "expo-haptics";
+import * as Haptics from "@/lib/haptics";
 import { Platform, Text, TouchableOpacity, View } from "react-native";
-import { useRouter } from "expo-router";
+import { useNavigate } from "react-router-dom";
+import { goTo } from "@/src/utils/navigation";
 import LazyLottie from "@/src/components/common/LazyLottie";
 import React from "react";
 import { Image } from "expo-image";
@@ -27,7 +28,7 @@ export const DealProductCard = ({ product, width }: DealProductCardProps) => {
     () => createDealProductCardStyles(theme),
     [theme],
   );
-  const router = useRouter();
+  const navigate = useNavigate();
   const addItem = useCartStore(state => state.addItem);
   const cartItems = useCartStore(state => state.items);
 
@@ -54,7 +55,7 @@ export const DealProductCard = ({ product, width }: DealProductCardProps) => {
   const handleAddToCart = async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     if (isInCart) {
-      router.push("/clothing/cart");
+      goTo(navigate, "/clothing/cart");
       return;
     }
     if (isSelectionApplicable) {
@@ -118,7 +119,7 @@ export const DealProductCard = ({ product, width }: DealProductCardProps) => {
       activeOpacity={0.9}
       onPress={() => {
         const id = (product as IProduct).slug || (product as IProduct)._id || 'mock';
-        router.push({ pathname: "/product/[id]", params: { id } });
+        goTo(navigate, { pathname: "/product/[id]", params: { id } });
       }}
       style={[
         styles.productCard,

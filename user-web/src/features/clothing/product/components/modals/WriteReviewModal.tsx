@@ -9,9 +9,10 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Theme } from "@/src/theme/Provider/ThemeProvider";
-import * as Haptics from "expo-haptics";
+import * as Haptics from "@/lib/haptics";
 
-import { useRouter } from "expo-router";
+import { useNavigate } from "react-router-dom";
+import { goTo } from "@/src/utils/navigation";
 import { TextInput } from "@/src/theme/components/TextInput";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
 import {
@@ -53,7 +54,7 @@ export const WriteReviewModal: React.FC<WriteReviewModalProps> = ({
   theme,
   authRoute = "/auth",
 }) => {
-  const router = useRouter();
+  const navigate = useNavigate();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const sheet = useSheet();
 
@@ -80,7 +81,7 @@ export const WriteReviewModal: React.FC<WriteReviewModalProps> = ({
     if (!isAuthenticated) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
       onClose();
-      router.push(authRoute as any);
+      goTo(navigate, authRoute as any);
       return;
     }
 

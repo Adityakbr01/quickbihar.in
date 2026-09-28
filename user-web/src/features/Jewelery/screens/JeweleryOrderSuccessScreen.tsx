@@ -1,6 +1,7 @@
 import { Feather, Ionicons } from "@expo/vector-icons";
-import * as Haptics from "expo-haptics";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import * as Haptics from "@/lib/haptics";
+import { useNavigate } from "react-router-dom";
+import { replaceTo, useRouteParams } from "@/src/utils/navigation";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -21,12 +22,12 @@ import { useTopPad } from "@/src/hooks/useTopPad";
 
 export default function JeweleryOrderSuccessScreen() {
   const colors = useColors();
-  const router = useRouter();
+  const navigate = useNavigate();
   const topPad = useTopPad();
   const insets = useSafeAreaInsets();
   const bottomPad = Platform.OS === "web" ? 34 : Math.max(insets.bottom, 20);
 
-  const { orderId } = useLocalSearchParams<{ orderId?: string }>();
+  const { orderId } = useRouteParams<{ orderId?: string }>();
   const [order, setOrder] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -42,12 +43,12 @@ export default function JeweleryOrderSuccessScreen() {
     }
 
     const backHandler = BackHandler.addEventListener("hardwareBackPress", () => {
-      router.replace("/jewelery" as any);
+      replaceTo(navigate, "/jewelery" as any);
       return true;
     });
 
     return () => backHandler.remove();
-  }, [orderId]);
+  }, [orderId, navigate]);
 
   const handleShare = async () => {
     if (!orderId) return;
@@ -226,7 +227,7 @@ export default function JeweleryOrderSuccessScreen() {
           style={[styles.primaryBtn, { backgroundColor: colors.gold }]}
           onPress={() => {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            router.replace({
+            replaceTo(navigate, {
               pathname: "/jewelery/orders/[id]" as any,
               params: { id: orderId },
             });
@@ -251,7 +252,7 @@ export default function JeweleryOrderSuccessScreen() {
           ]}
           onPress={() => {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            router.replace("/jewelery" as any);
+            replaceTo(navigate, "/jewelery" as any);
           }}
           activeOpacity={0.88}
         >

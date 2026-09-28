@@ -11,7 +11,8 @@ import {
 import { BREAKPOINTS, DESKTOP } from "@/src/utils/responsive";
 import LazyLottie from "@/src/components/common/LazyLottie";
 import { useQuery } from "@tanstack/react-query";
-import { useRouter } from "expo-router";
+import { useNavigate } from "react-router-dom";
+import { goTo } from "@/src/utils/navigation";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { createTopMallSectionStyles } from "../style/TopMallSection.style";
 import { MallCardSkeleton } from "../components/MallCardSkeleton";
@@ -28,7 +29,7 @@ const TopMallSection = () => {
     () => createTopMallSectionStyles(theme),
     [theme],
   );
-  const router = useRouter();
+  const navigate = useNavigate();
 
   const isDesktop = Platform.OS === "web" && windowWidth >= BREAKPOINTS.desktopMin;
   const isWebMobile = Platform.OS === "web" && windowWidth > 600;
@@ -122,7 +123,7 @@ const TopMallSection = () => {
           accessibilityRole="link"
           accessibilityLabel="Explore all malls"
           {...({ title: "Explore top shopping malls and stores in Bihar" } as any)}
-          onPress={() => router.push("/mall" as any)}
+          onPress={() => goTo(navigate, "/mall" as any)}
         >
           <Text style={styles.seeAll}>Explore All</Text>
         </TouchableOpacity>

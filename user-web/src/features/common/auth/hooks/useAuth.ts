@@ -1,5 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
-import { useRouter } from "expo-router";
+import { useNavigate, type NavigateFunction } from "react-router-dom";
+import { replaceTo } from "@/src/utils/navigation";
 
 import {
   googleAuthRequest,
@@ -24,7 +25,7 @@ import { queryClient } from "@/src/provider/queryClient";
 const finalizeAuth = async (
   setAuth: ReturnType<typeof useAuthStore.getState>["setAuth"],
   data: any,
-  router: ReturnType<typeof useRouter>
+  navigate: NavigateFunction,
 ) => {
   if (!data || !data.user || !data.accessToken) {
     throw new Error("Invalid response format from server");
@@ -46,11 +47,11 @@ const finalizeAuth = async (
   // Legacy OTP users come back with legacyOtpOnly === true. Send them
   // through the forced email-capture flow before they hit the home.
   if (user.legacyOtpOnly) {
-    router.replace("/auth/legacy-email-capture" as any);
+    replaceTo(navigate, "/auth/legacy-email-capture" as any);
     return;
   }
 
-  router.replace(getRoleLandingRoute(user.role));
+  replaceTo(navigate, getRoleLandingRoute(user.role));
 };
 
 /**
@@ -59,12 +60,12 @@ const finalizeAuth = async (
  */
 export const useLogin = () => {
   const setAuth = useAuthStore((state) => state.setAuth);
-  const router = useRouter();
+  const navigate = useNavigate();
 
   return useMutation({
     mutationFn: loginRequest,
     onSuccess: async (response) => {
-      await finalizeAuth(setAuth, response?.data, router);
+      await finalizeAuth(setAuth, response?.data, navigate);
     },
   });
 };
@@ -75,12 +76,12 @@ export const useLogin = () => {
  */
 export const useRegister = () => {
   const setAuth = useAuthStore((state) => state.setAuth);
-  const router = useRouter();
+  const navigate = useNavigate();
 
   return useMutation({
     mutationFn: registerRequest,
     onSuccess: async (response) => {
-      await finalizeAuth(setAuth, response?.data, router);
+      await finalizeAuth(setAuth, response?.data, navigate);
     },
   });
 };
@@ -94,12 +95,12 @@ export const useRegister = () => {
  */
 export const useGoogleAuth = () => {
   const setAuth = useAuthStore((state) => state.setAuth);
-  const router = useRouter();
+  const navigate = useNavigate();
 
   return useMutation({
     mutationFn: googleAuthRequest,
     onSuccess: async (response) => {
-      await finalizeAuth(setAuth, response?.data, router);
+      await finalizeAuth(setAuth, response?.data, navigate);
     },
   });
 };
@@ -188,7 +189,7 @@ export const useUpdateProfile = () => {
  */
 export const useLogout = () => {
   const clearAuth = useAuthStore((state) => state.clearAuth);
-  const router = useRouter();
+  const navigate = useNavigate();
 
   return useMutation({
     mutationFn: logoutRequest,
@@ -196,7 +197,7 @@ export const useLogout = () => {
       await clearAuth();
       queryClient.removeQueries({ queryKey: ["userProfile"] });
       useCartStore.getState().clearCart();
-      router.replace("/auth");
+      replaceTo(navigate, "/auth");
     },
   });
 };

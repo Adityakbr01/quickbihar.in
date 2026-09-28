@@ -7,9 +7,10 @@ import {
   ScrollView,
 } from "react-native";
 import { FlashList } from "@shopify/flash-list";
-import { useRouter } from "expo-router";
+import { useNavigate } from "react-router-dom";
+import { goBack, goTo, replaceTo } from "@/src/utils/navigation";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import * as Haptics from "expo-haptics";
+import * as Haptics from "@/lib/haptics";
 import { OrderCardSkeleton } from "../components/OrderCardSkeleton";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { getMyOrdersRequest } from "../api/order.api";
@@ -23,7 +24,7 @@ import { createStyles } from "../style/OrderListScreen.style";
 const OrderListScreen = () => {
   const theme = useTheme();
   const styles = createStyles(theme);
-  const router = useRouter();
+  const navigate = useNavigate();
 
   const [orders, setOrders] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -101,12 +102,12 @@ const OrderListScreen = () => {
         activeOpacity={0.8}
         onPress={() => {
           if (isJeweleryOrder) {
-            router.push({
+            goTo(navigate, {
               pathname: "/jewelery/orders/[id]" as any,
               params: { id: item.orderId },
             });
           } else {
-            router.push({
+            goTo(navigate, {
               pathname: "/order/[id]" as any,
               params: { id: item.orderId },
             });
@@ -164,7 +165,7 @@ const OrderListScreen = () => {
           {/* {["CONFIRMED", "PROCESSING", "SHIPPED"].includes(item.status.toUpperCase()) && (
             <TouchableOpacity 
               style={[styles.detailButton, { backgroundColor: theme.primary + '15', marginRight: 10, paddingHorizontal: 12 }]}
-              onPress={() => router.push(`/track-order/${item.orderId}`)}
+              onPress={() => goTo(navigate, `/track-order/${item.orderId}`)}
             >
               <MaterialCommunityIcons name="map-marker-distance" size={16} color={theme.primary} />
               <Text style={[styles.detailButtonText, { color: theme.primary, marginLeft: 4 }]}>Track</Text>
@@ -196,7 +197,7 @@ const OrderListScreen = () => {
       </Text>
       <TouchableOpacity
         style={styles.shopButton}
-        onPress={() => router.replace("/(tabs)/clothing/home")}
+        onPress={() => replaceTo(navigate, "/(tabs)/clothing/home")}
       >
         <Text style={styles.shopButtonText}>Explore Products</Text>
       </TouchableOpacity>
@@ -224,8 +225,7 @@ const OrderListScreen = () => {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(
                 () => null,
               );
-              if (router.canGoBack()) router.back();
-              else router.replace("/(tabs)/clothing/home");
+              goBack(navigate, "/(tabs)/clothing/home");
             }}
             style={styles.backButton}
             activeOpacity={0.7}

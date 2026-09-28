@@ -22,7 +22,7 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import { socketClient } from "@/src/lib/socket";
 import { SocketEvents } from "@/src/constants/socketEvents";
-import { useRouter, Link } from "expo-router";
+import { Link, useNavigate } from "react-router-dom";
 import { Image as ExpoImage } from "expo-image";
 import { IProduct } from "../types/product.types";
 import Animated, {
@@ -45,9 +45,9 @@ import { breadcrumbJsonLd, productJsonLd, productMeta } from "@/src/lib/seo";
 import { useWishlistStore } from "@/src/features/common/wishlist/store/wishlistStore";
 import { useCartStore } from "@/src/features/common/cart/store/cartStore";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
-import * as Haptics from "expo-haptics";
+import * as Haptics from "@/lib/haptics";
 import WishlistHeart from "@/src/components/common/WishlistHeart";
-import { goBack } from "@/src/utils/navigation";
+import { goBack, goTo, replaceTo } from "@/src/utils/navigation";
 
 import { useSizeChart, useSizeCharts } from "@/src/features/clothing/sizeChart/hooks/useSizeCharts";
 import { useStickyBarBottomOffset } from "@/src/utils/responsive";
@@ -62,7 +62,7 @@ interface ProductDetailProps {
 const AVATAR_COLORS = ["#3B82F6", "#10B981", "#8B5CF6", "#F59E0B", "#EC4899", "#6366F1"];
 
 const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct }) => {
-  const router = useRouter();
+  const navigate = useNavigate();
   const theme = useTheme() as any;
   const isDark = theme.text === "#ffffff" || theme.background === "#0f0f0f";
   const { data: product, isLoading } = useProductById(id);
@@ -86,13 +86,13 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
         Boolean(prodAny.jeweleryDetails);
 
       if (isJewelery) {
-        router.replace({
+        replaceTo(navigate, {
           pathname: "/jewelery/product/[id]" as any,
           params: { id: prodAny.slug || prodAny._id || id },
         });
       }
     }
-  }, [product, id, router]);
+  }, [product, id, navigate]);
 
   const createReviewMutation = useCreateProductReview(id);
   const voteHelpfulMutation = useVoteHelpfulReview(id);
@@ -248,7 +248,7 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
 
   const handleAddToBag = async () => {
     if (isInCart) {
-      router.push("/clothing/cart");
+      goTo(navigate, "/clothing/cart");
       return;
     }
 
@@ -273,7 +273,7 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
   const handleHelpfulVote = async (reviewId: string) => {
     if (!isAuthenticated) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-      router.push("/auth" as any);
+      goTo(navigate, "/auth" as any);
       return;
     }
     try {
@@ -287,7 +287,7 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
   const handleRateAndReview = () => {
     if (!isAuthenticated) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-      router.push("/auth" as any);
+      goTo(navigate, "/auth" as any);
       return;
     }
     setShowReviewModal(true);
@@ -342,7 +342,7 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
     return (
       <SafeViewWrapper>
         {seoMeta && <SeoHead meta={seoMeta} jsonLd={seoJsonLd} />}
-        <ProductDetailSkeleton theme={theme} onBack={() => goBack(router)} />
+        <ProductDetailSkeleton theme={theme} onBack={() => goBack(navigate)} />
       </SafeViewWrapper>
     );
   }
@@ -380,7 +380,7 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
           {/* Floating Navigation */}
           <View style={s.galleryNav}>
             <TouchableOpacity
-              onPress={() => goBack(router)}
+              onPress={() => goBack(navigate)}
               style={[
                 s.navBtn,
                 {
@@ -514,7 +514,7 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
             style={{ flexDirection: "row", alignItems: "center", marginBottom: 8 }}
             accessibilityRole="list"
           >
-            <Link href="/" style={{ color: theme.secondaryText, fontSize: 12 }}>
+            <Link to="/" style={{ color: theme.secondaryText, fontSize: 12 }}>
               Home
             </Link>
             <Text style={{ color: theme.secondaryText, fontSize: 12 }}>{"  ›  "}</Text>

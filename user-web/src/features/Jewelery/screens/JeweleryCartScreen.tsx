@@ -1,6 +1,7 @@
 import { Feather } from "@expo/vector-icons";
-import * as Haptics from "expo-haptics";
-import { router } from "expo-router";
+import * as Haptics from "@/lib/haptics";
+import { useNavigate } from "react-router-dom";
+import { goTo } from "@/src/utils/navigation";
 import React from "react";
 import {
   Alert,
@@ -24,6 +25,7 @@ import { useColors } from "@/src/features/Jewelery/hooks/useColors";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
 
 export default function JeweleryCartScreen() {
+  const navigate = useNavigate();
   const colors = useColors();
   const topPad = useTopPad();
   const { cartItems, cartCount, removeFromCart, updateQuantity, cartTotal } =
@@ -35,11 +37,11 @@ export default function JeweleryCartScreen() {
   const handleCheckout = () => {
     if (!isAuthenticated) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-      router.push("/auth" as any);
+      goTo(navigate, "/auth" as any);
       return;
     }
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    router.push("/jewelery/checkout" as any);
+    goTo(navigate, "/jewelery/checkout" as any);
   };
 
   return (
@@ -91,7 +93,7 @@ export default function JeweleryCartScreen() {
           </Text>
           <Pressable
             style={[styles.browseBtn, { borderColor: colors.gold }]}
-            onPress={() => router.push("/jewelery/collections" as any)}
+            onPress={() => goTo(navigate, "/jewelery/collections" as any)}
           >
             <Text
               style={[

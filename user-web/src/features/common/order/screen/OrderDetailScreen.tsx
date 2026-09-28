@@ -11,14 +11,15 @@ import {
   Platform,
 } from "react-native";
 import { Image } from "expo-image";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useNavigate } from "react-router-dom";
+import { goTo, replaceTo, useRouteParams } from "@/src/utils/navigation";
 import {
   Ionicons,
   MaterialCommunityIcons,
   Feather,
 } from "@expo/vector-icons";
 import dayjs from "dayjs";
-import * as Haptics from "expo-haptics";
+import * as Haptics from "@/lib/haptics";
 
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { SUPPORT_CALL_NUMBER } from "@/src/constants";
@@ -85,8 +86,8 @@ const extractProductImageUrl = (item: any): string | null => {
 export default function OrderDetailScreen() {
   const theme = useTheme();
   const styles = createOrderDetailStyles(theme);
-  const router = useRouter();
-  const params = useLocalSearchParams();
+  const navigate = useNavigate();
+  const params = useRouteParams();
   const orderId = String(params.id || params.orderId || "");
 
   const [order, setOrder] = useState<any>(null);
@@ -209,13 +210,13 @@ export default function OrderDetailScreen() {
         });
 
       if (isJeweleryOrder) {
-        router.replace({
+        replaceTo(navigate, {
           pathname: "/jewelery/orders/[id]" as any,
           params: { id: order.orderId },
         });
       }
     }
-  }, [order, router]);
+  }, [order, navigate]);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -364,14 +365,14 @@ export default function OrderDetailScreen() {
         const jeweleryId =
           typeof rawId === "object" ? rawId?._id : rawId;
         if (jeweleryId) {
-          router.push({
+          goTo(navigate, {
             pathname: "/jewelery/product/[id]" as any,
             params: { id: String(jeweleryId) },
           });
           return;
         }
       }
-      router.push({
+      goTo(navigate, {
         pathname: "/product/[id]" as any,
         params: { id: prodId },
       });
@@ -384,7 +385,7 @@ export default function OrderDetailScreen() {
         <View style={styles.header}>
           <TouchableOpacity
             style={styles.backButton}
-            onPress={() => goBack(router, "/account/orders")}
+            onPress={() => goBack(navigate, "/account/orders")}
           >
             <Ionicons name="arrow-back" size={22} color={theme.text} />
           </TouchableOpacity>
@@ -405,7 +406,7 @@ export default function OrderDetailScreen() {
         <View style={styles.header}>
           <TouchableOpacity
             style={styles.backButton}
-            onPress={() => goBack(router, "/account/orders")}
+            onPress={() => goBack(navigate, "/account/orders")}
           >
             <Ionicons name="arrow-back" size={22} color={theme.text} />
           </TouchableOpacity>
@@ -492,7 +493,7 @@ export default function OrderDetailScreen() {
         <View style={styles.headerLeft}>
           <TouchableOpacity
             style={styles.backButton}
-            onPress={() => goBack(router, "/account/orders")}
+            onPress={() => goBack(navigate, "/account/orders")}
             activeOpacity={0.7}
           >
             <Ionicons name="arrow-back" size={22} color={theme.text} />
@@ -1164,7 +1165,7 @@ export default function OrderDetailScreen() {
         <View style={styles.actionsContainer}>
           <TouchableOpacity
             style={styles.primaryBtn}
-            onPress={() => router.replace("/(tabs)/clothing/home")}
+            onPress={() => replaceTo(navigate, "/(tabs)/clothing/home")}
             activeOpacity={0.8}
           >
             <Ionicons name="bag-handle-outline" size={18} color="#ffffff" />

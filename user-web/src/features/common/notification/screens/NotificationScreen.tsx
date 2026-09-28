@@ -10,7 +10,8 @@ import {
   Pressable,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { useNavigate } from "react-router-dom";
+import { goBack, goTo } from "@/src/utils/navigation";
 import { useModuleTheme, type ModuleVariant } from "@/src/theme/useModuleTheme";
 import { createNotificationStyles } from "../styles/notificationStyles";
 import {
@@ -23,7 +24,7 @@ import SafeViewWrapper from "@/src/provider/SafeViewWrapper";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { FlashList } from "@shopify/flash-list";
-import * as Haptics from "expo-haptics";
+import * as Haptics from "@/lib/haptics";
 
 dayjs.extend(relativeTime);
 
@@ -100,7 +101,7 @@ const NotificationScreen = ({ variant = "default" }: { variant?: ModuleVariant }
   // palette via the module theme — data, tabs, and actions stay identical.
   const theme = useModuleTheme(variant);
   const styles = createNotificationStyles(theme);
-  const router = useRouter();
+  const navigate = useNavigate();
 
   const { data: notifications = [], isLoading, refetch } = useNotifications();
   const { mutate: markAsRead } = useMarkAsRead();
@@ -155,14 +156,14 @@ const NotificationScreen = ({ variant = "default" }: { variant?: ModuleVariant }
     if (!item.isRead) markAsRead(item._id);
 
     if (item.redirectType === "product" && item.redirectId) {
-      router.push({ pathname: "/product/[id]" as any, params: { id: item.redirectId } });
+      goTo(navigate, { pathname: "/product/[id]" as any, params: { id: item.redirectId } });
     } else if (item.redirectType === "category" && item.redirectId) {
-      router.push({
+      goTo(navigate, {
         pathname: "/(tabs)/clothing/search" as any,
         params: { categoryId: item.redirectId, categoryName: item.title },
       });
     } else if (item.redirectType === "mall" && item.redirectId) {
-      router.push({ pathname: "/mall/[id]" as any, params: { id: item.redirectId } });
+      goTo(navigate, { pathname: "/mall/[id]" as any, params: { id: item.redirectId } });
     } else if (item.redirectType === "external" && item.externalUrl) {
       Linking.openURL(item.externalUrl).catch((err) =>
         console.error("Failed to open redirection URL:", err),
@@ -402,8 +403,7 @@ const NotificationScreen = ({ variant = "default" }: { variant?: ModuleVariant }
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(
                 () => null,
               );
-              if (router.canGoBack()) router.back();
-              else router.replace((variant === "jewelery" ? "/jewelery/account" : "/account/profile-info") as any);
+              goBack(navigate, variant === "jewelery" ? "/jewelery/account" : "/account/profile-info");
             }}
             style={styles.backButton}
             activeOpacity={0.7}

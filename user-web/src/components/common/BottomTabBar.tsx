@@ -7,9 +7,10 @@ import {
   View,
   useWindowDimensions,
 } from "react-native";
-import { usePathname, useRouter } from "expo-router";
+import { useLocation, useNavigate } from "react-router-dom";
+import { goTo } from "@/src/utils/navigation";
 import { Feather, Ionicons } from "@expo/vector-icons";
-import * as Haptics from "expo-haptics";
+import * as Haptics from "@/lib/haptics";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { filterItemsByModule, useCartStore } from "@/src/features/common/cart/store/cartStore";
 import { getRoleName, RIDER_ROLE_ALIAS, RoleEnum, useAuthStore } from "@/src/features/common/auth/store/authStore";
@@ -97,8 +98,8 @@ const JeweleryTabBar: React.FC<{
 export const BottomTabBar: React.FC = () => {
   const { width } = useWindowDimensions();
   const theme = useTheme() as any;
-  const router = useRouter();
-  const pathname = usePathname();
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
   const { user, isAuthenticated } = useAuthStore();
   const { currentModule } = useModuleStore();
 
@@ -137,7 +138,7 @@ export const BottomTabBar: React.FC = () => {
     try {
       (Haptics as any)?.impactAsync?.((Haptics as any)?.ImpactFeedbackStyle?.Heavy);
     } catch {}
-    router.push(route as any);
+    goTo(navigate, route as any);
   };
 
   // Jewelry gets its own 5-tab bar (mobile parity) — never the clothing set.
@@ -198,10 +199,10 @@ export const BottomTabBar: React.FC = () => {
     } catch {}
 
     if (tab.name === "account" && !isAuthenticated) {
-      router.push(tab.route as any);
+      goTo(navigate, tab.route as any);
       return;
     }
-    router.push(tab.route as any);
+    goTo(navigate, tab.route as any);
   };
 
   const isTabActive = (tabRoute: string) => {

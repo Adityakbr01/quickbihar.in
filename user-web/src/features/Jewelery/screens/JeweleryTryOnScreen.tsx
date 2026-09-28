@@ -1,9 +1,9 @@
 import { Feather } from "@expo/vector-icons";
-import { router } from "expo-router";
+import { useNavigate } from "react-router-dom";
 import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import SafeViewWrapper from "@/src/provider/SafeViewWrapper";
-import { goBack } from "@/src/utils/navigation";
+import { goBack, goTo } from "@/src/utils/navigation";
 
 import { useColors } from "../hooks/useColors";
 
@@ -13,13 +13,14 @@ import { useColors } from "../hooks/useColors";
  * rendering mock jewellery. Product pages hide the Try button until then.
  */
 export const JeweleryTryOnScreen = () => {
+  const navigate = useNavigate();
   const colors = useColors();
 
   return (
     <SafeViewWrapper>
       <View style={[styles.root, { backgroundColor: colors.ivory }]}>
         <View style={styles.header}>
-          <Pressable style={styles.closeBtn} onPress={() => goBack(router)} hitSlop={8}>
+          <Pressable style={styles.closeBtn} onPress={() => goBack(navigate)} hitSlop={8}>
             <Feather name="x" size={22} color={colors.ink} />
           </Pressable>
           <Text
@@ -59,7 +60,7 @@ export const JeweleryTryOnScreen = () => {
               styles.btn,
               { backgroundColor: pressed ? colors.goldLight : colors.gold },
             ]}
-            onPress={() => router.push("/jewelery/collections" as any)}
+            onPress={() => goTo(navigate, "/jewelery/collections" as any)}
           >
             <Text
               style={[

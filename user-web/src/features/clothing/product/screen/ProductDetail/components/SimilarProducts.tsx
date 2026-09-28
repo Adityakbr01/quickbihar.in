@@ -1,7 +1,8 @@
 import React from "react";
 import { View, Text, ScrollView, TouchableOpacity, Image } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { useNavigate } from "react-router-dom";
+import { goTo } from "@/src/utils/navigation";
 import { IProduct } from "../../../types/product.types";
 import { styles as s } from "../styles";
 
@@ -11,7 +12,7 @@ interface SimilarProductsProps {
 }
 
 export const SimilarProducts = ({ products, theme }: SimilarProductsProps) => {
-  const router = useRouter();
+  const navigate = useNavigate();
 
   if (!products || products.length === 0) return null;
 
@@ -34,7 +35,7 @@ export const SimilarProducts = ({ products, theme }: SimilarProductsProps) => {
             ]}
             activeOpacity={0.7}
             onPress={() =>
-              router.push({
+              goTo(navigate, {
                 pathname: "/product/[id]",
                 params: { id: (item as any).slug || item._id },
               })

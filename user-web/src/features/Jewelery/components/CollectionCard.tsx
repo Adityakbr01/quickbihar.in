@@ -1,4 +1,5 @@
-import { router } from "expo-router";
+import { useNavigate } from "react-router-dom";
+import { goTo } from "@/src/utils/navigation";
 import React from "react";
 import {
   Dimensions,
@@ -25,10 +26,11 @@ export function CollectionCard({
   large = false,
   style,
 }: CollectionCardProps) {
+  const navigate = useNavigate();
   const colors = useColors();
 
   const handlePress = () => {
-    router.push("/jewelery/collections" as any);
+    goTo(navigate, "/jewelery/collections" as any);
   };
 
   return (

@@ -18,7 +18,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import * as Haptics from "expo-haptics";
+import * as Haptics from "@/lib/haptics";
 import { sendPhoneOtpRequest, verifyPhoneOtpRequest } from "../api/address.api";
 import { createAddressStyles } from "../style/addressStyles";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";

@@ -6,14 +6,15 @@ import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { createTopMallSectionStyles } from "../style/TopMallSection.style";
 import type { TopMall } from "../api/mall.api";
 import { AppIcon } from "@/src/components/common/AppIcon";
-import { useRouter } from "expo-router";
+import { useNavigate } from "react-router-dom";
+import { goTo } from "@/src/utils/navigation";
 
 interface MallCardProps {
   mall: TopMall;
 }
 
 export const MallCard = ({ mall }: MallCardProps) => {
-  const router = useRouter();
+  const navigate = useNavigate();
   const theme = useTheme() as any;
   const styles = React.useMemo(() => createTopMallSectionStyles(theme), [theme]);
 
@@ -27,7 +28,7 @@ export const MallCard = ({ mall }: MallCardProps) => {
       accessibilityRole="link"
       accessibilityLabel={`Visit ${mallTitle} in ${mallLoc}`}
       {...({ title: `Explore ${mallTitle} stores and offers in ${mallLoc}` } as any)}
-      onPress={() => router.push(`/mall/${mall.id || mall._id}` as any)}
+      onPress={() => goTo(navigate, `/mall/${mall.id || mall._id}` as any)}
     >
       <Image
         source={{ uri: mall.image }}

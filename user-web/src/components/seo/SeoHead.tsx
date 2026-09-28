@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import Head from "expo-router/head";
+import { Helmet } from "react-helmet-async";
 import { Platform } from "react-native";
 import { getSiteBase, DEFAULT_SITE_KEYWORDS, type PageMeta } from "@/src/lib/seo";
 
@@ -10,11 +10,10 @@ interface SeoHeadProps {
 }
 
 /**
- * Per-route SEO head tags for Expo Web (plan §15).
+ * Per-route SEO head tags (react-helmet-async).
  *
- * Web: tags are managed by react-helmet-async and hoisted into the prerendered
- * HTML under `web.output: "static"`. Native: `Head` is a null render — no-op.
- * Must render ONLY on the focused route (handled internally by expo-router Head).
+ * Tags are managed by react-helmet-async (see `HelmetProvider` in `App.tsx`)
+ * and hoisted into document head. Deepest mounted `SeoHead` wins.
  */
 export function SeoHead({ meta, jsonLd }: SeoHeadProps) {
   const siteName = "QuickBihar";
@@ -55,7 +54,7 @@ export function SeoHead({ meta, jsonLd }: SeoHeadProps) {
   }, [meta]);
 
   return (
-    <Head>
+    <Helmet>
       <title>{meta.title}</title>
       <meta data-rh="true" name="title" content={meta.title} />
       <meta data-rh="true" name="description" content={meta.description} />
@@ -92,7 +91,7 @@ export function SeoHead({ meta, jsonLd }: SeoHeadProps) {
             </script>
           ))
         : null}
-    </Head>
+    </Helmet>
   );
 }
 

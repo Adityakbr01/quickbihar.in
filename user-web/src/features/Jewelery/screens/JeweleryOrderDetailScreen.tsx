@@ -1,7 +1,8 @@
 import { Feather, Ionicons } from "@expo/vector-icons";
 import dayjs from "dayjs";
-import * as Haptics from "expo-haptics";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import * as Haptics from "@/lib/haptics";
+import { useNavigate } from "react-router-dom";
+import { goBack, goTo, useRouteParams } from "@/src/utils/navigation";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -35,12 +36,12 @@ const ORDER_TIMELINE = [
 
 export default function JeweleryOrderDetailScreen() {
   const colors = useColors();
-  const router = useRouter();
+  const navigate = useNavigate();
   const topPad = useTopPad();
   const insets = useSafeAreaInsets();
   const bottomPad = Platform.OS === "web" ? 34 : Math.max(insets.bottom, 20);
 
-  const params = useLocalSearchParams<{ id?: string; orderId?: string }>();
+  const params = useRouteParams<{ id?: string; orderId?: string }>();
   const orderId = String(params.id || params.orderId || "");
 
   const [order, setOrder] = useState<any>(null);
@@ -123,7 +124,7 @@ export default function JeweleryOrderDetailScreen() {
     const prodId = prod?.slug || prod?._id || item.productId || item._id;
     if (prodId && typeof prodId === "string") {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      router.push({
+      goTo(navigate, {
         pathname: "/jewelery/product/[id]" as any,
         params: { id: prodId },
       });
@@ -157,8 +158,7 @@ export default function JeweleryOrderDetailScreen() {
           style={styles.backBtn}
           onPress={() => {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            if (router.canGoBack()) router.back();
-            else router.replace("/jewelery/orders" as any);
+            goBack(navigate, "/jewelery/orders");
           }}
           hitSlop={8}
           accessibilityRole="button"

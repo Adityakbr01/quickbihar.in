@@ -12,8 +12,9 @@ import { Ionicons } from "@expo/vector-icons";
 import { Theme } from "@/src/theme/Provider/ThemeProvider";
 import { IProduct } from "../../types/product.types";
 import { useCartStore } from "@/src/features/common/cart/store/cartStore";
-import * as Haptics from "expo-haptics";
-import { useRouter } from "expo-router";
+import * as Haptics from "@/lib/haptics";
+import { useNavigate } from "react-router-dom";
+import { goTo } from "@/src/utils/navigation";
 
 import SizeChartModal from "./SizeChartModal";
 import { useSizeChart, useSizeCharts } from "@/src/features/clothing/sizeChart/hooks/useSizeCharts";
@@ -36,7 +37,7 @@ export const VariantSelectorBottomSheet = ({
   product,
   theme,
 }: VariantSelectorBottomSheetProps) => {
-  const router = useRouter();
+  const navigate = useNavigate();
   const { addItem, isLoading: isAddingToCart, items: cartItems } = useCartStore();
   const sheet = useSheet();
 
@@ -170,7 +171,7 @@ export const VariantSelectorBottomSheet = ({
   const handleConfirm = async () => {
     if (isInCart) {
       onClose();
-      router.push("/clothing/cart");
+      goTo(navigate, "/clothing/cart");
       return;
     }
 

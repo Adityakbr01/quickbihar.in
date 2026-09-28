@@ -1,7 +1,8 @@
 import React from "react";
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import * as Haptics from "expo-haptics";
-import { useRouter } from "expo-router";
+import * as Haptics from "@/lib/haptics";
+import { useNavigate } from "react-router-dom";
+import { goTo } from "@/src/utils/navigation";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { AppIcon } from "@/src/components/common/AppIcon";
 import { ThemeToggle } from "@/src/components/common/ThemeToggle";
@@ -16,11 +17,11 @@ import { createAccountStyles } from "../styles/accountStyles";
 const GuestAccountView = () => {
   const theme = useTheme();
   const styles = createAccountStyles(theme);
-  const router = useRouter();
+  const navigate = useNavigate();
 
   const goAuth = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    router.push("/auth" as any);
+    goTo(navigate, "/auth" as any);
   };
 
   const perks = [

@@ -1,7 +1,8 @@
 import { Feather, Ionicons } from "@expo/vector-icons";
 import dayjs from "dayjs";
-import * as Haptics from "expo-haptics";
-import { useRouter } from "expo-router";
+import * as Haptics from "@/lib/haptics";
+import { useNavigate } from "react-router-dom";
+import { goBack, goTo, replaceTo } from "@/src/utils/navigation";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -26,7 +27,7 @@ import { socketClient } from "@/src/lib/socket";
 
 export default function JeweleryOrdersScreen() {
   const colors = useColors();
-  const router = useRouter();
+  const navigate = useNavigate();
   const topPad = useTopPad();
   const insets = useSafeAreaInsets();
   const bottomPad = Platform.OS === "web" ? 34 : Math.max(insets.bottom, 20);
@@ -128,8 +129,7 @@ export default function JeweleryOrdersScreen() {
           style={styles.backBtn}
           onPress={() => {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            if (router.canGoBack()) router.back();
-            else router.replace("/jewelery/(tabs)/profile" as any);
+            goBack(navigate, "/jewelery/(tabs)/profile");
           }}
           hitSlop={8}
           accessibilityRole="button"
@@ -212,7 +212,7 @@ export default function JeweleryOrdersScreen() {
                   ]}
                   onPress={() => {
                     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                    router.push({
+                    goTo(navigate, {
                       pathname: "/jewelery/orders/[id]" as any,
                       params: { id: order.orderId },
                     });
@@ -424,7 +424,7 @@ export default function JeweleryOrdersScreen() {
               ]}
               onPress={() => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                router.replace("/jewelery/(tabs)/collections" as any);
+                replaceTo(navigate, "/jewelery/(tabs)/collections" as any);
               }}
               activeOpacity={0.88}
             >

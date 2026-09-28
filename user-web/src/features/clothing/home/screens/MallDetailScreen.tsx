@@ -12,7 +12,7 @@ import {
   useWindowDimensions,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter, Link } from "expo-router";
+import { Link, useNavigate } from "react-router-dom";
 import { Image as ExpoImage } from "expo-image";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import SafeViewWrapper from "@/src/provider/SafeViewWrapper";
@@ -22,8 +22,8 @@ import { SeoHead } from "@/src/components/seo/SeoHead";
 import { breadcrumbJsonLd, mallJsonLd, mallMeta } from "@/src/lib/seo";
 import { LinearGradient } from "expo-linear-gradient";
 import Carousel from "react-native-reanimated-carousel";
-import * as Haptics from "expo-haptics";
-import { goBack } from "@/src/utils/navigation";
+import * as Haptics from "@/lib/haptics";
+import { goBack, goTo } from "@/src/utils/navigation";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
 
 interface MallDetailScreenProps {
@@ -34,7 +34,7 @@ interface MallDetailScreenProps {
 }
 
 const MallDetailScreen: React.FC<MallDetailScreenProps> = ({ id, initialMall }) => {
-  const router = useRouter();
+  const navigate = useNavigate();
   const theme = useTheme() as any;
   // Live width so rotation / foldables / small phones never overflow.
   const { width: windowWidth } = useWindowDimensions();
@@ -92,7 +92,7 @@ const MallDetailScreen: React.FC<MallDetailScreenProps> = ({ id, initialMall }) 
           <Text style={[styles.errorText, { color: theme.text }]}>
             Could not load mall information.
           </Text>
-          <TouchableOpacity style={[styles.backBtn, { backgroundColor: theme.primary }]} onPress={() => goBack(router)}>
+          <TouchableOpacity style={[styles.backBtn, { backgroundColor: theme.primary }]} onPress={() => goBack(navigate)}>
             <Text style={styles.backBtnText}>Go Back</Text>
           </TouchableOpacity>
         </View>
@@ -197,7 +197,7 @@ const MallDetailScreen: React.FC<MallDetailScreenProps> = ({ id, initialMall }) 
 
           {/* Header Actions */}
           <View style={styles.headerRow}>
-            <TouchableOpacity onPress={() => goBack(router)} style={styles.navIconBtn}>
+            <TouchableOpacity onPress={() => goBack(navigate)} style={styles.navIconBtn}>
               <Ionicons name="arrow-back" size={24} color="#FFF" />
             </TouchableOpacity>
             <TouchableOpacity onPress={handleShare} style={styles.navIconBtn}>
@@ -243,11 +243,11 @@ const MallDetailScreen: React.FC<MallDetailScreenProps> = ({ id, initialMall }) 
         <View style={styles.detailBlock}>
           {/* Breadcrumb trail (visible match for BreadcrumbList JSON-LD) */}
           <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 8 }}>
-            <Link href="/" style={{ color: theme.secondaryText, fontSize: 12 }}>
+            <Link to="/" style={{ color: theme.secondaryText, fontSize: 12 }}>
               Home
             </Link>
             <Text style={{ color: theme.secondaryText, fontSize: 12 }}>{"  ›  "}</Text>
-            <Link href="/mall" style={{ color: theme.secondaryText, fontSize: 12 }}>
+            <Link to="/mall" style={{ color: theme.secondaryText, fontSize: 12 }}>
               Malls
             </Link>
             <Text style={{ color: theme.secondaryText, fontSize: 12 }}>{"  ›  "}</Text>
@@ -321,7 +321,7 @@ const MallDetailScreen: React.FC<MallDetailScreenProps> = ({ id, initialMall }) 
               style={[styles.writeReviewTriggerBtn, { borderColor: theme.primary }]}
               onPress={() => {
                 if (!isAuthenticated) {
-                  router.push("/auth" as any);
+                  goTo(navigate, "/auth" as any);
                 } else {
                   setShowReviewForm(!showReviewForm);
                 }
@@ -402,7 +402,7 @@ const MallDetailScreen: React.FC<MallDetailScreenProps> = ({ id, initialMall }) 
                       width: Math.max((windowWidth - 44) / 2, 140),
                     },
                   ]}
-                  onPress={() => router.push(`/product/${item.slug || item.id}` as any)}
+                  onPress={() => goTo(navigate, `/product/${item.slug || item.id}` as any)}
                 >
                   <Image source={{ uri: item.image }} style={styles.productImage} resizeMode="cover" />
                   {item.discount && (
@@ -483,7 +483,7 @@ const MallDetailScreen: React.FC<MallDetailScreenProps> = ({ id, initialMall }) 
               <TouchableOpacity
                 key={item.id}
                 style={[styles.matchingCard, { backgroundColor: theme.tertiaryBackground }]}
-                onPress={() => router.push(`/mall/${item.id}` as any)}
+                onPress={() => goTo(navigate, `/mall/${item.id}` as any)}
               >
                 <Image source={{ uri: item.image }} style={styles.matchingImage} resizeMode="cover" />
                 <View style={styles.matchingDetails}>

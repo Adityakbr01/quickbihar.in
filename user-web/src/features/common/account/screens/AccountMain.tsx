@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { View, ScrollView, Text, Linking } from "react-native";
-import * as Haptics from "expo-haptics";
+import * as Haptics from "@/lib/haptics";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { AppIcon } from "@/src/components/common/AppIcon";
 import { ThemeToggle } from "@/src/components/common/ThemeToggle";
@@ -12,7 +12,8 @@ import { ACCOUNT_SECTIONS, LOGOUT_OPTION } from "../lib/accountData";
 import { ActivityIndicator } from "react-native";
 import EditProfileModal from "../components/EditProfileModal";
 
-import { useRouter } from "expo-router";
+import { useNavigate } from "react-router-dom";
+import { goTo } from "@/src/utils/navigation";
 import {
   getRoleName,
   RoleEnum,
@@ -30,7 +31,7 @@ const AccountMain = () => {
   const user = useAuthStore((state) => state.user);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const { mutate: logout, isPending: isLoggingOut } = useLogout();
-  const router = useRouter();
+  const navigate = useNavigate();
   const setPasswordSheetVisible = useAccountStore(
     (state) => state.setPasswordSheetVisible,
   );
@@ -58,19 +59,19 @@ const AccountMain = () => {
       logout();
     } else if (label === "Addresses") {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      router.push("/account/addresses");
+      goTo(navigate, "/account/addresses");
     } else if (label === "Profile Info") {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      router.push("/account/profile-info");
+      goTo(navigate, "/account/profile-info");
     } else if (label === "Wishlist") {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      router.push("/account/wishlist");
+      goTo(navigate, "/account/wishlist");
     } else if (label === "My Orders") {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      router.push("/account/orders");
+      goTo(navigate, "/account/orders");
     } else if (label === "Notifications") {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      router.push("/account/notifications");
+      goTo(navigate, "/account/notifications");
     } else if (label === "PasswordSetup" || label === "Security") {
       // Open the Password & Email Setup bottom sheet instead of routing
       // to a new screen.

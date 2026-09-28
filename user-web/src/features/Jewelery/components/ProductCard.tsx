@@ -1,6 +1,7 @@
 import { Feather } from "@expo/vector-icons";
-import * as Haptics from "expo-haptics";
-import { router } from "expo-router";
+import * as Haptics from "@/lib/haptics";
+import { useNavigate } from "react-router-dom";
+import { goTo } from "@/src/utils/navigation";
 import React from "react";
 import {
   Image,
@@ -40,6 +41,7 @@ function Stars({ rating }: { rating: number }) {
 }
 
 export function ProductCard({ product, style }: ProductCardProps) {
+  const navigate = useNavigate();
   const colors = useColors();
   // Live viewport width — a module-level Dimensions.get() goes stale on
   // resize/device-emulation/rotation and makes grid cards overflow the page.
@@ -72,7 +74,7 @@ export function ProductCard({ product, style }: ProductCardProps) {
   };
 
   const handlePress = () => {
-    router.push(`/jewelery/product/${product.id}` as any);
+    goTo(navigate, `/jewelery/product/${product.id}` as any);
   };
 
   return (

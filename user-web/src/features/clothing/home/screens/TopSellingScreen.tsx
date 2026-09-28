@@ -12,9 +12,10 @@ import {
   useWindowDimensions,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { useNavigate } from "react-router-dom";
+import { goBack } from "@/src/utils/navigation";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import * as Haptics from "expo-haptics";
+import * as Haptics from "@/lib/haptics";
 
 import SafeViewWrapper from "@/src/provider/SafeViewWrapper";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
@@ -102,7 +103,7 @@ interface TopSellingScreenProps {
 
 const TopSellingScreen: React.FC<TopSellingScreenProps> = ({ category }) => {
   const theme = useTheme();
-  const router = useRouter();
+  const navigate = useNavigate();
   const sortSheet = useSheet();
   const [sortBy, setSortBy] = useState<SortKey>("trending");
   const [gender, setGender] = useState<GenderFilter>("ALL");
@@ -159,8 +160,7 @@ const TopSellingScreen: React.FC<TopSellingScreenProps> = ({ category }) => {
 
   const handleBack = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => null);
-    if (router.canGoBack()) router.back();
-    else router.replace("/(tabs)/clothing/home" as any);
+    goBack(navigate, "/(tabs)/clothing/home");
   };
 
   const renderHeader = () => (

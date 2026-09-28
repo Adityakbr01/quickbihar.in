@@ -1,13 +1,14 @@
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { useRouter } from "expo-router";
+import { useNavigate } from "react-router-dom";
+import { goTo } from "@/src/utils/navigation";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { BUXAR_BLOCKS, type BuxarLocation } from "@/src/constants/locations/buxar";
 
 export const HomeDeliveryLocations: React.FC = () => {
   const theme = useTheme();
-  const router = useRouter();
+  const navigate = useNavigate();
 
   // Priority towns for quick-chips
   const keyLocations = [
@@ -43,7 +44,7 @@ export const HomeDeliveryLocations: React.FC = () => {
           accessibilityRole="link"
           accessibilityLabel="Explore Buxar District Delivery Hub"
           {...({ href: "/locations/bihar/buxar", title: "Explore Buxar District Delivery Hub" } as any)}
-          onPress={() => router.push("/locations/bihar/buxar" as any)}
+          onPress={() => goTo(navigate, "/locations/bihar/buxar" as any)}
         >
           <Text style={styles.districtBtnText}>All Buxar Hubs</Text>
           <Ionicons name="arrow-forward" size={14} color="#4F46E5" />
@@ -67,7 +68,7 @@ export const HomeDeliveryLocations: React.FC = () => {
               accessibilityRole="link"
               accessibilityLabel={`Shop clothing & fashion in ${loc.name}, Buxar PIN ${loc.pin}`}
               {...({ href: path, title: `Fashion store in ${loc.name}` } as any)}
-              onPress={() => router.push(path as any)}
+              onPress={() => goTo(navigate, path as any)}
             >
               <View style={styles.cardTop}>
                 <Ionicons name="location-sharp" size={14} color="#4F46E5" />
@@ -99,7 +100,7 @@ export const HomeDeliveryLocations: React.FC = () => {
                 <TouchableOpacity
                   accessibilityRole="link"
                   {...({ href: blockPath, title: `Delivery in ${b.name}` } as any)}
-                  onPress={() => router.push(blockPath as any)}
+                  onPress={() => goTo(navigate, blockPath as any)}
                   style={styles.linkTouch}
                 >
                   <Text style={styles.inlineLinkText}>{b.name}</Text>

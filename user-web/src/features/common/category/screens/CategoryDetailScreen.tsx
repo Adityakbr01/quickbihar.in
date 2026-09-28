@@ -2,12 +2,12 @@ import React, { useMemo } from "react";
 import { ActivityIndicator, FlatList, Text, TouchableOpacity, View } from "react-native";
 import { Image as ExpoImage } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
-import { Link, useRouter } from "expo-router";
+import { Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import * as Haptics from "expo-haptics";
+import * as Haptics from "@/lib/haptics";
 
 import SafeViewWrapper from "@/src/provider/SafeViewWrapper";
-import { goBack } from "@/src/utils/navigation";
+import { goBack, toWebPath } from "@/src/utils/navigation";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { SeoHead } from "@/src/components/seo/SeoHead";
 import {
@@ -34,7 +34,7 @@ const PAGE_SIZE = 24;
  */
 const CategoryDetailScreen: React.FC<CategoryDetailScreenProps> = ({ slug }) => {
   const theme = useTheme();
-  const router = useRouter();
+  const navigate = useNavigate();
 
   const categoryQuery = useCategoryBySlug(slug);
   const category: any = categoryQuery.data;
@@ -66,7 +66,7 @@ const CategoryDetailScreen: React.FC<CategoryDetailScreenProps> = ({ slug }) => 
 
   const handleBack = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    goBack(router);
+    goBack(navigate);
   };
 
   if (categoryQuery.isLoading) {
@@ -87,7 +87,7 @@ const CategoryDetailScreen: React.FC<CategoryDetailScreenProps> = ({ slug }) => 
           <Text style={{ fontSize: 18, fontWeight: "700", color: theme.text, marginBottom: 8 }}>
             Category not found
           </Text>
-          <Link href="/(tabs)/clothing/home">Back to home</Link>
+          <Link to={toWebPath("/(tabs)/clothing/home")}>Back to home</Link>
         </View>
       </SafeViewWrapper>
     );
@@ -115,7 +115,7 @@ const CategoryDetailScreen: React.FC<CategoryDetailScreenProps> = ({ slug }) => 
                 <Ionicons name="chevron-back" size={24} color={theme.text} />
               </TouchableOpacity>
               <View style={{ flexDirection: "row", alignItems: "center", marginLeft: 8 }}>
-                <Link href="/">Home</Link>
+                <Link to="/">Home</Link>
                 <Text style={{ color: theme.secondaryText }}>{"  ›  "}</Text>
                 <Text style={{ color: theme.secondaryText }}>{category.title}</Text>
               </View>
@@ -133,7 +133,7 @@ const CategoryDetailScreen: React.FC<CategoryDetailScreenProps> = ({ slug }) => 
         }
         renderItem={({ item }) => (
           <Link
-            href={{ pathname: "/product/[id]", params: { id: item.slug || item._id } }}
+            to={toWebPath({ pathname: "/product/[id]", params: { id: item.slug || item._id } })}
             style={{ flex: 1, marginBottom: 12 }}
           >
             <View
@@ -168,7 +168,7 @@ const CategoryDetailScreen: React.FC<CategoryDetailScreenProps> = ({ slug }) => 
           !productsQuery.isLoading ? (
             <View style={{ alignItems: "center", padding: 24 }}>
               <Text style={{ color: theme.secondaryText }}>No products in this category yet.</Text>
-              <Link href="/(tabs)/clothing/home">Browse the home feed</Link>
+              <Link to={toWebPath("/(tabs)/clothing/home")}>Browse the home feed</Link>
             </View>
           ) : null
         }

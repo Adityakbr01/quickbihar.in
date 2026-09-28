@@ -7,10 +7,11 @@ import {
   View,
   useWindowDimensions,
 } from "react-native";
-import { usePathname, useRouter } from "expo-router";
+import { useLocation, useNavigate } from "react-router-dom";
+import { goTo } from "@/src/utils/navigation";
 import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
-import * as Haptics from "expo-haptics";
+import * as Haptics from "@/lib/haptics";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { useColors } from "@/src/features/Jewelery/hooks/useColors";
 import {
@@ -34,8 +35,8 @@ export const JeweleryDesktopNavbar = () => {
   const { width } = useWindowDimensions();
   const colors = useColors();
   const theme = useTheme() as any;
-  const router = useRouter();
-  const pathname = usePathname();
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
   const [query, setQuery] = useState("");
   const [focused, setFocused] = useState(false);
 
@@ -56,7 +57,7 @@ export const JeweleryDesktopNavbar = () => {
         (Haptics as any)?.ImpactFeedbackStyle?.Light,
       );
     } catch {}
-    router.push(href as any);
+    goTo(navigate, href as any);
   };
 
   const submitSearch = () => {

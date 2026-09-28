@@ -1,6 +1,6 @@
 import { Feather } from "@expo/vector-icons";
-import * as Haptics from "expo-haptics";
-import { router } from "expo-router";
+import * as Haptics from "@/lib/haptics";
+import { useNavigate } from "react-router-dom";
 import React, { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
@@ -30,6 +30,7 @@ const popularSearches = [
 ];
 
 export default function JewelerySearchScreen() {
+  const navigate = useNavigate();
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const [query, setQuery] = useState("");
@@ -95,7 +96,7 @@ export default function JewelerySearchScreen() {
         />
         <Pressable onPress={() => {
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-          goBack(router);
+          goBack(navigate);
         }} hitSlop={8}>
           <Text
             style={[

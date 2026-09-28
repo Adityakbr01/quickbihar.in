@@ -7,7 +7,7 @@ import {
   Platform,
   View,
 } from "react-native";
-import * as Haptics from "expo-haptics";
+import * as Haptics from "@/lib/haptics";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 
 export type SortOption = "relevance" | "price_low" | "price_high" | "rating" | "newest";

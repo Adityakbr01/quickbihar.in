@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate, useParams, useLocation } from "react-router-dom";
+import { HelmetProvider } from "react-helmet-async";
 import { QueryProvider } from "@/src/provider/QueryProvider";
 import { ThemeProvider, useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { SheetProvider } from "@/src/components/common/BottomSheet";
@@ -77,7 +78,7 @@ function RootRedirect() {
 
 function LegacyRedirect() {
   // Handles pasted/bookmarked Expo URLs (e.g. "/(tabs)/clothing/home",
-  // "/jewelery/(tabs)/cart") and any in-app router.push to those paths.
+  // "/jewelery/(tabs)/cart") and any in-app goTo/replaceTo to those paths.
   // Preserves the destination instead of bouncing to the module home.
   // Without this, react-router hits "*" and blank-loops.
   const location = useLocation();
@@ -208,6 +209,7 @@ export default function App() {
 
   return (
     <ErrorBoundary>
+      <HelmetProvider>
       <BrowserRouter>
         <QueryProvider>
           <ThemeProvider>
@@ -217,6 +219,7 @@ export default function App() {
           </ThemeProvider>
         </QueryProvider>
       </BrowserRouter>
+      </HelmetProvider>
     </ErrorBoundary>
   );
 }

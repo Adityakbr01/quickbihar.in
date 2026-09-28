@@ -1,4 +1,5 @@
-import { router } from "expo-router";
+import { useNavigate } from "react-router-dom";
+import { goTo } from "@/src/utils/navigation";
 import { useState } from "react";
 import {
   Image,
@@ -70,6 +71,7 @@ const BRAND_SLIDES: HeroSlide[] = [
  * snapping, responsive resizing, and authentic luxury presentation.
  */
 export function HeroCarousel({ items }: { items?: Product[] }) {
+  const navigate = useNavigate();
   const colors = useColors();
   const { width: windowWidth } = useWindowDimensions();
   const [activeIndex, setActiveIndex] = useState(0);
@@ -179,7 +181,7 @@ export function HeroCarousel({ items }: { items?: Product[] }) {
                         : "transparent",
                     },
                   ]}
-                  onPress={() => router.push(item.ctaRoute as any)}
+                  onPress={() => goTo(navigate, item.ctaRoute as any)}
                 >
                   <Text
                     style={[
@@ -191,7 +193,7 @@ export function HeroCarousel({ items }: { items?: Product[] }) {
                   </Text>
                 </Pressable>
                 {item.secondaryCta && (
-                  <Pressable onPress={() => router.push(item.ctaRoute as any)}>
+                  <Pressable onPress={() => goTo(navigate, item.ctaRoute as any)}>
                     <Text
                       style={[
                         styles.secondaryCta,

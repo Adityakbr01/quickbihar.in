@@ -1,7 +1,7 @@
 import { Feather, Ionicons } from "@expo/vector-icons";
-import * as Haptics from "expo-haptics";
-import { useFocusEffect, useRouter } from "expo-router";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import * as Haptics from "@/lib/haptics";
+import { useNavigate } from "react-router-dom";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Image,
@@ -32,11 +32,11 @@ import IOSAlertDialog, { AlertButton } from "@/src/components/ui/IOSAlertDialog"
 import { PhoneMissingBanner } from "@/src/features/common/order/components/PhoneMissingBanner";
 import { useColors } from "@/src/features/Jewelery/hooks/useColors";
 import { useTopPad } from "@/src/hooks/useTopPad";
-import { goBack } from "@/src/utils/navigation";
+import { goBack, goTo, replaceTo } from "@/src/utils/navigation";
 
 export default function JeweleryCheckoutScreen() {
   const colors = useColors();
-  const router = useRouter();
+  const navigate = useNavigate();
   const topPad = useTopPad();
   const insets = useSafeAreaInsets();
   const bottomPad = Platform.OS === "web" ? 34 : insets.bottom;
@@ -105,15 +105,14 @@ export default function JeweleryCheckoutScreen() {
     return Number.isFinite(lat) && Number.isFinite(lng) && !(lat === 0 && lng === 0);
   };
 
-  useFocusEffect(
-    useCallback(() => {
-      if (!isAuthenticated) {
-        router.replace("/auth" as any);
-        return;
-      }
-      fetchAddresses();
-    }, [isAuthenticated])
-  );
+  useEffect(() => {
+    if (!isAuthenticated) {
+      replaceTo(navigate, "/auth" as any);
+      return;
+    }
+    fetchAddresses();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated]);
 
   const buildOrderData = () => ({
     items: items.map((item) => ({
@@ -211,7 +210,7 @@ export default function JeweleryCheckoutScreen() {
           {
             text: "Update Address",
             onPress: () =>
-              router.push({
+              goTo(navigate, {
                 pathname: "/jewelery/address-form" as any,
                 params: {
                   id: selectedAddress._id,
@@ -248,7 +247,7 @@ export default function JeweleryCheckoutScreen() {
 
       if (paymentMethod === "COD" || !razorpayOrder) {
         clearCart("jewelery");
-        router.replace({ pathname: "/jewelery/order-success" as any, params: { orderId: order.orderId } });
+        replaceTo(navigate, { pathname: "/jewelery/order-success" as any, params: { orderId: order.orderId } });
         return;
       }
 
@@ -276,7 +275,7 @@ export default function JeweleryCheckoutScreen() {
               razorpaySignature: data.razorpay_signature,
             });
             clearCart("jewelery");
-            router.replace({ pathname: "/jewelery/order-success" as any, params: { orderId: order.orderId } });
+            replaceTo(navigate, { pathname: "/jewelery/order-success" as any, params: { orderId: order.orderId } });
           } catch (verifyError: any) {
             showAlert(
               "Payment Verification Failed",
@@ -569,7 +568,7 @@ export default function JeweleryCheckoutScreen() {
       <View style={styles.header}>
         <Pressable style={styles.backBtn} onPress={() => {
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-          goBack(router);
+          goBack(navigate);
         }} hitSlop={8}>
           <Feather name="arrow-left" size={16} color={colors.ink} />
         </Pressable>
@@ -591,7 +590,7 @@ export default function JeweleryCheckoutScreen() {
             <Text style={styles.sectionLabel}>DELIVERY ADDRESS</Text>
             <TouchableOpacity
               onPress={() =>
-                router.push({
+                goTo(navigate, {
                   pathname: "/jewelery/addresses" as any,
                   params: { returnTo: "/jewelery/checkout" },
                 })
@@ -629,7 +628,7 @@ export default function JeweleryCheckoutScreen() {
           ) : (
             <TouchableOpacity
               onPress={() =>
-                router.push({
+                goTo(navigate, {
                   pathname: "/jewelery/addresses" as any,
                   params: { returnTo: "/jewelery/checkout" },
                 })

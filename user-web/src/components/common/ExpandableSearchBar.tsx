@@ -6,8 +6,9 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
-import * as Haptics from "expo-haptics";
-import { useRouter } from "expo-router";
+import * as Haptics from "@/lib/haptics";
+import { useNavigate } from "react-router-dom";
+import { goTo } from "@/src/utils/navigation";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { TextInput } from "@/src/theme/components/TextInput";
 
@@ -27,7 +28,7 @@ export const ExpandableSearchBar: React.FC<ExpandableSearchBarProps> = ({
   const isWeb = Platform.OS === "web";
   const expandedWidth = isWeb ? 220 : 210;
   const theme = useTheme();
-  const router = useRouter();
+  const navigate = useNavigate();
   const searchWidth = useSharedValue(SEARCH_COLLAPSED);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchText, setSearchText] = useState("");
@@ -55,7 +56,7 @@ export const ExpandableSearchBar: React.FC<ExpandableSearchBarProps> = ({
       if (onSearchSubmit) {
         onSearchSubmit(searchText.trim());
       } else {
-        router.push({
+        goTo(navigate, {
           pathname: searchRoute as any,
           params: { query: searchText.trim() },
         });
@@ -63,7 +64,7 @@ export const ExpandableSearchBar: React.FC<ExpandableSearchBarProps> = ({
       collapseSearch();
       Keyboard.dismiss();
     }
-  }, [searchText, router, collapseSearch, onSearchSubmit, searchRoute]);
+  }, [searchText, navigate, collapseSearch, onSearchSubmit, searchRoute]);
 
   useEffect(() => {
     const sub = Keyboard.addListener("keyboardDidHide", () => {

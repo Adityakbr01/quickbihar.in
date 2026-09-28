@@ -2,14 +2,15 @@ import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { useNavigate } from "react-router-dom";
+import { goTo } from "@/src/utils/navigation";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { createProductCardStyles } from "../style/ProductCard.style";
 import { IProduct } from "@/src/features/clothing/product/types/product.types";
 import { Product as MockProduct } from "../lib/mockData";
 import { useWishlistStore } from "@/src/features/common/wishlist/store/wishlistStore";
 import { useCartStore } from "@/src/features/common/cart/store/cartStore";
-import * as Haptics from "expo-haptics";
+import * as Haptics from "@/lib/haptics";
 import WishlistHeart from "@/src/components/common/WishlistHeart";
 import { VariantSelectorBottomSheet } from "../../product/components/modals/VariantSelectorBottomSheet";
 import { formatPrice } from "@/src/utils/formatPrice";
@@ -23,7 +24,7 @@ interface ProductCardProps {
 export const ProductCard = ({ item, desktopWidth }: ProductCardProps) => {
   const theme = useTheme() as any;
   const styles = React.useMemo(() => createProductCardStyles(theme), [theme]);
-  const router = useRouter();
+  const navigate = useNavigate();
   const addItem = useCartStore((state) => state.addItem);
   const id = (item as IProduct)._id || 'mock';
   const isWishlisted = useWishlistStore((state) => state.items.includes(id));
@@ -48,7 +49,7 @@ export const ProductCard = ({ item, desktopWidth }: ProductCardProps) => {
   const handleAddToCart = async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     if (isInCart) {
-      router.push("/clothing/cart");
+      goTo(navigate, "/clothing/cart");
       return;
     }
     if (isSelectionApplicable) {
@@ -108,7 +109,7 @@ export const ProductCard = ({ item, desktopWidth }: ProductCardProps) => {
       {...({ title: `View ${productData.title} on QuickBihar` } as any)}
       onPress={() => {
         // Canonical slug URL for navigation (wishlist/cart keys above stay id-based).
-        router.push({ pathname: "/product/[id]", params: { id: (item as IProduct).slug || id } });
+        goTo(navigate, { pathname: "/product/[id]", params: { id: (item as IProduct).slug || id } });
       }}
       style={[
         styles.card,

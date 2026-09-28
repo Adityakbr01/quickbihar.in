@@ -5,14 +5,15 @@ import { registerForPushNotificationsAsync, initializeNotificationHandler } from
 import { useAuthStore } from "../features/common/auth/store/authStore";
 import { updateFcmTokenRequest } from "../features/common/profileInfo/api/profile.api";
 import { useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "expo-router";
+import { useNavigate } from "react-router-dom";
+import { goTo } from "@/src/utils/navigation";
 
 const HAS_ASKED_KEY = "has_asked_push_notifications";
 
 export const usePushNotifications = () => {
   const { isAuthenticated, isInitialized } = useAuthStore();
   const queryClient = useQueryClient();
-  const router = useRouter();
+  const navigate = useNavigate();
 
   useEffect(() => {
     let subscription: any;
@@ -58,11 +59,11 @@ export const usePushNotifications = () => {
             if (isPromoAction || actionIdentifier === "default") {
               const fallbackRouting = () => {
                 if (redirectType === "product" && redirectId) {
-                  router.push(`/product/${redirectId}` as any);
+                  goTo(navigate, `/product/${redirectId}` as any);
                 } else if (redirectType === "category" && redirectId) {
-                  router.push(`/mall` as any);
+                  goTo(navigate, `/mall` as any);
                 } else if (redirectType === "mall" && redirectId) {
-                  router.push(`/mall/${redirectId}` as any);
+                  goTo(navigate, `/mall/${redirectId}` as any);
                 } else if (redirectType === "external" && externalUrl) {
                   import("expo-web-browser").then((WebBrowser) => {
                     WebBrowser.openBrowserAsync(externalUrl);
@@ -105,7 +106,7 @@ export const usePushNotifications = () => {
         responseSubscription.remove();
       }
     };
-  }, [queryClient, router]);
+  }, [queryClient, navigate]);
 
   useEffect(() => {
     if (!isInitialized) return;

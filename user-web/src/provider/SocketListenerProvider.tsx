@@ -4,17 +4,15 @@ import { socketClient } from "@/src/lib/socket";
 import { authStorage } from "@/src/lib/authStorage";
 import React, { useEffect } from "react";
 import { Platform } from "react-native";
-import * as Haptics from "expo-haptics";
+import * as Haptics from "@/lib/haptics";
 import { useCartStore } from "../features/common/cart/store/cartStore";
 import { useAuthStore } from "../features/common/auth/store/authStore";
 import { useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "expo-router";
 
 export const SocketListenerProvider: React.FC<{
   children: React.ReactNode;
 }> = ({ children }) => {
   const queryClient = useQueryClient();
-  const router = useRouter();
   const handleStockUpdate = useCartStore((state) => state.handleStockUpdate);
   const { token, isAuthenticated } = useAuthStore();
 
@@ -133,7 +131,7 @@ export const SocketListenerProvider: React.FC<{
       socketClient.off(SocketEvents.NEW_NOTIFICATION);
       socketClient.off(SocketEvents.NOTIFICATION_UPDATED);
     };
-  }, [handleStockUpdate, queryClient, router]);
+  }, [handleStockUpdate, queryClient]);
 
   return <>{children}</>;
 };

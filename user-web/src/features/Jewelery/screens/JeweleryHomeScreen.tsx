@@ -1,6 +1,7 @@
 import { Feather } from "@expo/vector-icons";
-import * as Haptics from "expo-haptics";
-import { router } from "expo-router";
+import * as Haptics from "@/lib/haptics";
+import { useNavigate } from "react-router-dom";
+import { goTo } from "@/src/utils/navigation";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -238,6 +239,7 @@ export function resolveJeweleryCollectionImage(c: any): string {
 }
 
 function FeaturedCollections() {
+  const navigate = useNavigate();
   const colors = useColors();
   const { data: cats } = useJeweleryCategories();
   const top: Collection[] = (cats ?? []).slice(0, 3).map((c) => {
@@ -257,7 +259,7 @@ function FeaturedCollections() {
       <SectionHeader
         label="CURATED FOR YOU"
         title="Our Collections"
-        onSeeAll={() => router.push("/jewelery/collections" as any)}
+        onSeeAll={() => goTo(navigate, "/jewelery/collections" as any)}
       />
       <View style={styles.collectionsGrid}>
         <CollectionCard collection={top[0]} large style={{ flex: 1 }} />
@@ -274,6 +276,7 @@ function FeaturedCollections() {
 }
 
 function NewArrivals() {
+  const navigate = useNavigate();
   const colors = useColors();
   const scheme = useColorScheme();
   const isDark = scheme === "dark";
@@ -289,7 +292,7 @@ function NewArrivals() {
       <SectionHeader
         label="JUST IN"
         title="New Arrivals"
-        onSeeAll={() => router.push("/jewelery/collections" as any)}
+        onSeeAll={() => goTo(navigate, "/jewelery/collections" as any)}
       />
       {isLoading ? (
         <ActivityIndicator color={colors.gold} />
@@ -398,6 +401,7 @@ function HeritageSection() {
 }
 
 function BestsellerSection() {
+  const navigate = useNavigate();
   const colors = useColors();
   const { data: bestsellers = [], isLoading } = useJeweleryBestsellers(6);
   if (!isLoading && bestsellers.length === 0) return null;
@@ -406,7 +410,7 @@ function BestsellerSection() {
       <SectionHeader
         label="MOST LOVED"
         title="Bestsellers"
-        onSeeAll={() => router.push("/jewelery/collections" as any)}
+        onSeeAll={() => goTo(navigate, "/jewelery/collections" as any)}
       />
       <View style={styles.productGrid}>
         {isLoading ? (
@@ -420,6 +424,7 @@ function BestsellerSection() {
 }
 
 function FestiveCampaign() {
+  const navigate = useNavigate();
   const colors = useColors();
   return (
     <View style={[styles.festiveSec, { backgroundColor: colors.emerald }]}>
@@ -459,7 +464,7 @@ function FestiveCampaign() {
           styles.festiveBtn,
           { backgroundColor: pressed ? colors.goldLight : colors.gold },
         ]}
-        onPress={() => router.push("/jewelery/collections" as any)}
+        onPress={() => goTo(navigate, "/jewelery/collections" as any)}
       >
         <Text
           style={[

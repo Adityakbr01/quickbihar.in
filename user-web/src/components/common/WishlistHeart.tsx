@@ -7,7 +7,7 @@ import Animated, {
   withSpring,
   withSequence,
 } from "react-native-reanimated";
-import * as Haptics from "expo-haptics";
+import * as Haptics from "@/lib/haptics";
 
 interface WishlistHeartProps {
   isWishlisted: boolean;

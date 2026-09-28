@@ -9,20 +9,21 @@ import {
   ActivityIndicator,
   Platform
 } from "react-native";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useNavigate } from "react-router-dom";
+import { goTo, replaceTo, useRouteParams } from "@/src/utils/navigation";
 import LazyLottie from "@/src/components/common/LazyLottie";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { createOrderStyles } from "../style/orderStyles";
-import * as Haptics from "expo-haptics";
+import * as Haptics from "@/lib/haptics";
 import successConfetti from "@/assets/lottie/successConfetti.json";
 import { getOrderByIdRequest } from "../api/order.api";
 
 const OrderSuccessScreen = () => {
   const theme = useTheme();
   const styles = createOrderStyles(theme);
-  const router = useRouter();
-  const { orderId } = useLocalSearchParams();
+  const navigate = useNavigate();
+  const { orderId } = useRouteParams();
 
   const [order, setOrder] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -36,12 +37,13 @@ const OrderSuccessScreen = () => {
 
     // Prevent back navigation to checkout
     const backHandler = BackHandler.addEventListener("hardwareBackPress", () => {
-      router.replace("/(tabs)/clothing/home");
+      replaceTo(navigate, "/(tabs)/clothing/home");
       return true;
     });
 
     return () => backHandler.remove();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [navigate]);
 
   const fetchOrderDetails = async () => {
     try {
@@ -186,7 +188,7 @@ const OrderSuccessScreen = () => {
           <TouchableOpacity
             style={[styles.actionButton, styles.primaryActionButton]}
             onPress={() =>
-              router.push({
+              goTo(navigate, {
                 pathname: "/order/[id]" as any,
                 params: { id: order?.orderId || orderId },
               })
@@ -198,7 +200,7 @@ const OrderSuccessScreen = () => {
 
           <TouchableOpacity
             style={[styles.actionButton, styles.secondaryActionButton]}
-            onPress={() => router.replace("/(tabs)/clothing/home")}
+            onPress={() => replaceTo(navigate, "/(tabs)/clothing/home")}
           >
             <Ionicons name="cart-outline" size={20} color={theme.text} />
             <Text style={[styles.actionButtonText, { color: theme.text }]}>Continue Shopping</Text>

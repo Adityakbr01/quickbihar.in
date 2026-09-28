@@ -1,8 +1,9 @@
 import React, { useCallback, useRef } from "react";
 import { Pressable, StyleSheet, Text } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import * as Haptics from "expo-haptics";
-import { useRouter } from "expo-router";
+import * as Haptics from "@/lib/haptics";
+import { useNavigate } from "react-router-dom";
+import { replaceTo } from "@/src/utils/navigation";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { useModuleStore } from "@/src/store/useModuleStore";
 import { APP_MODULES } from "@/src/constants/modules";
@@ -16,7 +17,7 @@ export const ModuleSwitcherButton: React.FC<{ compact?: boolean }> = ({
   compact = false,
 }) => {
   const theme = useTheme();
-  const router = useRouter();
+  const navigate = useNavigate();
   const { currentModule, setModule } = useModuleStore();
   const isNavigating = useRef(false);
   // Food module hidden for now — switcher cycles Clothing <-> Jewelry only.
@@ -37,14 +38,14 @@ export const ModuleSwitcherButton: React.FC<{ compact?: boolean }> = ({
     requestAnimationFrame(() => {
       setModule(nextModule.id);
       if (nextModule?.route) {
-        router.replace(nextModule.route as any);
+        replaceTo(navigate, nextModule.route as any);
       }
 
       setTimeout(() => {
         isNavigating.current = false;
       }, 300);
     });
-  }, [router, setModule, nextModule]);
+  }, [navigate, setModule, nextModule]);
 
   return (
     <Pressable

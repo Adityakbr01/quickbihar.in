@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
-import * as Haptics from "expo-haptics";
-import { useRouter } from "expo-router";
+import * as Haptics from "@/lib/haptics";
+import { useNavigate } from "react-router-dom";
+import { goTo } from "@/src/utils/navigation";
 import React, { useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
@@ -20,7 +21,7 @@ import { TextInput } from "@/src/theme/components/TextInput";
  */
 export const PhoneMissingBanner: React.FC = () => {
   const theme = useTheme() as any;
-  const router = useRouter();
+  const navigate = useNavigate();
   const { isAuthenticated, user } = useAuthStore();
   const [editing, setEditing] = useState(false);
   const [phone, setPhone] = useState("");
@@ -127,7 +128,7 @@ export const PhoneMissingBanner: React.FC = () => {
           <TouchableOpacity
             onPress={() => {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              router.push("/account/profile-info" as any);
+              goTo(navigate, "/account/profile-info" as any);
             }}
           >
             <Text

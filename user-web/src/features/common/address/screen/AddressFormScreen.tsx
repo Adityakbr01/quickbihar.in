@@ -3,9 +3,10 @@ import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AppIcon } from "@/src/components/common/AppIcon";
 import { Ionicons } from "@expo/vector-icons";
-import * as Haptics from "expo-haptics";
+import * as Haptics from "@/lib/haptics";
 import * as Location from "expo-location";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useNavigate } from "react-router-dom";
+import { goBack, useRouteParams } from "@/src/utils/navigation";
 import React, { useEffect, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import {
@@ -27,13 +28,12 @@ import { reverseGeocodeRequest } from "../api/address.api";
 import { AddressFormValues, addressSchema, AddressType } from "../schema/address.schema";
 import { createAddressStyles } from "../style/addressStyles";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
-import { goBack } from "@/src/utils/navigation";
 
 const AddressFormScreen = () => {
   const theme = useTheme();
   const [isLocating, setIsLocating] = useState(false);
   const styles = createAddressStyles(theme);
-  const router = useRouter();
+  const navigate = useNavigate();
   const storeUser = useAuthStore((s) => s.user);
 
   // Phone verification state — seeded from the auth store so re-visits don't re-verify
@@ -41,7 +41,7 @@ const AddressFormScreen = () => {
     storeUser?.isPhoneVerified ?? false
   );
   const [otpSheetVisible, setOtpSheetVisible] = useState(false);
-  const { id, data } = useLocalSearchParams<{ id?: string, data?: string }>();
+  const { id, data } = useRouteParams<{ id?: string, data?: string }>();
   const isEditing = !!id;
   const [alertConfig, setAlertConfig] = useState<{
     visible: boolean;
@@ -288,7 +288,7 @@ const AddressFormScreen = () => {
         await createAddress.mutateAsync(formData);
       }
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      goBack(router, "/account/addresses");
+      goBack(navigate, "/account/addresses");
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Failed to save address";
       showAlert("Save Failed", message);
@@ -308,11 +308,7 @@ const AddressFormScreen = () => {
 
   const handleBack = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => null);
-    if (router.canGoBack()) {
-      router.back();
-    } else {
-      router.replace("/account/addresses" as any);
-    }
+    goBack(navigate, "/account/addresses");
   };
 
   return (

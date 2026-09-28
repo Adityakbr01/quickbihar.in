@@ -6,8 +6,9 @@ import {
   TouchableOpacity,
   RefreshControl
 } from "react-native";
-import { useRouter } from "expo-router";
-import * as Haptics from "expo-haptics";
+import { useNavigate } from "react-router-dom";
+import { goBack, goTo } from "@/src/utils/navigation";
+import * as Haptics from "@/lib/haptics";
 import { Ionicons } from "@expo/vector-icons";
 import { AppIcon } from "@/src/components/common/AppIcon";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
@@ -23,7 +24,7 @@ import { useState } from "react";
 const SavedAddressesScreen = () => {
   const theme = useTheme();
   const styles = createAddressStyles(theme);
-  const router = useRouter();
+  const navigate = useNavigate();
 
   const { data: addresses, isLoading, refetch } = useAddresses();
   const { deleteAddress, setDefaultAddress } = useAddressActions();
@@ -41,12 +42,12 @@ const SavedAddressesScreen = () => {
 
   const handleAddAddress = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    router.push("/account/address-form");
+    goTo(navigate, "/account/address-form");
   };
 
   const handleEditAddress = (address: IAddress) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    router.push({
+    goTo(navigate, {
       pathname: "/account/address-form",
       params: { id: address._id, data: JSON.stringify(address) }
     });
@@ -96,8 +97,7 @@ const SavedAddressesScreen = () => {
 
   const handleBack = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => null);
-    if (router.canGoBack()) router.back();
-    else router.replace("/(tabs)/clothing/home");
+    goBack(navigate, "/(tabs)/clothing/home");
   };
 
   const renderSkeletons = () => (

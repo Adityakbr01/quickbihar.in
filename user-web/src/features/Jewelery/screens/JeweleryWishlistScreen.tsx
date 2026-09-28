@@ -1,5 +1,6 @@
 import { Feather } from "@expo/vector-icons";
-import { router } from "expo-router";
+import { useNavigate } from "react-router-dom";
+import { goTo } from "@/src/utils/navigation";
 import React, { useMemo } from "react";
 import {
   Platform,
@@ -28,6 +29,7 @@ function WishlistRow({ id, cached }: { id: string; cached?: any }) {
 }
 
 export default function JeweleryWishlistScreen() {
+  const navigate = useNavigate();
   const colors = useColors();
   const insets = useSafeAreaInsets();
   // Stable primitive store subscriptions — compute wishlistIds with useMemo
@@ -97,7 +99,7 @@ export default function JeweleryWishlistScreen() {
           </Text>
           <Pressable
             style={[styles.browseBtn, { borderColor: colors.gold }]}
-            onPress={() => router.push("/jewelery/collections" as any)}
+            onPress={() => goTo(navigate, "/jewelery/collections" as any)}
           >
             <Text
               style={[

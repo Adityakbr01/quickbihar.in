@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
-import * as Haptics from "expo-haptics";
+import * as Haptics from "@/lib/haptics";
 import { AddressType } from "../schema/address.schema";
 import { Theme } from "@/src/theme/Provider/ThemeProvider";
 

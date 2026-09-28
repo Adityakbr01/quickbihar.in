@@ -11,7 +11,7 @@ import {
   View,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import * as Haptics from "expo-haptics";
+import * as Haptics from "@/lib/haptics";
 import Animated, { FadeInDown, LinearTransition } from "react-native-reanimated";
 
 import { useModuleTheme, type ModuleVariant } from "@/src/theme/useModuleTheme";

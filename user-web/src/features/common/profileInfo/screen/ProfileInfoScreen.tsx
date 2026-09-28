@@ -1,7 +1,7 @@
 import IOSAlertDialog from "@/src/components/ui/IOSAlertDialog";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as Haptics from "expo-haptics";
+import * as Haptics from "@/lib/haptics";
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import {

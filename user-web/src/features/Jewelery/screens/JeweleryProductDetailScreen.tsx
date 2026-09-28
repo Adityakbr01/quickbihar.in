@@ -1,6 +1,7 @@
 import { Feather } from "@expo/vector-icons";
-import * as Haptics from "expo-haptics";
-import { router, useLocalSearchParams } from "expo-router";
+import * as Haptics from "@/lib/haptics";
+import { useNavigate } from "react-router-dom";
+import { goTo, useRouteParams } from "@/src/utils/navigation";
 import React, { useState } from "react";
 import {
   ActivityIndicator,
@@ -57,7 +58,8 @@ function Stars({ rating, count }: { rating: number; count: number }) {
 }
 
 export default function JeweleryProductDetailScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { id } = useRouteParams<{ id: string }>();
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { addToCart, toggleWishlist, isWishlisted, cartItems } = useCart();
@@ -97,7 +99,7 @@ export default function JeweleryProductDetailScreen() {
   const handleHelpfulVote = async (reviewId: string) => {
     if (!useAuthStore.getState().isAuthenticated) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-      router.push("/jewelery/auth/sign-in" as any);
+      goTo(navigate, "/jewelery/auth/sign-in" as any);
       return;
     }
     try {
@@ -112,7 +114,7 @@ export default function JeweleryProductDetailScreen() {
   const handleRateAndReview = () => {
     if (!useAuthStore.getState().isAuthenticated) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-      router.push("/jewelery/auth/sign-in" as any);
+      goTo(navigate, "/jewelery/auth/sign-in" as any);
       return;
     }
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -165,7 +167,7 @@ export default function JeweleryProductDetailScreen() {
     };
     const defaultVariantId = tryOnConfig.variants?.[0]?.id;
     if (defaultVariantId) tryOnParams.variantId = defaultVariantId;
-    router.push({ pathname: "/jewelery/try-on" as any, params: tryOnParams });
+    goTo(navigate, { pathname: "/jewelery/try-on" as any, params: tryOnParams });
   };
 
   return (
@@ -178,7 +180,7 @@ export default function JeweleryProductDetailScreen() {
         ]}
       >
         <Pressable
-          onPress={() => goBack(router)}
+          onPress={() => goBack(navigate)}
           style={[
             styles.backBtnInner,
             { backgroundColor: colors.card, borderColor: colors.midGray, borderWidth: 0.5 },
@@ -806,7 +808,7 @@ export default function JeweleryProductDetailScreen() {
             isInCart
               ? () => {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  router.push("/jewelery/(tabs)/cart" as any);
+                  goTo(navigate, "/jewelery/(tabs)/cart" as any);
                 }
               : handleAddToCart
           }

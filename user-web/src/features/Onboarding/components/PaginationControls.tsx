@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import * as Haptics from "expo-haptics";
+import * as Haptics from "@/lib/haptics";
 import React from "react";
 import { StyleSheet, TouchableOpacity, View, Text } from "react-native";
 import Animated, { LinearTransition } from "react-native-reanimated";

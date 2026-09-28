@@ -1,9 +1,10 @@
 import React from "react";
 import { View, Pressable, StyleSheet } from "react-native";
 import { Image } from "expo-image";
-import { useRouter } from "expo-router";
+import { useNavigate } from "react-router-dom";
+import { goTo } from "@/src/utils/navigation";
 import * as WebBrowser from "expo-web-browser";
-import * as Haptics from "expo-haptics";
+import * as Haptics from "@/lib/haptics";
 import { useTrackClick } from "@/src/features/common/banner/hooks/useBanners";
 import { Banner } from "@/src/features/common/banner/types/banner.types";
 
@@ -16,7 +17,7 @@ interface CarouselSlideProps {
 }
 
 const CarouselSlide = ({ item, desktop }: CarouselSlideProps) => {
-  const router = useRouter();
+  const navigate = useNavigate();
   const trackClick = useTrackClick();
 
   const handlePress = async () => {
@@ -28,7 +29,7 @@ const CarouselSlide = ({ item, desktop }: CarouselSlideProps) => {
     // Real-world redirection logic
     switch (item.redirectType) {
       case "category":
-        router.push({
+        goTo(navigate, {
           pathname: "/(tabs)/clothing/search" as any,
           params: {
             categoryId: item.redirectId || "",
@@ -37,14 +38,14 @@ const CarouselSlide = ({ item, desktop }: CarouselSlideProps) => {
         });
         break;
       case "collection":
-        router.push({
+        goTo(navigate, {
           pathname: "/(tabs)/clothing/search" as any,
           params: { query: item.title || "" },
         });
         break;
       case "product":
         if (item.redirectId) {
-          router.push({
+          goTo(navigate, {
             pathname: "/product/[id]" as any,
             params: { id: item.redirectId },
           });

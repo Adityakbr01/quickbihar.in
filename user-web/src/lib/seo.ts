@@ -4,7 +4,7 @@
  * Pure TypeScript — no React, no DOM, no native modules — so it is safe to import
  * from prerendered static routes, API mappers, and the sitemap service alike.
  *
- * Rendering lives in `src/components/seo/SeoHead.tsx` (expo-router `Head` wrapper).
+ * Rendering lives in `src/components/seo/SeoHead.tsx` (react-helmet-async `Helmet` wrapper).
  */
 
 const trimTrailingSlash = (value: string) => (value || "").replace(/\/+$/, "");

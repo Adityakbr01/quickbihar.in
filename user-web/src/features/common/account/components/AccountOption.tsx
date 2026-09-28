@@ -1,6 +1,6 @@
 import { Theme } from "@/src/theme/Provider/ThemeProvider";
 import { AppIcon } from "@/src/components/common/AppIcon";
-import * as Haptics from "expo-haptics";
+import * as Haptics from "@/lib/haptics";
 import React, { useState } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 import Animated, {

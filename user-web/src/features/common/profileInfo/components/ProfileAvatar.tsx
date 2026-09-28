@@ -1,7 +1,7 @@
 import React from "react";
 import { View, TouchableOpacity, Image, ActivityIndicator } from "react-native";
 import * as ImagePicker from "expo-image-picker";
-import * as Haptics from "expo-haptics";
+import * as Haptics from "@/lib/haptics";
 import { AppIcon } from "@/src/components/common/AppIcon";
 import defaultAvatar from "@/assets/images/default-avatar.svg";
 import { Theme } from "@/src/theme/Provider/ThemeProvider";

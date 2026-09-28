@@ -1,8 +1,9 @@
 import React, { useState, useCallback, useEffect } from "react";
 import { StyleSheet, View, ScrollView, Platform, useWindowDimensions } from "react-native";
 import { BREAKPOINTS, DESKTOP } from "@/src/utils/responsive";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import * as Haptics from "expo-haptics";
+import { useNavigate } from "react-router-dom";
+import { goTo, useRouteParams } from "@/src/utils/navigation";
+import * as Haptics from "@/lib/haptics";
 
 import SafeViewWrapper from "@/src/provider/SafeViewWrapper";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
@@ -25,13 +26,13 @@ const TRENDING_ITEMS = categoriesData.map((c) => c.title);
 
 const ClothingSearchScreen = () => {
   const theme = useTheme();
-  const router = useRouter();
+  const navigate = useNavigate();
   const {
     query: initialQuery,
     categoryId,
     categoryName,
     subCategory,
-  } = useLocalSearchParams<{
+  } = useRouteParams<{
     query?: string;
     categoryId?: string;
     categoryName?: string;
@@ -131,7 +132,7 @@ const ClothingSearchScreen = () => {
 
   const handleItemPress = (id: string) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    router.push({ pathname: "/product/[id]", params: { id } } as any);
+    goTo(navigate, { pathname: "/product/[id]", params: { id } } as any);
   };
 
   return (

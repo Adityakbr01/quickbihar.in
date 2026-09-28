@@ -1,6 +1,7 @@
 import { Feather } from "@expo/vector-icons";
-import * as Haptics from "expo-haptics";
-import { router } from "expo-router";
+import * as Haptics from "@/lib/haptics";
+import { useNavigate } from "react-router-dom";
+import { goTo, replaceTo } from "@/src/utils/navigation";
 import React, { useState } from "react";
 import {
   Linking,
@@ -56,6 +57,7 @@ function MenuItem({
   onPress?: () => void;
   last?: boolean;
 }) {
+  const navigate = useNavigate();
   const colors = useColors();
   return (
     <Pressable
@@ -73,7 +75,7 @@ function MenuItem({
           onPress();
           return;
         }
-        if (route) router.push(route as any);
+        if (route) goTo(navigate, route as any);
       }}
     >
       <Feather name={icon as any} size={16} color={colors.gold} />
@@ -173,6 +175,7 @@ function AppearanceSection() {
 }
 
 export default function JeweleryAccountScreen() {
+  const navigate = useNavigate();
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const topPad = useTopPad();
@@ -225,7 +228,7 @@ export default function JeweleryAccountScreen() {
     await useAuthStore.getState().clearAuth();
     queryClient.removeQueries({ queryKey: ["userProfile"] });
     await useCartStore.getState().clearCart().catch(() => {});
-    router.replace("/jewelery/auth/sign-in" as any);
+    replaceTo(navigate, "/jewelery/auth/sign-in" as any);
   };
 
   const initials = user?.name
@@ -361,17 +364,17 @@ export default function JeweleryAccountScreen() {
                 {
                   label: "Orders",
                   value: String(realOrders.length),
-                  onPress: () => router.push("/jewelery/orders" as any),
+                  onPress: () => goTo(navigate, "/jewelery/orders" as any),
                 },
                 {
                   label: "Active",
                   value: String(activeOrders.length),
-                  onPress: () => router.push("/jewelery/orders" as any),
+                  onPress: () => goTo(navigate, "/jewelery/orders" as any),
                 },
                 {
                   label: "Wishlist",
                   value: String(wishlist.length),
-                  onPress: () => router.push("/jewelery/(tabs)/wishlist" as any),
+                  onPress: () => goTo(navigate, "/jewelery/(tabs)/wishlist" as any),
                 },
               ].map((s, i) => (
                 <React.Fragment key={s.label}>
@@ -424,7 +427,7 @@ export default function JeweleryAccountScreen() {
                   styles.activeOrderBanner,
                   { backgroundColor: colors.champagne, borderColor: colors.gold },
                 ]}
-                onPress={() => router.push("/jewelery/orders" as any)}
+                onPress={() => goTo(navigate, "/jewelery/orders" as any)}
               >
                 <Feather name="truck" size={14} color={colors.gold} />
                 <Text
@@ -571,7 +574,7 @@ export default function JeweleryAccountScreen() {
                       backgroundColor: pressed ? colors.goldLight : colors.gold,
                     },
                   ]}
-                  onPress={() => router.push("/jewelery/auth/sign-in" as any)}
+                  onPress={() => goTo(navigate, "/jewelery/auth/sign-in" as any)}
                 >
                   <Text
                     style={[
@@ -592,7 +595,7 @@ export default function JeweleryAccountScreen() {
                         : "transparent",
                     },
                   ]}
-                  onPress={() => router.push("/jewelery/auth/sign-up" as any)}
+                  onPress={() => goTo(navigate, "/jewelery/auth/sign-up" as any)}
                 >
                   <Text
                     style={[

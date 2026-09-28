@@ -1,7 +1,8 @@
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
-import { useRouter } from "expo-router";
-import * as Haptics from "expo-haptics";
+import { useNavigate } from "react-router-dom";
+import { goTo } from "@/src/utils/navigation";
+import * as Haptics from "@/lib/haptics";
 import LazyLottie from "@/src/components/common/LazyLottie";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { createCartStyles } from "../styles/cartStyles";
@@ -13,11 +14,11 @@ import cartLottie from "@/assets/lottie/shoppingCart.json";
 const EmptyCart = () => {
   const theme = useTheme();
   const styles = createCartStyles(theme);
-  const router = useRouter();
+  const navigate = useNavigate();
 
   const handleShopNow = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    router.push("/(tabs)/clothing/home" as any);
+    goTo(navigate, "/(tabs)/clothing/home" as any);
   };
 
   return (

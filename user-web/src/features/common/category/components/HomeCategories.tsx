@@ -16,12 +16,13 @@ import { Image } from "expo-image";
 import { useCategories } from "../hooks/useCategories";
 import { Category } from "../types/category.types";
 import CategorySkeleton from "./CategorySkeleton";
-import { useRouter } from "expo-router";
-import * as Haptics from "expo-haptics";
+import { useNavigate } from "react-router-dom";
+import { goTo } from "@/src/utils/navigation";
+import * as Haptics from "@/lib/haptics";
 
 const HomeCategories = ({ rootSlug = "clothing" }: { rootSlug?: string }) => {
   const theme = useTheme() as any;
-  const router = useRouter();
+  const navigate = useNavigate();
   const { width } = useWindowDimensions();
   const isDesktop = Platform.OS === "web" && width >= BREAKPOINTS.desktopMin;
   const [showAll, setShowAll] = React.useState(false);
@@ -46,7 +47,7 @@ const HomeCategories = ({ rootSlug = "clothing" }: { rootSlug?: string }) => {
       {...({ title: `Shop ${item.title} on QuickBihar` } as any)}
       onPress={() => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-        router.push({
+        goTo(navigate, {
           pathname: "/(tabs)/clothing/search" as any,
           params: {
             query: item.title,
@@ -199,7 +200,7 @@ const HomeCategories = ({ rootSlug = "clothing" }: { rootSlug?: string }) => {
               accessibilityLabel={`Shop ${item.title}`}
               onPress={() => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                router.push({
+                goTo(navigate, {
                   pathname: "/(tabs)/clothing/search" as any,
                   params: {
                     query: item.title,

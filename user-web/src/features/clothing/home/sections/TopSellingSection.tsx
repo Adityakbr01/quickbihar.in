@@ -16,8 +16,9 @@ import { ProductCardSkeleton } from "../components/ProductCardSkeleton";
 import { createTopSellingSectionStyles } from "../style/TopSellingSection.style";
 
 import { useQuery } from "@tanstack/react-query";
-import { useRouter } from "expo-router";
-import * as Haptics from "expo-haptics";
+import { useNavigate } from "react-router-dom";
+import { goTo } from "@/src/utils/navigation";
+import * as Haptics from "@/lib/haptics";
 import {
   getPublicProductsRequest,
   getTrendingProductsRequest,
@@ -29,7 +30,7 @@ const CARD_WIDTH = 240;
 const GAP = 12;
 const TopSellingSection = ({ category }: { category?: string } = {}) => {
   const theme = useTheme() as any;
-  const router = useRouter();
+  const navigate = useNavigate();
   const { width: windowWidth } = useWindowDimensions();
   const isDesktop = Platform.OS === "web" && windowWidth >= BREAKPOINTS.desktopMin;
   // Mobile: 240px card but shrink on very small phones / foldables so at
@@ -57,7 +58,7 @@ const TopSellingSection = ({ category }: { category?: string } = {}) => {
 
   const handleSeeAll = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    router.push({
+    goTo(navigate, {
       pathname: "/top-selling",
       params: category ? { category } : undefined,
     });

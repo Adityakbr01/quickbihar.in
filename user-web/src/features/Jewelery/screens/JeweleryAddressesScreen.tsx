@@ -1,6 +1,7 @@
 import { Feather, Ionicons } from "@expo/vector-icons";
-import * as Haptics from "expo-haptics";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import * as Haptics from "@/lib/haptics";
+import { useNavigate } from "react-router-dom";
+import { goBack, goTo, replaceTo, useRouteParams } from "@/src/utils/navigation";
 import React, { useState } from "react";
 import {
   ActivityIndicator,
@@ -23,11 +24,11 @@ import { useTopPad } from "@/src/hooks/useTopPad";
 
 export default function JeweleryAddressesScreen() {
   const colors = useColors();
-  const router = useRouter();
+  const navigate = useNavigate();
   const topPad = useTopPad();
   const insets = useSafeAreaInsets();
   const bottomPad = Platform.OS === "web" ? 34 : Math.max(insets.bottom, 20);
-  const { returnTo } = useLocalSearchParams<{ returnTo?: string }>();
+  const { returnTo } = useRouteParams<{ returnTo?: string }>();
 
   const { data: addresses, isLoading, refetch } = useAddresses();
   const { deleteAddress, setDefaultAddress } = useAddressActions();
@@ -45,7 +46,7 @@ export default function JeweleryAddressesScreen() {
 
   const handleAddAddress = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    router.push({
+    goTo(navigate, {
       pathname: "/jewelery/address-form" as any,
       params: returnTo ? { returnTo } : {},
     });
@@ -53,7 +54,7 @@ export default function JeweleryAddressesScreen() {
 
   const handleEditAddress = (address: IAddress) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    router.push({
+    goTo(navigate, {
       pathname: "/jewelery/address-form" as any,
       params: {
         id: address._id,
@@ -110,11 +111,9 @@ export default function JeweleryAddressesScreen() {
   const handleBack = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     if (returnTo) {
-      router.replace(returnTo as any);
-    } else if (router.canGoBack()) {
-      router.back();
+      replaceTo(navigate, returnTo as any);
     } else {
-      router.replace("/jewelery/(tabs)/profile" as any);
+      goBack(navigate, "/jewelery/(tabs)/profile");
     }
   };
 

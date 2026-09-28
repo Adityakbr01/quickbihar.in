@@ -2,7 +2,7 @@ import React from "react";
 import { View, Text, TouchableOpacity, ActivityIndicator } from "react-native";
 import { Image } from "expo-image";
 import { AppIcon } from "@/src/components/common/AppIcon";
-import * as Haptics from "expo-haptics";
+import * as Haptics from "@/lib/haptics";
 import * as ImagePicker from "expo-image-picker";
 import { Theme } from "@/src/theme/Provider/ThemeProvider";
 import IOSAlertDialog from "@/src/components/ui/IOSAlertDialog";

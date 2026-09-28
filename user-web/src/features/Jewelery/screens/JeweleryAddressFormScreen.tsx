@@ -1,8 +1,9 @@
 import { Feather, Ionicons } from "@expo/vector-icons";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as Haptics from "expo-haptics";
+import * as Haptics from "@/lib/haptics";
 import * as Location from "expo-location";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useNavigate } from "react-router-dom";
+import { goBack, replaceTo, useRouteParams } from "@/src/utils/navigation";
 import React, { useEffect, useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import {
@@ -36,12 +37,12 @@ import { useTopPad } from "@/src/hooks/useTopPad";
 
 export default function JeweleryAddressFormScreen() {
   const colors = useColors();
-  const router = useRouter();
+  const navigate = useNavigate();
   const topPad = useTopPad();
   const insets = useSafeAreaInsets();
   const bottomPad = Platform.OS === "web" ? 34 : Math.max(insets.bottom, 20);
 
-  const { id, data, returnTo } = useLocalSearchParams<{
+  const { id, data, returnTo } = useRouteParams<{
     id?: string;
     data?: string;
     returnTo?: string;
@@ -306,11 +307,9 @@ export default function JeweleryAddressFormScreen() {
 
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       if (returnTo) {
-        router.replace(returnTo as any);
-      } else if (router.canGoBack()) {
-        router.back();
+        replaceTo(navigate, returnTo as any);
       } else {
-        router.replace("/jewelery/addresses" as any);
+        goBack(navigate, "/jewelery/addresses");
       }
     } catch (err: any) {
       const msg = err instanceof Error ? err.message : "Failed to save address";
@@ -321,11 +320,9 @@ export default function JeweleryAddressFormScreen() {
   const handleBack = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     if (returnTo) {
-      router.replace(returnTo as any);
-    } else if (router.canGoBack()) {
-      router.back();
+      replaceTo(navigate, returnTo as any);
     } else {
-      router.replace("/jewelery/addresses" as any);
+      goBack(navigate, "/jewelery/addresses");
     }
   };
 

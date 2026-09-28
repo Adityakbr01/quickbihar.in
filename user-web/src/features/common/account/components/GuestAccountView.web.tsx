@@ -1,6 +1,7 @@
 import React from "react";
-import * as Haptics from "expo-haptics";
-import { useRouter } from "expo-router";
+import * as Haptics from "@/lib/haptics";
+import { useNavigate } from "react-router-dom";
+import { goTo } from "@/src/utils/navigation";
 import {
   ChevronRight,
   Heart,
@@ -20,7 +21,7 @@ import { useTheme } from "@/src/theme/Provider/ThemeProvider";
  */
 export default function GuestAccountView() {
   const theme = useTheme() as any;
-  const router = useRouter();
+  const navigate = useNavigate();
   const isDark = !!theme.isDark;
 
   const goAuth = () => {
@@ -29,7 +30,7 @@ export default function GuestAccountView() {
         (Haptics as any)?.ImpactFeedbackStyle?.Medium,
       );
     } catch {}
-    router.push("/auth" as any);
+    goTo(navigate, "/auth" as any);
   };
 
   const perks = [

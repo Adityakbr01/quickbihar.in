@@ -1,7 +1,7 @@
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import { useFocusEffect, useRouter } from "expo-router";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Image,
@@ -25,15 +25,15 @@ import { createOrderStyles } from "../style/orderStyles";
 import IOSAlertDialog, {
   AlertButton,
 } from "@/src/components/ui/IOSAlertDialog";
-import * as Haptics from "expo-haptics";
-import { goBack } from "@/src/utils/navigation";
+import * as Haptics from "@/lib/haptics";
+import { goBack, goTo, replaceTo } from "@/src/utils/navigation";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
 import { PhoneMissingBanner } from "../components/PhoneMissingBanner";
 
 const CheckoutScreen = () => {
   const theme = useTheme();
   const styles = createOrderStyles(theme);
-  const router = useRouter();
+  const navigate = useNavigate();
 
   const {
     items: allItems,
@@ -125,15 +125,14 @@ const CheckoutScreen = () => {
 
   // Refetch addresses every time the checkout screen comes into focus
   // so a newly-added address is never stale (the root cause of the bug).
-  useFocusEffect(
-    useCallback(() => {
-      if (!isAuthenticated) {
-        router.replace("/auth" as any);
-        return;
-      }
-      fetchAddresses();
-    }, [isAuthenticated])
-  );
+  useEffect(() => {
+    if (!isAuthenticated) {
+      replaceTo(navigate, "/auth" as any);
+      return;
+    }
+    fetchAddresses();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated]);
 
   useEffect(() => {
     fetchShippingConfig();
@@ -248,7 +247,7 @@ const CheckoutScreen = () => {
           {
             text: "Update Address",
             onPress: () =>
-              router.push({
+              goTo(navigate, {
                 pathname: "/account/address-form",
                 params: { id: selectedAddress._id, data: JSON.stringify(selectedAddress) },
               }),
@@ -291,7 +290,7 @@ const CheckoutScreen = () => {
       // step and no razorpayOrder), so go straight to the success screen.
       if (paymentMethod === "COD" || !razorpayOrder) {
         clearCart("clothing");
-        router.replace({
+        replaceTo(navigate, {
           pathname: "/order-success",
           params: { orderId: order.orderId },
         });
@@ -331,7 +330,7 @@ const CheckoutScreen = () => {
 
             // 4. Success!
             clearCart("clothing");
-            router.replace({
+            replaceTo(navigate, {
               pathname: "/order-success",
               params: { orderId: order.orderId },
             });
@@ -391,7 +390,7 @@ const CheckoutScreen = () => {
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
-          onPress={() => goBack(router, "/clothing/cart")}
+          onPress={() => goBack(navigate, "/clothing/cart")}
         >
           <Ionicons name="arrow-back" size={24} color={theme.text} />
         </TouchableOpacity>
@@ -412,7 +411,7 @@ const CheckoutScreen = () => {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Delivery Address</Text>
-            <TouchableOpacity onPress={() => router.push("/account/addresses")}>
+            <TouchableOpacity onPress={() => goTo(navigate, "/account/addresses")}>
               <Text style={styles.changeButtonText}>
                 {selectedAddress ? "Change" : "Add Address"}
               </Text>
@@ -474,7 +473,7 @@ const CheckoutScreen = () => {
           ) : (
             <TouchableOpacity
               style={{ alignItems: "center", paddingVertical: 10 }}
-              onPress={() => router.push("/account/addresses")}
+              onPress={() => goTo(navigate, "/account/addresses")}
             >
               <Text style={{ color: theme.secondaryText }}>
                 No address selected

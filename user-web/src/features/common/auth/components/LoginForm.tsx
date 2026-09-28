@@ -9,8 +9,9 @@ import {
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Ionicons } from "@expo/vector-icons";
-import * as Haptics from "expo-haptics";
-import { useRouter } from "expo-router";
+import * as Haptics from "@/lib/haptics";
+import { useNavigate } from "react-router-dom";
+import { goTo } from "@/src/utils/navigation";
 
 import { TextInput } from "@/src/theme/components/TextInput";
 import { loginSchema, LoginFormData } from "../validation/auth.schema";
@@ -30,7 +31,7 @@ export const LoginForm: React.FC<AuthFormProps & { login: any }> = ({
 }) => {
   const theme = useTheme() as any;
   const styles = createAuthStyles(theme);
-  const router = useRouter();
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const passwordRef = useRef<RNTextInput>(null);
 
@@ -142,7 +143,7 @@ export const LoginForm: React.FC<AuthFormProps & { login: any }> = ({
         activeOpacity={0.7}
         onPress={() => {
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-          router.push("/auth/forgot-password" as any);
+          goTo(navigate, "/auth/forgot-password" as any);
         }}
       >
         <Text

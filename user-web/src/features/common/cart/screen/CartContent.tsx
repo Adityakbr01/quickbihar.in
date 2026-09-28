@@ -2,7 +2,7 @@ import React, { useEffect, useMemo } from "react";
 import { Platform, View, ScrollView, TouchableOpacity, Text, ActivityIndicator, useWindowDimensions } from "react-native";
 import { BREAKPOINTS, DESKTOP } from "@/src/utils/responsive";
 import { Ionicons } from "@expo/vector-icons";
-import * as Haptics from "expo-haptics";
+import * as Haptics from "@/lib/haptics";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { createCartStyles } from "../styles/cartStyles";
 import { useCartStore, filterItemsByModule, totalsForItems } from "../store/cartStore";
@@ -11,7 +11,8 @@ import CartItem from "../components/CartItem";
 import CartSummary from "../components/CartSummary";
 import EmptyCart from "../components/EmptyCart";
 import CouponInput from "../components/CouponInput";
-import { useRouter } from "expo-router";
+import { useNavigate } from "react-router-dom";
+import { goTo } from "@/src/utils/navigation";
 import { Alert } from "react-native";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
 import { AnimatedPrice } from "@/src/components/common/AnimatedPrice";
@@ -59,7 +60,7 @@ const CartContent = () => {
     removeItem(sku);
   };
 
-  const router = useRouter();
+  const navigate = useNavigate();
   const { isAuthenticated } = useAuthStore();
   const { width: winW } = useWindowDimensions();
   // Desktop web (clothing catalog): wider centered column + footer docks
@@ -69,16 +70,16 @@ const CartContent = () => {
   const handleCheckout = () => {
     if (!isAuthenticated) {
       if (Platform.OS === "web") {
-        router.push("/auth" as any);
+        goTo(navigate, "/auth" as any);
         return;
       }
       Alert.alert("Login Required", "Please login to place an order", [
         { text: "Cancel", style: "cancel" },
-        { text: "Login", onPress: () => router.push("/auth" as any) },
+        { text: "Login", onPress: () => goTo(navigate, "/auth" as any) },
       ]);
       return;
     }
-    router.push("/checkout" as any);
+    goTo(navigate, "/checkout" as any);
   };
 
   if (isLoading && items.length === 0) {

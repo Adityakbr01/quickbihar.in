@@ -8,8 +8,9 @@ import {
   RefreshControl,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import * as Haptics from "expo-haptics";
-import { useRouter } from "expo-router";
+import * as Haptics from "@/lib/haptics";
+import { useNavigate } from "react-router-dom";
+import { goBack, goTo } from "@/src/utils/navigation";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { createWishlistStyles } from "../styles/wishlistStyles";
 import { useWishlist } from "../hooks/useWishlist";
@@ -20,7 +21,7 @@ import SafeViewWrapper from "@/src/provider/SafeViewWrapper";
 const WishlistScreen = () => {
   const theme = useTheme() as any;
   const styles = createWishlistStyles(theme);
-  const router = useRouter();
+  const navigate = useNavigate();
   const { data: items = [], isLoading, refetch } = useWishlist();
   const toggleWishlist = useWishlistStore((state) => state.toggleItem);
 
@@ -31,8 +32,7 @@ const WishlistScreen = () => {
 
   const handleBack = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => null);
-    if (router.canGoBack()) router.back();
-    else router.replace("/(tabs)/clothing/home");
+    goBack(navigate, "/(tabs)/clothing/home");
   };
 
   const renderSkeletons = () => (
@@ -92,7 +92,7 @@ const WishlistScreen = () => {
             </Text>
             <TouchableOpacity
               style={styles.shopBtn}
-              onPress={() => router.push("/")}
+              onPress={() => goTo(navigate, "/")}
               activeOpacity={0.8}
             >
               <Text style={styles.shopBtnText}>Continue Shopping</Text>
@@ -140,7 +140,7 @@ const WishlistScreen = () => {
                     style={styles.card}
                     activeOpacity={0.88}
                     onPress={() =>
-                      router.push({
+                      goTo(navigate, {
                         pathname: "/product/[id]",
                         params: { id: navId },
                       })

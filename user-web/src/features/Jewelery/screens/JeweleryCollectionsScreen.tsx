@@ -1,6 +1,7 @@
 import { Feather } from "@expo/vector-icons";
-import * as Haptics from "expo-haptics";
-import { router } from "expo-router";
+import * as Haptics from "@/lib/haptics";
+import { useNavigate } from "react-router-dom";
+import { goTo } from "@/src/utils/navigation";
 import React, { useMemo, useState } from "react";
 import {
   ActivityIndicator,
@@ -21,6 +22,7 @@ import { useColors } from "@/src/features/Jewelery/hooks/useColors";
 import { resolveJeweleryCollectionImage } from "@/src/features/Jewelery/screens/JeweleryHomeScreen";
 
 export default function JeweleryCollectionsScreen() {
+  const navigate = useNavigate();
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const [activeTab, setActiveTab] = useState("All");
@@ -73,7 +75,7 @@ export default function JeweleryCollectionsScreen() {
         </Text>
         <Pressable onPress={() => {
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-          router.push("/jewelery/search" as any);
+          goTo(navigate, "/jewelery/search" as any);
         }} hitSlop={8}>
           <Feather name="search" size={20} color={colors.ink} />
         </Pressable>
