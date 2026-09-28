@@ -12,7 +12,7 @@ import { createCartStyles } from "../styles/cartStyles";
 import { useCartStore, type AppliedCoupon } from "../store/cartStore";
 import { AnimatedPrice } from "@/src/components/common/AnimatedPrice";
 
-import { Ionicons } from "@expo/vector-icons";
+import { ChevronDown, ChevronUp } from "lucide-react";
 
 interface CartSummaryProps {
   subtotal: number;
@@ -70,16 +70,14 @@ const CartSummary = ({
           <Text style={styles.summaryLabel} numberOfLines={1}>
             Coupon ({coupon.code})
           </Text>
-          <AnimatedPrice
-            value={-(coupon.appliedDiscount || 0)}
+          <AnimatedPrice value={-(coupon.appliedDiscount || 0)}
             showMinus
             duration={550}
             style={[styles.summaryValue, { color: theme.primary }]}
           />
         </View>
         {isPartial ? (
-          <Text
-            style={[
+          <Text style={[
               styles.summaryHint,
               { color: theme.secondaryText, marginTop: 2 },
             ]}
@@ -95,8 +93,7 @@ const CartSummary = ({
 
   return (
     <View style={styles.summaryContainer}>
-      <TouchableOpacity
-        style={styles.summaryHeaderRow}
+      <TouchableOpacity style={styles.summaryHeaderRow}
         onPress={toggle}
         activeOpacity={0.7}
         accessibilityRole="button"
@@ -107,16 +104,14 @@ const CartSummary = ({
       >
         <Text style={styles.summaryTitle}>Bill Summary</Text>
         <View style={styles.summaryHeaderRight}>
-          <AnimatedPrice
-            value={total}
+          <AnimatedPrice value={total}
             style={styles.summaryHeaderTotal}
           />
-          <Ionicons
-            name={expanded ? "chevron-up" : "chevron-down"}
-            size={18}
-            color={theme.secondaryText}
-            style={{ marginLeft: 6 }}
-          />
+          {expanded ? (
+            <ChevronUp size={18} color={theme.secondaryText} style={{ marginLeft: 6 }} />
+          ) : (
+            <ChevronDown size={18} color={theme.secondaryText} style={{ marginLeft: 6 }} />
+          )}
         </View>
       </TouchableOpacity>
 
@@ -124,8 +119,7 @@ const CartSummary = ({
         <View style={styles.summaryBody}>
           <View style={styles.summaryRow}>
             <Text style={styles.summaryLabel}>Subtotal</Text>
-            <AnimatedPrice
-              value={subtotal - totalTax}
+            <AnimatedPrice value={subtotal - totalTax}
               style={styles.summaryValue}
             />
           </View>
@@ -135,8 +129,7 @@ const CartSummary = ({
               <Text style={[styles.summaryLabel, { color: theme.secondaryText }]}>
                 Taxes & GST (Included)
               </Text>
-              <AnimatedPrice
-                value={totalTax}
+              <AnimatedPrice value={totalTax}
                 style={[styles.summaryValue, { color: theme.secondaryText }]}
               />
             </View>
@@ -147,8 +140,7 @@ const CartSummary = ({
             {shipping === 0 ? (
               <Text style={[styles.summaryValue, { color: theme.primary }]}>FREE</Text>
             ) : (
-              <AnimatedPrice
-                value={shipping}
+              <AnimatedPrice value={shipping}
                 style={styles.summaryValue}
               />
             )}
@@ -157,8 +149,7 @@ const CartSummary = ({
           {discount > 0 ? (
             <View style={styles.summaryRow}>
               <Text style={styles.summaryLabel}>Product Discount</Text>
-              <AnimatedPrice
-                value={-discount}
+              <AnimatedPrice value={-discount}
                 showMinus
                 duration={550}
                 style={[styles.summaryValue, { color: theme.primary }]}
@@ -173,8 +164,7 @@ const CartSummary = ({
               <Text style={styles.summaryLabel}>
                 Coupon {appliedCoupon ? `(${appliedCoupon.code})` : ""}
               </Text>
-              <AnimatedPrice
-                value={-couponsTotalDiscount}
+              <AnimatedPrice value={-couponsTotalDiscount}
                 showMinus
                 duration={550}
                 style={[styles.summaryValue, { color: theme.primary }]}
@@ -186,8 +176,7 @@ const CartSummary = ({
 
           <View style={styles.summaryRow}>
             <Text style={styles.totalLabel}>Total Amount</Text>
-            <AnimatedPrice
-              value={total}
+            <AnimatedPrice value={total}
               duration={750}
               style={styles.totalValue}
             />

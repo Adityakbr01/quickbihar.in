@@ -1,6 +1,6 @@
 import React from "react";
 import { Pressable, StyleSheet, ViewStyle, View } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { Square, SquareCheckBig } from "lucide-react";
 import { useTheme } from "../Provider/ThemeProvider";
 import ThemedText from "./ThemedText";
 import Animated, {
@@ -53,8 +53,7 @@ export const Checkbox: React.FC<CheckboxProps> = ({
   });
 
   return (
-    <Pressable
-      style={[styles.container, style]}
+    <Pressable style={[styles.container, style]}
       onPress={() => onChange(!checked)}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
@@ -63,11 +62,11 @@ export const Checkbox: React.FC<CheckboxProps> = ({
       accessibilityLabel={label}
     >
       <Animated.View style={[styles.iconContainer, animatedStyle]}>
-        <Ionicons
-          name={checked ? "checkbox" : "square-outline"}
-          size={24}
-          color={checked ? theme.primary : theme.secondaryText}
-        />
+        {checked ? (
+          <SquareCheckBig size={24} color={theme.primary} />
+        ) : (
+          <Square size={24} color={theme.secondaryText} />
+        )}
       </Animated.View>
       <ThemedText style={styles.label}>{label}</ThemedText>
     </Pressable>

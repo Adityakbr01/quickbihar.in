@@ -2,7 +2,8 @@ import IOSAlertDialog, { AlertButton } from "@/src/components/ui/IOSAlertDialog"
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AppIcon } from "@/src/components/common/AppIcon";
-import { Ionicons } from "@expo/vector-icons";
+import { Bookmark, ChevronLeft, MapPin, Navigation, Phone, ShieldCheck, User } from "lucide-react";
+import { WhatsappIcon } from "@/src/components/common/BrandIcons";
 import * as Haptics from "@/lib/haptics";
 import * as Location from "expo-location";
 import { useNavigate } from "react-router-dom";
@@ -315,12 +316,11 @@ const AddressFormScreen = () => {
     <View style={styles.container}>
       {/* Top app bar (same style as Notifications & Saved Addresses) */}
       <View style={styles.appBar}>
-        <TouchableOpacity
-          onPress={handleBack}
+        <TouchableOpacity onPress={handleBack}
           style={styles.backButton}
           activeOpacity={0.7}
         >
-          <Ionicons name="chevron-back" size={22} color={theme.text} />
+          <ChevronLeft size={22} color={theme.text} />
         </TouchableOpacity>
 
         <View style={styles.appBarTitleWrap}>
@@ -337,21 +337,18 @@ const AddressFormScreen = () => {
         <View style={{ width: 40 }} />
       </View>
 
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={styles.mainWrapper}
       >
-        <ScrollView
-          contentContainerStyle={styles.formContainer}
+        <ScrollView contentContainerStyle={styles.formContainer}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
 
-        <AddressInput
-          control={control}
+        <AddressInput control={control}
           name="fullName"
           label="Full Name"
-          icon="person-outline"
+          icon={User}
           placeholder="e.g. Aditya Kumar"
           errors={errors}
           theme={theme}
@@ -359,11 +356,10 @@ const AddressFormScreen = () => {
         />
 
         {/* ── Phone Number field with OTP verification ─────────────── */}
-        <AddressInput
-          control={control}
+        <AddressInput control={control}
           name="phone"
           label="Phone Number"
-          icon="call-outline"
+          icon={Phone}
           placeholder="e.g. 9876543210"
           errors={errors}
           theme={theme}
@@ -382,11 +378,10 @@ const AddressFormScreen = () => {
         {isPhoneVerified ? (
           <View style={{ flexDirection: "row", alignItems: "center", gap: 10, marginTop: 6 }}>
             <View style={styles.verifiedBadge}>
-              <Ionicons name="shield-checkmark" size={14} color="#16a34a" />
+              <ShieldCheck size={14} color="#16a34a" />
               <Text style={styles.verifiedBadgeText}>Number Verified</Text>
             </View>
-            <TouchableOpacity
-              onPress={() => {
+            <TouchableOpacity onPress={() => {
                 setIsPhoneVerified(false);
                 setOtpSheetVisible(true);
               }}
@@ -395,17 +390,15 @@ const AddressFormScreen = () => {
             </TouchableOpacity>
           </View>
         ) : (
-          <TouchableOpacity
-            style={styles.verifyButton}
+          <TouchableOpacity style={styles.verifyButton}
             onPress={() => setOtpSheetVisible(true)}
           >
-            <Ionicons name="logo-whatsapp" size={15} color={theme.primary} />
+            <WhatsappIcon size={15} color={theme.primary} />
             <Text style={styles.verifyButtonText}>Verify via WhatsApp</Text>
           </TouchableOpacity>
         )}
 
-        <LocationFetchButton
-          isLocating={isLocating}
+        <LocationFetchButton isLocating={isLocating}
           onFetch={handleFetchLocation}
           latitude={latitude}
           longitude={longitude}
@@ -413,18 +406,16 @@ const AddressFormScreen = () => {
           styles={styles}
         />
 
-        <AddressTypeSelector
-          selectedType={addressType}
+        <AddressTypeSelector selectedType={addressType}
           onSelect={(type) => setValue("addressType", type)}
           theme={theme}
           styles={styles}
         />
 
-        <AddressInput
-          control={control}
+        <AddressInput control={control}
           name="street"
           label="Street Address"
-          icon="location-outline"
+          icon={MapPin}
           placeholder="House No, Street name..."
           errors={errors}
           theme={theme}
@@ -434,11 +425,10 @@ const AddressFormScreen = () => {
 
         <View style={styles.row}>
           <View style={styles.half}>
-            <AddressInput
-              control={control}
+            <AddressInput control={control}
               name="city"
               label="City"
-              icon="location-outline"
+              icon={MapPin}
               placeholder="e.g. Patna"
               errors={errors}
               theme={theme}
@@ -446,11 +436,10 @@ const AddressFormScreen = () => {
             />
           </View>
           <View style={styles.half}>
-            <AddressInput
-              control={control}
+            <AddressInput control={control}
               name="state"
               label="State"
-              icon="bookmark-outline"
+              icon={Bookmark}
               placeholder="e.g. Bihar"
               errors={errors}
               theme={theme}
@@ -461,11 +450,10 @@ const AddressFormScreen = () => {
 
         <View style={styles.row}>
           <View style={styles.half}>
-            <AddressInput
-              control={control}
+            <AddressInput control={control}
               name="pincode"
               label="Pincode"
-              icon="bookmark-outline"
+              icon={Bookmark}
               placeholder="6 digits"
               errors={errors}
               theme={theme}
@@ -474,11 +462,10 @@ const AddressFormScreen = () => {
             />
           </View>
           <View style={styles.half}>
-            <AddressInput
-              control={control}
+            <AddressInput control={control}
               name="landmark"
               label="Landmark (Opt)"
-              icon="navigate-outline"
+              icon={Navigation}
               placeholder="Near..."
               errors={errors}
               theme={theme}
@@ -487,8 +474,7 @@ const AddressFormScreen = () => {
           </View>
         </View>
 
-        <TouchableOpacity
-          style={styles.submitButton}
+        <TouchableOpacity style={styles.submitButton}
           onPress={handleSubmit(onSubmit, onInvalidSubmit)}
           disabled={createAddress.isPending || updateAddress.isPending}
         >
@@ -503,8 +489,7 @@ const AddressFormScreen = () => {
       </ScrollView>
     </KeyboardAvoidingView>
 
-    <IOSAlertDialog
-      visible={alertConfig.visible}
+    <IOSAlertDialog visible={alertConfig.visible}
       title={alertConfig.title}
       message={alertConfig.message}
       buttons={alertConfig.buttons}
@@ -512,8 +497,7 @@ const AddressFormScreen = () => {
     />
 
     {/* Phone OTP verification sheet */}
-    <PhoneOtpSheet
-      visible={otpSheetVisible}
+    <PhoneOtpSheet visible={otpSheetVisible}
       initialPhone={phoneValue || storeUser?.phone || ""}
       onVerified={(verifiedPhone) => {
         setValue("phone", verifiedPhone);

@@ -1,4 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
+import { Lock, ShieldCheck, Store, TriangleAlert, Zap } from "lucide-react";
 import { Image } from "expo-image";
 import React, { useState } from "react";
 import {
@@ -37,9 +37,9 @@ import splashIcon from "@/assets/images/icons/splash-icon.png";
 const GOLD = "#C9A05A";
 
 const ASSURANCES = [
-  { icon: "flash-outline" as const, label: "Express delivery" },
-  { icon: "shield-checkmark-outline" as const, label: "100% genuine" },
-  { icon: "storefront-outline" as const, label: "Local stores" },
+  { icon: Zap, label: "Express delivery" },
+  { icon: ShieldCheck, label: "100% genuine" },
+  { icon: Store, label: "Local stores" },
 ];
 
 export default function AuthScreen() {
@@ -80,30 +80,25 @@ export default function AuthScreen() {
 
   return (
     <View style={[styles.screen, { backgroundColor: theme.background }]}>
-      <StatusBar
-        barStyle="light-content"
+      <StatusBar barStyle="light-content"
         translucent
         backgroundColor="transparent"
       />
 
-      <ScrollView
-        style={{ flex: 1 }}
+      <ScrollView style={{ flex: 1 }}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ flexGrow: 1 }}
       >
-        <View
-          style={[
+        <View style={[
             localStyles.hero,
             { height: isDesktop ? 340 : compact ? 232 : 260 },
           ]}
         >
-          <LinearGradient
-            colors={["#211913", "#14110D", "#0E0C09"]}
+          <LinearGradient colors={["#211913", "#14110D", "#0E0C09"]}
             locations={[0, 0.55, 1]}
             style={StyleSheet.absoluteFill}
           />
-          <LinearGradient
-            colors={[`${GOLD}24`, `${GOLD}0A`, "transparent"]}
+          <LinearGradient colors={[`${GOLD}24`, `${GOLD}0A`, "transparent"]}
             locations={[0, 0.55, 1]}
             style={StyleSheet.absoluteFill}
           />
@@ -116,12 +111,10 @@ export default function AuthScreen() {
             ]}
           >
             <View style={localStyles.glowWrap}>
-              <View
-                style={[localStyles.glow, { backgroundColor: `${GOLD}14` }]}
+              <View style={[localStyles.glow, { backgroundColor: `${GOLD}14` }]}
               />
               <View style={localStyles.logoRing}>
-                <Image
-                  source={splashIcon}
+                <Image source={splashIcon}
                   style={localStyles.logoImage}
                   contentFit="contain"
                   alt="QuickBihar logo"
@@ -135,8 +128,7 @@ export default function AuthScreen() {
           </Animated.View>
         </View>
 
-        <View
-          style={[
+        <View style={[
             localStyles.sheet,
             {
               backgroundColor: theme.background,
@@ -150,16 +142,14 @@ export default function AuthScreen() {
           ]}
         >
           <Animated.View entering={enter(220)} style={localStyles.titleBlock}>
-            <Text
-              style={[
+            <Text style={[
                 localStyles.title,
                 { color: theme.text, fontSize: compact ? 27 : 30 },
               ]}
             >
               Welcome to {APP_NAME}
             </Text>
-            <Text
-              style={[
+            <Text style={[
                 localStyles.subtitle,
                 { color: theme.secondaryText, marginTop: compact ? 6 : 8 },
               ]}
@@ -180,8 +170,7 @@ export default function AuthScreen() {
             ]}
           >
             {ASSURANCES.map((item, i) => (
-              <View
-                key={item.label}
+              <View key={item.label}
                 style={[
                   localStyles.assuranceCell,
                   compact && { paddingVertical: 12 },
@@ -191,7 +180,7 @@ export default function AuthScreen() {
                   },
                 ]}
               >
-                <Ionicons name={item.icon} size={20} color={theme.primary} />
+                <item.icon size={20} color={theme.primary} />
                 <Text style={[localStyles.assuranceLabel, { color: theme.text }]}>
                   {item.label}
                 </Text>
@@ -204,17 +193,15 @@ export default function AuthScreen() {
             style={[localStyles.ctaBlock, compact && { marginTop: 16 }]}
           >
             {apiError && (
-              <View
-                style={styles.errorBanner}
+              <View style={styles.errorBanner}
                 accessibilityRole="alert"
                 accessibilityLiveRegion="assertive"
               >
-                <Ionicons name="warning-outline" size={20} color="#fca5a5" />
+                <TriangleAlert size={20} color="#fca5a5" />
                 <Text style={styles.errorBannerText}>{apiError}</Text>
               </View>
             )}
-            <GoogleSignInButton
-              mode="signin"
+            <GoogleSignInButton mode="signin"
               disabled={googlePending}
               onSuccess={(idToken) => {
                 handleGoogleSuccess(idToken).catch(() => {
@@ -224,13 +211,8 @@ export default function AuthScreen() {
               onError={(msg) => setApiError(msg)}
             />
             <View style={[localStyles.secureRow, compact && { marginTop: 10 }]}>
-              <Ionicons
-                name="lock-closed"
-                size={12}
-                color={theme.secondaryText}
-              />
-              <Text
-                style={[localStyles.secureText, { color: theme.secondaryText }]}
+              <Lock size={12} color={theme.secondaryText} />
+              <Text style={[localStyles.secureText, { color: theme.secondaryText }]}
               >
                 Secured by Google — we never see your password. New here? Your
                 account is created automatically.

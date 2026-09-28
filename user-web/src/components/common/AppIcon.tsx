@@ -1,25 +1,21 @@
-import { Ionicons } from "@expo/vector-icons";
-import type { ComponentProps } from "react";
-import type { StyleProp, TextStyle } from "react-native";
-
-export type AppIconName = ComponentProps<typeof Ionicons>["name"];
+import type { LucideIcon } from "lucide-react";
+import type { CSSProperties } from "react";
 
 interface AppIconProps {
-  name: AppIconName;
+  icon: LucideIcon;
   size?: number;
   color?: string;
-  style?: StyleProp<TextStyle>;
+  style?: CSSProperties;
 }
 
 /**
- * Single icon system for the app — Expo recommended `@expo/vector-icons`
- * (font-based, no extra native weight).
+ * Single icon system for the app — lucide-react (tree-shakeable,
+ * consistent 24px stroke style).
  *
- * Replaces `@hugeicons/react-native` + `sweet-sfsymbols` (removed).
- * Pass any Ionicons name, e.g. `<AppIcon name="home-outline" size={22} />`.
+ * Pass any lucide icon component, e.g. `<AppIcon icon={House} size={22} />`.
  */
-export function AppIcon({ name, size = 20, color, style }: AppIconProps) {
-  return <Ionicons name={name} size={size} color={color} style={style} />;
+export function AppIcon({ icon: Icon, size = 20, color, style }: AppIconProps) {
+  return <Icon size={size} color={color} style={style} />;
 }
 
 export default AppIcon;

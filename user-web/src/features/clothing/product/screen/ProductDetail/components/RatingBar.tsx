@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Text } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { Star } from "lucide-react";
 import { styles as s } from "../styles";
 
 interface RatingBarProps {
@@ -17,10 +17,9 @@ export const RatingBar = ({ stars, count, total, theme }: RatingBarProps) => {
       <Text style={[s.ratingBarLabel, { color: theme.secondaryText }]}>
         {stars}
       </Text>
-      <Ionicons name="star" size={10} color="#F59E0B" />
+      <Star size={10} color="#F59E0B" fill="#F59E0B" />
       <View style={[s.ratingBarTrack, { backgroundColor: theme.border }]}>
-        <View
-          style={[
+        <View style={[
             s.ratingBarFill,
             {
               width: `${pct}%`,

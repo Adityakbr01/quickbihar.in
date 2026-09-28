@@ -2,7 +2,7 @@ import React, { useRef, useState } from "react";
 import { View, TouchableOpacity, Text, ActivityIndicator } from "react-native";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Ionicons } from "@expo/vector-icons";
+import { Eye, EyeOff, Lock, Mail, User } from "lucide-react";
 import * as Haptics from "@/lib/haptics";
 
 import { TextInput } from "@/src/theme/components/TextInput";
@@ -57,12 +57,10 @@ export const RegisterForm: React.FC<AuthFormProps & { register: any }> = ({
 
   return (
     <View style={[styles.form, loading && { opacity: 0.7 }]}>
-      <Controller
-        control={control}
+      <Controller control={control}
         name="fullName"
         render={({ field: { onChange, onBlur, value } }) => (
-          <TextInput
-            label="Full Name"
+          <TextInput label="Full Name"
             variant="glass"
             placeholder="Your name"
             autoCapitalize="words"
@@ -74,23 +72,17 @@ export const RegisterForm: React.FC<AuthFormProps & { register: any }> = ({
             editable={!loading}
             error={errors.fullName?.message}
             icon={
-              <Ionicons
-                name="person-outline"
-                size={20}
-                color={theme.secondaryText}
-              />
+              <User size={20} color={theme.secondaryText} />
             }
           />
         )}
       />
 
       <View style={{ marginTop: 12 }}>
-        <Controller
-          control={control}
+        <Controller control={control}
           name="email"
           render={({ field: { onChange, onBlur, value } }) => (
-            <TextInput
-              ref={emailRef}
+            <TextInput ref={emailRef}
               label="Email Address"
               variant="glass"
               placeholder="name@example.com"
@@ -105,11 +97,7 @@ export const RegisterForm: React.FC<AuthFormProps & { register: any }> = ({
               editable={!loading}
               error={errors.email?.message}
               icon={
-                <Ionicons
-                  name="mail-outline"
-                  size={20}
-                  color={theme.secondaryText}
-                />
+                <Mail size={20} color={theme.secondaryText} />
               }
             />
           )}
@@ -117,12 +105,10 @@ export const RegisterForm: React.FC<AuthFormProps & { register: any }> = ({
       </View>
 
       <View style={{ marginTop: 12 }}>
-        <Controller
-          control={control}
+        <Controller control={control}
           name="password"
           render={({ field: { onChange, onBlur, value } }) => (
-            <TextInput
-              ref={passwordRef}
+            <TextInput ref={passwordRef}
               label="Password"
               variant="glass"
               placeholder="At least 8 characters"
@@ -136,26 +122,21 @@ export const RegisterForm: React.FC<AuthFormProps & { register: any }> = ({
               editable={!loading}
               error={errors.password?.message}
               icon={
-                <Ionicons
-                  name="lock-closed-outline"
-                  size={20}
-                  color={theme.secondaryText}
-                />
+                <Lock size={20} color={theme.secondaryText} />
               }
               rightIcon={
-                <TouchableOpacity
-                  onPress={() => {
+                <TouchableOpacity onPress={() => {
                     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                     setShowPassword(!showPassword);
                   }}
                   style={{ padding: 4 }}
                   hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                 >
-                  <Ionicons
-                    name={showPassword ? "eye-off-outline" : "eye-outline"}
-                    size={20}
-                    color={theme.secondaryText}
-                  />
+                  {showPassword ? (
+                    <EyeOff size={20} color={theme.secondaryText} />
+                  ) : (
+                    <Eye size={20} color={theme.secondaryText} />
+                  )}
                 </TouchableOpacity>
               }
             />
@@ -163,8 +144,7 @@ export const RegisterForm: React.FC<AuthFormProps & { register: any }> = ({
         />
       </View>
 
-      <TouchableOpacity
-        style={[styles.continueBtn, { marginTop: 24 }]}
+      <TouchableOpacity style={[styles.continueBtn, { marginTop: 24 }]}
         activeOpacity={0.85}
         onPress={handleSubmit(handleRegister)}
         disabled={loading}

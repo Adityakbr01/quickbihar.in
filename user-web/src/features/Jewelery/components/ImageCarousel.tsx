@@ -1,4 +1,4 @@
-import { Feather } from "@expo/vector-icons";
+import { ChevronLeft, ChevronRight, Image as ImageIcon } from "lucide-react";
 import React, { useRef, useState } from "react";
 import {
   FlatList,
@@ -53,15 +53,14 @@ export function ImageCarousel({ images }: ImageCarouselProps) {
   const safeImages = (images ?? []).filter(Boolean);
   if (safeImages.length === 0) {
     return (
-      <View
-        style={{
+      <View style={{
           height: imageHeight,
           alignItems: "center",
           justifyContent: "center",
           backgroundColor: colors.champagne,
         }}
       >
-        <Feather name="image" size={40} color={colors.gold} />
+        <ImageIcon size={40} color={colors.gold} />
       </View>
     );
   }
@@ -70,8 +69,7 @@ export function ImageCarousel({ images }: ImageCarouselProps) {
     <View>
       {/* Main image pager */}
       <View style={{ height: imageHeight }}>
-        <FlatList
-          ref={flatListRef}
+        <FlatList ref={flatListRef}
           data={safeImages}
           horizontal
           pagingEnabled
@@ -86,8 +84,7 @@ export function ImageCarousel({ images }: ImageCarouselProps) {
           })}
           decelerationRate="fast"
           renderItem={({ item }) => (
-            <Image
-              source={item}
+            <Image source={item}
               style={{ width, height: imageHeight }}
               resizeMode="cover"
             />
@@ -97,8 +94,7 @@ export function ImageCarousel({ images }: ImageCarouselProps) {
         {/* Dot indicators overlay */}
         <View style={styles.dots}>
           {safeImages.map((_, i) => (
-            <View
-              key={i}
+            <View key={i}
               style={[
                 styles.dot,
                 {
@@ -114,33 +110,30 @@ export function ImageCarousel({ images }: ImageCarouselProps) {
         </View>
 
         {/* Counter badge */}
-        <View
-          style={[
+        <View style={[
             styles.counterBadge,
             { backgroundColor: `${colors.ink}8C` },
           ]}
         >
-          <Feather name="image" size={10} color={colors.onBrand} style={{ marginRight: 4 }} />
+          <ImageIcon size={10} color={colors.onBrand} style={{ marginRight: 4 }} />
           <View style={{ width: 0 }} />
         </View>
 
         {/* Left / right arrows */}
         {activeIndex > 0 && (
-          <Pressable
-            style={[styles.arrow, styles.arrowLeft, { backgroundColor: `${colors.pearl}D9` }]}
+          <Pressable style={[styles.arrow, styles.arrowLeft, { backgroundColor: `${colors.pearl}D9` }]}
             onPress={() => handleThumbPress(activeIndex - 1)}
             hitSlop={8}
           >
-            <Feather name="chevron-left" size={18} color={colors.ink} />
+            <ChevronLeft size={18} color={colors.ink} />
           </Pressable>
         )}
         {activeIndex < safeImages.length - 1 && (
-          <Pressable
-            style={[styles.arrow, styles.arrowRight, { backgroundColor: `${colors.pearl}D9` }]}
+          <Pressable style={[styles.arrow, styles.arrowRight, { backgroundColor: `${colors.pearl}D9` }]}
             onPress={() => handleThumbPress(activeIndex + 1)}
             hitSlop={8}
           >
-            <Feather name="chevron-right" size={18} color={colors.ink} />
+            <ChevronRight size={18} color={colors.ink} />
           </Pressable>
         )}
       </View>
@@ -148,8 +141,7 @@ export function ImageCarousel({ images }: ImageCarouselProps) {
       {/* Thumbnail strip */}
       {safeImages.length > 1 && (
         <View style={[styles.thumbStrip, { backgroundColor: colors.pearl }]}>
-          <FlatList
-            ref={thumbListRef}
+          <FlatList ref={thumbListRef}
             data={safeImages}
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -161,8 +153,7 @@ export function ImageCarousel({ images }: ImageCarouselProps) {
               index,
             })}
             renderItem={({ item, index }) => (
-              <Pressable
-                onPress={() => handleThumbPress(index)}
+              <Pressable onPress={() => handleThumbPress(index)}
                 style={[
                   styles.thumb,
                   {
@@ -173,8 +164,7 @@ export function ImageCarousel({ images }: ImageCarouselProps) {
                   },
                 ]}
               >
-                <Image
-                  source={item}
+                <Image source={item}
                   style={styles.thumbImage}
                   resizeMode="cover"
                 />

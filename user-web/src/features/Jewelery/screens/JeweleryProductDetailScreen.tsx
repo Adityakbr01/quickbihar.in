@@ -1,4 +1,4 @@
-import { Feather } from "@expo/vector-icons";
+import { ArrowLeft, ArrowRight, Award, Camera, Check, CircleCheck, Gift, Heart, PenLine, RefreshCw, ShoppingBag, Star, ThumbsUp, Truck } from "lucide-react";
 import * as Haptics from "@/lib/haptics";
 import { useNavigate } from "react-router-dom";
 import { goTo, useRouteParams } from "@/src/utils/navigation";
@@ -38,15 +38,9 @@ function Stars({ rating, count }: { rating: number; count: number }) {
   return (
     <View style={styles.starsRow}>
       {[1, 2, 3, 4, 5].map((s) => (
-        <Feather
-          key={s}
-          name="star"
-          size={12}
-          color={s <= Math.round(rating) ? colors.gold : colors.midGray}
-        />
+        <Star key={s} size={12} color={s <= Math.round(rating) ? colors.gold : colors.midGray} />
       ))}
-      <Text
-        style={[
+      <Text style={[
           styles.ratingText,
           { color: colors.warmGray, fontFamily: "DMSans_400Regular" },
         ]}
@@ -173,24 +167,21 @@ export default function JeweleryProductDetailScreen() {
   return (
     <View style={[styles.root, { backgroundColor: colors.ivory }]}>
       {/* Back button overlay */}
-      <View
-        style={[
+      <View style={[
           styles.backBtn,
           { top: (Platform.OS === "web" ? 16 : insets.top) + 10 },
         ]}
       >
-        <Pressable
-          onPress={() => goBack(navigate)}
+        <Pressable onPress={() => goBack(navigate)}
           style={[
             styles.backBtnInner,
             { backgroundColor: colors.card, borderColor: colors.midGray, borderWidth: 0.5 },
           ]}
           hitSlop={8}
         >
-          <Feather name="arrow-left" size={18} color={colors.ink} />
+          <ArrowLeft size={18} color={colors.ink} />
         </Pressable>
-        <Pressable
-          onPress={() => {
+        <Pressable onPress={() => {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
             toggleWishlist(product);
           }}
@@ -200,11 +191,7 @@ export default function JeweleryProductDetailScreen() {
           ]}
           hitSlop={8}
         >
-          <Feather
-            name="heart"
-            size={18}
-            color={wishlisted ? colors.gold : colors.ink}
-          />
+          <Heart size={18} color={wishlisted ? colors.gold : colors.ink} />
         </Pressable>
       </View>
 
@@ -216,8 +203,7 @@ export default function JeweleryProductDetailScreen() {
         <View style={[styles.content, { backgroundColor: colors.ivory }]}>
           {/* Breadcrumb — real collection only, never a hardcoded category */}
           {product.collection ? (
-            <Text
-              style={[
+            <Text style={[
                 styles.breadcrumb,
                 { color: colors.warmGray, fontFamily: "DMSans_400Regular" },
               ]}
@@ -227,8 +213,7 @@ export default function JeweleryProductDetailScreen() {
           ) : null}
 
           {/* Name & rating */}
-          <Text
-            style={[
+          <Text style={[
               styles.productName,
               {
                 color: colors.ink,
@@ -241,16 +226,14 @@ export default function JeweleryProductDetailScreen() {
           {totalReviews > 0 ? (
             <Stars rating={averageRating} count={totalReviews} />
           ) : (
-            <Pressable
-              onPress={handleRateAndReview}
+            <Pressable onPress={handleRateAndReview}
               style={[
                 styles.firstReviewTeaser,
                 { borderColor: colors.gold, backgroundColor: colors.champagne },
               ]}
             >
-              <Feather name="star" size={14} color={colors.gold} />
-              <Text
-                style={[
+              <Star size={14} color={colors.gold} />
+              <Text style={[
                   styles.firstReviewText,
                   { color: colors.ink, fontFamily: "DMSans_500Medium" },
                 ]}
@@ -262,8 +245,7 @@ export default function JeweleryProductDetailScreen() {
 
           {/* Price */}
           <View style={styles.priceRow}>
-            <Text
-              style={[
+            <Text style={[
                 styles.price,
                 { color: colors.ink, fontFamily: "DMSans_500Medium" },
               ]}
@@ -271,8 +253,7 @@ export default function JeweleryProductDetailScreen() {
               {APP_CURRENCY}{product.price.toLocaleString("en-IN")}
             </Text>
             {product.originalPrice && (
-              <Text
-                style={[
+              <Text style={[
                   styles.originalPrice,
                   {
                     color: colors.warmGray,
@@ -286,8 +267,7 @@ export default function JeweleryProductDetailScreen() {
           </View>
 
           {/* Description */}
-          <Text
-            style={[
+          <Text style={[
               styles.description,
               {
                 color: colors.warmGray,
@@ -301,8 +281,7 @@ export default function JeweleryProductDetailScreen() {
           {/* Occasions */}
           <View style={styles.occasionRow}>
             {product.occasions.map((o) => (
-              <View
-                key={o}
+              <View key={o}
                 style={[
                   styles.occasionTag,
                   {
@@ -311,8 +290,7 @@ export default function JeweleryProductDetailScreen() {
                   },
                 ]}
               >
-                <Text
-                  style={[
+                <Text style={[
                     styles.occasionTagText,
                     { color: colors.warmGray, fontFamily: "DMSans_400Regular" },
                   ]}
@@ -324,26 +302,24 @@ export default function JeweleryProductDetailScreen() {
           </View>
 
           {/* Delivery & trust */}
-          <View
-            style={[
+          <View style={[
               styles.trustSection,
               { backgroundColor: colors.pearl, borderColor: colors.midGray },
             ]}
           >
             {[
-              { icon: "truck", text: "Ships in 3–5 days" },
-              { icon: "refresh-cw", text: `Free returns ${JEWELERY_MODULE_CONFIG.returnPolicyDays} days` },
+              { icon: Truck, text: "Ships in 3–5 days" },
+              { icon: RefreshCw, text: `Free returns ${JEWELERY_MODULE_CONFIG.returnPolicyDays} days` },
               // Hallmark is a real-data claim — only shown when the piece
               // actually carries a hallmark/BIS mark.
               ...(product.hallmarked
-                ? [{ icon: "award", text: "Hallmark certified" }]
+                ? [{ icon: Award, text: "Hallmark certified" }]
                 : []),
-              { icon: "gift", text: "Gift box included" },
+              { icon: Gift, text: "Gift box included" },
             ].map((t) => (
               <View key={t.text} style={styles.trustItem}>
-                <Feather name={t.icon as any} size={13} color={colors.gold} />
-                <Text
-                  style={[
+                <t.icon size={13} color={colors.gold} />
+                <Text style={[
                     styles.trustText,
                     {
                       color: colors.warmGray,
@@ -358,11 +334,9 @@ export default function JeweleryProductDetailScreen() {
           </View>
 
           {/* Craftsmanship */}
-          <View
-            style={[styles.craftSection, { borderTopColor: colors.midGray }]}
+          <View style={[styles.craftSection, { borderTopColor: colors.midGray }]}
           >
-            <Text
-              style={[
+            <Text style={[
                 styles.craftLabel,
                 { color: colors.gold, fontFamily: "DMSans_500Medium" },
               ]}
@@ -380,8 +354,7 @@ export default function JeweleryProductDetailScreen() {
                 .filter(Boolean)
                 .map((spec) => (
                   <View key={spec!.key} style={styles.specItem}>
-                    <Text
-                      style={[
+                    <Text style={[
                         styles.specKey,
                         {
                           color: colors.warmGray,
@@ -391,8 +364,7 @@ export default function JeweleryProductDetailScreen() {
                     >
                       {spec!.key}
                     </Text>
-                    <Text
-                      style={[
+                    <Text style={[
                         styles.specVal,
                         { color: colors.ink, fontFamily: "DMSans_500Medium" },
                       ]}
@@ -403,8 +375,7 @@ export default function JeweleryProductDetailScreen() {
                 ))}
             </View>
             {product.craftDetail ? (
-              <Text
-                style={[
+              <Text style={[
                   styles.craftDetail,
                   {
                     color: colors.warmGray,
@@ -419,11 +390,9 @@ export default function JeweleryProductDetailScreen() {
 
           {/* Ratings & Reviews — same review pipeline as clothing,
               dressed in the jewellery theme */}
-          <View
-            style={[styles.reviewsSection, { borderTopColor: colors.midGray }]}
+          <View style={[styles.reviewsSection, { borderTopColor: colors.midGray }]}
           >
-            <Text
-              style={[
+            <Text style={[
                 styles.reviewsLabel,
                 { color: colors.gold, fontFamily: "DMSans_500Medium" },
               ]}
@@ -435,8 +404,7 @@ export default function JeweleryProductDetailScreen() {
             {totalReviews > 0 ? (
               <View style={styles.summaryRow}>
                 <View style={styles.summaryLeft}>
-                  <Text
-                    style={[
+                  <Text style={[
                       styles.bigRating,
                       {
                         color: colors.ink,
@@ -447,8 +415,7 @@ export default function JeweleryProductDetailScreen() {
                     {averageRating > 0 ? averageRating.toFixed(1) : "0.0"}
                   </Text>
                   <Stars rating={averageRating} count={totalReviews} />
-                  <Text
-                    style={[
+                  <Text style={[
                       styles.summaryCount,
                       {
                         color: colors.warmGray,
@@ -469,8 +436,7 @@ export default function JeweleryProductDetailScreen() {
                         : 0;
                     return (
                       <View key={star} style={styles.distRow}>
-                        <Text
-                          style={[
+                        <Text style={[
                             styles.distStar,
                             {
                               color: colors.warmGray,
@@ -480,14 +446,12 @@ export default function JeweleryProductDetailScreen() {
                         >
                           {star}★
                         </Text>
-                        <View
-                          style={[
+                        <View style={[
                             styles.distTrack,
                             { backgroundColor: colors.pearl },
                           ]}
                         >
-                          <View
-                            style={[
+                          <View style={[
                               styles.distFill,
                               {
                                 backgroundColor: colors.gold,
@@ -496,8 +460,7 @@ export default function JeweleryProductDetailScreen() {
                             ]}
                           />
                         </View>
-                        <Text
-                          style={[
+                        <Text style={[
                             styles.distCount,
                             {
                               color: colors.warmGray,
@@ -514,8 +477,7 @@ export default function JeweleryProductDetailScreen() {
               </View>
             ) : null}
 
-            <Pressable
-              onPress={handleRateAndReview}
+            <Pressable onPress={handleRateAndReview}
               style={[
                 styles.rateBtn,
                 {
@@ -524,9 +486,8 @@ export default function JeweleryProductDetailScreen() {
                 },
               ]}
             >
-              <Feather name="edit-3" size={14} color={colors.gold} />
-              <Text
-                style={[
+              <PenLine size={14} color={colors.gold} />
+              <Text style={[
                   styles.rateBtnText,
                   { color: colors.gold, fontFamily: "DMSans_500Medium" },
                 ]}
@@ -537,8 +498,7 @@ export default function JeweleryProductDetailScreen() {
 
             {reviewsList.length === 0 ? (
               <View style={styles.emptyReviewsWrap}>
-                <Text
-                  style={[
+                <Text style={[
                     styles.emptyReviewsTitle,
                     {
                       color: colors.ink,
@@ -548,8 +508,7 @@ export default function JeweleryProductDetailScreen() {
                 >
                   No reviews yet
                 </Text>
-                <Text
-                  style={[
+                <Text style={[
                     styles.emptyReviewsSub,
                     {
                       color: colors.warmGray,
@@ -580,23 +539,20 @@ export default function JeweleryProductDetailScreen() {
                         ? colors.gold
                         : colors.maroon;
                   return (
-                    <View
-                      key={review._id || review.id || idx}
+                    <View key={review._id || review.id || idx}
                       style={[
                         styles.reviewCard,
                         { borderBottomColor: colors.midGray },
                       ]}
                     >
                       <View style={styles.reviewTopRow}>
-                        <View
-                          style={[styles.ratingPill, { backgroundColor: pillBg }]}
+                        <View style={[styles.ratingPill, { backgroundColor: pillBg }]}
                         >
                           <Text style={[styles.ratingPillText, { color: colors.onBrand }]}>
                             {review.rating} ★
                           </Text>
                         </View>
-                        <Text
-                          style={[
+                        <Text style={[
                             styles.reviewTitle,
                             {
                               color: colors.ink,
@@ -608,8 +564,7 @@ export default function JeweleryProductDetailScreen() {
                           {review.title || "Customer Review"}
                         </Text>
                       </View>
-                      <Text
-                        style={[
+                      <Text style={[
                           styles.reviewBody,
                           {
                             color: colors.warmGray,
@@ -620,8 +575,7 @@ export default function JeweleryProductDetailScreen() {
                         {review.comment}
                       </Text>
                       <View style={styles.reviewerRow}>
-                        <Text
-                          style={[
+                        <Text style={[
                             styles.reviewerName,
                             {
                               color: colors.ink,
@@ -634,13 +588,8 @@ export default function JeweleryProductDetailScreen() {
                         </Text>
                         {review.isVerifiedBuyer ? (
                           <View style={styles.verifiedRow}>
-                            <Feather
-                              name="check-circle"
-                              size={12}
-                              color={colors.gold}
-                            />
-                            <Text
-                              style={[
+                            <CircleCheck size={12} color={colors.gold} />
+                            <Text style={[
                                 styles.verifiedText,
                                 {
                                   color: colors.gold,
@@ -652,8 +601,7 @@ export default function JeweleryProductDetailScreen() {
                             </Text>
                           </View>
                         ) : null}
-                        <Text
-                          style={[
+                        <Text style={[
                             styles.reviewerDate,
                             {
                               color: colors.warmGray,
@@ -664,8 +612,7 @@ export default function JeweleryProductDetailScreen() {
                           · {formattedDate}
                         </Text>
                         <View style={{ flex: 1 }} />
-                        <Pressable
-                          onPress={() =>
+                        <Pressable onPress={() =>
                             review._id && handleHelpfulVote(review._id)
                           }
                           hitSlop={8}
@@ -681,13 +628,8 @@ export default function JeweleryProductDetailScreen() {
                             },
                           ]}
                         >
-                          <Feather
-                            name="thumbs-up"
-                            size={12}
-                            color={voted ? colors.gold : colors.warmGray}
-                          />
-                          <Text
-                            style={[
+                          <ThumbsUp size={12} color={voted ? colors.gold : colors.warmGray} />
+                          <Text style={[
                               styles.helpfulText,
                               {
                                 color: voted
@@ -711,16 +653,14 @@ export default function JeweleryProductDetailScreen() {
           {/* Related products */}
           {related.length > 0 && (
             <View style={styles.relatedSection}>
-              <Text
-                style={[
+              <Text style={[
                   styles.relatedLabel,
                   { color: colors.gold, fontFamily: "DMSans_500Medium" },
                 ]}
               >
                 YOU MAY ALSO LOVE
               </Text>
-              <Text
-                style={[
+              <Text style={[
                   styles.relatedTitle,
                   {
                     color: colors.ink,
@@ -746,8 +686,7 @@ export default function JeweleryProductDetailScreen() {
           visible (the page scrolls at document level, so in-flow would
           park it at the end of the content). Native keeps it in-flow
           below its bounded ScrollView. */}
-      <View
-        style={[
+      <View style={[
           styles.stickyBar,
           {
             backgroundColor: colors.ivory,
@@ -768,22 +707,16 @@ export default function JeweleryProductDetailScreen() {
           },
         ]}
       >
-        <Pressable
-          style={[styles.wishlistStickyBtn, { borderColor: colors.midGray }]}
+        <Pressable style={[styles.wishlistStickyBtn, { borderColor: colors.midGray }]}
           onPress={() => {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
             toggleWishlist(product);
           }}
         >
-          <Feather
-            name="heart"
-            size={18}
-            color={wishlisted ? colors.gold : colors.ink}
-          />
+          <Heart size={18} color={wishlisted ? colors.gold : colors.ink} />
         </Pressable>
         {canTryOn && (
-          <Pressable
-            onPress={handleTryOn}
+          <Pressable onPress={handleTryOn}
             style={({ pressed }) => [
               styles.tryOnBtn,
               {
@@ -792,9 +725,8 @@ export default function JeweleryProductDetailScreen() {
               },
             ]}
           >
-            <Feather name="camera" size={16} color={colors.gold} />
-            <Text
-              style={[
+            <Camera size={16} color={colors.gold} />
+            <Text style={[
                 styles.tryOnText,
                 { color: colors.gold, fontFamily: "DMSans_500Medium" },
               ]}
@@ -803,8 +735,7 @@ export default function JeweleryProductDetailScreen() {
             </Text>
           </Pressable>
         )}
-        <Pressable
-          onPress={
+        <Pressable onPress={
             isInCart
               ? () => {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -827,13 +758,14 @@ export default function JeweleryProductDetailScreen() {
             },
           ]}
         >
-          <Feather
-            name={isInCart ? "arrow-right" : addedToCart ? "check" : "shopping-bag"}
-            size={16}
-            color={colors.onBrand}
-          />
-          <Text
-            style={[
+          {isInCart ? (
+            <ArrowRight size={16} color={colors.onBrand} />
+          ) : addedToCart ? (
+            <Check size={16} color={colors.onBrand} />
+          ) : (
+            <ShoppingBag size={16} color={colors.onBrand} />
+          )}
+          <Text style={[
               styles.addToCartText,
               { color: colors.onBrand, fontFamily: "DMSans_500Medium" },
             ]}
@@ -849,8 +781,7 @@ export default function JeweleryProductDetailScreen() {
 
       {/* Write-a-review sheet — same review pipeline as clothing,
           rendered in the jewellery palette */}
-      <WriteReviewModal
-        visible={showReviewModal}
+      <WriteReviewModal visible={showReviewModal}
         onClose={() => setShowReviewModal(false)}
         onSubmit={async (reviewData) => {
           await createReviewMutation.mutateAsync(reviewData);

@@ -3,6 +3,7 @@ import { View, TouchableOpacity, Image, ActivityIndicator } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import * as Haptics from "@/lib/haptics";
 import { AppIcon } from "@/src/components/common/AppIcon";
+import { Camera } from "lucide-react";
 import defaultAvatar from "@/assets/images/default-avatar.svg";
 import { Theme } from "@/src/theme/Provider/ThemeProvider";
 
@@ -81,7 +82,7 @@ const ProfileAvatar: React.FC<ProfileAvatarProps> = ({
         onPress={handlePickImage}
         disabled={isUpdating}
       >
-        <AppIcon name="camera-outline" size={16} color="#fff" />
+        <AppIcon icon={Camera} size={16} color="#fff" />
       </TouchableOpacity>
     </View>
   );

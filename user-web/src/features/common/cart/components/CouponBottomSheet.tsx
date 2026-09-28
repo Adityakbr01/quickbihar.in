@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { Check, CheckCheck, CircleCheck, Lock, Sparkles, Tag, Ticket } from "lucide-react";
 import * as Haptics from "@/lib/haptics";
 import { ICoupon } from "@/src/features/common/coupon/types/coupon.types";
 import { CartItem } from "../store/cartStore";
@@ -264,8 +264,7 @@ export const CouponBottomSheet: React.FC<CouponBottomSheetProps> = ({
     const moreCount = matchingItems.length - visibleItemNames.length;
 
     return (
-      <View
-        key={coupon._id || coupon.code}
+      <View key={coupon._id || coupon.code}
         style={[
           styles.couponCard,
           isApplied && styles.couponCardApplied,
@@ -276,14 +275,12 @@ export const CouponBottomSheet: React.FC<CouponBottomSheetProps> = ({
           {/* Code pill + discount badge — flex row that gracefully
               truncates instead of overflowing the action button. */}
           <View style={styles.codePillRow}>
-            <View
-              style={[
+            <View style={[
                 styles.codePill,
                 !isApplicable && !isApplied && styles.codePillDisabled,
               ]}
             >
-              <Text
-                style={[
+              <Text style={[
                   styles.codeText,
                   !isApplicable && !isApplied && styles.codeTextDisabled,
                 ]}
@@ -298,8 +295,7 @@ export const CouponBottomSheet: React.FC<CouponBottomSheetProps> = ({
                 already conveys the amount. */}
             {!isApplied ? (
               <View style={styles.discountBadge}>
-                <Text
-                  style={styles.discountBadgeText}
+                <Text style={styles.discountBadgeText}
                   numberOfLines={1}
                   ellipsizeMode="tail"
                 >
@@ -314,15 +310,10 @@ export const CouponBottomSheet: React.FC<CouponBottomSheetProps> = ({
           {isApplied ? (
             <View style={styles.appliedChipWrap}>
               <View style={styles.appliedChip}>
-                <Ionicons
-                  name="checkmark-circle"
-                  size={15}
-                  color={theme.primary}
-                />
+                <CircleCheck size={15} color={theme.primary} />
                 <Text style={styles.appliedChipText}>Applied</Text>
               </View>
-              <TouchableOpacity
-                onPress={() => handleRemove(coupon.code)}
+              <TouchableOpacity onPress={() => handleRemove(coupon.code)}
                 hitSlop={{ top: 10, bottom: 10, left: 8, right: 8 }}
                 style={styles.removeLinkWrap}
                 activeOpacity={0.6}
@@ -331,8 +322,7 @@ export const CouponBottomSheet: React.FC<CouponBottomSheetProps> = ({
               </TouchableOpacity>
             </View>
           ) : (
-            <TouchableOpacity
-              style={[
+            <TouchableOpacity style={[
                 styles.applyBtn,
                 !isApplicable && styles.applyBtnDisabled,
               ]}
@@ -343,8 +333,7 @@ export const CouponBottomSheet: React.FC<CouponBottomSheetProps> = ({
               {isCurrentlyApplying ? (
                 <ActivityIndicator size="small" color="#fff" />
               ) : (
-                <Text
-                  style={[
+                <Text style={[
                     styles.applyBtnText,
                     !isApplicable && styles.applyBtnTextDisabled,
                   ]}
@@ -358,8 +347,7 @@ export const CouponBottomSheet: React.FC<CouponBottomSheetProps> = ({
 
         {/* Description */}
         {coupon.description ? (
-          <Text
-            style={[
+          <Text style={[
               styles.couponDesc,
               !isApplicable && !isApplied && styles.couponDescMuted,
             ]}
@@ -372,11 +360,7 @@ export const CouponBottomSheet: React.FC<CouponBottomSheetProps> = ({
         {/* Per-item coverage — drives the SPECIFIC-product UX. */}
         {showCoverage ? (
           <View style={styles.coverageRow}>
-            <Ionicons
-              name="checkmark-circle"
-              size={13}
-              color={theme.primary}
-            />
+            <CircleCheck size={13} color={theme.primary} />
             <Text style={styles.coverageText} numberOfLines={2}>
               Applies on {matchingItems.length} of {totalCartItems} item
               {totalCartItems === 1 ? "" : "s"}:{" "}
@@ -392,25 +376,21 @@ export const CouponBottomSheet: React.FC<CouponBottomSheetProps> = ({
         <View style={styles.statusRow}>
           {isApplicable && !isApplied && (
             <View style={styles.savingsTag}>
-              <Ionicons name="sparkles" size={13} color={theme.primary} />
+              <Sparkles size={13} color={theme.primary} />
               <Text style={styles.savingsTagText}>{reason}</Text>
             </View>
           )}
 
           {!isApplicable && !isApplied && (
             <View style={styles.lockedTag}>
-              <Ionicons
-                name="lock-closed-outline"
-                size={13}
-                color={theme.secondaryText}
-              />
+              <Lock size={13} color={theme.secondaryText} />
               <Text style={styles.lockedTagText}>{reason}</Text>
             </View>
           )}
 
           {isApplied && (
             <View style={styles.savingsTag}>
-              <Ionicons name="checkmark" size={13} color={theme.primary} />
+              <Check size={13} color={theme.primary} />
               <Text style={styles.savingsTagText}>
                 Saving ₹{discountAmount.toLocaleString()} with this code
               </Text>
@@ -428,13 +408,11 @@ export const CouponBottomSheet: React.FC<CouponBottomSheetProps> = ({
   };
 
   return (
-    <Sheet
-      ref={sheet}
+    <Sheet ref={sheet}
       onDidDismiss={onClose}
       backgroundColor={theme.background}
     >
-      <SheetHeader
-        title="Coupons & Offers"
+      <SheetHeader title="Coupons & Offers"
         onClose={onClose}
         right={
           coupons.length > 0 ? (
@@ -446,23 +424,17 @@ export const CouponBottomSheet: React.FC<CouponBottomSheetProps> = ({
       />
 
       {/* Manual Coupon Input inside Sheet */}
-      <TextInput
-        placeholder="Enter coupon code"
+      <TextInput placeholder="Enter coupon code"
         placeholderTextColor={theme.secondaryText}
         value={manualCode}
         onChangeText={setManualCode}
         autoCapitalize="characters"
         autoCorrect={false}
         icon={
-          <Ionicons
-            name="pricetag-outline"
-            size={18}
-            color={theme.secondaryText}
-          />
+          <Tag size={18} color={theme.secondaryText} />
         }
         rightIcon={
-          <TouchableOpacity
-            style={[
+          <TouchableOpacity style={[
               styles.manualApplyBtn,
               {
                 backgroundColor: manualCode.trim()
@@ -492,17 +464,12 @@ export const CouponBottomSheet: React.FC<CouponBottomSheetProps> = ({
       />
 
       {/* Coupon List */}
-      <ScrollView
-        showsVerticalScrollIndicator={false}
+      <ScrollView showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
         {coupons.length === 0 ? (
           <View style={styles.emptyState}>
-            <Ionicons
-              name="ticket-outline"
-              size={48}
-              color={theme.secondaryText}
-            />
+            <Ticket size={48} color={theme.secondaryText} />
             <Text style={styles.emptyTitle}>No Coupons Available</Text>
             <Text style={styles.emptySubtitle}>
               Check back later or enter a promo code above if you have one.
@@ -514,11 +481,7 @@ export const CouponBottomSheet: React.FC<CouponBottomSheetProps> = ({
             {applicableCoupons.length > 0 && (
               <View style={styles.sectionContainer}>
                 <View style={styles.sectionHeader}>
-                  <Ionicons
-                    name="checkmark-done-circle"
-                    size={16}
-                    color={theme.primary}
-                  />
+                  <CheckCheck size={16} color={theme.primary} />
                   <Text style={styles.sectionTitle}>
                     {(() => {
                       // For each applicable coupon, the union of items it
@@ -548,13 +511,8 @@ export const CouponBottomSheet: React.FC<CouponBottomSheetProps> = ({
             {lockedCoupons.length > 0 && (
               <View style={styles.sectionContainer}>
                 <View style={styles.sectionHeader}>
-                  <Ionicons
-                    name="lock-closed-outline"
-                    size={16}
-                    color={theme.secondaryText}
-                  />
-                  <Text
-                    style={[
+                  <Lock size={16} color={theme.secondaryText} />
+                  <Text style={[
                       styles.sectionTitle,
                       { color: theme.secondaryText },
                     ]}

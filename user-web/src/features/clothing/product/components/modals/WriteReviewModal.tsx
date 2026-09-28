@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { Star } from "lucide-react";
 import { Theme } from "@/src/theme/Provider/ThemeProvider";
 import * as Haptics from "@/lib/haptics";
 
@@ -113,15 +113,13 @@ export const WriteReviewModal: React.FC<WriteReviewModalProps> = ({
 
   return (
       <Sheet ref={sheet} onDidDismiss={onClose} backgroundColor={theme.background} cornerRadius={theme.radius ?? 24}>
-      <SheetHeader
-        title="Write a Review"
+      <SheetHeader title="Write a Review"
         subtitle={productTitle}
         onClose={onClose}
         themeOverride={theme}
       />
 
-      <ScrollView
-        showsVerticalScrollIndicator={false}
+      <ScrollView showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.content}
       >
         {/* Rating Stars Selector */}
@@ -131,17 +129,16 @@ export const WriteReviewModal: React.FC<WriteReviewModalProps> = ({
           </Text>
           <View style={styles.starsRow}>
             {[1, 2, 3, 4, 5].map((star) => (
-              <TouchableOpacity
-                key={star}
+              <TouchableOpacity key={star}
                 activeOpacity={0.7}
                 onPress={() => handleStarPress(star)}
                 style={styles.starTouch}
               >
-                <Ionicons
-                  name={star <= rating ? "star" : "star-outline"}
-                  size={36}
-                  color="#F59E0B"
-                />
+                {star <= rating ? (
+                  <Star size={36} color="#F59E0B" fill="#F59E0B" />
+                ) : (
+                  <Star size={36} color="#F59E0B" />
+                )}
               </TouchableOpacity>
             ))}
           </View>
@@ -155,8 +152,7 @@ export const WriteReviewModal: React.FC<WriteReviewModalProps> = ({
           <Text style={[styles.inputLabel, { color: theme.secondaryText }]}>
             Review Title (Optional)
           </Text>
-          <TextInput
-            placeholder="e.g. Great fabric and perfect fit"
+          <TextInput placeholder="e.g. Great fabric and perfect fit"
             placeholderTextColor={theme.tertiaryText}
             value={title}
             onChangeText={setTitle}
@@ -178,8 +174,7 @@ export const WriteReviewModal: React.FC<WriteReviewModalProps> = ({
           <Text style={[styles.inputLabel, { color: theme.secondaryText }]}>
             Your Experience *
           </Text>
-          <TextInput
-            placeholder="How was the quality, fit, color, and delivery? Share details that will help other shoppers..."
+          <TextInput placeholder="How was the quality, fit, color, and delivery? Share details that will help other shoppers..."
             placeholderTextColor={theme.tertiaryText}
             value={comment}
             onChangeText={setComment}
@@ -205,8 +200,7 @@ export const WriteReviewModal: React.FC<WriteReviewModalProps> = ({
 
       {/* Footer Submit Button */}
       <SheetFooter>
-        <TouchableOpacity
-          style={[
+        <TouchableOpacity style={[
             styles.submitBtn,
             {
               backgroundColor: theme.primary,

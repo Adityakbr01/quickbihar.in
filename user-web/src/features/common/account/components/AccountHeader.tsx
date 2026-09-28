@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, TouchableOpacity, ActivityIndicator } from "react-native";
 import { Image } from "expo-image";
 import { AppIcon } from "@/src/components/common/AppIcon";
+import { Camera, Pencil } from "lucide-react";
 import * as Haptics from "@/lib/haptics";
 import * as ImagePicker from "expo-image-picker";
 import { Theme } from "@/src/theme/Provider/ThemeProvider";
@@ -133,7 +134,7 @@ const AccountHeader = ({ theme, styles, name, email, avatarUrl }: AccountHeaderP
 
         <View style={[styles.editBadge, { backgroundColor: theme.secondaryBackground, right: -4, bottom: -4 }]}>
            <AppIcon
-            name="camera-outline"
+            icon={Camera}
             size={12}
             color={theme.primary}
           />
@@ -150,7 +151,7 @@ const AccountHeader = ({ theme, styles, name, email, avatarUrl }: AccountHeaderP
                 style={{ backgroundColor: theme.tertiaryBackground, padding: 8, borderRadius: 10 }}
                 onPress={handleEditProfile}
             >
-                <AppIcon name="pencil-outline" size={18} color={theme.primary} />
+                <AppIcon icon={Pencil} size={18} color={theme.primary} />
             </TouchableOpacity>
         </View>
       </View>

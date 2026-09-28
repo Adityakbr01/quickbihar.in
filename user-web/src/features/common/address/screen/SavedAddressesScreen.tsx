@@ -9,7 +9,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { goBack, goTo } from "@/src/utils/navigation";
 import * as Haptics from "@/lib/haptics";
-import { Ionicons } from "@expo/vector-icons";
+import { ChevronLeft, CirclePlus, MapPin } from "lucide-react";
 import { AppIcon } from "@/src/components/common/AppIcon";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { createAddressStyles } from "../style/addressStyles";
@@ -113,12 +113,11 @@ const SavedAddressesScreen = () => {
     <View style={styles.container}>
       {/* Top app bar (same language as Notifications) */}
       <View style={styles.appBar}>
-        <TouchableOpacity
-          onPress={handleBack}
+        <TouchableOpacity onPress={handleBack}
           style={styles.backButton}
           activeOpacity={0.7}
         >
-          <Ionicons name="chevron-back" size={22} color={theme.text} />
+          <ChevronLeft size={22} color={theme.text} />
         </TouchableOpacity>
 
         <View style={styles.appBarTitleWrap}>
@@ -134,8 +133,7 @@ const SavedAddressesScreen = () => {
       </View>
 
       <View style={styles.mainWrapper}>
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
+        <ScrollView contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl
@@ -149,8 +147,7 @@ const SavedAddressesScreen = () => {
             renderSkeletons()
           ) : addresses && addresses.length > 0 ? (
             addresses.map((address) => (
-              <AddressCard
-                key={address._id}
+              <AddressCard key={address._id}
                 address={address}
                 theme={theme}
                 styles={styles}
@@ -161,20 +158,18 @@ const SavedAddressesScreen = () => {
             ))
           ) : (
             <View style={styles.emptyContainer}>
-              <View
-                style={[
+              <View style={[
                   styles.emptyIconWrap,
                   { backgroundColor: theme.primary + "15" },
                 ]}
               >
-                <Ionicons name="location-outline" size={52} color={theme.primary} />
+                <MapPin size={52} color={theme.primary} />
               </View>
               <Text style={styles.emptyTitle}>No Saved Addresses</Text>
               <Text style={styles.emptySubtitle}>
                 Add your delivery address to enjoy a faster checkout experience.
               </Text>
-              <TouchableOpacity
-                style={[styles.submitButton, { width: 220, marginTop: 20, height: 50 }]}
+              <TouchableOpacity style={[styles.submitButton, { width: 220, marginTop: 20, height: 50 }]}
                 onPress={handleAddAddress}
                 activeOpacity={0.85}
               >
@@ -186,16 +181,14 @@ const SavedAddressesScreen = () => {
       </View>
 
       {addresses && addresses.length > 0 && (
-        <TouchableOpacity
-          style={styles.addButtonFloating}
+        <TouchableOpacity style={styles.addButtonFloating}
           onPress={handleAddAddress}
         >
-          <AppIcon name="add-circle-outline" size={32} color="#fff" />
+          <AppIcon icon={CirclePlus} size={32} color="#fff" />
         </TouchableOpacity>
       )}
 
-      <IOSAlertDialog
-        visible={alertConfig.visible}
+      <IOSAlertDialog visible={alertConfig.visible}
         title={alertConfig.title}
         message={alertConfig.message}
         buttons={alertConfig.buttons}

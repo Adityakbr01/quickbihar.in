@@ -1,3 +1,4 @@
+import { Clock } from "lucide-react";
 import React from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import type { Theme } from "@/src/theme/Provider/ThemeProvider";
@@ -52,7 +53,7 @@ export function HistoryPanel({
         <RiderDateField styles={styles} theme={theme} label="To" value={historyDateTo} onChange={onDateToChange} />
       </View>
       {history.length === 0 ? (
-        <EmptyCard styles={styles} theme={theme} icon="time-outline" label="No history found for this filter." />
+        <EmptyCard styles={styles} theme={theme} icon={Clock} label="No history found for this filter." />
       ) : (
         history.map((order) => (
           <View key={order._id} style={styles.listCard}>

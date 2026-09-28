@@ -1,6 +1,6 @@
 import React from "react";
 import { Text, TouchableOpacity, View } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { CircleAlert, Save } from "lucide-react";
 import type { Theme } from "@/src/theme/Provider/ThemeProvider";
 import type { RiderProfile } from "../../api/delivery.api";
 import type { ProfileForm, RiderStyles } from "../../types/rider.types";
@@ -45,8 +45,7 @@ export function ProfilePanel({
 
   return (
     <View style={styles.panel}>
-      <SectionTitle
-        styles={styles}
+      <SectionTitle styles={styles}
         title="Profile"
         meta={profile?.status || ""}
       />
@@ -67,44 +66,39 @@ export function ProfilePanel({
         )}
         {requiresApprovalAfterSave && canAcceptOffers && (
           <View style={styles.warningLine}>
-            <Ionicons name="alert-circle-outline" size={16} color={theme.warning} />
+            <CircleAlert size={16} color={theme.warning} />
             <Text style={styles.warningLineText}>Sensitive changes will send this profile for admin approval again.</Text>
           </View>
         )}
       </View>
       <View style={styles.formCard}>
-        <TextInput
-          {...inputChrome}
+        <TextInput {...inputChrome}
           value={profileForm.phone}
           onChangeText={(value) => onFieldChange("phone", value)}
           placeholder="Phone"
           placeholderTextColor={theme.secondaryText}
           keyboardType="phone-pad"
         />
-        <TextInput
-          {...inputChrome}
+        <TextInput {...inputChrome}
           value={profileForm.vehicleType}
           onChangeText={(value) => onFieldChange("vehicleType", value)}
           placeholder="Vehicle type"
           placeholderTextColor={theme.secondaryText}
         />
-        <TextInput
-          {...inputChrome}
+        <TextInput {...inputChrome}
           value={profileForm.vehicleNumber}
           onChangeText={(value) => onFieldChange("vehicleNumber", value)}
           placeholder="Vehicle number"
           placeholderTextColor={theme.secondaryText}
           autoCapitalize="characters"
         />
-        <TextInput
-          {...inputChrome}
+        <TextInput {...inputChrome}
           value={profileForm.licenseNumber}
           onChangeText={(value) => onFieldChange("licenseNumber", value)}
           placeholder="License number"
           placeholderTextColor={theme.secondaryText}
         />
-        <TextInput
-          {...inputChrome}
+        <TextInput {...inputChrome}
           value={profileForm.address}
           onChangeText={(value) => onFieldChange("address", value)}
           placeholder="Address"
@@ -114,16 +108,14 @@ export function ProfilePanel({
           style={[inputChrome.style, { textAlignVertical: "top" }]}
         />
         <View style={styles.inlineInputs}>
-          <TextInput
-            {...inputChrome}
+          <TextInput {...inputChrome}
             value={profileForm.city}
             onChangeText={(value) => onFieldChange("city", value)}
             placeholder="City"
             placeholderTextColor={theme.secondaryText}
             containerStyle={{ marginBottom: 0, flex: 1 }}
           />
-          <TextInput
-            {...inputChrome}
+          <TextInput {...inputChrome}
             value={profileForm.state}
             onChangeText={(value) => onFieldChange("state", value)}
             placeholder="State"
@@ -131,8 +123,7 @@ export function ProfilePanel({
             containerStyle={{ marginBottom: 0, flex: 1 }}
           />
         </View>
-        <TextInput
-          {...inputChrome}
+        <TextInput {...inputChrome}
           value={profileForm.pincode}
           onChangeText={(value) => onFieldChange("pincode", value)}
           placeholder="Pincode"
@@ -143,59 +134,52 @@ export function ProfilePanel({
 
       <SectionTitle styles={styles} title="Bank Details" meta="" />
       <View style={styles.formCard}>
-        <TextInput
-          {...inputChrome}
+        <TextInput {...inputChrome}
           value={profileForm.upi}
           onChangeText={(value) => onFieldChange("upi", value)}
           placeholder="UPI"
           placeholderTextColor={theme.secondaryText}
           autoCapitalize="none"
         />
-        <TextInput
-          {...inputChrome}
+        <TextInput {...inputChrome}
           value={profileForm.accountNumber}
           onChangeText={(value) => onFieldChange("accountNumber", value)}
           placeholder="Account number"
           placeholderTextColor={theme.secondaryText}
           keyboardType="number-pad"
         />
-        <TextInput
-          {...inputChrome}
+        <TextInput {...inputChrome}
           value={profileForm.ifsc}
           onChangeText={(value) => onFieldChange("ifsc", value)}
           placeholder="IFSC"
           placeholderTextColor={theme.secondaryText}
           autoCapitalize="characters"
         />
-        <TextInput
-          {...inputChrome}
+        <TextInput {...inputChrome}
           value={profileForm.bankName}
           onChangeText={(value) => onFieldChange("bankName", value)}
           placeholder="Bank name"
           placeholderTextColor={theme.secondaryText}
         />
-        <TextInput
-          {...inputChrome}
+        <TextInput {...inputChrome}
           value={profileForm.pan}
           onChangeText={(value) => onFieldChange("pan", value)}
           placeholder="PAN"
           placeholderTextColor={theme.secondaryText}
           autoCapitalize="characters"
         />
-        <TextInput
-          {...inputChrome}
+        <TextInput {...inputChrome}
           value={profileForm.aadhar}
           onChangeText={(value) => onFieldChange("aadhar", value)}
           placeholder="Aadhar"
           placeholderTextColor={theme.secondaryText}
           keyboardType="number-pad"
         />
-        <TouchableOpacity
-          style={styles.primaryButton}
+        <TouchableOpacity style={styles.primaryButton}
           onPress={onSaveProfile}
           disabled={busy}
         >
-          <Ionicons name="save-outline" size={16} color="#fff" />
+          <Save size={16} color="#fff" />
           <Text style={styles.primaryText}>{saveLabel}</Text>
         </TouchableOpacity>
       </View>

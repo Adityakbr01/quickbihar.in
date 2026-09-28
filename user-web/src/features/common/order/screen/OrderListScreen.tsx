@@ -9,7 +9,7 @@ import {
 import { FlashList } from "@shopify/flash-list";
 import { useNavigate } from "react-router-dom";
 import { goBack, goTo, replaceTo } from "@/src/utils/navigation";
-import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { ChevronLeft, ChevronRight, MapPin, Package, ShoppingBag } from "lucide-react";
 import * as Haptics from "@/lib/haptics";
 import { OrderCardSkeleton } from "../components/OrderCardSkeleton";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
@@ -97,8 +97,7 @@ const OrderListScreen = () => {
       orderHasModule(item, "jewelery") && !orderHasModule(item, "clothing");
 
     return (
-      <TouchableOpacity
-        style={styles.orderCard}
+      <TouchableOpacity style={styles.orderCard}
         activeOpacity={0.8}
         onPress={() => {
           if (isJeweleryOrder) {
@@ -121,14 +120,12 @@ const OrderListScreen = () => {
             {dayjs(item.createdAt).format("DD MMM, YYYY")}
           </Text>
         </View>
-        <View
-          style={[
+        <View style={[
             styles.statusBadge,
             { backgroundColor: getStatusColor(item.status) + "15" },
           ]}
         >
-          <Text
-            style={[styles.statusText, { color: getStatusColor(item.status) }]}
+          <Text style={[styles.statusText, { color: getStatusColor(item.status) }]}
           >
             {item.status.replace("_", " ")}
           </Text>
@@ -137,11 +134,7 @@ const OrderListScreen = () => {
 
       <View style={styles.itemsPreview}>
         <View style={styles.itemThumb}>
-          <MaterialCommunityIcons
-            name="package-variant-closed"
-            size={24}
-            color={theme.primary}
-          />
+          <Package size={24} color={theme.primary} />
         </View>
         <Text style={styles.itemsText} numberOfLines={1}>
           {item.items.length} {item.items.length === 1 ? "item" : "items"} in
@@ -163,17 +156,16 @@ const OrderListScreen = () => {
         </View>
         <View style={{ flexDirection: "row", alignItems: "center" }}>
           {/* {["CONFIRMED", "PROCESSING", "SHIPPED"].includes(item.status.toUpperCase()) && (
-            <TouchableOpacity 
-              style={[styles.detailButton, { backgroundColor: theme.primary + '15', marginRight: 10, paddingHorizontal: 12 }]}
+            <TouchableOpacity style={[styles.detailButton, { backgroundColor: theme.primary + '15', marginRight: 10, paddingHorizontal: 12 }]}
               onPress={() => goTo(navigate, `/track-order/${item.orderId}`)}
             >
-              <MaterialCommunityIcons name="map-marker-distance" size={16} color={theme.primary} />
+              <MapPin size={16} color={theme.primary} />
               <Text style={[styles.detailButtonText, { color: theme.primary, marginLeft: 4 }]}>Track</Text>
             </TouchableOpacity>
           )} */}
           <View style={styles.detailButton}>
             <Text style={styles.detailButtonText}>Details</Text>
-            <Ionicons name="chevron-forward" size={14} color={theme.primary} />
+            <ChevronRight size={14} color={theme.primary} />
           </View>
         </View>
       </View>
@@ -183,20 +175,18 @@ const OrderListScreen = () => {
 
   const renderEmpty = () => (
     <View style={styles.emptyContainer}>
-      <View
-        style={[
+      <View style={[
           styles.emptyIconWrap,
           { backgroundColor: theme.primary + "15" },
         ]}
       >
-        <Ionicons name="bag-handle-outline" size={52} color={theme.primary} />
+        <ShoppingBag size={52} color={theme.primary} />
       </View>
       <Text style={styles.emptyTitle}>No Orders Yet</Text>
       <Text style={styles.emptySubtitle}>
         You haven&apos;t placed any orders yet. Start shopping to see them here!
       </Text>
-      <TouchableOpacity
-        style={styles.shopButton}
+      <TouchableOpacity style={styles.shopButton}
         onPress={() => replaceTo(navigate, "/(tabs)/clothing/home")}
       >
         <Text style={styles.shopButtonText}>Explore Products</Text>
@@ -205,8 +195,7 @@ const OrderListScreen = () => {
   );
 
   const renderSkeletons = () => (
-    <ScrollView
-      contentContainerStyle={styles.listContent}
+    <ScrollView contentContainerStyle={styles.listContent}
       showsVerticalScrollIndicator={false}
     >
       {[0, 1, 2, 3].map((i) => (
@@ -220,8 +209,7 @@ const OrderListScreen = () => {
       <View style={styles.container}>
         {/* Top app bar (same language as Notifications) */}
         <View style={styles.appBar}>
-          <TouchableOpacity
-            onPress={() => {
+          <TouchableOpacity onPress={() => {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(
                 () => null,
               );
@@ -230,7 +218,7 @@ const OrderListScreen = () => {
             style={styles.backButton}
             activeOpacity={0.7}
           >
-            <Ionicons name="chevron-back" size={22} color={theme.text} />
+            <ChevronLeft size={22} color={theme.text} />
           </TouchableOpacity>
 
           <View style={styles.appBarTitleWrap}>
@@ -248,15 +236,13 @@ const OrderListScreen = () => {
         {isLoading && !isRefreshing ? (
           renderSkeletons()
         ) : (
-          <FlashList
-            data={orders}
+          <FlashList data={orders}
             renderItem={renderOrderItem}
             keyExtractor={(item) => item._id}
             contentContainerStyle={styles.listContent}
             showsVerticalScrollIndicator={false}
             refreshControl={
-              <RefreshControl
-                refreshing={isRefreshing}
+              <RefreshControl refreshing={isRefreshing}
                 onRefresh={handleRefresh}
                 tintColor={theme.primary}
                 colors={[theme.primary]}

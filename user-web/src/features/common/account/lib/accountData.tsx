@@ -1,14 +1,24 @@
-import type { AppIconName } from "@/src/components/common/AppIcon";
+import type { LucideIcon } from "lucide-react";
+import {
+  Box,
+  Folder,
+  CircleUser,
+  MapPin,
+  ShieldCheck,
+  Bell,
+  LayoutGrid,
+  LogOut,
+} from "lucide-react";
 
 export interface AccountSubItem {
   label: string;
-  icon: AppIconName;
+  icon: LucideIcon;
   onPressLabel: string;
 }
 
 export interface AccountOptionItem {
   label: string;
-  icon: AppIconName;
+  icon: LucideIcon;
   onPressLabel?: string;
   subItems?: AccountSubItem[];
   danger?: boolean;
@@ -26,12 +36,12 @@ export const ACCOUNT_SECTIONS: AccountSection[] = [
     options: [
       {
         label: "My Orders",
-        icon: "cube-outline",
+        icon: Box,
         onPressLabel: "My Orders",
       },
       {
         label: "Wishlist",
-        icon: "folder-outline",
+        icon: Folder,
         onPressLabel: "Wishlist",
       },
     ],
@@ -41,29 +51,29 @@ export const ACCOUNT_SECTIONS: AccountSection[] = [
     options: [
       {
         label: "Profile Info",
-        icon: "person-circle-outline",
+        icon: CircleUser,
         onPressLabel: "Profile Info",
       },
       {
         label: "Saved Addresses",
-        icon: "location-outline",
+        icon: MapPin,
         onPressLabel: "Addresses",
       },
       {
         label: "Security & Password",
-        icon: "shield-checkmark-outline",
+        icon: ShieldCheck,
         onPressLabel: "PasswordSetup",
       },
       {
         label: "Notifications",
-        icon: "notifications-outline",
+        icon: Bell,
         onPressLabel: "Notifications",
       },
       {
         // Admin-only — visibility is gated in AccountMain.tsx by role.
         // Opens the web admin in the system browser (no JWT handoff).
         label: "Web Admin Dashboard",
-        icon: "grid-outline",
+        icon: LayoutGrid,
         onPressLabel: "WebAdminDashboard",
       },
     ],
@@ -72,7 +82,7 @@ export const ACCOUNT_SECTIONS: AccountSection[] = [
 
 export const LOGOUT_OPTION: AccountOptionItem = {
   label: "Logout",
-  icon: "log-out-outline",
+  icon: LogOut,
   onPressLabel: "Logout",
   danger: true,
   showArrow: false,

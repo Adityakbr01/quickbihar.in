@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { Check, ChevronRight, CircleX, Layers, Search, X } from "lucide-react";
 import { AppIcon } from "@/src/components/common/AppIcon";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import {
@@ -156,8 +156,7 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
   }, [categoryGroups, selectedParentTab]);
 
   return (
-    <Sheet
-      ref={sheet}
+    <Sheet ref={sheet}
       onDidDismiss={onClose}
       backgroundColor={theme.background}
     >
@@ -165,17 +164,16 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
 
       {/* Search bar */}
       <View style={{ marginHorizontal: spacing.lg, marginBottom: spacing.xs }}>
-        <TextInput
-          placeholder={isCategoryFilter ? "Search category or subcategory..." : `Search ${title.toLowerCase()}...`}
+        <TextInput placeholder={isCategoryFilter ? "Search category or subcategory..." : `Search ${title.toLowerCase()}...`}
           placeholderTextColor={theme.tertiaryText}
           value={searchText}
           onChangeText={setSearchText}
           autoCapitalize="none"
-          icon={<Ionicons name="search" size={16} color={theme.tertiaryText} />}
+          icon={<Search size={16} color={theme.tertiaryText} />}
           rightIcon={
             searchText.length > 0 ? (
               <TouchableOpacity onPress={() => setSearchText("")}>
-                <Ionicons name="close-circle" size={17} color={theme.tertiaryText} />
+                <CircleX size={17} color={theme.tertiaryText} />
               </TouchableOpacity>
             ) : undefined
           }
@@ -199,8 +197,7 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
               Selected:
             </Text>
             {tempOptions.map((item) => (
-              <TouchableOpacity
-                key={item}
+              <TouchableOpacity key={item}
                 onPress={() => handleToggleOption(item)}
                 style={{
                   flexDirection: "row",
@@ -217,7 +214,7 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
                 <Text style={{ fontSize: 11, fontWeight: "600", color: theme.primary }}>
                   {item}
                 </Text>
-                <Ionicons name="close" size={12} color={theme.primary} />
+                <X size={12} color={theme.primary} />
               </TouchableOpacity>
             ))}
           </ScrollView>
@@ -225,22 +222,20 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
       )}
 
       {/* Main Content Area */}
-      <ScrollView
-        showsVerticalScrollIndicator={false}
+      <ScrollView showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: spacing.xl }}
       >
         {/* Case 1: Searching */}
         {searchText.trim().length > 0 ? (
           searchResults.length === 0 ? (
             <View style={{ padding: spacing.xl, alignItems: "center" }}>
-              <Ionicons name="search-outline" size={36} color={theme.tertiaryText} />
+              <Search size={36} color={theme.tertiaryText} />
               <Text style={{ color: theme.secondaryText, marginTop: 10, fontSize: 14 }}>
                 No results for {'"'}{searchText}{'"'}
               </Text>
             </View>
           ) : (
-            <View
-              style={{
+            <View style={{
                 flexDirection: "row",
                 flexWrap: "wrap",
                 gap: spacing.sm,
@@ -251,8 +246,7 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
               {searchResults.map((option) => {
                 const isSelected = tempOptions.includes(option.title);
                 return (
-                  <TouchableOpacity
-                    key={`${option.parentId || "root"}-${option.title}`}
+                  <TouchableOpacity key={`${option.parentId || "root"}-${option.title}`}
                     style={[
                       {
                         flexDirection: "row",
@@ -274,15 +268,13 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
                     activeOpacity={0.7}
                   >
                     {option.icon && (
-                      <AppIcon
-                        name={option.icon}
+                      <AppIcon icon={option.icon}
                         size={16}
                         color={isSelected ? "#fff" : theme.text}
                       />
                     )}
                     <View style={{ flexDirection: "column" }}>
-                      <Text
-                        style={{
+                      <Text style={{
                           fontSize: 13,
                           fontWeight: "600",
                           color: isSelected ? "#fff" : theme.text,
@@ -291,8 +283,7 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
                         {option.title}
                       </Text>
                       {option.parentTitle && (
-                        <Text
-                          style={{
+                        <Text style={{
                             fontSize: 10,
                             fontWeight: "500",
                             color: isSelected ? "rgba(255,255,255,0.8)" : theme.tertiaryText,
@@ -303,7 +294,7 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
                       )}
                     </View>
                     {isSelected && (
-                      <Ionicons name="checkmark" size={14} color="#fff" style={{ marginLeft: 2 }} />
+                      <Check size={14} color="#fff" style={{ marginLeft: 2 }} />
                     )}
                   </TouchableOpacity>
                 );
@@ -320,13 +311,11 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
                   Select Category
                 </Text>
               </View>
-              <ScrollView
-                horizontal
+              <ScrollView horizontal
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={{ paddingHorizontal: spacing.lg, gap: 8 }}
               >
-                <TouchableOpacity
-                  onPress={() => setSelectedParentTab("All")}
+                <TouchableOpacity onPress={() => setSelectedParentTab("All")}
                   activeOpacity={0.7}
                   style={{
                     paddingHorizontal: 16,
@@ -337,8 +326,7 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
                     backgroundColor: selectedParentTab === "All" ? theme.primary : theme.secondaryBackground,
                   }}
                 >
-                  <Text
-                    style={{
+                  <Text style={{
                       fontSize: 13,
                       fontWeight: selectedParentTab === "All" ? "700" : "600",
                       color: selectedParentTab === "All" ? "#fff" : theme.text,
@@ -355,8 +343,7 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
                     group.subCategories.some((s) => tempOptions.includes(s.title));
 
                   return (
-                    <TouchableOpacity
-                      key={group.id}
+                    <TouchableOpacity key={group.id}
                       onPress={() => setSelectedParentTab(group.title)}
                       activeOpacity={0.7}
                       style={{
@@ -376,14 +363,12 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
                       }}
                     >
                       {group.icon && (
-                        <AppIcon
-                          name={group.icon}
+                        <AppIcon icon={group.icon}
                           size={15}
                           color={isActiveTab ? "#fff" : theme.text}
                         />
                       )}
-                      <Text
-                        style={{
+                      <Text style={{
                           fontSize: 13,
                           fontWeight: isActiveTab ? "700" : "600",
                           color: isActiveTab ? "#fff" : theme.text,
@@ -392,16 +377,14 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
                         {group.title}
                       </Text>
                       {group.subCategories.length > 0 && (
-                        <View
-                          style={{
+                        <View style={{
                             backgroundColor: isActiveTab ? "rgba(255,255,255,0.25)" : theme.border,
                             borderRadius: 10,
                             paddingHorizontal: 6,
                             paddingVertical: 1,
                           }}
                         >
-                          <Text
-                            style={{
+                          <Text style={{
                               fontSize: 10,
                               fontWeight: "700",
                               color: isActiveTab ? "#fff" : theme.secondaryText,
@@ -412,8 +395,7 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
                         </View>
                       )}
                       {hasSelection && !isActiveTab && (
-                        <View
-                          style={{
+                        <View style={{
                             width: 6,
                             height: 6,
                             borderRadius: 3,
@@ -431,8 +413,7 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
             {selectedParentTab !== "All" && currentGroup ? (
               <View style={{ paddingHorizontal: spacing.lg, marginTop: spacing.xs }}>
                 {/* Subcategory Header */}
-                <View
-                  style={{
+                <View style={{
                     flexDirection: "row",
                     alignItems: "center",
                     justifyContent: "space-between",
@@ -457,8 +438,7 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
                 {/* Subcategory Pills Grid */}
                 <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm, paddingTop: 4 }}>
                   {/* Category-wide option: "All in [Category]" */}
-                  <TouchableOpacity
-                    onPress={() => handleToggleOption(currentGroup.title)}
+                  <TouchableOpacity onPress={() => handleToggleOption(currentGroup.title)}
                     activeOpacity={0.7}
                     style={[
                       {
@@ -478,13 +458,8 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
                       },
                     ]}
                   >
-                    <Ionicons
-                      name="layers-outline"
-                      size={15}
-                      color={tempOptions.includes(currentGroup.title) ? "#fff" : theme.text}
-                    />
-                    <Text
-                      style={{
+                    <Layers size={15} color={tempOptions.includes(currentGroup.title) ? "#fff" : theme.text} />
+                    <Text style={{
                         fontSize: 13,
                         fontWeight: "700",
                         color: tempOptions.includes(currentGroup.title) ? "#fff" : theme.text,
@@ -493,7 +468,7 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
                       All in {currentGroup.title}
                     </Text>
                     {tempOptions.includes(currentGroup.title) && (
-                      <Ionicons name="checkmark" size={14} color="#fff" />
+                      <Check size={14} color="#fff" />
                     )}
                   </TouchableOpacity>
 
@@ -501,8 +476,7 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
                   {currentGroup.subCategories.map((sub) => {
                     const isSelected = tempOptions.includes(sub.title);
                     return (
-                      <TouchableOpacity
-                        key={sub.id}
+                      <TouchableOpacity key={sub.id}
                         onPress={() => handleToggleOption(sub.title)}
                         activeOpacity={0.7}
                         style={[
@@ -524,14 +498,12 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
                         ]}
                       >
                         {sub.icon && (
-                          <AppIcon
-                            name={sub.icon}
+                          <AppIcon icon={sub.icon}
                             size={15}
                             color={isSelected ? "#fff" : theme.text}
                           />
                         )}
-                        <Text
-                          style={{
+                        <Text style={{
                             fontSize: 13,
                             fontWeight: "600",
                             color: isSelected ? "#fff" : theme.text,
@@ -540,7 +512,7 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
                           {sub.title}
                         </Text>
                         {isSelected && (
-                          <Ionicons name="checkmark" size={14} color="#fff" />
+                          <Check size={14} color="#fff" />
                         )}
                       </TouchableOpacity>
                     );
@@ -551,8 +523,7 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
               /* "All Categories" Tab View — Grouped Cards */
               <View style={{ paddingHorizontal: spacing.lg, gap: spacing.md, marginTop: spacing.xs }}>
                 {categoryGroups.map((group) => (
-                  <View
-                    key={group.id}
+                  <View key={group.id}
                     style={{
                       backgroundColor: theme.secondaryBackground,
                       borderRadius: 16,
@@ -561,21 +532,18 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
                       padding: 12,
                     }}
                   >
-                    <View
-                      style={{
+                    <View style={{
                         flexDirection: "row",
                         alignItems: "center",
                         justifyContent: "space-between",
                         marginBottom: 10,
                       }}
                     >
-                      <TouchableOpacity
-                        onPress={() => setSelectedParentTab(group.title)}
+                      <TouchableOpacity onPress={() => setSelectedParentTab(group.title)}
                         style={{ flexDirection: "row", alignItems: "center", gap: 6 }}
                       >
                         {group.icon && (
-                          <AppIcon
-                            name={group.icon}
+                          <AppIcon icon={group.icon}
                             size={17}
                             color={theme.primary}
                           />
@@ -583,11 +551,10 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
                         <Text style={{ fontSize: 14, fontWeight: "700", color: theme.text }}>
                           {group.title}
                         </Text>
-                        <Ionicons name="chevron-forward" size={14} color={theme.tertiaryText} />
+                        <ChevronRight size={14} color={theme.tertiaryText} />
                       </TouchableOpacity>
 
-                      <TouchableOpacity
-                        onPress={() => handleToggleOption(group.title)}
+                      <TouchableOpacity onPress={() => handleToggleOption(group.title)}
                         style={{
                           paddingHorizontal: 8,
                           paddingVertical: 3,
@@ -597,8 +564,7 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
                           backgroundColor: tempOptions.includes(group.title) ? theme.primary : "transparent",
                         }}
                       >
-                        <Text
-                          style={{
+                        <Text style={{
                             fontSize: 11,
                             fontWeight: "600",
                             color: tempOptions.includes(group.title) ? "#fff" : theme.secondaryText,
@@ -614,8 +580,7 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
                         group.subCategories.map((sub) => {
                           const isSelected = tempOptions.includes(sub.title);
                           return (
-                            <TouchableOpacity
-                              key={sub.id}
+                            <TouchableOpacity key={sub.id}
                               onPress={() => handleToggleOption(sub.title)}
                               style={{
                                 flexDirection: "row",
@@ -629,8 +594,7 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
                                 backgroundColor: isSelected ? theme.primary : theme.background,
                               }}
                             >
-                              <Text
-                                style={{
+                              <Text style={{
                                   fontSize: 12,
                                   fontWeight: "600",
                                   color: isSelected ? "#fff" : theme.text,
@@ -639,7 +603,7 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
                                 {sub.title}
                               </Text>
                               {isSelected && (
-                                <Ionicons name="checkmark" size={12} color="#fff" />
+                                <Check size={12} color="#fff" />
                               )}
                             </TouchableOpacity>
                           );
@@ -657,8 +621,7 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
           </View>
         ) : (
           /* Case 3: Fallback / Simple List (Gender, etc.) */
-          <View
-            style={{
+          <View style={{
               flexDirection: "row",
               flexWrap: "wrap",
               gap: spacing.sm,
@@ -669,8 +632,7 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
             {options.map((option) => {
               const isSelected = tempOptions.includes(option.title);
               return (
-                <TouchableOpacity
-                  key={option.title}
+                <TouchableOpacity key={option.title}
                   style={[
                     {
                       flexDirection: "row",
@@ -692,14 +654,12 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
                   activeOpacity={0.7}
                 >
                   {option.icon && (
-                    <AppIcon
-                      name={option.icon}
+                    <AppIcon icon={option.icon}
                       size={16}
                       color={isSelected ? "#fff" : theme.text}
                     />
                   )}
-                  <Text
-                    style={{
+                  <Text style={{
                       fontSize: 14,
                       fontWeight: "600",
                       color: isSelected ? "#fff" : theme.text,
@@ -708,7 +668,7 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
                     {option.title}
                   </Text>
                   {isSelected && (
-                    <Ionicons name="checkmark" size={14} color="#fff" />
+                    <Check size={14} color="#fff" />
                   )}
                 </TouchableOpacity>
               );
@@ -718,8 +678,7 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
       </ScrollView>
 
       <SheetFooter>
-        <TouchableOpacity
-          style={{
+        <TouchableOpacity style={{
             flex: 1,
             paddingVertical: 16,
             borderRadius: 14,
@@ -730,8 +689,7 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
           }}
           onPress={handleClearAll}
         >
-          <Text
-            style={{
+          <Text style={{
               fontSize: 16,
               fontWeight: "700",
               color: theme.text,
@@ -740,8 +698,7 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
             Clear All
           </Text>
         </TouchableOpacity>
-        <TouchableOpacity
-          style={{
+        <TouchableOpacity style={{
             flex: 2,
             paddingVertical: 16,
             borderRadius: 14,
@@ -756,8 +713,7 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
           }}
           onPress={handleApply}
         >
-          <Text
-            style={{
+          <Text style={{
               fontSize: 16,
               fontWeight: "700",
               color: "#fff",

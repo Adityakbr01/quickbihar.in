@@ -1,8 +1,23 @@
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { spacing } from "@/src/theme/spacing";
 import { BREAKPOINTS, getGridCardWidth, useProductColumns } from "@/src/utils/responsive";
-import { Ionicons } from "@expo/vector-icons";
-import { AppIcon, type AppIconName } from "@/src/components/common/AppIcon";
+import { ChevronDown, CircleX, Search, Zap } from "lucide-react";
+import { AppIcon } from "@/src/components/common/AppIcon";
+import type { LucideIcon } from "lucide-react";
+import {
+  Shirt,
+  Scissors,
+  Snowflake,
+  Flower2,
+  Layers,
+  Footprints,
+  Glasses,
+  Smile,
+  User,
+  Mic,
+  ShoppingBag,
+  Sparkles,
+} from "lucide-react";
 import { NativeModulesProxy } from "expo-modules-core";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
@@ -26,27 +41,27 @@ import { TextInput } from "@/src/theme/components/TextInput";
 
 // ── Icon mapping for categories by keyword ──
 // ponytail: linear scan on small fixed-size list — perfectly fine
-const CATEGORY_ICON_MAP: { keywords: string[]; icon: AppIconName }[] = [
-  { keywords: ["shirt", "top", "tee", "t-shirt", "polo"], icon: "shirt-outline" },
-  { keywords: ["pant", "trouser", "chino", "jeans", "denim", "short"], icon: "cut-outline" },
-  { keywords: ["jacket", "coat", "blazer", "overcoat", "windbreaker", "hoodie", "sweater", "sweat", "pullover"], icon: "snow-outline" },
-  { keywords: ["dress", "gown", "maxi", "midi", "skirt"], icon: "flower-outline" },
-  { keywords: ["kurta", "kurti", "ethnic", "salwar", "lehenga", "saree"], icon: "layers-outline" },
-  { keywords: ["shoe", "boot", "sneaker", "footwear", "sandal", "slipper", "chappal"], icon: "walk-outline" },
-  { keywords: ["accessories", "bag", "wallet", "belt", "watch", "glasses"], icon: "glasses-outline" },
-  { keywords: ["kids", "child", "baby", "infant"], icon: "happy-outline" },
-  { keywords: ["women", "ladies", "girl", "female"], icon: "woman-outline" },
-  { keywords: ["men", "gents", "male"], icon: "man-outline" },
-  { keywords: ["shopping", "collection", "general"], icon: "bag-handle-outline" },
-  { keywords: ["sparkle", "special", "ethnic", "traditional"], icon: "sparkles-outline" },
+const CATEGORY_ICON_MAP: { keywords: string[]; icon: LucideIcon }[] = [
+  { keywords: ["shirt", "top", "tee", "t-shirt", "polo"], icon: Shirt },
+  { keywords: ["pant", "trouser", "chino", "jeans", "denim", "short"], icon: Scissors },
+  { keywords: ["jacket", "coat", "blazer", "overcoat", "windbreaker", "hoodie", "sweater", "sweat", "pullover"], icon: Snowflake },
+  { keywords: ["dress", "gown", "maxi", "midi", "skirt"], icon: Flower2 },
+  { keywords: ["kurta", "kurti", "ethnic", "salwar", "lehenga", "saree"], icon: Layers },
+  { keywords: ["shoe", "boot", "sneaker", "footwear", "sandal", "slipper", "chappal"], icon: Footprints },
+  { keywords: ["accessories", "bag", "wallet", "belt", "watch", "glasses"], icon: Glasses },
+  { keywords: ["kids", "child", "baby", "infant"], icon: Smile },
+  { keywords: ["women", "ladies", "girl", "female"], icon: User },
+  { keywords: ["men", "gents", "male"], icon: User },
+  { keywords: ["shopping", "collection", "general"], icon: ShoppingBag },
+  { keywords: ["sparkle", "special", "ethnic", "traditional"], icon: Sparkles },
 ];
 
-function getIconForCategory(title: string): AppIconName {
+function getIconForCategory(title: string): LucideIcon {
   const lower = title.toLowerCase();
   for (const { keywords, icon } of CATEGORY_ICON_MAP) {
     if (keywords.some((kw) => lower.includes(kw))) return icon;
   }
-  return "flower-outline"; // generic clothing fallback
+  return Flower2; // generic clothing fallback
 }
 
 // ─────────────────────────────────────────────
@@ -392,8 +407,7 @@ export const MoreDealsFilters = ({
   );
 
   return (
-    <View
-      style={[
+    <View style={[
         styles.filterWrapper,
         {
           backgroundColor: theme.background,
@@ -421,11 +435,9 @@ export const MoreDealsFilters = ({
       {/* Search bar — mobile only. Desktop uses the navbar search;
           the deals card keeps filters alone. */}
       {!isDesktop && (
-      <View
-        style={{ paddingHorizontal: spacing.lg, marginBottom: 18, marginTop: 14 }}
+      <View style={{ paddingHorizontal: spacing.lg, marginBottom: 18, marginTop: 14 }}
       >
-        <TextInput
-          placeholder="Search products, brands..."
+        <TextInput placeholder="Search products, brands..."
           placeholderTextColor={theme.tertiaryText}
           value={searchQuery}
           onChangeText={setSearchQuery}
@@ -434,23 +446,22 @@ export const MoreDealsFilters = ({
           selectionColor={theme.primary}
           icon={
             <View style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: theme.tertiaryBackground, alignItems: "center", justifyContent: "center" }}>
-              <Ionicons name="search" size={17} color={searchQuery ? theme.primary : theme.secondaryText} />
+              <Search size={17} color={searchQuery ? theme.primary : theme.secondaryText} />
             </View>
           }
           rightIcon={
             <>
               {searchQuery.length > 0 && Platform.OS !== "ios" ? (
                 <TouchableOpacity onPress={() => setSearchQuery("")} style={{ padding: 4, marginRight: 4 }}>
-                  <Ionicons name="close-circle" size={20} color={theme.secondaryText} />
+                  <CircleX size={20} color={theme.secondaryText} />
                 </TouchableOpacity>
               ) : null}
-              <TouchableOpacity
-                onPress={handleMicPress}
+              <TouchableOpacity onPress={handleMicPress}
                 activeOpacity={0.8}
                 disabled={!isSpeechModuleAvailable}
                 style={{ width: 28, height: 28, borderRadius: 14, alignItems: "center", justifyContent: "center", backgroundColor: isListening ? theme.primary : "transparent", opacity: isSpeechModuleAvailable ? 1 : 0.5 }}
               >
-                <Ionicons name={isListening ? "mic" : "mic-outline"} size={18} color={isListening ? "#fff" : theme.tertiaryText} />
+                <Mic size={18} color={isListening ? "#fff" : theme.tertiaryText} />
               </TouchableOpacity>
             </>
           }
@@ -467,7 +478,7 @@ export const MoreDealsFilters = ({
 
         {searchQuery.length > 0 && (
           <View style={{ marginTop: 10, paddingHorizontal: 6, flexDirection: "row", alignItems: "center" }}>
-            <Ionicons name="flash-outline" size={13} color={theme.primary} />
+            <Zap size={13} color={theme.primary} />
             <Text style={{ marginLeft: 6, fontSize: 12, color: theme.secondaryText, fontWeight: "500" }}>
               Showing results for{" "}
               <Text style={{ color: theme.primary, fontWeight: "700" }}>{'"'}{searchQuery}{'"'}</Text>
@@ -483,8 +494,7 @@ export const MoreDealsFilters = ({
       )}
 
       {/* Filter pills */}
-      <ScrollView
-        horizontal
+      <ScrollView horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={
           isDesktop
@@ -497,8 +507,7 @@ export const MoreDealsFilters = ({
           const isDropdown = filter.title === "Gender" || filter.title === "Categories";
 
           return (
-            <TouchableOpacity
-              key={filter.title}
+            <TouchableOpacity key={filter.title}
               onPress={() => {
                 setActiveFilter({ title: filter.title, icon: filter.icon });
                 if (isDropdown) {
@@ -515,13 +524,13 @@ export const MoreDealsFilters = ({
               ]}
             >
               {filter.icon && (
-                <AppIcon name={filter.icon} size={14} color={isActive ? "#fff" : theme.iconColor} />
+                <AppIcon icon={filter.icon} size={14} color={isActive ? "#fff" : theme.iconColor} />
               )}
               <Text style={[styles.filterText, { color: isActive ? "#fff" : theme.text }]}>
                 {filter.displayTitle}
               </Text>
               {isDropdown && (
-                <Ionicons name="chevron-down" size={14} color={isActive ? "#fff" : theme.iconColor} />
+                <ChevronDown size={14} color={isActive ? "#fff" : theme.iconColor} />
               )}
             </TouchableOpacity>
           );
@@ -529,8 +538,7 @@ export const MoreDealsFilters = ({
 
         {/* One-tap reset — only when gender/category selections are active */}
         {(selectedGenderOptions.length > 0 || selectedCategoryOptions.length > 0) && (
-          <TouchableOpacity
-            onPress={() => clearFilterSelections?.()}
+          <TouchableOpacity onPress={() => clearFilterSelections?.()}
             style={[
               styles.filterPill,
               {
@@ -539,7 +547,7 @@ export const MoreDealsFilters = ({
               },
             ]}
           >
-            <Ionicons name="close-circle-outline" size={14} color={theme.secondaryText} />
+            <CircleX size={14} color={theme.secondaryText} />
             <Text style={[styles.filterText, { color: theme.secondaryText }]}>
               Reset
             </Text>
@@ -578,8 +586,7 @@ export const MoreDealsGrid = ({
   const isDesktop = propIsDesktop ?? (Platform.OS === "web" && winW >= BREAKPOINTS.desktopMin);
 
   return (
-    <View
-      style={[
+    <View style={[
         styles.productGrid,
         // Desktop: airy 4–5 col grid; mobile keeps space-between 2-col.
         isDesktop
@@ -600,7 +607,7 @@ export const MoreDealsGrid = ({
       ))
     ) : (
       <View style={{ width: "100%", paddingVertical: 60, alignItems: "center" }}>
-        <Ionicons name="search-outline" size={48} color={theme.tertiaryText} />
+        <Search size={48} color={theme.tertiaryText} />
         <Text style={{ marginTop: 16, fontSize: 16, color: theme.secondaryText, fontWeight: "600" }}>
           No products found
         </Text>
@@ -611,8 +618,7 @@ export const MoreDealsGrid = ({
     )}
 
     {hasNextPage && (
-      <TouchableOpacity
-        onPress={() => fetchNextPage()}
+      <TouchableOpacity onPress={() => fetchNextPage()}
         disabled={isFetchingNextPage}
         style={{ width: "100%", padding: 20, alignItems: "center" }}
       >
@@ -625,8 +631,7 @@ export const MoreDealsGrid = ({
     )}
 
     {activeDropdownType && (
-      <FilterBottomSheet
-        visible={dropdownVisible}
+      <FilterBottomSheet visible={dropdownVisible}
         onClose={() => setDropdownVisible(false)}
         title={activeDropdownType}
         options={currentOptionsList}

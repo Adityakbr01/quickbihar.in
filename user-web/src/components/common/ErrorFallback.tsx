@@ -1,4 +1,4 @@
-import { Feather } from "@expo/vector-icons";
+import { RefreshCw, TriangleAlert, X } from "lucide-react";
 import { reloadAppAsync } from "expo";
 import React, { useState } from "react";
 import {
@@ -60,8 +60,7 @@ export function CommonErrorFallback({ error, resetError }: ErrorFallbackProps) {
   const bottomPad = Platform.OS === "web" ? 24 : insets.bottom + 16;
 
   return (
-    <View
-      style={[
+    <View style={[
         styles.root,
         {
           backgroundColor: neutral.bg,
@@ -72,7 +71,7 @@ export function CommonErrorFallback({ error, resetError }: ErrorFallbackProps) {
     >
       <View style={styles.iconContainer}>
         <View style={[styles.iconCircle, { backgroundColor: neutral.card }]}>
-          <Feather name="alert-triangle" size={32} color={neutral.danger} />
+          <TriangleAlert size={32} color={neutral.danger} />
         </View>
       </View>
 
@@ -84,16 +83,14 @@ export function CommonErrorFallback({ error, resetError }: ErrorFallbackProps) {
       </Text>
 
       <View style={styles.actions}>
-        <Pressable
-          style={[styles.primaryBtn, { backgroundColor: neutral.primary }]}
+        <Pressable style={[styles.primaryBtn, { backgroundColor: neutral.primary }]}
           onPress={handleRestart}
         >
-          <Feather name="refresh-cw" size={14} color="#fff" />
+          <RefreshCw size={14} color="#fff" />
           <Text style={styles.primaryBtnText}>Restart App</Text>
         </Pressable>
 
-        <Pressable
-          style={[styles.secondaryBtn, { borderColor: neutral.border }]}
+        <Pressable style={[styles.secondaryBtn, { borderColor: neutral.border }]}
           onPress={resetError}
         >
           <Text style={[styles.secondaryBtnText, { color: neutral.text }]}>
@@ -108,8 +105,7 @@ export function CommonErrorFallback({ error, resetError }: ErrorFallbackProps) {
         </Pressable>
       </View>
 
-      <Modal
-        visible={isModalVisible}
+      <Modal visible={isModalVisible}
         animationType="slide"
         presentationStyle="pageSheet"
         onRequestClose={() => setIsModalVisible(false)}
@@ -120,12 +116,11 @@ export function CommonErrorFallback({ error, resetError }: ErrorFallbackProps) {
               Error Details
             </Text>
             <Pressable onPress={() => setIsModalVisible(false)} hitSlop={8}>
-              <Feather name="x" size={22} color={neutral.text} />
+              <X size={22} color={neutral.text} />
             </Pressable>
           </View>
           <ScrollView style={styles.modalBody}>
-            <Text
-              style={[
+            <Text style={[
                 styles.errorDetails,
                 {
                   color: neutral.subtext,

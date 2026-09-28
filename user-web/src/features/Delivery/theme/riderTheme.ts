@@ -1,4 +1,5 @@
-import { Ionicons } from "@expo/vector-icons";
+import type { LucideIcon } from "lucide-react";
+import { LayoutGrid, Briefcase, Clock, Wallet, User } from "lucide-react";
 import type {
   RiderOffer,
   RiderOrder,
@@ -26,12 +27,12 @@ export const historyStatusFilters: HistoryStatusFilter[] = [
   { label: "Failed", value: "DELIVERY_FAILED" },
 ];
 
-export const riderTabs: Array<{ id: RiderTab; label: string; icon: keyof typeof Ionicons.glyphMap }> = [
-  { id: "overview", label: "Overview", icon: "grid-outline" },
-  { id: "jobs", label: "Jobs", icon: "briefcase-outline" },
-  { id: "history", label: "History", icon: "time-outline" },
-  { id: "earnings", label: "Earnings", icon: "wallet-outline" },
-  { id: "profile", label: "Profile", icon: "person-outline" },
+export const riderTabs: Array<{ id: RiderTab; label: string; icon: LucideIcon }> = [
+  { id: "overview", label: "Overview", icon: LayoutGrid },
+  { id: "jobs", label: "Jobs", icon: Briefcase },
+  { id: "history", label: "History", icon: Clock },
+  { id: "earnings", label: "Earnings", icon: Wallet },
+  { id: "profile", label: "Profile", icon: User },
 ];
 
 export const emptyProof: ProofState = {

@@ -9,7 +9,7 @@ import {
   useWindowDimensions,
 } from "react-native";
 import { FlashList } from "@shopify/flash-list";
-import { Ionicons } from "@expo/vector-icons";
+import { Shirt, Star } from "lucide-react";
 import { Image as ExpoImage } from "expo-image";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { BREAKPOINTS } from "@/src/utils/responsive";
@@ -46,8 +46,7 @@ const SearchResults = ({
 
   if (loading && results.length === 0) {
     return (
-      <View
-        style={[
+      <View style={[
           styles.skeletonContainer,
           (isDesktop || isTablet) && {
             maxWidth: 1280,
@@ -57,8 +56,7 @@ const SearchResults = ({
         ]}
       >
         {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-          <View
-            key={i}
+          <View key={i}
             style={[
               styles.skeletonItem,
               { width: colWidth },
@@ -76,7 +74,7 @@ const SearchResults = ({
   if (results.length === 0 && !loading) {
     return (
       <View style={styles.emptyContainer}>
-        <Ionicons name="shirt-outline" size={60} color={theme.tertiaryText} />
+        <Shirt size={60} color={theme.tertiaryText} />
         <Text style={[styles.emptyText, { color: theme.secondaryText }]}>
           No items found for your search.
         </Text>
@@ -94,8 +92,7 @@ const SearchResults = ({
   };
 
   return (
-    <FlashList
-      data={results}
+    <FlashList data={results}
       keyExtractor={(item) => item._id}
       numColumns={numColumns}
       key={numColumns}
@@ -111,8 +108,7 @@ const SearchResults = ({
       onEndReachedThreshold={0.5}
       ListFooterComponent={renderFooter}
       renderItem={({ item, index }) => (
-        <Pressable
-          style={[
+        <Pressable style={[
             styles.productCard,
             { width: colWidth },
             (isDesktop || isTablet)
@@ -132,8 +128,7 @@ const SearchResults = ({
           onPress={() => onItemPress(item.slug || item._id)}
         >
           <View style={styles.imageContainer}>
-            <ExpoImage
-              source={{ uri: item.images?.[0]?.url }}
+            <ExpoImage source={{ uri: item.images?.[0]?.url }}
               contentFit="cover"
               style={styles.productImage}
               transition={200}
@@ -145,7 +140,7 @@ const SearchResults = ({
             )}
             {item.ratings && (
               <View style={styles.ratingBadge}>
-                <Ionicons name="star" size={10} color="#FFD700" />
+                <Star size={10} color="#FFD700" fill="#FFD700" />
                 <Text style={styles.ratingText}>{item.ratings.average.toFixed(1)}</Text>
               </View>
             )}

@@ -5,8 +5,7 @@ import Animated, {
   useSharedValue,
   withSpring,
 } from "react-native-reanimated";
-import { Ionicons } from "@expo/vector-icons";
-import { SymbolView } from "expo-symbols";
+import { AppleIcon, GoogleIcon } from "@/src/components/common/BrandIcons";
 import * as Haptics from "@/lib/haptics";
 import { useTheme } from "../Provider/ThemeProvider";
 
@@ -91,19 +90,11 @@ export const SocialButton: React.FC<SocialButtonProps> = ({
       >
         <Text style={styles.iconText}>
           {provider === "google" ? (
-            <Ionicons name="logo-google" size={24} color={theme.text} />
+            <GoogleIcon size={24} />
           ) : (
-            <SymbolView
-              name="applelogo"
+            <AppleIcon
               size={24}
-              tintColor={theme.text === "#ffffff" ? "#000000" : "#ffffff"}
-              fallback={
-                <Ionicons
-                  name="logo-apple"
-                  size={24}
-                  color={theme.text === "#ffffff" ? "#000000" : "#ffffff"}
-                />
-              }
+              color={theme.text === "#ffffff" ? "#000000" : "#ffffff"}
             />
           )}
         </Text>

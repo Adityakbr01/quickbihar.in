@@ -1,4 +1,4 @@
-import { Feather, Ionicons } from "@expo/vector-icons";
+import { ArrowLeft, Check, Gift, MapPin, Phone, Share2, Shield } from "lucide-react";
 import dayjs from "dayjs";
 import * as Haptics from "@/lib/haptics";
 import { useNavigate } from "react-router-dom";
@@ -144,8 +144,7 @@ export default function JeweleryOrderDetailScreen() {
   return (
     <View style={[styles.root, { backgroundColor: colors.ivory }]}>
       {/* Header */}
-      <View
-        style={[
+      <View style={[
           styles.header,
           {
             paddingTop: topPad + 12,
@@ -154,8 +153,7 @@ export default function JeweleryOrderDetailScreen() {
           },
         ]}
       >
-        <Pressable
-          style={styles.backBtn}
+        <Pressable style={styles.backBtn}
           onPress={() => {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
             goBack(navigate, "/jewelery/orders");
@@ -164,12 +162,11 @@ export default function JeweleryOrderDetailScreen() {
           accessibilityRole="button"
           accessibilityLabel="Go back"
         >
-          <Feather name="arrow-left" size={18} color={colors.ink} />
+          <ArrowLeft size={18} color={colors.ink} />
         </Pressable>
 
         <View style={styles.headerTitleWrap}>
-          <Text
-            style={[
+          <Text style={[
               styles.headerTitle,
               {
                 color: colors.ink,
@@ -180,8 +177,7 @@ export default function JeweleryOrderDetailScreen() {
             {order ? `ORDER #${order.orderId}` : "ORDER DETAILS"}
           </Text>
           {order && (
-            <Text
-              style={[
+            <Text style={[
                 styles.headerSubtitle,
                 { color: colors.warmGray, fontFamily: "DMSans_400Regular" },
               ]}
@@ -191,17 +187,15 @@ export default function JeweleryOrderDetailScreen() {
           )}
         </View>
 
-        <TouchableOpacity
-          onPress={handleShare}
+        <TouchableOpacity onPress={handleShare}
           style={styles.shareBtn}
           hitSlop={8}
         >
-          <Feather name="share-2" size={16} color={colors.gold} />
+          <Share2 size={16} color={colors.gold} />
         </TouchableOpacity>
       </View>
 
-      <ScrollView
-        contentContainerStyle={[
+      <ScrollView contentContainerStyle={[
           styles.scrollContent,
           { paddingBottom: bottomPad + 40 },
         ]}
@@ -217,8 +211,7 @@ export default function JeweleryOrderDetailScreen() {
         {isLoading && !order ? (
           <View style={styles.loadingWrap}>
             <ActivityIndicator size="small" color={colors.gold} />
-            <Text
-              style={[
+            <Text style={[
                 styles.loadingText,
                 { color: colors.warmGray, fontFamily: "DMSans_400Regular" },
               ]}
@@ -229,8 +222,7 @@ export default function JeweleryOrderDetailScreen() {
         ) : order ? (
           <View style={{ gap: 16 }}>
             {/* Status Timeline */}
-            <View
-              style={[
+            <View style={[
                 styles.sectionCard,
                 {
                   backgroundColor: colors.cardBg,
@@ -238,8 +230,7 @@ export default function JeweleryOrderDetailScreen() {
                 },
               ]}
             >
-              <Text
-                style={[
+              <Text style={[
                   styles.sectionTitle,
                   {
                     color: colors.ink,
@@ -258,8 +249,7 @@ export default function JeweleryOrderDetailScreen() {
                   return (
                     <View key={step.key} style={styles.timelineRow}>
                       <View style={styles.nodeColumn}>
-                        <View
-                          style={[
+                        <View style={[
                             styles.nodeCircle,
                             {
                               backgroundColor: isDone ? colors.gold : colors.pearl,
@@ -268,10 +258,9 @@ export default function JeweleryOrderDetailScreen() {
                           ]}
                         >
                           {isDone ? (
-                            <Feather name="check" size={10} color={colors.onBrand} />
+                            <Check size={10} color={colors.onBrand} />
                           ) : (
-                            <View
-                              style={[
+                            <View style={[
                                 styles.nodeDot,
                                 { backgroundColor: colors.warmGray },
                               ]}
@@ -279,8 +268,7 @@ export default function JeweleryOrderDetailScreen() {
                           )}
                         </View>
                         {idx < ORDER_TIMELINE.length - 1 && (
-                          <View
-                            style={[
+                          <View style={[
                               styles.nodeLine,
                               {
                                 backgroundColor:
@@ -292,8 +280,7 @@ export default function JeweleryOrderDetailScreen() {
                       </View>
 
                       <View style={styles.nodeContent}>
-                        <Text
-                          style={[
+                        <Text style={[
                             styles.nodeTitle,
                             {
                               color: isCurrent ? colors.gold : colors.ink,
@@ -305,8 +292,7 @@ export default function JeweleryOrderDetailScreen() {
                         >
                           {step.title}
                         </Text>
-                        <Text
-                          style={[
+                        <Text style={[
                             styles.nodeSub,
                             {
                               color: colors.warmGray,
@@ -324,8 +310,7 @@ export default function JeweleryOrderDetailScreen() {
             </View>
 
             {/* Pieces in Order */}
-            <View
-              style={[
+            <View style={[
                 styles.sectionCard,
                 {
                   backgroundColor: colors.cardBg,
@@ -333,8 +318,7 @@ export default function JeweleryOrderDetailScreen() {
                 },
               ]}
             >
-              <Text
-                style={[
+              <Text style={[
                   styles.sectionTitle,
                   {
                     color: colors.ink,
@@ -355,8 +339,7 @@ export default function JeweleryOrderDetailScreen() {
                         item.productId?.image;
 
                   return (
-                    <TouchableOpacity
-                      key={item.sku || idx}
+                    <TouchableOpacity key={item.sku || idx}
                       style={[
                         styles.itemCard,
                         {
@@ -369,26 +352,23 @@ export default function JeweleryOrderDetailScreen() {
                       activeOpacity={0.8}
                     >
                       {imgUri ? (
-                        <Image
-                          source={{ uri: imgUri }}
+                        <Image source={{ uri: imgUri }}
                           style={styles.itemImage}
                           resizeMode="cover"
                         />
                       ) : (
-                        <View
-                          style={[
+                        <View style={[
                             styles.itemImage,
                             styles.itemImgPlaceholder,
                             { backgroundColor: colors.champagne },
                           ]}
                         >
-                          <Feather name="gift" size={20} color={colors.gold} />
+                          <Gift size={20} color={colors.gold} />
                         </View>
                       )}
 
                       <View style={{ flex: 1, gap: 3 }}>
-                        <Text
-                          style={[
+                        <Text style={[
                             styles.itemTitle,
                             {
                               color: colors.ink,
@@ -401,8 +381,7 @@ export default function JeweleryOrderDetailScreen() {
                         </Text>
 
                         {item.sku && (
-                          <Text
-                            style={[
+                          <Text style={[
                               styles.itemSku,
                               {
                                 color: colors.warmGray,
@@ -415,8 +394,7 @@ export default function JeweleryOrderDetailScreen() {
                         )}
 
                         <View style={styles.itemPriceRow}>
-                          <Text
-                            style={[
+                          <Text style={[
                               styles.itemQty,
                               {
                                 color: colors.warmGray,
@@ -426,8 +404,7 @@ export default function JeweleryOrderDetailScreen() {
                           >
                             Qty: {item.quantity || 1}
                           </Text>
-                          <Text
-                            style={[
+                          <Text style={[
                               styles.itemPrice,
                               {
                                 color: colors.ink,
@@ -450,8 +427,7 @@ export default function JeweleryOrderDetailScreen() {
 
             {/* Delivery Address */}
             {order.shippingAddress && (
-              <View
-                style={[
+              <View style={[
                   styles.sectionCard,
                   {
                     backgroundColor: colors.cardBg,
@@ -460,8 +436,7 @@ export default function JeweleryOrderDetailScreen() {
                 ]}
               >
                 <View style={styles.sectionHeaderRow}>
-                  <Text
-                    style={[
+                  <Text style={[
                       styles.sectionTitle,
                       {
                         color: colors.ink,
@@ -471,15 +446,10 @@ export default function JeweleryOrderDetailScreen() {
                   >
                     DESTINATION
                   </Text>
-                  <Ionicons
-                    name="location-sharp"
-                    size={14}
-                    color={colors.gold}
-                  />
+                  <MapPin size={14} color={colors.gold} />
                 </View>
 
-                <Text
-                  style={[
+                <Text style={[
                     styles.addressName,
                     {
                       color: colors.ink,
@@ -489,8 +459,7 @@ export default function JeweleryOrderDetailScreen() {
                 >
                   {order.shippingAddress.fullName}
                 </Text>
-                <Text
-                  style={[
+                <Text style={[
                     styles.addressText,
                     {
                       color: colors.warmGray,
@@ -507,9 +476,8 @@ export default function JeweleryOrderDetailScreen() {
                   {order.shippingAddress.pincode}
                 </Text>
                 <View style={styles.phoneBadge}>
-                  <Feather name="phone" size={11} color={colors.gold} />
-                  <Text
-                    style={[
+                  <Phone size={11} color={colors.gold} />
+                  <Text style={[
                       styles.phoneText,
                       {
                         color: colors.ink,
@@ -524,8 +492,7 @@ export default function JeweleryOrderDetailScreen() {
             )}
 
             {/* Payment & Charges Summary */}
-            <View
-              style={[
+            <View style={[
                 styles.sectionCard,
                 {
                   backgroundColor: colors.cardBg,
@@ -533,8 +500,7 @@ export default function JeweleryOrderDetailScreen() {
                 },
               ]}
             >
-              <Text
-                style={[
+              <Text style={[
                   styles.sectionTitle,
                   {
                     color: colors.ink,
@@ -546,8 +512,7 @@ export default function JeweleryOrderDetailScreen() {
               </Text>
 
               <View style={styles.breakdownRow}>
-                <Text
-                  style={[
+                <Text style={[
                     styles.breakdownKey,
                     {
                       color: colors.warmGray,
@@ -557,8 +522,7 @@ export default function JeweleryOrderDetailScreen() {
                 >
                   Payment Method
                 </Text>
-                <Text
-                  style={[
+                <Text style={[
                     styles.breakdownVal,
                     {
                       color: colors.ink,
@@ -571,8 +535,7 @@ export default function JeweleryOrderDetailScreen() {
               </View>
 
               <View style={styles.breakdownRow}>
-                <Text
-                  style={[
+                <Text style={[
                     styles.breakdownKey,
                     {
                       color: colors.warmGray,
@@ -582,8 +545,7 @@ export default function JeweleryOrderDetailScreen() {
                 >
                   Subtotal
                 </Text>
-                <Text
-                  style={[
+                <Text style={[
                     styles.breakdownVal,
                     {
                       color: colors.ink,
@@ -597,8 +559,7 @@ export default function JeweleryOrderDetailScreen() {
               </View>
 
               <View style={styles.breakdownRow}>
-                <Text
-                  style={[
+                <Text style={[
                     styles.breakdownKey,
                     {
                       color: colors.warmGray,
@@ -608,8 +569,7 @@ export default function JeweleryOrderDetailScreen() {
                 >
                   Insured Delivery
                 </Text>
-                <Text
-                  style={[
+                <Text style={[
                     styles.breakdownVal,
                     {
                       color: colors.gold,
@@ -625,8 +585,7 @@ export default function JeweleryOrderDetailScreen() {
 
               {order.discountAmount > 0 && (
                 <View style={styles.breakdownRow}>
-                  <Text
-                    style={[
+                  <Text style={[
                       styles.breakdownKey,
                       {
                         color: colors.warmGray,
@@ -636,8 +595,7 @@ export default function JeweleryOrderDetailScreen() {
                   >
                     Privilege Savings
                   </Text>
-                  <Text
-                    style={[
+                  <Text style={[
                       styles.breakdownVal,
                       {
                         color: colors.gold,
@@ -651,16 +609,14 @@ export default function JeweleryOrderDetailScreen() {
                 </View>
               )}
 
-              <View
-                style={[
+              <View style={[
                   styles.divider,
                   { backgroundColor: colors.border },
                 ]}
               />
 
               <View style={styles.totalRow}>
-                <Text
-                  style={[
+                <Text style={[
                     styles.totalKey,
                     {
                       color: colors.ink,
@@ -670,8 +626,7 @@ export default function JeweleryOrderDetailScreen() {
                 >
                   Total Paid
                 </Text>
-                <Text
-                  style={[
+                <Text style={[
                     styles.totalVal,
                     {
                       color: colors.gold,
@@ -686,8 +641,7 @@ export default function JeweleryOrderDetailScreen() {
             </View>
 
             {/* Assistance & Concierge Card */}
-            <View
-              style={[
+            <View style={[
                 styles.conciergeCard,
                 {
                   backgroundColor: colors.champagne,
@@ -695,10 +649,9 @@ export default function JeweleryOrderDetailScreen() {
                 },
               ]}
             >
-              <Feather name="shield" size={20} color={colors.gold} />
+              <Shield size={20} color={colors.gold} />
               <View style={{ flex: 1, gap: 2 }}>
-                <Text
-                  style={[
+                <Text style={[
                     styles.conciergeTitle,
                     {
                       color: colors.ink,
@@ -708,8 +661,7 @@ export default function JeweleryOrderDetailScreen() {
                 >
                   Jewellery Concierge
                 </Text>
-                <Text
-                  style={[
+                <Text style={[
                     styles.conciergeSub,
                     {
                       color: colors.warmGray,

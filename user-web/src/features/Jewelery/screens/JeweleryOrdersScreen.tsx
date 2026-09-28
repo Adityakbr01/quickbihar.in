@@ -1,4 +1,4 @@
-import { Feather, Ionicons } from "@expo/vector-icons";
+import { ArrowLeft, ArrowRight, ChevronRight, CircleCheck, CircleX, Clock, Gift, Package, Shield, Truck } from "lucide-react";
 import dayjs from "dayjs";
 import * as Haptics from "@/lib/haptics";
 import { useNavigate } from "react-router-dom";
@@ -76,7 +76,7 @@ export default function JeweleryOrdersScreen() {
         return {
           bg: colors.champagne,
           color: colors.gold,
-          icon: "check-circle",
+          icon: CircleCheck,
           label: s === "PROCESSING" ? "Crafting / Packed" : "Confirmed",
         };
       case "IN_TRANSIT":
@@ -84,14 +84,14 @@ export default function JeweleryOrdersScreen() {
         return {
           bg: colors.pearl,
           color: colors.gold,
-          icon: "truck",
+          icon: Truck,
           label: "In Transit",
         };
       case "DELIVERED":
         return {
           bg: "#f0fdf4",
           color: "#166534",
-          icon: "shield",
+          icon: Shield,
           label: "Delivered",
         };
       case "CANCELLED":
@@ -99,14 +99,14 @@ export default function JeweleryOrdersScreen() {
         return {
           bg: "#fef2f2",
           color: "#991b1b",
-          icon: "x-circle",
+          icon: CircleX,
           label: "Cancelled",
         };
       default:
         return {
           bg: colors.pearl,
           color: colors.warmGray,
-          icon: "clock",
+          icon: Clock,
           label: "Processing",
         };
     }
@@ -115,8 +115,7 @@ export default function JeweleryOrdersScreen() {
   return (
     <View style={[styles.root, { backgroundColor: colors.ivory }]}>
       {/* Header */}
-      <View
-        style={[
+      <View style={[
           styles.header,
           {
             paddingTop: topPad + 12,
@@ -125,8 +124,7 @@ export default function JeweleryOrdersScreen() {
           },
         ]}
       >
-        <Pressable
-          style={styles.backBtn}
+        <Pressable style={styles.backBtn}
           onPress={() => {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
             goBack(navigate, "/jewelery/(tabs)/profile");
@@ -135,12 +133,11 @@ export default function JeweleryOrdersScreen() {
           accessibilityRole="button"
           accessibilityLabel="Go back"
         >
-          <Feather name="arrow-left" size={18} color={colors.ink} />
+          <ArrowLeft size={18} color={colors.ink} />
         </Pressable>
 
         <View style={styles.headerTitleWrap}>
-          <Text
-            style={[
+          <Text style={[
               styles.headerTitle,
               {
                 color: colors.ink,
@@ -150,8 +147,7 @@ export default function JeweleryOrdersScreen() {
           >
             YOUR ORDERS
           </Text>
-          <Text
-            style={[
+          <Text style={[
               styles.headerSubtitle,
               { color: colors.warmGray, fontFamily: "DMSans_400Regular" },
             ]}
@@ -162,11 +158,10 @@ export default function JeweleryOrdersScreen() {
           </Text>
         </View>
 
-        <Feather name="package" size={16} color={colors.gold} />
+        <Package size={16} color={colors.gold} />
       </View>
 
-      <ScrollView
-        contentContainerStyle={[
+      <ScrollView contentContainerStyle={[
           styles.scrollContent,
           { paddingBottom: bottomPad + 40 },
         ]}
@@ -182,8 +177,7 @@ export default function JeweleryOrdersScreen() {
         {isLoading ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="small" color={colors.gold} />
-            <Text
-              style={[
+            <Text style={[
                 styles.loadingText,
                 { color: colors.warmGray, fontFamily: "DMSans_400Regular" },
               ]}
@@ -201,8 +195,7 @@ export default function JeweleryOrdersScreen() {
               );
 
               return (
-                <TouchableOpacity
-                  key={order._id || order.orderId}
+                <TouchableOpacity key={order._id || order.orderId}
                   style={[
                     styles.orderCard,
                     {
@@ -222,8 +215,7 @@ export default function JeweleryOrdersScreen() {
                   {/* Top Bar */}
                   <View style={styles.cardTop}>
                     <View>
-                      <Text
-                        style={[
+                      <Text style={[
                           styles.orderIdText,
                           {
                             color: colors.ink,
@@ -233,8 +225,7 @@ export default function JeweleryOrdersScreen() {
                       >
                         ORDER #{order.orderId}
                       </Text>
-                      <Text
-                        style={[
+                      <Text style={[
                           styles.orderDate,
                           {
                             color: colors.warmGray,
@@ -246,8 +237,7 @@ export default function JeweleryOrdersScreen() {
                       </Text>
                     </View>
 
-                    <View
-                      style={[
+                    <View style={[
                         styles.statusBadge,
                         {
                           backgroundColor: statusMeta.bg,
@@ -255,13 +245,8 @@ export default function JeweleryOrdersScreen() {
                         },
                       ]}
                     >
-                      <Feather
-                        name={statusMeta.icon as any}
-                        size={10}
-                        color={statusMeta.color}
-                      />
-                      <Text
-                        style={[
+                      <statusMeta.icon size={10} color={statusMeta.color} />
+                      <Text style={[
                           styles.statusText,
                           {
                             color: statusMeta.color,
@@ -274,8 +259,7 @@ export default function JeweleryOrdersScreen() {
                     </View>
                   </View>
 
-                  <View
-                    style={[
+                  <View style={[
                       styles.cardDivider,
                       { backgroundColor: colors.border },
                     ]}
@@ -283,17 +267,15 @@ export default function JeweleryOrdersScreen() {
 
                   {/* Items Preview */}
                   <View style={styles.itemsPreview}>
-                    <View
-                      style={[
+                    <View style={[
                         styles.packageIconWrap,
                         { backgroundColor: colors.champagne },
                       ]}
                     >
-                      <Feather name="gift" size={16} color={colors.gold} />
+                      <Gift size={16} color={colors.gold} />
                     </View>
                     <View style={{ flex: 1 }}>
-                      <Text
-                        style={[
+                      <Text style={[
                           styles.itemsPreviewTitle,
                           {
                             color: colors.ink,
@@ -309,8 +291,7 @@ export default function JeweleryOrdersScreen() {
                           ? ` & ${order.items.length - 1} other piece${order.items.length > 2 ? "s" : ""}`
                           : ""}
                       </Text>
-                      <Text
-                        style={[
+                      <Text style={[
                           styles.itemsCount,
                           {
                             color: colors.warmGray,
@@ -324,8 +305,7 @@ export default function JeweleryOrdersScreen() {
                     </View>
                   </View>
 
-                  <View
-                    style={[
+                  <View style={[
                       styles.cardDivider,
                       { backgroundColor: colors.border },
                     ]}
@@ -334,8 +314,7 @@ export default function JeweleryOrdersScreen() {
                   {/* Footer */}
                   <View style={styles.cardFooter}>
                     <View>
-                      <Text
-                        style={[
+                      <Text style={[
                           styles.totalLabel,
                           {
                             color: colors.warmGray,
@@ -345,8 +324,7 @@ export default function JeweleryOrdersScreen() {
                       >
                         Total Amount
                       </Text>
-                      <Text
-                        style={[
+                      <Text style={[
                           styles.totalAmount,
                           {
                             color: colors.ink,
@@ -360,8 +338,7 @@ export default function JeweleryOrdersScreen() {
                     </View>
 
                     <View style={styles.viewDetailsRow}>
-                      <Text
-                        style={[
+                      <Text style={[
                           styles.viewDetailsText,
                           {
                             color: colors.gold,
@@ -371,11 +348,7 @@ export default function JeweleryOrdersScreen() {
                       >
                         VIEW DETAILS
                       </Text>
-                      <Feather
-                        name="chevron-right"
-                        size={14}
-                        color={colors.gold}
-                      />
+                      <ChevronRight size={14} color={colors.gold} />
                     </View>
                   </View>
                 </TouchableOpacity>
@@ -384,8 +357,7 @@ export default function JeweleryOrdersScreen() {
           </View>
         ) : (
           <View style={styles.emptyWrap}>
-            <View
-              style={[
+            <View style={[
                 styles.emptyIconWrap,
                 {
                   backgroundColor: colors.champagne,
@@ -393,10 +365,9 @@ export default function JeweleryOrdersScreen() {
                 },
               ]}
             >
-              <Feather name="gift" size={32} color={colors.gold} />
+              <Gift size={32} color={colors.gold} />
             </View>
-            <Text
-              style={[
+            <Text style={[
                 styles.emptyTitle,
                 {
                   color: colors.ink,
@@ -406,8 +377,7 @@ export default function JeweleryOrdersScreen() {
             >
               No Jewellery Orders Yet
             </Text>
-            <Text
-              style={[
+            <Text style={[
                 styles.emptySub,
                 {
                   color: colors.warmGray,
@@ -417,8 +387,7 @@ export default function JeweleryOrdersScreen() {
             >
               Explore our handcrafted collections and acquire your first signature piece.
             </Text>
-            <TouchableOpacity
-              style={[
+            <TouchableOpacity style={[
                 styles.emptyBtn,
                 { backgroundColor: colors.gold },
               ]}
@@ -428,8 +397,7 @@ export default function JeweleryOrdersScreen() {
               }}
               activeOpacity={0.88}
             >
-              <Text
-                style={[
+              <Text style={[
                   styles.emptyBtnText,
                   {
                     color: colors.onBrand,
@@ -439,7 +407,7 @@ export default function JeweleryOrdersScreen() {
               >
                 EXPLORE COLLECTIONS
               </Text>
-              <Feather name="arrow-right" size={14} color={colors.onBrand} />
+              <ArrowRight size={14} color={colors.onBrand} />
             </TouchableOpacity>
           </View>
         )}

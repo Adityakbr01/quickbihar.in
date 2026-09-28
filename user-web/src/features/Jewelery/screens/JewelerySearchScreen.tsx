@@ -1,4 +1,4 @@
-import { Feather } from "@expo/vector-icons";
+import { Search, X } from "lucide-react";
 import * as Haptics from "@/lib/haptics";
 import { useNavigate } from "react-router-dom";
 import React, { useEffect, useMemo, useState } from "react";
@@ -52,8 +52,7 @@ export default function JewelerySearchScreen() {
 
   return (
     <View style={[styles.root, { backgroundColor: colors.ivory }]}>
-      <View
-        style={[
+      <View style={[
           styles.header,
           {
             paddingTop: topPad + 12,
@@ -62,19 +61,18 @@ export default function JewelerySearchScreen() {
           },
         ]}
       >
-        <TextInput
-          value={query}
+        <TextInput value={query}
           onChangeText={setQuery}
           placeholder="Search for jewellery..."
           placeholderTextColor={colors.warmGray}
           autoFocus
           returnKeyType="search"
           onSubmitEditing={Keyboard.dismiss}
-          icon={<Feather name="search" size={16} color={colors.warmGray} />}
+          icon={<Search size={16} color={colors.warmGray} />}
           rightIcon={
             query.length > 0 ? (
               <Pressable onPress={() => setQuery("")} hitSlop={8}>
-                <Feather name="x" size={16} color={colors.warmGray} />
+                <X size={16} color={colors.warmGray} />
               </Pressable>
             ) : undefined
           }
@@ -98,8 +96,7 @@ export default function JewelerySearchScreen() {
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
           goBack(navigate);
         }} hitSlop={8}>
-          <Text
-            style={[
+          <Text style={[
               styles.cancelText,
               { color: colors.gold, fontFamily: "DMSans_400Regular" },
             ]}
@@ -111,8 +108,7 @@ export default function JewelerySearchScreen() {
 
       {query.trim() === "" ? (
         <View style={styles.suggestions}>
-          <Text
-            style={[
+          <Text style={[
               styles.sugLabel,
               { color: colors.gold, fontFamily: "DMSans_500Medium" },
             ]}
@@ -121,8 +117,7 @@ export default function JewelerySearchScreen() {
           </Text>
           <View style={styles.chips}>
             {popularSearches.map((s) => (
-              <Pressable
-                key={s}
+              <Pressable key={s}
                 style={({ pressed }) => [
                   styles.chip,
                   {
@@ -135,8 +130,7 @@ export default function JewelerySearchScreen() {
                   setQuery(s);
                 }}
               >
-                <Text
-                  style={[
+                <Text style={[
                     styles.chipText,
                     {
                       color: colors.ink,
@@ -153,8 +147,7 @@ export default function JewelerySearchScreen() {
       ) : isLoading ? (
         <View style={styles.emptyState}>
           <ActivityIndicator color={colors.gold} />
-          <Text
-            style={[
+          <Text style={[
               styles.emptyBody,
               { color: colors.warmGray, fontFamily: "DMSans_400Regular" },
             ]}
@@ -164,9 +157,8 @@ export default function JewelerySearchScreen() {
         </View>
       ) : filtered.length === 0 ? (
         <View style={styles.emptyState}>
-          <Feather name="search" size={32} color={colors.midGray} />
-          <Text
-            style={[
+          <Search size={32} color={colors.midGray} />
+          <Text style={[
               styles.emptyText,
               {
                 color: colors.ink,
@@ -176,8 +168,7 @@ export default function JewelerySearchScreen() {
           >
             No results for "{query}"
           </Text>
-          <Text
-            style={[
+          <Text style={[
               styles.emptyBody,
               { color: colors.warmGray, fontFamily: "DMSans_400Regular" },
             ]}
@@ -186,13 +177,11 @@ export default function JewelerySearchScreen() {
           </Text>
         </View>
       ) : (
-        <ScrollView
-          showsVerticalScrollIndicator={false}
+        <ScrollView showsVerticalScrollIndicator={false}
           contentContainerStyle={[Platform.OS === "web" && { paddingBottom: 34 }]}
         >
           <View style={styles.results}>
-            <Text
-              style={[
+            <Text style={[
                 styles.resultCount,
                 { color: colors.warmGray, fontFamily: "DMSans_400Regular" },
               ]}

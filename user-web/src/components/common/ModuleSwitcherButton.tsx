@@ -1,6 +1,6 @@
 import React, { useCallback, useRef } from "react";
 import { Pressable, StyleSheet, Text } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { ArrowRight, Sparkles } from "lucide-react";
 import * as Haptics from "@/lib/haptics";
 import { useNavigate } from "react-router-dom";
 import { replaceTo } from "@/src/utils/navigation";
@@ -26,6 +26,7 @@ export const ModuleSwitcherButton: React.FC<{ compact?: boolean }> = ({
   const nextModule =
     visibleModules[(currentIndex + 1 + visibleModules.length) % visibleModules.length];
   const nextLabel = nextModule?.label ?? "next catalog";
+  const NextIcon = nextModule?.iconName ?? Sparkles;
 
   const handlePress = useCallback(() => {
     if (isNavigating.current) return;
@@ -48,8 +49,7 @@ export const ModuleSwitcherButton: React.FC<{ compact?: boolean }> = ({
   }, [navigate, setModule, nextModule]);
 
   return (
-    <Pressable
-      onPress={handlePress}
+    <Pressable onPress={handlePress}
       hitSlop={8}
       accessibilityRole="button"
       accessibilityLabel={`Switch to ${nextLabel} catalog`}
@@ -63,13 +63,8 @@ export const ModuleSwitcherButton: React.FC<{ compact?: boolean }> = ({
         pressed && styles.pressed,
       ]}
     >
-      <Ionicons
-        name={(nextModule?.iconName ?? "sparkles-outline") as any}
-        size={15}
-        color={nextModule?.badgeColor ?? theme.text}
-      />
-      <Text
-        style={[
+      <NextIcon size={15} color={nextModule?.badgeColor ?? theme.text} />
+      <Text style={[
           styles.label,
           {
             color: theme.text,
@@ -81,7 +76,7 @@ export const ModuleSwitcherButton: React.FC<{ compact?: boolean }> = ({
       >
         {nextLabel}
       </Text>
-      <Ionicons name="arrow-forward" size={13} color={theme.tertiaryText} />
+      <ArrowRight size={13} color={theme.tertiaryText} />
     </Pressable>
   );
 };

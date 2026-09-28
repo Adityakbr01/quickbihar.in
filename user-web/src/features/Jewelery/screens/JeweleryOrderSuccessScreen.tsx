@@ -1,4 +1,4 @@
-import { Feather, Ionicons } from "@expo/vector-icons";
+import { ArrowRight, Check, Share2 } from "lucide-react";
 import * as Haptics from "@/lib/haptics";
 import { useNavigate } from "react-router-dom";
 import { replaceTo, useRouteParams } from "@/src/utils/navigation";
@@ -64,8 +64,7 @@ export default function JeweleryOrderSuccessScreen() {
   return (
     <View style={[styles.root, { backgroundColor: colors.ivory }]}>
       {/* Top bar with share */}
-      <View
-        style={[
+      <View style={[
           styles.header,
           {
             paddingTop: topPad + 12,
@@ -74,8 +73,7 @@ export default function JeweleryOrderSuccessScreen() {
         ]}
       >
         <View style={{ width: 36 }} />
-        <Text
-          style={[
+        <Text style={[
             styles.headerTitle,
             {
               color: colors.gold,
@@ -86,14 +84,13 @@ export default function JeweleryOrderSuccessScreen() {
           QUICKBIHAR JEWELLERY
         </Text>
         <TouchableOpacity onPress={handleShare} style={styles.shareBtn}>
-          <Feather name="share-2" size={18} color={colors.ink} />
+          <Share2 size={18} color={colors.ink} />
         </TouchableOpacity>
       </View>
 
       {/* Main Content */}
       <View style={styles.content}>
-        <View
-          style={[
+        <View style={[
             styles.checkCircle,
             {
               backgroundColor: colors.champagne,
@@ -101,11 +98,10 @@ export default function JeweleryOrderSuccessScreen() {
             },
           ]}
         >
-          <Feather name="check" size={36} color={colors.gold} />
+          <Check size={36} color={colors.gold} />
         </View>
 
-        <Text
-          style={[
+        <Text style={[
             styles.title,
             {
               color: colors.ink,
@@ -116,8 +112,7 @@ export default function JeweleryOrderSuccessScreen() {
           ACQUISITION CONFIRMED
         </Text>
 
-        <Text
-          style={[
+        <Text style={[
             styles.orderIdBadge,
             {
               color: colors.gold,
@@ -128,8 +123,7 @@ export default function JeweleryOrderSuccessScreen() {
           ORDER #{orderId}
         </Text>
 
-        <Text
-          style={[
+        <Text style={[
             styles.subtitle,
             {
               color: colors.warmGray,
@@ -142,8 +136,7 @@ export default function JeweleryOrderSuccessScreen() {
         </Text>
 
         {order && (
-          <View
-            style={[
+          <View style={[
               styles.summaryCard,
               {
                 backgroundColor: colors.cardBg,
@@ -152,16 +145,14 @@ export default function JeweleryOrderSuccessScreen() {
             ]}
           >
             <View style={styles.summaryRow}>
-              <Text
-                style={[
+              <Text style={[
                   styles.summaryLabel,
                   { color: colors.warmGray, fontFamily: "DMSans_400Regular" },
                 ]}
               >
                 Pieces Acquired
               </Text>
-              <Text
-                style={[
+              <Text style={[
                   styles.summaryVal,
                   { color: colors.ink, fontFamily: "DMSans_500Medium" },
                 ]}
@@ -172,16 +163,14 @@ export default function JeweleryOrderSuccessScreen() {
             </View>
 
             <View style={styles.summaryRow}>
-              <Text
-                style={[
+              <Text style={[
                   styles.summaryLabel,
                   { color: colors.warmGray, fontFamily: "DMSans_400Regular" },
                 ]}
               >
                 Amount Paid
               </Text>
-              <Text
-                style={[
+              <Text style={[
                   styles.summaryVal,
                   { color: colors.gold, fontFamily: "DMSans_700Bold" },
                 ]}
@@ -192,16 +181,14 @@ export default function JeweleryOrderSuccessScreen() {
             </View>
 
             <View style={styles.summaryRow}>
-              <Text
-                style={[
+              <Text style={[
                   styles.summaryLabel,
                   { color: colors.warmGray, fontFamily: "DMSans_400Regular" },
                 ]}
               >
                 Payment Method
               </Text>
-              <Text
-                style={[
+              <Text style={[
                   styles.summaryVal,
                   { color: colors.ink, fontFamily: "DMSans_500Medium" },
                 ]}
@@ -214,8 +201,7 @@ export default function JeweleryOrderSuccessScreen() {
       </View>
 
       {/* Action Buttons */}
-      <View
-        style={[
+      <View style={[
           styles.footer,
           {
             paddingBottom: bottomPad + 12,
@@ -223,8 +209,7 @@ export default function JeweleryOrderSuccessScreen() {
           },
         ]}
       >
-        <TouchableOpacity
-          style={[styles.primaryBtn, { backgroundColor: colors.gold }]}
+        <TouchableOpacity style={[styles.primaryBtn, { backgroundColor: colors.gold }]}
           onPress={() => {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
             replaceTo(navigate, {
@@ -234,19 +219,17 @@ export default function JeweleryOrderSuccessScreen() {
           }}
           activeOpacity={0.88}
         >
-          <Text
-            style={[
+          <Text style={[
               styles.primaryBtnText,
               { color: colors.onBrand, fontFamily: "DMSans_600SemiBold" },
             ]}
           >
             VIEW ORDER DETAILS
           </Text>
-          <Feather name="arrow-right" size={14} color={colors.onBrand} />
+          <ArrowRight size={14} color={colors.onBrand} />
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={[
+        <TouchableOpacity style={[
             styles.secondaryBtn,
             { borderColor: colors.gold, backgroundColor: colors.cardBg },
           ]}
@@ -256,8 +239,7 @@ export default function JeweleryOrderSuccessScreen() {
           }}
           activeOpacity={0.88}
         >
-          <Text
-            style={[
+          <Text style={[
               styles.secondaryBtnText,
               { color: colors.gold, fontFamily: "DMSans_600SemiBold" },
             ]}

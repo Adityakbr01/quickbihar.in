@@ -1,4 +1,4 @@
-import { Feather } from "@expo/vector-icons";
+import { Star } from "lucide-react";
 import React from "react";
 import { View } from "react-native";
 
@@ -29,13 +29,7 @@ export function StarRating({
   return (
     <View style={{ flexDirection: "row" }}>
       {[1, 2, 3, 4, 5].map((s) => (
-        <Feather
-          key={s}
-          name="star"
-          size={size}
-          color={s <= Math.round(rating) ? filledColor : emptyColor}
-          style={{ marginRight: 1 }}
-        />
+        <Star key={s} size={size} color={s <= Math.round(rating) ? filledColor : emptyColor} style={{ marginRight: 1 }} />
       ))}
     </View>
   );

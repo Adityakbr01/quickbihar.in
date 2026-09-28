@@ -1,6 +1,6 @@
 import React from "react";
 import { TouchableOpacity, Platform, ViewStyle } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { Heart } from "lucide-react";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -49,16 +49,15 @@ const WishlistHeart: React.FC<WishlistHeartProps> = ({
   };
 
   return (
-    <TouchableOpacity
-      activeOpacity={0.7}
+    <TouchableOpacity activeOpacity={0.7}
       onPress={handlePress}
       style={style}
     >
       <Animated.View style={animatedStyle}>
-        <Ionicons
-          name={isWishlisted ? "heart" : "heart-outline"}
+        <Heart
           size={size}
           color={isWishlisted ? activeColor : inactiveColor}
+          fill={isWishlisted ? activeColor : "none"}
         />
       </Animated.View>
     </TouchableOpacity>

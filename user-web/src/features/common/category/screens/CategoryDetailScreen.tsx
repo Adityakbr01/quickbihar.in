@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import { ActivityIndicator, FlatList, Text, TouchableOpacity, View } from "react-native";
 import { Image as ExpoImage } from "expo-image";
-import { Ionicons } from "@expo/vector-icons";
+import { ChevronLeft } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import * as Haptics from "@/lib/haptics";
@@ -96,8 +96,7 @@ const CategoryDetailScreen: React.FC<CategoryDetailScreenProps> = ({ slug }) => 
   return (
     <SafeViewWrapper>
       <SeoHead meta={meta} jsonLd={jsonLd} />
-      <FlatList
-        data={products}
+      <FlatList data={products}
         keyExtractor={(item) => item._id}
         numColumns={2}
         columnWrapperStyle={{ gap: 12, paddingHorizontal: 16 }}
@@ -105,14 +104,13 @@ const CategoryDetailScreen: React.FC<CategoryDetailScreenProps> = ({ slug }) => 
         ListHeaderComponent={
           <View style={{ padding: 16 }}>
             <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 12 }}>
-              <TouchableOpacity
-                onPress={handleBack}
+              <TouchableOpacity onPress={handleBack}
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 activeOpacity={0.7}
                 accessibilityRole="button"
                 accessibilityLabel="Go back"
               >
-                <Ionicons name="chevron-back" size={24} color={theme.text} />
+                <ChevronLeft size={24} color={theme.text} />
               </TouchableOpacity>
               <View style={{ flexDirection: "row", alignItems: "center", marginLeft: 8 }}>
                 <Link to="/">Home</Link>
@@ -132,12 +130,10 @@ const CategoryDetailScreen: React.FC<CategoryDetailScreenProps> = ({ slug }) => 
           </View>
         }
         renderItem={({ item }) => (
-          <Link
-            to={toWebPath({ pathname: "/product/[id]", params: { id: item.slug || item._id } })}
+          <Link to={toWebPath({ pathname: "/product/[id]", params: { id: item.slug || item._id } })}
             style={{ flex: 1, marginBottom: 12 }}
           >
-            <View
-              style={{
+            <View style={{
                 backgroundColor: theme.background,
                 borderColor: theme.border,
                 borderWidth: 1,
@@ -145,8 +141,7 @@ const CategoryDetailScreen: React.FC<CategoryDetailScreenProps> = ({ slug }) => 
                 overflow: "hidden",
               }}
             >
-              <ExpoImage
-                source={{ uri: item.images?.[0]?.url }}
+              <ExpoImage source={{ uri: item.images?.[0]?.url }}
                 contentFit="cover"
                 style={{ width: "100%", height: 180 }}
                 transition={200}

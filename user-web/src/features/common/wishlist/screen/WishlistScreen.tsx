@@ -7,7 +7,7 @@ import {
   ScrollView,
   RefreshControl,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { ChevronLeft, Heart, X } from "lucide-react";
 import * as Haptics from "@/lib/haptics";
 import { useNavigate } from "react-router-dom";
 import { goBack, goTo } from "@/src/utils/navigation";
@@ -36,8 +36,7 @@ const WishlistScreen = () => {
   };
 
   const renderSkeletons = () => (
-    <ScrollView
-      contentContainerStyle={styles.list}
+    <ScrollView contentContainerStyle={styles.list}
       showsVerticalScrollIndicator={false}
     >
       <View style={styles.grid}>
@@ -53,12 +52,11 @@ const WishlistScreen = () => {
       <View style={styles.container}>
         {/* Top app bar (same language as Notifications) */}
         <View style={styles.appBar}>
-          <TouchableOpacity
-            onPress={handleBack}
+          <TouchableOpacity onPress={handleBack}
             style={styles.backButton}
             activeOpacity={0.7}
           >
-            <Ionicons name="chevron-back" size={22} color={theme.text} />
+            <ChevronLeft size={22} color={theme.text} />
           </TouchableOpacity>
 
           <View style={styles.appBarTitleWrap}>
@@ -77,21 +75,19 @@ const WishlistScreen = () => {
           renderSkeletons()
         ) : items.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <View
-              style={[
+            <View style={[
                 styles.emptyIconWrap,
                 { backgroundColor: theme.primary + "15" },
               ]}
             >
-              <Ionicons name="heart-outline" size={52} color={theme.primary} />
+              <Heart size={52} color={theme.primary} />
             </View>
             <Text style={styles.emptyTitle}>Your Wishlist is Empty</Text>
             <Text style={styles.emptySubtitle}>
               Save items you love here and they&apos;ll be waiting for you when
               you&apos;re ready to buy.
             </Text>
-            <TouchableOpacity
-              style={styles.shopBtn}
+            <TouchableOpacity style={styles.shopBtn}
               onPress={() => goTo(navigate, "/")}
               activeOpacity={0.8}
             >
@@ -99,8 +95,7 @@ const WishlistScreen = () => {
             </TouchableOpacity>
           </View>
         ) : (
-          <ScrollView
-            contentContainerStyle={styles.list}
+          <ScrollView contentContainerStyle={styles.list}
             showsVerticalScrollIndicator={false}
             refreshControl={
               <RefreshControl
@@ -135,8 +130,7 @@ const WishlistScreen = () => {
                 const discount = Math.round(Number(rawDiscount) || 0);
 
                 return (
-                  <TouchableOpacity
-                    key={pId}
+                  <TouchableOpacity key={pId}
                     style={styles.card}
                     activeOpacity={0.88}
                     onPress={() =>
@@ -148,8 +142,7 @@ const WishlistScreen = () => {
                   >
                     {/* Image Container with Top-Left Discount Badge & Top-Right Remove Button */}
                     <View style={styles.imageContainer}>
-                      <Image
-                        source={{ uri: imageUrl }}
+                      <Image source={{ uri: imageUrl }}
                         style={styles.image}
                         resizeMode="cover"
                       />
@@ -160,8 +153,7 @@ const WishlistScreen = () => {
                         </View>
                       )}
 
-                      <TouchableOpacity
-                        style={styles.removeBtn}
+                      <TouchableOpacity style={styles.removeBtn}
                         onPress={(e) => {
                           e.stopPropagation();
                           handleRemove(pId);
@@ -169,7 +161,7 @@ const WishlistScreen = () => {
                         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                         activeOpacity={0.7}
                       >
-                        <Ionicons name="close" size={16} color="#000" />
+                        <X size={16} color="#000" />
                       </TouchableOpacity>
                     </View>
 

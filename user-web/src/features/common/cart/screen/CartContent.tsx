@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo } from "react";
 import { Platform, View, ScrollView, TouchableOpacity, Text, ActivityIndicator, useWindowDimensions } from "react-native";
 import { BREAKPOINTS, DESKTOP } from "@/src/utils/responsive";
-import { Ionicons } from "@expo/vector-icons";
+import { ArrowRight } from "lucide-react";
 import * as Haptics from "@/lib/haptics";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { createCartStyles } from "../styles/cartStyles";
@@ -114,8 +114,7 @@ const CartContent = () => {
 
   return (
     <View style={styles.container}>
-      <View
-        style={[
+      <View style={[
           styles.mainWrapper,
           isDesktop && {
             maxWidth: DESKTOP.narrowMaxWidth,
@@ -125,13 +124,11 @@ const CartContent = () => {
       >
         <CartHeader productsCount={productsCount} totalUnits={totalUnits} />
 
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
+        <ScrollView contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
           {items.map(item => (
-            <CartItem
-              key={item.sku}
+            <CartItem key={item.sku}
               item={{
                 id: item.sku,
                 name: item.productTitle || "Product",
@@ -151,8 +148,7 @@ const CartContent = () => {
 
           <CouponInput />
 
-          <CartSummary
-            subtotal={subtotal}
+          <CartSummary subtotal={subtotal}
             totalTax={totalTax}
             shipping={shipping}
             discount={autoDiscount}
@@ -162,8 +158,7 @@ const CartContent = () => {
         </ScrollView>
 
         {/* Sticky Bottom Checkout CTA */}
-        <View
-          style={[
+        <View style={[
             styles.footer,
             isDesktop && {
               bottom: 0,
@@ -171,8 +166,7 @@ const CartContent = () => {
             },
           ]}
         >
-          <TouchableOpacity
-            style={[styles.checkoutButton, { backgroundColor: theme.primary }]}
+          <TouchableOpacity style={[styles.checkoutButton, { backgroundColor: theme.primary }]}
             onPress={handleCheckout}
             activeOpacity={0.88}
           >
@@ -183,14 +177,12 @@ const CartContent = () => {
                   : "Total Amount"}
               </Text>
               <View style={styles.checkoutTotalRow}>
-                <AnimatedPrice
-                  value={totalAmount}
+                <AnimatedPrice value={totalAmount}
                   duration={700}
                   style={styles.checkoutTotalAmount}
                 />
                 {totalDiscount > 0 ? (
-                  <AnimatedPrice
-                    value={totalDiscount}
+                  <AnimatedPrice value={totalDiscount}
                     duration={700}
                     noPulse
                     style={styles.checkoutSavingsAmount}
@@ -200,7 +192,7 @@ const CartContent = () => {
             </View>
             <View style={styles.checkoutActionRow}>
               <Text style={styles.checkoutText}>Place Order</Text>
-              <Ionicons name="arrow-forward" size={18} color="#fff" />
+              <ArrowRight size={18} color="#fff" />
             </View>
           </TouchableOpacity>
         </View>

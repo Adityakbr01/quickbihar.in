@@ -3,13 +3,13 @@ import { ScrollView, StyleSheet, Text, View, InteractionManager, ActivityIndicat
 import SafeViewWrapper from "@/src/provider/SafeViewWrapper";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import HomeHeader from "@/src/features/clothing/home/components/HomeHeader";
-import { Ionicons } from "@expo/vector-icons";
+import { Flame, Pizza, Sandwich, Star, UtensilsCrossed } from "lucide-react";
 
 const MOCK_FOOD_ITEMS = [
-  { id: "1", title: "Litti Chokha Special", category: "Bihari Delicacy", rating: "4.9", price: "₹120", icon: "fast-food-outline" },
-  { id: "2", title: "Paneer Butter Masala", category: "North Indian", rating: "4.7", price: "₹240", icon: "pizza-outline" },
-  { id: "3", title: "Sattu Paratha & Dahi", category: "Breakfast", rating: "4.8", price: "₹90", icon: "restaurant-outline" },
-  { id: "4", title: "Special Chicken Biryani", category: "Biryani", rating: "4.9", price: "₹280", icon: "flame-outline" },
+  { id: "1", title: "Litti Chokha Special", category: "Bihari Delicacy", rating: "4.9", price: "₹120", icon: Sandwich },
+  { id: "2", title: "Paneer Butter Masala", category: "North Indian", rating: "4.7", price: "₹240", icon: Pizza },
+  { id: "3", title: "Sattu Paratha & Dahi", category: "Breakfast", rating: "4.8", price: "₹90", icon: UtensilsCrossed },
+  { id: "4", title: "Special Chicken Biryani", category: "Biryani", rating: "4.9", price: "₹280", icon: Flame },
 ];
 
 export const FoodHomeScreen = () => {
@@ -31,7 +31,7 @@ export const FoodHomeScreen = () => {
         <View style={[styles.banner, isDark
           ? { backgroundColor: "rgba(225,29,72,0.14)", borderColor: "rgba(225,29,72,0.40)" }
           : { backgroundColor: "#FFF1F2", borderColor: "#FECDD3" }]}>
-          <Ionicons name="fast-food" size={40} color="#E11D48" />
+          <Sandwich size={40} color="#E11D48" />
           <View style={styles.bannerTextContainer}>
             <Text style={[styles.bannerTitle, { color: isDark ? "#FDA4AF" : "#9F1239" }]}>Quick Bihar Food Market 🍔</Text>
             <Text style={[styles.bannerSub, { color: isDark ? "#FB7185" : "#BE123C" }]}>Hot & fresh meals delivered in 20 mins</Text>
@@ -47,22 +47,21 @@ export const FoodHomeScreen = () => {
         ) : (
           <View style={styles.grid}>
             {MOCK_FOOD_ITEMS.map((item) => (
-              <View
-                key={item.id}
+              <View key={item.id}
                 style={[
                   styles.card,
                   { backgroundColor: theme.secondaryBackground, borderColor: theme.border },
                 ]}
               >
                 <View style={[styles.iconContainer, { backgroundColor: isDark ? "rgba(225,29,72,0.18)" : "#FFE4E6" }]}>
-                  <Ionicons name={item.icon as any} size={28} color="#E11D48" />
+                  <item.icon size={28} color="#E11D48" />
                 </View>
                 <Text style={[styles.cardTitle, { color: theme.text }]}>{item.title}</Text>
                 <Text style={[styles.cardCat, { color: theme.tertiaryText }]}>{item.category}</Text>
                 <View style={styles.cardFooter}>
                   <Text style={styles.price}>{item.price}</Text>
                   <View style={styles.ratingBadge}>
-                    <Ionicons name="star" size={12} color="#EAB308" />
+                    <Star size={12} color="#EAB308" fill="#EAB308" />
                     <Text style={styles.ratingText}>{item.rating}</Text>
                   </View>
                 </View>

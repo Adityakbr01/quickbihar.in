@@ -1,6 +1,6 @@
 import React from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { Banknote, CreditCard, Wallet } from "lucide-react";
 import type { Theme } from "@/src/theme/Provider/ThemeProvider";
 import { TextInput } from "@/src/theme/components/TextInput";
 import { riderInputChrome } from "../../styles/rider.styles";
@@ -92,16 +92,14 @@ export function EarningsPanel({
     <View style={styles.panel}>
       <SectionTitle styles={styles} title="Earnings" meta={`${earnings?.ledger?.length || 0} ledger entries`} />
       <View style={styles.inlineInputs}>
-        <TextInput
-          {...inputChrome}
+        <TextInput {...inputChrome}
           value={earningsDateFrom}
           onChangeText={onEarningsDateFromChange}
           placeholder="From YYYY-MM-DD"
           placeholderTextColor={theme.secondaryText}
           containerStyle={{ marginBottom: 0, flex: 1 }}
         />
-        <TextInput
-          {...inputChrome}
+        <TextInput {...inputChrome}
           value={earningsDateTo}
           onChangeText={onEarningsDateToChange}
           placeholder="To YYYY-MM-DD"
@@ -117,7 +115,7 @@ export function EarningsPanel({
 
       <SectionTitle styles={styles} title="Earnings Ledger" meta="" />
       {(earnings?.ledger || []).length === 0 ? (
-        <EmptyCard styles={styles} theme={theme} icon="wallet-outline" label="No credited earnings in this date range." />
+        <EmptyCard styles={styles} theme={theme} icon={Wallet} label="No credited earnings in this date range." />
       ) : (
         (earnings?.ledger || []).map((entry) => (
           <View key={entry._id} style={styles.listCard}>
@@ -136,7 +134,7 @@ export function EarningsPanel({
 
       <SectionTitle styles={styles} title="Payout Methods" meta={`${payouts?.payoutMethods?.length || 0}`} />
       {(payouts?.payoutMethods || []).length === 0 ? (
-        <EmptyCard styles={styles} theme={theme} icon="card-outline" label="No payout methods yet." />
+        <EmptyCard styles={styles} theme={theme} icon={CreditCard} label="No payout methods yet." />
       ) : (
         (payouts?.payoutMethods || []).map((method) => (
           <View key={method._id} style={styles.methodCard}>
@@ -182,7 +180,7 @@ export function EarningsPanel({
           </>
         )}
         <TouchableOpacity style={styles.primaryButton} onPress={onSubmitPayoutMethod} disabled={busy}>
-          <Ionicons name="card-outline" size={16} color="#fff" />
+          <CreditCard size={16} color="#fff" />
           <Text style={styles.primaryText}>Add Method</Text>
         </TouchableOpacity>
       </View>
@@ -197,8 +195,7 @@ export function EarningsPanel({
               const selected = requestMethodId === method._id;
               const verified = method.status === "VERIFIED";
               return (
-                <TouchableOpacity
-                  key={method._id}
+                <TouchableOpacity key={method._id}
                   style={[styles.filterChip, !verified && styles.filterChipDisabled, selected && styles.filterChipSelected]}
                   onPress={() => verified && onRequestMethodIdChange(method._id)}
                   disabled={!verified}
@@ -215,14 +212,14 @@ export function EarningsPanel({
         <TextInput {...inputChrome} value={requestAmount} onChangeText={onRequestAmountChange} placeholder="Amount" placeholderTextColor={theme.secondaryText} keyboardType="numeric" />
         <TextInput {...inputChrome} value={requestNote} onChangeText={onRequestNoteChange} placeholder="Note" placeholderTextColor={theme.secondaryText} />
         <TouchableOpacity style={styles.primaryButton} onPress={onRequestPayout} disabled={busy || !verifiedMethods.length}>
-          <Ionicons name="cash-outline" size={16} color="#fff" />
+          <Banknote size={16} color="#fff" />
           <Text style={styles.primaryText}>Request Payout</Text>
         </TouchableOpacity>
       </View>
 
       <SectionTitle styles={styles} title="Payout Requests" meta={`${payouts?.payouts?.length || 0}`} />
       {(payouts?.payouts || []).length === 0 ? (
-        <EmptyCard styles={styles} theme={theme} icon="wallet-outline" label="No payout requests yet." />
+        <EmptyCard styles={styles} theme={theme} icon={Wallet} label="No payout requests yet." />
       ) : (
         (payouts?.payouts || []).map((payout) => (
           <View key={payout._id} style={styles.listCard}>

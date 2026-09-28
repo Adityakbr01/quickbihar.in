@@ -13,11 +13,7 @@ import {
 import { Image } from "expo-image";
 import { useNavigate } from "react-router-dom";
 import { goTo, replaceTo, useRouteParams } from "@/src/utils/navigation";
-import {
-  Ionicons,
-  MaterialCommunityIcons,
-  Feather,
-} from "@expo/vector-icons";
+import { ArrowLeft, Banknote, Bike, Check, ChevronDown, ChevronRight, ChevronUp, CircleHelp, Copy, CreditCard, Info, MapPin, PackageMinus, Phone, Send, ShieldCheck, ShoppingBag, Store, Trophy } from "lucide-react";
 import dayjs from "dayjs";
 import * as Haptics from "@/lib/haptics";
 
@@ -383,11 +379,10 @@ export default function OrderDetailScreen() {
     return (
       <SafeViewWrapper>
         <View style={styles.header}>
-          <TouchableOpacity
-            style={styles.backButton}
+          <TouchableOpacity style={styles.backButton}
             onPress={() => goBack(navigate, "/account/orders")}
           >
-            <Ionicons name="arrow-back" size={22} color={theme.text} />
+            <ArrowLeft size={22} color={theme.text} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Order Details</Text>
           <View style={{ width: 40 }} />
@@ -404,27 +399,21 @@ export default function OrderDetailScreen() {
     return (
       <SafeViewWrapper>
         <View style={styles.header}>
-          <TouchableOpacity
-            style={styles.backButton}
+          <TouchableOpacity style={styles.backButton}
             onPress={() => goBack(navigate, "/account/orders")}
           >
-            <Ionicons name="arrow-back" size={22} color={theme.text} />
+            <ArrowLeft size={22} color={theme.text} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Order Details</Text>
           <View style={{ width: 40 }} />
         </View>
         <View style={styles.errorContainer}>
-          <MaterialCommunityIcons
-            name="package-variant-closed-remove"
-            size={56}
-            color={theme.secondaryText}
-          />
+          <PackageMinus size={56} color={theme.secondaryText} />
           <Text style={styles.errorTitle}>Order not found</Text>
           <Text style={styles.errorSubtitle}>
             We couldn't retrieve details for order #{orderId}.
           </Text>
-          <TouchableOpacity
-            style={styles.retryButton}
+          <TouchableOpacity style={styles.retryButton}
             onPress={() => fetchOrderDetails(true)}
           >
             <Text style={styles.retryButtonText}>Try Again</Text>
@@ -491,37 +480,33 @@ export default function OrderDetailScreen() {
       {/* Top Header */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <TouchableOpacity
-            style={styles.backButton}
+          <TouchableOpacity style={styles.backButton}
             onPress={() => goBack(navigate, "/account/orders")}
             activeOpacity={0.7}
           >
-            <Ionicons name="arrow-back" size={22} color={theme.text} />
+            <ArrowLeft size={22} color={theme.text} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Order Details</Text>
         </View>
 
         <View style={styles.headerRight}>
-          <TouchableOpacity
-            style={styles.helpButton}
+          <TouchableOpacity style={styles.helpButton}
             onPress={handleHelp}
             activeOpacity={0.7}
           >
             <Text style={styles.helpButtonText}>Help</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.iconButton}
+          <TouchableOpacity style={styles.iconButton}
             onPress={handleShare}
             activeOpacity={0.7}
           >
-            <Feather name="send" size={17} color={theme.text} />
+            <Send size={17} color={theme.text} />
           </TouchableOpacity>
         </View>
       </View>
 
-      <ScrollView
-        showsVerticalScrollIndicator={false}
+      <ScrollView showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
         refreshControl={
           <RefreshControl
@@ -533,13 +518,12 @@ export default function OrderDetailScreen() {
       >
         {/* Order Meta & ID Row */}
         <View style={styles.orderIdRow}>
-          <TouchableOpacity
-            style={styles.orderIdContainer}
+          <TouchableOpacity style={styles.orderIdContainer}
             onPress={handleCopyOrderId}
             activeOpacity={0.7}
           >
             <Text style={styles.orderIdText}>Order #{order.orderId}</Text>
-            <Ionicons name="copy-outline" size={15} color={theme.primary} />
+            <Copy size={15} color={theme.primary} />
           </TouchableOpacity>
           <Text style={styles.orderDateText}>
             {dayjs(order.createdAt).format("DD MMM YYYY, hh:mm A")}
@@ -549,8 +533,7 @@ export default function OrderDetailScreen() {
         {/* Multi-SubOrder / Multi-Store Package Tabs */}
         {subOrders.length > 1 && (
           <View style={{ marginBottom: 12 }}>
-            <ScrollView
-              horizontal
+            <ScrollView horizontal
               showsHorizontalScrollIndicator={false}
               style={styles.subOrderTabsContainer}
             >
@@ -560,8 +543,7 @@ export default function OrderDetailScreen() {
                 const storeName = sub.storeId?.name || `Store ${idx + 1}`;
 
                 return (
-                  <TouchableOpacity
-                    key={sub.subOrderId || idx}
+                  <TouchableOpacity key={sub.subOrderId || idx}
                     style={[
                       styles.subOrderTab,
                       isSelected && styles.subOrderTabActive,
@@ -569,8 +551,7 @@ export default function OrderDetailScreen() {
                     onPress={() => setSelectedSubOrderIndex(idx)}
                     activeOpacity={0.7}
                   >
-                    <Text
-                      style={[
+                    <Text style={[
                         styles.subOrderTabText,
                         isSelected && styles.subOrderTabTextActive,
                       ]}
@@ -607,31 +588,24 @@ export default function OrderDetailScreen() {
             <View key={item.sku || idx} style={styles.productCard}>
               <View style={styles.productCardTop}>
                 {/* Product Image Thumbnail */}
-                <TouchableOpacity
-                  style={styles.productImageContainer}
+                <TouchableOpacity style={styles.productImageContainer}
                   activeOpacity={0.8}
                   onPress={() => handleNavigateToProduct(item)}
                 >
                   {imageUrl ? (
-                    <Image
-                      source={{ uri: imageUrl }}
+                    <Image source={{ uri: imageUrl }}
                       style={styles.productImage}
                       contentFit="cover"
                       transition={250}
                     />
                   ) : (
-                    <MaterialCommunityIcons
-                      name="shopping-outline"
-                      size={32}
-                      color={theme.primary}
-                    />
+                    <ShoppingBag size={32} color={theme.primary} />
                   )}
                 </TouchableOpacity>
 
                 {/* Product Details */}
                 <View style={styles.productInfo}>
-                  <TouchableOpacity
-                    activeOpacity={0.7}
+                  <TouchableOpacity activeOpacity={0.7}
                     onPress={() => handleNavigateToProduct(item)}
                   >
                     <Text style={styles.productTitle} numberOfLines={2}>
@@ -673,19 +647,18 @@ export default function OrderDetailScreen() {
               {/* Product Card Footer (Store & View Product link) */}
               <View style={styles.productCardFooter}>
                 <View style={styles.storeBadge}>
-                  <Ionicons name="storefront-outline" size={13} color={theme.tertiaryText} />
+                  <Store size={13} color={theme.tertiaryText} />
                   <Text style={styles.storeBadgeText}>
                     {storeName ? `Sold by: ${storeName}` : "Quick Bihar Fulfilled"}
                   </Text>
                 </View>
 
-                <TouchableOpacity
-                  style={styles.viewProductLink}
+                <TouchableOpacity style={styles.viewProductLink}
                   onPress={() => handleNavigateToProduct(item)}
                   activeOpacity={0.7}
                 >
                   <Text style={styles.viewProductText}>View Item</Text>
-                  <Ionicons name="chevron-forward" size={14} color={theme.primary} />
+                  <ChevronRight size={14} color={theme.primary} />
                 </TouchableOpacity>
               </View>
             </View>
@@ -701,7 +674,7 @@ export default function OrderDetailScreen() {
             <View style={styles.otpCard}>
               <View style={styles.otpHeader}>
                 <View style={styles.otpTitleContainer}>
-                  <Ionicons name="shield-checkmark" size={18} color="#15803d" />
+                  <ShieldCheck size={18} color="#15803d" />
                   <Text style={styles.otpTitle}>Verification OTPs</Text>
                 </View>
                 <View style={styles.otpBadge}>
@@ -711,8 +684,7 @@ export default function OrderDetailScreen() {
 
               {deliveryOtp && (
                 <View style={{ marginBottom: 12 }}>
-                  <Text
-                    style={[
+                  <Text style={[
                       styles.otpSubtitle,
                       { marginTop: 0, marginBottom: 6, fontWeight: "700", color: "#0f172a" },
                     ]}
@@ -731,8 +703,7 @@ export default function OrderDetailScreen() {
 
               {pickupOtp && (
                 <View>
-                  <Text
-                    style={[
+                  <Text style={[
                       styles.otpSubtitle,
                       { marginTop: 0, marginBottom: 6, fontWeight: "700", color: "#0f172a" },
                     ]}
@@ -749,8 +720,7 @@ export default function OrderDetailScreen() {
                 </View>
               )}
 
-              <Text
-                style={[
+              <Text style={[
                   styles.otpSubtitle,
                   { marginTop: 12, color: "#64748b" },
                 ]}
@@ -764,8 +734,7 @@ export default function OrderDetailScreen() {
 
         {/* Order Status & Progress Card */}
         <View style={styles.statusCard}>
-          <TouchableOpacity
-            style={styles.statusCardHeader}
+          <TouchableOpacity style={styles.statusCardHeader}
             activeOpacity={0.8}
             onPress={() => setIsTimelineExpanded(!isTimelineExpanded)}
           >
@@ -777,11 +746,11 @@ export default function OrderDetailScreen() {
                 {getStatusSubtitle()}
               </Text>
             </View>
-            <Ionicons
-              name={isTimelineExpanded ? "chevron-up" : "chevron-down"}
-              size={20}
-              color={theme.secondaryText}
-            />
+            {isTimelineExpanded ? (
+              <ChevronUp size={20} color={theme.secondaryText} />
+            ) : (
+              <ChevronDown size={20} color={theme.secondaryText} />
+            )}
           </TouchableOpacity>
 
           {/* Horizontal Stepper (Compact Mode) */}
@@ -795,21 +764,19 @@ export default function OrderDetailScreen() {
                   return (
                     <React.Fragment key={stage.key}>
                       <View style={styles.stepperStep}>
-                        <View
-                          style={[
+                        <View style={[
                             styles.stepperCircle,
                             isCompleted && styles.stepperCircleActive,
                             isCurrent && styles.stepperCircleCurrent,
                           ]}
                         >
                           {isCompleted ? (
-                            <Ionicons name="checkmark" size={14} color="#ffffff" />
+                            <Check size={14} color="#ffffff" />
                           ) : null}
                         </View>
                       </View>
                       {idx < ORDER_STEP_STAGES.length - 1 && (
-                        <View
-                          style={[
+                        <View style={[
                             styles.stepperLine,
                             idx < activeStepIndex && styles.stepperLineActive,
                           ]}
@@ -823,8 +790,7 @@ export default function OrderDetailScreen() {
               <View style={styles.stepperLabelsRow}>
                 {ORDER_STEP_STAGES.map((stage, idx) => (
                   <View key={stage.key} style={{ alignItems: "center" }}>
-                    <Text
-                      style={[
+                    <Text style={[
                         styles.stepperLabel,
                         idx <= activeStepIndex && styles.stepperLabelActive,
                       ]}
@@ -854,35 +820,31 @@ export default function OrderDetailScreen() {
                 const isLast = idx === ORDER_STEP_STAGES.length - 1;
 
                 return (
-                  <View
-                    key={stage.key}
+                  <View key={stage.key}
                     style={[styles.timelineItem, isLast && styles.timelineItemLast]}
                   >
                     {!isLast && (
-                      <View
-                        style={[
+                      <View style={[
                           styles.timelineLine,
                           idx < activeStepIndex && styles.timelineLineActive,
                         ]}
                       />
                     )}
 
-                    <View
-                      style={[
+                    <View style={[
                         styles.timelineDot,
                         isPassed && styles.timelineDotActive,
                         isCurrent && styles.timelineDotCurrent,
                       ]}
                     >
                       {isPassed && (
-                        <Ionicons name="checkmark" size={12} color="#ffffff" />
+                        <Check size={12} color="#ffffff" />
                       )}
                     </View>
 
                     <View style={styles.timelineContent}>
                       <View style={styles.timelineTitleRow}>
-                        <Text
-                          style={[
+                        <Text style={[
                             styles.timelineTitle,
                             isPassed && { color: theme.text },
                           ]}
@@ -916,11 +878,7 @@ export default function OrderDetailScreen() {
             <View style={styles.riderBox}>
               <View style={styles.riderLeft}>
                 <View style={styles.riderAvatar}>
-                  <MaterialCommunityIcons
-                    name="motorbike"
-                    size={22}
-                    color={theme.primary}
-                  />
+                  <Bike size={22} color={theme.primary} />
                 </View>
                 <View>
                   <Text style={styles.riderName}>
@@ -933,22 +891,17 @@ export default function OrderDetailScreen() {
               </View>
 
               {canShowRiderContact && (
-                <TouchableOpacity
-                  style={styles.riderCallButton}
+                <TouchableOpacity style={styles.riderCallButton}
                   onPress={() => handleCallRider(assignedRider.phone)}
                   activeOpacity={0.7}
                 >
-                  <Ionicons name="call" size={16} color="#ffffff" />
+                  <Phone size={16} color="#ffffff" />
                 </TouchableOpacity>
               )}
             </View>
           ) : isOrderFinished ? null : (
             <View style={styles.infoCallout}>
-              <Ionicons
-                name="information-circle-outline"
-                size={18}
-                color={theme.secondaryText}
-              />
+              <Info size={18} color={theme.secondaryText} />
               <Text style={styles.infoCalloutText}>
                 Delivery partner details will be available once the order is out for delivery.
               </Text>
@@ -961,7 +914,7 @@ export default function OrderDetailScreen() {
           <View style={styles.sectionCard}>
             <View style={styles.sectionCardHeader}>
               <Text style={styles.sectionTitle}>Delivery Address</Text>
-              <Ionicons name="location-outline" size={20} color={theme.primary} />
+              <MapPin size={20} color={theme.primary} />
             </View>
 
             <Text style={styles.addressName}>
@@ -988,8 +941,7 @@ export default function OrderDetailScreen() {
 
         {/* Price Details Card (Collapsed by default, tap to expand) */}
         <View style={styles.sectionCard}>
-          <TouchableOpacity
-            style={styles.sectionCardHeader}
+          <TouchableOpacity style={styles.sectionCardHeader}
             activeOpacity={0.8}
             onPress={() => setIsPriceDetailsExpanded(!isPriceDetailsExpanded)}
           >
@@ -1000,11 +952,11 @@ export default function OrderDetailScreen() {
                   ₹{order.payableAmount || order.totalAmount}
                 </Text>
               )}
-              <Ionicons
-                name={isPriceDetailsExpanded ? "chevron-up" : "chevron-down"}
-                size={20}
-                color={theme.secondaryText}
-              />
+              {isPriceDetailsExpanded ? (
+                <ChevronUp size={20} color={theme.secondaryText} />
+              ) : (
+                <ChevronDown size={20} color={theme.secondaryText} />
+              )}
             </View>
           </TouchableOpacity>
 
@@ -1025,18 +977,17 @@ export default function OrderDetailScreen() {
               </View>
 
               {/* Total fees accordion */}
-              <TouchableOpacity
-                style={styles.priceRow}
+              <TouchableOpacity style={styles.priceRow}
                 activeOpacity={0.7}
                 onPress={() => setIsFeesExpanded(!isFeesExpanded)}
               >
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
                   <Text style={styles.priceLabel}>Total fees</Text>
-                  <Ionicons
-                    name={isFeesExpanded ? "chevron-up" : "chevron-down"}
-                    size={14}
-                    color={theme.secondaryText}
-                  />
+                  {isFeesExpanded ? (
+                    <ChevronUp size={14} color={theme.secondaryText} />
+                  ) : (
+                    <ChevronDown size={14} color={theme.secondaryText} />
+                  )}
                 </View>
                 <Text style={styles.priceValue}>
                   ₹{(order.shippingFee || 0) + (order.dynamicDeliverySurcharge || 0)}
@@ -1047,8 +998,7 @@ export default function OrderDetailScreen() {
                 <>
                   <View style={styles.priceSubRow}>
                     <Text style={styles.priceSubLabel}>Delivery Fee</Text>
-                    <Text
-                      style={[
+                    <Text style={[
                         styles.priceSubValue,
                         order.shippingFee === 0 && styles.freeValue,
                       ]}
@@ -1071,18 +1021,17 @@ export default function OrderDetailScreen() {
               {/* Discounts accordion */}
               {(order.productDiscount > 0 || order.discountAmount > 0) && (
                 <>
-                  <TouchableOpacity
-                    style={styles.priceRow}
+                  <TouchableOpacity style={styles.priceRow}
                     activeOpacity={0.7}
                     onPress={() => setIsDiscountExpanded(!isDiscountExpanded)}
                   >
                     <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
                       <Text style={styles.priceLabel}>Other discount</Text>
-                      <Ionicons
-                        name={isDiscountExpanded ? "chevron-up" : "chevron-down"}
-                        size={14}
-                        color={theme.secondaryText}
-                      />
+                      {isDiscountExpanded ? (
+                        <ChevronUp size={14} color={theme.secondaryText} />
+                      ) : (
+                        <ChevronDown size={14} color={theme.secondaryText} />
+                      )}
                     </View>
                     <Text style={[styles.priceValue, styles.discountValue]}>
                       -₹{(order.productDiscount || 0) + (order.discountAmount || 0)}
@@ -1128,11 +1077,11 @@ export default function OrderDetailScreen() {
               {/* Paid By Box */}
               <View style={styles.paidByBox}>
                 <View style={styles.paidByLeft}>
-                  <Ionicons
-                    name={isCod ? "cash-outline" : "card-outline"}
-                    size={20}
-                    color={theme.text}
-                  />
+                  {isCod ? (
+                    <Banknote size={20} color={theme.text} />
+                  ) : (
+                    <CreditCard size={20} color={theme.text} />
+                  )}
                   <Text style={styles.paidByText}>
                     Paid By: {isCod ? "Cash on Delivery" : "Online (Razorpay)"}
                   </Text>
@@ -1152,7 +1101,7 @@ export default function OrderDetailScreen() {
         {order.discountAmount > 0 && (
           <View style={styles.offersCard}>
             <View style={styles.offersLeft}>
-              <Ionicons name="trophy-outline" size={20} color="#eab308" />
+              <Trophy size={20} color="#eab308" />
               <Text style={styles.offersText}>Offers applied on this order</Text>
             </View>
             <Text style={[styles.offersText, { color: "#10b981" }]}>
@@ -1163,21 +1112,19 @@ export default function OrderDetailScreen() {
 
         {/* Action Buttons (Shop more, Support) */}
         <View style={styles.actionsContainer}>
-          <TouchableOpacity
-            style={styles.primaryBtn}
+          <TouchableOpacity style={styles.primaryBtn}
             onPress={() => replaceTo(navigate, "/(tabs)/clothing/home")}
             activeOpacity={0.8}
           >
-            <Ionicons name="bag-handle-outline" size={18} color="#ffffff" />
+            <ShoppingBag size={18} color="#ffffff" />
             <Text style={styles.primaryBtnText}>Continue Shopping</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.secondaryBtn}
+          <TouchableOpacity style={styles.secondaryBtn}
             onPress={handleHelp}
             activeOpacity={0.8}
           >
-            <Ionicons name="help-circle-outline" size={18} color={theme.text} />
+            <CircleHelp size={18} color={theme.text} />
             <Text style={styles.secondaryBtnText}>Need Help with this Order?</Text>
           </TouchableOpacity>
         </View>

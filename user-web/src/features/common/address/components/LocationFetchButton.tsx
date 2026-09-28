@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, TouchableOpacity, ActivityIndicator } from "react-native";
 import { AppIcon } from "@/src/components/common/AppIcon";
+import { Navigation as NavigationIcon } from "lucide-react";
 import { Theme } from "@/src/theme/Provider/ThemeProvider";
 
 interface LocationFetchButtonProps {
@@ -32,7 +33,7 @@ const LocationFetchButton: React.FC<LocationFetchButtonProps> = ({
         ) : (
           <>
             <AppIcon
-              name="navigate-outline"
+              icon={NavigationIcon}
               size={20}
               color={theme.primary}
             />

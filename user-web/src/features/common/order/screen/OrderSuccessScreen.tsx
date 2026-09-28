@@ -12,7 +12,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { goTo, replaceTo, useRouteParams } from "@/src/utils/navigation";
 import LazyLottie from "@/src/components/common/LazyLottie";
-import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { Package, Share2, ShoppingCart } from "lucide-react";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { createOrderStyles } from "../style/orderStyles";
 import * as Haptics from "@/lib/haptics";
@@ -98,16 +98,14 @@ const OrderSuccessScreen = () => {
   return (
     <View style={styles.successContainer}>
       <TouchableOpacity style={styles.shareIcon} onPress={handleShare}>
-        <Ionicons name="share-outline" size={22} color={theme.text} />
+        <Share2 size={22} color={theme.text} />
       </TouchableOpacity>
 
-      <ScrollView
-        contentContainerStyle={styles.successScroll}
+      <ScrollView contentContainerStyle={styles.successScroll}
         showsVerticalScrollIndicator={false}
       >
         <View style={{ alignItems: "center" }}>
-          <LazyLottie
-            source={successConfetti}
+          <LazyLottie source={successConfetti}
             autoPlay
             loop={false}
             style={{ width: 200, height: 200 }}
@@ -185,8 +183,7 @@ const OrderSuccessScreen = () => {
 
         {/* Action Buttons */}
         <View style={styles.buttonGroup}>
-          <TouchableOpacity
-            style={[styles.actionButton, styles.primaryActionButton]}
+          <TouchableOpacity style={[styles.actionButton, styles.primaryActionButton]}
             onPress={() =>
               goTo(navigate, {
                 pathname: "/order/[id]" as any,
@@ -194,15 +191,14 @@ const OrderSuccessScreen = () => {
               })
             }
           >
-            <MaterialCommunityIcons name="package-variant-closed" size={20} color="#fff" />
+            <Package size={20} color="#fff" />
             <Text style={[styles.actionButtonText, { color: "#fff" }]}>View Order Details & OTP</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[styles.actionButton, styles.secondaryActionButton]}
+          <TouchableOpacity style={[styles.actionButton, styles.secondaryActionButton]}
             onPress={() => replaceTo(navigate, "/(tabs)/clothing/home")}
           >
-            <Ionicons name="cart-outline" size={20} color={theme.text} />
+            <ShoppingCart size={20} color={theme.text} />
             <Text style={[styles.actionButtonText, { color: theme.text }]}>Continue Shopping</Text>
           </TouchableOpacity>
         </View>

@@ -1,10 +1,11 @@
 import React from "react";
 import { View, Text } from "react-native";
 import { AppIcon } from "@/src/components/common/AppIcon";
+import type { LucideIcon } from "lucide-react";
 import { Theme } from "@/src/theme/Provider/ThemeProvider";
 
 interface ProfileInfoRowProps {
-  icon: any;
+  icon: LucideIcon;
   label: string;
   value: string;
   theme: Theme;
@@ -21,7 +22,7 @@ const ProfileInfoRow: React.FC<ProfileInfoRowProps> = ({
   return (
     <View style={styles.infoRow}>
       <View style={styles.iconContainer}>
-        <AppIcon name={icon} size={20} color={theme.primary} />
+        <AppIcon icon={icon} size={20} color={theme.primary} />
       </View>
       <View>
         <Text style={styles.infoLabel}>{label}</Text>

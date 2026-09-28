@@ -9,7 +9,7 @@ import {
   ScrollView,
   ActivityIndicator,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { ChevronDown, ChevronUp, Clock, MapPin, Phone, ShieldCheck, Star, User } from "lucide-react";
 import { formatDistance } from "../utils/geoUtils";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 
@@ -87,7 +87,7 @@ export const TrackingInfoCard: React.FC<TrackingInfoCardProps> = ({
             </Text>
           </View>
           <View style={styles.distanceBox}>
-            <Ionicons name="location-outline" size={14} color={isDark ? theme.secondaryText : "#666"} />
+            <MapPin size={14} color={isDark ? theme.secondaryText : "#666"} />
             <Text style={styles.distanceText}>{formatDistance(distance)}</Text>
           </View>
         </View>
@@ -98,14 +98,14 @@ export const TrackingInfoCard: React.FC<TrackingInfoCardProps> = ({
         {!isFinished && (
           <View style={styles.riderRow}>
             <View style={styles.avatar}>
-              <Ionicons name="person" size={24} color={isDark ? theme.secondaryText : "#666"} />
+              <User size={24} color={isDark ? theme.secondaryText : "#666"} />
             </View>
             <View style={styles.riderInfo}>
               <Text style={styles.riderName}>
                 {isActivelyDelivering ? (riderName || "Delivery Partner") : "Assigning Rider..."}
               </Text>
               <View style={styles.ratingRow}>
-                <Ionicons name="star" size={12} color="#FFD700" />
+                <Star size={12} color="#FFD700" fill="#FFD700" />
                 <Text style={styles.ratingText}>
                   {isActivelyDelivering ? "4.8 | Verified Partner" : "Securing nearest partner"}
                 </Text>
@@ -113,7 +113,7 @@ export const TrackingInfoCard: React.FC<TrackingInfoCardProps> = ({
             </View>
             {canShowRiderPhone ? (
               <TouchableOpacity style={styles.callButton} onPress={handleCall}>
-                <Ionicons name="call" size={20} color="white" />
+                <Phone size={20} color="white" />
                 <Text style={styles.callText}>Call</Text>
               </TouchableOpacity>
             ) : null}
@@ -121,18 +121,17 @@ export const TrackingInfoCard: React.FC<TrackingInfoCardProps> = ({
         )}
 
         {/* Toggle details button */}
-        <TouchableOpacity
-          style={styles.toggleDetailsButton}
+        <TouchableOpacity style={styles.toggleDetailsButton}
           onPress={() => setIsExpanded(!isExpanded)}
         >
           <Text style={styles.toggleDetailsText}>
             {isExpanded ? "Hide Details" : "View Timeline & OTP"}
           </Text>
-          <Ionicons
-            name={isExpanded ? "chevron-up" : "chevron-down"}
-            size={16}
-            color="#FF6B00"
-          />
+          {isExpanded ? (
+            <ChevronUp size={16} color="#FF6B00" />
+          ) : (
+            <ChevronDown size={16} color="#FF6B00" />
+          )}
         </TouchableOpacity>
 
         {isExpanded && (
@@ -200,7 +199,7 @@ export const TrackingInfoCard: React.FC<TrackingInfoCardProps> = ({
             {/* Cancellation Requested Badge */}
             {isCancellationRequested && (
               <View style={styles.cancellationRequestedBadge}>
-                <Ionicons name="time" size={16} color="#FF9F00" />
+                <Clock size={16} color="#FF9F00" />
                 <Text style={styles.cancellationRequestedText}>
                   Cancellation requested. Pending store approval.
                 </Text>
@@ -209,8 +208,7 @@ export const TrackingInfoCard: React.FC<TrackingInfoCardProps> = ({
 
             {/* Cancel Button */}
             {showCancelButton && !isCancellationRequested && (
-              <TouchableOpacity
-                style={styles.cancelOrderButton}
+              <TouchableOpacity style={styles.cancelOrderButton}
                 onPress={onCancelRequest}
                 disabled={cancelButtonLoading}
               >
@@ -227,7 +225,7 @@ export const TrackingInfoCard: React.FC<TrackingInfoCardProps> = ({
         <View style={styles.divider} />
 
         <View style={styles.footer}>
-          <Ionicons name="shield-checkmark" size={16} color="#00C853" />
+          <ShieldCheck size={16} color="#00C853" />
           <Text style={styles.safetyText}>
             Your order is being delivered with contactless safety standards.
           </Text>

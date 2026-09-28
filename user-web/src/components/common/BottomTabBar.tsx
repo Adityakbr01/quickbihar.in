@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { useLocation, useNavigate } from "react-router-dom";
 import { goTo } from "@/src/utils/navigation";
-import { Feather, Ionicons } from "@expo/vector-icons";
+import { Bike, House, LayoutGrid, Search, ShoppingBag, ShoppingCart, User } from "lucide-react";
 import * as Haptics from "@/lib/haptics";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { filterItemsByModule, useCartStore } from "@/src/features/common/cart/store/cartStore";
@@ -32,11 +32,11 @@ const JeweleryTabBar: React.FC<{
   const jeweleryCount = useCartStore((s) => filterItemsByModule(s.items, "jewelery").length);
 
   const tabs = [
-    { name: "home", label: "Home", icon: "home", route: "/jewelery" },
-    { name: "collections", label: "Collections", icon: "grid", route: "/jewelery/collections" },
-    { name: "search", label: "Search", icon: "search", route: "/jewelery/search" },
-    { name: "bag", label: "Bag", icon: "shopping-bag", route: "/jewelery/cart", badge: jeweleryCount },
-    { name: "account", label: "Account", icon: "user", route: "/jewelery/account" },
+    { name: "home", label: "Home", icon: House, route: "/jewelery" },
+    { name: "collections", label: "Collections", icon: LayoutGrid, route: "/jewelery/collections" },
+    { name: "search", label: "Search", icon: Search, route: "/jewelery/search" },
+    { name: "bag", label: "Bag", icon: ShoppingBag, route: "/jewelery/cart", badge: jeweleryCount },
+    { name: "account", label: "Account", icon: User, route: "/jewelery/account" },
   ];
 
   const isActive = (route: string) =>
@@ -45,8 +45,7 @@ const JeweleryTabBar: React.FC<{
       : pathname === route || pathname.startsWith(`${route}/`);
 
   return (
-    <View
-      style={[
+    <View style={[
         styles.container,
         {
           backgroundColor: colors.ivory,
@@ -59,8 +58,7 @@ const JeweleryTabBar: React.FC<{
         const active = isActive(tab.route);
         const color = active ? colors.gold : colors.warmGray;
         return (
-          <Pressable
-            key={tab.name}
+          <Pressable key={tab.name}
             onPress={() => onPress(tab.route)}
             style={({ pressed }) => [
               styles.tabItem,
@@ -70,7 +68,7 @@ const JeweleryTabBar: React.FC<{
             accessibilityLabel={tab.label}
           >
             <View style={styles.iconWrapper}>
-              <Feather name={tab.icon as any} size={21} color={color} />
+              <tab.icon size={21} color={color} />
               {typeof tab.badge === "number" && tab.badge > 0 ? (
                 <View style={[styles.badge, { backgroundColor: colors.gold }]}>
                   <Text style={styles.badgeText}>
@@ -79,8 +77,7 @@ const JeweleryTabBar: React.FC<{
                 </View>
               ) : null}
             </View>
-            <Text
-              style={[
+            <Text style={[
                 styles.jeweleryLabel,
                 { color },
               ]}
@@ -155,30 +152,30 @@ export const BottomTabBar: React.FC = () => {
     {
       name: "home",
       label: "Home",
-      icon: "home-outline",
-      activeIcon: "home",
+      icon: House,
+      activeIcon: House,
       route: homeRoute,
     },
     {
       name: "search",
       label: "Search",
-      icon: "search-outline",
-      activeIcon: "search",
+      icon: Search,
+      activeIcon: Search,
       route: searchRoute,
     },
     {
       name: "cart",
       label: "Cart",
-      icon: "cart-outline",
-      activeIcon: "cart",
+      icon: ShoppingCart,
+      activeIcon: ShoppingCart,
       route: cartRoute,
       badge: cartCount,
     },
     {
       name: "account",
       label: "Account",
-      icon: "person-outline",
-      activeIcon: "person",
+      icon: User,
+      activeIcon: User,
       route: accountRoute,
     },
   ];
@@ -187,8 +184,8 @@ export const BottomTabBar: React.FC = () => {
     tabs.push({
       name: "rider",
       label: "Rider",
-      icon: "bicycle-outline",
-      activeIcon: "bicycle",
+      icon: Bike,
+      activeIcon: Bike,
       route: "/rider",
     });
   }
@@ -214,8 +211,7 @@ export const BottomTabBar: React.FC = () => {
   };
 
   return (
-    <View
-      style={[
+    <View style={[
         styles.container,
         {
           backgroundColor: theme.background,
@@ -226,12 +222,11 @@ export const BottomTabBar: React.FC = () => {
     >
       {tabs.map((tab) => {
         const active = isTabActive(tab.route);
-        const iconName = active ? tab.activeIcon : tab.icon;
+        const TabIcon = active ? tab.activeIcon : tab.icon;
         const color = active ? (theme.primary || theme.iconColor || "#4F46E5") : (theme.tertiaryText || "#8E8E93");
 
         return (
-          <Pressable
-            key={tab.name}
+          <Pressable key={tab.name}
             onPress={() => handlePress(tab)}
             style={({ pressed }) => [
               styles.tabItem,
@@ -241,7 +236,7 @@ export const BottomTabBar: React.FC = () => {
             accessibilityLabel={tab.label}
           >
             <View style={styles.iconWrapper}>
-              <Ionicons name={iconName as any} size={22} color={color} />
+              <TabIcon size={22} color={color} />
               {typeof tab.badge === "number" && tab.badge > 0 ? (
                 <View style={[styles.badge, { backgroundColor: theme.primary || "#4F46E5" }]}>
                   <Text style={styles.badgeText}>
@@ -250,8 +245,7 @@ export const BottomTabBar: React.FC = () => {
                 </View>
               ) : null}
             </View>
-            <Text
-              style={[
+            <Text style={[
                 styles.label,
                 {
                   color,

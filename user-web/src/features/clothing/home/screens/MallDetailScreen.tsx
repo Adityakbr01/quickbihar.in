@@ -11,7 +11,7 @@ import {
   Linking,
   useWindowDimensions,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { ArrowLeft, CircleAlert, Map as MapIcon, MapPin, MessageCircle, Phone, Share2, ShoppingBag, SquarePen, Star, StarHalf } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Image as ExpoImage } from "expo-image";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
@@ -88,7 +88,7 @@ const MallDetailScreen: React.FC<MallDetailScreenProps> = ({ id, initialMall }) 
       <>
         {seoMeta && <SeoHead meta={seoMeta} jsonLd={seoJsonLd} />}
         <View style={[styles.errorContainer, { backgroundColor: theme.background }]}>
-          <Ionicons name="alert-circle-outline" size={60} color={theme.primary} />
+          <CircleAlert size={60} color={theme.primary} />
           <Text style={[styles.errorText, { color: theme.text }]}>
             Could not load mall information.
           </Text>
@@ -173,8 +173,7 @@ const MallDetailScreen: React.FC<MallDetailScreenProps> = ({ id, initialMall }) 
         {/* Cover Image Slider & Header (embla carousel on web via the
             reanimated-carousel shim, native carousel on mobile) */}
         <View style={styles.heroContainer}>
-          <Carousel
-            width={windowWidth}
+          <Carousel width={windowWidth}
             height={300}
             data={heroImages}
             loop={heroImages.length > 1}
@@ -183,8 +182,7 @@ const MallDetailScreen: React.FC<MallDetailScreenProps> = ({ id, initialMall }) 
             scrollAnimationDuration={300}
             onSnapToItem={setActiveImageIndex}
             renderItem={({ item: uri, index }) => (
-              <ExpoImage
-                key={`${index}-${uri}`}
+              <ExpoImage key={`${index}-${uri}`}
                 source={{ uri }}
                 style={[styles.coverImage, { width: windowWidth }]}
                 contentFit="cover"
@@ -198,10 +196,10 @@ const MallDetailScreen: React.FC<MallDetailScreenProps> = ({ id, initialMall }) 
           {/* Header Actions */}
           <View style={styles.headerRow}>
             <TouchableOpacity onPress={() => goBack(navigate)} style={styles.navIconBtn}>
-              <Ionicons name="arrow-back" size={24} color="#FFF" />
+              <ArrowLeft size={24} color="#FFF" />
             </TouchableOpacity>
             <TouchableOpacity onPress={handleShare} style={styles.navIconBtn}>
-              <Ionicons name="share-outline" size={22} color="#FFF" />
+              <Share2 size={22} color="#FFF" />
             </TouchableOpacity>
           </View>
 
@@ -223,8 +221,7 @@ const MallDetailScreen: React.FC<MallDetailScreenProps> = ({ id, initialMall }) 
               {heroImages.length > 1 && (
                 <View style={{ flexDirection: "row", gap: 4 }}>
                   {heroImages.map((_: any, idx: number) => (
-                    <View
-                      key={idx}
+                    <View key={idx}
                       style={{
                         width: 6,
                         height: 6,
@@ -257,12 +254,11 @@ const MallDetailScreen: React.FC<MallDetailScreenProps> = ({ id, initialMall }) 
           </View>
           <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
             <View style={[styles.locationContainer, { marginBottom: 0, flex: 1, marginRight: 8 }]}>
-              <Ionicons name="location-outline" size={18} color={theme.primary} />
+              <MapPin size={18} color={theme.primary} />
               <Text style={[styles.locationText, { color: theme.secondaryText }]} numberOfLines={2}>{mall.location}</Text>
             </View>
             {mall.address?.latitude && mall.address?.longitude && (
-              <TouchableOpacity
-                onPress={handleGetDirections}
+              <TouchableOpacity onPress={handleGetDirections}
                 style={{
                   flexDirection: "row",
                   alignItems: "center",
@@ -277,18 +273,17 @@ const MallDetailScreen: React.FC<MallDetailScreenProps> = ({ id, initialMall }) 
                   shadowRadius: 1.5,
                 }}
               >
-                <Ionicons name="map-outline" size={14} color="#FFF" style={{ marginRight: 4 }} />
+                <MapIcon size={14} color="#FFF" style={{ marginRight: 4 }} />
                 <Text style={{ color: "#FFF", fontSize: 12, fontWeight: "600" }}>Get Directions</Text>
               </TouchableOpacity>
             )}
           </View>
 
           {mall.isMobileVisible !== false && !!mall.mobileNumber && (
-            <TouchableOpacity
-              onPress={() => Linking.openURL(`tel:${mall.mobileNumber}`).catch(() => { })}
+            <TouchableOpacity onPress={() => Linking.openURL(`tel:${mall.mobileNumber}`).catch(() => { })}
               style={{ flexDirection: "row", alignItems: "center", marginBottom: 12 }}
             >
-              <Ionicons name="call-outline" size={16} color={theme.primary} style={{ marginRight: 6 }} />
+              <Phone size={16} color={theme.primary} style={{ marginRight: 6 }} />
               <Text style={{ color: theme.secondaryText, fontSize: 14, fontWeight: "500" }}>
                 Contact: <Text style={{ color: theme.text, fontWeight: "600" }}>{mall.mobileNumber}</Text>
               </Text>
@@ -304,12 +299,13 @@ const MallDetailScreen: React.FC<MallDetailScreenProps> = ({ id, initialMall }) 
               <Text style={[styles.ratingNumber, { color: theme.text }]}>{mall.rating}</Text>
               <View style={styles.starsRow}>
                 {[1, 2, 3, 4, 5].map((star) => (
-                  <Ionicons
-                    key={star}
-                    name={star <= Math.floor(mall.rating) ? "star" : star - 0.5 <= mall.rating ? "star-half" : "star-outline"}
-                    size={16}
-                    color="#F59E0B"
-                  />
+                  star <= Math.floor(mall.rating) ? (
+                    <Star key={star} size={16} color="#F59E0B" fill="#F59E0B" />
+                  ) : star - 0.5 <= mall.rating ? (
+                    <StarHalf key={star} size={16} color="#F59E0B" />
+                  ) : (
+                    <Star key={star} size={16} color="#F59E0B" />
+                  )
                 ))}
               </View>
               <Text style={[styles.reviewsCountText, { color: theme.tertiaryText }]}>
@@ -317,8 +313,7 @@ const MallDetailScreen: React.FC<MallDetailScreenProps> = ({ id, initialMall }) 
               </Text>
             </View>
 
-            <TouchableOpacity
-              style={[styles.writeReviewTriggerBtn, { borderColor: theme.primary }]}
+            <TouchableOpacity style={[styles.writeReviewTriggerBtn, { borderColor: theme.primary }]}
               onPress={() => {
                 if (!isAuthenticated) {
                   goTo(navigate, "/auth" as any);
@@ -327,7 +322,7 @@ const MallDetailScreen: React.FC<MallDetailScreenProps> = ({ id, initialMall }) 
                 }
               }}
             >
-              <Ionicons name="create-outline" size={16} color={theme.primary} />
+              <SquarePen size={16} color={theme.primary} />
               <Text style={[styles.writeReviewTriggerBtnText, { color: theme.primary }]}>
                 {showReviewForm ? "Cancel Review" : "Write Review"}
               </Text>
@@ -342,12 +337,15 @@ const MallDetailScreen: React.FC<MallDetailScreenProps> = ({ id, initialMall }) 
             <View style={styles.ratingSelectorRow}>
               {[1, 2, 3, 4, 5].map((star) => (
                 <TouchableOpacity key={star} onPress={() => setRating(star)} style={styles.starTouch}>
-                  <Ionicons name={star <= rating ? "star" : "star-outline"} size={32} color="#F59E0B" />
+                  {star <= rating ? (
+                    <Star size={32} color="#F59E0B" fill="#F59E0B" />
+                  ) : (
+                    <Star size={32} color="#F59E0B" />
+                  )}
                 </TouchableOpacity>
               ))}
             </View>
-            <TextInput
-              placeholder="Tell us about the stores, parking, ambiance, etc. (optional)"
+            <TextInput placeholder="Tell us about the stores, parking, ambiance, etc. (optional)"
               placeholderTextColor={theme.tertiaryText}
               multiline
               numberOfLines={4}
@@ -368,8 +366,7 @@ const MallDetailScreen: React.FC<MallDetailScreenProps> = ({ id, initialMall }) 
                 textAlignVertical: "top",
               }}
             />
-            <TouchableOpacity
-              style={[styles.submitReviewBtn, { backgroundColor: theme.primary }]}
+            <TouchableOpacity style={[styles.submitReviewBtn, { backgroundColor: theme.primary }]}
               onPress={handleReviewSubmit}
               disabled={submitReviewMutation.isPending}
             >
@@ -387,14 +384,13 @@ const MallDetailScreen: React.FC<MallDetailScreenProps> = ({ id, initialMall }) 
           <Text style={[styles.sectionTitle, { color: theme.text }]}>Trending Products in Mall</Text>
           {products.length === 0 ? (
             <View style={styles.emptyContainer}>
-              <Ionicons name="bag-handle-outline" size={48} color={theme.tertiaryText} />
+              <ShoppingBag size={48} color={theme.tertiaryText} />
               <Text style={[styles.emptyText, { color: theme.tertiaryText }]}>No products listed in this mall yet.</Text>
             </View>
           ) : (
             <View style={styles.productsGrid}>
               {products.map((item: any) => (
-                <TouchableOpacity
-                  key={item.id}
+                <TouchableOpacity key={item.id}
                   style={[
                     styles.productCard,
                     {
@@ -423,7 +419,7 @@ const MallDetailScreen: React.FC<MallDetailScreenProps> = ({ id, initialMall }) 
                       )}
                     </View>
                     <View style={styles.productRatingRow}>
-                      <Ionicons name="star" size={10} color="#F59E0B" />
+                      <Star size={10} color="#F59E0B" fill="#F59E0B" />
                       <Text style={[styles.productRatingVal, { color: theme.secondaryText }]}>{item.rating}</Text>
                     </View>
                   </View>
@@ -438,7 +434,7 @@ const MallDetailScreen: React.FC<MallDetailScreenProps> = ({ id, initialMall }) 
           <Text style={[styles.sectionTitle, { color: theme.text }]}>Reviews ({reviews.length})</Text>
           {reviews.length === 0 ? (
             <View style={styles.emptyContainer}>
-              <Ionicons name="chatbox-ellipses-outline" size={40} color={theme.tertiaryText} />
+              <MessageCircle size={40} color={theme.tertiaryText} />
               <Text style={[styles.emptyText, { color: theme.tertiaryText }]}>Be the first to review this mall!</Text>
             </View>
           ) : (
@@ -463,7 +459,7 @@ const MallDetailScreen: React.FC<MallDetailScreenProps> = ({ id, initialMall }) 
                     </Text>
                   </View>
                   <View style={styles.reviewRatingBadge}>
-                    <Ionicons name="star" size={12} color="#fff" />
+                    <Star size={12} color="#fff" fill="#fff" />
                     <Text style={styles.reviewRatingBadgeText}>{review.rating}</Text>
                   </View>
                 </View>
@@ -480,8 +476,7 @@ const MallDetailScreen: React.FC<MallDetailScreenProps> = ({ id, initialMall }) 
           <Text style={[styles.sectionTitle, { color: theme.text }]}>Other Malls in City</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.matchingMallsScroll}>
             {matchingMalls.map((item: any) => (
-              <TouchableOpacity
-                key={item.id}
+              <TouchableOpacity key={item.id}
                 style={[styles.matchingCard, { backgroundColor: theme.tertiaryBackground }]}
                 onPress={() => goTo(navigate, `/mall/${item.id}` as any)}
               >
@@ -494,7 +489,7 @@ const MallDetailScreen: React.FC<MallDetailScreenProps> = ({ id, initialMall }) 
                     {item.location}
                   </Text>
                   <View style={styles.matchingRatingRow}>
-                    <Ionicons name="star" size={12} color="#F59E0B" />
+                    <Star size={12} color="#F59E0B" fill="#F59E0B" />
                     <Text style={[styles.matchingRatingVal, { color: theme.text }]}>{item.rating}</Text>
                   </View>
                 </View>

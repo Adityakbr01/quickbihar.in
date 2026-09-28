@@ -1,4 +1,5 @@
-import { Feather } from "@expo/vector-icons";
+import type { LucideIcon } from "lucide-react";
+import { Bell, ChevronRight, CircleHelp, Gift, Heart, Info, Key, LogOut, MapPin, MessageCircle, Moon, Package, Sun, Truck, User, Zap } from "lucide-react";
 import * as Haptics from "@/lib/haptics";
 import { useNavigate } from "react-router-dom";
 import { goTo, replaceTo } from "@/src/utils/navigation";
@@ -32,16 +33,16 @@ import { useAccountStore } from "@/src/features/common/account/store/accountStor
 
 const guestMenuItems = [
   {
-    icon: "help-circle",
+    icon: CircleHelp,
     label: "Help & Support",
     sub: "Sizing guide, returns, care",
   },
-  { icon: "message-circle", label: "WhatsApp Assist", sub: JEWELERY_MODULE_CONFIG.whatsappPhone },
-  { icon: "info", label: `About ${APP_NAME}`, sub: "Our story and craft" },
+  { icon: MessageCircle, label: "WhatsApp Assist", sub: JEWELERY_MODULE_CONFIG.whatsappPhone },
+  { icon: Info, label: `About ${APP_NAME}`, sub: "Our story and craft" },
 ];
 
 function MenuItem({
-  icon,
+  icon: Icon,
   label,
   sub,
   badge,
@@ -49,7 +50,7 @@ function MenuItem({
   onPress,
   last,
 }: {
-  icon: string;
+  icon: LucideIcon;
   label: string;
   sub: string;
   badge?: string;
@@ -60,8 +61,7 @@ function MenuItem({
   const navigate = useNavigate();
   const colors = useColors();
   return (
-    <Pressable
-      style={({ pressed }) => [
+    <Pressable style={({ pressed }) => [
         styles.menuItem,
         {
           borderBottomColor: colors.midGray,
@@ -78,18 +78,16 @@ function MenuItem({
         if (route) goTo(navigate, route as any);
       }}
     >
-      <Feather name={icon as any} size={16} color={colors.gold} />
+      <Icon size={16} color={colors.gold} />
       <View style={styles.menuContent}>
-        <Text
-          style={[
+        <Text style={[
             styles.menuLabel,
             { color: colors.ink, fontFamily: "DMSans_500Medium" },
           ]}
         >
           {label}
         </Text>
-        <Text
-          style={[
+        <Text style={[
             styles.menuSub,
             { color: colors.warmGray, fontFamily: "DMSans_400Regular" },
           ]}
@@ -99,8 +97,7 @@ function MenuItem({
       </View>
       {badge ? (
         <View style={[styles.badge, { backgroundColor: colors.gold }]}>
-          <Text
-            style={[
+          <Text style={[
               styles.badgeText,
               { color: colors.onBrand, fontFamily: "DMSans_500Medium" },
             ]}
@@ -109,7 +106,7 @@ function MenuItem({
           </Text>
         </View>
       ) : (
-        <Feather name="chevron-right" size={14} color={colors.midGray} />
+        <ChevronRight size={14} color={colors.midGray} />
       )}
     </Pressable>
   );
@@ -121,16 +118,14 @@ function AppearanceSection() {
 
   return (
     <View style={styles.appearanceSection}>
-      <Text
-        style={[
+      <Text style={[
           styles.appearanceTitle,
           { color: colors.warmGray, fontFamily: "DMSans_500Medium" },
         ]}
       >
         APPEARANCE
       </Text>
-      <View
-        style={[
+      <View style={[
           styles.appearanceRow,
           {
             backgroundColor: colors.ivory,
@@ -139,22 +134,20 @@ function AppearanceSection() {
           },
         ]}
       >
-        <Feather
-          name={theme.isDark ? "moon" : "sun"}
-          size={16}
-          color={colors.gold}
-        />
+        {theme.isDark ? (
+          <Moon size={16} color={colors.gold} />
+        ) : (
+          <Sun size={16} color={colors.gold} />
+        )}
         <View style={styles.appearanceContent}>
-          <Text
-            style={[
+          <Text style={[
               styles.menuLabel,
               { color: colors.ink, fontFamily: "DMSans_500Medium" },
             ]}
           >
             {theme.isDark ? "Dark Mode" : "Light Mode"}
           </Text>
-          <Text
-            style={[
+          <Text style={[
               styles.menuSub,
               { color: colors.warmGray, fontFamily: "DMSans_400Regular" },
             ]}
@@ -162,8 +155,7 @@ function AppearanceSection() {
             {theme.isDark ? "Currently using dark theme" : "Currently using light theme"}
           </Text>
         </View>
-        <ThemeToggle
-          value={theme.isDark}
+        <ThemeToggle value={theme.isDark}
           onToggle={() => {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
             theme.toggleMode();
@@ -250,8 +242,7 @@ export default function JeweleryAccountScreen() {
   return (
     <View style={[styles.root, { backgroundColor: colors.ivory }]}>
       {/* Header */}
-      <View
-        style={[
+      <View style={[
           styles.header,
           {
             paddingTop: topPad + 12,
@@ -260,8 +251,7 @@ export default function JeweleryAccountScreen() {
           },
         ]}
       >
-        <Text
-          style={[
+        <Text style={[
             styles.headerTitle,
             { color: colors.ink, fontFamily: "CormorantGaramond_600SemiBold" },
           ]}
@@ -270,25 +260,22 @@ export default function JeweleryAccountScreen() {
         </Text>
         {user && (
           <Pressable onPress={handleSignOut} hitSlop={8}>
-            <Feather name="log-out" size={18} color={colors.warmGray} />
+            <LogOut size={18} color={colors.warmGray} />
           </Pressable>
         )}
       </View>
 
-      <ScrollView
-        showsVerticalScrollIndicator={false}
+      <ScrollView showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: bottomPad + 24 }}
       >
         {user ? (
           /* ── SIGNED IN ─────────────────────────── */
           <>
             {/* Profile card */}
-            <View
-              style={[styles.profileCard, { backgroundColor: colors.emerald }]}
+            <View style={[styles.profileCard, { backgroundColor: colors.emerald }]}
             >
               <View style={[styles.avatar, { backgroundColor: colors.gold }]}>
-                <Text
-                  style={[
+                <Text style={[
                     styles.avatarText,
                     {
                       color: colors.onBrand,
@@ -300,8 +287,7 @@ export default function JeweleryAccountScreen() {
                 </Text>
               </View>
               <View style={{ flex: 1 }}>
-                <Text
-                  style={[
+                <Text style={[
                     styles.profileName,
                     {
                       color: "#F7F3EC",
@@ -311,8 +297,7 @@ export default function JeweleryAccountScreen() {
                 >
                   {user.name}
                 </Text>
-                <Text
-                  style={[
+                <Text style={[
                     styles.profilePhone,
                     {
                       color: "rgba(247,243,236,0.75)",
@@ -323,8 +308,7 @@ export default function JeweleryAccountScreen() {
                   {APP_COUNTRY_CODE} {user.phone}
                 </Text>
                 {user.email ? (
-                  <Text
-                    style={[
+                  <Text style={[
                       styles.profileEmail,
                       {
                         color: "rgba(247,243,236,0.6)",
@@ -338,8 +322,7 @@ export default function JeweleryAccountScreen() {
               </View>
               {joinedDate ? (
                 <View style={styles.joinedBadge}>
-                  <Text
-                    style={[
+                  <Text style={[
                       styles.joinedText,
                       { color: colors.gold, fontFamily: "DMSans_400Regular" },
                     ]}
@@ -351,8 +334,7 @@ export default function JeweleryAccountScreen() {
             </View>
 
             {/* Stats row */}
-            <View
-              style={[
+            <View style={[
                 styles.statsRow,
                 {
                   backgroundColor: colors.pearl,
@@ -378,15 +360,13 @@ export default function JeweleryAccountScreen() {
                 },
               ].map((s, i) => (
                 <React.Fragment key={s.label}>
-                  <Pressable
-                    style={styles.stat}
+                  <Pressable style={styles.stat}
                     onPress={() => {
                       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                       s.onPress();
                     }}
                   >
-                    <Text
-                      style={[
+                    <Text style={[
                         styles.statValue,
                         {
                           color: colors.ink,
@@ -396,8 +376,7 @@ export default function JeweleryAccountScreen() {
                     >
                       {s.value}
                     </Text>
-                    <Text
-                      style={[
+                    <Text style={[
                         styles.statLabel,
                         {
                           color: colors.warmGray,
@@ -409,8 +388,7 @@ export default function JeweleryAccountScreen() {
                     </Text>
                   </Pressable>
                   {i < 2 && (
-                    <View
-                      style={[
+                    <View style={[
                         styles.statSep,
                         { backgroundColor: colors.midGray },
                       ]}
@@ -422,16 +400,14 @@ export default function JeweleryAccountScreen() {
 
             {/* Active order banner */}
             {activeOrders.length > 0 && (
-              <Pressable
-                style={[
+              <Pressable style={[
                   styles.activeOrderBanner,
                   { backgroundColor: colors.champagne, borderColor: colors.gold },
                 ]}
                 onPress={() => goTo(navigate, "/jewelery/orders" as any)}
               >
-                <Feather name="truck" size={14} color={colors.gold} />
-                <Text
-                  style={[
+                <Truck size={14} color={colors.gold} />
+                <Text style={[
                     styles.activeOrderText,
                     { color: colors.ink, fontFamily: "DMSans_400Regular" },
                   ]}
@@ -439,14 +415,13 @@ export default function JeweleryAccountScreen() {
                   {activeOrders.length} order
                   {activeOrders.length > 1 ? "s" : ""} on the way — Tap to track
                 </Text>
-                <Feather name="chevron-right" size={13} color={colors.gold} />
+                <ChevronRight size={13} color={colors.gold} />
               </Pressable>
             )}
 
             {/* Menu */}
             <View style={[styles.menu, { backgroundColor: colors.ivory }]}>
-              <MenuItem
-                icon="package"
+              <MenuItem icon={Package}
                 label="My Orders"
                 sub={`${realOrders.length} orders · ${activeOrders.length} active`}
                 badge={
@@ -456,20 +431,17 @@ export default function JeweleryAccountScreen() {
                 }
                 route="/jewelery/orders"
               />
-              <MenuItem
-                icon="heart"
+              <MenuItem icon={Heart}
                 label="Wishlist"
                 sub="Pieces you've saved"
                 route="/jewelery/(tabs)/wishlist"
               />
-              <MenuItem
-                icon="map-pin"
+              <MenuItem icon={MapPin}
                 label="Saved Addresses"
                 sub="Manage delivery addresses"
                 route="/jewelery/addresses"
               />
-              <MenuItem
-                icon="key"
+              <MenuItem icon={Key}
                 label="Password & Email Setup"
                 sub="Update password or link email address for password login"
                 onPress={() => {
@@ -477,26 +449,22 @@ export default function JeweleryAccountScreen() {
                   setPasswordSheetVisible(true);
                 }}
               />
-              <MenuItem
-                icon="bell"
+              <MenuItem icon={Bell}
                 label="Notifications"
                 sub="Drops, restocks, offers"
                 route="/jewelery/notifications"
               />
-              <MenuItem
-                icon="help-circle"
+              <MenuItem icon={CircleHelp}
                 label="Help & Support"
                 sub="Sizing guide, returns, care"
                 onPress={() => setHelpVisible(true)}
               />
-              <MenuItem
-                icon="message-circle"
+              <MenuItem icon={MessageCircle}
                 label="WhatsApp Assist"
                 sub={SUPPORT_WHATSAPP_DISPLAY}
                 onPress={() => openWhatsapp()}
               />
-              <MenuItem
-                icon="info"
+              <MenuItem icon={Info}
                 label={`About ${APP_NAME}`}
                 sub="Our story and craft"
                 last
@@ -507,8 +475,7 @@ export default function JeweleryAccountScreen() {
             </View>
 
             {/* Sign out */}
-            <Pressable
-              style={({ pressed }) => [
+            <Pressable style={({ pressed }) => [
                 styles.signOutRow,
                 {
                   backgroundColor: pressed ? colors.pearl : "transparent",
@@ -518,9 +485,8 @@ export default function JeweleryAccountScreen() {
               ]}
               onPress={handleSignOut}
             >
-              <Feather name="log-out" size={16} color={colors.maroon} />
-              <Text
-                style={[
+              <LogOut size={16} color={colors.maroon} />
+              <Text style={[
                   styles.signOutText,
                   { color: colors.maroon, fontFamily: "DMSans_500Medium" },
                 ]}
@@ -532,19 +498,16 @@ export default function JeweleryAccountScreen() {
         ) : (
           /* ── GUEST ─────────────────────────────── */
           <>
-            <View
-              style={[styles.guestCard, { backgroundColor: colors.emerald }]}
+            <View style={[styles.guestCard, { backgroundColor: colors.emerald }]}
             >
-              <View
-                style={[
+              <View style={[
                   styles.guestIconCircle,
                   { backgroundColor: "rgba(184,146,74,0.2)" },
                 ]}
               >
-                <Feather name="user" size={32} color={colors.gold} />
+                <User size={32} color={colors.gold} />
               </View>
-              <Text
-                style={[
+              <Text style={[
                   styles.guestHeadline,
                   {
                     color: "#F7F3EC",
@@ -554,8 +517,7 @@ export default function JeweleryAccountScreen() {
               >
                 Your jewellery story{"\n"}starts here.
               </Text>
-              <Text
-                style={[
+              <Text style={[
                   styles.guestSub,
                   {
                     color: "rgba(247,243,236,0.7)",
@@ -567,8 +529,7 @@ export default function JeweleryAccountScreen() {
                 access to new drops.
               </Text>
               <View style={styles.guestBtns}>
-                <Pressable
-                  style={({ pressed }) => [
+                <Pressable style={({ pressed }) => [
                     styles.guestSignInBtn,
                     {
                       backgroundColor: pressed ? colors.goldLight : colors.gold,
@@ -576,8 +537,7 @@ export default function JeweleryAccountScreen() {
                   ]}
                   onPress={() => goTo(navigate, "/jewelery/auth/sign-in" as any)}
                 >
-                  <Text
-                    style={[
+                  <Text style={[
                       styles.guestSignInText,
                       { color: colors.onBrand, fontFamily: "DMSans_500Medium" },
                     ]}
@@ -585,8 +545,7 @@ export default function JeweleryAccountScreen() {
                     Sign In
                   </Text>
                 </Pressable>
-                <Pressable
-                  style={({ pressed }) => [
+                <Pressable style={({ pressed }) => [
                     styles.guestSignUpBtn,
                     {
                       borderColor: colors.gold,
@@ -597,8 +556,7 @@ export default function JeweleryAccountScreen() {
                   ]}
                   onPress={() => goTo(navigate, "/jewelery/auth/sign-up" as any)}
                 >
-                  <Text
-                    style={[
+                  <Text style={[
                       styles.guestSignUpText,
                       { color: colors.gold, fontFamily: "DMSans_400Regular" },
                     ]}
@@ -609,14 +567,12 @@ export default function JeweleryAccountScreen() {
               </View>
             </View>
 
-            <View
-              style={[
+            <View style={[
                 styles.perksSection,
                 { backgroundColor: colors.champagne },
               ]}
             >
-              <Text
-                style={[
+              <Text style={[
                   styles.perksLabel,
                   { color: colors.gold, fontFamily: "DMSans_500Medium" },
                 ]}
@@ -625,31 +581,25 @@ export default function JeweleryAccountScreen() {
               </Text>
               {[
                 {
-                  icon: "zap",
+                  icon: Zap,
                   text: "Early access to new collections & drops",
                 },
                 {
-                  icon: "heart",
+                  icon: Heart,
                   text: "Wishlist synced across all your devices",
                 },
-                { icon: "gift", text: "Exclusive member-only gifts" },
-                { icon: "truck", text: "Faster checkout with saved addresses" },
+                { icon: Gift, text: "Exclusive member-only gifts" },
+                { icon: Truck, text: "Faster checkout with saved addresses" },
               ].map((p) => (
                 <View key={p.text} style={styles.perkRow}>
-                  <View
-                    style={[
+                  <View style={[
                       styles.perkIconWrap,
                       { backgroundColor: colors.pearl },
                     ]}
                   >
-                    <Feather
-                      name={p.icon as any}
-                      size={14}
-                      color={colors.gold}
-                    />
+                    <p.icon size={14} color={colors.gold} />
                   </View>
-                  <Text
-                    style={[
+                  <Text style={[
                       styles.perkText,
                       { color: colors.ink, fontFamily: "DMSans_400Regular" },
                     ]}
@@ -660,15 +610,13 @@ export default function JeweleryAccountScreen() {
               ))}
             </View>
 
-            <View
-              style={[
+            <View style={[
                 styles.menu,
                 { backgroundColor: colors.ivory, marginTop: 12 },
               ]}
             >
               {guestMenuItems.map((item, i) => (
-                <MenuItem
-                  key={item.label}
+                <MenuItem key={item.label}
                   {...item}
                   onPress={() => handleGuestMenu(item.label)}
                   last={i === guestMenuItems.length - 1}
@@ -683,8 +631,7 @@ export default function JeweleryAccountScreen() {
 
         {/* Footer brand */}
         <View style={styles.bottomBrand}>
-          <Text
-            style={[
+          <Text style={[
               styles.brandName,
               {
                 color: colors.gold,
@@ -694,16 +641,14 @@ export default function JeweleryAccountScreen() {
           >
             {APP_NAME}
           </Text>
-          <Text
-            style={[
+          <Text style={[
               styles.brandSub,
               { color: colors.warmGray, fontFamily: "DMSans_300Light" },
             ]}
           >
             Hallmark Certified · BIS Certified · Made in India
           </Text>
-          <Text
-            style={[
+          <Text style={[
               styles.version,
               { color: colors.midGray, fontFamily: "DMSans_400Regular" },
             ]}
@@ -719,8 +664,7 @@ export default function JeweleryAccountScreen() {
       <PasswordEmailSetupSheet variant="jewelery" />
 
       {/* Help & Support bottom sheet (channel → question → redirect) */}
-      <HelpSupportSheet
-        visible={helpVisible}
+      <HelpSupportSheet visible={helpVisible}
         onClose={() => setHelpVisible(false)}
       />
     </View>

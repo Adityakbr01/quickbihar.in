@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { X } from "lucide-react";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { spacing } from "@/src/theme/spacing";
 import type { SheetHeaderProps } from "./types";
@@ -42,14 +42,13 @@ export const SheetHeader: React.FC<SheetHeaderProps> = ({
         <View style={styles.right}>
           {right}
           {showClose && (
-            <TouchableOpacity
-              onPress={onClose}
+            <TouchableOpacity onPress={onClose}
               style={styles.closeButton}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               accessibilityRole="button"
               accessibilityLabel="Close"
             >
-              <Ionicons name="close" size={20} color={theme.text} />
+              <X size={20} color={theme.text} />
             </TouchableOpacity>
           )}
         </View>

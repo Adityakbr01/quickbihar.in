@@ -1,4 +1,4 @@
-import { Feather } from "@expo/vector-icons";
+import { Award, House, RefreshCw, Star, Wrench } from "lucide-react";
 import * as Haptics from "@/lib/haptics";
 import { useNavigate } from "react-router-dom";
 import { goTo } from "@/src/utils/navigation";
@@ -77,8 +77,7 @@ function AnnouncementBar() {
 
   return (
     <View style={[styles.announcementBar, { backgroundColor: bg }]}>
-      <Text
-        style={[
+      <Text style={[
           styles.announcementText,
           { color: textColor, fontFamily: "DMSans_400Regular" },
         ]}
@@ -103,8 +102,7 @@ function Header() {
   const compactSwitcher = windowWidth < 400;
 
   return (
-    <View
-      style={[
+    <View style={[
         styles.header,
         {
           paddingHorizontal: 16,
@@ -114,8 +112,7 @@ function Header() {
         },
       ]}
     >
-      <Text
-        style={[
+      <Text style={[
           styles.logoText,
           { color: colors.ink, fontFamily: "CormorantGaramond_600SemiBold" },
         ]}
@@ -133,15 +130,14 @@ function Header() {
 function BrandPillars() {
   const colors = useColors();
   const pillars = [
-    { icon: "award", label: "Hallmark\nCertified" },
-    { icon: "tool", label: "Handcrafted\nin India" },
-    { icon: "refresh-cw", label: "Free Returns\n30 Days" },
-    { icon: "home", label: "Try Before\nYou Buy" },
+    { icon: Award, label: "Hallmark\nCertified" },
+    { icon: Wrench, label: "Handcrafted\nin India" },
+    { icon: RefreshCw, label: "Free Returns\n30 Days" },
+    { icon: House, label: "Try Before\nYou Buy" },
   ];
 
   return (
-    <View
-      style={[
+    <View style={[
         styles.pillarsContainer,
         {
           backgroundColor: colors.ivory,
@@ -152,9 +148,8 @@ function BrandPillars() {
     >
       {pillars.map((p, i) => (
         <View key={p.label} style={styles.pillar}>
-          <Feather name={p.icon as any} size={16} color={colors.gold} />
-          <Text
-            style={[
+          <p.icon size={16} color={colors.gold} />
+          <Text style={[
               styles.pillarLabel,
               { color: colors.ink, fontFamily: "DMSans_400Regular" },
             ]}
@@ -181,8 +176,7 @@ function SectionHeader({
     <View style={styles.sectionHeader}>
       <View>
         {label && (
-          <Text
-            style={[
+          <Text style={[
               styles.sectionLabel,
               { color: colors.gold, fontFamily: "DMSans_500Medium" },
             ]}
@@ -190,8 +184,7 @@ function SectionHeader({
             {label}
           </Text>
         )}
-        <Text
-          style={[
+        <Text style={[
             styles.sectionTitle,
             {
               color: colors.ink,
@@ -204,8 +197,7 @@ function SectionHeader({
       </View>
       {onSeeAll && (
         <Pressable onPress={onSeeAll}>
-          <Text
-            style={[
+          <Text style={[
               styles.seeAll,
               { color: colors.gold, fontFamily: "DMSans_400Regular" },
             ]}
@@ -256,8 +248,7 @@ function FeaturedCollections() {
   if (!top.length) return null;
   return (
     <View style={[styles.section, { backgroundColor: colors.ivory }]}>
-      <SectionHeader
-        label="CURATED FOR YOU"
+      <SectionHeader label="CURATED FOR YOU"
         title="Our Collections"
         onSeeAll={() => goTo(navigate, "/jewelery/collections" as any)}
       />
@@ -283,22 +274,19 @@ function NewArrivals() {
   const { data: newItems = [], isLoading } = useJeweleryNewArrivals(8);
   if (!isLoading && newItems.length === 0) return null;
   return (
-    <View
-      style={[
+    <View style={[
         styles.section,
         { backgroundColor: isDark ? colors.card : colors.champagne },
       ]}
     >
-      <SectionHeader
-        label="JUST IN"
+      <SectionHeader label="JUST IN"
         title="New Arrivals"
         onSeeAll={() => goTo(navigate, "/jewelery/collections" as any)}
       />
       {isLoading ? (
         <ActivityIndicator color={colors.gold} />
       ) : (
-        <FlatList
-          data={newItems}
+        <FlatList data={newItems}
           horizontal
           showsHorizontalScrollIndicator={false}
           keyExtractor={(i) => i.id}
@@ -319,8 +307,7 @@ function OccasionsSection() {
       <SectionHeader label="FIND YOUR MOMENT" title="Shop by Occasion" />
       <View style={styles.occasionsGrid}>
         {occasions.map((o) => (
-          <Pressable
-            key={o.id}
+          <Pressable key={o.id}
             style={({ pressed }) => [
               styles.occasionPill,
               {
@@ -332,9 +319,8 @@ function OccasionsSection() {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
             }
           >
-            <Feather name={o.icon as any} size={13} color={colors.gold} />
-            <Text
-              style={[
+            <o.icon size={13} color={colors.gold} />
+            <Text style={[
                 styles.occasionLabel,
                 {
                   color: colors.ink,
@@ -356,16 +342,14 @@ function HeritageSection() {
   return (
     <View style={[styles.heritageSection, { backgroundColor: colors.pearl }]}>
       <View style={styles.heritageContent}>
-        <Text
-          style={[
+        <Text style={[
             styles.heritageLabel,
             { color: colors.gold, fontFamily: "DMSans_500Medium" },
           ]}
         >
           OUR CRAFT
         </Text>
-        <Text
-          style={[
+        <Text style={[
             styles.heritageTitle,
             {
               color: colors.ink,
@@ -375,8 +359,7 @@ function HeritageSection() {
         >
           Every piece holds the memory of hands that shaped it.
         </Text>
-        <Text
-          style={[
+        <Text style={[
             styles.heritageBody,
             { color: colors.warmGray, fontFamily: "DMSans_300Light" },
           ]}
@@ -386,8 +369,7 @@ function HeritageSection() {
           generations.{"\n\n"}Our jewellery is not manufactured. It is made.
         </Text>
         <Pressable onPress={() => {}}>
-          <Text
-            style={[
+          <Text style={[
               styles.heritageLink,
               { color: colors.gold, fontFamily: "DMSans_400Regular" },
             ]}
@@ -407,8 +389,7 @@ function BestsellerSection() {
   if (!isLoading && bestsellers.length === 0) return null;
   return (
     <View style={[styles.section, { backgroundColor: colors.ivory }]}>
-      <SectionHeader
-        label="MOST LOVED"
+      <SectionHeader label="MOST LOVED"
         title="Bestsellers"
         onSeeAll={() => goTo(navigate, "/jewelery/collections" as any)}
       />
@@ -428,8 +409,7 @@ function FestiveCampaign() {
   const colors = useColors();
   return (
     <View style={[styles.festiveSec, { backgroundColor: colors.emerald }]}>
-      <Text
-        style={[
+      <Text style={[
           styles.festiveLabel,
           {
             color: colors.gold,
@@ -439,8 +419,7 @@ function FestiveCampaign() {
       >
         This festive season —
       </Text>
-      <Text
-        style={[
+      <Text style={[
           styles.festiveTitle,
           {
             color: "#F7F3EC",
@@ -450,8 +429,7 @@ function FestiveCampaign() {
       >
         Adorn yourself in your own story.
       </Text>
-      <Text
-        style={[
+      <Text style={[
           styles.festiveBody,
           { color: "rgba(247,243,236,0.7)", fontFamily: "DMSans_300Light" },
         ]}
@@ -459,15 +437,13 @@ function FestiveCampaign() {
         Curated festive edits in gold, kundan, and polki. New drops every
         fortnight. Gifting boxes available.
       </Text>
-      <Pressable
-        style={({ pressed }) => [
+      <Pressable style={({ pressed }) => [
           styles.festiveBtn,
           { backgroundColor: pressed ? colors.goldLight : colors.gold },
         ]}
         onPress={() => goTo(navigate, "/jewelery/collections" as any)}
       >
-        <Text
-          style={[
+        <Text style={[
             styles.festiveBtnText,
             { color: colors.onBrand, fontFamily: "DMSans_500Medium" },
           ]}
@@ -485,17 +461,15 @@ function TestimonialsSection() {
     <View style={[styles.section, { backgroundColor: colors.pearl }]}>
       <SectionHeader label="LOVED & TRUSTED" title="What They Say" />
       {testimonials.map((t) => (
-        <View
-          key={t.id}
+        <View key={t.id}
           style={[styles.testimonialCard, { backgroundColor: colors.ivory }]}
         >
           <View style={styles.starsRow}>
             {Array.from({ length: t.rating }).map((_, i) => (
-              <Feather key={i} name="star" size={12} color={colors.gold} />
+              <Star key={i} size={12} color={colors.gold} />
             ))}
           </View>
-          <Text
-            style={[
+          <Text style={[
               styles.testimonialText,
               {
                 color: colors.ink,
@@ -505,8 +479,7 @@ function TestimonialsSection() {
           >
             "{t.text}"
           </Text>
-          <Text
-            style={[
+          <Text style={[
               styles.testimonialMeta,
               { color: colors.warmGray, fontFamily: "DMSans_400Regular" },
             ]}
@@ -523,16 +496,14 @@ function GiftingSection() {
   const colors = useColors();
   return (
     <View style={[styles.section, { backgroundColor: colors.champagne }]}>
-      <Text
-        style={[
+      <Text style={[
           styles.sectionLabel,
           { color: colors.gold, fontFamily: "DMSans_500Medium" },
         ]}
       >
         GIVE SOMETHING FOREVER
       </Text>
-      <Text
-        style={[
+      <Text style={[
           styles.giftingTitle,
           {
             color: colors.ink,
@@ -542,8 +513,7 @@ function GiftingSection() {
       >
         Because some gifts outlive the occasion.
       </Text>
-      <Text
-        style={[
+      <Text style={[
           styles.giftingBody,
           { color: colors.warmGray, fontFamily: "DMSans_300Light" },
         ]}
@@ -551,8 +521,7 @@ function GiftingSection() {
         Every {APP_NAME} order ships in our signature ivory and gold gift box —
         complimentary. Add a handwritten note. Make it unforgettable.
       </Text>
-      <Pressable
-        style={({ pressed }) => [
+      <Pressable style={({ pressed }) => [
           styles.giftingBtn,
           {
             borderColor: colors.gold,
@@ -560,8 +529,7 @@ function GiftingSection() {
           },
         ]}
       >
-        <Text
-          style={[
+        <Text style={[
             styles.giftingBtnText,
             { color: colors.gold, fontFamily: "DMSans_400Regular" },
           ]}
@@ -614,14 +582,12 @@ function NewsletterSection() {
   };
 
   return (
-    <View
-      style={[
+    <View style={[
         styles.section,
         { backgroundColor: colors.ivory, alignItems: "center" },
       ]}
     >
-      <Text
-        style={[
+      <Text style={[
           styles.newsletterTitle,
           {
             color: colors.ink,
@@ -632,8 +598,7 @@ function NewsletterSection() {
       >
         Be the first to know.
       </Text>
-      <Text
-        style={[
+      <Text style={[
           styles.newsletterBody,
           {
             color: colors.warmGray,
@@ -645,14 +610,12 @@ function NewsletterSection() {
         New collections. Artisan stories. Early access. Festive drops.
       </Text>
       {status === "done" ? (
-        <View
-          style={[
+        <View style={[
             styles.newsletterDone,
             { borderColor: colors.gold, backgroundColor: colors.champagne },
           ]}
         >
-          <Text
-            style={[
+          <Text style={[
               styles.newsletterDoneText,
               { color: colors.ink, fontFamily: "DMSans_500Medium" },
             ]}
@@ -662,8 +625,7 @@ function NewsletterSection() {
         </View>
       ) : (
         <>
-          <View
-            style={[
+          <View style={[
               styles.newsletterInput,
               {
                 borderColor:
@@ -675,8 +637,7 @@ function NewsletterSection() {
               },
             ]}
           >
-            <TextInput
-              value={email}
+            <TextInput value={email}
               bare
               onChangeText={(t) => {
                 setEmail(t);
@@ -708,8 +669,7 @@ function NewsletterSection() {
                 minHeight: 48,
               }}
             />
-            <Pressable
-              style={[
+            <Pressable style={[
                 styles.joinBtn,
                 {
                   backgroundColor: colors.gold,
@@ -722,8 +682,7 @@ function NewsletterSection() {
               {status === "loading" ? (
                 <ActivityIndicator size="small" color={colors.onBrand} />
               ) : (
-                <Text
-                  style={[
+                <Text style={[
                     styles.joinBtnText,
                     { color: colors.onBrand, fontFamily: "DMSans_500Medium" },
                   ]}
@@ -734,8 +693,7 @@ function NewsletterSection() {
             </Pressable>
           </View>
           {status === "error" && message ? (
-            <Text
-              style={[
+            <Text style={[
                 styles.newsletterError,
                 { color: "#dc2626", fontFamily: "DMSans_400Regular" },
               ]}
@@ -745,8 +703,7 @@ function NewsletterSection() {
           ) : null}
         </>
       )}
-      <Text
-        style={[
+      <Text style={[
           styles.newsletterFine,
           { color: colors.warmGray, fontFamily: "DMSans_300Light" },
         ]}
@@ -781,8 +738,7 @@ export default function JeweleryHomeScreen() {
   return (
     <View style={[styles.root, { backgroundColor: colors.ivory }]}>
       <Header />
-      <ScrollView
-        showsVerticalScrollIndicator={false}
+      <ScrollView showsVerticalScrollIndicator={false}
         contentContainerStyle={[
           styles.scrollContent,
           { paddingBottom: Platform.OS === "web" ? 110 : 90 },

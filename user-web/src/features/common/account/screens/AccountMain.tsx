@@ -3,6 +3,7 @@ import { View, ScrollView, Text, Linking } from "react-native";
 import * as Haptics from "@/lib/haptics";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { AppIcon } from "@/src/components/common/AppIcon";
+import { Moon, Sun } from "lucide-react";
 import { ThemeToggle } from "@/src/components/common/ThemeToggle";
 import { createAccountStyles } from "../styles/accountStyles";
 import AccountHeader from "../components/AccountHeader";
@@ -159,7 +160,7 @@ const AccountMain = () => {
             <View style={styles.optionRow}>
               <View style={styles.iconContainer}>
                 <AppIcon
-                  name={theme.isDark ? "moon-outline" : "sunny-outline"}
+                  icon={theme.isDark ? Moon : Sun}
                   size={22}
                   color={theme.primary}
                 />

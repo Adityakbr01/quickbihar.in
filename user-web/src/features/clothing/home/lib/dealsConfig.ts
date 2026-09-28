@@ -1,4 +1,16 @@
-import type { AppIconName } from "@/src/components/common/AppIcon";
+import type { LucideIcon } from "lucide-react";
+import {
+  Shirt,
+  Smartphone,
+  Glasses,
+  House,
+  Sparkles,
+  User,
+  Smile,
+  Tag,
+  Gift,
+  StarHalf,
+} from "lucide-react";
 import heartImg from "@/assets/images/campaigns/heart.webp";
 import bagImg from "@/assets/images/campaigns/bag.webp";
 import discountTagImg from "@/assets/images/campaigns/DiscountTag.webp";
@@ -33,31 +45,31 @@ export const CAMPAIGNS = [
   },
 ];
 
-export const CATEGORY_OPTIONS: { title: string; icon: AppIconName }[] = [
-  { title: "Topwear", icon: "shirt-outline" },
-  { title: "Tech Wear", icon: "phone-portrait-outline" },
-  { title: "Accessories", icon: "glasses-outline" },
-  { title: "Loungewear", icon: "home-outline" },
-  { title: "Ethnic", icon: "sparkles-outline" },
+export const CATEGORY_OPTIONS: { title: string; icon: LucideIcon }[] = [
+  { title: "Topwear", icon: Shirt },
+  { title: "Tech Wear", icon: Smartphone },
+  { title: "Accessories", icon: Glasses },
+  { title: "Loungewear", icon: House },
+  { title: "Ethnic", icon: Sparkles },
 ];
 
-export const GENDER_OPTIONS: { title: string; icon: AppIconName }[] = [
-  { title: "Men", icon: "man-outline" },
-  { title: "Women", icon: "woman-outline" },
-  { title: "Unisex", icon: "person-outline" },
-  { title: "Kids", icon: "happy-outline" },
+export const GENDER_OPTIONS: { title: string; icon: LucideIcon }[] = [
+  { title: "Men", icon: User },
+  { title: "Women", icon: User },
+  { title: "Unisex", icon: User },
+  { title: "Kids", icon: Smile },
 ];
 
-export const FILTERS: { title: string; icon: AppIconName | false }[] = [
+export const FILTERS: { title: string; icon: LucideIcon | false }[] = [
   { title: "Gender", icon: false },
   { title: "Categories", icon: false },
   { title: "₹1000 and above", icon: false },
   { title: "₹500 - ₹999", icon: false },
   { title: "₹200 - ₹499", icon: false },
   { title: "Under ₹199", icon: false },
-  { title: "Rising Star", icon: "pricetag-outline" },
-  { title: "Top Brand", icon: "gift-outline" },
-  { title: "Top Rated", icon: "star-half" },
+  { title: "Rising Star", icon: Tag },
+  { title: "Top Brand", icon: Gift },
+  { title: "Top Rated", icon: StarHalf },
 ];
 
 export const DEAL_PRODUCTS = [

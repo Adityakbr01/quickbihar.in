@@ -6,6 +6,7 @@ import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { createTopMallSectionStyles } from "../style/TopMallSection.style";
 import type { TopMall } from "../api/mall.api";
 import { AppIcon } from "@/src/components/common/AppIcon";
+import { MapPin, Star } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { goTo } from "@/src/utils/navigation";
 
@@ -41,7 +42,7 @@ export const MallCard = ({ mall }: MallCardProps) => {
       
       {/* Dynamic Rating Badge */}
       <View style={styles.ratingBadge}>
-        <AppIcon name="star" size={12} color="#facc15" />
+        <Star size={12} color="#facc15" fill="#facc15" />
         <Text style={styles.ratingText}>{mall.rating}</Text>
       </View>
 
@@ -53,7 +54,7 @@ export const MallCard = ({ mall }: MallCardProps) => {
           {mall.name}
         </Text>
         <View style={styles.locationContainer}>
-          <AppIcon name="location-outline" size={12} color="rgba(255, 255, 255, 0.8)" />
+          <AppIcon icon={MapPin} size={12} color="rgba(255, 255, 255, 0.8)" />
           <Text style={styles.locationText} numberOfLines={1}>
             {mall.location}
           </Text>

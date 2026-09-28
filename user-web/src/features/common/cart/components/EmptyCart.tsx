@@ -7,7 +7,7 @@ import LazyLottie from "@/src/components/common/LazyLottie";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { createCartStyles } from "../styles/cartStyles";
 
-import { Ionicons } from "@expo/vector-icons";
+import { ShoppingBag } from "lucide-react";
 
 import cartLottie from "@/assets/lottie/shoppingCart.json";
 
@@ -23,8 +23,7 @@ const EmptyCart = () => {
 
   return (
     <View style={styles.emptyContainer}>
-      <LazyLottie
-        source={cartLottie}
+      <LazyLottie source={cartLottie}
         autoPlay
         loop
         style={{ width: 200, height: 200 }}
@@ -35,12 +34,11 @@ const EmptyCart = () => {
         Looks like you haven't added anything to your cart yet. Discover trending styles and exclusive offers!
       </Text>
 
-      <TouchableOpacity
-        style={[styles.shopNowButton, { backgroundColor: theme.primary }]}
+      <TouchableOpacity style={[styles.shopNowButton, { backgroundColor: theme.primary }]}
         onPress={handleShopNow}
         activeOpacity={0.85}
       >
-        <Ionicons name="bag-handle-outline" size={18} color="#fff" />
+        <ShoppingBag size={18} color="#fff" />
         <Text style={styles.shopNowText}>Continue Shopping</Text>
       </TouchableOpacity>
     </View>

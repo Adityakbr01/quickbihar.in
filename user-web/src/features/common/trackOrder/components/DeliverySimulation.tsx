@@ -2,7 +2,7 @@ import React, { useState, useRef } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { useSocketStore } from "@/src/store/useSocketStore";
 import { SocketEvents } from "@/src/constants/socketEvents";
-import { Ionicons } from "@expo/vector-icons";
+import { Play, Square } from "lucide-react";
 
 interface DeliverySimulationProps {
   orderId: string;
@@ -84,11 +84,14 @@ export const DeliverySimulation: React.FC<DeliverySimulationProps> = ({
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Live Delivery Simulation</Text>
-      <TouchableOpacity
-        style={[styles.button, isSimulating ? styles.stopButton : styles.startButton]}
+      <TouchableOpacity style={[styles.button, isSimulating ? styles.stopButton : styles.startButton]}
         onPress={isSimulating ? stopSimulation : startSimulation}
       >
-        <Ionicons name={isSimulating ? "square" : "play"} size={18} color="white" />
+        {isSimulating ? (
+        <Square size={18} color="white" fill="white" />
+      ) : (
+        <Play size={18} color="white" fill="white" />
+      )}
         <Text style={styles.buttonText}>
           {isSimulating ? "Stop Simulation" : "Simulate Rider Movement"}
         </Text>

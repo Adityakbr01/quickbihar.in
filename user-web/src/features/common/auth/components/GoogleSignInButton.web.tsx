@@ -1,4 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
+import { ChevronRight } from "lucide-react";
 import { Image } from "expo-image";
 import React, { useEffect, useRef, useState } from "react";
 import {
@@ -154,13 +154,11 @@ export const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({
   return (
     <View style={styles.wrapper}>
       {/* Real GIS Button Container (Transparent overlay for direct touch interaction) */}
-      <View
-        ref={gisMountRef}
+      <View ref={gisMountRef}
         style={styles.hiddenGisMount}
       />
 
-      <Pressable
-        accessibilityRole="button"
+      <Pressable accessibilityRole="button"
         accessibilityLabel={label}
         onPress={handlePress}
         disabled={loading || disabled}
@@ -178,19 +176,13 @@ export const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({
         ) : (
           <View style={styles.row}>
             <View style={styles.gBadge}>
-              <Image
-                source={googleIconLogo}
+              <Image source={googleIconLogo}
                 style={{ width: 18, height: 18 }}
                 contentFit="contain"
               />
             </View>
             <Text style={[styles.label, { color: theme.text }]}>{label}</Text>
-            <Ionicons
-              name="chevron-forward"
-              size={16}
-              color={theme.secondaryText}
-              style={{ marginLeft: "auto" }}
-            />
+            <ChevronRight size={16} color={theme.secondaryText} style={{ marginLeft: "auto" }} />
           </View>
         )}
       </Pressable>

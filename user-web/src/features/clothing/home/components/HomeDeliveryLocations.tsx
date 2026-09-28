@@ -2,7 +2,7 @@ import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useNavigate } from "react-router-dom";
 import { goTo } from "@/src/utils/navigation";
-import { Ionicons } from "@expo/vector-icons";
+import { ArrowRight, MapPin, Zap } from "lucide-react";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { BUXAR_BLOCKS, type BuxarLocation } from "@/src/constants/locations/buxar";
 
@@ -28,7 +28,7 @@ export const HomeDeliveryLocations: React.FC = () => {
       <View style={styles.headerRow}>
         <View style={styles.titleWrap}>
           <View style={styles.badgeRow}>
-            <Ionicons name="flash" size={13} color="#4F46E5" />
+            <Zap size={13} color="#4F46E5" />
             <Text style={styles.badgeText}>INSTANT DELIVERY</Text>
           </View>
           <Text style={[styles.title, { color: theme.text }]}>
@@ -39,15 +39,14 @@ export const HomeDeliveryLocations: React.FC = () => {
           </Text>
         </View>
 
-        <TouchableOpacity
-          style={styles.districtBtn}
+        <TouchableOpacity style={styles.districtBtn}
           accessibilityRole="link"
           accessibilityLabel="Explore Buxar District Delivery Hub"
           {...({ href: "/locations/bihar/buxar", title: "Explore Buxar District Delivery Hub" } as any)}
           onPress={() => goTo(navigate, "/locations/bihar/buxar" as any)}
         >
           <Text style={styles.districtBtnText}>All Buxar Hubs</Text>
-          <Ionicons name="arrow-forward" size={14} color="#4F46E5" />
+          <ArrowRight size={14} color="#4F46E5" />
         </TouchableOpacity>
       </View>
 
@@ -56,8 +55,7 @@ export const HomeDeliveryLocations: React.FC = () => {
         {keyLocations.map((loc) => {
           const path = `/locations/bihar/buxar/${loc.slug}` as const;
           return (
-            <TouchableOpacity
-              key={loc.slug}
+            <TouchableOpacity key={loc.slug}
               style={[
                 styles.locationCard,
                 {
@@ -71,7 +69,7 @@ export const HomeDeliveryLocations: React.FC = () => {
               onPress={() => goTo(navigate, path as any)}
             >
               <View style={styles.cardTop}>
-                <Ionicons name="location-sharp" size={14} color="#4F46E5" />
+                <MapPin size={14} color="#4F46E5" />
                 <Text style={[styles.cardTitle, { color: theme.text }]} numberOfLines={1}>
                   {loc.name}
                 </Text>
@@ -97,8 +95,7 @@ export const HomeDeliveryLocations: React.FC = () => {
             const blockPath = `/locations/bihar/buxar/${b.slug}` as const;
             return (
               <React.Fragment key={b.slug}>
-                <TouchableOpacity
-                  accessibilityRole="link"
+                <TouchableOpacity accessibilityRole="link"
                   {...({ href: blockPath, title: `Delivery in ${b.name}` } as any)}
                   onPress={() => goTo(navigate, blockPath as any)}
                   style={styles.linkTouch}

@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { AppIcon } from "@/src/components/common/AppIcon";
+import { CircleCheck, MapPin, SquarePen, Trash2 } from "lucide-react";
 import { AddressType, IAddress } from "../schema/address.schema";
 import { Theme } from "@/src/theme/Provider/ThemeProvider";
 
@@ -54,7 +55,7 @@ const AddressCard: React.FC<AddressCardProps> = ({
 
         {address.latitude !== undefined && address.latitude !== 0 && (
           <View style={styles.pinBadge}>
-            <AppIcon name="location-outline" size={12} color={theme.primary} />
+            <AppIcon icon={MapPin} size={12} color={theme.primary} />
             <Text style={styles.pinText}>PINNED</Text>
           </View>
         )}
@@ -72,7 +73,7 @@ const AddressCard: React.FC<AddressCardProps> = ({
           style={styles.actionButton}
           onPress={() => onEdit(address)}
         >
-          <AppIcon name="create-outline" size={18} color={theme.text} />
+          <AppIcon icon={SquarePen} size={18} color={theme.text} />
           <Text style={styles.actionText}>Edit</Text>
         </TouchableOpacity>
 
@@ -80,7 +81,7 @@ const AddressCard: React.FC<AddressCardProps> = ({
           style={[styles.actionButton, styles.deleteAction]}
           onPress={() => onDelete(address._id)}
         >
-          <AppIcon name="trash-outline" size={18} color="#FF3B30" />
+          <AppIcon icon={Trash2} size={18} color="#FF3B30" />
           <Text style={[styles.actionText, styles.deleteText]}>Delete</Text>
         </TouchableOpacity>
 
@@ -89,7 +90,7 @@ const AddressCard: React.FC<AddressCardProps> = ({
             style={styles.actionButton}
             onPress={() => onSetDefault(address._id)}
           >
-            <AppIcon name="checkmark-circle-outline" size={18} color={theme.primary} />
+            <AppIcon icon={CircleCheck} size={18} color={theme.primary} />
             <Text style={[styles.actionText, { color: theme.primary }]}>Set Default</Text>
           </TouchableOpacity>
         )}

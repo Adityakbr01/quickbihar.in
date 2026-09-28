@@ -1,4 +1,4 @@
-import { Feather } from "@expo/vector-icons";
+import { Gift, Minus, Plus, RefreshCw, Shield, ShoppingBag, Trash2 } from "lucide-react";
 import * as Haptics from "@/lib/haptics";
 import { useNavigate } from "react-router-dom";
 import { goTo } from "@/src/utils/navigation";
@@ -46,8 +46,7 @@ export default function JeweleryCartScreen() {
 
   return (
     <View style={[styles.root, { backgroundColor: colors.ivory }]}>
-      <View
-        style={[
+      <View style={[
           styles.header,
           {
             paddingTop: topPad + 12,
@@ -56,8 +55,7 @@ export default function JeweleryCartScreen() {
           },
         ]}
       >
-        <Text
-          style={[
+        <Text style={[
             styles.headerTitle,
             {
               color: colors.ink,
@@ -67,8 +65,7 @@ export default function JeweleryCartScreen() {
         >
           Your Bag
         </Text>
-        <Text
-          style={[
+        <Text style={[
             styles.headerCount,
             { color: colors.warmGray, fontFamily: "DMSans_400Regular" },
           ]}
@@ -79,9 +76,8 @@ export default function JeweleryCartScreen() {
 
       {cartItems.length === 0 ? (
         <View style={styles.emptyState}>
-          <Feather name="shopping-bag" size={40} color={colors.midGray} />
-          <Text
-            style={[
+          <ShoppingBag size={40} color={colors.midGray} />
+          <Text style={[
               styles.emptyTitle,
               {
                 color: colors.ink,
@@ -91,12 +87,10 @@ export default function JeweleryCartScreen() {
           >
             Your cart is quiet.{"\n"}Let's change that.
           </Text>
-          <Pressable
-            style={[styles.browseBtn, { borderColor: colors.gold }]}
+          <Pressable style={[styles.browseBtn, { borderColor: colors.gold }]}
             onPress={() => goTo(navigate, "/jewelery/collections" as any)}
           >
-            <Text
-              style={[
+            <Text style={[
                 styles.browseBtnText,
                 { color: colors.gold, fontFamily: "DMSans_400Regular" },
               ]}
@@ -107,14 +101,12 @@ export default function JeweleryCartScreen() {
         </View>
       ) : (
         <>
-          <ScrollView
-            showsVerticalScrollIndicator={false}
+          <ScrollView showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.scrollContent}
           >
             {/* Cart items */}
             {cartItems.map(({ product, quantity }) => (
-              <View
-                key={product.id}
+              <View key={product.id}
                 style={[
                   styles.cartItem,
                   {
@@ -123,14 +115,12 @@ export default function JeweleryCartScreen() {
                   },
                 ]}
               >
-                <Image
-                  source={product.image}
+                <Image source={product.image}
                   style={styles.itemImage}
                   resizeMode="cover"
                 />
                 <View style={styles.itemContent}>
-                  <Text
-                    style={[
+                  <Text style={[
                       styles.itemName,
                       {
                         color: colors.ink,
@@ -140,8 +130,7 @@ export default function JeweleryCartScreen() {
                   >
                     {product.name}
                   </Text>
-                  <Text
-                    style={[
+                  <Text style={[
                       styles.itemSub,
                       {
                         color: colors.warmGray,
@@ -152,8 +141,7 @@ export default function JeweleryCartScreen() {
                     {product.metal}
                     {product.stone ? ` · ${product.stone}` : ""}
                   </Text>
-                  <Text
-                    style={[
+                  <Text style={[
                       styles.itemPrice,
                       { color: colors.ink, fontFamily: "DMSans_500Medium" },
                     ]}
@@ -161,8 +149,7 @@ export default function JeweleryCartScreen() {
                     {APP_CURRENCY}{product.price.toLocaleString("en-IN")}
                   </Text>
                   <View style={styles.qtyRow}>
-                    <Pressable
-                      onPress={() => {
+                    <Pressable onPress={() => {
                         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                         updateQuantity(product.id, quantity - 1);
                       }}
@@ -172,18 +159,16 @@ export default function JeweleryCartScreen() {
                       ]}
                       hitSlop={6}
                     >
-                      <Feather name="minus" size={12} color={colors.ink} />
+                      <Minus size={12} color={colors.ink} />
                     </Pressable>
-                    <Text
-                      style={[
+                    <Text style={[
                         styles.qtyText,
                         { color: colors.ink, fontFamily: "DMSans_500Medium" },
                       ]}
                     >
                       {quantity}
                     </Text>
-                    <Pressable
-                      onPress={() => {
+                    <Pressable onPress={() => {
                         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                         updateQuantity(product.id, quantity + 1);
                       }}
@@ -193,21 +178,16 @@ export default function JeweleryCartScreen() {
                       ]}
                       hitSlop={6}
                     >
-                      <Feather name="plus" size={12} color={colors.ink} />
+                      <Plus size={12} color={colors.ink} />
                     </Pressable>
-                    <Pressable
-                      onPress={() => {
+                    <Pressable onPress={() => {
                         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                         removeFromCart(product.id);
                       }}
                       style={{ marginLeft: "auto" }}
                       hitSlop={8}
                     >
-                      <Feather
-                        name="trash-2"
-                        size={14}
-                        color={colors.warmGray}
-                      />
+                      <Trash2 size={14} color={colors.warmGray} />
                     </Pressable>
                   </View>
                 </View>
@@ -215,14 +195,12 @@ export default function JeweleryCartScreen() {
             ))}
 
             {/* Order summary */}
-            <View
-              style={[
+            <View style={[
                 styles.summarySection,
                 { backgroundColor: colors.champagne },
               ]}
             >
-              <Text
-                style={[
+              <Text style={[
                   styles.summaryLabel,
                   { color: colors.gold, fontFamily: "DMSans_500Medium" },
                 ]}
@@ -230,8 +208,7 @@ export default function JeweleryCartScreen() {
                 ORDER SUMMARY
               </Text>
               <View style={styles.summaryRow}>
-                <Text
-                  style={[
+                <Text style={[
                     styles.summaryKey,
                     {
                       color: colors.warmGray,
@@ -241,8 +218,7 @@ export default function JeweleryCartScreen() {
                 >
                   Subtotal
                 </Text>
-                <Text
-                  style={[
+                <Text style={[
                     styles.summaryVal,
                     { color: colors.ink, fontFamily: "DMSans_500Medium" },
                   ]}
@@ -251,8 +227,7 @@ export default function JeweleryCartScreen() {
                 </Text>
               </View>
               <View style={styles.summaryRow}>
-                <Text
-                  style={[
+                <Text style={[
                     styles.summaryKey,
                     {
                       color: colors.warmGray,
@@ -262,8 +237,7 @@ export default function JeweleryCartScreen() {
                 >
                   Shipping
                 </Text>
-                <Text
-                  style={[
+                <Text style={[
                     styles.summaryVal,
                     { color: colors.gold, fontFamily: "DMSans_400Regular" },
                   ]}
@@ -271,20 +245,17 @@ export default function JeweleryCartScreen() {
                   {cartTotal >= JEWELERY_MODULE_CONFIG.freeShippingThreshold ? "Free" : "At checkout"}
                 </Text>
               </View>
-              <View
-                style={[styles.divider, { backgroundColor: colors.midGray }]}
+              <View style={[styles.divider, { backgroundColor: colors.midGray }]}
               />
               <View style={styles.summaryRow}>
-                <Text
-                  style={[
+                <Text style={[
                     styles.totalKey,
                     { color: colors.ink, fontFamily: "DMSans_500Medium" },
                   ]}
                 >
                   Total
                 </Text>
-                <Text
-                  style={[
+                <Text style={[
                     styles.totalVal,
                     { color: colors.ink, fontFamily: "CormorantGaramond_600SemiBold" },
                   ]}
@@ -298,14 +269,13 @@ export default function JeweleryCartScreen() {
             {/* Trust signals */}
             <View style={[styles.trustRow, { borderTopColor: colors.midGray }]}>
               {[
-                { icon: "shield", text: "Hallmark Certified" },
-                { icon: "refresh-cw", text: `Free Returns ${JEWELERY_MODULE_CONFIG.returnPolicyDays}d` },
-                { icon: "gift", text: "Gift Box Included" },
+                { icon: Shield, text: "Hallmark Certified" },
+                { icon: RefreshCw, text: `Free Returns ${JEWELERY_MODULE_CONFIG.returnPolicyDays}d` },
+                { icon: Gift, text: "Gift Box Included" },
               ].map((t) => (
                 <View key={t.text} style={styles.trustItem}>
-                  <Feather name={t.icon as any} size={13} color={colors.gold} />
-                  <Text
-                    style={[
+                  <t.icon size={13} color={colors.gold} />
+                  <Text style={[
                       styles.trustText,
                       {
                         color: colors.warmGray,
@@ -321,8 +291,7 @@ export default function JeweleryCartScreen() {
           </ScrollView>
 
           {/* Sticky checkout */}
-          <View
-            style={[
+          <View style={[
               styles.checkoutBar,
               {
                 backgroundColor: colors.ivory,
@@ -332,16 +301,14 @@ export default function JeweleryCartScreen() {
             ]}
           >
             <View>
-              <Text
-                style={[
+              <Text style={[
                   styles.checkoutTotal,
                   { color: colors.ink, fontFamily: "DMSans_500Medium" },
                 ]}
               >
                 {APP_CURRENCY}{cartTotal.toLocaleString("en-IN")}
               </Text>
-              <Text
-                style={[
+              <Text style={[
                   styles.checkoutItems,
                   {
                     color: colors.warmGray,
@@ -353,8 +320,7 @@ export default function JeweleryCartScreen() {
                 {cartItems.reduce((s, i) => s + i.quantity, 0) !== 1 ? "s" : ""}
               </Text>
             </View>
-            <Pressable
-              onPress={handleCheckout}
+            <Pressable onPress={handleCheckout}
               style={({ pressed }) => [
                 styles.checkoutBtn,
                 {
@@ -364,8 +330,7 @@ export default function JeweleryCartScreen() {
                 },
               ]}
             >
-              <Text
-                style={[
+              <Text style={[
                   styles.checkoutBtnText,
                   { color: colors.onBrand, fontFamily: "DMSans_500Medium" },
                 ]}

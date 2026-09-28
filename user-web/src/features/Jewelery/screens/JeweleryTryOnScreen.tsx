@@ -1,4 +1,4 @@
-import { Feather } from "@expo/vector-icons";
+import { Camera, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
@@ -21,10 +21,9 @@ export const JeweleryTryOnScreen = () => {
       <View style={[styles.root, { backgroundColor: colors.ivory }]}>
         <View style={styles.header}>
           <Pressable style={styles.closeBtn} onPress={() => goBack(navigate)} hitSlop={8}>
-            <Feather name="x" size={22} color={colors.ink} />
+            <X size={22} color={colors.ink} />
           </Pressable>
-          <Text
-            style={[
+          <Text style={[
               styles.headerTitle,
               { color: colors.ink, fontFamily: "CormorantGaramond_600SemiBold" },
             ]}
@@ -36,18 +35,16 @@ export const JeweleryTryOnScreen = () => {
 
         <View style={[styles.body, { backgroundColor: colors.pearl }]}>
           <View style={[styles.iconCircle, { borderColor: colors.gold }]}>
-            <Feather name="camera" size={32} color={colors.gold} />
+            <Camera size={32} color={colors.gold} />
           </View>
-          <Text
-            style={[
+          <Text style={[
               styles.title,
               { color: colors.ink, fontFamily: "CormorantGaramond_500Medium_Italic" },
             ]}
           >
             Coming soon.
           </Text>
-          <Text
-            style={[
+          <Text style={[
               styles.sub,
               { color: colors.warmGray, fontFamily: "DMSans_300Light" },
             ]}
@@ -55,15 +52,13 @@ export const JeweleryTryOnScreen = () => {
             Live AR mirror is in the works. Meanwhile, every piece ships with
             free 30-day returns — try it at home, for real.
           </Text>
-          <Pressable
-            style={({ pressed }) => [
+          <Pressable style={({ pressed }) => [
               styles.btn,
               { backgroundColor: pressed ? colors.goldLight : colors.gold },
             ]}
             onPress={() => goTo(navigate, "/jewelery/collections" as any)}
           >
-            <Text
-              style={[
+            <Text style={[
                 styles.btnText,
                 { color: colors.onBrand, fontFamily: "DMSans_500Medium" },
               ]}

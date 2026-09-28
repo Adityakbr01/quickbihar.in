@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { goTo } from "@/src/utils/navigation";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { AppIcon } from "@/src/components/common/AppIcon";
+import { Box, CircleUser, Folder, MapPin, Moon, Sun } from "lucide-react";
 import { ThemeToggle } from "@/src/components/common/ThemeToggle";
 import { createAccountStyles } from "../styles/accountStyles";
 
@@ -25,9 +26,9 @@ const GuestAccountView = () => {
   };
 
   const perks = [
-    { icon: "cube-outline" as const, title: "Track your orders", sub: "Live status from packed to delivered" },
-    { icon: "folder-outline" as const, title: "Wishlist sync", sub: "Save pieces across all your devices" },
-    { icon: "location-outline" as const, title: "Faster checkout", sub: "Saved addresses and quick reorder" },
+    { icon: Box, title: "Track your orders", sub: "Live status from packed to delivered" },
+    { icon: Folder, title: "Wishlist sync", sub: "Save pieces across all your devices" },
+    { icon: MapPin, title: "Faster checkout", sub: "Saved addresses and quick reorder" },
   ];
 
   return (
@@ -40,7 +41,7 @@ const GuestAccountView = () => {
           {/* Guest hero */}
           <View style={[localStyles.hero, { backgroundColor: theme.secondaryBackground, borderColor: theme.border }]}>
             <View style={[localStyles.avatar, { backgroundColor: theme.primary }]}>
-              <AppIcon name="person-circle-outline" size={34} color="#ffffff" />
+              <AppIcon icon={CircleUser} size={34} color="#ffffff" />
             </View>
             <Text style={[localStyles.heroTitle, { color: theme.text }]}>
               Welcome to QuickBihar
@@ -78,7 +79,7 @@ const GuestAccountView = () => {
                 ]}
               >
                 <View style={styles.iconContainer}>
-                  <AppIcon name={perk.icon} size={22} color={theme.primary} />
+                  <AppIcon icon={perk.icon} size={22} color={theme.primary} />
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.optionLabel}>{perk.title}</Text>
@@ -96,7 +97,7 @@ const GuestAccountView = () => {
             <View style={styles.optionRow}>
               <View style={styles.iconContainer}>
                 <AppIcon
-                  name={theme.isDark ? "moon-outline" : "sunny-outline"}
+                  icon={theme.isDark ? Moon : Sun}
                   size={22}
                   color={theme.primary}
                 />

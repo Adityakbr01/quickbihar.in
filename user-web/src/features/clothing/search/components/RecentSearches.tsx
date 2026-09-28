@@ -1,4 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
+import { Clock, X } from "lucide-react";
 import * as Haptics from "@/lib/haptics";
 import React from "react";
 import {
@@ -36,29 +36,26 @@ const RecentSearches = ({
         </Pressable>
       </View>
 
-      <FlashList
-        data={history}
+      <FlashList data={history}
         keyExtractor={(item) => item}
         renderItem={({ item }) => (
-          <Pressable
-            style={styles.item}
+          <Pressable style={styles.item}
             onPress={() => {
               Haptics.selectionAsync();
               onSelect(item);
             }}
           >
             <View style={styles.itemLeft}>
-              <Ionicons name="time-outline" size={20} color={theme.tertiaryText} />
+              <Clock size={20} color={theme.tertiaryText} />
               <Text style={[styles.itemText, { color: theme.text }]}>{item}</Text>
             </View>
-            <Pressable
-              onPress={() => {
+            <Pressable onPress={() => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                 onRemove(item);
               }}
               hitSlop={10}
             >
-              <Ionicons name="close" size={18} color={theme.tertiaryText} />
+              <X size={18} color={theme.tertiaryText} />
             </Pressable>
           </Pressable>
         )}

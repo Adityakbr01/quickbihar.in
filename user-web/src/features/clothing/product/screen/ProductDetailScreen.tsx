@@ -10,7 +10,8 @@ import {
   Platform,
   useWindowDimensions,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import type { LucideIcon } from "lucide-react";
+import { ArrowLeft, ArrowRight, Banknote, Box, Calendar, Check, CircleAlert, CircleCheck, CircleX, CreditCard, Expand, Heart, Images, MessageCircle, Palette, RefreshCw, Share2, ShieldCheck, ShoppingBag, Star, StarHalf, Store, ThumbsUp, Zap } from "lucide-react";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import {
   useProductById,
@@ -350,8 +351,7 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
   return (
     <SafeViewWrapper>
       {seoMeta && <SeoHead meta={seoMeta} jsonLd={seoJsonLd} />}
-      <ScrollView
-        style={s.scrollView}
+      <ScrollView style={s.scrollView}
         showsVerticalScrollIndicator={false}
         bounces={true}
       >
@@ -359,16 +359,14 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
             IMAGE GALLERY
         ═══════════════════════════════════════════ */}
         <View style={s.galleryContainer}>
-          <Carousel
-            loop={false}
+          <Carousel loop={false}
             width={galleryWidth}
             height={galleryHeight}
             data={images}
             scrollAnimationDuration={300}
             onSnapToItem={setCarouselIndex}
             renderItem={({ item, index }) => (
-              <ExpoImage
-                source={{ uri: item.url }}
+              <ExpoImage source={{ uri: item.url }}
                 style={s.galleryImage}
                 contentFit="cover"
                 alt={dp.title || "Product image"}
@@ -379,8 +377,7 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
 
           {/* Floating Navigation */}
           <View style={s.galleryNav}>
-            <TouchableOpacity
-              onPress={() => goBack(navigate)}
+            <TouchableOpacity onPress={() => goBack(navigate)}
               style={[
                 s.navBtn,
                 {
@@ -395,15 +392,10 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
               activeOpacity={0.7}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
-              <Ionicons
-                name="arrow-back"
-                size={20}
-                color={isDark ? "#ffffff" : "#111827"}
-              />
+              <ArrowLeft size={20} color={isDark ? "#ffffff" : "#111827"} />
             </TouchableOpacity>
             <View style={s.navRight}>
-              <WishlistHeart
-                isWishlisted={isWishlisted}
+              <WishlistHeart isWishlisted={isWishlisted}
                 onToggle={() => toggleWishlist(id, product)}
                 size={20}
                 activeColor="#FF3B30"
@@ -420,8 +412,7 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
                   },
                 ]}
               />
-              <TouchableOpacity
-                onPress={handleShare}
+              <TouchableOpacity onPress={handleShare}
                 style={[
                   s.navBtn,
                   {
@@ -436,19 +427,14 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
                 activeOpacity={0.7}
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               >
-                <Ionicons
-                  name="share-outline"
-                  size={19}
-                  color={isDark ? "#ffffff" : "#111827"}
-                />
+                <Share2 size={19} color={isDark ? "#ffffff" : "#111827"} />
               </TouchableOpacity>
             </View>
           </View>
 
           {/* Image Counter Pill */}
           {images.length > 1 && (
-            <View
-              style={[
+            <View style={[
                 s.counterPill,
                 {
                   backgroundColor: isDark
@@ -460,14 +446,8 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
                 },
               ]}
             >
-              <Ionicons
-                name="images-outline"
-                size={12}
-                color={isDark ? "#fff" : "#111827"}
-                style={{ marginRight: 4 }}
-              />
-              <Text
-                style={[
+              <Images size={12} color={isDark ? "#fff" : "#111827"} style={{ marginRight: 4 }} />
+              <Text style={[
                   s.counterText,
                   { color: isDark ? "#fff" : "#111827" },
                 ]}
@@ -479,16 +459,14 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
 
           {/* Thumbnail Strip */}
           {images.length > 1 && (
-            <ScrollView
-              horizontal
+            <ScrollView horizontal
               showsHorizontalScrollIndicator={false}
               style={s.thumbStrip}
               contentContainerStyle={s.thumbStripContent}
             >
               {images.map((img, i) => (
                 <TouchableOpacity key={i} activeOpacity={0.8}>
-                  <Image
-                    source={{ uri: img.url }}
+                  <Image source={{ uri: img.url }}
                     style={[
                       s.thumbImage,
                       {
@@ -510,8 +488,7 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
         ═══════════════════════════════════════════ */}
         <View style={[s.infoSection, { backgroundColor: theme.background }]}>
           {/* Breadcrumb trail (visible match for BreadcrumbList JSON-LD) */}
-          <View
-            style={{ flexDirection: "row", alignItems: "center", marginBottom: 8 }}
+          <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 8 }}
             accessibilityRole="list"
           >
             <Link to="/" style={{ color: theme.secondaryText, fontSize: 12 }}>
@@ -543,7 +520,7 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
             <Animated.View entering={FadeIn.delay(200)} style={s.ratingChip}>
               <View style={s.ratingChipInner}>
                 <Text style={s.ratingChipScore}>{averageRating}</Text>
-                <Ionicons name="star" size={11} color="#fff" />
+                <Star size={11} color="#fff" fill="#fff" />
               </View>
               <View style={s.ratingDividerLine} />
               <Text style={[s.ratingChipCount, { color: theme.secondaryText }]}>
@@ -580,8 +557,7 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
             COLOR SELECTION
         ═══════════════════════════════════════════ */}
         {uniqueColors.length > 0 && (
-          <View
-            style={[s.selectionSection, { backgroundColor: theme.background }]}
+          <View style={[s.selectionSection, { backgroundColor: theme.background }]}
           >
             <Text style={[s.selectionLabel, { color: theme.text }]}>
               COLOR:{" "}
@@ -593,8 +569,7 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
               {uniqueColors.map((color) => {
                 const active = selectedColor === color;
                 return (
-                  <TouchableOpacity
-                    key={color}
+                  <TouchableOpacity key={color}
                     onPress={() => {
                       setSelectedColor(color);
                       setSelectedSize(null);
@@ -610,8 +585,7 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
                     ]}
                     activeOpacity={0.7}
                   >
-                    <Text
-                      style={[
+                    <Text style={[
                         s.colorOptionText,
                         { color: active ? theme.primary : theme.text },
                       ]}
@@ -629,26 +603,20 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
             SIZE SELECTION
         ═══════════════════════════════════════════ */}
         {sizesForColor.length > 0 && (
-          <View
-            style={[s.selectionSection, { backgroundColor: theme.background }]}
+          <View style={[s.selectionSection, { backgroundColor: theme.background }]}
           >
             <View style={s.sizeHeader}>
               <Text style={[s.selectionLabel, { color: theme.text }]}>
                 SELECT SIZE
               </Text>
-              <TouchableOpacity
-                style={s.sizeGuideBtn}
+              <TouchableOpacity style={s.sizeGuideBtn}
                 onPress={() => {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                   setShowSizeChart(true);
                 }}
                 activeOpacity={0.7}
               >
-                <Ionicons
-                  name="resize-outline"
-                  size={14}
-                  color={theme.primary}
-                />
+                <Expand size={14} color={theme.primary} />
                 <Text style={[s.sizeGuideText, { color: theme.primary }]}>
                   SIZE GUIDE
                 </Text>
@@ -659,8 +627,7 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
                 const active = selectedSize === v.size;
                 const oos = v.stock === 0;
                 return (
-                  <TouchableOpacity
-                    key={v.sku}
+                  <TouchableOpacity key={v.sku}
                     disabled={oos}
                     onPress={() => setSelectedSize(v.size)}
                     style={[
@@ -679,8 +646,7 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
                     ]}
                     activeOpacity={0.7}
                   >
-                    <Text
-                      style={[
+                    <Text style={[
                         s.sizeText,
                         {
                           color: active
@@ -696,8 +662,7 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
                       {v.size}
                     </Text>
                     {oos && (
-                      <View
-                        style={[
+                      <View style={[
                           s.oosLine,
                           { backgroundColor: theme.tertiaryText },
                         ]}
@@ -711,7 +676,7 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
               sizesForColor.find((v) => v.size === selectedSize)?.stock! <=
               5 && (
                 <Animated.View entering={FadeIn} style={s.lowStockRow}>
-                  <Ionicons name="flash" size={14} color={theme.warning} />
+                  <Zap size={14} color={theme.warning} />
                   <Text style={[s.lowStockText, { color: theme.warning }]}>
                     Only{" "}
                     {
@@ -728,15 +693,13 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
         {/* ═══════════════════════════════════════════
             DELIVERY INFO
         ═══════════════════════════════════════════ */}
-        <View
-          style={[s.deliverySection, { backgroundColor: theme.background }]}
+        <View style={[s.deliverySection, { backgroundColor: theme.background }]}
         >
           <Text style={[s.selectionLabel, { color: theme.text }]}>
             DELIVERY OPTIONS
           </Text>
           <View style={s.deliveryCards}>
-            <View
-              style={[
+            <View style={[
                 s.deliveryCard,
                 {
                   backgroundColor: theme.tertiaryBackground,
@@ -744,7 +707,7 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
                 },
               ]}
             >
-              <Ionicons name="cube-outline" size={22} color={theme.primary} />
+              <Box size={22} color={theme.primary} />
               <View style={s.deliveryCardText}>
                 <Text style={[s.deliveryCardTitle, { color: theme.text }]}>
                   Get it by {deliveryDateLabel}
@@ -755,8 +718,7 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
               </View>
             </View>
             {dp.deliveryInfo?.isExpressAvailable && (
-              <View
-                style={[
+              <View style={[
                   s.deliveryCard,
                   {
                     backgroundColor: theme.tertiaryBackground,
@@ -764,7 +726,7 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
                   },
                 ]}
               >
-                <Ionicons name="flash-outline" size={22} color="#F59E0B" />
+                <Zap size={22} color="#F59E0B" />
                 <View style={s.deliveryCardText}>
                   <Text style={[s.deliveryCardTitle, { color: theme.text }]}>
                     Express Fast-Track Dispatch
@@ -780,30 +742,29 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
           <View style={s.policiesRow}>
             {[
               {
-                icon: "refresh-outline",
+                icon: RefreshCw,
                 label: isReturnable ? `${returnDays} Day\nReturns` : "Non\nReturnable",
               },
               {
-                icon: dp.deliveryInfo?.isCodAvailable ? "cash-outline" : "card-outline",
+                icon: dp.deliveryInfo?.isCodAvailable ? Banknote : CreditCard,
                 label: dp.deliveryInfo?.isCodAvailable ? "Pay On\nDelivery" : "Secure\nPayment"
               },
               {
-                icon: "shield-checkmark-outline",
+                icon: ShieldCheck,
                 label: "100% Genuine\nProduct"
               },
               {
-                icon: "storefront-outline",
+                icon: Store,
                 label: "Verified\nLocal Store"
               },
             ].map((p, i) => (
               <View key={i} style={s.policyItem}>
-                <View
-                  style={[
+                <View style={[
                     s.policyIcon,
                     { backgroundColor: theme.tertiaryBackground },
                   ]}
                 >
-                  <Ionicons name={p.icon as any} size={20} color={theme.primary} />
+                  <p.icon size={20} color={theme.primary} />
                 </View>
                 <Text style={[s.policyLabel, { color: theme.secondaryText }]}>
                   {p.label}
@@ -816,14 +777,12 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
         {/* ═══════════════════════════════════════════
             1. PRODUCT DETAILS (Expandable Section)
         ═══════════════════════════════════════════ */}
-        <View
-          style={[
+        <View style={[
             s.expandableSectionWrap,
             { backgroundColor: theme.background },
           ]}
         >
-          <ExpandableSection
-            title="Product Details & Specifications"
+          <ExpandableSection title="Product Details & Specifications"
             theme={theme}
             defaultOpen={true}
           >
@@ -853,8 +812,7 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
               ]
                 .filter((x) => Boolean(x.v))
                 .map((spec, i) => (
-                  <View
-                    key={i}
+                  <View key={i}
                     style={[
                       s.specTableRow,
                       { borderBottomColor: theme.border },
@@ -922,7 +880,7 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
                   </Text>
                 </View>
                 <View style={[s.storeBadge, { backgroundColor: "#E8F5E9" }]}>
-                  <Ionicons name="checkmark-circle" size={14} color="#2E7D32" />
+                  <CircleCheck size={14} color="#2E7D32" />
                   <Text style={[s.storeBadgeText, { color: "#2E7D32" }]}>
                     {storeObj?.rating ? `${storeObj.rating} ★ Verified` : "Verified Partner"}
                   </Text>
@@ -938,7 +896,7 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
             <View style={s.returnPolicyContent}>
               {!isReturnable ? (
                 <View style={[s.nonReturnableBanner, { backgroundColor: "#FFEBEE" }]}>
-                  <Ionicons name="alert-circle" size={20} color="#D32F2F" />
+                  <CircleAlert size={20} color="#D32F2F" />
                   <Text style={[s.nonReturnableText, { color: "#C62828" }]}>
                     Non-Returnable: Due to hygiene, safety, or perishable standards, this item cannot be returned once delivered.
                   </Text>
@@ -946,21 +904,21 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
               ) : (
                 <>
                   <View style={s.returnRow}>
-                    <Ionicons name="calendar-outline" size={20} color={theme.primary} />
+                    <Calendar size={20} color={theme.primary} />
                     <Text style={[s.returnText, { color: theme.text, fontWeight: "700" }]}>
                       {returnDays} Days Easy Return & Exchange
                     </Text>
                   </View>
 
                   <View style={s.returnRow}>
-                    <Ionicons name="cube-outline" size={20} color={theme.success || "#34C759"} />
+                    <Box size={20} color={theme.success || "#34C759"} />
                     <Text style={[s.returnText, { color: theme.secondaryText }]}>
                       Free doorstep return pickup by QuickBihar rider
                     </Text>
                   </View>
 
                   <View style={s.returnRow}>
-                    <Ionicons name="card-outline" size={20} color={theme.primary} />
+                    <CreditCard size={20} color={theme.primary} />
                     <Text style={[s.returnText, { color: theme.secondaryText }]}>
                       100% instant refund directly credited to your original payment source (UPI / Bank / Card) upon return pickup
                     </Text>
@@ -978,7 +936,7 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
                       "Doorstep quality check (QC) is verified instantly by the delivery partner",
                     ].map((condition, idx) => (
                       <View key={idx} style={{ flexDirection: "row", marginBottom: 6, gap: 8 }}>
-                        <Ionicons name="checkmark-circle" size={15} color={theme.success || "#34C759"} />
+                        <CircleCheck size={15} color={theme.success || "#34C759"} />
                         <Text style={{ fontSize: 12, color: theme.secondaryText, flex: 1, lineHeight: 16 }}>
                           {condition}
                         </Text>
@@ -1051,14 +1009,12 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
         {/* ═══════════════════════════════════════════
             4. RATINGS & REVIEWS (Expandable & Interactive)
         ═══════════════════════════════════════════ */}
-        <View
-          style={[
+        <View style={[
             s.expandableSectionWrap,
             { backgroundColor: theme.background },
           ]}
         >
-          <ExpandableSection
-            title={`Ratings & Reviews (${totalReviews})`}
+          <ExpandableSection title={`Ratings & Reviews (${totalReviews})`}
             theme={theme}
             defaultOpen={true}
           >
@@ -1070,18 +1026,13 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
                 </Text>
                 <View style={s.starsRow}>
                   {[1, 2, 3, 4, 5].map((star) => (
-                    <Ionicons
-                      key={star}
-                      name={
-                        star <= Math.floor(averageRating)
-                          ? "star"
-                          : star - 0.5 <= averageRating
-                            ? "star-half"
-                            : "star-outline"
-                      }
-                      size={14}
-                      color="#F59E0B"
-                    />
+                    star <= Math.floor(averageRating) ? (
+                      <Star key={star} size={14} color="#F59E0B" fill="#F59E0B" />
+                    ) : star - 0.5 <= averageRating ? (
+                      <StarHalf key={star} size={14} color="#F59E0B" />
+                    ) : (
+                      <Star key={star} size={14} color="#F59E0B" />
+                    )
                   ))}
                 </View>
                 <Text style={[s.totalRatings, { color: theme.tertiaryText }]}>
@@ -1090,8 +1041,7 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
               </View>
               <View style={s.ratingRight}>
                 {starDist.map((d) => (
-                  <RatingBar
-                    key={d.stars}
+                  <RatingBar key={d.stars}
                     stars={d.stars}
                     count={d.count}
                     total={totalReviews || 1}
@@ -1106,12 +1056,11 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
               <Text style={{ fontSize: 13, fontWeight: "600", color: theme.text }}>
                 Have you used this product?
               </Text>
-              <TouchableOpacity
-                style={[s.writeReviewBtn, { borderColor: theme.primary, backgroundColor: theme.primary + "10" }]}
+              <TouchableOpacity style={[s.writeReviewBtn, { borderColor: theme.primary, backgroundColor: theme.primary + "10" }]}
                 onPress={handleRateAndReview}
                 activeOpacity={0.7}
               >
-                <Ionicons name="star" size={14} color={theme.primary} />
+                <Star size={14} color={theme.primary} fill={theme.primary} />
                 <Text style={[s.writeReviewBtnText, { color: theme.primary }]}>
                   Rate & Review
                 </Text>
@@ -1121,7 +1070,7 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
             {/* Review Cards List */}
             {reviewsList.length === 0 ? (
               <View style={s.emptyReviewsWrap}>
-                <Ionicons name="chatbox-ellipses-outline" size={38} color={theme.tertiaryText} />
+                <MessageCircle size={38} color={theme.tertiaryText} />
                 <Text style={[s.emptyReviewsTitle, { color: theme.text }]}>No Reviews Yet</Text>
                 <Text style={[s.emptyReviewsSub, { color: theme.secondaryText }]}>
                   Be the first to share your thoughts and help other shoppers make the right choice!
@@ -1142,14 +1091,12 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
                     : review.date || "Verified Purchase";
 
                   return (
-                    <View
-                      key={review._id || review.id || idx}
+                    <View key={review._id || review.id || idx}
                       style={[s.reviewCard, { borderBottomColor: theme.border }]}
                     >
                       {/* Star + Title row */}
                       <View style={s.reviewTopRow}>
-                        <View
-                          style={[
+                        <View style={[
                             s.miniRatingPill,
                             {
                               backgroundColor:
@@ -1162,10 +1109,9 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
                           ]}
                         >
                           <Text style={s.miniRatingText}>{review.rating}</Text>
-                          <Ionicons name="star" size={10} color="#fff" />
+                          <Star size={10} color="#fff" fill="#fff" />
                         </View>
-                        <Text
-                          style={[s.reviewTitle, { color: theme.text }]}
+                        <Text style={[s.reviewTitle, { color: theme.text }]}
                           numberOfLines={1}
                         >
                           {review.title || "Customer Review"}
@@ -1179,16 +1125,14 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
 
                       {/* Review Images */}
                       {review.images && review.images.length > 0 && (
-                        <ScrollView
-                          horizontal
+                        <ScrollView horizontal
                           showsHorizontalScrollIndicator={false}
                           style={s.reviewImagesRow}
                         >
                           {review.images.map((img: any, i: number) => {
                             const imgUrl = typeof img === "string" ? img : img.url;
                             return (
-                              <Image
-                                key={i}
+                              <Image key={i}
                                 source={{ uri: imgUrl }}
                                 style={[s.reviewThumb, { borderColor: theme.border }]}
                               />
@@ -1202,28 +1146,25 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
                         <View style={[s.avatarFallback, { backgroundColor: avatarColor }]}>
                           <Text style={s.avatarFallbackText}>{initial}</Text>
                         </View>
-                        <Text
-                          style={[s.reviewerName, { color: theme.text }]}
+                        <Text style={[s.reviewerName, { color: theme.text }]}
                         >
                           {userName}
                         </Text>
                         {(review.isVerifiedBuyer) && (
                           <View style={s.verifiedBadge}>
-                            <Ionicons name="checkmark" size={11} color="#2E7D32" />
+                            <Check size={11} color="#2E7D32" />
                             <Text style={s.verifiedBadgeText}>Verified</Text>
                           </View>
                         )}
                         <Text style={[s.reviewDot, { color: theme.tertiaryText }]}>
                           •
                         </Text>
-                        <Text
-                          style={[s.reviewerDate, { color: theme.tertiaryText }]}
+                        <Text style={[s.reviewerDate, { color: theme.tertiaryText }]}
                         >
                           {formattedDate}
                         </Text>
                         <View style={{ flex: 1 }} />
-                        <TouchableOpacity
-                          style={[
+                        <TouchableOpacity style={[
                             s.helpfulBtn,
                             {
                               borderColor: review.hasVotedHelpful ? theme.primary : theme.border,
@@ -1233,13 +1174,12 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
                           onPress={() => review._id && handleHelpfulVote(review._id)}
                           activeOpacity={0.7}
                         >
-                          <Ionicons
-                            name={review.hasVotedHelpful ? "thumbs-up" : "thumbs-up-outline"}
-                            size={13}
-                            color={review.hasVotedHelpful ? theme.primary : theme.secondaryText}
-                          />
-                          <Text
-                            style={[
+                          {review.hasVotedHelpful ? (
+                            <ThumbsUp size={13} color={theme.primary} />
+                          ) : (
+                            <ThumbsUp size={13} color={theme.secondaryText} />
+                          )}
+                          <Text style={[
                               s.helpfulText,
                               { color: review.hasVotedHelpful ? theme.primary : theme.secondaryText },
                             ]}
@@ -1293,8 +1233,7 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
           },
         ]}
       >
-        <TouchableOpacity
-          onPress={() => {
+        <TouchableOpacity onPress={() => {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
             toggleWishlist(id, product);
           }}
@@ -1307,13 +1246,12 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
           ]}
           activeOpacity={0.7}
         >
-          <Ionicons
-            name={isWishlisted ? "heart" : "heart-outline"}
-            size={22}
-            color={isWishlisted ? "#FF3B30" : theme.text}
-          />
-          <Text
-            style={[
+          {isWishlisted ? (
+            <Heart size={22} color="#FF3B30" fill="#FF3B30" />
+          ) : (
+            <Heart size={22} color={theme.text} />
+          )}
+          <Text style={[
               s.wishlistBtnText,
               {
                 color: isWishlisted ? "#FF3B30" : theme.text,
@@ -1330,27 +1268,26 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
 
           // Determine button text and icon
           let buttonText = "ADD TO BAG";
-          let buttonIcon = "bag-handle-outline";
+          let ButtonIcon: LucideIcon = ShoppingBag;
 
           if (isInCart) {
             buttonText = "GO TO CART";
-            buttonIcon = "arrow-forward-outline";
+            ButtonIcon = ArrowRight;
           } else if (isOutOfStock) {
             buttonText = "OUT OF STOCK";
-            buttonIcon = "close-circle-outline";
+            ButtonIcon = CircleX;
           } else if (!isSelectionComplete) {
             if (hasColors && !selectedColor) {
               buttonText = "SELECT COLOR";
-              buttonIcon = "color-palette-outline";
+              ButtonIcon = Palette;
             } else if (hasSizes && !selectedSize) {
               buttonText = "SELECT SIZE";
-              buttonIcon = "resize-outline";
+              ButtonIcon = Expand;
             }
           }
 
           return (
-            <TouchableOpacity
-              onPress={handleAddToBag}
+            <TouchableOpacity onPress={handleAddToBag}
               disabled={buttonDisabled}
               style={[
                 s.addToBagBtn,
@@ -1369,11 +1306,7 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
                 <ActivityIndicator color="#fff" size="small" />
               ) : (
                 <>
-                  <Ionicons
-                    name={buttonIcon as any}
-                    size={20}
-                    color="#fff"
-                  />
+                  <ButtonIcon size={20} color="#fff" />
                   <Text style={s.addToBagText}>
                     {buttonText}
                   </Text>
@@ -1385,8 +1318,7 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
       </Animated.View>
 
       {/* Modals */}
-      <SizeChartModal
-        visible={showSizeChart}
+      <SizeChartModal visible={showSizeChart}
         onClose={() => setShowSizeChart(false)}
         sizeChart={activeSizeChart}
         selectedSize={selectedSize}
@@ -1394,8 +1326,7 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
         theme={theme}
       />
 
-      <WriteReviewModal
-        visible={showReviewModal}
+      <WriteReviewModal visible={showReviewModal}
         onClose={() => setShowReviewModal(false)}
         onSubmit={async (reviewData) => {
           await createReviewMutation.mutateAsync(reviewData);

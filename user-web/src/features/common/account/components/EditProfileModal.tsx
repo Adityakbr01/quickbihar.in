@@ -10,7 +10,7 @@ import {
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AppIcon } from "@/src/components/common/AppIcon";
-import { Ionicons } from "@expo/vector-icons";
+import { CircleAlert, ShieldCheck, X } from "lucide-react";
 import * as Haptics from "@/lib/haptics";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { createAccountStyles } from "../styles/accountStyles";
@@ -135,36 +135,31 @@ const EditProfileModal = () => {
 
   return (
     <>
-      <Sheet
-        ref={sheet}
+      <Sheet ref={sheet}
         onDidDismiss={() => setVisible(false)}
         backgroundColor={theme.background}
       >
-        <SheetHeader
-          title="Edit Profile"
+        <SheetHeader title="Edit Profile"
           right={
             <TouchableOpacity
               onPress={() => setVisible(false)}
               style={styles.closeButton}
             >
-              <AppIcon name="close-outline" size={24} color={theme.text} />
+              <AppIcon icon={X} size={24} color={theme.text} />
             </TouchableOpacity>
           }
         />
 
-        <ScrollView
-          keyboardShouldPersistTaps="handled"
+        <ScrollView keyboardShouldPersistTaps="handled"
           contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 10 }}
         >
           {/* Full Name Field */}
           <View style={styles.inputGroup}>
             <Text style={styles.inputLabel}>Full Name</Text>
-            <Controller
-              control={control}
+            <Controller control={control}
               name="fullName"
               render={({ field: { onChange, onBlur, value } }) => (
-                <TextInput
-                  onBlur={onBlur}
+                <TextInput onBlur={onBlur}
                   onChangeText={onChange}
                   value={value}
                   placeholder="Enter your full name"
@@ -181,8 +176,7 @@ const EditProfileModal = () => {
           <View style={styles.inputGroup}>
             <Text style={styles.inputLabel}>Phone Number</Text>
             <View style={{ flexDirection: "row", gap: 8, alignItems: "center" }}>
-              <TextInput
-                value={currentPhone}
+              <TextInput value={currentPhone}
                 placeholder="Tap 'Verify' to add"
                 placeholderTextColor={theme.tertiaryText}
                 editable={false}
@@ -191,8 +185,7 @@ const EditProfileModal = () => {
                 containerStyle={{ marginBottom: 0, flex: 1 }}
                 style={{ color: theme.text }}
               />
-              <TouchableOpacity
-                onPress={() => setOtpSheetVisible(true)}
+              <TouchableOpacity onPress={() => setOtpSheetVisible(true)}
                 style={{
                   paddingHorizontal: 14,
                   paddingVertical: 10,
@@ -209,14 +202,14 @@ const EditProfileModal = () => {
             </View>
             {isPhoneVerified ? (
               <View style={{ flexDirection: "row", alignItems: "center", gap: 5, marginTop: 5 }}>
-                <Ionicons name="shield-checkmark" size={14} color="#16a34a" />
+                <ShieldCheck size={14} color="#16a34a" />
                 <Text style={{ color: "#16a34a", fontSize: 12, fontWeight: "700" }}>
                   Verified
                 </Text>
               </View>
             ) : phoneChanged ? (
               <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 5 }}>
-                <Ionicons name="alert-circle" size={14} color="#ea580c" />
+                <CircleAlert size={14} color="#ea580c" />
                 <Text style={{ color: "#ea580c", fontSize: 12, fontWeight: "600" }}>
                   Please verify this number before saving
                 </Text>
@@ -224,8 +217,7 @@ const EditProfileModal = () => {
             ) : null}
           </View>
 
-          <TouchableOpacity
-            style={[styles.saveButton, isUpdating && { opacity: 0.7 }]}
+          <TouchableOpacity style={[styles.saveButton, isUpdating && { opacity: 0.7 }]}
             onPress={handleSubmit(onSubmit)}
             disabled={isUpdating}
           >
@@ -238,8 +230,7 @@ const EditProfileModal = () => {
         </ScrollView>
       </Sheet>
 
-      <IOSAlertDialog
-        visible={alertVisible}
+      <IOSAlertDialog visible={alertVisible}
         onClose={handleAlertClose}
         title={alertConfig.title}
         message={alertConfig.message}
@@ -247,8 +238,7 @@ const EditProfileModal = () => {
       />
 
       {/* OTP Sheet for phone verification */}
-      <PhoneOtpSheet
-        visible={otpSheetVisible}
+      <PhoneOtpSheet visible={otpSheetVisible}
         initialPhone={currentPhone || ""}
         onVerified={(phone) => {
           setValue("phone", phone);

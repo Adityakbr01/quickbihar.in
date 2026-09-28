@@ -1,4 +1,4 @@
-import { Feather } from "@expo/vector-icons";
+import { Heart } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { goTo } from "@/src/utils/navigation";
 import React, { useMemo } from "react";
@@ -47,8 +47,7 @@ export default function JeweleryWishlistScreen() {
 
   return (
     <View style={[styles.root, { backgroundColor: colors.ivory }]}>
-      <View
-        style={[
+      <View style={[
           styles.header,
           {
             paddingTop: topPad + 12,
@@ -57,16 +56,14 @@ export default function JeweleryWishlistScreen() {
           },
         ]}
       >
-        <Text
-          style={[
+        <Text style={[
             styles.headerTitle,
             { color: colors.ink, fontFamily: "CormorantGaramond_600SemiBold" },
           ]}
         >
           Wishlist
         </Text>
-        <Text
-          style={[
+        <Text style={[
             styles.headerCount,
             { color: colors.warmGray, fontFamily: "DMSans_400Regular" },
           ]}
@@ -77,9 +74,8 @@ export default function JeweleryWishlistScreen() {
 
       {wishlistIds.length === 0 ? (
         <View style={styles.emptyState}>
-          <Feather name="heart" size={40} color={colors.midGray} />
-          <Text
-            style={[
+          <Heart size={40} color={colors.midGray} />
+          <Text style={[
               styles.emptyTitle,
               {
                 color: colors.ink,
@@ -89,20 +85,17 @@ export default function JeweleryWishlistScreen() {
           >
             Save for later, dream about now.
           </Text>
-          <Text
-            style={[
+          <Text style={[
               styles.emptyBody,
               { color: colors.warmGray, fontFamily: "DMSans_400Regular" },
             ]}
           >
             Tap the heart icon on any piece to save it here.
           </Text>
-          <Pressable
-            style={[styles.browseBtn, { borderColor: colors.gold }]}
+          <Pressable style={[styles.browseBtn, { borderColor: colors.gold }]}
             onPress={() => goTo(navigate, "/jewelery/collections" as any)}
           >
-            <Text
-              style={[
+            <Text style={[
                 styles.browseBtnText,
                 { color: colors.gold, fontFamily: "DMSans_400Regular" },
               ]}
@@ -112,8 +105,7 @@ export default function JeweleryWishlistScreen() {
           </Pressable>
         </View>
       ) : (
-        <ScrollView
-          showsVerticalScrollIndicator={false}
+        <ScrollView showsVerticalScrollIndicator={false}
           contentContainerStyle={[
             styles.scrollContent,
             Platform.OS === "web" && { paddingBottom: 34 },

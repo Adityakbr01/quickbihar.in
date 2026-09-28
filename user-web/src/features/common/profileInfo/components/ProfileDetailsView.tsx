@@ -1,6 +1,7 @@
 import React from "react";
 import { View, TouchableOpacity, Text } from "react-native";
 import { AppIcon } from "@/src/components/common/AppIcon";
+import { Calendar, CircleUser, Mail, Phone, SquarePen } from "lucide-react";
 import { Theme } from "@/src/theme/Provider/ThemeProvider";
 import ProfileInfoRow from "./ProfileInfoRow";
 import { useAccountStore } from "@/src/features/common/account/store/accountStore";
@@ -32,28 +33,28 @@ const ProfileDetailsView: React.FC<ProfileDetailsViewProps> = ({
   return (
     <View style={styles.infoCard}>
       <ProfileInfoRow
-        icon="mail-outline"
+        icon={Mail}
         label="Email Address"
         value={email}
         theme={theme}
         styles={styles}
       />
       <ProfileInfoRow
-        icon="call-outline"
+        icon={Phone}
         label="Phone Number"
         value={phone}
         theme={theme}
         styles={styles}
       />
       <ProfileInfoRow
-        icon="person-circle-outline"
+        icon={CircleUser}
         label="Account Type"
         value={role?.toUpperCase() || ""}
         theme={theme}
         styles={styles}
       />
       <ProfileInfoRow
-        icon="calendar-outline"
+        icon={Calendar}
         label="Member Since"
         value={dayjs(createdAt).format("MMM DD, YYYY")}
         theme={theme}
@@ -61,7 +62,7 @@ const ProfileDetailsView: React.FC<ProfileDetailsViewProps> = ({
       />
 
       <TouchableOpacity style={styles.editButton} onPress={onEdit}>
-        <AppIcon name="create-outline" size={20} color="#fff" />
+        <AppIcon icon={SquarePen} size={20} color="#fff" />
         <Text style={styles.editButtonText}>Edit Personal Details</Text>
       </TouchableOpacity>
 

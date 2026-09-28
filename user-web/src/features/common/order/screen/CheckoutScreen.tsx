@@ -1,5 +1,5 @@
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
-import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { ArrowLeft, Banknote, Circle, CircleAlert, CircleDot, CreditCard, Info, MapPin, ShieldCheck } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import React, { useEffect, useMemo, useState } from "react";
 import {
@@ -360,8 +360,7 @@ const CheckoutScreen = () => {
 
   if (!isAuthenticated) {
     return (
-      <View
-        style={[
+      <View style={[
           styles.container,
           { justifyContent: "center", alignItems: "center" },
         ]}
@@ -373,8 +372,7 @@ const CheckoutScreen = () => {
 
   if (isLoading) {
     return (
-      <View
-        style={[
+      <View style={[
           styles.container,
           { justifyContent: "center", alignItems: "center" },
         ]}
@@ -388,18 +386,16 @@ const CheckoutScreen = () => {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
+        <TouchableOpacity style={styles.backButton}
           onPress={() => goBack(navigate, "/clothing/cart")}
         >
-          <Ionicons name="arrow-back" size={24} color={theme.text} />
+          <ArrowLeft size={24} color={theme.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Checkout</Text>
         <View style={{ width: 44 }} />
       </View>
 
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
+      <ScrollView contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
         {/* Phone capture banner — sellers call to confirm orders, so
@@ -421,11 +417,7 @@ const CheckoutScreen = () => {
           {selectedAddress ? (
             <View style={styles.addressContent}>
               <View style={styles.iconWrapper}>
-                <MaterialCommunityIcons
-                  name="map-marker-outline"
-                  size={24}
-                  color={theme.primary}
-                />
+                <MapPin size={24} color={theme.primary} />
               </View>
               <View style={styles.addressDetails}>
                 <Text style={styles.addressName}>
@@ -438,7 +430,7 @@ const CheckoutScreen = () => {
                 <Text style={styles.addressPhone}>{selectedAddress.phone}</Text>
                 {selectedAddress.isPhoneVerified ? (
                   <View style={{ flexDirection: "row", alignItems: "center", gap: 5, marginTop: 5 }}>
-                    <Ionicons name="shield-checkmark" size={13} color="#16a34a" />
+                    <ShieldCheck size={13} color="#16a34a" />
                     <Text style={{ fontSize: 11, color: "#16a34a", fontWeight: "700" }}>
                       Verified Number
                     </Text>
@@ -446,13 +438,12 @@ const CheckoutScreen = () => {
                 ) : (
                   <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginTop: 5 }}>
                     <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
-                      <Ionicons name="alert-circle" size={13} color="#ea580c" />
+                      <CircleAlert size={13} color="#ea580c" />
                       <Text style={{ fontSize: 11, color: "#ea580c", fontWeight: "600" }}>
                         Phone not verified
                       </Text>
                     </View>
-                    <TouchableOpacity
-                      onPress={() => setOtpSheetVisible(true)}
+                    <TouchableOpacity onPress={() => setOtpSheetVisible(true)}
                       style={{
                         paddingHorizontal: 8,
                         paddingVertical: 2.5,
@@ -471,8 +462,7 @@ const CheckoutScreen = () => {
               </View>
             </View>
           ) : (
-            <TouchableOpacity
-              style={{ alignItems: "center", paddingVertical: 10 }}
+            <TouchableOpacity style={{ alignItems: "center", paddingVertical: 10 }}
               onPress={() => goTo(navigate, "/account/addresses")}
             >
               <Text style={{ color: theme.secondaryText }}>
@@ -570,13 +560,12 @@ const CheckoutScreen = () => {
             Payment Method
           </Text>
           {([
-            { key: "ONLINE", label: "Pay Online", desc: "UPI, Cards, Netbanking & Wallets", icon: "credit-card-outline" },
-            { key: "COD", label: "Cash on Delivery", desc: "Pay in cash when your order arrives", icon: "cash" },
+            { key: "ONLINE", label: "Pay Online", desc: "UPI, Cards, Netbanking & Wallets", icon: CreditCard },
+            { key: "COD", label: "Cash on Delivery", desc: "Pay in cash when your order arrives", icon: Banknote },
           ] as const).map((option) => {
             const isSelected = paymentMethod === option.key;
             return (
-              <TouchableOpacity
-                key={option.key}
+              <TouchableOpacity key={option.key}
                 onPress={() => setPaymentMethod(option.key)}
                 style={{
                   flexDirection: "row",
@@ -589,8 +578,7 @@ const CheckoutScreen = () => {
                   backgroundColor: isSelected ? `${theme.primary}12` : "transparent",
                 }}
               >
-                <MaterialCommunityIcons
-                  name={option.icon}
+                <option.icon
                   size={24}
                   color={isSelected ? theme.primary : theme.secondaryText}
                 />
@@ -602,11 +590,11 @@ const CheckoutScreen = () => {
                     {option.desc}
                   </Text>
                 </View>
-                <Ionicons
-                  name={isSelected ? "radio-button-on" : "radio-button-off"}
-                  size={22}
-                  color={isSelected ? theme.primary : theme.secondaryText}
-                />
+                {isSelected ? (
+                  <CircleDot size={22} color={theme.primary} />
+                ) : (
+                  <Circle size={22} color={theme.secondaryText} />
+                )}
               </TouchableOpacity>
             );
           })}
@@ -659,13 +647,11 @@ const CheckoutScreen = () => {
 
           {totalTax > 0 && (
             <View style={styles.summaryRow}>
-              <Text
-                style={[styles.summaryLabel, { color: theme.secondaryText }]}
+              <Text style={[styles.summaryLabel, { color: theme.secondaryText }]}
               >
                 GST / Fixed Taxes (Incl.)
               </Text>
-              <Text
-                style={[styles.summaryValue, { color: theme.secondaryText }]}
+              <Text style={[styles.summaryValue, { color: theme.secondaryText }]}
               >
                 ₹{totalTax.toLocaleString()}
               </Text>
@@ -704,8 +690,7 @@ const CheckoutScreen = () => {
             </View>
           )}
           {quoteError ? (
-            <View
-              style={{
+            <View style={{
                 marginBottom: 12,
                 padding: 12,
                 borderRadius: 10,
@@ -716,7 +701,7 @@ const CheckoutScreen = () => {
               }}
             >
               <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-                <Ionicons name="alert-circle" size={16} color="#dc2626" />
+                <CircleAlert size={16} color="#dc2626" />
                 <Text style={{ fontSize: 13, fontWeight: "700", color: "#dc2626" }}>
                   Cannot Deliver to This Address
                 </Text>
@@ -725,7 +710,7 @@ const CheckoutScreen = () => {
                 {quoteError}
               </Text>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 2 }}>
-                <Ionicons name="information-circle-outline" size={13} color="#991b1b" />
+                <Info size={13} color="#991b1b" />
                 <Text style={{ fontSize: 11, color: "#991b1b" }}>
                   Try changing your delivery address or contact the seller.
                 </Text>
@@ -768,8 +753,7 @@ const CheckoutScreen = () => {
 
       {/* Footer */}
       <View style={styles.footer}>
-        <TouchableOpacity
-          style={[styles.payButton, { opacity: isProcessingPayment || isQuoteLoading || Boolean(quoteError) ? 0.5 : 1 }]}
+        <TouchableOpacity style={[styles.payButton, { opacity: isProcessingPayment || isQuoteLoading || Boolean(quoteError) ? 0.5 : 1 }]}
           onPress={handlePlaceOrder}
           disabled={isProcessingPayment || isQuoteLoading || Boolean(quoteError)}
         >
@@ -792,8 +776,7 @@ const CheckoutScreen = () => {
       </View>
 
       {/* Custom Alert Dialog */}
-      <IOSAlertDialog
-        visible={alertConfig.visible}
+      <IOSAlertDialog visible={alertConfig.visible}
         onClose={hideAlert}
         title={alertConfig.title}
         message={alertConfig.message}
@@ -802,8 +785,7 @@ const CheckoutScreen = () => {
 
       {/* Phone OTP verification sheet for checkout */}
       {selectedAddress && (
-        <PhoneOtpSheet
-          visible={otpSheetVisible}
+        <PhoneOtpSheet visible={otpSheetVisible}
           initialPhone={selectedAddress.phone || user?.phone || ""}
           onVerified={async (verifiedPhone) => {
             setOtpSheetVisible(false);

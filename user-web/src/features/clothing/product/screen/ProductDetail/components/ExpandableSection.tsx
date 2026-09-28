@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { View, Text, TouchableOpacity, LayoutAnimation } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import { styles as s } from "../styles";
 
 interface ExpandableSectionProps {
@@ -19,8 +19,7 @@ export const ExpandableSection = ({
   const [open, setOpen] = useState(defaultOpen);
   return (
     <View style={s.expandableContainer}>
-      <TouchableOpacity
-        style={s.expandableHeader}
+      <TouchableOpacity style={s.expandableHeader}
         onPress={() => {
           LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
           setOpen(!open);
@@ -28,11 +27,11 @@ export const ExpandableSection = ({
         activeOpacity={0.6}
       >
         <Text style={[s.expandableTitle, { color: theme.text }]}>{title}</Text>
-        <Ionicons
-          name={open ? "chevron-up" : "chevron-down"}
-          size={18}
-          color={theme.secondaryText}
-        />
+        {open ? (
+          <ChevronUp size={18} color={theme.secondaryText} />
+        ) : (
+          <ChevronDown size={18} color={theme.secondaryText} />
+        )}
       </TouchableOpacity>
       {open && <View style={s.expandableBody}>{children}</View>}
     </View>

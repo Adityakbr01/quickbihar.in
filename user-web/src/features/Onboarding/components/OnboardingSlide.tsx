@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import Animated from "react-native-reanimated";
-import { Feather } from "@expo/vector-icons";
+import { ArrowDown } from "lucide-react";
 import { OnboardingStepData } from "./types";
 import { PaginationControls, PaginationControlsProps } from "./PaginationControls";
 import { EdgeInsets } from "react-native-safe-area-context";
@@ -29,12 +29,7 @@ export const OnboardingSlide: React.FC<OnboardingSlideProps> = ({
         style={[styles.topSection, { paddingTop: insets.top + 40 }, topStyle]}
       >
         <Text style={styles.caption}>{step.caption}</Text>
-        {/* <Feather
-          name="arrow-down"
-          size={18}
-          color="rgba(255,255,255,0.6)"
-          style={{ marginVertical: 8 }}
-        /> */}
+        {/* <ArrowDown size={18} color="rgba(255,255,255,0.6)" style={{ marginVertical: 8 }} /> */}
         <Text style={styles.topTitle}>{step.title}</Text>
       </Animated.View>
 

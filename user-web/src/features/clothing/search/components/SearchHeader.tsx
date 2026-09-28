@@ -1,4 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
+import { CircleX, Search } from "lucide-react";
 import * as Haptics from "@/lib/haptics";
 import React, { useRef } from "react";
 import {
@@ -66,8 +66,7 @@ const SearchHeader = ({
           containerStyle,
         ]}
       >
-        <TextInput
-          ref={inputRef}
+        <TextInput ref={inputRef}
           bare
           value={query}
           onChangeText={setQuery}
@@ -79,16 +78,12 @@ const SearchHeader = ({
           onFocus={handleFocus}
           onBlur={handleBlur}
           icon={
-            <Ionicons
-              name="search-outline"
-              size={20}
-              color={theme.secondaryText}
-            />
+            <Search size={20} color={theme.secondaryText} />
           }
           rightIcon={
             query.length > 0 ? (
               <Pressable onPress={handleClear} style={styles.clearBtn}>
-                <Ionicons name="close-circle" size={20} color={theme.tertiaryText} />
+                <CircleX size={20} color={theme.tertiaryText} />
               </Pressable>
             ) : undefined
           }

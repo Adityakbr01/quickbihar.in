@@ -1,4 +1,4 @@
-import { Feather } from "@expo/vector-icons";
+import { CircleAlert, X } from "lucide-react";
 import { reloadAppAsync } from "expo";
 import React, { useState } from "react";
 import {
@@ -51,8 +51,7 @@ export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       {__DEV__ ? (
-        <Pressable
-          onPress={() => setIsModalVisible(true)}
+        <Pressable onPress={() => setIsModalVisible(true)}
           accessibilityLabel="View error details"
           accessibilityRole="button"
           style={({ pressed }) => [
@@ -64,7 +63,7 @@ export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
             },
           ]}
         >
-          <Feather name="alert-circle" size={20} color={colors.foreground} />
+          <CircleAlert size={20} color={colors.foreground} />
         </Pressable>
       ) : null}
 
@@ -77,8 +76,7 @@ export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
           Please reload the app to continue.
         </Text>
 
-        <Pressable
-          onPress={handleRestart}
+        <Pressable onPress={handleRestart}
           style={({ pressed }) => [
             styles.button,
             {
@@ -88,8 +86,7 @@ export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
             },
           ]}
         >
-          <Text
-            style={[
+          <Text style={[
               styles.buttonText,
               { color: colors.primaryForeground },
             ]}
@@ -100,21 +97,18 @@ export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
       </View>
 
       {__DEV__ ? (
-        <Modal
-          visible={isModalVisible}
+        <Modal visible={isModalVisible}
           animationType="slide"
           transparent={true}
           onRequestClose={() => setIsModalVisible(false)}
         >
           <View style={styles.modalOverlay}>
-            <View
-              style={[
+            <View style={[
                 styles.modalContainer,
                 { backgroundColor: colors.background },
               ]}
             >
-              <View
-                style={[
+              <View style={[
                   styles.modalHeader,
                   { borderBottomColor: colors.border },
                 ]}
@@ -122,8 +116,7 @@ export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
                 <Text style={[styles.modalTitle, { color: colors.foreground }]}>
                   Error Details
                 </Text>
-                <Pressable
-                  onPress={() => setIsModalVisible(false)}
+                <Pressable onPress={() => setIsModalVisible(false)}
                   accessibilityLabel="Close error details"
                   accessibilityRole="button"
                   style={({ pressed }) => [
@@ -131,26 +124,23 @@ export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
                     { opacity: pressed ? 0.6 : 1 },
                   ]}
                 >
-                  <Feather name="x" size={24} color={colors.foreground} />
+                  <X size={24} color={colors.foreground} />
                 </Pressable>
               </View>
 
-              <ScrollView
-                style={styles.modalScrollView}
+              <ScrollView style={styles.modalScrollView}
                 contentContainerStyle={[
                   styles.modalScrollContent,
                   { paddingBottom: insets.bottom + 16 },
                 ]}
                 showsVerticalScrollIndicator
               >
-                <View
-                  style={[
+                <View style={[
                     styles.errorContainer,
                     { backgroundColor: colors.card },
                   ]}
                 >
-                  <Text
-                    style={[
+                  <Text style={[
                       styles.errorText,
                       {
                         color: colors.foreground,

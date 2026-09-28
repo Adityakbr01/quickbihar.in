@@ -5,7 +5,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { Check, ChevronRight, Tags } from "lucide-react";
 import * as Haptics from "@/lib/haptics";
 import { useQuery } from "@tanstack/react-query";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
@@ -98,13 +98,12 @@ const CouponInput = ({ module = "clothing" }: { module?: "clothing" | "jewelery"
       <View style={styles.couponHeaderRow}>
         <View style={styles.couponHeaderLeft}>
           <View style={styles.couponTitleIconWrap}>
-            <Ionicons name="pricetags" size={16} color={theme.primary} />
+            <Tags size={16} color={theme.primary} />
           </View>
           <Text style={styles.couponTitle}>Offers & Benefits</Text>
         </View>
         {appliedCoupons.length === 0 && availableCoupons.length > 0 && (
-          <TouchableOpacity
-            style={styles.viewOffersBtn}
+          <TouchableOpacity style={styles.viewOffersBtn}
             onPress={() => setIsBottomSheetVisible(true)}
             activeOpacity={0.7}
           >
@@ -112,27 +111,24 @@ const CouponInput = ({ module = "clothing" }: { module?: "clothing" | "jewelery"
               View {availableCoupons.length} offer
               {availableCoupons.length === 1 ? "" : "s"}
             </Text>
-            <Ionicons name="chevron-forward" size={12} color="#fff" />
+            <ChevronRight size={12} color="#fff" />
           </TouchableOpacity>
         )}
       </View>
 
       {/* Render list of applied coupons */}
       {appliedCoupons.map((coupon) => (
-        <View
-          key={coupon.code}
+        <View key={coupon.code}
           style={[styles.appliedCouponContainer, { marginBottom: 12 }]}
         >
           <View style={styles.appliedCouponInfo}>
             <View style={styles.appliedCouponIconWrap}>
-              <Ionicons name="checkmark" size={16} color="#fff" />
+              <Check size={16} color="#fff" />
             </View>
             <View style={{ flex: 1, minWidth: 0 }}>
-              <View
-                style={{ flexDirection: "row", alignItems: "center", gap: 6 }}
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}
               >
-                <Text
-                  style={[
+                <Text style={[
                     styles.appliedCouponText,
                     { fontWeight: "800", color: theme.text },
                   ]}
@@ -141,8 +137,7 @@ const CouponInput = ({ module = "clothing" }: { module?: "clothing" | "jewelery"
                   {coupon.code}
                 </Text>
               </View>
-              <Text
-                style={[
+              <Text style={[
                   styles.couponStatusText,
                   {
                     color: theme.primary,
@@ -157,8 +152,7 @@ const CouponInput = ({ module = "clothing" }: { module?: "clothing" | "jewelery"
               </Text>
             </View>
           </View>
-          <TouchableOpacity
-            onPress={() => handleRemove(coupon.code)}
+          <TouchableOpacity onPress={() => handleRemove(coupon.code)}
             hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
             style={{ padding: 4 }}
           >
@@ -173,8 +167,7 @@ const CouponInput = ({ module = "clothing" }: { module?: "clothing" | "jewelery"
       )}
 
       {/* Bottom Sheet containing full list with dynamic validation */}
-      <CouponBottomSheet
-        visible={isBottomSheetVisible}
+      <CouponBottomSheet visible={isBottomSheetVisible}
         onClose={() => setIsBottomSheetVisible(false)}
         coupons={availableCoupons}
         cartItems={items}

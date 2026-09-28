@@ -1,4 +1,5 @@
-import { Feather, Ionicons } from "@expo/vector-icons";
+import type { LucideIcon } from "lucide-react";
+import { ArrowLeft, Briefcase, Check, CircleCheck, House, MapPin, Pen, Phone, Plus, ShieldCheck, Trash2 } from "lucide-react";
 import * as Haptics from "@/lib/haptics";
 import { useNavigate } from "react-router-dom";
 import { goBack, goTo, replaceTo, useRouteParams } from "@/src/utils/navigation";
@@ -117,22 +118,21 @@ export default function JeweleryAddressesScreen() {
     }
   };
 
-  const getTypeIcon = (type: AddressType) => {
+  const getTypeIcon = (type: AddressType): LucideIcon => {
     switch (type) {
       case AddressType.HOME:
-        return "home";
+        return House;
       case AddressType.WORK:
-        return "briefcase";
+        return Briefcase;
       default:
-        return "map-pin";
+        return MapPin;
     }
   };
 
   return (
     <View style={[styles.root, { backgroundColor: colors.ivory }]}>
       {/* Header */}
-      <View
-        style={[
+      <View style={[
           styles.header,
           {
             paddingTop: topPad + 12,
@@ -141,19 +141,17 @@ export default function JeweleryAddressesScreen() {
           },
         ]}
       >
-        <Pressable
-          style={styles.backBtn}
+        <Pressable style={styles.backBtn}
           onPress={handleBack}
           hitSlop={8}
           accessibilityRole="button"
           accessibilityLabel="Go back"
         >
-          <Feather name="arrow-left" size={18} color={colors.ink} />
+          <ArrowLeft size={18} color={colors.ink} />
         </Pressable>
 
         <View style={styles.headerTitleWrap}>
-          <Text
-            style={[
+          <Text style={[
               styles.headerTitle,
               {
                 color: colors.ink,
@@ -163,8 +161,7 @@ export default function JeweleryAddressesScreen() {
           >
             SAVED ADDRESSES
           </Text>
-          <Text
-            style={[
+          <Text style={[
               styles.headerSubtitle,
               { color: colors.warmGray, fontFamily: "DMSans_400Regular" },
             ]}
@@ -175,14 +172,12 @@ export default function JeweleryAddressesScreen() {
           </Text>
         </View>
 
-        <TouchableOpacity
-          style={[styles.headerAddBtn, { borderColor: colors.gold }]}
+        <TouchableOpacity style={[styles.headerAddBtn, { borderColor: colors.gold }]}
           onPress={handleAddAddress}
           activeOpacity={0.8}
         >
-          <Feather name="plus" size={14} color={colors.gold} />
-          <Text
-            style={[
+          <Plus size={14} color={colors.gold} />
+          <Text style={[
               styles.headerAddBtnText,
               { color: colors.gold, fontFamily: "DMSans_500Medium" },
             ]}
@@ -193,8 +188,7 @@ export default function JeweleryAddressesScreen() {
       </View>
 
       {/* Main Content */}
-      <ScrollView
-        contentContainerStyle={[
+      <ScrollView contentContainerStyle={[
           styles.scrollContent,
           { paddingBottom: bottomPad + 70 },
         ]}
@@ -210,8 +204,7 @@ export default function JeweleryAddressesScreen() {
         {isLoading ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="small" color={colors.gold} />
-            <Text
-              style={[
+            <Text style={[
                 styles.loadingText,
                 { color: colors.warmGray, fontFamily: "DMSans_400Regular" },
               ]}
@@ -222,14 +215,14 @@ export default function JeweleryAddressesScreen() {
         ) : addresses && addresses.length > 0 ? (
           <View style={styles.addressList}>
             {addresses.map((address) => {
+              const TypeIcon = getTypeIcon(address.addressType);
               const isPinned =
                 address.latitude !== undefined &&
                 address.latitude !== 0 &&
                 Number.isFinite(Number(address.latitude));
 
               return (
-                <View
-                  key={address._id}
+                <View key={address._id}
                   style={[
                     styles.card,
                     {
@@ -242,8 +235,7 @@ export default function JeweleryAddressesScreen() {
                   {/* Card Header Badges */}
                   <View style={styles.cardHeader}>
                     <View style={styles.badgesLeft}>
-                      <View
-                        style={[
+                      <View style={[
                           styles.badge,
                           {
                             backgroundColor: colors.champagne,
@@ -251,13 +243,8 @@ export default function JeweleryAddressesScreen() {
                           },
                         ]}
                       >
-                        <Feather
-                          name={getTypeIcon(address.addressType) as any}
-                          size={10}
-                          color={colors.gold}
-                        />
-                        <Text
-                          style={[
+                        <TypeIcon size={10} color={colors.gold} />
+                        <Text style={[
                             styles.badgeText,
                             { color: colors.gold, fontFamily: "DMSans_500Medium" },
                           ]}
@@ -267,15 +254,13 @@ export default function JeweleryAddressesScreen() {
                       </View>
 
                       {address.isDefault && (
-                        <View
-                          style={[
+                        <View style={[
                             styles.badge,
                             { backgroundColor: colors.gold },
                           ]}
                         >
-                          <Feather name="check" size={10} color={colors.onBrand} />
-                          <Text
-                            style={[
+                          <Check size={10} color={colors.onBrand} />
+                          <Text style={[
                               styles.badgeText,
                               { color: colors.onBrand, fontFamily: "DMSans_700Bold" },
                             ]}
@@ -286,8 +271,7 @@ export default function JeweleryAddressesScreen() {
                       )}
 
                       {isPinned && (
-                        <View
-                          style={[
+                        <View style={[
                             styles.badge,
                             {
                               backgroundColor: colors.pearl,
@@ -295,13 +279,8 @@ export default function JeweleryAddressesScreen() {
                             },
                           ]}
                         >
-                          <Ionicons
-                            name="location-sharp"
-                            size={10}
-                            color={colors.gold}
-                          />
-                          <Text
-                            style={[
+                          <MapPin size={10} color={colors.gold} />
+                          <Text style={[
                               styles.badgeText,
                               { color: colors.warmGray, fontFamily: "DMSans_400Regular" },
                             ]}
@@ -312,8 +291,7 @@ export default function JeweleryAddressesScreen() {
                       )}
 
                       {address.isPhoneVerified && (
-                        <View
-                          style={[
+                        <View style={[
                             styles.badge,
                             {
                               backgroundColor: colors.champagne,
@@ -321,13 +299,8 @@ export default function JeweleryAddressesScreen() {
                             },
                           ]}
                         >
-                          <Ionicons
-                            name="shield-checkmark"
-                            size={10}
-                            color={colors.gold}
-                          />
-                          <Text
-                            style={[
+                          <ShieldCheck size={10} color={colors.gold} />
+                          <Text style={[
                               styles.badgeText,
                               { color: colors.gold, fontFamily: "DMSans_500Medium" },
                             ]}
@@ -340,8 +313,7 @@ export default function JeweleryAddressesScreen() {
                   </View>
 
                   {/* Address Details */}
-                  <Text
-                    style={[
+                  <Text style={[
                       styles.cardName,
                       {
                         color: colors.ink,
@@ -353,9 +325,8 @@ export default function JeweleryAddressesScreen() {
                   </Text>
 
                   <View style={styles.phoneRow}>
-                    <Feather name="phone" size={11} color={colors.warmGray} />
-                    <Text
-                      style={[
+                    <Phone size={11} color={colors.warmGray} />
+                    <Text style={[
                         styles.cardPhone,
                         { color: colors.warmGray, fontFamily: "DMSans_400Regular" },
                       ]}
@@ -364,8 +335,7 @@ export default function JeweleryAddressesScreen() {
                     </Text>
                   </View>
 
-                  <Text
-                    style={[
+                  <Text style={[
                       styles.cardAddress,
                       { color: colors.ink, fontFamily: "DMSans_400Regular" },
                     ]}
@@ -377,8 +347,7 @@ export default function JeweleryAddressesScreen() {
                   </Text>
 
                   {/* Actions Divider */}
-                  <View
-                    style={[
+                  <View style={[
                       styles.cardDivider,
                       { backgroundColor: colors.border },
                     ]}
@@ -386,14 +355,12 @@ export default function JeweleryAddressesScreen() {
 
                   {/* Action Buttons */}
                   <View style={styles.cardActions}>
-                    <TouchableOpacity
-                      style={styles.actionBtn}
+                    <TouchableOpacity style={styles.actionBtn}
                       onPress={() => handleEditAddress(address)}
                       activeOpacity={0.7}
                     >
-                      <Feather name="edit-2" size={13} color={colors.ink} />
-                      <Text
-                        style={[
+                      <Pen size={13} color={colors.ink} />
+                      <Text style={[
                           styles.actionBtnText,
                           { color: colors.ink, fontFamily: "DMSans_500Medium" },
                         ]}
@@ -402,14 +369,12 @@ export default function JeweleryAddressesScreen() {
                       </Text>
                     </TouchableOpacity>
 
-                    <TouchableOpacity
-                      style={styles.actionBtn}
+                    <TouchableOpacity style={styles.actionBtn}
                       onPress={() => handleDeleteAddress(address._id)}
                       activeOpacity={0.7}
                     >
-                      <Feather name="trash-2" size={13} color="#b91c1c" />
-                      <Text
-                        style={[
+                      <Trash2 size={13} color="#b91c1c" />
+                      <Text style={[
                           styles.actionBtnText,
                           { color: "#b91c1c", fontFamily: "DMSans_500Medium" },
                         ]}
@@ -419,18 +384,12 @@ export default function JeweleryAddressesScreen() {
                     </TouchableOpacity>
 
                     {!address.isDefault && (
-                      <TouchableOpacity
-                        style={[styles.actionBtn, styles.setDefaultBtn]}
+                      <TouchableOpacity style={[styles.actionBtn, styles.setDefaultBtn]}
                         onPress={() => handleSetDefault(address._id)}
                         activeOpacity={0.7}
                       >
-                        <Feather
-                          name="check-circle"
-                          size={13}
-                          color={colors.gold}
-                        />
-                        <Text
-                          style={[
+                        <CircleCheck size={13} color={colors.gold} />
+                        <Text style={[
                             styles.actionBtnText,
                             { color: colors.gold, fontFamily: "DMSans_500Medium" },
                           ]}
@@ -446,8 +405,7 @@ export default function JeweleryAddressesScreen() {
           </View>
         ) : (
           <View style={styles.emptyContainer}>
-            <View
-              style={[
+            <View style={[
                 styles.emptyIconWrap,
                 {
                   backgroundColor: colors.champagne,
@@ -455,10 +413,9 @@ export default function JeweleryAddressesScreen() {
                 },
               ]}
             >
-              <Feather name="map-pin" size={32} color={colors.gold} />
+              <MapPin size={32} color={colors.gold} />
             </View>
-            <Text
-              style={[
+            <Text style={[
                 styles.emptyTitle,
                 {
                   color: colors.ink,
@@ -468,22 +425,19 @@ export default function JeweleryAddressesScreen() {
             >
               No Addresses Saved
             </Text>
-            <Text
-              style={[
+            <Text style={[
                 styles.emptySub,
                 { color: colors.warmGray, fontFamily: "DMSans_400Regular" },
               ]}
             >
               Save your delivery addresses for an effortless, seamless shopping experience.
             </Text>
-            <TouchableOpacity
-              style={[styles.addFirstBtn, { backgroundColor: colors.gold }]}
+            <TouchableOpacity style={[styles.addFirstBtn, { backgroundColor: colors.gold }]}
               onPress={handleAddAddress}
               activeOpacity={0.88}
             >
-              <Feather name="plus" size={15} color={colors.onBrand} />
-              <Text
-                style={[
+              <Plus size={15} color={colors.onBrand} />
+              <Text style={[
                   styles.addFirstBtnText,
                   { color: colors.onBrand, fontFamily: "DMSans_600SemiBold" },
                 ]}
@@ -497,8 +451,7 @@ export default function JeweleryAddressesScreen() {
 
       {/* Floating Add Button when addresses exist */}
       {addresses && addresses.length > 0 && (
-        <TouchableOpacity
-          style={[
+        <TouchableOpacity style={[
             styles.fab,
             {
               backgroundColor: colors.gold,
@@ -508,13 +461,12 @@ export default function JeweleryAddressesScreen() {
           onPress={handleAddAddress}
           activeOpacity={0.88}
         >
-          <Feather name="plus" size={22} color={colors.onBrand} />
+          <Plus size={22} color={colors.onBrand} />
         </TouchableOpacity>
       )}
 
       {/* Alert Dialog */}
-      <IOSAlertDialog
-        visible={alertConfig.visible}
+      <IOSAlertDialog visible={alertConfig.visible}
         title={alertConfig.title}
         message={alertConfig.message}
         buttons={alertConfig.buttons}

@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { CircleCheck, PersonStanding } from "lucide-react";
 import { Theme } from "@/src/theme/Provider/ThemeProvider";
 import { ISizeChart } from "../../types/product.types";
 import * as Haptics from "@/lib/haptics";
@@ -95,19 +95,16 @@ const SizeChartModal = ({
 
   return (
     <Sheet ref={sheet} onDidDismiss={onClose} backgroundColor={theme.background}>
-      <SheetHeader
-        title={name || "Size & Fit Guide"}
+      <SheetHeader title={name || "Size & Fit Guide"}
         subtitle={`Find your perfect fit (${category || "Apparel"})`}
         onClose={onClose}
       />
 
-      <ScrollView
-        showsVerticalScrollIndicator={false}
+      <ScrollView showsVerticalScrollIndicator={false}
         contentContainerStyle={s.content}
       >
         {/* Unit Toggle Buttons */}
-        <View
-          style={[
+        <View style={[
             s.unitToggleRow,
             {
               backgroundColor: theme.tertiaryBackground,
@@ -115,8 +112,7 @@ const SizeChartModal = ({
             },
           ]}
         >
-          <TouchableOpacity
-            style={[
+          <TouchableOpacity style={[
               s.unitBtn,
               activeUnit === "inches" && [
                 s.unitBtnActive,
@@ -126,8 +122,7 @@ const SizeChartModal = ({
             onPress={() => handleUnitToggle("inches")}
             activeOpacity={0.8}
           >
-            <Text
-              style={[
+            <Text style={[
                 s.unitBtnText,
                 {
                   color: activeUnit === "inches" ? "#fff" : theme.secondaryText,
@@ -137,8 +132,7 @@ const SizeChartModal = ({
               INCHES
             </Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            style={[
+          <TouchableOpacity style={[
               s.unitBtn,
               activeUnit === "cm" && [
                 s.unitBtnActive,
@@ -148,8 +142,7 @@ const SizeChartModal = ({
             onPress={() => handleUnitToggle("cm")}
             activeOpacity={0.8}
           >
-            <Text
-              style={[
+            <Text style={[
                 s.unitBtnText,
                 {
                   color: activeUnit === "cm" ? "#fff" : theme.secondaryText,
@@ -164,8 +157,7 @@ const SizeChartModal = ({
         {/* Table Container */}
         <View style={[s.tableContainer, { borderColor: theme.border }]}>
           {/* Table Header */}
-          <View
-            style={[
+          <View style={[
               s.row,
               s.headerRow,
               { backgroundColor: theme.tertiaryBackground },
@@ -202,8 +194,7 @@ const SizeChartModal = ({
                   String(selectedSize).toUpperCase(),
             );
             return (
-              <View
-                key={index}
+              <View key={index}
                 style={[
                   s.row,
                   { borderTopColor: theme.border },
@@ -215,15 +206,13 @@ const SizeChartModal = ({
                 ]}
               >
                 <View style={[s.cell, s.firstCell]}>
-                  <View
-                    style={{
+                  <View style={{
                       flexDirection: "row",
                       alignItems: "center",
                       gap: 4,
                     }}
                   >
-                    <Text
-                      style={[
+                    <Text style={[
                         s.sizeText,
                         {
                           color: isSelected ? theme.primary : theme.text,
@@ -234,18 +223,13 @@ const SizeChartModal = ({
                       {rowSizeStr || "-"}
                     </Text>
                     {isSelected && (
-                      <Ionicons
-                        name="checkmark-circle"
-                        size={13}
-                        color={theme.primary}
-                      />
+                      <CircleCheck size={13} color={theme.primary} />
                     )}
                   </View>
                 </View>
                 {fields.map((field) => (
                   <View key={field} style={s.cell}>
-                    <Text
-                      style={[
+                    <Text style={[
                         s.cellText,
                         {
                           color: isSelected
@@ -266,8 +250,7 @@ const SizeChartModal = ({
 
         {/* How to Measure Section */}
         {howToMeasure && howToMeasure.length > 0 && (
-          <View
-            style={[
+          <View style={[
               s.measureSection,
               {
                 backgroundColor: theme.tertiaryBackground,
@@ -276,15 +259,14 @@ const SizeChartModal = ({
             ]}
           >
             <View style={s.measureTitleRow}>
-              <Ionicons name="body-outline" size={18} color={theme.primary} />
+              <PersonStanding size={18} color={theme.primary} />
               <Text style={[s.sectionTitle, { color: theme.text }]}>
                 How to Measure Correctly
               </Text>
             </View>
             {howToMeasure.map((step, i) => (
               <View key={i} style={s.stepRow}>
-                <View
-                  style={[s.stepDot, { backgroundColor: theme.primary }]}
+                <View style={[s.stepDot, { backgroundColor: theme.primary }]}
                 />
                 <Text style={[s.stepText, { color: theme.secondaryText }]}>
                   {step}

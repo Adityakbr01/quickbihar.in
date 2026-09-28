@@ -8,7 +8,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import type { LucideIcon } from "lucide-react";
+import { ArrowRight, CircleX, Expand, Palette, ShoppingBag, X, Zap } from "lucide-react";
 import { Theme } from "@/src/theme/Provider/ThemeProvider";
 import { IProduct } from "../../types/product.types";
 import { useCartStore } from "@/src/features/common/cart/store/cartStore";
@@ -205,28 +206,24 @@ export const VariantSelectorBottomSheet = ({
 
   return (
     <>
-      <Sheet
-        ref={sheet}
+      <Sheet ref={sheet}
         
         onDidDismiss={onClose}
         backgroundColor={theme.background}
       >
         {/* Product Header (custom header — has image + price) */}
-        <View
-          style={[
+        <View style={[
             s.header,
             { borderBottomColor: theme.border },
           ]}
         >
-          <Image
-            source={{
+          <Image source={{
               uri: product.images?.[0]?.url || product.image,
             }}
             style={[s.productImage, { borderColor: theme.border }]}
           />
           <View style={s.headerInfo}>
-            <Text
-              style={[s.brand, { color: theme.secondaryText }]}
+            <Text style={[s.brand, { color: theme.secondaryText }]}
               numberOfLines={1}
             >
               {product.brand || "Brand"}
@@ -251,19 +248,17 @@ export const VariantSelectorBottomSheet = ({
                 )}
             </View>
           </View>
-          <TouchableOpacity
-            onPress={onClose}
+          <TouchableOpacity onPress={onClose}
             style={[
               s.closeBtn,
               { backgroundColor: (theme.border ?? "#000") + "40" },
             ]}
           >
-            <Ionicons name="close" size={20} color={theme.text} />
+            <X size={20} color={theme.text} />
           </TouchableOpacity>
         </View>
 
-        <ScrollView
-          showsVerticalScrollIndicator={false}
+        <ScrollView showsVerticalScrollIndicator={false}
           contentContainerStyle={s.content}
         >
           {/* Color Selection */}
@@ -271,8 +266,7 @@ export const VariantSelectorBottomSheet = ({
             <View style={s.section}>
               <Text style={[s.sectionLabel, { color: theme.text }]}>
                 COLOR:{" "}
-                <Text
-                  style={{
+                <Text style={{
                     color: theme.secondaryText,
                     fontWeight: "normal",
                   }}
@@ -284,8 +278,7 @@ export const VariantSelectorBottomSheet = ({
                 {uniqueColors.map((color) => {
                   const active = selectedColor === color;
                   return (
-                    <TouchableOpacity
-                      key={color}
+                    <TouchableOpacity key={color}
                       onPress={() => {
                         setSelectedColor(color);
                         setSelectedSize(null);
@@ -301,8 +294,7 @@ export const VariantSelectorBottomSheet = ({
                       ]}
                       activeOpacity={0.7}
                     >
-                      <Text
-                        style={[
+                      <Text style={[
                           s.colorText,
                           {
                             color: active ? theme.primary : theme.text,
@@ -321,21 +313,18 @@ export const VariantSelectorBottomSheet = ({
           {/* Size Selection */}
           {sizesForColor.length > 0 && (
             <View style={s.section}>
-              <View
-                style={{
+              <View style={{
                   flexDirection: "row",
                   justifyContent: "space-between",
                   alignItems: "center",
                   marginBottom: 12,
                 }}
               >
-                <Text
-                  style={[s.sectionLabel, { color: theme.text, marginBottom: 0 }]}
+                <Text style={[s.sectionLabel, { color: theme.text, marginBottom: 0 }]}
                 >
                   SELECT SIZE
                 </Text>
-                <TouchableOpacity
-                  onPress={() => {
+                <TouchableOpacity onPress={() => {
                     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                     setShowSizeChart(true);
                   }}
@@ -345,13 +334,8 @@ export const VariantSelectorBottomSheet = ({
                     gap: 4,
                   }}
                 >
-                  <Ionicons
-                    name="resize-outline"
-                    size={14}
-                    color={theme.primary}
-                  />
-                  <Text
-                    style={{
+                  <Expand size={14} color={theme.primary} />
+                  <Text style={{
                       fontSize: 12,
                       fontWeight: "700",
                       color: theme.primary,
@@ -366,8 +350,7 @@ export const VariantSelectorBottomSheet = ({
                   const active = selectedSize === v.size;
                   const oos = v.stock === 0;
                   return (
-                    <TouchableOpacity
-                      key={v.sku}
+                    <TouchableOpacity key={v.sku}
                       disabled={oos}
                       onPress={() => setSelectedSize(v.size)}
                       style={[
@@ -386,8 +369,7 @@ export const VariantSelectorBottomSheet = ({
                       ]}
                       activeOpacity={0.7}
                     >
-                      <Text
-                        style={[
+                      <Text style={[
                           s.sizeText,
                           {
                             color: active
@@ -402,8 +384,7 @@ export const VariantSelectorBottomSheet = ({
                         {v.size}
                       </Text>
                       {oos && (
-                        <View
-                          style={[
+                        <View style={[
                             s.oosLine,
                             { backgroundColor: theme.tertiaryText },
                           ]}
@@ -419,9 +400,8 @@ export const VariantSelectorBottomSheet = ({
                 sizesForColor.find((v: any) => v.size === selectedSize)
                   ?.stock! <= 5 && (
                   <View style={s.lowStockRow}>
-                    <Ionicons name="flash" size={14} color={theme.warning} />
-                    <Text
-                      style={[s.lowStockText, { color: theme.warning }]}
+                    <Zap size={14} color={theme.warning} />
+                    <Text style={[s.lowStockText, { color: theme.warning }]}
                     >
                       Only{" "}
                       {
@@ -446,27 +426,26 @@ export const VariantSelectorBottomSheet = ({
               (isOutOfStock && !isInCart);
 
             let buttonText = "ADD TO BAG";
-            let buttonIcon = "bag-handle-outline";
+            let ButtonIcon: LucideIcon = ShoppingBag;
 
             if (isInCart) {
               buttonText = "GO TO CART";
-              buttonIcon = "arrow-forward-outline";
+              ButtonIcon = ArrowRight;
             } else if (isOutOfStock) {
               buttonText = "OUT OF STOCK";
-              buttonIcon = "close-circle-outline";
+              ButtonIcon = CircleX;
             } else if (!isSelectionComplete) {
               if (hasColors && !selectedColor) {
                 buttonText = "SELECT COLOR";
-                buttonIcon = "color-palette-outline";
+                ButtonIcon = Palette;
               } else if (hasSizes && !selectedSize) {
                 buttonText = "SELECT SIZE";
-                buttonIcon = "resize-outline";
+                ButtonIcon = Expand;
               }
             }
 
             return (
-              <TouchableOpacity
-                onPress={handleConfirm}
+              <TouchableOpacity onPress={handleConfirm}
                 disabled={buttonDisabled}
                 style={[
                   s.actionBtn,
@@ -486,11 +465,7 @@ export const VariantSelectorBottomSheet = ({
                   <ActivityIndicator color="#fff" size="small" />
                 ) : (
                   <>
-                    <Ionicons
-                      name={buttonIcon as any}
-                      size={20}
-                      color="#fff"
-                    />
+                    <ButtonIcon size={20} color="#fff" />
                     <Text style={s.actionBtnText}>{buttonText}</Text>
                   </>
                 )}
@@ -500,8 +475,7 @@ export const VariantSelectorBottomSheet = ({
         </SheetFooter>
       </Sheet>
 
-      <SizeChartModal
-        visible={showSizeChart}
+      <SizeChartModal visible={showSizeChart}
         onClose={() => setShowSizeChart(false)}
         sizeChart={activeSizeChart}
         selectedSize={selectedSize}

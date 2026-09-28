@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Platform, Text, TouchableOpacity, View } from "react-native";
 import DateTimePicker, { type DateTimePickerEvent } from "@react-native-community/datetimepicker";
-import { Ionicons } from "@expo/vector-icons";
+import { Calendar } from "lucide-react";
 import type { Theme } from "@/src/theme/Provider/ThemeProvider";
 import { dateInputToDate, dateToInputValue } from "../../theme/riderTheme";
 import type { RiderStyles } from "../../types/rider.types";
@@ -39,11 +39,10 @@ export function RiderDateField({
           <Text style={styles.dateFieldLabel}>{label}</Text>
           <Text style={styles.dateFieldValue}>{value || "Select date"}</Text>
         </View>
-        <Ionicons name="calendar-outline" size={18} color={theme.primary} />
+        <Calendar size={18} color={theme.primary} />
       </TouchableOpacity>
       {open && (
-        <DateTimePicker
-          value={dateInputToDate(value)}
+        <DateTimePicker value={dateInputToDate(value)}
           mode="date"
           display={Platform.OS === "ios" ? "spinner" : "default"}
           onChange={handleChange}

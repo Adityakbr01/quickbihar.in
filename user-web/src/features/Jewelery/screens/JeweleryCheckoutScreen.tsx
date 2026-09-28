@@ -1,4 +1,4 @@
-import { Feather, Ionicons } from "@expo/vector-icons";
+import { ArrowLeft, ArrowRight, Circle, CircleDot, CreditCard, DollarSign, Lock, RefreshCw, Shield, ShieldCheck } from "lucide-react";
 import * as Haptics from "@/lib/haptics";
 import { useNavigate } from "react-router-dom";
 import React, { useEffect, useMemo, useState } from "react";
@@ -570,14 +570,13 @@ export default function JeweleryCheckoutScreen() {
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
           goBack(navigate);
         }} hitSlop={8}>
-          <Feather name="arrow-left" size={16} color={colors.ink} />
+          <ArrowLeft size={16} color={colors.ink} />
         </Pressable>
         <Text style={styles.headerTitle}>CHECKOUT</Text>
-        <Feather name="shield" size={16} color={colors.gold} />
+        <Shield size={16} color={colors.gold} />
       </View>
 
-      <ScrollView
-        style={styles.scroll}
+      <ScrollView style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
@@ -588,8 +587,7 @@ export default function JeweleryCheckoutScreen() {
         <View style={styles.section}>
           <View style={styles.sectionRow}>
             <Text style={styles.sectionLabel}>DELIVERY ADDRESS</Text>
-            <TouchableOpacity
-              onPress={() =>
+            <TouchableOpacity onPress={() =>
                 goTo(navigate, {
                   pathname: "/jewelery/addresses" as any,
                   params: { returnTo: "/jewelery/checkout" },
@@ -612,12 +610,11 @@ export default function JeweleryCheckoutScreen() {
                 <Text style={styles.phoneText}>{selectedAddress.phone}</Text>
                 {selectedAddress.isPhoneVerified ? (
                   <View style={styles.verifiedBadge}>
-                    <Ionicons name="shield-checkmark" size={10} color={colors.gold} />
+                    <ShieldCheck size={10} color={colors.gold} />
                     <Text style={styles.verifiedText}>Verified</Text>
                   </View>
                 ) : (
-                  <TouchableOpacity
-                    onPress={() => setOtpSheetVisible(true)}
+                  <TouchableOpacity onPress={() => setOtpSheetVisible(true)}
                     style={[styles.verifiedBadge, { backgroundColor: colors.pearl, borderWidth: 0.5, borderColor: colors.gold }]}
                   >
                     <Text style={[styles.verifiedText, { color: colors.gold }]}>Verify Now</Text>
@@ -626,8 +623,7 @@ export default function JeweleryCheckoutScreen() {
               </View>
             </>
           ) : (
-            <TouchableOpacity
-              onPress={() =>
+            <TouchableOpacity onPress={() =>
                 goTo(navigate, {
                   pathname: "/jewelery/addresses" as any,
                   params: { returnTo: "/jewelery/checkout" },
@@ -667,14 +663,13 @@ export default function JeweleryCheckoutScreen() {
           <Text style={styles.sectionLabel}>PAYMENT METHOD</Text>
           {(
             [
-              { key: "ONLINE", label: "Pay Online", desc: "UPI, Cards, Netbanking & Wallets", icon: "credit-card" },
-              { key: "COD", label: "Cash on Delivery", desc: "Pay in cash when your order arrives", icon: "dollar-sign" },
+              { key: "ONLINE", label: "Pay Online", desc: "UPI, Cards, Netbanking & Wallets", icon: CreditCard },
+              { key: "COD", label: "Cash on Delivery", desc: "Pay in cash when your order arrives", icon: DollarSign },
             ] as const
           ).map((opt) => {
             const isSelected = paymentMethod === opt.key;
             return (
-              <Pressable
-                key={opt.key}
+              <Pressable key={opt.key}
                 onPress={() => {
                   Haptics.selectionAsync();
                   setPaymentMethod(opt.key);
@@ -687,18 +682,18 @@ export default function JeweleryCheckoutScreen() {
                   },
                 ]}
               >
-                <Feather name={opt.icon as any} size={18} color={isSelected ? colors.gold : colors.warmGray} />
+                <opt.icon size={18} color={isSelected ? colors.gold : colors.warmGray} />
                 <View style={{ flex: 1 }}>
                   <Text style={[styles.payOptLabel, { color: isSelected ? colors.ink : colors.warmGray }]}>
                     {opt.label}
                   </Text>
                   <Text style={styles.payOptDesc}>{opt.desc}</Text>
                 </View>
-                <Ionicons
-                  name={isSelected ? "radio-button-on" : "radio-button-off"}
-                  size={18}
-                  color={isSelected ? colors.gold : colors.midGray}
-                />
+                {isSelected ? (
+                  <CircleDot size={18} color={colors.gold} />
+                ) : (
+                  <Circle size={18} color={colors.midGray} />
+                )}
               </Pressable>
             );
           })}
@@ -758,12 +753,12 @@ export default function JeweleryCheckoutScreen() {
         {/* Trust Signals */}
         <View style={styles.trustRow}>
           {[
-            { icon: "shield", text: "Hallmark Certified" },
-            { icon: "refresh-cw", text: `Free Returns ${JEWELERY_MODULE_CONFIG.returnPolicyDays}d` },
-            { icon: "lock", text: "Secure Payment" },
+            { icon: Shield, text: "Hallmark Certified" },
+            { icon: RefreshCw, text: `Free Returns ${JEWELERY_MODULE_CONFIG.returnPolicyDays}d` },
+            { icon: Lock, text: "Secure Payment" },
           ].map((t) => (
             <View key={t.text} style={styles.trustItem}>
-              <Feather name={t.icon as any} size={13} color={colors.gold} />
+              <t.icon size={13} color={colors.gold} />
               <Text style={styles.trustText}>{t.text}</Text>
             </View>
           ))}
@@ -772,8 +767,7 @@ export default function JeweleryCheckoutScreen() {
 
       {/* Footer CTA */}
       <View style={styles.footer}>
-        <TouchableOpacity
-          style={[
+        <TouchableOpacity style={[
             styles.placeBtn,
             { opacity: isProcessingPayment || isQuoteLoading || Boolean(quoteError) ? 0.5 : 1 },
           ]}
@@ -794,14 +788,13 @@ export default function JeweleryCheckoutScreen() {
               <Text style={styles.placeBtnText}>
                 {paymentMethod === "COD" ? "PLACE ORDER" : "PAY & ORDER"}
               </Text>
-              <Feather name="arrow-right" size={14} color={colors.onBrand} />
+              <ArrowRight size={14} color={colors.onBrand} />
             </View>
           )}
         </TouchableOpacity>
       </View>
 
-      <IOSAlertDialog
-        visible={alertConfig.visible}
+      <IOSAlertDialog visible={alertConfig.visible}
         onClose={hideAlert}
         title={alertConfig.title}
         message={alertConfig.message}
@@ -809,8 +802,7 @@ export default function JeweleryCheckoutScreen() {
       />
 
       {selectedAddress && (
-        <PhoneOtpSheet
-          visible={otpSheetVisible}
+        <PhoneOtpSheet visible={otpSheetVisible}
           initialPhone={selectedAddress.phone || user?.phone || ""}
           onVerified={async (verifiedPhone) => {
             setOtpSheetVisible(false);

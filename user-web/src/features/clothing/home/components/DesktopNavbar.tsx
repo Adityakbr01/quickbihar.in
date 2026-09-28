@@ -10,7 +10,8 @@ import {
 import { useLocation, useNavigate } from "react-router-dom";
 import { goTo } from "@/src/utils/navigation";
 import { Image } from "expo-image";
-import { Ionicons } from "@expo/vector-icons";
+import type { LucideIcon } from "lucide-react";
+import { Bell, CircleX, House, Moon, Search, ShoppingBag, Sun, User } from "lucide-react";
 import * as Haptics from "@/lib/haptics";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { useCartStore } from "@/src/features/common/cart/store/cartStore";
@@ -61,11 +62,10 @@ export const DesktopNavbar = () => {
 
   const isActive = (seg: string) => pathname?.includes(seg);
 
-  const navItem = (label: string, seg: string, href: string, icon: any, badge?: number) => {
+  const navItem = (label: string, seg: string, href: string, Icon: LucideIcon, badge?: number) => {
     const active = isActive(seg);
     return (
-      <Pressable
-        key={label}
+      <Pressable key={label}
         onPress={() => go(href)}
         accessibilityRole="link"
         accessibilityLabel={label}
@@ -78,13 +78,11 @@ export const DesktopNavbar = () => {
           Platform.OS === "web" ? ({ cursor: "pointer" } as any) : null,
         ]}
       >
-        <Ionicons
-          name={icon}
+        <Icon
           size={17}
           color={active ? "#fff" : theme.secondaryText}
         />
-        <Text
-          style={[
+        <Text style={[
             styles.navLabel,
             { color: active ? "#fff" : theme.text },
           ]}
@@ -92,14 +90,12 @@ export const DesktopNavbar = () => {
           {label}
         </Text>
         {typeof badge === "number" && badge > 0 ? (
-          <View
-            style={[
+          <View style={[
               styles.badge,
               { backgroundColor: active ? "#fff" : theme.primary },
             ]}
           >
-            <Text
-              style={[
+            <Text style={[
                 styles.badgeText,
                 { color: active ? theme.primary : "#fff" },
               ]}
@@ -113,8 +109,7 @@ export const DesktopNavbar = () => {
   };
 
   return (
-    <View
-      style={[
+    <View style={[
         styles.shell,
         {
           backgroundColor: theme.background,
@@ -125,15 +120,13 @@ export const DesktopNavbar = () => {
     >
       <View style={styles.inner}>
         {/* Brand */}
-        <Pressable
-          onPress={() => go("/(tabs)/clothing/home")}
+        <Pressable onPress={() => go("/(tabs)/clothing/home")}
           style={Platform.OS === "web" ? ({ cursor: "pointer" } as any) : null}
           accessibilityRole="link"
           accessibilityLabel="Quick Bihar home"
         >
           <View style={styles.brandRow}>
-            <Image
-              source={splashIcon}
+            <Image source={splashIcon}
               style={styles.logoImage}
               contentFit="contain"
               alt="Quick Bihar logo"
@@ -151,8 +144,7 @@ export const DesktopNavbar = () => {
         </Pressable>
 
         {/* Search */}
-        <TextInput
-          value={query}
+        <TextInput value={query}
           onChangeText={setQuery}
           onSubmitEditing={submitSearch}
           onFocus={() => setFocused(true)}
@@ -161,21 +153,16 @@ export const DesktopNavbar = () => {
           placeholderTextColor={theme.tertiaryText}
           returnKeyType="search"
           icon={
-            <Ionicons
-              name="search"
-              size={18}
-              color={focused ? theme.primary : theme.secondaryText}
-            />
+            <Search size={18} color={focused ? theme.primary : theme.secondaryText} />
           }
           rightIcon={
             <>
               {query.length > 0 ? (
                 <Pressable onPress={() => setQuery("")} style={styles.searchClear}>
-                  <Ionicons name="close-circle" size={18} color={theme.secondaryText} />
+                  <CircleX size={18} color={theme.secondaryText} />
                 </Pressable>
               ) : null}
-              <Pressable
-                onPress={submitSearch}
+              <Pressable onPress={submitSearch}
                 style={[styles.searchBtn, { backgroundColor: theme.primary }]}
               >
                 <Text style={styles.searchBtnText}>Search</Text>
@@ -196,32 +183,30 @@ export const DesktopNavbar = () => {
 
         {/* Nav */}
         <View style={styles.navRow}>
-          {navItem("Home", "/clothing/home", "/(tabs)/clothing/home", "home-outline")}
-          {navItem("Cart", "/clothing/cart", "/(tabs)/clothing/cart", "bag-outline", cartCount)}
+          {navItem("Home", "/clothing/home", "/(tabs)/clothing/home", House)}
+          {navItem("Cart", "/clothing/cart", "/(tabs)/clothing/cart", ShoppingBag, cartCount)}
           {navItem(
             isAuthenticated ? "Account" : "Login",
             "/clothing/account",
             "/(tabs)/clothing/account",
-            "person-outline",
+            User,
           )}
-          <Pressable
-            onPress={() => go("/account/notifications" as any)}
+          <Pressable onPress={() => go("/account/notifications" as any)}
             style={[styles.iconBtn, { borderColor: theme.border }]}
             accessibilityLabel="Notifications"
           >
-            <Ionicons name="notifications-outline" size={18} color={theme.text} />
+            <Bell size={18} color={theme.text} />
           </Pressable>
           <ModuleSwitcherButton />
-          <Pressable
-            onPress={() => toggleMode?.()}
+          <Pressable onPress={() => toggleMode?.()}
             style={[styles.iconBtn, { borderColor: theme.border }]}
             accessibilityLabel="Toggle theme"
           >
-            <Ionicons
-              name={isDark ? "sunny-outline" : "moon-outline"}
-              size={18}
-              color={theme.text}
-            />
+            {isDark ? (
+              <Sun size={18} color={theme.text} />
+            ) : (
+              <Moon size={18} color={theme.text} />
+            )}
           </Pressable>
         </View>
       </View>

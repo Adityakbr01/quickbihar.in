@@ -1,4 +1,4 @@
-import { Feather } from "@expo/vector-icons";
+import { Package, Search } from "lucide-react";
 import * as Haptics from "@/lib/haptics";
 import { useNavigate } from "react-router-dom";
 import { goTo } from "@/src/utils/navigation";
@@ -55,8 +55,7 @@ export default function JeweleryCollectionsScreen() {
 
   return (
     <View style={[styles.root, { backgroundColor: colors.ivory }]}>
-      <View
-        style={[
+      <View style={[
           styles.header,
           {
             paddingTop: topPad + 12,
@@ -65,8 +64,7 @@ export default function JeweleryCollectionsScreen() {
           },
         ]}
       >
-        <Text
-          style={[
+        <Text style={[
             styles.headerTitle,
             { color: colors.ink, fontFamily: "CormorantGaramond_600SemiBold" },
           ]}
@@ -77,26 +75,23 @@ export default function JeweleryCollectionsScreen() {
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
           goTo(navigate, "/jewelery/search" as any);
         }} hitSlop={8}>
-          <Feather name="search" size={20} color={colors.ink} />
+          <Search size={20} color={colors.ink} />
         </Pressable>
       </View>
 
-      <ScrollView
-        showsVerticalScrollIndicator={false}
+      <ScrollView showsVerticalScrollIndicator={false}
         contentContainerStyle={[Platform.OS === "web" && { paddingBottom: 34 }]}
       >
         {/* Collections hero grid */}
         <View style={[styles.section, { backgroundColor: colors.pearl }]}>
-          <Text
-            style={[
+          <Text style={[
               styles.sectionLabel,
               { color: colors.gold, fontFamily: "DMSans_500Medium" },
             ]}
           >
             OUR WORLD
           </Text>
-          <Text
-            style={[
+          <Text style={[
               styles.sectionTitle,
               {
                 color: colors.ink,
@@ -106,14 +101,12 @@ export default function JeweleryCollectionsScreen() {
           >
             Five worlds. One story.
           </Text>
-          <ScrollView
-            horizontal
+          <ScrollView horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.collectionScroll}
           >
             {chips.map((c) => (
-              <Pressable
-                key={c.id}
+              <Pressable key={c.id}
                 style={({ pressed }) => [
                   styles.collectionChip,
                   {
@@ -126,16 +119,14 @@ export default function JeweleryCollectionsScreen() {
                 }}
               >
                 {c.image && (
-                  <Image
-                    source={c.image}
+                  <Image source={c.image}
                     style={styles.collectionChipImage}
                     resizeMode="cover"
                   />
                 )}
                 <View style={styles.collectionChipOverlay} />
                 <View style={styles.collectionChipContent}>
-                  <Text
-                    style={[
+                  <Text style={[
                       styles.collectionChipName,
                       {
                         color: "#F7F3EC",
@@ -152,8 +143,7 @@ export default function JeweleryCollectionsScreen() {
         </View>
 
         {/* Filter tabs */}
-        <View
-          style={[
+        <View style={[
             styles.filterBar,
             {
               backgroundColor: colors.ivory,
@@ -161,14 +151,12 @@ export default function JeweleryCollectionsScreen() {
             },
           ]}
         >
-          <ScrollView
-            horizontal
+          <ScrollView horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.filterScroll}
           >
             {collectionTabs.map((tab) => (
-              <Pressable
-                key={tab}
+              <Pressable key={tab}
                 style={[
                   styles.filterTab,
                   {
@@ -178,8 +166,7 @@ export default function JeweleryCollectionsScreen() {
                 ]}
                 onPress={() => setActiveTab(tab)}
               >
-                <Text
-                  style={[
+                <Text style={[
                     styles.filterTabText,
                     {
                       color: activeTab === tab ? colors.gold : colors.warmGray,
@@ -198,8 +185,7 @@ export default function JeweleryCollectionsScreen() {
         </View>
 
         {/* Product grid */}
-        <View
-          style={[styles.productsSection, { backgroundColor: colors.ivory }]}
+        <View style={[styles.productsSection, { backgroundColor: colors.ivory }]}
         >
           <View style={styles.productGrid}>
             {isLoading ? (
@@ -212,9 +198,8 @@ export default function JeweleryCollectionsScreen() {
           </View>
           {!isLoading && filtered.length === 0 && (
             <View style={styles.emptyState}>
-              <Feather name="package" size={32} color={colors.midGray} />
-              <Text
-                style={[
+              <Package size={32} color={colors.midGray} />
+              <Text style={[
                   styles.emptyText,
                   { color: colors.warmGray, fontFamily: "DMSans_400Regular" },
                 ]}
@@ -224,8 +209,7 @@ export default function JeweleryCollectionsScreen() {
             </View>
           )}
           {hasNextPage && !isLoading && (
-            <Pressable
-              onPress={() => fetchNextPage()}
+            <Pressable onPress={() => fetchNextPage()}
               disabled={isFetchingNextPage}
               style={{ alignItems: "center", paddingVertical: 16 }}
             >

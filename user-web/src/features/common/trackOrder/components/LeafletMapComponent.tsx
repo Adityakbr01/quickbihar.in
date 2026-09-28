@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState, useCallback } from "react";
 import { StyleSheet, View, ActivityIndicator, TouchableOpacity } from "react-native";
 import { WebView } from "react-native-webview";
-import { Ionicons } from "@expo/vector-icons";
+import { LocateFixed } from "lucide-react";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 
 interface LatLng {
@@ -291,8 +291,7 @@ export const LeafletMapComponent: React.FC<LeafletMapComponentProps> = ({
 
   return (
     <View style={styles.container}>
-      <WebView
-        ref={webViewRef}
+      <WebView ref={webViewRef}
         originWhitelist={["*"]}
         source={{ html: leafletHTML }}
         style={styles.webview}
@@ -318,12 +317,11 @@ export const LeafletMapComponent: React.FC<LeafletMapComponentProps> = ({
 
       {/* Recenter Button */}
       {isWebViewLoaded && (
-        <TouchableOpacity
-          style={styles.recenterBtn}
+        <TouchableOpacity style={styles.recenterBtn}
           activeOpacity={0.8}
           onPress={handleRecenter}
         >
-          <Ionicons name="locate" size={20} color="#FF6B00" />
+          <LocateFixed size={20} color="#FF6B00" />
         </TouchableOpacity>
       )}
 

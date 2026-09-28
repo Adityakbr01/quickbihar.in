@@ -1,3 +1,4 @@
+import { Layers } from "lucide-react";
 import React from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 import type { Theme } from "@/src/theme/Provider/ThemeProvider";
@@ -62,7 +63,7 @@ export function OverviewPanel({
 
       <SectionTitle styles={styles} title="Recent Activity" meta={`${recentOrders.length} orders`} />
       {recentOrders.length === 0 ? (
-        <EmptyCard styles={styles} theme={theme} icon="albums-outline" label="No delivery activity yet." />
+        <EmptyCard styles={styles} theme={theme} icon={Layers} label="No delivery activity yet." />
       ) : (
         recentOrders.map((order: RiderOrder) => (
           <TouchableOpacity key={order._id} style={styles.listCard} onPress={() => onTab("history")} activeOpacity={0.85}>

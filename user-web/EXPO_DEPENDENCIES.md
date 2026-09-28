@@ -1,6 +1,6 @@
 # Expo Dependencies — `user-web` (Vite React App)
 
-> Date: 2026-09-28 (updated: expo-haptics → web-haptics; expo-router → react-router-dom) | Source: `package.json` + `vite.config.ts` aliases + `rg` import counts in `src/`
+> Date: 2026-09-28 (updated: expo-haptics → web-haptics; expo-router → react-router-dom; @expo/vector-icons → lucide-react) | Source: `package.json` + `vite.config.ts` aliases + `rg` import counts in `src/`
 
 ## 0. Sabse important baat
 
@@ -14,9 +14,10 @@ Matlab web build par Expo native code chalता hi nahi — sirf web shim chalt
 'expo-router'        -> './src/shims/expo-router.web.tsx'   // react-router-dom wrapper
 '@expo/vector-icons' -> './src/shims/expo-vector-icons.web.tsx'
 'expo-linear-gradient' -> './src/shims/expo-linear-gradient.web.tsx'
-// ... total 16 expo aliases (neeche poori list)
+// ... total 14 expo aliases (neeche poori list)
 // REMOVED: 'expo-haptics' — ab `web-haptics` package + `src/lib/haptics.ts` use hota hai (see §5)
 // REMOVED: 'expo-router', 'expo-router/head' — ab `react-router-dom` direct use hota hai (see §6)
+// REMOVED: '@expo/vector-icons', 'expo-symbols' — ab `lucide-react` direct use hota hai (see §7)
 ```
 
 Agar kabhi is code ko real Expo native app me le jana ho, tabhi neeche wale packages `npm i` karne padenge. Web ke liye kuch install karne ki zaroorat nahi.
@@ -27,13 +28,9 @@ Agar kabhi is code ko real Expo native app me le jana ho, tabhi neeche wale pack
 
 Counts me `src/shims/*` khud aur `vite.config.ts` excluded hain — sirf real feature code gina hai.
 
-### P0 — Core (shim toota = app tooti)
+### P0 — Core (sab removed, sab ke replacement neeche)
 
-| Priority | Package | Files | Kahan use | Web shim kya karta hai |
-|----------|---------|-------|-----------|------------------------|
-| P0-1 | `@expo/vector-icons` | **88 files** | Har screen/card/navbar — `Ionicons`, `MaterialIcons` etc. | lucide/inline SVG par map (shim: `expo-vector-icons.web.tsx`) |
-
-> Ye hatao to app chalegi hi nahi.
+> ~~`@expo/vector-icons` (88 files)~~ — **REMOVED (2026-09-28)**. Ab `lucide-react@1.48.0` direct use hota hai (tree-shakeable named imports). Koi `@expo/vector-icons` naam `src/`/config me nahi bacha — details §7 me.
 >
 > ~~`expo-haptics` (72 files)~~ — **REMOVED (2026-09-28)**. Ab `web-haptics` npm package + `src/lib/haptics.ts` wrapper use hota hai. Koi `expo-haptics` naam codebase me nahi bacha — details §5 me.
 >
@@ -77,12 +74,13 @@ Counts me `src/shims/*` khud aur `vite.config.ts` excluded hain — sirf real fe
 
 ```
 expo-image-picker, expo-modules-core,
-@expo/vector-icons, expo-linear-gradient, expo-location,
+expo-linear-gradient, expo-location,
 expo-image, expo-linking, expo-secure-store, expo-constants, expo-device,
-expo-notifications, expo-web-browser, expo-symbols, expo-blur,
+expo-notifications, expo-web-browser, expo-blur,
 expo-splash-screen, expo-status-bar, expo
 (REMOVED: expo-haptics → `web-haptics` package + `src/lib/haptics.ts`, see §5)
 (REMOVED: expo-router, expo-router/head → `react-router-dom` + `src/utils/navigation.ts`, see §6)
+(REMOVED: @expo/vector-icons, expo-symbols → `lucide-react` + `src/components/common/BrandIcons.tsx`, see §7)
 + react-native family (alag se): react-native, reanimated, safe-area-context,
   svg, webview, gesture-handler, async-storage, flash-list, datetimepicker,
   reanimated-carousel, razorpay, true-sheet, lottie-react-native, google-signin
@@ -93,12 +91,9 @@ expo-splash-screen, expo-status-bar, expo
 Priority order me (sab Expo SDK compatible version me):
 
 ```bash
-# P0 — pehle ye
-npx expo install @expo/vector-icons
-# (web-haptics web-only hai — native me iski jagah expo-haptics lagega,
-#  call sites `src/lib/haptics.ts` me hain isliye 1 file badalni padegi)
-# (web navigation ab react-router-dom par hai — native app me wapas
-#  expo-router lagega; `expo-app-reference/` me native code untouched rakha hai)
+# P0 — web me kuch nahi chahiye (sab removed; lucide/react-router/web-haptics npm se aate hain)
+# (native app me wapas lagega: expo-router, expo-haptics, @expo/vector-icons;
+#  `expo-app-reference/` me native code untouched rakha hai)
 
 # P1 — phir ye
 npx expo install expo-image expo-constants expo-location expo-notifications \
@@ -132,6 +127,20 @@ Pehle `expo-haptics` naam ka koi package installed nahi tha — sirf alias + shi
 - **Verify:** `rg "expo-haptics" src vite.config.ts tsconfig.app.json` = zero hits; `bun run typecheck` clean; `bun run build` ✓.
 
 Native Expo app me le jate waqt `src/lib/haptics.ts` ko `expo-haptics` par re-point karna — baaki 72 files ko chhede bina kaam ho jayega.
+
+---
+
+## 7. Icons migration (2026-09-28) — `@expo/vector-icons` → `lucide-react`
+
+Pehle `@expo/vector-icons` naam ka koi package installed nahi tha — sirf alias + shim (`src/shims/expo-vector-icons.web.tsx`) tha jo andar hi `react-icons` ko wrap karta tha. Ab seedha `lucide-react@1.48.0` (`bun add lucide-react`; named imports = tree-shakeable = chhota bundle):
+
+- **Static usages (~270):** `<Ionicons name="home-outline" size color />` → `<House size color />`. Fill wali solid glyphs (`star`, `heart` ratings/wishlist me) par `fill` prop lagaya; baaki sab lucide outline aesthetic me.
+- **Dynamic/data-driven:** tab arrays, menu defs, trust lists, sort/chip options, `AppIcon` system — sab me string names ki jagah lucide components (`icon: House`, `<tab.icon />`, `AppIcon icon={Pencil}`).
+- **Brand icons (lucide me hote hi nahi):** `src/components/common/BrandIcons.tsx` — Google/Apple/WhatsApp tiny inline SVG, zero deps (sign-in + WhatsApp buttons ke liye).
+- **Bonus removals:** `expo-symbols` (sirf SocialButton use karta tha, web par ⚙️ render karta tha — ab asli Apple SVG), `react-icons` package (`bun remove react-icons` — ab koi use nahi karta).
+- **Deleted:** 2 shim files, `vite.config.ts` ke 2 alias, `tsconfig.app.json` ke 3 path mappings.
+- **Verify:** `rg "@expo/vector-icons|expo-symbols|react-icons" src vite.config.ts tsconfig.app.json package.json` = zero hits; `bun run typecheck` clean; `bun run build` ✓; koi naya lint warning nahi.
+- **`expo-app-reference/` untouched** — native code ka source of truth wahi hai.
 
 ---
 

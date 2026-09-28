@@ -1,5 +1,6 @@
 import { Theme } from "@/src/theme/Provider/ThemeProvider";
 import { AppIcon } from "@/src/components/common/AppIcon";
+import { ChevronRight } from "lucide-react";
 import * as Haptics from "@/lib/haptics";
 import React, { useState } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
@@ -81,7 +82,7 @@ const AccountOption = ({
       >
         <View style={styles.iconContainer}>
           <AppIcon
-            name={icon}
+            icon={icon}
             size={22}
             color={danger ? "#FF3B30" : theme.primary}
           />
@@ -94,7 +95,7 @@ const AccountOption = ({
         {showArrow && (
           <Animated.View style={chevronAnimatedStyle}>
             <AppIcon
-              name="chevron-forward"
+              icon={ChevronRight}
               size={20}
               color={theme.tertiaryText}
               style={styles.chevron}
@@ -117,7 +118,7 @@ const AccountOption = ({
             >
               <View style={styles.subIconContainer}>
                 <AppIcon
-                  name={item.icon}
+                  icon={item.icon}
                   size={18}
                   color={theme.primary}
                 />

@@ -10,7 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { CircleAlert, CircleCheck, Eye, EyeOff, Lock, Mail, ShieldCheck } from "lucide-react";
 import * as Haptics from "@/lib/haptics";
 import Animated, { FadeInDown, LinearTransition } from "react-native-reanimated";
 
@@ -185,8 +185,7 @@ const PasswordEmailSetupSheet = ({ variant = "default" }: { variant?: ModuleVari
   const inputPlaceholder = theme.tertiaryText; // muted so it never competes with real text
 
   return (
-    <Sheet
-      ref={sheet}
+    <Sheet ref={sheet}
       detents={["auto", 0.65]}
       backgroundColor={theme.background}
       cornerRadius={theme.radius ?? 24}
@@ -198,19 +197,16 @@ const PasswordEmailSetupSheet = ({ variant = "default" }: { variant?: ModuleVari
         Header WITHOUT a close button — the native grabber + drag-to-dismiss
         is the only way to close. Keeps the chrome minimal.
       */}
-      <SheetHeader
-        title="Password & Email Setup"
+      <SheetHeader title="Password & Email Setup"
         subtitle="Link your email and set a secure password for password login."
         hideCloseButton
         themeOverride={theme}
       />
 
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={{ flexShrink: 1 }}
       >
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
+        <ScrollView contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
@@ -227,17 +223,12 @@ const PasswordEmailSetupSheet = ({ variant = "default" }: { variant?: ModuleVari
                 ]}
             >
               <View style={styles.successIconCircle}>
-                <Ionicons
-                  name="checkmark-circle-outline"
-                  size={48}
-                  color="#22c55e"
-                />
+                <CircleCheck size={48} color="#22c55e" />
               </View>
               <Text style={[styles.successTitle, { color: theme.text }]}>
                 Security Updated!
               </Text>
-              <Text
-                style={[styles.successSubtitle, { color: theme.secondaryText }]}
+              <Text style={[styles.successSubtitle, { color: theme.secondaryText }]}
               >
                 Your email and password are saved. Closing…
               </Text>
@@ -257,7 +248,7 @@ const PasswordEmailSetupSheet = ({ variant = "default" }: { variant?: ModuleVari
                     },
                   ]}
                 >
-                  <Ionicons name="alert-circle" size={18} color="#fca5a5" />
+                  <CircleAlert size={18} color="#fca5a5" />
                   <Text style={styles.errorBannerText}>{error}</Text>
                 </Animated.View>
               ) : null}
@@ -267,8 +258,7 @@ const PasswordEmailSetupSheet = ({ variant = "default" }: { variant?: ModuleVari
                 <Text style={[styles.label, { color: theme.text }]}>
                   Email Address
                 </Text>
-                <TextInput
-                  placeholder="Please add your email"
+                <TextInput placeholder="Please add your email"
                   placeholderTextColor={inputPlaceholder}
                   keyboardType="email-address"
                   autoCapitalize="none"
@@ -280,19 +270,11 @@ const PasswordEmailSetupSheet = ({ variant = "default" }: { variant?: ModuleVari
                   editable={!isEmailLocked}
                   selectTextOnFocus={!isEmailLocked}
                   icon={
-                    <Ionicons
-                      name="mail-outline"
-                      size={18}
-                      color={theme.secondaryText}
-                    />
+                    <Mail size={18} color={theme.secondaryText} />
                   }
                   rightIcon={
                     isEmailLocked ? (
-                      <Ionicons
-                        name="lock-closed-outline"
-                        size={16}
-                        color={theme.secondaryText}
-                      />
+                      <Lock size={16} color={theme.secondaryText} />
                     ) : undefined
                   }
                   containerStyle={{ marginBottom: 0, opacity: isEmailLocked ? 0.6 : 1 }}
@@ -306,8 +288,7 @@ const PasswordEmailSetupSheet = ({ variant = "default" }: { variant?: ModuleVari
                   style={{ fontSize: 15, fontWeight: "600", color: inputText }}
                 />
                 {isEmailLocked ? (
-                  <Text
-                    style={{
+                  <Text style={{
                       color: theme.tertiaryText,
                       fontSize: 12,
                       marginTop: 6,
@@ -324,8 +305,7 @@ const PasswordEmailSetupSheet = ({ variant = "default" }: { variant?: ModuleVari
                 <Text style={[styles.label, { color: theme.text }]}>
                   New Password
                 </Text>
-                <TextInput
-                  placeholder="At least 6 characters"
+                <TextInput placeholder="At least 6 characters"
                   placeholderTextColor={inputPlaceholder}
                   secureTextEntry={!showPassword}
                   value={password}
@@ -333,26 +313,21 @@ const PasswordEmailSetupSheet = ({ variant = "default" }: { variant?: ModuleVari
                   onSubmitEditing={() => confirmRef.current?.focus()}
                   returnKeyType="next"
                   icon={
-                    <Ionicons
-                      name="lock-closed-outline"
-                      size={18}
-                      color={theme.secondaryText}
-                    />
+                    <Lock size={18} color={theme.secondaryText} />
                   }
                   rightIcon={
-                    <Pressable
-                      onPress={() => {
+                    <Pressable onPress={() => {
                         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                         setShowPassword(!showPassword);
                       }}
                       hitSlop={10}
                       style={styles.eyeBtn}
                     >
-                      <Ionicons
-                        name={showPassword ? "eye-off-outline" : "eye-outline"}
-                        size={20}
-                        color={theme.secondaryText}
-                      />
+                      {showPassword ? (
+                      <EyeOff size={20} color={theme.secondaryText} />
+                    ) : (
+                      <Eye size={20} color={theme.secondaryText} />
+                    )}
                     </Pressable>
                   }
                   containerStyle={{ marginBottom: 0 }}
@@ -372,8 +347,7 @@ const PasswordEmailSetupSheet = ({ variant = "default" }: { variant?: ModuleVari
                   >
                     <View style={styles.strengthTrack}>
                       {[1, 2, 3, 4, 5].map((idx) => (
-                        <View
-                          key={idx}
+                        <View key={idx}
                           style={[
                             styles.strengthSegment,
                             {
@@ -386,8 +360,7 @@ const PasswordEmailSetupSheet = ({ variant = "default" }: { variant?: ModuleVari
                         />
                       ))}
                     </View>
-                    <Text
-                      style={{
+                    <Text style={{
                         color: strengthColor[strength],
                         fontSize: 12,
                         marginTop: 6,
@@ -406,8 +379,7 @@ const PasswordEmailSetupSheet = ({ variant = "default" }: { variant?: ModuleVari
                 <Text style={[styles.label, { color: theme.text }]}>
                   Confirm Password
                 </Text>
-                <TextInput
-                  ref={confirmRef}
+                <TextInput ref={confirmRef}
                   placeholder="Re-enter password"
                   placeholderTextColor={inputPlaceholder}
                   secureTextEntry={!showConfirm}
@@ -416,26 +388,21 @@ const PasswordEmailSetupSheet = ({ variant = "default" }: { variant?: ModuleVari
                   onSubmitEditing={handleSubmit}
                   returnKeyType="done"
                   icon={
-                    <Ionicons
-                      name="shield-checkmark-outline"
-                      size={18}
-                      color={theme.secondaryText}
-                    />
+                    <ShieldCheck size={18} color={theme.secondaryText} />
                   }
                   rightIcon={
-                    <Pressable
-                      onPress={() => {
+                    <Pressable onPress={() => {
                         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                         setShowConfirm(!showConfirm);
                       }}
                       hitSlop={10}
                       style={styles.eyeBtn}
                     >
-                      <Ionicons
-                        name={showConfirm ? "eye-off-outline" : "eye-outline"}
-                        size={20}
-                        color={theme.secondaryText}
-                      />
+                      {showConfirm ? (
+                      <EyeOff size={20} color={theme.secondaryText} />
+                    ) : (
+                      <Eye size={20} color={theme.secondaryText} />
+                    )}
                     </Pressable>
                   }
                   containerStyle={{ marginBottom: 0 }}
@@ -451,8 +418,7 @@ const PasswordEmailSetupSheet = ({ variant = "default" }: { variant?: ModuleVari
               </View>
 
               {/* Primary CTA — WHITE text on brand primary */}
-              <TouchableOpacity
-                style={[
+              <TouchableOpacity style={[
                   styles.primaryBtn,
                   {
                     backgroundColor: theme.primary,
@@ -468,7 +434,7 @@ const PasswordEmailSetupSheet = ({ variant = "default" }: { variant?: ModuleVari
                   <ActivityIndicator color="#fff" size="small" />
                 ) : (
                   <>
-                    <Ionicons name="shield-checkmark" size={18} color="#fff" />
+                    <ShieldCheck size={18} color="#fff" />
                     <Text style={styles.primaryBtnText}>
                       Save Password &amp; Email
                     </Text>

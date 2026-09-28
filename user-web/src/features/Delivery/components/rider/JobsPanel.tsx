@@ -1,6 +1,6 @@
 import React from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { BellOff, Box, Camera, Layers, Lock } from "lucide-react";
 import type { Theme } from "@/src/theme/Provider/ThemeProvider";
 import { TextInput } from "@/src/theme/components/TextInput";
 import { riderInputChrome } from "../../styles/rider.styles";
@@ -73,15 +73,14 @@ export function JobsPanel({
 
       <SectionTitle styles={styles} title="Active Queue" meta={`${activeOrders.length} jobs`} />
       {activeOrders.length === 0 ? (
-        <EmptyCard styles={styles} theme={theme} icon="cube-outline" label="No active delivery assigned." />
+        <EmptyCard styles={styles} theme={theme} icon={Box} label="No active delivery assigned." />
       ) : (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.jobTabs}>
           {activeOrders.map((order) => {
             const jobId = subOrderIdOf(order);
             const selected = selectedJobId === jobId;
             return (
-              <TouchableOpacity
-                key={jobId}
+              <TouchableOpacity key={jobId}
                 style={[styles.jobTab, selected && styles.jobTabSelected]}
                 onPress={() => onSelectJob(jobId)}
                 activeOpacity={0.8}
@@ -106,11 +105,11 @@ export function JobsPanel({
               <Text style={styles.noticeTitle}>Complete Profile First</Text>
               <Text style={styles.noticeCopy}>{profileBlockReason}</Text>
             </View>
-            <Ionicons name="lock-closed-outline" size={20} color={theme.warning} />
+            <Lock size={20} color={theme.warning} />
           </View>
         </View>
       ) : offers.length === 0 ? (
-        <EmptyCard styles={styles} theme={theme} icon="notifications-off-outline" label="No active rider offers right now." />
+        <EmptyCard styles={styles} theme={theme} icon={BellOff} label="No active rider offers right now." />
       ) : (
         offers.map((item) => (
           <View key={item.offerId} style={styles.offerCard}>
@@ -140,10 +139,9 @@ export function JobsPanel({
 
       <SectionTitle styles={styles} title="Selected Job" meta={activeOrder ? label(activeOrder.status) : ""} />
       {!activeOrder ? (
-        <EmptyCard styles={styles} theme={theme} icon="albums-outline" label="Select an active job to manage checkpoints." />
+        <EmptyCard styles={styles} theme={theme} icon={Layers} label="Select an active job to manage checkpoints." />
       ) : (
-        <SelectedJobCard
-          styles={styles}
+        <SelectedJobCard styles={styles}
           theme={theme}
           order={activeOrder}
           proofFor={proofFor}
@@ -199,8 +197,7 @@ function SelectedJobCard({
 
       {order.status === "RIDER_REACHED_STORE" && (
         <View style={styles.formBlock}>
-          <TextInput
-            {...inputChrome}
+          <TextInput {...inputChrome}
             value={proof.pickupOtp}
             onChangeText={(value) => updateProof(jobId, { pickupOtp: value })}
             placeholder="Pickup OTP"
@@ -208,7 +205,7 @@ function SelectedJobCard({
             keyboardType="number-pad"
           />
           <TouchableOpacity style={styles.secondaryButton} onPress={async () => updateProof(jobId, { pickupPhoto: await pickProofPhoto(showDialog, "pickup") })}>
-            <Ionicons name="camera-outline" size={16} color={theme.text} />
+            <Camera size={16} color={theme.text} />
             <Text style={styles.secondaryText}>{proof.pickupPhoto ? "Pickup Photo Added" : "Add Pickup Photo"}</Text>
           </TouchableOpacity>
         </View>
@@ -216,8 +213,7 @@ function SelectedJobCard({
 
       {order.status === "NEAR_CUSTOMER" && (
         <View style={styles.formBlock}>
-          <TextInput
-            {...inputChrome}
+          <TextInput {...inputChrome}
             value={proof.deliveryOtp}
             onChangeText={(value) => updateProof(jobId, { deliveryOtp: value })}
             placeholder="Delivery OTP"
@@ -225,7 +221,7 @@ function SelectedJobCard({
             keyboardType="number-pad"
           />
           <TouchableOpacity style={styles.secondaryButton} onPress={async () => updateProof(jobId, { deliveryPhoto: await pickProofPhoto(showDialog, "delivery") })}>
-            <Ionicons name="camera-outline" size={16} color={theme.text} />
+            <Camera size={16} color={theme.text} />
             <Text style={styles.secondaryText}>{proof.deliveryPhoto ? "Delivery Photo Added" : "Add Delivery Photo"}</Text>
           </TouchableOpacity>
         </View>

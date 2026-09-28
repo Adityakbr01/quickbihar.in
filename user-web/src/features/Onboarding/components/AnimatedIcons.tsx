@@ -13,7 +13,7 @@ import Animated, {
   SharedValue,
 } from "react-native-reanimated";
 import { LinearGradient } from "expo-linear-gradient";
-import { Ionicons } from "@expo/vector-icons";
+import { ShoppingBag } from "lucide-react";
 
 // ─── SHOPPING BAG ICON (Pendulum Sway + Harmonic Levitation) ────────────────────
 export const ShoppingBagIcon = () => {
@@ -91,7 +91,7 @@ export const ShoppingBagIcon = () => {
           shadowRadius: 16,
           shadowOffset: { width: 0, height: 0 },
         }}>
-          <Ionicons name="bag-outline" size={120} color="rgba(255,255,255,0.95)" />
+          <ShoppingBag size={120} color="rgba(255,255,255,0.95)" />
         </View>
       </Animated.View>
       <Animated.View style={[iconStyles.star1, star1Style]} />
@@ -197,8 +197,7 @@ export const CreditCardIcon = () => {
       <Animated.View style={[iconStyles.shadow, { bottom: 10, width: 90 }, shadowStyle]} />
       <Animated.View style={cardStyle}>
         <View style={iconStyles.card}>
-          <LinearGradient
-            colors={["rgba(255,255,255,0.4)", "rgba(255,255,255,0.05)"]}
+          <LinearGradient colors={["rgba(255,255,255,0.4)", "rgba(255,255,255,0.05)"]}
             style={StyleSheet.absoluteFill}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
@@ -206,8 +205,7 @@ export const CreditCardIcon = () => {
           <View style={iconStyles.cardStrip} />
           {/* Holographic sweeping line */}
           <Animated.View style={[StyleSheet.absoluteFill, shimmerStyle]}>
-            <LinearGradient
-              colors={["transparent", "rgba(255,255,255,0.8)", "transparent"]}
+            <LinearGradient colors={["transparent", "rgba(255,255,255,0.8)", "transparent"]}
               start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
               style={[StyleSheet.absoluteFill, { width: 40, transform: [{ skewX: "-20deg" }] }]}
             />
@@ -308,14 +306,12 @@ export const TruckIcon = () => {
 
       <Animated.View style={truckStyle}>
         <View style={iconStyles.truckBody}>
-          <LinearGradient
-            colors={["rgba(255,255,255,0.6)", "rgba(255,255,255,0.05)"]}
+          <LinearGradient colors={["rgba(255,255,255,0.6)", "rgba(255,255,255,0.05)"]}
             style={StyleSheet.absoluteFill}
             start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
           />
           <View style={iconStyles.truckCabin}>
-            <LinearGradient
-              colors={["rgba(255,255,255,0.5)", "rgba(255,255,255,0.1)"]}
+            <LinearGradient colors={["rgba(255,255,255,0.5)", "rgba(255,255,255,0.1)"]}
               style={StyleSheet.absoluteFill}
               start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
             />

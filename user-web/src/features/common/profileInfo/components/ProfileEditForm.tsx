@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Text, TouchableOpacity, ActivityIndicator } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { CircleAlert, ShieldCheck } from "lucide-react";
 import { Controller } from "react-hook-form";
 import { Theme } from "@/src/theme/Provider/ThemeProvider";
 import { TextInput } from "@/src/theme/components/TextInput";
@@ -37,12 +37,10 @@ const ProfileEditForm: React.FC<ProfileEditFormProps> = ({
     <View style={styles.infoCard}>
       <View style={styles.inputGroup}>
         <Text style={styles.inputLabel}>Full Name</Text>
-        <Controller
-          control={control}
+        <Controller control={control}
           name="fullName"
           render={({ field: { onChange, onBlur, value } }) => (
-            <TextInput
-              onBlur={onBlur}
+            <TextInput onBlur={onBlur}
               onChangeText={onChange}
               value={value}
               placeholder="Full Name"
@@ -59,8 +57,7 @@ const ProfileEditForm: React.FC<ProfileEditFormProps> = ({
       <View style={styles.inputGroup}>
         <Text style={styles.inputLabel}>Phone Number</Text>
         <View style={{ flexDirection: "row", gap: 8, alignItems: "center" }}>
-          <TextInput
-            value={currentPhone}
+          <TextInput value={currentPhone}
             placeholder="Tap Verify to add"
             placeholderTextColor={theme.tertiaryText}
             editable={false}
@@ -70,8 +67,7 @@ const ProfileEditForm: React.FC<ProfileEditFormProps> = ({
             style={{ color: theme.text }}
           />
           {onRequestPhoneVerify && (
-            <TouchableOpacity
-              onPress={onRequestPhoneVerify}
+            <TouchableOpacity onPress={onRequestPhoneVerify}
               style={{
                 paddingHorizontal: 14,
                 paddingVertical: 10,
@@ -89,14 +85,14 @@ const ProfileEditForm: React.FC<ProfileEditFormProps> = ({
         </View>
         {isPhoneVerified ? (
           <View style={{ flexDirection: "row", alignItems: "center", gap: 5, marginTop: 5 }}>
-            <Ionicons name="shield-checkmark" size={14} color="#16a34a" />
+            <ShieldCheck size={14} color="#16a34a" />
             <Text style={{ color: "#16a34a", fontSize: 12, fontWeight: "700" }}>
               Verified
             </Text>
           </View>
         ) : phoneChanged ? (
           <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 5 }}>
-            <Ionicons name="alert-circle" size={14} color="#ea580c" />
+            <CircleAlert size={14} color="#ea580c" />
             <Text style={{ color: "#ea580c", fontSize: 12, fontWeight: "600" }}>
               Please verify this number before saving
             </Text>
@@ -105,8 +101,7 @@ const ProfileEditForm: React.FC<ProfileEditFormProps> = ({
       </View>
 
       <View style={styles.buttonRow}>
-        <TouchableOpacity
-          style={styles.cancelButton}
+        <TouchableOpacity style={styles.cancelButton}
           onPress={onCancel}
           disabled={isLoading}
         >
@@ -114,8 +109,7 @@ const ProfileEditForm: React.FC<ProfileEditFormProps> = ({
             Cancel
           </Text>
         </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.saveButton}
+        <TouchableOpacity style={styles.saveButton}
           onPress={onSubmit}
           disabled={isLoading}
         >

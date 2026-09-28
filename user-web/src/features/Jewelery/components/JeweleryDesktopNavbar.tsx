@@ -1,3 +1,5 @@
+import type { LucideIcon } from "lucide-react";
+import { Bell, CircleX, Heart, House, LayoutGrid, Moon, Search, ShoppingBag, Sun, User } from "lucide-react";
 import React, { useState } from "react";
 import {
   Platform,
@@ -10,7 +12,7 @@ import {
 import { useLocation, useNavigate } from "react-router-dom";
 import { goTo } from "@/src/utils/navigation";
 import { Image } from "expo-image";
-import { Ionicons } from "@expo/vector-icons";
+
 import * as Haptics from "@/lib/haptics";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { useColors } from "@/src/features/Jewelery/hooks/useColors";
@@ -77,13 +79,12 @@ export const JeweleryDesktopNavbar = () => {
   const navItem = (
     label: string,
     route: string,
-    icon: any,
+    Icon: LucideIcon,
     badge?: number,
   ) => {
     const active = isActive(route);
     return (
-      <Pressable
-        key={label}
+      <Pressable key={label}
         onPress={() => go(route)}
         accessibilityRole="link"
         accessibilityLabel={label}
@@ -96,13 +97,11 @@ export const JeweleryDesktopNavbar = () => {
           Platform.OS === "web" ? ({ cursor: "pointer" } as any) : null,
         ]}
       >
-        <Ionicons
-          name={icon}
+        <Icon
           size={17}
           color={active ? colors.onBrand : colors.warmGray}
         />
-        <Text
-          style={[
+        <Text style={[
             styles.navLabel,
             { color: active ? colors.onBrand : colors.ink },
           ]}
@@ -110,14 +109,12 @@ export const JeweleryDesktopNavbar = () => {
           {label}
         </Text>
         {typeof badge === "number" && badge > 0 ? (
-          <View
-            style={[
+          <View style={[
               styles.badge,
               { backgroundColor: active ? colors.onBrand : colors.gold },
             ]}
           >
-            <Text
-              style={[
+            <Text style={[
                 styles.badgeText,
                 { color: active ? colors.gold : colors.onBrand },
               ]}
@@ -131,8 +128,7 @@ export const JeweleryDesktopNavbar = () => {
   };
 
   return (
-    <View
-      style={[
+    <View style={[
         styles.shell,
         {
           backgroundColor: colors.ivory,
@@ -143,15 +139,13 @@ export const JeweleryDesktopNavbar = () => {
     >
       <View style={styles.inner}>
         {/* Brand */}
-        <Pressable
-          onPress={() => go("/jewelery")}
+        <Pressable onPress={() => go("/jewelery")}
           style={Platform.OS === "web" ? ({ cursor: "pointer" } as any) : null}
           accessibilityRole="link"
           accessibilityLabel="Quick Bihar jewellery home"
         >
           <View style={styles.brandRow}>
-            <Image
-              source={splashIcon}
+            <Image source={splashIcon}
               style={styles.logoImage}
               contentFit="contain"
               alt="Quick Bihar logo"
@@ -169,8 +163,7 @@ export const JeweleryDesktopNavbar = () => {
         </Pressable>
 
         {/* Search */}
-        <TextInput
-          value={query}
+        <TextInput value={query}
           onChangeText={setQuery}
           onSubmitEditing={submitSearch}
           onFocus={() => setFocused(true)}
@@ -180,21 +173,16 @@ export const JeweleryDesktopNavbar = () => {
           returnKeyType="search"
           focusBorderColor={colors.gold}
           icon={
-            <Ionicons
-              name="search"
-              size={18}
-              color={focused ? colors.gold : colors.warmGray}
-            />
+            <Search size={18} color={focused ? colors.gold : colors.warmGray} />
           }
           rightIcon={
             <>
               {query.length > 0 ? (
                 <Pressable onPress={() => setQuery("")} style={styles.searchClear}>
-                  <Ionicons name="close-circle" size={18} color={colors.warmGray} />
+                  <CircleX size={18} color={colors.warmGray} />
                 </Pressable>
               ) : null}
-              <Pressable
-                onPress={submitSearch}
+              <Pressable onPress={submitSearch}
                 style={[styles.searchBtn, { backgroundColor: colors.gold }]}
               >
                 <Text style={[styles.searchBtnText, { color: colors.onBrand }]}>
@@ -217,33 +205,31 @@ export const JeweleryDesktopNavbar = () => {
 
         {/* Nav */}
         <View style={styles.navRow}>
-          {navItem("Home", "/jewelery", "home-outline")}
-          {navItem("Collections", "/jewelery/collections", "grid-outline")}
-          {navItem("Wishlist", "/jewelery/wishlist", "heart-outline")}
-          {navItem("Bag", "/jewelery/cart", "bag-outline", bagCount)}
+          {navItem("Home", "/jewelery", House)}
+          {navItem("Collections", "/jewelery/collections", LayoutGrid)}
+          {navItem("Wishlist", "/jewelery/wishlist", Heart)}
+          {navItem("Bag", "/jewelery/cart", ShoppingBag, bagCount)}
           {navItem(
             isAuthenticated ? "Account" : "Login",
             "/jewelery/account",
-            "person-outline",
+            User,
           )}
-          <Pressable
-            onPress={() => go("/jewelery/notifications" as any)}
+          <Pressable onPress={() => go("/jewelery/notifications" as any)}
             style={[styles.iconBtn, { borderColor: colors.midGray }]}
             accessibilityLabel="Notifications"
           >
-            <Ionicons name="notifications-outline" size={18} color={colors.ink} />
+            <Bell size={18} color={colors.ink} />
           </Pressable>
           <ModuleSwitcherButton />
-          <Pressable
-            onPress={() => toggleMode?.()}
+          <Pressable onPress={() => toggleMode?.()}
             style={[styles.iconBtn, { borderColor: colors.midGray }]}
             accessibilityLabel="Toggle theme"
           >
-            <Ionicons
-              name={isDark ? "sunny-outline" : "moon-outline"}
-              size={18}
-              color={colors.ink}
-            />
+            {isDark ? (
+              <Sun size={18} color={colors.ink} />
+            ) : (
+              <Moon size={18} color={colors.ink} />
+            )}
           </Pressable>
         </View>
       </View>

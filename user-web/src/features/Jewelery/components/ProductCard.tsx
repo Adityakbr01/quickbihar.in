@@ -1,4 +1,4 @@
-import { Feather } from "@expo/vector-icons";
+import { Heart, Image as ImageIcon, Star } from "lucide-react";
 import * as Haptics from "@/lib/haptics";
 import { useNavigate } from "react-router-dom";
 import { goTo } from "@/src/utils/navigation";
@@ -28,13 +28,7 @@ function Stars({ rating }: { rating: number }) {
   return (
     <View style={styles.stars}>
       {[1, 2, 3, 4, 5].map((s) => (
-        <Feather
-          key={s}
-          name="star"
-          size={9}
-          color={s <= Math.round(rating) ? colors.gold : colors.midGray}
-          style={{ marginRight: 1 }}
-        />
+        <Star key={s} size={9} color={s <= Math.round(rating) ? colors.gold : colors.midGray} style={{ marginRight: 1 }} />
       ))}
     </View>
   );
@@ -78,8 +72,7 @@ export function ProductCard({ product, style }: ProductCardProps) {
   };
 
   return (
-    <Pressable
-      onPress={handlePress}
+    <Pressable onPress={handlePress}
       style={({ pressed }) => [
         styles.card,
         { backgroundColor: colors.pearl, width: cardWidth },
@@ -89,36 +82,28 @@ export function ProductCard({ product, style }: ProductCardProps) {
     >
       <View style={styles.imageContainer}>
         {product.image ? (
-          <Image
-            source={product.image}
+          <Image source={product.image}
             style={styles.image}
             resizeMode="cover"
           />
         ) : (
           <View style={[styles.image, styles.imageFallback, { backgroundColor: colors.champagne }]}>
-            <Feather name="image" size={28} color={colors.gold} />
+            <ImageIcon size={28} color={colors.gold} />
           </View>
         )}
         {product.badge && (
-          <View
-            style={[styles.badge, { backgroundColor: colors.gold }]}
+          <View style={[styles.badge, { backgroundColor: colors.gold }]}
           >
             <Text style={[styles.badgeText, { color: colors.onBrand }]}>
               {product.badge.toUpperCase()}
             </Text>
           </View>
         )}
-        <Pressable
-          style={styles.wishlistBtn}
+        <Pressable style={styles.wishlistBtn}
           onPress={handleWishlist}
           hitSlop={8}
         >
-          <Feather
-            name="heart"
-            size={16}
-            color={wishlisted ? colors.gold : colors.warmGray}
-            style={wishlisted ? { opacity: 1 } : { opacity: 0.7 }}
-          />
+          <Heart size={16} color={wishlisted ? colors.gold : colors.warmGray} style={wishlisted ? { opacity: 1 } : { opacity: 0.7 }} />
         </Pressable>
         {product.inStock <= 5 && (
           <View style={[styles.stockBadge, { backgroundColor: colors.maroon }]}>
@@ -129,14 +114,12 @@ export function ProductCard({ product, style }: ProductCardProps) {
         )}
       </View>
       <View style={styles.info}>
-        <Text
-          style={[styles.name, { color: colors.ink, fontFamily: "CormorantGaramond_500Medium_Italic" }]}
+        <Text style={[styles.name, { color: colors.ink, fontFamily: "CormorantGaramond_500Medium_Italic" }]}
           numberOfLines={1}
         >
           {product.name}
         </Text>
-        <Text
-          style={[styles.subtitle, { color: colors.warmGray, fontFamily: "DMSans_400Regular" }]}
+        <Text style={[styles.subtitle, { color: colors.warmGray, fontFamily: "DMSans_400Regular" }]}
           numberOfLines={1}
         >
           {product.metal}{product.stone ? ` · ${product.stone}` : ""}
@@ -157,8 +140,7 @@ export function ProductCard({ product, style }: ProductCardProps) {
             </Text>
           )}
         </View>
-        <Pressable
-          onPress={handleAddToCart}
+        <Pressable onPress={handleAddToCart}
           style={({ pressed }) => [
             styles.addBtn,
             {

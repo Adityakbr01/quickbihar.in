@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { Image } from "expo-image";
-import { Ionicons } from "@expo/vector-icons";
+import { ArrowRight, CircleX, ShoppingBag, Star } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { goTo } from "@/src/utils/navigation";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
@@ -103,8 +103,7 @@ export const ProductCard = ({ item, desktopWidth }: ProductCardProps) => {
   };
 
   return (
-    <TouchableOpacity
-      accessibilityRole="link"
+    <TouchableOpacity accessibilityRole="link"
       accessibilityLabel={productData.title}
       {...({ title: `View ${productData.title} on QuickBihar` } as any)}
       onPress={() => {
@@ -123,8 +122,7 @@ export const ProductCard = ({ item, desktopWidth }: ProductCardProps) => {
     >
       {/* Image & Overlays */}
       <View style={styles.imageContainer}>
-        <Image
-          source={{ uri: productData.image }}
+        <Image source={{ uri: productData.image }}
           style={styles.image}
           contentFit="cover"
           alt={`${productData.title} - Shop Online in Bihar`}
@@ -139,8 +137,7 @@ export const ProductCard = ({ item, desktopWidth }: ProductCardProps) => {
         ) : null}
 
         {/* Favorite absolute button */}
-        <WishlistHeart
-          isWishlisted={isWishlisted}
+        <WishlistHeart isWishlisted={isWishlisted}
           onToggle={() => toggleWishlist(id, item)}
           size={16}
           style={styles.favoriteBtn}
@@ -148,7 +145,7 @@ export const ProductCard = ({ item, desktopWidth }: ProductCardProps) => {
 
         {productData.reviews > 0 && productData.rating > 0 ? (
           <View style={styles.ratingContainer}>
-            <Ionicons name="star" size={11} color="#f59e0b" />
+            <Star size={11} color="#f59e0b" fill="#f59e0b" />
             <Text style={styles.rating}>
               {productData.rating.toFixed(1)}{" "}
               <Text style={styles.reviews}>
@@ -159,8 +156,7 @@ export const ProductCard = ({ item, desktopWidth }: ProductCardProps) => {
         ) : null}
 
         {/* Add to Cart absolute button (like DealProductCard) */}
-        <TouchableOpacity
-          style={[
+        <TouchableOpacity style={[
             styles.addButton,
             (item as IProduct).totalStock <= 0 && { opacity: 0.5, backgroundColor: theme.secondaryText },
             isInCart && { backgroundColor: theme.primary }
@@ -172,17 +168,13 @@ export const ProductCard = ({ item, desktopWidth }: ProductCardProps) => {
             handleAddToCart();
           }}
         >
-          <Ionicons
-            name={
-              (item as IProduct).totalStock <= 0
-                ? "close-circle-outline"
-                : isInCart
-                ? "arrow-forward-outline"
-                : "bag-add-outline"
-            }
-            size={14}
-            color="#fff"
-          />
+          {(item as IProduct).totalStock <= 0 ? (
+            <CircleX size={14} color="#fff" />
+          ) : isInCart ? (
+            <ArrowRight size={14} color="#fff" />
+          ) : (
+            <ShoppingBag size={14} color="#fff" />
+          )}
           <Text style={styles.addText}>
             {(item as IProduct).totalStock <= 0
               ? "Out of Stock"
@@ -197,8 +189,7 @@ export const ProductCard = ({ item, desktopWidth }: ProductCardProps) => {
       <View style={styles.infoContainer}>
 
 
-        <Text
-          style={[styles.name, { color: theme.text }]}
+        <Text style={[styles.name, { color: theme.text }]}
           numberOfLines={2}
         >
           {productData.name}
@@ -217,8 +208,7 @@ export const ProductCard = ({ item, desktopWidth }: ProductCardProps) => {
       </View>
 
       {isSheetVisible && (
-        <VariantSelectorBottomSheet
-          visible={isSheetVisible}
+        <VariantSelectorBottomSheet visible={isSheetVisible}
           onClose={() => setIsSheetVisible(false)}
           product={item}
           theme={theme}

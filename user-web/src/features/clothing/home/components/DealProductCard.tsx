@@ -1,7 +1,7 @@
 import WishlistHeart from "@/src/components/common/WishlistHeart";
 import { IProduct } from "@/src/features/clothing/product/types/product.types";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
-import { Ionicons } from "@expo/vector-icons";
+import { ArrowRight, Bike, ShoppingBag, Star } from "lucide-react";
 import * as Haptics from "@/lib/haptics";
 import { Platform, Text, TouchableOpacity, View } from "react-native";
 import { useNavigate } from "react-router-dom";
@@ -112,8 +112,7 @@ export const DealProductCard = ({ product, width }: DealProductCardProps) => {
   };
 
   return (
-    <TouchableOpacity
-      accessibilityRole="link"
+    <TouchableOpacity accessibilityRole="link"
       accessibilityLabel={productData.title}
       {...({ title: `Shop ${productData.title} on QuickBihar` } as any)}
       activeOpacity={0.9}
@@ -143,8 +142,7 @@ export const DealProductCard = ({ product, width }: DealProductCardProps) => {
       {/* Image & Overlays */}
       {/* Desktop: taller image proportional to the wider grid cell;
           mobile keeps the legacy 180px height. */}
-      <View
-        style={[
+      <View style={[
           styles.productImageContainer,
           Platform.OS === "web" && width > 240
             ? {
@@ -153,8 +151,7 @@ export const DealProductCard = ({ product, width }: DealProductCardProps) => {
             : null,
         ]}
       >
-        <Image 
-          source={{ uri: productData.image }} 
+        <Image source={{ uri: productData.image }} 
           style={styles.productImage}
           contentFit="cover"
           alt={`${productData.title} - Fashion Deal in Bihar`}
@@ -170,8 +167,7 @@ export const DealProductCard = ({ product, width }: DealProductCardProps) => {
         ) : null}
 
         {productData.tag ? (
-          <View
-            style={[
+          <View style={[
               styles.tagBadge,
               productData.discount ? { top: 34 } : null,
             ]}
@@ -181,8 +177,7 @@ export const DealProductCard = ({ product, width }: DealProductCardProps) => {
         ) : null}
 
         {/* Favorite absolute button */}
-        <WishlistHeart
-          isWishlisted={isWishlisted}
+        <WishlistHeart isWishlisted={isWishlisted}
           onToggle={() => toggleWishlist(id, product)}
           size={16}
           style={{
@@ -198,7 +193,7 @@ export const DealProductCard = ({ product, width }: DealProductCardProps) => {
         {/* Real Rating Pill (Only shown if product has real ratings) */}
         {productData.reviews > 0 && productData.rating > 0 ? (
           <View style={[styles.ratingPill, isNarrowCard && { paddingHorizontal: 5 }]}>
-            <Ionicons name="star" size={10} color="#f59e0b" />
+            <Star size={10} color="#f59e0b" fill="#f59e0b" />
             <Text style={styles.ratingText}>
               {productData.rating.toFixed(1)}
               {!isNarrowCard && (
@@ -214,8 +209,7 @@ export const DealProductCard = ({ product, width }: DealProductCardProps) => {
         {(product as IProduct).totalStock > 0 &&
 
           (
-            <TouchableOpacity
-              style={[
+            <TouchableOpacity style={[
                 styles.addButton,
                 isInCart && { backgroundColor: theme.primary },
                 isNarrowCard && { paddingHorizontal: 8, paddingVertical: 6, right: 6 },
@@ -226,15 +220,11 @@ export const DealProductCard = ({ product, width }: DealProductCardProps) => {
                 handleAddToCart();
               }}
             >
-              <Ionicons
-                name={
-                  isInCart
-                    ? "arrow-forward-outline"
-                    : "bag-add-outline"
-                }
-                size={14}
-                color="#fff"
-              />
+              {isInCart ? (
+                <ArrowRight size={14} color="#fff" />
+              ) : (
+                <ShoppingBag size={14} color="#fff" />
+              )}
               <Text style={styles.addText}>
                 {isInCart ? "Go to Cart" : "Add"}
               </Text>
@@ -244,8 +234,7 @@ export const DealProductCard = ({ product, width }: DealProductCardProps) => {
 
       {/* Product Info */}
       <View style={styles.productInfo}>
-        <Text
-          style={[styles.productTitle, { color: theme.text }]}
+        <Text style={[styles.productTitle, { color: theme.text }]}
           numberOfLines={1}
 
         >
@@ -253,8 +242,7 @@ export const DealProductCard = ({ product, width }: DealProductCardProps) => {
         </Text>
 
         {productData.subtitle ? (
-          <Text
-            style={[styles.benefitsText, { color: theme.secondaryText }]}
+          <Text style={[styles.benefitsText, { color: theme.secondaryText }]}
             numberOfLines={1}
           >
             {productData.subtitle}
@@ -275,8 +263,7 @@ export const DealProductCard = ({ product, width }: DealProductCardProps) => {
         {productData.delivery ? (
           <View style={styles.deliveryRow}>
             {productData.delivery.toLowerCase().includes("express") ? (
-              <LazyLottie
-                source={cyclerLottie}
+              <LazyLottie source={cyclerLottie}
                 autoPlay
                 loop
                 style={{
@@ -288,14 +275,9 @@ export const DealProductCard = ({ product, width }: DealProductCardProps) => {
                 resizeMode="contain"
               />
             ) : (
-              <Ionicons
-                name="bicycle-outline"
-                size={14}
-                color={theme.success || "#10b981"}
-              />
+              <Bike size={14} color={theme.success || "#10b981"} />
             )}
-            <Text
-              style={[
+            <Text style={[
                 styles.deliveryText,
                 { color: theme.success || "#10b981" },
               ]}
@@ -307,8 +289,7 @@ export const DealProductCard = ({ product, width }: DealProductCardProps) => {
       </View>
 
       {isSheetVisible && (
-        <VariantSelectorBottomSheet
-          visible={isSheetVisible}
+        <VariantSelectorBottomSheet visible={isSheetVisible}
           onClose={() => setIsSheetVisible(false)}
           product={product}
           theme={theme}

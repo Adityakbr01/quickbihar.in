@@ -1,4 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
+import { Phone } from "lucide-react";
 import * as Haptics from "@/lib/haptics";
 import { useNavigate } from "react-router-dom";
 import { goTo } from "@/src/utils/navigation";
@@ -61,8 +61,7 @@ export const PhoneMissingBanner: React.FC = () => {
   };
 
   return (
-    <View
-      style={[
+    <View style={[
         styles.container,
         {
           backgroundColor: "rgba(245, 158, 11, 0.12)",
@@ -71,7 +70,7 @@ export const PhoneMissingBanner: React.FC = () => {
       ]}
     >
       <View style={styles.row}>
-        <Ionicons name="call-outline" size={20} color="#f59e0b" />
+        <Phone size={20} color="#f59e0b" />
         <View style={{ flex: 1 }}>
           <Text style={[styles.title, { color: theme.text }]}>
             Add a phone number
@@ -85,23 +84,17 @@ export const PhoneMissingBanner: React.FC = () => {
 
       {editing ? (
         <View style={styles.editRow}>
-          <View
-            style={[
+          <View style={[
               styles.inputBox,
               { borderColor: "rgba(255,255,255,0.18)", backgroundColor: theme.cardBackground || "rgba(255,255,255,0.06)" },
             ]}
           >
-            <Ionicons
-              name="call-outline"
-              size={16}
-              color={theme.secondaryText}
-            />
+            <Phone size={16} color={theme.secondaryText} />
             <Text style={{ color: theme.text, marginLeft: 6 }}>+91</Text>
             {/* Lightweight inline input via a plain TextInput import */}
             <PhoneInputInline value={phone} onChange={setPhone} theme={theme} />
           </View>
-          <TouchableOpacity
-            onPress={handleSave}
+          <TouchableOpacity onPress={handleSave}
             disabled={saving || phone.trim().length !== 10}
             style={[
               styles.saveBtn,
@@ -116,8 +109,7 @@ export const PhoneMissingBanner: React.FC = () => {
         </View>
       ) : (
         <View style={styles.actions}>
-          <TouchableOpacity
-            onPress={() => {
+          <TouchableOpacity onPress={() => {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
               setEditing(true);
             }}
@@ -125,14 +117,12 @@ export const PhoneMissingBanner: React.FC = () => {
           >
             <Text style={styles.primaryBtnText}>Add Phone</Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => {
+          <TouchableOpacity onPress={() => {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
               goTo(navigate, "/account/profile-info" as any);
             }}
           >
-            <Text
-              style={{
+            <Text style={{
                 color: theme.secondaryText,
                 fontSize: 12,
                 textDecorationLine: "underline",
@@ -156,8 +146,7 @@ const PhoneInputInline: React.FC<{
 }> = ({ value, onChange, theme }) => {
   return (
     <View style={{ flex: 1, marginLeft: 6 }}>
-      <TextInput
-        variant="glass"
+      <TextInput variant="glass"
         placeholder="10-digit mobile"
         keyboardType="phone-pad"
         maxLength={10}

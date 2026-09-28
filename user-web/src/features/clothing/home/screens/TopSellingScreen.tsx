@@ -11,7 +11,8 @@ import {
   View,
   useWindowDimensions,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import type { LucideIcon } from "lucide-react";
+import { ArrowUpDown, ChevronLeft, CircleCheck, Clock, Flame, LayoutGrid, Star, TrendingDown, TrendingUp, User, Users } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { goBack } from "@/src/utils/navigation";
 import { useInfiniteQuery } from "@tanstack/react-query";
@@ -37,15 +38,15 @@ type GenderFilter = "ALL" | "Men" | "Women" | "Kids";
 interface SortOption {
   key: SortKey;
   label: string;
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: LucideIcon;
 }
 
 const SORT_OPTIONS: SortOption[] = [
-  { key: "trending", label: "Trending Now", icon: "flame" },
-  { key: "price-asc", label: "Price: Low to High", icon: "trending-up" },
-  { key: "price-desc", label: "Price: High to Low", icon: "trending-down" },
-  { key: "rating", label: "Top Rated", icon: "star" },
-  { key: "newest", label: "Newest First", icon: "time" },
+  { key: "trending", label: "Trending Now", icon: Flame },
+  { key: "price-asc", label: "Price: Low to High", icon: TrendingUp },
+  { key: "price-desc", label: "Price: High to Low", icon: TrendingDown },
+  { key: "rating", label: "Top Rated", icon: Star },
+  { key: "newest", label: "Newest First", icon: Clock },
 ];
 
 /**
@@ -63,11 +64,11 @@ const SORT_PARAM: Record<SortKey, string> = {
   newest: "newest",
 };
 
-const GENDER_CHIPS: { key: GenderFilter; label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
-  { key: "ALL", label: "All", icon: "apps" },
-  { key: "Men", label: "Men", icon: "man" },
-  { key: "Women", label: "Women", icon: "woman" },
-  { key: "Kids", label: "Kids", icon: "people" },
+const GENDER_CHIPS: { key: GenderFilter; label: string; icon: LucideIcon }[] = [
+  { key: "ALL", label: "All", icon: LayoutGrid },
+  { key: "Men", label: "Men", icon: User },
+  { key: "Women", label: "Women", icon: User },
+  { key: "Kids", label: "Kids", icon: Users },
 ];
 
 const useTopSellingProducts = (
@@ -166,13 +167,12 @@ const TopSellingScreen: React.FC<TopSellingScreenProps> = ({ category }) => {
   const renderHeader = () => (
     <View style={styles.headerWrap}>
       <View style={[styles.header, { backgroundColor: theme.background, borderBottomColor: theme.border }]}>
-        <TouchableOpacity
-          onPress={handleBack}
+        <TouchableOpacity onPress={handleBack}
           style={[styles.backBtn, { backgroundColor: theme.secondaryBackground }]}
           activeOpacity={0.7}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
-          <Ionicons name="chevron-back" size={22} color={theme.text} />
+          <ChevronLeft size={22} color={theme.text} />
         </TouchableOpacity>
         <View style={styles.headerTitleWrap}>
           <View style={styles.headerTitleRow}>
@@ -180,7 +180,7 @@ const TopSellingScreen: React.FC<TopSellingScreenProps> = ({ category }) => {
               Top Selling
             </Text>
             <View style={[styles.fireBadge, { backgroundColor: theme.primary }]}>
-              <Ionicons name="flame" size={11} color="#fff" />
+              <Flame size={11} color="#fff" />
             </View>
           </View>
           <Text style={[styles.headerSubtitle, { color: theme.secondaryText }]}>
@@ -189,27 +189,24 @@ const TopSellingScreen: React.FC<TopSellingScreenProps> = ({ category }) => {
               : "Most loved by Bihar"}
           </Text>
         </View>
-        <TouchableOpacity
-          onPress={handleOpenSort}
+        <TouchableOpacity onPress={handleOpenSort}
           style={[styles.sortBtn, { backgroundColor: theme.secondaryBackground }]}
           activeOpacity={0.7}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
-          <Ionicons name="swap-vertical" size={18} color={theme.text} />
+          <ArrowUpDown size={18} color={theme.text} />
         </TouchableOpacity>
       </View>
 
       {/* Gender chips */}
-      <ScrollView
-        horizontal
+      <ScrollView horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.chipsRow}
       >
         {GENDER_CHIPS.map((chip) => {
           const isActive = gender === chip.key;
           return (
-            <TouchableOpacity
-              key={chip.key}
+            <TouchableOpacity key={chip.key}
               onPress={() => handleGenderSelect(chip.key)}
               activeOpacity={0.7}
               style={[
@@ -222,13 +219,8 @@ const TopSellingScreen: React.FC<TopSellingScreenProps> = ({ category }) => {
                 },
               ]}
             >
-              <Ionicons
-                name={chip.icon}
-                size={14}
-                color={isActive ? "#fff" : theme.text}
-              />
-              <Text
-                style={[
+              <chip.icon size={14} color={isActive ? "#fff" : theme.text} />
+              <Text style={[
                   styles.chipText,
                   { color: isActive ? "#fff" : theme.text },
                 ]}
@@ -248,8 +240,7 @@ const TopSellingScreen: React.FC<TopSellingScreenProps> = ({ category }) => {
             {SORT_OPTIONS.find((o) => o.key === sortBy)?.label}
           </Text>
         </Text>
-        <TouchableOpacity
-          onPress={handleOpenSort}
+        <TouchableOpacity onPress={handleOpenSort}
           hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
         >
           <Text style={[styles.changeLink, { color: theme.primary }]}>
@@ -264,13 +255,12 @@ const TopSellingScreen: React.FC<TopSellingScreenProps> = ({ category }) => {
     if (isLoading) return null;
     return (
       <View style={styles.emptyWrap}>
-        <View
-          style={[
+        <View style={[
             styles.emptyIcon,
             { backgroundColor: theme.secondaryBackground },
           ]}
         >
-          <Ionicons name="flame-outline" size={42} color={theme.tertiaryText} />
+          <Flame size={42} color={theme.tertiaryText} />
         </View>
         <Text style={[styles.emptyTitle, { color: theme.text }]}>
           Nothing trending here yet
@@ -278,8 +268,7 @@ const TopSellingScreen: React.FC<TopSellingScreenProps> = ({ category }) => {
         <Text style={[styles.emptySubtitle, { color: theme.secondaryText }]}>
           Try a different filter or check back soon — fresh drops land every day.
         </Text>
-        <TouchableOpacity
-          onPress={() => {
+        <TouchableOpacity onPress={() => {
             setGender("ALL");
             setSortBy("trending");
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => null);
@@ -304,14 +293,12 @@ const TopSellingScreen: React.FC<TopSellingScreenProps> = ({ category }) => {
     if (!hasNextPage && products.length > 0) {
       return (
         <View style={styles.footerEnd}>
-          <View
-            style={[styles.footerEndDivider, { backgroundColor: theme.border }]}
+          <View style={[styles.footerEndDivider, { backgroundColor: theme.border }]}
           />
           <Text style={[styles.footerEndText, { color: theme.tertiaryText }]}>
             {"You've seen it all 🎉"}
           </Text>
-          <View
-            style={[styles.footerEndDivider, { backgroundColor: theme.border }]}
+          <View style={[styles.footerEndDivider, { backgroundColor: theme.border }]}
           />
         </View>
       );
@@ -324,8 +311,7 @@ const TopSellingScreen: React.FC<TopSellingScreenProps> = ({ category }) => {
       <View style={{ flex: 1, backgroundColor: theme.background }}>
         {renderHeader()}
 
-        <FlatList
-          data={products}
+        <FlatList data={products}
           keyExtractor={(item) => item._id}
           numColumns={2}
           columnWrapperStyle={styles.columnWrapper}
@@ -341,8 +327,7 @@ const TopSellingScreen: React.FC<TopSellingScreenProps> = ({ category }) => {
           }}
           onEndReachedThreshold={0.4}
           refreshControl={
-            <RefreshControl
-              refreshing={refreshing || isLoading}
+            <RefreshControl refreshing={refreshing || isLoading}
               onRefresh={onRefresh}
               tintColor={theme.primary}
               colors={[theme.primary]}
@@ -355,14 +340,12 @@ const TopSellingScreen: React.FC<TopSellingScreenProps> = ({ category }) => {
         />
 
         {/* Sort Sheet */}
-        <Sheet
-          ref={sortSheet}
+        <Sheet ref={sortSheet}
           detents={["auto"]}
           onDidDismiss={() => {}}
           backgroundColor={theme.background}
         >
-          <SheetHeader
-            title="Sort By"
+          <SheetHeader title="Sort By"
             onClose={() => {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => null);
               sortSheet.current?.dismiss();
@@ -372,8 +355,7 @@ const TopSellingScreen: React.FC<TopSellingScreenProps> = ({ category }) => {
             {SORT_OPTIONS.map((opt) => {
               const isActive = sortBy === opt.key;
               return (
-                <TouchableOpacity
-                  key={opt.key}
+                <TouchableOpacity key={opt.key}
                   onPress={() => handleSortSelect(opt.key)}
                   activeOpacity={0.7}
                   style={[
@@ -386,8 +368,7 @@ const TopSellingScreen: React.FC<TopSellingScreenProps> = ({ category }) => {
                     },
                   ]}
                 >
-                  <View
-                    style={[
+                  <View style={[
                       styles.sortOptionIcon,
                       {
                         backgroundColor: isActive
@@ -396,14 +377,9 @@ const TopSellingScreen: React.FC<TopSellingScreenProps> = ({ category }) => {
                       },
                     ]}
                   >
-                    <Ionicons
-                      name={opt.icon}
-                      size={18}
-                      color={isActive ? "#fff" : theme.text}
-                    />
+                    <opt.icon size={18} color={isActive ? "#fff" : theme.text} />
                   </View>
-                  <Text
-                    style={[
+                  <Text style={[
                       styles.sortOptionLabel,
                       {
                         color: isActive ? theme.primary : theme.text,
@@ -414,11 +390,7 @@ const TopSellingScreen: React.FC<TopSellingScreenProps> = ({ category }) => {
                     {opt.label}
                   </Text>
                   {isActive && (
-                    <Ionicons
-                      name="checkmark-circle"
-                      size={20}
-                      color={theme.primary}
-                    />
+                    <CircleCheck size={20} color={theme.primary} />
                   )}
                 </TouchableOpacity>
               );

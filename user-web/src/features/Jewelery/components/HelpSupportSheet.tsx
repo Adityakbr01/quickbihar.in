@@ -1,4 +1,5 @@
-import { Feather, Ionicons } from "@expo/vector-icons";
+import { ChevronLeft, ChevronRight, Mail } from "lucide-react";
+import { WhatsappIcon } from "@/src/components/common/BrandIcons";
 import * as Haptics from "@/lib/haptics";
 import React, { useEffect, useState } from "react";
 import {
@@ -105,14 +106,12 @@ export const HelpSupportSheet: React.FC<HelpSupportSheetProps> = ({
   };
 
   return (
-    <Sheet
-      ref={sheet}
+    <Sheet ref={sheet}
       onDidDismiss={onClose}
       backgroundColor={colors.ivory}
       cornerRadius={2}
     >
-      <SheetHeader
-        title="Help & Support"
+      <SheetHeader title="Help & Support"
         subtitle={
           channel === null
             ? "How would you like to reach us?"
@@ -123,8 +122,7 @@ export const HelpSupportSheet: React.FC<HelpSupportSheetProps> = ({
         onClose={onClose}
       />
 
-      <ScrollView
-        showsVerticalScrollIndicator={false}
+      <ScrollView showsVerticalScrollIndicator={false}
         nestedScrollEnabled
         // Bounded height is what makes this scroll: inside the auto-sized
         // sheet an unbounded ScrollView grows past the screen instead.
@@ -133,12 +131,11 @@ export const HelpSupportSheet: React.FC<HelpSupportSheetProps> = ({
       >
         {channel === null ? (
           <>
-            <Pressable
-              style={[s.channelCard, { backgroundColor: colors.pearl, borderColor: colors.midGray }]}
+            <Pressable style={[s.channelCard, { backgroundColor: colors.pearl, borderColor: colors.midGray }]}
               onPress={() => pickChannel("whatsapp")}
             >
               <View style={[s.channelIcon, { backgroundColor: "#25D366" }]}>
-                <Ionicons name="logo-whatsapp" size={20} color="#fff" />
+                <WhatsappIcon size={20} color="#fff" />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={[s.channelTitle, { color: colors.ink }]}>
@@ -148,15 +145,14 @@ export const HelpSupportSheet: React.FC<HelpSupportSheetProps> = ({
                   {SUPPORT_WHATSAPP_DISPLAY} · replies within minutes
                 </Text>
               </View>
-              <Feather name="chevron-right" size={18} color={colors.gold} />
+              <ChevronRight size={18} color={colors.gold} />
             </Pressable>
 
-            <Pressable
-              style={[s.channelCard, { backgroundColor: colors.pearl, borderColor: colors.midGray }]}
+            <Pressable style={[s.channelCard, { backgroundColor: colors.pearl, borderColor: colors.midGray }]}
               onPress={() => pickChannel("email")}
             >
               <View style={[s.channelIcon, { backgroundColor: colors.gold }]}>
-                <Feather name="mail" size={18} color="#fff" />
+                <Mail size={18} color="#fff" />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={[s.channelTitle, { color: colors.ink }]}>
@@ -166,28 +162,26 @@ export const HelpSupportSheet: React.FC<HelpSupportSheetProps> = ({
                   {SUPPORT_EMAIL} · replies within a day
                 </Text>
               </View>
-              <Feather name="chevron-right" size={18} color={colors.gold} />
+              <ChevronRight size={18} color={colors.gold} />
             </Pressable>
           </>
         ) : (
           <>
-            <Pressable
-              style={s.backRow}
+            <Pressable style={s.backRow}
               onPress={() => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                 setChannel(null);
               }}
               hitSlop={8}
             >
-              <Feather name="chevron-left" size={16} color={colors.gold} />
+              <ChevronLeft size={16} color={colors.gold} />
               <Text style={[s.backText, { color: colors.gold }]}>
                 {channel === "whatsapp" ? "WhatsApp" : "Email"} · change
               </Text>
             </Pressable>
 
             {FAQS.map((faq) => (
-              <Pressable
-                key={faq.q}
+              <Pressable key={faq.q}
                 style={[s.faqCard, { backgroundColor: colors.pearl, borderColor: colors.midGray }]}
                 onPress={() => openChannel(faq)}
               >

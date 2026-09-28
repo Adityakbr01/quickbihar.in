@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Text, Image, TouchableOpacity } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { Minus, Plus, Trash2 } from "lucide-react";
 import * as Haptics from "@/lib/haptics";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { createCartStyles } from "../styles/cartStyles";
@@ -57,8 +57,7 @@ const CartItem = ({ item, onUpdateQuantity, onRemove }: CartItemProps) => {
 
   return (
     <View style={styles.card}>
-      <Image
-        source={{ uri: item.image || "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=400&q=80" }}
+      <Image source={{ uri: item.image || "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=400&q=80" }}
         style={styles.image}
         resizeMode="cover"
       />
@@ -69,13 +68,12 @@ const CartItem = ({ item, onUpdateQuantity, onRemove }: CartItemProps) => {
             <Text style={styles.itemName} numberOfLines={2} ellipsizeMode="tail">
               {item.name}
             </Text>
-            <TouchableOpacity
-              style={styles.deleteButton}
+            <TouchableOpacity style={styles.deleteButton}
               onPress={handleRemove}
               activeOpacity={0.6}
               hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
             >
-              <Ionicons name="trash-outline" size={16} color={theme.secondaryText} />
+              <Trash2 size={16} color={theme.secondaryText} />
             </TouchableOpacity>
           </View>
 
@@ -91,48 +89,39 @@ const CartItem = ({ item, onUpdateQuantity, onRemove }: CartItemProps) => {
 
         <View style={styles.priceRow}>
           <View style={styles.priceContainer}>
-            <AnimatedPrice
-              value={numericPrice}
+            <AnimatedPrice value={numericPrice}
               style={styles.price}
             />
             {item.quantity > 1 ? (
               <View style={styles.itemSubtotalRow}>
                 <Text style={styles.itemSubtotalLabel}>Item Total: </Text>
-                <AnimatedPrice
-                  value={itemTotal}
+                <AnimatedPrice value={itemTotal}
                   style={styles.itemSubtotal}
                 />
               </View>
             ) : item.originalPrice && item.originalPrice > numericPrice ? (
-              <AnimatedPrice
-                value={item.originalPrice}
+              <AnimatedPrice value={item.originalPrice}
                 style={styles.originalPriceStrikethrough}
               />
             ) : null}
           </View>
 
           <View style={styles.quantityContainer}>
-            <TouchableOpacity
-              style={[styles.qtyButton, isMinQuantity && styles.qtyButtonDisabled]}
+            <TouchableOpacity style={[styles.qtyButton, isMinQuantity && styles.qtyButtonDisabled]}
               onPress={handleDecrement}
               disabled={isMinQuantity}
               activeOpacity={0.6}
             >
-              <Ionicons
-                name="remove"
-                size={16}
-                color={isMinQuantity ? theme.secondaryText : theme.text}
-              />
+              <Minus size={16} color={isMinQuantity ? theme.secondaryText : theme.text} />
             </TouchableOpacity>
 
             <Text style={styles.qtyText}>{item.quantity}</Text>
 
-            <TouchableOpacity
-              style={styles.qtyButton}
+            <TouchableOpacity style={styles.qtyButton}
               onPress={handleIncrement}
               activeOpacity={0.6}
             >
-              <Ionicons name="add" size={16} color={theme.text} />
+              <Plus size={16} color={theme.text} />
             </TouchableOpacity>
           </View>
         </View>

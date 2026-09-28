@@ -5,7 +5,7 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
-import { Ionicons } from "@expo/vector-icons";
+import { Search } from "lucide-react";
 import * as Haptics from "@/lib/haptics";
 import { useNavigate } from "react-router-dom";
 import { goTo } from "@/src/utils/navigation";
@@ -89,15 +89,13 @@ export const ExpandableSearchBar: React.FC<ExpandableSearchBarProps> = ({
         searchAnimStyle,
       ]}
     >
-      <Pressable
-        onPress={isSearchOpen ? collapseSearch : openSearch}
+      <Pressable onPress={isSearchOpen ? collapseSearch : openSearch}
         style={[styles.searchTouchable, webPressableStyle]}
       >
-        <Ionicons name="search-outline" size={20} color={theme.text} />
+        <Search size={20} color={theme.text} />
       </Pressable>
       {isSearchOpen && (
-        <TextInput
-          ref={inputRef}
+        <TextInput ref={inputRef}
           bare
           placeholder={placeholder}
           placeholderTextColor={theme.tertiaryText}

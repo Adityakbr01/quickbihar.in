@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Ionicons } from "@expo/vector-icons";
+import { Eye, EyeOff, Lock, Mail } from "lucide-react";
 import * as Haptics from "@/lib/haptics";
 import { useNavigate } from "react-router-dom";
 import { goTo } from "@/src/utils/navigation";
@@ -62,12 +62,10 @@ export const LoginForm: React.FC<AuthFormProps & { login: any }> = ({
 
   return (
     <View style={[styles.form, loading && { opacity: 0.7 }]}>
-      <Controller
-        control={control}
+      <Controller control={control}
         name="email"
         render={({ field: { onChange, onBlur, value } }) => (
-          <TextInput
-            label="Email Address"
+          <TextInput label="Email Address"
             variant="glass"
             placeholder="name@example.com"
             keyboardType="email-address"
@@ -81,23 +79,17 @@ export const LoginForm: React.FC<AuthFormProps & { login: any }> = ({
             editable={!loading}
             error={errors.email?.message}
             icon={
-              <Ionicons
-                name="mail-outline"
-                size={20}
-                color={theme.secondaryText}
-              />
+              <Mail size={20} color={theme.secondaryText} />
             }
           />
         )}
       />
 
       <View style={{ marginTop: 12 }}>
-        <Controller
-          control={control}
+        <Controller control={control}
           name="password"
           render={({ field: { onChange, onBlur, value } }) => (
-            <TextInput
-              ref={passwordRef}
+            <TextInput ref={passwordRef}
               label="Password"
               variant="glass"
               placeholder="••••••••"
@@ -111,26 +103,21 @@ export const LoginForm: React.FC<AuthFormProps & { login: any }> = ({
               editable={!loading}
               error={errors.password?.message}
               icon={
-                <Ionicons
-                  name="lock-closed-outline"
-                  size={20}
-                  color={theme.secondaryText}
-                />
+                <Lock size={20} color={theme.secondaryText} />
               }
               rightIcon={
-                <TouchableOpacity
-                  onPress={() => {
+                <TouchableOpacity onPress={() => {
                     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                     setShowPassword(!showPassword);
                   }}
                   style={{ padding: 4 }}
                   hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                 >
-                  <Ionicons
-                    name={showPassword ? "eye-off-outline" : "eye-outline"}
-                    size={20}
-                    color={theme.secondaryText}
-                  />
+                  {showPassword ? (
+                    <EyeOff size={20} color={theme.secondaryText} />
+                  ) : (
+                    <Eye size={20} color={theme.secondaryText} />
+                  )}
                 </TouchableOpacity>
               }
             />
@@ -138,16 +125,14 @@ export const LoginForm: React.FC<AuthFormProps & { login: any }> = ({
         />
       </View>
 
-      <TouchableOpacity
-        style={{ alignSelf: "flex-end", marginTop: 8 }}
+      <TouchableOpacity style={{ alignSelf: "flex-end", marginTop: 8 }}
         activeOpacity={0.7}
         onPress={() => {
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
           goTo(navigate, "/auth/forgot-password" as any);
         }}
       >
-        <Text
-          style={{
+        <Text style={{
             color: theme.secondaryText,
             fontSize: 13,
             fontWeight: "600",
@@ -158,8 +143,7 @@ export const LoginForm: React.FC<AuthFormProps & { login: any }> = ({
         </Text>
       </TouchableOpacity>
 
-      <TouchableOpacity
-        style={[styles.continueBtn, { marginTop: 20 }]}
+      <TouchableOpacity style={[styles.continueBtn, { marginTop: 20 }]}
         activeOpacity={0.85}
         onPress={handleSubmit(handleLogin)}
         disabled={loading}

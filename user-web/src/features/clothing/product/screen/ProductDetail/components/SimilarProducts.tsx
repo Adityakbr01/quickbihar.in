@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Text, ScrollView, TouchableOpacity, Image } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { Star } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { goTo } from "@/src/utils/navigation";
 import { IProduct } from "../../../types/product.types";
@@ -21,14 +21,12 @@ export const SimilarProducts = ({ products, theme }: SimilarProductsProps) => {
       <Text style={[s.selectionLabel, { color: theme.text, paddingHorizontal: 16 }]}>
         SIMILAR PRODUCTS
       </Text>
-      <ScrollView
-        horizontal
+      <ScrollView horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={s.similarScroll}
       >
         {products.map((item) => (
-          <TouchableOpacity
-            key={item._id}
+          <TouchableOpacity key={item._id}
             style={[
               s.similarCard,
               { backgroundColor: theme.background, borderColor: theme.border },
@@ -41,20 +39,17 @@ export const SimilarProducts = ({ products, theme }: SimilarProductsProps) => {
               })
             }
           >
-            <Image
-              source={{ uri: item.images?.[0]?.url }}
+            <Image source={{ uri: item.images?.[0]?.url }}
               style={s.similarImage}
               resizeMode="cover"
             />
             <View style={s.similarInfo}>
-              <Text
-                style={[s.similarBrand, { color: theme.secondaryText }]}
+              <Text style={[s.similarBrand, { color: theme.secondaryText }]}
                 numberOfLines={1}
               >
                 {item.brand}
               </Text>
-              <Text
-                style={[s.similarTitle, { color: theme.text }]}
+              <Text style={[s.similarTitle, { color: theme.text }]}
                 numberOfLines={2}
               >
                 {item.title}
@@ -75,10 +70,9 @@ export const SimilarProducts = ({ products, theme }: SimilarProductsProps) => {
                     <Text style={s.similarRatingText}>
                       {item.ratings.average}
                     </Text>
-                    <Ionicons name="star" size={9} color="#fff" />
+                    <Star size={9} color="#fff" fill="#fff" />
                   </View>
-                  <Text
-                    style={[
+                  <Text style={[
                       s.similarRatingCount,
                       { color: theme.tertiaryText },
                     ]}

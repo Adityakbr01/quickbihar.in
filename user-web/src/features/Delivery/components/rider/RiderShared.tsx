@@ -1,6 +1,6 @@
 import React from "react";
 import { Image, Text, View } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import type { LucideIcon } from "lucide-react";
 import type { Theme } from "@/src/theme/Provider/ThemeProvider";
 import { label, statusTone } from "../../theme/riderTheme";
 import type { RiderStyles } from "../../types/rider.types";
@@ -28,17 +28,17 @@ export function SummaryTile({ styles, label: tileLabel, value }: { styles: Rider
 export function EmptyCard({
   styles,
   theme,
-  icon,
+  icon: Icon,
   label: text,
 }: {
   styles: RiderStyles;
   theme: Theme;
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: LucideIcon;
   label: string;
 }) {
   return (
     <View style={styles.emptyCard}>
-      <Ionicons name={icon} size={24} color={theme.tertiaryText} />
+      <Icon size={24} color={theme.tertiaryText} />
       <Text style={styles.muted}>{text}</Text>
     </View>
   );

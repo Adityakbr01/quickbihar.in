@@ -9,7 +9,8 @@ import {
   Linking,
   Pressable,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import type { LucideIcon } from "lucide-react";
+import { ArrowRight, Bell, BellOff, CheckCheck, ChevronLeft, Circle, CircleAlert, Inbox, Layers, MessageCircle, ShoppingBag, Tag } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { goBack, goTo } from "@/src/utils/navigation";
 import { useModuleTheme, type ModuleVariant } from "@/src/theme/useModuleTheme";
@@ -33,7 +34,7 @@ type TabId = "all" | "orders" | "promotions" | "updates";
 interface Tab {
   id: TabId;
   label: string;
-  icon: string;
+  icon: LucideIcon;
   match: (channel: string) => boolean;
 }
 
@@ -41,25 +42,25 @@ const TABS: Tab[] = [
   {
     id: "all",
     label: "All",
-    icon: "albums-outline",
+    icon: Layers,
     match: () => true,
   },
   {
     id: "orders",
     label: "Orders",
-    icon: "bag-handle-outline",
+    icon: ShoppingBag,
     match: (c) => c === "orders",
   },
   {
     id: "promotions",
     label: "Offers",
-    icon: "pricetag-outline",
+    icon: Tag,
     match: (c) => c === "promotions",
   },
   {
     id: "updates",
     label: "Updates",
-    icon: "notifications-outline",
+    icon: Bell,
     match: (c) => c === "general" || c === "system",
   },
 ];
@@ -68,28 +69,28 @@ const TABS: Tab[] = [
 // brand-recognisable hues so the same channel always reads the same way.
 const CHANNEL_META: Record<
   string,
-  { icon: string; color: string; bg: string; label: string }
+  { icon: LucideIcon; color: string; bg: string; label: string }
 > = {
   orders: {
-    icon: "bag-handle-outline",
+    icon: ShoppingBag,
     color: "#0EA5E9",
     bg: "rgba(14, 165, 233, 0.14)",
     label: "Order",
   },
   promotions: {
-    icon: "pricetag-outline",
+    icon: Tag,
     color: "#F97316",
     bg: "rgba(249, 115, 22, 0.14)",
     label: "Offer",
   },
   system: {
-    icon: "alert-circle-outline",
+    icon: CircleAlert,
     color: "#EF4444",
     bg: "rgba(239, 68, 68, 0.14)",
     label: "System",
   },
   general: {
-    icon: "chatbubble-ellipses-outline",
+    icon: MessageCircle,
     color: "#8B5CF6",
     bg: "rgba(139, 92, 246, 0.14)",
     label: "Update",
@@ -185,8 +186,7 @@ const NotificationScreen = ({ variant = "default" }: { variant?: ModuleVariant }
     const fullTime = dayjs(item.createdAt).format("MMM D, h:mm A");
 
     return (
-      <TouchableOpacity
-        style={[styles.card, !item.isRead && styles.cardUnread]}
+      <TouchableOpacity style={[styles.card, !item.isRead && styles.cardUnread]}
         onPress={() => handleNotificationPress(item)}
         activeOpacity={0.75}
       >
@@ -194,24 +194,20 @@ const NotificationScreen = ({ variant = "default" }: { variant?: ModuleVariant }
         {!item.isRead && <View style={styles.unreadAccent} />}
 
         {/* Channel icon */}
-        <View
-          style={[
+        <View style={[
             styles.iconWrap,
             { backgroundColor: !item.isRead ? meta.bg : theme.secondaryBackground },
           ]}
         >
-          <Ionicons
-            name={(item.imageUrl && !isRich ? "" : meta.icon) as any}
-            size={22}
-            color={!item.isRead ? meta.color : theme.secondaryText}
-          />
+          {!(item.imageUrl && !isRich) && (
+            <meta.icon size={22} color={!item.isRead ? meta.color : theme.secondaryText} />
+          )}
         </View>
 
         <View style={styles.content}>
           {/* Title row */}
           <View style={styles.titleRow}>
-            <Text
-              style={[styles.title, !item.isRead && styles.titleUnread]}
+            <Text style={[styles.title, !item.isRead && styles.titleUnread]}
               numberOfLines={1}
             >
               {item.title}
@@ -224,19 +220,13 @@ const NotificationScreen = ({ variant = "default" }: { variant?: ModuleVariant }
             <View style={styles.channelTag}>
               <Text style={styles.channelTagText}>{meta.label}</Text>
             </View>
-            <Ionicons
-              name="ellipse"
-              size={3}
-              color={theme.tertiaryText}
-              style={{ marginHorizontal: 2 }}
-            />
+            <Circle size={3} color={theme.tertiaryText} style={{ marginInline: 2 }} />
             <Text style={styles.timeText}>{fullTime}</Text>
             <Text style={[styles.timeText, { opacity: 0.6 }]}>· {time}</Text>
           </View>
 
           {/* Description */}
-          <Text
-            style={[
+          <Text style={[
               styles.description,
               !item.isRead && styles.descriptionUnread,
             ]}
@@ -247,8 +237,7 @@ const NotificationScreen = ({ variant = "default" }: { variant?: ModuleVariant }
 
           {/* Rich card image */}
           {isRich && (
-            <Image
-              source={{ uri: item.imageUrl }}
+            <Image source={{ uri: item.imageUrl }}
               style={styles.richBanner}
               resizeMode="cover"
             />
@@ -257,8 +246,7 @@ const NotificationScreen = ({ variant = "default" }: { variant?: ModuleVariant }
           {/* Rich card action */}
           {isRich && item.redirectType !== "none" && (
             <View style={styles.richActionRow}>
-              <TouchableOpacity
-                style={styles.richActionBtn}
+              <TouchableOpacity style={styles.richActionBtn}
                 onPress={() => handleNotificationPress(item)}
                 activeOpacity={0.85}
               >
@@ -266,7 +254,7 @@ const NotificationScreen = ({ variant = "default" }: { variant?: ModuleVariant }
                   {item.actionButtonText ||
                     (item.redirectType === "product" ? "Buy Now" : "View Details")}
                 </Text>
-                <Ionicons name="arrow-forward" size={14} color="#fff" />
+                <ArrowRight size={14} color="#fff" />
               </TouchableOpacity>
             </View>
           )}
@@ -290,8 +278,7 @@ const NotificationScreen = ({ variant = "default" }: { variant?: ModuleVariant }
           const isActive = activeTab === tab.id;
           const count = tabCounts[tab.id];
           return (
-            <Pressable
-              key={tab.id}
+            <Pressable key={tab.id}
               style={[styles.tabButton, isActive && styles.activeTabButton]}
               onPress={() => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(
@@ -301,26 +288,19 @@ const NotificationScreen = ({ variant = "default" }: { variant?: ModuleVariant }
               }}
               android_ripple={{ color: theme.primary + "20", borderless: false }}
             >
-              <Ionicons
-                name={tab.icon as any}
-                size={14}
-                color={isActive ? theme.text : theme.secondaryText}
-              />
-              <Text
-                style={[styles.tabLabel, isActive && styles.activeTabLabel]}
+              <tab.icon size={14} color={isActive ? theme.text : theme.secondaryText} />
+              <Text style={[styles.tabLabel, isActive && styles.activeTabLabel]}
                 numberOfLines={1}
               >
                 {tab.label}
               </Text>
               {count > 0 && (
-                <View
-                  style={[
+                <View style={[
                     styles.tabCountPill,
                     !isActive && { backgroundColor: theme.tertiaryBackground },
                   ]}
                 >
-                  <Text
-                    style={[
+                  <Text style={[
                       styles.tabCountText,
                       !isActive && { color: theme.secondaryText },
                     ]}
@@ -338,17 +318,16 @@ const NotificationScreen = ({ variant = "default" }: { variant?: ModuleVariant }
 
   const renderEmptyState = () => (
     <View style={styles.emptyContainer}>
-      <View
-        style={[
+      <View style={[
           styles.emptyIconWrap,
           { backgroundColor: theme.primary + "15" },
         ]}
       >
-        <Ionicons
-          name={activeTab === "all" ? "notifications-off-outline" : "file-tray-outline"}
-          size={52}
-          color={theme.primary}
-        />
+        {activeTab === "all" ? (
+          <BellOff size={52} color={theme.primary} />
+        ) : (
+          <Inbox size={52} color={theme.primary} />
+        )}
       </View>
       <Text style={styles.emptyTitle}>
         {activeTab === "all" ? "No notifications yet" : "Nothing here yet"}
@@ -398,8 +377,7 @@ const NotificationScreen = ({ variant = "default" }: { variant?: ModuleVariant }
       <View style={styles.container}>
         {/* Top app bar */}
         <View style={styles.appBar}>
-          <TouchableOpacity
-            onPress={() => {
+          <TouchableOpacity onPress={() => {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(
                 () => null,
               );
@@ -408,7 +386,7 @@ const NotificationScreen = ({ variant = "default" }: { variant?: ModuleVariant }
             style={styles.backButton}
             activeOpacity={0.7}
           >
-            <Ionicons name="chevron-back" size={22} color={theme.text} />
+            <ChevronLeft size={22} color={theme.text} />
           </TouchableOpacity>
 
           <View style={styles.appBarTitleWrap}>
@@ -421,8 +399,7 @@ const NotificationScreen = ({ variant = "default" }: { variant?: ModuleVariant }
           </View>
 
           {unreadCount > 0 ? (
-            <TouchableOpacity
-              onPress={handleMarkAll}
+            <TouchableOpacity onPress={handleMarkAll}
               disabled={isMarkingAll}
               style={[styles.markAllBtn, isMarkingAll && styles.markAllBtnDisabled]}
               activeOpacity={0.7}
@@ -431,7 +408,7 @@ const NotificationScreen = ({ variant = "default" }: { variant?: ModuleVariant }
                 <ActivityIndicator size="small" color={theme.primary} />
               ) : (
                 <>
-                  <Ionicons name="checkmark-done" size={14} color={theme.primary} />
+                  <CheckCheck size={14} color={theme.primary} />
                   <Text style={styles.markAllText}>Mark all</Text>
                 </>
               )}
@@ -445,8 +422,7 @@ const NotificationScreen = ({ variant = "default" }: { variant?: ModuleVariant }
         {renderTabs()}
 
         {/* Notification list */}
-        <FlashList
-          data={rows}
+        <FlashList data={rows}
           renderItem={({ item: row }) =>
             row.type === "header" ? (
               renderSectionHeader(row.label, row.count)
@@ -461,8 +437,7 @@ const NotificationScreen = ({ variant = "default" }: { variant?: ModuleVariant }
           ]}
           ListEmptyComponent={renderEmptyState}
           refreshControl={
-            <RefreshControl
-              refreshing={isLoading}
+            <RefreshControl refreshing={isLoading}
               onRefresh={refetch}
               tintColor={theme.primary}
             />

@@ -1,4 +1,4 @@
-import { Feather, Ionicons } from "@expo/vector-icons";
+import { ArrowLeft, ArrowRight, Briefcase, House, MapPin, Navigation as NavigationIcon, Shield, ShieldCheck } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as Haptics from "@/lib/haptics";
 import * as Location from "expo-location";
@@ -331,8 +331,7 @@ export default function JeweleryAddressFormScreen() {
   return (
     <View style={[styles.root, { backgroundColor: colors.ivory }]}>
       {/* Header */}
-      <View
-        style={[
+      <View style={[
           styles.header,
           {
             paddingTop: topPad + 12,
@@ -341,18 +340,16 @@ export default function JeweleryAddressFormScreen() {
           },
         ]}
       >
-        <Pressable
-          style={styles.backBtn}
+        <Pressable style={styles.backBtn}
           onPress={handleBack}
           hitSlop={8}
           accessibilityRole="button"
           accessibilityLabel="Go back"
         >
-          <Feather name="arrow-left" size={18} color={colors.ink} />
+          <ArrowLeft size={18} color={colors.ink} />
         </Pressable>
 
-        <Text
-          style={[
+        <Text style={[
             styles.headerTitle,
             {
               color: colors.ink,
@@ -363,15 +360,13 @@ export default function JeweleryAddressFormScreen() {
           {isEditing ? "EDIT ADDRESS" : "ADD NEW ADDRESS"}
         </Text>
 
-        <Feather name="shield" size={16} color={colors.gold} />
+        <Shield size={16} color={colors.gold} />
       </View>
 
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
+      <KeyboardAvoidingView style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
-        <ScrollView
-          contentContainerStyle={[
+        <ScrollView contentContainerStyle={[
             styles.scrollContent,
             { paddingBottom: bottomPad + 90 },
           ]}
@@ -380,8 +375,7 @@ export default function JeweleryAddressFormScreen() {
         >
           {/* GPS Location Button */}
           <View style={styles.section}>
-            <TouchableOpacity
-              style={[
+            <TouchableOpacity style={[
                 styles.locationBtn,
                 {
                   backgroundColor: colors.champagne,
@@ -396,10 +390,9 @@ export default function JeweleryAddressFormScreen() {
               {isLocating ? (
                 <ActivityIndicator size="small" color={colors.gold} />
               ) : (
-                <Feather name="navigation" size={16} color={colors.gold} />
+                <NavigationIcon size={16} color={colors.gold} />
               )}
-              <Text
-                style={[
+              <Text style={[
                   styles.locationBtnText,
                   { color: colors.gold, fontFamily: "DMSans_500Medium" },
                 ]}
@@ -414,9 +407,8 @@ export default function JeweleryAddressFormScreen() {
 
             {hasLocationPin && (
               <View style={styles.coordsRow}>
-                <Ionicons name="location-sharp" size={12} color={colors.gold} />
-                <Text
-                  style={[
+                <MapPin size={12} color={colors.gold} />
+                <Text style={[
                     styles.coordsText,
                     { color: colors.warmGray, fontFamily: "DMSans_400Regular" },
                   ]}
@@ -429,8 +421,7 @@ export default function JeweleryAddressFormScreen() {
 
           {/* Address Type Selector */}
           <View style={styles.section}>
-            <Text
-              style={[
+            <Text style={[
                 styles.fieldLabel,
                 { color: colors.warmGray, fontFamily: "DMSans_500Medium" },
               ]}
@@ -441,8 +432,7 @@ export default function JeweleryAddressFormScreen() {
               {[AddressType.HOME, AddressType.WORK, AddressType.OTHER].map((type) => {
                 const selected = addressType === type;
                 return (
-                  <TouchableOpacity
-                    key={type}
+                  <TouchableOpacity key={type}
                     style={[
                       styles.typeChip,
                       {
@@ -456,19 +446,14 @@ export default function JeweleryAddressFormScreen() {
                     }}
                     activeOpacity={0.8}
                   >
-                    <Feather
-                      name={
-                        type === AddressType.HOME
-                          ? "home"
-                          : type === AddressType.WORK
-                          ? "briefcase"
-                          : "map-pin"
-                      }
-                      size={12}
-                      color={selected ? colors.gold : colors.warmGray}
-                    />
-                    <Text
-                      style={[
+                    {type === AddressType.HOME ? (
+                      <House size={12} color={selected ? colors.gold : colors.warmGray} />
+                    ) : type === AddressType.WORK ? (
+                      <Briefcase size={12} color={selected ? colors.gold : colors.warmGray} />
+                    ) : (
+                      <MapPin size={12} color={selected ? colors.gold : colors.warmGray} />
+                    )}
+                    <Text style={[
                         styles.typeChipText,
                         {
                           color: selected ? colors.gold : colors.ink,
@@ -488,20 +473,17 @@ export default function JeweleryAddressFormScreen() {
 
           {/* Full Name */}
           <View style={styles.fieldGroup}>
-            <Text
-              style={[
+            <Text style={[
                 styles.fieldLabel,
                 { color: colors.warmGray, fontFamily: "DMSans_500Medium" },
               ]}
             >
               FULL NAME *
             </Text>
-            <Controller
-              control={control}
+            <Controller control={control}
               name="fullName"
               render={({ field: { onChange, onBlur, value } }) => (
-                <TextInput
-                  placeholder="e.g. Aditya Kumar"
+                <TextInput placeholder="e.g. Aditya Kumar"
                   placeholderTextColor={colors.warmGray}
                   onBlur={onBlur}
                   onChangeText={onChange}
@@ -528,8 +510,7 @@ export default function JeweleryAddressFormScreen() {
           {/* Mobile Number & Verification */}
           <View style={styles.fieldGroup}>
             <View style={styles.labelWithBadge}>
-              <Text
-                style={[
+              <Text style={[
                   styles.fieldLabel,
                   { color: colors.warmGray, fontFamily: "DMSans_500Medium" },
                 ]}
@@ -537,8 +518,7 @@ export default function JeweleryAddressFormScreen() {
                 PHONE NUMBER *
               </Text>
               {isPhoneVerified ? (
-                <View
-                  style={[
+                <View style={[
                     styles.verifiedBadge,
                     {
                       backgroundColor: colors.champagne,
@@ -546,9 +526,8 @@ export default function JeweleryAddressFormScreen() {
                     },
                   ]}
                 >
-                  <Ionicons name="shield-checkmark" size={10} color={colors.gold} />
-                  <Text
-                    style={[
+                  <ShieldCheck size={10} color={colors.gold} />
+                  <Text style={[
                       styles.verifiedBadgeText,
                       { color: colors.gold, fontFamily: "DMSans_500Medium" },
                     ]}
@@ -557,8 +536,7 @@ export default function JeweleryAddressFormScreen() {
                   </Text>
                 </View>
               ) : (
-                <TouchableOpacity
-                  onPress={() => setOtpSheetVisible(true)}
+                <TouchableOpacity onPress={() => setOtpSheetVisible(true)}
                   style={[
                     styles.verifiedBadge,
                     {
@@ -567,8 +545,7 @@ export default function JeweleryAddressFormScreen() {
                     },
                   ]}
                 >
-                  <Text
-                    style={[
+                  <Text style={[
                       styles.verifiedBadgeText,
                       { color: colors.gold, fontFamily: "DMSans_500Medium" },
                     ]}
@@ -578,12 +555,10 @@ export default function JeweleryAddressFormScreen() {
                 </TouchableOpacity>
               )}
             </View>
-            <Controller
-              control={control}
+            <Controller control={control}
               name="phone"
               render={({ field: { onChange, onBlur, value } }) => (
-                <TextInput
-                  placeholder="10-digit mobile number"
+                <TextInput placeholder="10-digit mobile number"
                   placeholderTextColor={colors.warmGray}
                   keyboardType="phone-pad"
                   maxLength={10}
@@ -614,20 +589,17 @@ export default function JeweleryAddressFormScreen() {
 
           {/* House / Flat / Street */}
           <View style={styles.fieldGroup}>
-            <Text
-              style={[
+            <Text style={[
                 styles.fieldLabel,
                 { color: colors.warmGray, fontFamily: "DMSans_500Medium" },
               ]}
             >
               HOUSE / FLAT / STREET ADDRESS *
             </Text>
-            <Controller
-              control={control}
+            <Controller control={control}
               name="street"
               render={({ field: { onChange, onBlur, value } }) => (
-                <TextInput
-                  placeholder="Flat / House no, Building name, Street, Area"
+                <TextInput placeholder="Flat / House no, Building name, Street, Area"
                   placeholderTextColor={colors.warmGray}
                   multiline
                   numberOfLines={2}
@@ -657,20 +629,17 @@ export default function JeweleryAddressFormScreen() {
 
           {/* Landmark */}
           <View style={styles.fieldGroup}>
-            <Text
-              style={[
+            <Text style={[
                 styles.fieldLabel,
                 { color: colors.warmGray, fontFamily: "DMSans_500Medium" },
               ]}
             >
               LANDMARK (OPTIONAL)
             </Text>
-            <Controller
-              control={control}
+            <Controller control={control}
               name="landmark"
               render={({ field: { onChange, onBlur, value } }) => (
-                <TextInput
-                  placeholder="Near temple, school, or landmark"
+                <TextInput placeholder="Near temple, school, or landmark"
                   placeholderTextColor={colors.warmGray}
                   onBlur={onBlur}
                   onChangeText={onChange}
@@ -696,20 +665,17 @@ export default function JeweleryAddressFormScreen() {
           {/* City and State */}
           <View style={styles.row}>
             <View style={[styles.fieldGroup, { flex: 1 }]}>
-              <Text
-                style={[
+              <Text style={[
                   styles.fieldLabel,
                   { color: colors.warmGray, fontFamily: "DMSans_500Medium" },
                 ]}
               >
                 CITY *
               </Text>
-              <Controller
-                control={control}
+              <Controller control={control}
                 name="city"
               render={({ field: { onChange, onBlur, value } }) => (
-                <TextInput
-                  placeholder="e.g. Patna"
+                <TextInput placeholder="e.g. Patna"
                   placeholderTextColor={colors.warmGray}
                   onBlur={onBlur}
                   onChangeText={onChange}
@@ -734,20 +700,17 @@ export default function JeweleryAddressFormScreen() {
             </View>
 
             <View style={[styles.fieldGroup, { flex: 1 }]}>
-              <Text
-                style={[
+              <Text style={[
                   styles.fieldLabel,
                   { color: colors.warmGray, fontFamily: "DMSans_500Medium" },
                 ]}
               >
                 STATE *
               </Text>
-              <Controller
-                control={control}
+              <Controller control={control}
                 name="state"
               render={({ field: { onChange, onBlur, value } }) => (
-                <TextInput
-                  placeholder="e.g. Bihar"
+                <TextInput placeholder="e.g. Bihar"
                   placeholderTextColor={colors.warmGray}
                   onBlur={onBlur}
                   onChangeText={onChange}
@@ -774,20 +737,17 @@ export default function JeweleryAddressFormScreen() {
 
           {/* Pincode */}
           <View style={styles.fieldGroup}>
-            <Text
-              style={[
+            <Text style={[
                 styles.fieldLabel,
                 { color: colors.warmGray, fontFamily: "DMSans_500Medium" },
               ]}
             >
               PIN CODE *
             </Text>
-            <Controller
-              control={control}
+            <Controller control={control}
               name="pincode"
               render={({ field: { onChange, onBlur, value } }) => (
-                <TextInput
-                  placeholder="6-digit postal code"
+                <TextInput placeholder="6-digit postal code"
                   placeholderTextColor={colors.warmGray}
                   keyboardType="numeric"
                   maxLength={6}
@@ -814,8 +774,7 @@ export default function JeweleryAddressFormScreen() {
           </View>
 
           {/* Default Address Toggle */}
-          <View
-            style={[
+          <View style={[
               styles.defaultRow,
               {
                 backgroundColor: colors.cardBg,
@@ -824,8 +783,7 @@ export default function JeweleryAddressFormScreen() {
             ]}
           >
             <View style={{ flex: 1, gap: 2 }}>
-              <Text
-                style={[
+              <Text style={[
                   styles.defaultRowTitle,
                   {
                     color: colors.ink,
@@ -835,8 +793,7 @@ export default function JeweleryAddressFormScreen() {
               >
                 Set as Default Address
               </Text>
-              <Text
-                style={[
+              <Text style={[
                   styles.defaultRowSub,
                   { color: colors.warmGray, fontFamily: "DMSans_400Regular" },
                 ]}
@@ -844,8 +801,7 @@ export default function JeweleryAddressFormScreen() {
                 Automatically selected during checkout
               </Text>
             </View>
-            <Switch
-              value={Boolean(isDefault)}
+            <Switch value={Boolean(isDefault)}
               onValueChange={(val) => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                 setValue("isDefault", val);
@@ -857,8 +813,7 @@ export default function JeweleryAddressFormScreen() {
         </ScrollView>
 
         {/* Footer CTA */}
-        <View
-          style={[
+        <View style={[
             styles.footer,
             {
               backgroundColor: colors.ivory,
@@ -867,8 +822,7 @@ export default function JeweleryAddressFormScreen() {
             },
           ]}
         >
-          <TouchableOpacity
-            style={[
+          <TouchableOpacity style={[
               styles.submitBtn,
               {
                 backgroundColor: colors.gold,
@@ -883,8 +837,7 @@ export default function JeweleryAddressFormScreen() {
               <ActivityIndicator color={colors.onBrand} size="small" />
             ) : (
               <View style={styles.submitBtnContent}>
-                <Text
-                  style={[
+                <Text style={[
                     styles.submitBtnText,
                     {
                       color: colors.onBrand,
@@ -894,7 +847,7 @@ export default function JeweleryAddressFormScreen() {
                 >
                   {isEditing ? "UPDATE ADDRESS" : "SAVE ADDRESS"}
                 </Text>
-                <Feather name="arrow-right" size={14} color={colors.onBrand} />
+                <ArrowRight size={14} color={colors.onBrand} />
               </View>
             )}
           </TouchableOpacity>
@@ -902,8 +855,7 @@ export default function JeweleryAddressFormScreen() {
       </KeyboardAvoidingView>
 
       {/* Phone OTP Sheet */}
-      <PhoneOtpSheet
-        visible={otpSheetVisible}
+      <PhoneOtpSheet visible={otpSheetVisible}
         initialPhone={phoneValue || storeUser?.phone || ""}
         onVerified={(verifiedPhone) => {
           setIsPhoneVerified(true);
@@ -915,8 +867,7 @@ export default function JeweleryAddressFormScreen() {
       />
 
       {/* Alert Dialog */}
-      <IOSAlertDialog
-        visible={alertConfig.visible}
+      <IOSAlertDialog visible={alertConfig.visible}
         title={alertConfig.title}
         message={alertConfig.message}
         buttons={alertConfig.buttons}

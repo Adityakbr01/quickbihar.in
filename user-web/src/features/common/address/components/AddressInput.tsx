@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text } from "react-native";
 import { Controller } from "react-hook-form";
 import { AppIcon } from "@/src/components/common/AppIcon";
+import type { LucideIcon } from "lucide-react";
 import { Theme } from "@/src/theme/Provider/ThemeProvider";
 import { TextInput } from "@/src/theme/components/TextInput";
 
@@ -9,7 +10,7 @@ interface AddressInputProps {
   control: any;
   name: string;
   label: string;
-  icon: any;
+  icon: LucideIcon;
   placeholder: string;
   errors: any;
   theme: Theme;
@@ -31,7 +32,7 @@ const AddressInput: React.FC<AddressInputProps> = ({
   return (
     <View style={styles.inputGroup}>
       <View style={styles.labelRow}>
-        <AppIcon name={icon} size={18} color={theme.secondaryText} />
+        <AppIcon icon={icon} size={18} color={theme.secondaryText} />
         <Text style={styles.inputLabel}>{label}</Text>
       </View>
       <Controller

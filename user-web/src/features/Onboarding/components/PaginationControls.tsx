@@ -1,4 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
+import { ArrowRight, X } from "lucide-react";
 import * as Haptics from "@/lib/haptics";
 import React from "react";
 import { StyleSheet, TouchableOpacity, View, Text } from "react-native";
@@ -22,15 +22,14 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
   return (
     <View style={styles.controls}>
       {/* Skip */}
-      <TouchableOpacity
-        onPress={() => {
+      <TouchableOpacity onPress={() => {
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
           onSkip();
         }}
         style={styles.skipBtn}
         activeOpacity={0.7}
       >
-        <Ionicons name="close" size={20} color="rgba(255,255,255,0.75)" />
+        <X size={20} color="rgba(255,255,255,0.75)" />
       </TouchableOpacity>
 
       {/* Dots */}
@@ -48,8 +47,7 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
       </View>
 
       {/* Next */}
-      <AnimatedTouchableOpacity
-        layout={LinearTransition.springify().damping(14).stiffness(80)}
+      <AnimatedTouchableOpacity layout={LinearTransition.springify().damping(14).stiffness(80)}
         onPress={() => {
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
           onNext();
@@ -63,7 +61,7 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
         {currentStep === totalSteps - 1 ? (
           <Text style={styles.finishText} numberOfLines={1}>Finish</Text>
         ) : (
-          <Ionicons name="arrow-forward-outline" size={24} color="#fff" />
+          <ArrowRight size={24} color="#fff" />
         )}
       </AnimatedTouchableOpacity>
     </View>
