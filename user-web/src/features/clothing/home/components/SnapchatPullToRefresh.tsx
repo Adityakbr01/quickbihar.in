@@ -3,7 +3,7 @@ import LazyLottie from "@/src/components/common/LazyLottie";
 import * as Haptics from "@/lib/haptics";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 
-import fireLottie from "@/assets/lottie/LoadingCat.json";
+const fireLottie = "/lottie/LoadingCat.json";
 
 const REFRESH_THRESHOLD = 90;
 const MAX_PULL = 150;

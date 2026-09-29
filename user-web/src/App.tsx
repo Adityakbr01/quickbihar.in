@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { Suspense, lazy, useEffect } from "react";
 import {
   BrowserRouter,
   Routes,
@@ -21,43 +21,86 @@ import DesktopNavbar from "@/src/features/clothing/home/components/DesktopNavbar
 import JeweleryDesktopNavbar from "@/src/features/Jewelery/components/JeweleryDesktopNavbar";
 import BottomTabBar from "@/src/components/common/BottomTabBar";
 
-// Import Screens
+// Core shopping home — eager (first paint).
 import ClothingHomeScreen from "@/src/features/clothing/home/screens/HomeScreen";
-import ClothingSearchScreen from "@/src/features/clothing/search/screens/ClothingSearchScreen";
-import { FoodHomeScreen } from "@/src/features/Food/screens/FoodHomeScreen";
-import TopSellingScreen from "@/src/features/clothing/home/screens/TopSellingScreen";
-import MallDetailScreen from "@/src/features/clothing/home/screens/MallDetailScreen";
-import ProductDetailScreen from "@/src/features/clothing/product/screen/ProductDetailScreen";
-import CategoryDetailScreen from "@/src/features/common/category/screens/CategoryDetailScreen";
-import AccountMain from "@/src/features/common/account/screens/AccountMain";
-import AddressFormScreen from "@/src/features/common/address/screen/AddressFormScreen";
-import SavedAddressesScreen from "@/src/features/common/address/screen/SavedAddressesScreen";
-import CartContent from "@/src/features/common/cart/screen/CartContent";
-import CheckoutScreen from "@/src/features/common/order/screen/CheckoutScreen";
-import OrderDetailScreen from "@/src/features/common/order/screen/OrderDetailScreen";
-import OrderListScreen from "@/src/features/common/order/screen/OrderListScreen";
-import OrderSuccessScreen from "@/src/features/common/order/screen/OrderSuccessScreen";
-import WishlistScreen from "@/src/features/common/wishlist/screen/WishlistScreen";
-import NotificationScreen from "@/src/features/common/notification/screens/NotificationScreen";
-import RiderWorkspaceScreen from "@/src/features/Delivery/screens/RiderWorkspaceScreen";
-import OnboardingScreen from "@/src/features/Onboarding/screens/OnboardingScreen";
-import { AuthScreen } from "@/src/features/common/auth";
 
-// Jewelery Screens
-import JeweleryHomeScreen from "@/src/features/Jewelery/screens/JeweleryHomeScreen";
-import JeweleryCartScreen from "@/src/features/Jewelery/screens/JeweleryCartScreen";
-import JeweleryCheckoutScreen from "@/src/features/Jewelery/screens/JeweleryCheckoutScreen";
-import JeweleryCollectionsScreen from "@/src/features/Jewelery/screens/JeweleryCollectionsScreen";
-import JeweleryProductDetailScreen from "@/src/features/Jewelery/screens/JeweleryProductDetailScreen";
-import JeweleryAccountScreen from "@/src/features/Jewelery/screens/JeweleryAccountScreen";
-import JeweleryAddressFormScreen from "@/src/features/Jewelery/screens/JeweleryAddressFormScreen";
-import JeweleryAddressesScreen from "@/src/features/Jewelery/screens/JeweleryAddressesScreen";
-import JeweleryOrderDetailScreen from "@/src/features/Jewelery/screens/JeweleryOrderDetailScreen";
-import JeweleryOrderSuccessScreen from "@/src/features/Jewelery/screens/JeweleryOrderSuccessScreen";
-import JeweleryOrdersScreen from "@/src/features/Jewelery/screens/JeweleryOrdersScreen";
-import JewelerySearchScreen from "@/src/features/Jewelery/screens/JewelerySearchScreen";
-import { JeweleryTryOnScreen } from "@/src/features/Jewelery/screens/JeweleryTryOnScreen";
-import JeweleryWishlistScreen from "@/src/features/Jewelery/screens/JeweleryWishlistScreen";
+// Everything else — route-split (lazy) so the entry chunk stays lean.
+// React Query dedupes data; SeoRouter + prerender cover SEO for these routes.
+const ClothingSearchScreen = lazy(
+  () => import("@/src/features/clothing/search/screens/ClothingSearchScreen"),
+);
+const FoodHomeScreen = lazy(() =>
+  import("@/src/features/Food/screens/FoodHomeScreen").then((m) => ({ default: m.FoodHomeScreen })),
+);
+const TopSellingScreen = lazy(() => import("@/src/features/clothing/home/screens/TopSellingScreen"));
+const MallDetailScreen = lazy(() => import("@/src/features/clothing/home/screens/MallDetailScreen"));
+const ProductDetailScreen = lazy(() => import("@/src/features/clothing/product/screen/ProductDetailScreen"));
+const CategoryDetailScreen = lazy(() => import("@/src/features/common/category/screens/CategoryDetailScreen"));
+const AccountMain = lazy(() => import("@/src/features/common/account/screens/AccountMain"));
+const AddressFormScreen = lazy(() => import("@/src/features/common/address/screen/AddressFormScreen"));
+const SavedAddressesScreen = lazy(() => import("@/src/features/common/address/screen/SavedAddressesScreen"));
+const CartContent = lazy(() => import("@/src/features/common/cart/screen/CartContent"));
+const CheckoutScreen = lazy(() => import("@/src/features/common/order/screen/CheckoutScreen"));
+const OrderDetailScreen = lazy(() => import("@/src/features/common/order/screen/OrderDetailScreen"));
+const OrderListScreen = lazy(() => import("@/src/features/common/order/screen/OrderListScreen"));
+const OrderSuccessScreen = lazy(() => import("@/src/features/common/order/screen/OrderSuccessScreen"));
+const WishlistScreen = lazy(() => import("@/src/features/common/wishlist/screen/WishlistScreen"));
+const NotificationScreen = lazy(
+  () => import("@/src/features/common/notification/screens/NotificationScreen"),
+);
+const RiderWorkspaceScreen = lazy(() => import("@/src/features/Delivery/screens/RiderWorkspaceScreen"));
+const OnboardingScreen = lazy(() => import("@/src/features/Onboarding/screens/OnboardingScreen"));
+const AuthScreen = lazy(() => import("@/src/features/common/auth/screen/auth.screen"));
+
+// Jewelery Screens (lazy — separate module bundle)
+const JeweleryHomeScreen = lazy(() => import("@/src/features/Jewelery/screens/JeweleryHomeScreen"));
+const JeweleryCartScreen = lazy(() => import("@/src/features/Jewelery/screens/JeweleryCartScreen"));
+const JeweleryCheckoutScreen = lazy(
+  () => import("@/src/features/Jewelery/screens/JeweleryCheckoutScreen"),
+);
+const JeweleryCollectionsScreen = lazy(
+  () => import("@/src/features/Jewelery/screens/JeweleryCollectionsScreen"),
+);
+const JeweleryProductDetailScreen = lazy(
+  () => import("@/src/features/Jewelery/screens/JeweleryProductDetailScreen"),
+);
+const JeweleryAccountScreen = lazy(
+  () => import("@/src/features/Jewelery/screens/JeweleryAccountScreen"),
+);
+const JeweleryAddressFormScreen = lazy(
+  () => import("@/src/features/Jewelery/screens/JeweleryAddressFormScreen"),
+);
+const JeweleryAddressesScreen = lazy(
+  () => import("@/src/features/Jewelery/screens/JeweleryAddressesScreen"),
+);
+const JeweleryOrderDetailScreen = lazy(
+  () => import("@/src/features/Jewelery/screens/JeweleryOrderDetailScreen"),
+);
+const JeweleryOrderSuccessScreen = lazy(
+  () => import("@/src/features/Jewelery/screens/JeweleryOrderSuccessScreen"),
+);
+const JeweleryOrdersScreen = lazy(() => import("@/src/features/Jewelery/screens/JeweleryOrdersScreen"));
+const JewelerySearchScreen = lazy(() => import("@/src/features/Jewelery/screens/JewelerySearchScreen"));
+const JeweleryTryOnScreen = lazy(() =>
+  import("@/src/features/Jewelery/screens/JeweleryTryOnScreen").then((m) => ({
+    default: m.JeweleryTryOnScreen,
+  })),
+);
+const JeweleryWishlistScreen = lazy(
+  () => import("@/src/features/Jewelery/screens/JeweleryWishlistScreen"),
+);
+
+/** Minimal route-loading fallback (lazy chunks). */
+function RouteLoader() {
+  return (
+    <div className="flex flex-1 items-center justify-center" style={{ minHeight: "50vh" }}>
+      <span
+        className="block h-9 w-9 animate-spin rounded-full border-[3px] border-t-transparent"
+        style={{ borderColor: "#E11D4830", borderTopColor: "#E11D48" }}
+      />
+    </div>
+  );
+}
 
 function MallDetailRoute() {
   const { slug } = useParams<{ slug: string }>();
@@ -134,6 +177,7 @@ function MainLayout() {
         ) : (
           <DesktopNavbar />
         )}
+        <Suspense fallback={<RouteLoader />}>
         <Routes>
           <Route path="/" element={<RootRedirect />} />
           {/* Legacy Expo URLs: "/(tabs)/clothing/home" -> "/clothing/home" */}
@@ -249,6 +293,7 @@ function MainLayout() {
           {/* Catch-all: normalize legacy Expo paths, else module home */}
           <Route path="*" element={<LegacyRedirect />} />
         </Routes>
+        </Suspense>
         <BottomTabBar />
       </SocketListenerProvider>
     </div>

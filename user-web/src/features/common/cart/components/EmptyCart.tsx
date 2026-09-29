@@ -7,7 +7,7 @@ import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 
 import { ShoppingBag } from "lucide-react";
 
-import cartLottie from "@/assets/lottie/shoppingCart.json";
+const cartLottie = "/lottie/shoppingCart.json";
 
 const EmptyCart = () => {
   const theme = useTheme() as any;

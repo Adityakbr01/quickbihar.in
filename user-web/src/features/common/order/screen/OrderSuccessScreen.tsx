@@ -5,7 +5,7 @@ import LazyLottie from "@/src/components/common/LazyLottie";
 import { Package, Share2, ShoppingCart } from "lucide-react";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import * as Haptics from "@/lib/haptics";
-import successConfetti from "@/assets/lottie/successConfetti.json";
+const successConfetti = "/lottie/successConfetti.json";
 import { getOrderByIdRequest } from "../api/order.api";
 import { cn } from "@/src/lib/utils";
 

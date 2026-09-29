@@ -136,16 +136,36 @@ export default defineConfig(({ mode }) => {
       chunkSizeWarningLimit: 500,
       reportCompressedSize: true,
       rollupOptions: {
+        // Silence only warnings we cannot fix in our own code:
+        // - EVAL inside lottie-web (third-party, ships direct eval)
+        // - SOURCEMAP_BROKEN from @tailwindcss/vite (benign upstream chain gap;
+        //   this build emits no sourcemaps)
+        onwarn(warning: any, defaultHandler: any) {
+          const code = warning?.code as string | undefined;
+          const id = (warning?.id as string | undefined) || '';
+          if (code === 'EVAL' && id.includes('lottie')) return;
+          if (code === 'SOURCEMAP_BROKEN') return;
+          defaultHandler(warning);
+        },
         output: {
           manualChunks(id) {
             if (!id.includes('node_modules')) return undefined
             const p = id.replace(/\\/g, '/')
             if (/motion|framer-motion/.test(p)) return 'motion'
+            if (/lottie-react|@lottiefiles\/dotlottie-react|lottie-web/.test(p)) return 'lottie'
+            if (/\/leaflet\//.test(p)) return 'leaflet'
+            if (/embla-carousel/.test(p)) return 'embla'
+            if (/date-fns|dayjs|react-day-picker/.test(p)) return 'date'
+            if (/react-hook-form|@hookform\/resolvers|zod/.test(p)) return 'forms'
+            if (/socket\.io-client|engine\.io/.test(p)) return 'socket'
+            if (/@tanstack\//.test(p)) return 'query'
             if (/lucide-react|@radix-ui|radix-ui/.test(p)) return 'ui-vendor'
             if (/react-router/.test(p)) return 'router'
             if (/\/react\/|\/react-dom\/|\/scheduler\//.test(p)) return 'react'
-            // NOTE: no isolated chunk for @tanstack/react-query/axios —
-            // splitting them duplicates the React CJS runtime (mixed CJS/ESM).
+            // NOTE: no manual chunk for @tanstack/react-query/axios/socket.io —
+            // forcing them into their own chunk duplicates the React CJS runtime
+            // into it (mixed CJS/ESM interop), which the entry then statically
+            // imports. Default code-splitting keeps a single React copy.
             return undefined
           },
         },

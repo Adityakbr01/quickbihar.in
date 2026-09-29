@@ -13,7 +13,7 @@ import { useWishlistStore } from "@/src/features/common/wishlist/store/wishlistS
 import { DealProduct as MockProduct } from "../lib/dealsConfig";
 import { VariantSelectorBottomSheet } from "../../product/components/modals/VariantSelectorBottomSheet";
 
-import cyclerLottie from "@/assets/lottie/Cycler.json";
+const cyclerLottie = "/lottie/Cycler.json";
 import { cn } from "@/src/lib/utils";
 
 interface DealProductCardProps {

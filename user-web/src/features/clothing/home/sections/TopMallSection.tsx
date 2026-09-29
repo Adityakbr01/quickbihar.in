@@ -9,7 +9,7 @@ import { MallCardSkeleton } from "../components/MallCardSkeleton";
 import { MallCard } from "../components/MallCard";
 import { getTopMallsRequest } from "../api/mall.api";
 
-import fireLottie from "@/assets/lottie/Fire.json";
+const fireLottie = "/lottie/Fire.json";
 
 const TopMallSection = () => {
   const theme = useTheme() as any;

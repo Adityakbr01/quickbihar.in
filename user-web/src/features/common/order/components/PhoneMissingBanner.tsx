@@ -5,6 +5,7 @@ import { goTo } from "@/src/utils/navigation";
 import React, { useState } from "react";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
+import axiosInstance from "@/src/api/axiosInstance";
 import { TextInput } from "@/src/theme/components/TextInput";
 import { cn } from "@/src/lib/utils";
 
@@ -35,18 +36,14 @@ export const PhoneMissingBanner: React.FC = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setSaving(true);
     try {
-      const axios = (await import("@/src/api/axiosInstance")).default;
-      await axios.patch("/users/profile", { phone: cleaned });
+      await axiosInstance.patch("/users/profile", { phone: cleaned });
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       // Refresh the user via the auth store so the rest of checkout
       // sees the new phone without a manual reload.
-      const { useAuthStore } = await import(
-        "@/src/features/common/auth/store/authStore"
-      );
       const token = useAuthStore.getState().token;
       const refreshToken = useAuthStore.getState().refreshToken;
       if (token) {
-        const me = await axios.get("/users/me");
+        const me = await axiosInstance.get("/users/me");
         const fresh = me?.data?.data;
         if (fresh) {
           await useAuthStore.getState().setAuth(fresh, token, refreshToken || "");

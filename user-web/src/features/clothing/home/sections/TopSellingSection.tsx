@@ -15,7 +15,7 @@ import {
 } from "../../product/api/product.api";
 import { IProduct } from "../../product/types/product.types";
 
-import arrowLottie from "@/assets/lottie/arrow.json";
+const arrowLottie = "/lottie/arrow.json";
 
 const CARD_WIDTH = 240;
 const GAP = 12;

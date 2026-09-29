@@ -3,7 +3,7 @@ import LazyLottie from "@/src/components/common/LazyLottie";
 import * as Haptics from "@/lib/haptics";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 
-import fireLottie from "@/assets/lottie/Fire.json";
+const fireLottie = "/lottie/Fire.json";
 
 interface TrendingSectionProps {
   trendingItems: string[];

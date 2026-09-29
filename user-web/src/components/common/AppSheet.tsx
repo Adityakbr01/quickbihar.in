@@ -1,7 +1,12 @@
 import React from "react";
-import { Sheet } from "react-modal-sheet";
 import { X } from "lucide-react";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetTitle,
+} from "@/src/components/ui/sheet";
 
 export interface AppSheetProps {
   /** Show/hide the sheet (same `visible` prop every dialog already uses). */
@@ -18,12 +23,12 @@ export interface AppSheetProps {
 }
 
 /**
- * Shared bottom sheet built on the lightweight `react-modal-sheet`
- * package (spring physics, drag-to-dismiss, snap points, backdrop).
+ * Shared bottom sheet built on the shadcn `Sheet` (bottom side).
  *
- * One place for the sheet chrome every dialog in the app uses:
- * themed background, rounded top, drag handle, title + close button,
- * scrollable body, optional footer.
+ * Same props API as before, so every call site works unchanged:
+ * themed background, rounded top, drag-handle look, title + close
+ * button, scrollable body, optional footer. Closes on backdrop
+ * click, close button, or Escape.
  */
 export const AppSheet: React.FC<AppSheetProps> = ({
   visible,
@@ -35,59 +40,81 @@ export const AppSheet: React.FC<AppSheetProps> = ({
   label,
 }) => {
   const theme = useTheme() as any;
+  const fallbackLabel = typeof label === "string" && label ? label : "Sheet";
 
   return (
     <Sheet
-      isOpen={visible}
-      onClose={onClose}
-      detent="content"
-      aria-label={typeof label === "string" ? label : undefined}
+      open={visible}
+      onOpenChange={(open) => {
+        if (!open) onClose();
+      }}
     >
-      <Sheet.Container
+      <SheetContent
+        side="bottom"
+        showCloseButton={false}
+        aria-label={title || subtitle ? undefined : fallbackLabel}
+        className="mx-auto w-full max-w-[512px] gap-0 rounded-t-3xl border-t p-0"
         style={{
           backgroundColor: theme.background,
-          borderTopLeftRadius: 24,
-          borderTopRightRadius: 24,
-          maxWidth: 512,
-          marginLeft: "auto",
-          marginRight: "auto",
+          borderTopColor: theme.border,
+          maxHeight: "92dvh",
         }}
       >
-        <Sheet.Header style={{ paddingTop: 8, cursor: "grab" }}>
-          <Sheet.DragIndicator
-            style={{ backgroundColor: theme.border, width: 40, height: 4, borderRadius: 2 }}
+        {/* Drag-handle look (visual anchor, matches previous sheet). */}
+        <div className="flex shrink-0 justify-center pt-2" aria-hidden="true">
+          <span
+            style={{
+              backgroundColor: theme.border,
+              width: 40,
+              height: 4,
+              borderRadius: 2,
+            }}
           />
-        </Sheet.Header>
+        </div>
 
-        <Sheet.Content style={{ paddingBottom: footer ? 0 : 16 }}>
-          {(title || subtitle) && (
-            <div className="flex flex-row items-start justify-between gap-3 px-4 pt-1 pb-2">
-              <div className="min-w-0 flex-1">
-                {typeof title === "string" ? (
-                  <h3 style={{ fontSize: 16, fontWeight: 700, color: theme.text, margin: 0 }}>
-                    {title}
-                  </h3>
-                ) : (
-                  title
-                )}
-                {subtitle ? (
-                  <p className="mt-0.5 truncate text-xs" style={{ color: theme.secondaryText }}>
+        {title || subtitle ? (
+          <div className="flex shrink-0 flex-row items-start justify-between gap-3 px-4 pt-1 pb-2">
+            <div className="min-w-0 flex-1">
+              {typeof title === "string" ? (
+                <SheetTitle
+                  style={{
+                    fontSize: 16,
+                    fontWeight: 700,
+                    color: theme.text,
+                    margin: 0,
+                  }}
+                >
+                  {title}
+                </SheetTitle>
+              ) : (
+                title
+              )}
+              {typeof subtitle === "string" ? (
+                subtitle ? (
+                  <SheetDescription
+                    className="mt-0.5 truncate text-xs"
+                    style={{ color: theme.secondaryText }}
+                  >
                     {subtitle}
-                  </p>
-                ) : null}
-              </div>
-              <button
-                type="button"
-                onClick={onClose}
-                aria-label="Close sheet"
-                className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full"
-                style={{ backgroundColor: theme.secondaryBackground }}
-              >
-                <X size={18} color={theme.text} />
-              </button>
+                  </SheetDescription>
+                ) : null
+              ) : (
+                subtitle
+              )}
             </div>
-          )}
-          {!title && !subtitle && (
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Close sheet"
+              className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full"
+              style={{ backgroundColor: theme.secondaryBackground }}
+            >
+              <X size={18} color={theme.text} />
+            </button>
+          </div>
+        ) : (
+          <>
+            <SheetTitle className="sr-only">{fallbackLabel}</SheetTitle>
             <button
               type="button"
               onClick={onClose}
@@ -97,24 +124,23 @@ export const AppSheet: React.FC<AppSheetProps> = ({
             >
               <X size={18} color={theme.text} />
             </button>
-          )}
+          </>
+        )}
 
-          <div className="min-h-0 overflow-y-auto">{children}</div>
+        <div className="min-h-0 flex-1 overflow-y-auto">{children}</div>
 
-          {footer ? (
-            <div
-              className="border-t px-4 py-3"
-              style={{ borderTopColor: theme.border, backgroundColor: theme.background }}
-            >
-              {footer}
-            </div>
-          ) : null}
-        </Sheet.Content>
-      </Sheet.Container>
-
-      <Sheet.Backdrop
-        style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
-      />
+        {footer ? (
+          <div
+            className="shrink-0 border-t px-4 py-3"
+            style={{
+              borderTopColor: theme.border,
+              backgroundColor: theme.background,
+            }}
+          >
+            {footer}
+          </div>
+        ) : null}
+      </SheetContent>
     </Sheet>
   );
 };
