@@ -1,6 +1,6 @@
 import { Layers } from "lucide-react";
 import React from "react";
-import { Text, TouchableOpacity, View } from "react-native";
+import { Text, TouchableOpacity, View } from "@/components/primitives";
 import type { Theme } from "@/src/theme/Provider/ThemeProvider";
 import type { RiderDashboardResponse, RiderOrder, RiderProfile, RiderWallet } from "../../api/delivery.api";
 import { cityOf, formatDate, money } from "../../theme/riderTheme";

@@ -11,7 +11,7 @@ import {
   StyleSheet,
   Text,
   View,
-} from "react-native";
+} from "@/components/primitives";
 import { useSafeAreaInsets } from "@/src/hooks/useSafeAreaInsets";
 
 import { ProductCard } from "@/src/features/Jewelery/components/ProductCard";
@@ -178,7 +178,7 @@ export default function JewelerySearchScreen() {
         </View>
       ) : (
         <ScrollView showsVerticalScrollIndicator={false}
-          contentContainerStyle={[Platform.OS === "web" && { paddingBottom: 34 }]}
+          
         >
           <View style={styles.results}>
             <Text style={[

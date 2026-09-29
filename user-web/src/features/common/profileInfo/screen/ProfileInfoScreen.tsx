@@ -11,7 +11,7 @@ import {
   ScrollView,
   Text,
   View
-} from "react-native";
+} from "@/components/primitives";
 
 import { useProfile } from "../hooks/useProfile";
 import { ProfileFormValues, profileSchema } from "../schema/profile.schema";

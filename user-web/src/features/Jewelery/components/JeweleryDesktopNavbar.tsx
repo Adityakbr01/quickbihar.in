@@ -8,7 +8,7 @@ import {
   Text,
   View,
   useWindowDimensions,
-} from "react-native";
+} from "@/components/primitives";
 import { useLocation, useNavigate } from "react-router-dom";
 import { goTo } from "@/src/utils/navigation";
 

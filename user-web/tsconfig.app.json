@@ -30,8 +30,6 @@
       "@/*": ["./src/*"],
       "@/src/*": ["./src/*"],
       "@/src/features/common/order/lib/openRazorpayCheckout": ["./src/features/common/order/lib/openRazorpayCheckout.web.ts"],
-      "react-native": ["./src/shims/react-native.web.tsx"],
-      "react-native/*": ["./src/shims/react-native.web.tsx"],
       "expo-notifications": ["./src/shims/expo-notifications.web.ts"],
     }
   },

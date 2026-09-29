@@ -1,6 +1,6 @@
 import { Gradient } from "@/src/components/common/Gradient";
 import React, { useEffect, useRef, useState } from "react";
-import { PanResponder, StatusBar, StyleSheet, View } from "react-native";
+import { PanResponder, StatusBar, StyleSheet, View } from "@/components/primitives";
 import { useSafeAreaInsets } from "@/src/hooks/useSafeAreaInsets";
 
 import { lightTheme } from "@/src/theme/colors";

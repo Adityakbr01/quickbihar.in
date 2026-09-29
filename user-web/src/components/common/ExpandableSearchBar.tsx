@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Keyboard, Platform, Pressable, StyleSheet, TextInput as RNTextInput, View } from "react-native";
+import { Keyboard, Platform, Pressable, StyleSheet, TextInput as RNTextInput, View } from "@/components/primitives";
 
 import { Search } from "lucide-react";
 import * as Haptics from "@/lib/haptics";

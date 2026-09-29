@@ -1,11 +1,10 @@
 import React, { useState, useCallback, useEffect } from "react";
-import { StyleSheet, View, ScrollView, Platform, useWindowDimensions } from "react-native";
+import { StyleSheet, View, ScrollView, Platform, useWindowDimensions } from "@/components/primitives";
 import { BREAKPOINTS, DESKTOP } from "@/src/utils/responsive";
 import { useNavigate } from "react-router-dom";
 import { goTo, useRouteParams } from "@/src/utils/navigation";
 import * as Haptics from "@/lib/haptics";
 
-import SafeViewWrapper from "@/src/provider/SafeViewWrapper";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import FilterBar, {
   SortOption,
@@ -136,7 +135,7 @@ const ClothingSearchScreen = () => {
   };
 
   return (
-    <SafeViewWrapper>
+    <>
       <SeoHead
         meta={(() => {
           const hasQueryParams = Boolean(initialQuery || categoryId || categoryName || subCategory);
@@ -209,7 +208,7 @@ const ClothingSearchScreen = () => {
         </View>
         </View>
       </View>
-    </SafeViewWrapper>
+    </>
   );
 };
 

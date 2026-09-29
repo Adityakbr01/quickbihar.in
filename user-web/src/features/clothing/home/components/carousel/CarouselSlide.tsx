@@ -1,23 +1,23 @@
-import React from "react";
-import { View, Pressable, StyleSheet } from "react-native";
-
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { goTo } from "@/src/utils/navigation";
 import * as Haptics from "@/lib/haptics";
 import { useTrackClick } from "@/src/features/common/banner/hooks/useBanners";
 import { Banner } from "@/src/features/common/banner/types/banner.types";
+import { cn } from "@/src/lib/utils";
 
 interface CarouselSlideProps {
   item: Banner;
   index: number;
   /** Desktop frame is much wider than the uploaded creative — render the
-   * full image fitted (blurred fill behind) instead of cover-cropping it. */
+   * full image fitted instead of cover-cropping it. */
   desktop?: boolean;
 }
 
 const CarouselSlide = ({ item, desktop }: CarouselSlideProps) => {
   const navigate = useNavigate();
   const trackClick = useTrackClick();
+  const [pressed, setPressed] = useState(false);
 
   const handlePress = async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -61,50 +61,31 @@ const CarouselSlide = ({ item, desktop }: CarouselSlideProps) => {
   };
 
   return (
-    <View style={styles.slide}>
-      <Pressable
-        onPress={handlePress}
-        accessibilityRole="link"
-        accessibilityLabel={item.title || "QuickBihar Fashion Sale Banner"}
-        {...({ title: item.title || "QuickBihar Online Fashion Offer" } as any)}
-        style={({ pressed }) => [
-          {
-            width: "100%",
-            height: "100%",
-            borderRadius: desktop ? 22 : 16,
-            overflow: "hidden",
-            backgroundColor: desktop ? "#101012" : "transparent",
-          },
-          pressed && { opacity: 0.85 },
-        ]}
-      >
-        {desktop ? (
-          /* Full creative, fitted — solid dark backdrop, no blur fill. */
-          <img src={item.image} alt={item.title || "QuickBihar Fashion Sale Banner"} aria-label={item.title || "Fashion Sale Banner"} style={Object.assign({}, styles.desktopFit, { objectFit: "contain" as const })} {...({ title: item.title || "QuickBihar Online Fashion Deals" } as any)} />
-        ) : (
-          <img src={item.image} alt={item.title || "QuickBihar Fashion Sale Banner"} aria-label={item.title || "Fashion Sale Banner"} style={Object.assign({}, styles.slideImage, { objectFit: "cover" as const })} {...({ title: item.title || "QuickBihar Online Fashion Deals" } as any)} />
+    <div className="flex flex-1 items-center justify-center">
+      <button
+        type="button"
+        onClick={handlePress}
+        onMouseDown={() => setPressed(true)}
+        onMouseUp={() => setPressed(false)}
+        onMouseLeave={() => setPressed(false)}
+        aria-label={item.title || "QuickBihar Fashion Sale Banner"}
+        title={item.title || "QuickBihar Online Fashion Offer"}
+        className={cn(
+          "h-full w-full overflow-hidden transition-opacity",
+          desktop ? "rounded-[22px] bg-[#101012]" : "rounded-2xl bg-transparent",
         )}
-      </Pressable>
-    </View>
+        style={{ opacity: pressed ? 0.85 : 1 }}
+      >
+        <img
+          src={item.image}
+          alt={item.title || "QuickBihar Fashion Sale Banner"}
+          title={item.title || "QuickBihar Online Fashion Deals"}
+          className="h-full w-full"
+          style={{ objectFit: desktop ? "contain" : "cover", borderRadius: desktop ? 22 : 16 }}
+        />
+      </button>
+    </div>
   );
 };
-
-const styles = StyleSheet.create({
-  slide: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  slideImage: {
-    width: "100%",
-    height: "100%",
-    resizeMode: "cover",
-    borderRadius: 16,
-  },
-  desktopFit: {
-    width: "100%",
-    height: "100%",
-  },
-});
 
 export default CarouselSlide;

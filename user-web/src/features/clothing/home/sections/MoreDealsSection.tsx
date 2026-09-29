@@ -1,6 +1,5 @@
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
-import { spacing } from "@/src/theme/spacing";
-import { BREAKPOINTS, getGridCardWidth, useProductColumns } from "@/src/utils/responsive";
+import { BREAKPOINTS, getGridCardWidth, useProductColumns, useWindowWidth } from "@/src/utils/responsive";
 import { ChevronDown, CircleX, Search, Zap } from "lucide-react";
 import { AppIcon } from "@/src/components/common/AppIcon";
 import type { LucideIcon } from "lucide-react";
@@ -20,23 +19,14 @@ import {
 } from "lucide-react";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import {
-  ActivityIndicator,
-  Platform,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  useWindowDimensions,
-  View,
-} from "react-native";
 import { getPublicCategoriesRequest } from "@/src/features/common/category/api/category.api";
 import { getPublicProductsRequest } from "../../product/api/product.api";
 import { DealProductCard } from "../components/DealProductCard";
 import { DealProductSkeleton } from "../components/DealProductSkeleton";
 import { FilterBottomSheet } from "../components/FilterBottomSheet";
 import { FILTERS, GENDER_OPTIONS } from "../lib/dealsConfig";
-import { createMoreDealsSectionStyles } from "../style/MoreDealsSection.style";
 import { TextInput } from "@/src/theme/components/TextInput";
+import { cn } from "@/src/lib/utils";
 
 // ── Icon mapping for categories by keyword ──
 // ponytail: linear scan on small fixed-size list — perfectly fine
@@ -82,8 +72,7 @@ const useDebouncedValue = <T,>(value: T, delay = 500) => {
 
 export const useMoreDealsLogic = () => {
   const theme = useTheme() as any;
-  const { width } = useWindowDimensions();
-  const styles = React.useMemo(() => createMoreDealsSectionStyles(theme), [theme]);
+  const width = useWindowWidth();
 
   const [activeFilter, setActiveFilter] = useState(FILTERS[0]);
   const [activeCampaign, setActiveCampaign] = useState("1");
@@ -282,18 +271,17 @@ export const useMoreDealsLogic = () => {
   }, [selectedGenderOptions]);
 
   const columns = useProductColumns();
-  const isDesktop = Platform.OS === "web" && width >= BREAKPOINTS.desktopMin;
-  const isWide = Platform.OS === "web" && width >= BREAKPOINTS.tabletMin;
+  const isDesktop = width >= BREAKPOINTS.desktopMin;
+  const isWide = width >= BREAKPOINTS.tabletMin;
   // Mobile formula is byte-identical to before; desktop/tablet use the
   // centered-column grid math so cards fill 3/4/5 columns.
   const cardWidth = isWide
     ? getGridCardWidth(width, columns, { gap: isDesktop ? 20 : 16 })
-    : (width - spacing.md * 2 - spacing.sm) / 2;
+    : (width - 16 * 2 - 12) / 2;
 
   return {
     theme,
     width,
-    styles,
     activeCampaign,
     setActiveCampaign,
     activeFilter,
@@ -328,7 +316,6 @@ export const useMoreDealsLogic = () => {
 
 export const MoreDealsFilters = ({
   theme: propTheme,
-  styles: propStyles,
   activeFilter,
   setActiveFilter,
   setActiveDropdownType,
@@ -344,12 +331,8 @@ export const MoreDealsFilters = ({
 }: any) => {
   const hookTheme = useTheme();
   const theme = propTheme || hookTheme;
-  const styles = React.useMemo(
-    () => propStyles || createMoreDealsSectionStyles(theme),
-    [propStyles, theme],
-  );
-  const { width: winW } = useWindowDimensions();
-  const isDesktop = propIsDesktop ?? (Platform.OS === "web" && winW >= BREAKPOINTS.desktopMin);
+  const winW = useWindowWidth();
+  const isDesktop = propIsDesktop ?? (winW >= BREAKPOINTS.desktopMin);
   const [isListening, setIsListening] = useState(false);
   const [speechError, setSpeechError] = useState<string | null>(null);
   const speechModule = useMemo<any>(() => getSpeechRecognitionModule(), []);
@@ -406,161 +389,138 @@ export const MoreDealsFilters = ({
   );
 
   return (
-    <View style={[
-        styles.filterWrapper,
-        {
-          backgroundColor: theme.background,
-          paddingBottom: 12,
-          zIndex: 10,
-          // Desktop: floating filter card inside the centered column.
-          ...(isDesktop
-            ? {
-                borderWidth: 1,
-                borderColor: theme.border,
-                borderRadius: 20,
-                marginTop: 8,
-                paddingBottom: 16,
-                paddingTop: 16,
-                shadowColor: theme.shadow,
-                shadowOffset: { width: 0, height: 6 },
-                shadowOpacity: 0.1,
-                shadowRadius: 18,
-                elevation: 3,
-              }
-            : null),
-        },
-      ]}
+    <div
+      className={cn("z-10 mb-6 pb-3", isDesktop && "mt-2 rounded-[20px] border px-0 pt-4 pb-4 shadow-xl")}
+      style={{
+        backgroundColor: theme.background,
+        ...(isDesktop ? { borderColor: theme.border } : null),
+      }}
     >
       {/* Search bar — mobile only. Desktop uses the navbar search;
           the deals card keeps filters alone. */}
       {!isDesktop && (
-      <View style={{ paddingHorizontal: spacing.lg, marginBottom: 18, marginTop: 14 }}
-      >
-        <TextInput placeholder="Search products, brands..."
-          placeholderTextColor={theme.tertiaryText}
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-          autoCapitalize="none"
-          returnKeyType="search"
-          selectionColor={theme.primary}
-          icon={
-            <View style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: theme.tertiaryBackground, alignItems: "center", justifyContent: "center" }}>
-              <Search size={17} color={searchQuery ? theme.primary : theme.secondaryText} />
-            </View>
-          }
-          rightIcon={
-            <>
-              {searchQuery.length > 0 && Platform.OS !== "ios" ? (
-                <TouchableOpacity onPress={() => setSearchQuery("")} style={{ padding: 4, marginRight: 4 }}>
-                  <CircleX size={20} color={theme.secondaryText} />
-                </TouchableOpacity>
-              ) : null}
-              <TouchableOpacity onPress={handleMicPress}
-                activeOpacity={0.8}
-                disabled={!isSpeechModuleAvailable}
-                style={{ width: 28, height: 28, borderRadius: 14, alignItems: "center", justifyContent: "center", backgroundColor: isListening ? theme.primary : "transparent", opacity: isSpeechModuleAvailable ? 1 : 0.5 }}
-              >
-                <Mic size={18} color={isListening ? "#fff" : theme.tertiaryText} />
-              </TouchableOpacity>
-            </>
-          }
-          containerStyle={{ marginBottom: 0 }}
-          inputContainerStyle={{
-            backgroundColor: theme.secondaryBackground,
-            borderRadius: 50,
-            paddingHorizontal: 16,
-            paddingVertical: 9,
-            borderWidth: 1,
-          }}
-          style={{ color: theme.text, fontSize: 16, fontWeight: "500", letterSpacing: -0.2 }}
-        />
+        <div className="mt-3.5 mb-4.5 px-6">
+          <TextInput
+            placeholder="Search products, brands..."
+            placeholderTextColor={theme.tertiaryText}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            autoCapitalize="none"
+            returnKeyType="search"
+            selectionColor={theme.primary}
+            icon={
+              <span className="flex h-[30px] w-[30px] items-center justify-center rounded-full" style={{ backgroundColor: theme.tertiaryBackground }}>
+                <Search size={17} color={searchQuery ? theme.primary : theme.secondaryText} />
+              </span>
+            }
+            rightIcon={
+              <>
+                {searchQuery.length > 0 ? (
+                  <button type="button" onClick={() => setSearchQuery("")} className="mr-1 cursor-pointer p-1" aria-label="Clear search">
+                    <CircleX size={20} color={theme.secondaryText} />
+                  </button>
+                ) : null}
+                <button
+                  type="button"
+                  onClick={handleMicPress}
+                  disabled={!isSpeechModuleAvailable}
+                  aria-label="Voice search"
+                  className="flex h-7 w-7 items-center justify-center rounded-full"
+                  style={{ backgroundColor: isListening ? theme.primary : "transparent", opacity: isSpeechModuleAvailable ? 1 : 0.5 }}
+                >
+                  <Mic size={18} color={isListening ? "#fff" : theme.tertiaryText} />
+                </button>
+              </>
+            }
+            containerStyle={{ marginBottom: 0 }}
+            inputContainerStyle={{
+              backgroundColor: theme.secondaryBackground,
+              borderRadius: 50,
+              paddingHorizontal: 16,
+              paddingVertical: 9,
+              borderWidth: 1,
+            }}
+            style={{ color: theme.text, fontSize: 16, fontWeight: "500", letterSpacing: -0.2 }}
+          />
 
-        {searchQuery.length > 0 && (
-          <View style={{ marginTop: 10, paddingHorizontal: 6, flexDirection: "row", alignItems: "center" }}>
-            <Zap size={13} color={theme.primary} />
-            <Text style={{ marginLeft: 6, fontSize: 12, color: theme.secondaryText, fontWeight: "500" }}>
-              Showing results for{" "}
-              <Text style={{ color: theme.primary, fontWeight: "700" }}>{'"'}{searchQuery}{'"'}</Text>
-            </Text>
-          </View>
-        )}
-        {speechError ? (
-          <Text style={{ marginTop: 8, marginLeft: 6, color: theme.error, fontSize: 12, fontWeight: "500" }}>
-            {speechError}
-          </Text>
-        ) : null}
-      </View>
+          {searchQuery.length > 0 && (
+            <div className="mt-2.5 flex flex-row items-center px-1.5">
+              <Zap size={13} color={theme.primary} />
+              <p className="ml-1.5 text-xs font-medium" style={{ color: theme.secondaryText }}>
+                Showing results for{" "}
+                <span className="font-bold" style={{ color: theme.primary }}>"{searchQuery}"</span>
+              </p>
+            </div>
+          )}
+          {speechError ? (
+            <p className="mt-2 ml-1.5 text-xs font-medium" style={{ color: theme.error }}>
+              {speechError}
+            </p>
+          ) : null}
+        </div>
       )}
 
       {/* Filter pills */}
-      <ScrollView horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={
-          isDesktop
-            ? [styles.filterList, { paddingHorizontal: 20, gap: 12 }]
-            : styles.filterList
-        }
+      <div
+        className={cn("flex flex-row gap-2.5 overflow-x-auto px-6", isDesktop && "gap-3 px-5")}
+        style={{ scrollbarWidth: "none" }}
       >
         {dynamicFilters.map((filter) => {
           const isActive = activeFilter.title === filter.title || filter.hasSelection;
           const isDropdown = filter.title === "Gender" || filter.title === "Categories";
 
           return (
-            <TouchableOpacity key={filter.title}
-              onPress={() => {
+            <button
+              key={filter.title}
+              type="button"
+              onClick={() => {
                 setActiveFilter({ title: filter.title, icon: filter.icon });
                 if (isDropdown) {
                   setActiveDropdownType(filter.title as "Gender" | "Categories");
                   setDropdownVisible(true);
                 }
               }}
-              style={[
-                styles.filterPill,
-                {
-                  borderColor: isActive ? theme.primary : theme.border,
-                  backgroundColor: isActive ? theme.primary : theme.background,
-                },
-              ]}
+              className="flex shrink-0 cursor-pointer flex-row items-center gap-1.5 rounded-full border px-4 py-2"
+              style={{
+                borderColor: isActive ? theme.primary : theme.border,
+                backgroundColor: isActive ? theme.primary : theme.background,
+              }}
             >
               {filter.icon && (
                 <AppIcon icon={filter.icon} size={14} color={isActive ? "#fff" : theme.iconColor} />
               )}
-              <Text style={[styles.filterText, { color: isActive ? "#fff" : theme.text }]}>
+              <span className="text-[13px] font-semibold" style={{ color: isActive ? "#fff" : theme.text }}>
                 {filter.displayTitle}
-              </Text>
+              </span>
               {isDropdown && (
                 <ChevronDown size={14} color={isActive ? "#fff" : theme.iconColor} />
               )}
-            </TouchableOpacity>
+            </button>
           );
         })}
 
         {/* One-tap reset — only when gender/category selections are active */}
         {(selectedGenderOptions.length > 0 || selectedCategoryOptions.length > 0) && (
-          <TouchableOpacity onPress={() => clearFilterSelections?.()}
-            style={[
-              styles.filterPill,
-              {
-                borderColor: theme.border,
-                backgroundColor: theme.secondaryBackground,
-              },
-            ]}
+          <button
+            type="button"
+            onClick={() => clearFilterSelections?.()}
+            className="flex shrink-0 cursor-pointer flex-row items-center gap-1.5 rounded-full border px-4 py-2"
+            style={{ borderColor: theme.border, backgroundColor: theme.secondaryBackground }}
           >
             <CircleX size={14} color={theme.secondaryText} />
-            <Text style={[styles.filterText, { color: theme.secondaryText }]}>
+            <span className="text-[13px] font-semibold" style={{ color: theme.secondaryText }}>
               Reset
-            </Text>
-          </TouchableOpacity>
+            </span>
+          </button>
         )}
-      </ScrollView>
-    </View>
+      </div>
+    </div>
   );
 };
 
 // ─────────────────────────────────────────────
 
 export const MoreDealsGrid = ({
-  styles: propStyles,
   cardWidth,
   activeDropdownType,
   dropdownVisible,
@@ -580,72 +540,68 @@ export const MoreDealsGrid = ({
 }: any) => {
   const hookTheme = useTheme();
   const theme = propTheme || hookTheme;
-  const styles = propStyles || createMoreDealsSectionStyles(theme);
-  const { width: winW } = useWindowDimensions();
-  const isDesktop = propIsDesktop ?? (Platform.OS === "web" && winW >= BREAKPOINTS.desktopMin);
+  const winW = useWindowWidth();
+  const isDesktop = propIsDesktop ?? (winW >= BREAKPOINTS.desktopMin);
 
   return (
-    <View style={[
-        styles.productGrid,
-        // Desktop: airy 4–5 col grid; mobile keeps space-between 2-col.
-        isDesktop
-          ? {
-              paddingHorizontal: 0,
-              justifyContent: "flex-start",
-              gap: 20,
-              rowGap: 28,
-            }
-          : null,
-      ]}
+    <div
+      className={cn("flex flex-row flex-wrap justify-start gap-3 px-4", isDesktop && "gap-5 px-0")}
+      style={isDesktop ? { rowGap: 28 } : { rowGap: 24 }}
     >
-    {isLoading && !allProducts.length ? (
-      [1, 2, 3, 4, 5, 6].map((key) => <DealProductSkeleton key={key} width={cardWidth} />)
-    ) : allProducts.length > 0 ? (
-      allProducts.map((product: any) => (
-        <DealProductCard key={product._id} product={product} width={cardWidth} />
-      ))
-    ) : (
-      <View style={{ width: "100%", paddingVertical: 60, alignItems: "center" }}>
-        <Search size={48} color={theme.tertiaryText} />
-        <Text style={{ marginTop: 16, fontSize: 16, color: theme.secondaryText, fontWeight: "600" }}>
-          No products found
-        </Text>
-        <Text style={{ marginTop: 8, fontSize: 14, color: theme.tertiaryText, textAlign: "center", paddingHorizontal: 40 }}>
-          {"Try adjusting your search or filters to find what you're looking for."}
-        </Text>
-      </View>
-    )}
+      {isLoading && !allProducts.length ? (
+        [1, 2, 3, 4, 5, 6].map((key) => <DealProductSkeleton key={key} width={cardWidth} />)
+      ) : allProducts.length > 0 ? (
+        allProducts.map((product: any) => (
+          <DealProductCard key={product._id} product={product} width={cardWidth} />
+        ))
+      ) : (
+        <div className="flex w-full flex-col items-center py-15">
+          <Search size={48} color={theme.tertiaryText} />
+          <p className="mt-4 text-base font-semibold" style={{ color: theme.secondaryText }}>
+            No products found
+          </p>
+          <p className="mt-2 px-10 text-center text-sm" style={{ color: theme.tertiaryText }}>
+            {"Try adjusting your search or filters to find what you're looking for."}
+          </p>
+        </div>
+      )}
 
-    {hasNextPage && (
-      <TouchableOpacity onPress={() => fetchNextPage()}
-        disabled={isFetchingNextPage}
-        style={{ width: "100%", padding: 20, alignItems: "center" }}
-      >
-        {isFetchingNextPage ? (
-          <ActivityIndicator color={theme.primary} />
-        ) : (
-          <Text style={{ color: theme.primary, fontWeight: "600" }}>Load More</Text>
-        )}
-      </TouchableOpacity>
-    )}
+      {hasNextPage && (
+        <button
+          type="button"
+          onClick={() => fetchNextPage()}
+          disabled={isFetchingNextPage}
+          className="w-full cursor-pointer p-5 text-center"
+        >
+          {isFetchingNextPage ? (
+            <span
+              className="mx-auto block h-5 w-5 animate-spin rounded-full border-2 border-t-transparent"
+              style={{ borderColor: `${theme.primary}40`, borderTopColor: theme.primary }}
+            />
+          ) : (
+            <span className="font-semibold" style={{ color: theme.primary }}>Load More</span>
+          )}
+        </button>
+      )}
 
-    {activeDropdownType && (
-      <FilterBottomSheet visible={dropdownVisible}
-        onClose={() => setDropdownVisible(false)}
-        title={activeDropdownType}
-        options={currentOptionsList}
-        categoryGroups={activeDropdownType === "Categories" ? categoryGroups : undefined}
-        initialSelected={activeDropdownType === "Gender" ? selectedGenderOptions : selectedCategoryOptions}
-        onApply={handleApply}
-      />
-    )}
-  </View>
+      {activeDropdownType && (
+        <FilterBottomSheet
+          visible={dropdownVisible}
+          onClose={() => setDropdownVisible(false)}
+          title={activeDropdownType}
+          options={currentOptionsList}
+          categoryGroups={activeDropdownType === "Categories" ? categoryGroups : undefined}
+          initialSelected={activeDropdownType === "Gender" ? selectedGenderOptions : selectedCategoryOptions}
+          onApply={handleApply}
+        />
+      )}
+    </div>
   );
 };
 
 // Fallback for legacy imports
 const MoreDealsSection = () => (
-  <Text>Please use the destructured components for MoreDealsSection directly</Text>
+  <p>Please use the destructured components for MoreDealsSection directly</p>
 );
 
 export default MoreDealsSection;

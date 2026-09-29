@@ -1,5 +1,5 @@
 import React from "react";
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet } from "@/components/primitives";
 import { Gradient } from "@/src/components/common/Gradient";
 import { ShoppingBag } from "lucide-react";
 

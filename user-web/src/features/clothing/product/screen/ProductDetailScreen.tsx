@@ -9,7 +9,7 @@ import {
   Share,
   Platform,
   useWindowDimensions,
-} from "react-native";
+} from "@/components/primitives";
 import type { LucideIcon } from "lucide-react";
 import { ArrowLeft, ArrowRight, Banknote, Box, Calendar, Check, CircleAlert, CircleCheck, CircleX, CreditCard, Expand, Heart, Images, MessageCircle, Palette, RefreshCw, Share2, ShieldCheck, ShoppingBag, Star, StarHalf, Store, ThumbsUp, Zap } from "lucide-react";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
@@ -36,7 +36,6 @@ import { SimilarProducts } from "./ProductDetail/components/SimilarProducts";
 import ProductDetailSkeleton from "./ProductDetail/components/ProductDetailSkeleton";
 import SizeChartModal from "../components/modals/SizeChartModal";
 import { WriteReviewModal } from "../components/modals/WriteReviewModal";
-import SafeViewWrapper from "@/src/provider/SafeViewWrapper";
 import { SeoHead } from "@/src/components/seo/SeoHead";
 import { breadcrumbJsonLd, productJsonLd, productMeta } from "@/src/lib/seo";
 import { useWishlistStore } from "@/src/features/common/wishlist/store/wishlistStore";
@@ -340,15 +339,15 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
   // ── Loading State ──
   if (isLoading || !product) {
     return (
-      <SafeViewWrapper>
+      <>
         {seoMeta && <SeoHead meta={seoMeta} jsonLd={seoJsonLd} />}
         <ProductDetailSkeleton theme={theme} onBack={() => goBack(navigate)} />
-      </SafeViewWrapper>
+      </>
     );
   }
 
   return (
-    <SafeViewWrapper>
+    <>
       {seoMeta && <SeoHead meta={seoMeta} jsonLd={seoJsonLd} />}
       <ScrollView style={s.scrollView}
         showsVerticalScrollIndicator={false}
@@ -1329,7 +1328,7 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
         productTitle={dp.title}
         theme={theme}
       />
-    </SafeViewWrapper>
+    </>
   );
 };
 

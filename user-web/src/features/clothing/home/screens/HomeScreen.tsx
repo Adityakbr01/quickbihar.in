@@ -1,18 +1,9 @@
-import SafeViewWrapper from "@/src/provider/SafeViewWrapper";
-import { useQueryClient } from "@tanstack/react-query";
-import React, { useCallback, useState } from "react";
-import {
-  Dimensions,
-  Platform,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  View,
-  useWindowDimensions,
-} from "react-native";
 import HomeCategories from "@/src/features/common/category/components/HomeCategories";
-import HomeHeader from "../components/HomeHeader";
+import { cn } from "@/src/lib/utils";
+import { BREAKPOINTS, useWindowWidth } from "@/src/utils/responsive";
+import { useCallback, useState } from "react";
 import { DesktopFooter } from "../components/DesktopFooter";
+import HomeHeader from "../components/HomeHeader";
 import { MoreDealsHeader } from "../components/MoreDealsHeader";
 import TopHomeCarousel from "../components/TopHomeCarousel";
 import {
@@ -22,126 +13,68 @@ import {
 } from "../sections/MoreDealsSection";
 import TopMallSection from "../sections/TopMallSection";
 import TopSellingSection from "../sections/TopSellingSection";
-import { BREAKPOINTS, DESKTOP } from "@/src/utils/responsive";
 
 const HomeScreen = ({ rootSlug }: { rootSlug?: string }) => {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const toggleMenu = useCallback(() => {
     setMenuOpen((v) => !v);
   }, []);
 
   const moreDealsState = useMoreDealsLogic();
-  const queryClient = useQueryClient();
 
-  const handleRefresh = useCallback(async () => {
-    if (isRefreshing) {
-      return;
-    }
-
-    setIsRefreshing(true);
-
-    try {
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["banners"] }),
-        queryClient.invalidateQueries({ queryKey: ["trendingProducts"] }),
-        queryClient.invalidateQueries({ queryKey: ["topMalls"] }),
-        queryClient.invalidateQueries({ queryKey: ["paginatedProducts"] }),
-        queryClient.invalidateQueries({ queryKey: ["categories"] }),
-      ]);
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-    } catch (error) {
-      console.error("Refresh failed:", error);
-    } finally {
-      setIsRefreshing(false);
-    }
-  }, [isRefreshing, queryClient]);
-
-  const { width } = useWindowDimensions();
-  const isDesktop = Platform.OS === "web" && width >= BREAKPOINTS.desktopMin;
-  const isWide = Platform.OS === "web" && width >= BREAKPOINTS.tabletMin;
+  const width = useWindowWidth();
+  const isDesktop = width >= BREAKPOINTS.desktopMin;
+  const isWide = width >= BREAKPOINTS.tabletMin;
 
   return (
-    <SafeViewWrapper>
-      <View style={localStyles.scrollView}>
-        <ScrollView
-          style={localStyles.scrollView}
-          contentContainerStyle={[
-            isWide ? localStyles.desktopContent : undefined,
-            // Bottom tab bar overlays content (absolute) — keep last items visible.
-            { paddingBottom: isDesktop ? 24 : 100 },
-          ]}
-          showsVerticalScrollIndicator={false}
-          stickyHeaderIndices={isDesktop ? undefined : [1]}
-          refreshControl={
-            <RefreshControl
-              refreshing={isRefreshing}
-              onRefresh={handleRefresh}
-            />
-          }
-        >
-          {/* Child 0: Everything before the Sticky Filter */}
-          <View style={[localStyles.heroWrapper, isWide && localStyles.desktopColumn]}>
+    <section className="flex-1">
+      <div
+        className={cn("flex flex-col", isWide && "items-center")}
+        style={{ paddingBottom: isDesktop ? 24 : 100 }}
+      >
+        {/* Everything before the filter tabs */}
+        <div className="w-full overflow-hidden">
+          <div className={cn(isWide && "mx-auto w-full max-w-[1280px] px-6")}>
             <HomeHeader menuOpen={menuOpen} toggleMenu={toggleMenu} />
 
-            <View style={{ marginTop: isDesktop ? 20 : 12, width: "100%" }}>
-              {/* He is Done */}
+            <div className="mt-3 w-full lg:mt-5">
               <TopHomeCarousel />
-            </View>
-            {/* He is Done */}
+            </div>
             <HomeCategories rootSlug={rootSlug} />
-            {/* Not Started */}
             <TopMallSection />
             <TopSellingSection />
-            {/* Mid-page products promo banner (embla carousel; null when empty) */}
-            <View style={{ marginTop: isDesktop ? 20 : 12, width: "100%" }}>
+            <div className="mt-3 w-full lg:mt-5">
               <TopHomeCarousel placement="home_middle" />
-            </View>
+            </div>
             <MoreDealsHeader {...moreDealsState} />
-          </View>
+          </div>
+        </div>
 
-          {/* Child 1: The Sticky Filter Tabs (sticky only on mobile; on
-              desktop the top DesktopNavbar is the persistent chrome) */}
-          <View style={isWide ? localStyles.desktopColumn : undefined}>
-            <MoreDealsFilters {...moreDealsState} />
-          </View>
+        {/* Filter tabs (sticky on mobile; on desktop the top
+              DesktopNavbar is the persistent chrome) */}
+        <div
+          className={cn(
+            "w-full",
+            !isDesktop && "sticky top-0 z-10",
+            isWide && "mx-auto max-w-[1280px] px-6",
+          )}
+        >
+          <MoreDealsFilters {...moreDealsState} />
+        </div>
 
-          {/* Child 2: The Product Grid */}
-          <View
-            style={[
-              { minHeight: Dimensions.get("window").height * 0.7 },
-              isWide && localStyles.desktopColumn,
-            ]}
-          >
-            <MoreDealsGrid {...moreDealsState} />
-          </View>
+        {/* Product Grid */}
+        <div
+          className={cn("w-full", isWide && "mx-auto max-w-[1280px] px-6")}
+          style={{ minHeight: "70vh" }}
+        >
+          <MoreDealsGrid {...moreDealsState} />
+        </div>
 
-          {isDesktop ? <DesktopFooter /> : null}
-        </ScrollView>
-      </View>
-    </SafeViewWrapper>
+        {isDesktop ? <DesktopFooter /> : null}
+      </div>
+    </section>
   );
 };
-
-const localStyles = StyleSheet.create({
-  scrollView: {
-    flex: 1,
-  },
-  heroWrapper: {
-    overflow: "hidden",
-  },
-  // Desktop-only: centered 1280px column. Never applied on mobile.
-  desktopContent: {
-    alignItems: "center",
-  },
-  desktopColumn: {
-    width: "100%",
-    maxWidth: DESKTOP.maxWidth,
-    alignSelf: "center",
-    marginHorizontal: "auto" as any,
-    paddingHorizontal: DESKTOP.gutter,
-  },
-});
 
 export default HomeScreen;

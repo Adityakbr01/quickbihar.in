@@ -5,7 +5,7 @@ import {
   ScrollView,
   TouchableOpacity,
   RefreshControl
-} from "react-native";
+} from "@/components/primitives";
 import { useNavigate } from "react-router-dom";
 import { goBack, goTo } from "@/src/utils/navigation";
 import * as Haptics from "@/lib/haptics";
@@ -18,7 +18,6 @@ import AddressCard from "../components/AddressCard";
 import { AddressCardSkeleton } from "../components/AddressCardSkeleton";
 import { IAddress } from "../schema/address.schema";
 import IOSAlertDialog, { AlertButton } from "@/src/components/ui/IOSAlertDialog";
-import SafeViewWrapper from "@/src/provider/SafeViewWrapper";
 import { useState } from "react";
 
 const SavedAddressesScreen = () => {
@@ -109,7 +108,7 @@ const SavedAddressesScreen = () => {
   );
 
   return (
-    <SafeViewWrapper>
+    <>
     <View style={styles.container}>
       {/* Top app bar (same language as Notifications) */}
       <View style={styles.appBar}>
@@ -195,7 +194,7 @@ const SavedAddressesScreen = () => {
         onClose={() => setAlertConfig(prev => ({ ...prev, visible: false }))}
       />
     </View>
-    </SafeViewWrapper>
+    </>
   );
 };
 

@@ -1,5 +1,5 @@
 import React from "react";
-import { View, StyleSheet, Dimensions } from "react-native";
+import { View, StyleSheet, Dimensions } from "@/components/primitives";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import Skeleton from "@/src/components/common/Skeleton";
 

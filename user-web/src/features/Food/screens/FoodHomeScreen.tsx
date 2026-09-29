@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { ScrollView, StyleSheet, Text, View, InteractionManager, ActivityIndicator } from "react-native";
-import SafeViewWrapper from "@/src/provider/SafeViewWrapper";
+import { ScrollView, StyleSheet, Text, View, InteractionManager, ActivityIndicator } from "@/components/primitives";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import HomeHeader from "@/src/features/clothing/home/components/HomeHeader";
 import { Flame, Pizza, Sandwich, Star, UtensilsCrossed } from "lucide-react";
@@ -25,9 +24,9 @@ export const FoodHomeScreen = () => {
   }, []);
 
   return (
-    <SafeViewWrapper>
+    <>
       <HomeHeader />
-      <ScrollView contentContainerStyle={[styles.container, { paddingBottom: 32 }]}>
+      <ScrollView contentContainerStyle={[styles.container]}>
         <View style={[styles.banner, isDark
           ? { backgroundColor: "rgba(225,29,72,0.14)", borderColor: "rgba(225,29,72,0.40)" }
           : { backgroundColor: "#FFF1F2", borderColor: "#FECDD3" }]}>
@@ -70,7 +69,7 @@ export const FoodHomeScreen = () => {
           </View>
         )}
       </ScrollView>
-    </SafeViewWrapper>
+    </>
   );
 };
 

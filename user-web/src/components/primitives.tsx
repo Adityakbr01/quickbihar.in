@@ -1,26 +1,23 @@
+/**
+ * Pure React (Vite) UI primitives for the web app.
+ *
+ * This module is 100% React + DOM — it has zero dependency on the mobile package
+ * and replaces every old react-native import in this project.
+ *
+ * Why it exists:
+ * - The web app was ported from a mobile codebase, so screens use
+ *   View / Text / Pressable / StyleSheet / Platform / Dimensions etc.
+ * - Instead of pulling the whole react-native package (and a vite alias shim)
+ *   into a Vite web build, these tiny wrappers map those familiar names to
+ *   plain <div> / <span> / <button> / <input> / <img> + CSS.
+ *
+ * Usage:
+ *   import { View, Text, Pressable, StyleSheet, Platform } from "@/components/primitives";
+ */
 import React, { useState, useEffect, forwardRef } from 'react';
 
-declare global {
-  const __DEV__: boolean;
-}
-
-if (typeof (globalThis as any).__DEV__ === 'undefined') {
-  (globalThis as any).__DEV__ = true;
-}
-
-if (typeof (globalThis as any).require === 'undefined') {
-  (globalThis as any).require = (_id: string) => {
-    return {};
-  };
-}
-
-if (typeof (globalThis as any).process === 'undefined') {
-  (globalThis as any).process = { env: {} };
-} else if (!(globalThis as any).process.env) {
-  (globalThis as any).process.env = {};
-}
-
-// Process style objects and arrays (converting RN styles like flex, paddingVertical to web CSS)
+// Process style objects and arrays (converting RN-style keys like
+// flex, paddingVertical to web CSS)
 export function processStyle(style: any): React.CSSProperties {
   if (!style) return {};
   if (Array.isArray(style)) {
@@ -243,6 +240,7 @@ export interface TextInputProps {
 
 export type TextInput = any;
 export type RNTextInput = any;
+export type TextInputPropsAlias = TextInputProps;
 
 // Components
 export const View = forwardRef<HTMLDivElement, ViewProps>(({ style, children, onClick, onPress, hitSlop, layout, pointerEvents, entering, exiting, ...props }, ref) => {
@@ -278,7 +276,7 @@ export const Text = forwardRef<HTMLSpanElement, TextProps>(({ style, children, o
     boxSizing: 'border-box',
     userSelect: selectable ? 'text' : undefined,
   };
-  
+
   let lineStyle: React.CSSProperties = {};
   if (numberOfLines) {
     lineStyle = {
@@ -597,9 +595,6 @@ export const TextInput = forwardRef<any, TextInputProps>(({
   autoFocus,
   ...props
 }, ref) => {
-  // Transparent chrome: the themed TextInput wrapper (and every other
-  // caller) paints its own container. A hardcoded white bg + border here
-  // rendered a nested white box inside dark containers on web.
   const baseStyle: React.CSSProperties = {
     boxSizing: 'border-box',
     outline: 'none',
@@ -830,8 +825,8 @@ export const Alert = {
 
 export const Share = {
   share: async (content: any) => {
-    if (typeof navigator !== 'undefined' && navigator.share) {
-      return navigator.share(content);
+    if (typeof navigator !== 'undefined' && (navigator as any).share) {
+      return (navigator as any).share(content);
     }
     Alert.alert('Share', content?.message || content?.url || '');
   },
@@ -888,6 +883,7 @@ export type NativeScrollEvent = any;
 export type LayoutChangeEvent = any;
 export type GestureResponderEvent = React.MouseEvent | React.TouchEvent;
 export type ImageSourcePropType = any;
+export type TextInputPropsType = TextInputProps;
 
 export default {
   View,

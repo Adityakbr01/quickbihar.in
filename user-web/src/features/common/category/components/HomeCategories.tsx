@@ -11,7 +11,7 @@ import {
   TouchableOpacity,
   useWindowDimensions,
   View,
-} from "react-native";
+} from "@/components/primitives";
 
 import { useCategories } from "../hooks/useCategories";
 import { Category } from "../types/category.types";

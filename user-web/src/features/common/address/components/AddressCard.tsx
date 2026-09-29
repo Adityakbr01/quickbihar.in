@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity } from "@/components/primitives";
 import { AppIcon } from "@/src/components/common/AppIcon";
 import { CircleCheck, MapPin, SquarePen, Trash2 } from "lucide-react";
 import { AddressType, IAddress } from "../schema/address.schema";

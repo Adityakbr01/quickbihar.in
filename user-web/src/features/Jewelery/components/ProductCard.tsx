@@ -11,7 +11,7 @@ import {
   Text,
   View,
   useWindowDimensions,
-} from "react-native";
+} from "@/components/primitives";
 
 import { useCart } from "@/src/features/Jewelery/context/CartContext";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";

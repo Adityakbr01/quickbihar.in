@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity } from "@/components/primitives";
 import { useNavigate } from "react-router-dom";
 import { goTo } from "@/src/utils/navigation";
 import * as Haptics from "@/lib/haptics";

@@ -8,7 +8,7 @@ import {
   StyleSheet,
   Text,
   View,
-} from "react-native";
+} from "@/components/primitives";
 import { useSafeAreaInsets } from "@/src/hooks/useSafeAreaInsets";
 
 import { useColors } from "@/src/features/Jewelery/hooks/useColors";
@@ -49,7 +49,7 @@ export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      {__DEV__ ? (
+      {import.meta.env.DEV ? (
         <Pressable onPress={() => setIsModalVisible(true)}
           accessibilityLabel="View error details"
           accessibilityRole="button"
@@ -95,7 +95,7 @@ export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
         </Pressable>
       </View>
 
-      {__DEV__ ? (
+      {import.meta.env.DEV ? (
         <Modal visible={isModalVisible}
           animationType="slide"
           transparent={true}

@@ -1,5 +1,5 @@
 import React from "react";
-import { View, TouchableOpacity, Text } from "react-native";
+import { View, TouchableOpacity, Text } from "@/components/primitives";
 import { AppIcon } from "@/src/components/common/AppIcon";
 import { Calendar, CircleUser, Mail, Phone, SquarePen } from "lucide-react";
 import { Theme } from "@/src/theme/Provider/ThemeProvider";

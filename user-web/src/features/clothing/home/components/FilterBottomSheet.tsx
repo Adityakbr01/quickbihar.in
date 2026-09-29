@@ -1,16 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { Check, ChevronRight, CircleX, Layers, Search, X } from "lucide-react";
 import { AppIcon } from "@/src/components/common/AppIcon";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
-import {
-  Sheet,
-  SheetFooter,
-  SheetHeader,
-  useSheet,
-} from "@/src/components/common/BottomSheet";
-import { spacing } from "@/src/theme/spacing";
-import { TextInput } from "@/src/theme/components/TextInput";
+import { cn } from "@/src/lib/utils";
 
 export interface FilterOption {
   title: string;
@@ -48,7 +40,6 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
   onApply,
 }) => {
   const theme = useTheme() as any;
-  const sheet = useSheet();
   const [tempOptions, setTempOptions] = useState<string[]>(initialSelected);
   const [searchText, setSearchText] = useState("");
   const isCategoryFilter = title.toLowerCase().includes("categor") && Boolean(categoryGroups && categoryGroups.length > 0);
@@ -59,7 +50,6 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
   // Sync internal state when opened — intentional visible→state sync.
   useEffect(() => {
     if (visible) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setTempOptions(initialSelected);
       setSearchText("");
 
@@ -88,15 +78,6 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
       }
     }
   }, [visible, initialSelected, categoryGroups]);
-
-  // Imperative present/dismiss from the parent `visible` prop.
-  useEffect(() => {
-    if (visible) {
-      sheet.current?.present();
-    } else {
-      sheet.current?.dismiss();
-    }
-  }, [visible, sheet]);
 
   // Flat list for search across both categories and subcategories
   const allSearchableOptions = useMemo(() => {
@@ -155,574 +136,381 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
     return categoryGroups.find((g) => g.title === selectedParentTab) || null;
   }, [categoryGroups, selectedParentTab]);
 
+  if (!visible) return null;
+
+  const pillBase = "flex cursor-pointer flex-row items-center gap-1.5 rounded-full border-[1.5px] px-4 py-2.5 text-[13px] font-semibold";
+
   return (
-    <Sheet ref={sheet}
-      onDidDismiss={onClose}
-      backgroundColor={theme.background}
+    <div
+      className="fixed inset-0 z-[100] flex items-end justify-center bg-black/50 sm:items-center"
+      role="dialog"
+      aria-modal="true"
+      aria-label={title}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
     >
-      <SheetHeader title={title} onClose={onClose} />
-
-      {/* Search bar */}
-      <View style={{ marginHorizontal: spacing.lg, marginBottom: spacing.xs }}>
-        <TextInput placeholder={isCategoryFilter ? "Search category or subcategory..." : `Search ${title.toLowerCase()}...`}
-          placeholderTextColor={theme.tertiaryText}
-          value={searchText}
-          onChangeText={setSearchText}
-          autoCapitalize="none"
-          icon={<Search size={16} color={theme.tertiaryText} />}
-          rightIcon={
-            searchText.length > 0 ? (
-              <TouchableOpacity onPress={() => setSearchText("")}>
-                <CircleX size={17} color={theme.tertiaryText} />
-              </TouchableOpacity>
-            ) : undefined
-          }
-          containerStyle={{ marginBottom: 0 }}
-          inputContainerStyle={{
-            backgroundColor: theme.secondaryBackground,
-            borderRadius: 50,
-            paddingHorizontal: 14,
-            paddingVertical: 9,
-            borderWidth: 1,
-          }}
-          style={{ color: theme.text, fontSize: 14, fontWeight: "500" }}
-        />
-      </View>
-
-      {/* Active selection pills summary strip */}
-      {tempOptions.length > 0 && (
-        <View style={{ marginHorizontal: spacing.lg, marginVertical: spacing.xs }}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6, alignItems: "center" }}>
-            <Text style={{ fontSize: 11, fontWeight: "600", color: theme.tertiaryText, marginRight: 2 }}>
-              Selected:
-            </Text>
-            {tempOptions.map((item) => (
-              <TouchableOpacity key={item}
-                onPress={() => handleToggleOption(item)}
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  backgroundColor: theme.primary + "22",
-                  borderColor: theme.primary,
-                  borderWidth: 1,
-                  paddingHorizontal: 9,
-                  paddingVertical: 3,
-                  borderRadius: 12,
-                  gap: 4,
-                }}
-              >
-                <Text style={{ fontSize: 11, fontWeight: "600", color: theme.primary }}>
-                  {item}
-                </Text>
-                <X size={12} color={theme.primary} />
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
-      )}
-
-      {/* Main Content Area */}
-      <ScrollView showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: spacing.xl }}
+      <div
+        className="flex max-h-[85vh] w-full max-w-lg flex-col overflow-hidden rounded-t-3xl sm:rounded-3xl"
+        style={{ backgroundColor: theme.background }}
       >
-        {/* Case 1: Searching */}
-        {searchText.trim().length > 0 ? (
-          searchResults.length === 0 ? (
-            <View style={{ padding: spacing.xl, alignItems: "center" }}>
-              <Search size={36} color={theme.tertiaryText} />
-              <Text style={{ color: theme.secondaryText, marginTop: 10, fontSize: 14 }}>
-                No results for {'"'}{searchText}{'"'}
-              </Text>
-            </View>
-          ) : (
-            <View style={{
-                flexDirection: "row",
-                flexWrap: "wrap",
-                gap: spacing.sm,
-                paddingHorizontal: spacing.lg,
-                paddingVertical: spacing.sm,
-              }}
-            >
-              {searchResults.map((option) => {
-                const isSelected = tempOptions.includes(option.title);
-                return (
-                  <TouchableOpacity key={`${option.parentId || "root"}-${option.title}`}
-                    style={[
-                      {
-                        flexDirection: "row",
-                        alignItems: "center",
-                        paddingHorizontal: 14,
-                        paddingVertical: 10,
-                        borderRadius: 100,
-                        borderWidth: 1.5,
-                        gap: 6,
-                      },
-                      {
-                        borderColor: isSelected ? theme.primary : theme.border,
-                        backgroundColor: isSelected
-                          ? theme.primary
-                          : theme.secondaryBackground ?? theme.background,
-                      },
-                    ]}
-                    onPress={() => handleToggleOption(option.title)}
-                    activeOpacity={0.7}
-                  >
-                    {option.icon && (
-                      <AppIcon icon={option.icon}
-                        size={16}
-                        color={isSelected ? "#fff" : theme.text}
-                      />
-                    )}
-                    <View style={{ flexDirection: "column" }}>
-                      <Text style={{
-                          fontSize: 13,
-                          fontWeight: "600",
-                          color: isSelected ? "#fff" : theme.text,
-                        }}
-                      >
-                        {option.title}
-                      </Text>
-                      {option.parentTitle && (
-                        <Text style={{
-                            fontSize: 10,
-                            fontWeight: "500",
-                            color: isSelected ? "rgba(255,255,255,0.8)" : theme.tertiaryText,
-                          }}
-                        >
-                          in {option.parentTitle}
-                        </Text>
-                      )}
-                    </View>
-                    {isSelected && (
-                      <Check size={14} color="#fff" style={{ marginLeft: 2 }} />
-                    )}
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-          )
-        ) : isCategoryFilter && categoryGroups ? (
-          /* Case 2: Hierarchical Category + Subcategory view */
-          <View style={{ paddingTop: spacing.xs }}>
-            {/* Step 1: Category Selector Tabs */}
-            <View style={{ marginBottom: spacing.sm }}>
-              <View style={{ paddingHorizontal: spacing.lg, marginBottom: 6 }}>
-                <Text style={{ fontSize: 13, fontWeight: "700", color: theme.secondaryText, textTransform: "uppercase", letterSpacing: 0.5 }}>
-                  Select Category
-                </Text>
-              </View>
-              <ScrollView horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={{ paddingHorizontal: spacing.lg, gap: 8 }}
-              >
-                <TouchableOpacity onPress={() => setSelectedParentTab("All")}
-                  activeOpacity={0.7}
-                  style={{
-                    paddingHorizontal: 16,
-                    paddingVertical: 9,
-                    borderRadius: 20,
-                    borderWidth: 1.5,
-                    borderColor: selectedParentTab === "All" ? theme.primary : theme.border,
-                    backgroundColor: selectedParentTab === "All" ? theme.primary : theme.secondaryBackground,
-                  }}
+        {/* Header */}
+        <div className="flex flex-row items-center justify-between px-4 py-3">
+          <h3 className="text-base font-bold" style={{ color: theme.text }}>{title}</h3>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label={`Close ${title}`}
+            className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full"
+            style={{ backgroundColor: theme.secondaryBackground }}
+          >
+            <X size={18} color={theme.text} />
+          </button>
+        </div>
+
+        {/* Search bar */}
+        <div className="mx-6 mb-1">
+          <div
+            className="flex flex-row items-center gap-2 rounded-full border px-3.5 py-2"
+            style={{ backgroundColor: theme.secondaryBackground, borderColor: theme.border }}
+          >
+            <Search size={16} color={theme.tertiaryText} />
+            <input
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              placeholder={isCategoryFilter ? "Search category or subcategory..." : `Search ${title.toLowerCase()}...`}
+              autoCapitalize="none"
+              className="w-full bg-transparent text-sm font-medium outline-none"
+              style={{ color: theme.text }}
+            />
+            {searchText.length > 0 ? (
+              <button type="button" onClick={() => setSearchText("")} aria-label="Clear search" className="cursor-pointer">
+                <CircleX size={17} color={theme.tertiaryText} />
+              </button>
+            ) : null}
+          </div>
+        </div>
+
+        {/* Active selection pills summary strip */}
+        {tempOptions.length > 0 && (
+          <div className="mx-6 my-1">
+            <div className="flex flex-row items-center gap-1.5 overflow-x-auto" style={{ scrollbarWidth: "none" }}>
+              <span className="mr-0.5 text-[11px] font-semibold" style={{ color: theme.tertiaryText }}>
+                Selected:
+              </span>
+              {tempOptions.map((item) => (
+                <button
+                  key={item}
+                  type="button"
+                  onClick={() => handleToggleOption(item)}
+                  className="flex cursor-pointer flex-row items-center gap-1 rounded-xl border px-2.5 py-1"
+                  style={{ backgroundColor: theme.primary + "22", borderColor: theme.primary }}
                 >
-                  <Text style={{
-                      fontSize: 13,
-                      fontWeight: selectedParentTab === "All" ? "700" : "600",
+                  <span className="text-[11px] font-semibold" style={{ color: theme.primary }}>
+                    {item}
+                  </span>
+                  <X size={12} color={theme.primary} />
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Main Content Area */}
+        <div className="min-h-0 flex-1 overflow-y-auto pb-8">
+          {/* Case 1: Searching */}
+          {searchText.trim().length > 0 ? (
+            searchResults.length === 0 ? (
+              <div className="flex flex-col items-center p-8">
+                <Search size={36} color={theme.tertiaryText} />
+                <p className="mt-2.5 text-sm" style={{ color: theme.secondaryText }}>
+                  No results for {'"'}{searchText}{'"'}
+                </p>
+              </div>
+            ) : (
+              <div className="flex flex-row flex-wrap gap-3 px-6 py-2">
+                {searchResults.map((option) => {
+                  const isSelected = tempOptions.includes(option.title);
+                  return (
+                    <button
+                      key={`${option.parentId || "root"}-${option.title}`}
+                      type="button"
+                      onClick={() => handleToggleOption(option.title)}
+                      className={cn(pillBase, "rounded-full")}
+                      style={{
+                        borderColor: isSelected ? theme.primary : theme.border,
+                        backgroundColor: isSelected ? theme.primary : (theme.secondaryBackground ?? theme.background),
+                        color: isSelected ? "#fff" : theme.text,
+                      }}
+                    >
+                      {option.icon && (
+                        <AppIcon icon={option.icon} size={16} color={isSelected ? "#fff" : theme.text} />
+                      )}
+                      <span className="flex flex-col text-left">
+                        <span className="text-[13px] font-semibold">{option.title}</span>
+                        {option.parentTitle && (
+                          <span
+                            className="text-[10px] font-medium"
+                            style={{ color: isSelected ? "rgba(255,255,255,0.8)" : theme.tertiaryText }}
+                          >
+                            in {option.parentTitle}
+                          </span>
+                        )}
+                      </span>
+                      {isSelected && <Check size={14} color="#fff" className="ml-0.5" />}
+                    </button>
+                  );
+                })}
+              </div>
+            )
+          ) : isCategoryFilter && categoryGroups ? (
+            /* Case 2: Hierarchical Category + Subcategory view */
+            <div className="pt-1">
+              {/* Step 1: Category Selector Tabs */}
+              <div className="mb-3">
+                <div className="mb-1.5 px-6">
+                  <p className="text-[13px] font-bold tracking-wide uppercase" style={{ color: theme.secondaryText }}>
+                    Select Category
+                  </p>
+                </div>
+                <div className="flex flex-row gap-2 overflow-x-auto px-6" style={{ scrollbarWidth: "none" }}>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedParentTab("All")}
+                    className="cursor-pointer rounded-[20px] border-[1.5px] px-4 py-2 text-[13px]"
+                    style={{
+                      borderColor: selectedParentTab === "All" ? theme.primary : theme.border,
+                      backgroundColor: selectedParentTab === "All" ? theme.primary : theme.secondaryBackground,
                       color: selectedParentTab === "All" ? "#fff" : theme.text,
+                      fontWeight: selectedParentTab === "All" ? 700 : 600,
                     }}
                   >
                     All Categories
-                  </Text>
-                </TouchableOpacity>
+                  </button>
 
-                {categoryGroups.map((group) => {
-                  const isActiveTab = selectedParentTab === group.title;
-                  const hasSelection =
-                    tempOptions.includes(group.title) ||
-                    group.subCategories.some((s) => tempOptions.includes(s.title));
+                  {categoryGroups.map((group) => {
+                    const isActiveTab = selectedParentTab === group.title;
+                    const hasSelection =
+                      tempOptions.includes(group.title) ||
+                      group.subCategories.some((s) => tempOptions.includes(s.title));
 
-                  return (
-                    <TouchableOpacity key={group.id}
-                      onPress={() => setSelectedParentTab(group.title)}
-                      activeOpacity={0.7}
-                      style={{
-                        flexDirection: "row",
-                        alignItems: "center",
-                        gap: 6,
-                        paddingHorizontal: 14,
-                        paddingVertical: 9,
-                        borderRadius: 20,
-                        borderWidth: 1.5,
-                        borderColor: isActiveTab ? theme.primary : hasSelection ? theme.primary + "88" : theme.border,
-                        backgroundColor: isActiveTab
-                          ? theme.primary
-                          : hasSelection
-                            ? theme.primary + "15"
-                            : theme.secondaryBackground,
-                      }}
-                    >
-                      {group.icon && (
-                        <AppIcon icon={group.icon}
-                          size={15}
-                          color={isActiveTab ? "#fff" : theme.text}
-                        />
-                      )}
-                      <Text style={{
-                          fontSize: 13,
-                          fontWeight: isActiveTab ? "700" : "600",
+                    return (
+                      <button
+                        key={group.id}
+                        type="button"
+                        onClick={() => setSelectedParentTab(group.title)}
+                        className="flex cursor-pointer flex-row items-center gap-1.5 rounded-[20px] border-[1.5px] px-3.5 py-2 text-[13px]"
+                        style={{
+                          borderColor: isActiveTab ? theme.primary : hasSelection ? theme.primary + "88" : theme.border,
+                          backgroundColor: isActiveTab ? theme.primary : hasSelection ? theme.primary + "15" : theme.secondaryBackground,
                           color: isActiveTab ? "#fff" : theme.text,
+                          fontWeight: isActiveTab ? 700 : 600,
                         }}
                       >
+                        {group.icon && (
+                          <AppIcon icon={group.icon} size={15} color={isActiveTab ? "#fff" : theme.text} />
+                        )}
                         {group.title}
-                      </Text>
-                      {group.subCategories.length > 0 && (
-                        <View style={{
-                            backgroundColor: isActiveTab ? "rgba(255,255,255,0.25)" : theme.border,
-                            borderRadius: 10,
-                            paddingHorizontal: 6,
-                            paddingVertical: 1,
-                          }}
-                        >
-                          <Text style={{
-                              fontSize: 10,
-                              fontWeight: "700",
-                              color: isActiveTab ? "#fff" : theme.secondaryText,
-                            }}
+                        {group.subCategories.length > 0 && (
+                          <span
+                            className="rounded-[10px] px-1.5 py-px text-[10px] font-bold"
+                            style={{ backgroundColor: isActiveTab ? "rgba(255,255,255,0.25)" : theme.border, color: isActiveTab ? "#fff" : theme.secondaryText }}
                           >
                             {group.subCategories.length}
-                          </Text>
-                        </View>
-                      )}
-                      {hasSelection && !isActiveTab && (
-                        <View style={{
-                            width: 6,
-                            height: 6,
-                            borderRadius: 3,
-                            backgroundColor: theme.primary,
-                          }}
-                        />
-                      )}
-                    </TouchableOpacity>
-                  );
-                })}
-              </ScrollView>
-            </View>
+                          </span>
+                        )}
+                        {hasSelection && !isActiveTab && (
+                          <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: theme.primary }} />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
 
-            {/* Step 2: Subcategory Content View */}
-            {selectedParentTab !== "All" && currentGroup ? (
-              <View style={{ paddingHorizontal: spacing.lg, marginTop: spacing.xs }}>
-                {/* Subcategory Header */}
-                <View style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    paddingVertical: 8,
-                    marginBottom: 8,
-                    borderBottomWidth: 1,
-                    borderBottomColor: theme.border,
-                  }}
-                >
-                  <View>
-                    <Text style={{ fontSize: 15, fontWeight: "700", color: theme.text }}>
-                      {currentGroup.title}
-                    </Text>
-                    <Text style={{ fontSize: 12, color: theme.tertiaryText, marginTop: 2 }}>
-                      {currentGroup.subCategories.length > 0
-                        ? "Tap a subcategory to filter, or select All to see everything"
-                        : "No subcategories — filter by entire category"}
-                    </Text>
-                  </View>
-                </View>
-
-                {/* Subcategory Pills Grid */}
-                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm, paddingTop: 4 }}>
-                  {/* Category-wide option: "All in [Category]" */}
-                  <TouchableOpacity onPress={() => handleToggleOption(currentGroup.title)}
-                    activeOpacity={0.7}
-                    style={[
-                      {
-                        flexDirection: "row",
-                        alignItems: "center",
-                        paddingHorizontal: 15,
-                        paddingVertical: 10,
-                        borderRadius: 100,
-                        borderWidth: 1.5,
-                        gap: 6,
-                      },
-                      {
-                        borderColor: tempOptions.includes(currentGroup.title) ? theme.primary : theme.border,
-                        backgroundColor: tempOptions.includes(currentGroup.title)
-                          ? theme.primary
-                          : theme.secondaryBackground,
-                      },
-                    ]}
+              {/* Step 2: Subcategory Content View */}
+              {selectedParentTab !== "All" && currentGroup ? (
+                <div className="mt-1 px-6">
+                  {/* Subcategory Header */}
+                  <div
+                    className="mb-2 flex flex-row items-center justify-between border-b py-2"
+                    style={{ borderBottomColor: theme.border }}
                   >
-                    <Layers size={15} color={tempOptions.includes(currentGroup.title) ? "#fff" : theme.text} />
-                    <Text style={{
-                        fontSize: 13,
-                        fontWeight: "700",
+                    <div>
+                      <p className="text-[15px] font-bold" style={{ color: theme.text }}>
+                        {currentGroup.title}
+                      </p>
+                      <p className="mt-0.5 text-xs" style={{ color: theme.tertiaryText }}>
+                        {currentGroup.subCategories.length > 0
+                          ? "Tap a subcategory to filter, or select All to see everything"
+                          : "No subcategories — filter by entire category"}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Subcategory Pills Grid */}
+                  <div className="flex flex-row flex-wrap gap-3 pt-1">
+                    {/* Category-wide option: "All in [Category]" */}
+                    <button
+                      type="button"
+                      onClick={() => handleToggleOption(currentGroup.title)}
+                      className={cn(pillBase, "rounded-full px-4 py-2.5")}
+                      style={{
+                        borderColor: tempOptions.includes(currentGroup.title) ? theme.primary : theme.border,
+                        backgroundColor: tempOptions.includes(currentGroup.title) ? theme.primary : theme.secondaryBackground,
                         color: tempOptions.includes(currentGroup.title) ? "#fff" : theme.text,
+                        fontWeight: 700,
                       }}
                     >
+                      <Layers size={15} color={tempOptions.includes(currentGroup.title) ? "#fff" : theme.text} />
                       All in {currentGroup.title}
-                    </Text>
-                    {tempOptions.includes(currentGroup.title) && (
-                      <Check size={14} color="#fff" />
-                    )}
-                  </TouchableOpacity>
+                      {tempOptions.includes(currentGroup.title) && <Check size={14} color="#fff" />}
+                    </button>
 
-                  {/* Individual Subcategories */}
-                  {currentGroup.subCategories.map((sub) => {
-                    const isSelected = tempOptions.includes(sub.title);
-                    return (
-                      <TouchableOpacity key={sub.id}
-                        onPress={() => handleToggleOption(sub.title)}
-                        activeOpacity={0.7}
-                        style={[
-                          {
-                            flexDirection: "row",
-                            alignItems: "center",
-                            paddingHorizontal: 15,
-                            paddingVertical: 10,
-                            borderRadius: 100,
-                            borderWidth: 1.5,
-                            gap: 6,
-                          },
-                          {
+                    {/* Individual Subcategories */}
+                    {currentGroup.subCategories.map((sub) => {
+                      const isSelected = tempOptions.includes(sub.title);
+                      return (
+                        <button
+                          key={sub.id}
+                          type="button"
+                          onClick={() => handleToggleOption(sub.title)}
+                          className={cn(pillBase, "rounded-full px-4 py-2.5")}
+                          style={{
                             borderColor: isSelected ? theme.primary : theme.border,
-                            backgroundColor: isSelected
-                              ? theme.primary
-                              : theme.secondaryBackground,
-                          },
-                        ]}
-                      >
-                        {sub.icon && (
-                          <AppIcon icon={sub.icon}
-                            size={15}
-                            color={isSelected ? "#fff" : theme.text}
-                          />
-                        )}
-                        <Text style={{
-                            fontSize: 13,
-                            fontWeight: "600",
+                            backgroundColor: isSelected ? theme.primary : theme.secondaryBackground,
                             color: isSelected ? "#fff" : theme.text,
                           }}
                         >
+                          {sub.icon && (
+                            <AppIcon icon={sub.icon} size={15} color={isSelected ? "#fff" : theme.text} />
+                          )}
                           {sub.title}
-                        </Text>
-                        {isSelected && (
-                          <Check size={14} color="#fff" />
-                        )}
-                      </TouchableOpacity>
-                    );
-                  })}
-                </View>
-              </View>
-            ) : (
-              /* "All Categories" Tab View — Grouped Cards */
-              <View style={{ paddingHorizontal: spacing.lg, gap: spacing.md, marginTop: spacing.xs }}>
-                {categoryGroups.map((group) => (
-                  <View key={group.id}
-                    style={{
-                      backgroundColor: theme.secondaryBackground,
-                      borderRadius: 16,
-                      borderWidth: 1,
-                      borderColor: theme.border,
-                      padding: 12,
-                    }}
-                  >
-                    <View style={{
-                        flexDirection: "row",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        marginBottom: 10,
-                      }}
+                          {isSelected && <Check size={14} color="#fff" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : (
+                /* "All Categories" Tab View — Grouped Cards */
+                <div className="mt-1 flex flex-col gap-4 px-6">
+                  {categoryGroups.map((group) => (
+                    <div
+                      key={group.id}
+                      className="rounded-2xl border p-3"
+                      style={{ backgroundColor: theme.secondaryBackground, borderColor: theme.border }}
                     >
-                      <TouchableOpacity onPress={() => setSelectedParentTab(group.title)}
-                        style={{ flexDirection: "row", alignItems: "center", gap: 6 }}
-                      >
-                        {group.icon && (
-                          <AppIcon icon={group.icon}
-                            size={17}
-                            color={theme.primary}
-                          />
-                        )}
-                        <Text style={{ fontSize: 14, fontWeight: "700", color: theme.text }}>
-                          {group.title}
-                        </Text>
-                        <ChevronRight size={14} color={theme.tertiaryText} />
-                      </TouchableOpacity>
+                      <div className="mb-2.5 flex flex-row items-center justify-between">
+                        <button
+                          type="button"
+                          onClick={() => setSelectedParentTab(group.title)}
+                          className="flex cursor-pointer flex-row items-center gap-1.5"
+                        >
+                          {group.icon && (
+                            <AppIcon icon={group.icon} size={17} color={theme.primary} />
+                          )}
+                          <span className="text-sm font-bold" style={{ color: theme.text }}>
+                            {group.title}
+                          </span>
+                          <ChevronRight size={14} color={theme.tertiaryText} />
+                        </button>
 
-                      <TouchableOpacity onPress={() => handleToggleOption(group.title)}
-                        style={{
-                          paddingHorizontal: 8,
-                          paddingVertical: 3,
-                          borderRadius: 8,
-                          borderWidth: 1,
-                          borderColor: tempOptions.includes(group.title) ? theme.primary : theme.border,
-                          backgroundColor: tempOptions.includes(group.title) ? theme.primary : "transparent",
-                        }}
-                      >
-                        <Text style={{
-                            fontSize: 11,
-                            fontWeight: "600",
+                        <button
+                          type="button"
+                          onClick={() => handleToggleOption(group.title)}
+                          className="cursor-pointer rounded-lg border px-2 py-1 text-[11px] font-semibold"
+                          style={{
+                            borderColor: tempOptions.includes(group.title) ? theme.primary : theme.border,
+                            backgroundColor: tempOptions.includes(group.title) ? theme.primary : "transparent",
                             color: tempOptions.includes(group.title) ? "#fff" : theme.secondaryText,
                           }}
                         >
                           {tempOptions.includes(group.title) ? "Selected" : "Select All"}
-                        </Text>
-                      </TouchableOpacity>
-                    </View>
+                        </button>
+                      </div>
 
-                    <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
-                      {group.subCategories.length > 0 ? (
-                        group.subCategories.map((sub) => {
-                          const isSelected = tempOptions.includes(sub.title);
-                          return (
-                            <TouchableOpacity key={sub.id}
-                              onPress={() => handleToggleOption(sub.title)}
-                              style={{
-                                flexDirection: "row",
-                                alignItems: "center",
-                                gap: 4,
-                                paddingHorizontal: 12,
-                                paddingVertical: 7,
-                                borderRadius: 20,
-                                borderWidth: 1,
-                                borderColor: isSelected ? theme.primary : theme.border,
-                                backgroundColor: isSelected ? theme.primary : theme.background,
-                              }}
-                            >
-                              <Text style={{
-                                  fontSize: 12,
-                                  fontWeight: "600",
+                      <div className="flex flex-row flex-wrap gap-1.5">
+                        {group.subCategories.length > 0 ? (
+                          group.subCategories.map((sub) => {
+                            const isSelected = tempOptions.includes(sub.title);
+                            return (
+                              <button
+                                key={sub.id}
+                                type="button"
+                                onClick={() => handleToggleOption(sub.title)}
+                                className="flex cursor-pointer flex-row items-center gap-1 rounded-[20px] border px-3 py-1.5 text-xs font-semibold"
+                                style={{
+                                  borderColor: isSelected ? theme.primary : theme.border,
+                                  backgroundColor: isSelected ? theme.primary : theme.background,
                                   color: isSelected ? "#fff" : theme.text,
                                 }}
                               >
                                 {sub.title}
-                              </Text>
-                              {isSelected && (
-                                <Check size={12} color="#fff" />
-                              )}
-                            </TouchableOpacity>
-                          );
-                        })
-                      ) : (
-                        <Text style={{ fontSize: 12, color: theme.tertiaryText, fontStyle: "italic" }}>
-                          No subcategories
-                        </Text>
-                      )}
-                    </View>
-                  </View>
-                ))}
-              </View>
-            )}
-          </View>
-        ) : (
-          /* Case 3: Fallback / Simple List (Gender, etc.) */
-          <View style={{
-              flexDirection: "row",
-              flexWrap: "wrap",
-              gap: spacing.sm,
-              paddingHorizontal: spacing.lg,
-              paddingVertical: spacing.sm,
-            }}
-          >
-            {options.map((option) => {
-              const isSelected = tempOptions.includes(option.title);
-              return (
-                <TouchableOpacity key={option.title}
-                  style={[
-                    {
-                      flexDirection: "row",
-                      alignItems: "center",
-                      paddingHorizontal: 16,
-                      paddingVertical: 11,
-                      borderRadius: 100,
-                      borderWidth: 1.5,
-                      gap: 6,
-                    },
-                    {
+                                {isSelected && <Check size={12} color="#fff" />}
+                              </button>
+                            );
+                          })
+                        ) : (
+                          <span className="text-xs italic" style={{ color: theme.tertiaryText }}>
+                            No subcategories
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : (
+            /* Case 3: Fallback / Simple List (Gender, etc.) */
+            <div className="flex flex-row flex-wrap gap-3 px-6 py-2">
+              {options.map((option) => {
+                const isSelected = tempOptions.includes(option.title);
+                return (
+                  <button
+                    key={option.title}
+                    type="button"
+                    onClick={() => handleToggleOption(option.title)}
+                    className={cn(pillBase, "rounded-full px-4 py-2.5 text-sm")}
+                    style={{
                       borderColor: isSelected ? theme.primary : theme.border,
-                      backgroundColor: isSelected
-                        ? theme.primary
-                        : theme.secondaryBackground ?? theme.background,
-                    },
-                  ]}
-                  onPress={() => handleToggleOption(option.title)}
-                  activeOpacity={0.7}
-                >
-                  {option.icon && (
-                    <AppIcon icon={option.icon}
-                      size={16}
-                      color={isSelected ? "#fff" : theme.text}
-                    />
-                  )}
-                  <Text style={{
-                      fontSize: 14,
-                      fontWeight: "600",
+                      backgroundColor: isSelected ? theme.primary : (theme.secondaryBackground ?? theme.background),
                       color: isSelected ? "#fff" : theme.text,
                     }}
                   >
+                    {option.icon && (
+                      <AppIcon icon={option.icon} size={16} color={isSelected ? "#fff" : theme.text} />
+                    )}
                     {option.title}
-                  </Text>
-                  {isSelected && (
-                    <Check size={14} color="#fff" />
-                  )}
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        )}
-      </ScrollView>
+                    {isSelected && <Check size={14} color="#fff" />}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
 
-      <SheetFooter>
-        <TouchableOpacity style={{
-            flex: 1,
-            paddingVertical: 16,
-            borderRadius: 14,
-            borderWidth: 1,
-            borderColor: theme.border,
-            alignItems: "center",
-            backgroundColor: theme.background,
-          }}
-          onPress={handleClearAll}
-        >
-          <Text style={{
-              fontSize: 16,
-              fontWeight: "700",
-              color: theme.text,
-            }}
+        {/* Footer */}
+        <div className="flex flex-row gap-3 border-t px-4 py-3" style={{ borderTopColor: theme.border }}>
+          <button
+            type="button"
+            onClick={handleClearAll}
+            className="flex-1 cursor-pointer rounded-[14px] border py-4 text-base font-bold"
+            style={{ borderColor: theme.border, backgroundColor: theme.background, color: theme.text }}
           >
             Clear All
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={{
-            flex: 2,
-            paddingVertical: 16,
-            borderRadius: 14,
-            backgroundColor: theme.primary,
-            alignItems: "center",
-            shadowColor: theme.primary,
-            shadowOffset: { width: 0, height: 4 },
-            shadowOpacity: 0.2,
-            shadowRadius: 8,
-            elevation: 4,
-
-          }}
-          onPress={handleApply}
-        >
-          <Text style={{
-              fontSize: 16,
-              fontWeight: "700",
-              color: "#fff",
-            }}
+          </button>
+          <button
+            type="button"
+            onClick={handleApply}
+            className="flex-[2] cursor-pointer rounded-[14px] py-4 text-base font-bold text-white shadow-lg"
+            style={{ backgroundColor: theme.primary }}
           >
             Apply{tempOptions.length > 0 ? ` (${tempOptions.length})` : ""}
-          </Text>
-        </TouchableOpacity>
-      </SheetFooter>
-    </Sheet>
+          </button>
+        </div>
+      </div>
+    </div>
   );
 };

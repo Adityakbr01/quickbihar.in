@@ -9,7 +9,7 @@ import {
   Text,
   View,
   useWindowDimensions,
-} from "react-native";
+} from "@/components/primitives";
 import { Gradient } from "@/src/components/common/Gradient";
 import * as Haptics from "@/lib/haptics";
 import { useSafeAreaInsets } from "@/src/hooks/useSafeAreaInsets";

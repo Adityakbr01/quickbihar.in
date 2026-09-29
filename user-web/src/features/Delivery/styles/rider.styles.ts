@@ -1,4 +1,4 @@
-import { Platform, StyleSheet } from "react-native";
+import { Platform, StyleSheet } from "@/components/primitives";
 import type { Theme } from "@/src/theme/Provider/ThemeProvider";
 
 /**

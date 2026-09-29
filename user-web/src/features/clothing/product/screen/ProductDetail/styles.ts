@@ -1,4 +1,4 @@
-import { StyleSheet, Dimensions, Platform } from "react-native";
+import { StyleSheet, Dimensions, Platform } from "@/components/primitives";
 
 // Legacy static export (kept for compat). Prefer useWindowDimensions()
 // in components so rotation / foldables / tablets update live.
@@ -404,8 +404,7 @@ export const styles = StyleSheet.create({
   },
 
   // Bottom Bar — compact so small phones keep content visible.
-  // Parent SafeViewWrapper already applies the bottom safe-area inset,
-  // so keep padding small and consistent across platforms.
+  // Keep padding small and consistent (web has no bottom safe-area inset).
   bottomBar: {
     position: "absolute",
     bottom: 0,

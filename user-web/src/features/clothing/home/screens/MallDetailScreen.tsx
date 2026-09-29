@@ -1,21 +1,20 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
-  View,
-  Text,
-  ScrollView,
-  Image,
-  TouchableOpacity,
-  ActivityIndicator,
-  StyleSheet,
-  Share,
-  Linking,
-  useWindowDimensions,
-} from "react-native";
-import { ArrowLeft, CircleAlert, Map as MapIcon, MapPin, MessageCircle, Phone, Share2, ShoppingBag, SquarePen, Star, StarHalf } from "lucide-react";
+  ArrowLeft,
+  CircleAlert,
+  Map as MapIcon,
+  MapPin,
+  MessageCircle,
+  Phone,
+  Share2,
+  ShoppingBag,
+  SquarePen,
+  Star,
+  StarHalf,
+} from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
-import SafeViewWrapper from "@/src/provider/SafeViewWrapper";
 import { useMallDetail, useSubmitMallReview } from "../hooks/useMalls";
 import { TextInput } from "@/src/theme/components/TextInput";
 import { SeoHead } from "@/src/components/seo/SeoHead";
@@ -33,17 +32,26 @@ interface MallDetailScreenProps {
   initialMall?: any;
 }
 
-const MallDetailScreen: React.FC<MallDetailScreenProps> = ({ id, initialMall }) => {
+const MallDetailScreen: React.FC<MallDetailScreenProps> = ({
+  id,
+  initialMall,
+}) => {
   const navigate = useNavigate();
   const theme = useTheme() as any;
   // Live width so rotation / foldables / small phones never overflow.
-  const { width: windowWidth } = useWindowDimensions();
+  const [windowWidth, setWindowWidth] = useState(() =>
+    typeof window !== "undefined" ? window.innerWidth : 1200,
+  );
+  useEffect(() => {
+    const onResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
   const { data, isLoading, isError } = useMallDetail(id);
   const submitReviewMutation = useSubmitMallReview(id);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   // Use manifest seed for the initial SSG pass; live query takes over post-hydration.
-  const seoMall = (data?.mall || initialMall);
-
+  const seoMall = data?.mall || initialMall;
 
   // Review states
   const [showReviewForm, setShowReviewForm] = useState(false);
@@ -51,29 +59,43 @@ const MallDetailScreen: React.FC<MallDetailScreenProps> = ({ id, initialMall }) 
   const [comment, setComment] = useState("");
   const [activeImageIndex, setActiveImageIndex] = useState(0);
 
-  // ── SEO (web head tags; null-render on native) ──
+  // ── SEO (web head tags) ──
   // seoMall: manifest seed at SSG time, live data?.mall post-hydration.
   // Computed ABOVE guards so SeoHead renders even during the loading/error state at SSG.
   const seoMeta = seoMall ? mallMeta(seoMall) : null;
-  const seoJsonLd = seoMeta ? [
-    mallJsonLd(seoMall, seoMeta.canonical),
-    breadcrumbJsonLd(seoMeta.canonical, [
-      { name: "Home", path: "/" },
-      { name: "Malls", path: "/mall" },
-      { name: seoMall?.name || "Mall" },
-    ]),
-  ] : [];
+  const seoJsonLd = seoMeta
+    ? [
+        mallJsonLd(seoMall, seoMeta.canonical),
+        breadcrumbJsonLd(seoMeta.canonical, [
+          { name: "Home", path: "/" },
+          { name: "Malls", path: "/mall" },
+          { name: seoMall?.name || "Mall" },
+        ]),
+      ]
+    : [];
 
   if (isLoading) {
     return (
       <>
         {seoMeta && <SeoHead meta={seoMeta} jsonLd={seoJsonLd} />}
-        <View style={[styles.loadingContainer, { backgroundColor: theme.background }]}>
-          <ActivityIndicator size="large" color={theme.primary} />
-          <Text style={[styles.loadingText, { color: theme.secondaryText }]}>
+        <div
+          className="flex flex-1 flex-col items-center justify-center"
+          style={{ backgroundColor: theme.background }}
+        >
+          <span
+            className="block h-9 w-9 animate-spin rounded-full border-[5px] border-t-transparent"
+            style={{
+              borderColor: `${theme.primary}30`,
+              borderTopColor: theme.primary,
+            }}
+          />
+          <p
+            className="mt-3 text-sm font-medium"
+            style={{ color: theme.secondaryText }}
+          >
             Loading Mall details...
-          </Text>
-        </View>
+          </p>
+        </div>
       </>
     );
   }
@@ -82,15 +104,26 @@ const MallDetailScreen: React.FC<MallDetailScreenProps> = ({ id, initialMall }) 
     return (
       <>
         {seoMeta && <SeoHead meta={seoMeta} jsonLd={seoJsonLd} />}
-        <View style={[styles.errorContainer, { backgroundColor: theme.background }]}>
+        <div
+          className="flex flex-1 flex-col items-center justify-center p-6"
+          style={{ backgroundColor: theme.background }}
+        >
           <CircleAlert size={60} color={theme.primary} />
-          <Text style={[styles.errorText, { color: theme.text }]}>
+          <p
+            className="mt-4 text-center text-base font-medium"
+            style={{ color: theme.text }}
+          >
             Could not load mall information.
-          </Text>
-          <TouchableOpacity style={[styles.backBtn, { backgroundColor: theme.primary }]} onPress={() => goBack(navigate)}>
-            <Text style={styles.backBtnText}>Go Back</Text>
-          </TouchableOpacity>
-        </View>
+          </p>
+          <button
+            type="button"
+            onClick={() => goBack(navigate)}
+            className="mt-6 cursor-pointer rounded-lg px-5 py-3 font-semibold text-white"
+            style={{ backgroundColor: theme.primary }}
+          >
+            Go Back
+          </button>
+        </div>
       </>
     );
   }
@@ -98,10 +131,13 @@ const MallDetailScreen: React.FC<MallDetailScreenProps> = ({ id, initialMall }) 
   const { mall, products, reviews, matchingMalls } = data;
 
   const handleShare = async () => {
+    const text = `Explore ${mall.name} at ${mall.location} on QuickBihar! 🛍️`;
     try {
-      await Share.share({
-        message: `Explore ${mall.name} at ${mall.location} on QuickBihar! 🛍️`,
-      });
+      if (typeof navigator !== "undefined" && (navigator as any).share) {
+        await (navigator as any).share({ text });
+      } else if (navigator.clipboard) {
+        await navigator.clipboard.writeText(text);
+      }
     } catch (err) {
       console.error(err);
     }
@@ -118,18 +154,18 @@ const MallDetailScreen: React.FC<MallDetailScreenProps> = ({ id, initialMall }) 
           setComment("");
           setShowReviewForm(false);
         },
-        onError: (err: any) => {
+        onError: () => {
           // Haptic-only failure signal — the form stays open to retry.
           Haptics.notificationAsync(
             Haptics.NotificationFeedbackType.Error,
           ).catch(() => {});
         },
-      }
+      },
     );
   };
 
   const toImageUrl = (img: any): string =>
-    typeof img === "string" ? img : (img?.url || img?.uri || "");
+    typeof img === "string" ? img : img?.url || img?.uri || "";
 
   // Cover first, then gallery — accepts [{url}] objects or plain strings,
   // drops empties and dedupes so a missing shape can never blank the hero.
@@ -155,20 +191,24 @@ const MallDetailScreen: React.FC<MallDetailScreenProps> = ({ id, initialMall }) 
   const handleGetDirections = () => {
     const { latitude, longitude } = mall.address || {};
     if (latitude && longitude) {
-      Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`).catch((err) => {
-        console.error("Open Maps Error:", err);
-      });
+      window.open(
+        `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`,
+        "_blank",
+      );
     }
   };
 
   return (
-    <SafeViewWrapper>
+    <>
       {seoMeta && <SeoHead meta={seoMeta} jsonLd={seoJsonLd} />}
-      <ScrollView style={[styles.container, { backgroundColor: theme.background }]} showsVerticalScrollIndicator={false}>
-        {/* Cover Image Slider & Header (embla carousel on web via the
-            reanimated-carousel shim, native carousel on mobile) */}
-        <View style={styles.heroContainer}>
-          <Carousel width={windowWidth}
+      <div
+        className="flex-1 overflow-y-auto"
+        style={{ backgroundColor: theme.background }}
+      >
+        {/* Cover Image Slider & Header */}
+        <div className="relative h-[300px] w-full">
+          <Carousel
+            width={windowWidth}
             height={300}
             data={heroImages}
             loop={heroImages.length > 1}
@@ -177,164 +217,256 @@ const MallDetailScreen: React.FC<MallDetailScreenProps> = ({ id, initialMall }) 
             scrollAnimationDuration={300}
             onSnapToItem={setActiveImageIndex}
             renderItem={({ item: uri, index }) => (
-              <img key={`${index}-${uri}`} src={uri} alt={index === 0 ? `${mall.name} — cover photo` : `${mall.name} — photo ${index + 1}`} style={Object.assign({}, styles.coverImage, { width: windowWidth }, { objectFit: "cover" as const })} />
+              <img
+                key={`${index}-${uri}`}
+                src={uri}
+                alt={
+                  index === 0
+                    ? `${mall.name} — cover photo`
+                    : `${mall.name} — photo ${index + 1}`
+                }
+                className="h-full object-cover"
+                style={{ width: windowWidth }}
+              />
             )}
           />
-          <Gradient colors={["rgba(0,0,0,0.4)", "rgba(0,0,0,0.0)", "rgba(0,0,0,0.85)"]} style={[styles.gradientOverlay, { pointerEvents: "none" }]} />
+          <Gradient
+            colors={["rgba(0,0,0,0.4)", "rgba(0,0,0,0.0)", "rgba(0,0,0,0.85)"]}
+            style={{
+              position: "absolute",
+              left: 0,
+              right: 0,
+              bottom: 0,
+              top: 0,
+              pointerEvents: "none",
+            }}
+          />
 
           {/* Header Actions */}
-          <View style={styles.headerRow}>
-            <TouchableOpacity onPress={() => goBack(navigate)} style={styles.navIconBtn}>
+          <div className="absolute top-4 right-4 left-4 z-10 flex flex-row items-center justify-between">
+            <button
+              type="button"
+              onClick={() => goBack(navigate)}
+              aria-label="Go back"
+              className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-black/40"
+            >
               <ArrowLeft size={24} color="#FFF" />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={handleShare} style={styles.navIconBtn}>
+            </button>
+            <button
+              type="button"
+              onClick={handleShare}
+              aria-label="Share mall"
+              className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-black/40"
+            >
               <Share2 size={22} color="#FFF" />
-            </TouchableOpacity>
-          </View>
+            </button>
+          </div>
 
           {/* Mall Title Overlay */}
-          <View style={styles.titleOverlay}>
-            <View style={styles.badgeRow}>
-              <View style={styles.premiumBadge}>
-                <Text style={styles.premiumBadgeText}>MALL</Text>
-              </View>
+          <div className="absolute right-4 bottom-4 left-4">
+            <div className="mb-2 flex flex-row gap-2">
+              <span className="rounded bg-rose-600 px-2 py-0.5 text-[10px] font-extrabold text-white">
+                MALL
+              </span>
               {mall.sellerCount > 0 && (
-                <View style={styles.shopsBadge}>
-                  <Text style={styles.shopsBadgeText}>{mall.sellerCount} Stores</Text>
-                </View>
+                <span className="rounded bg-white/25 px-2 py-0.5 text-[10px] font-semibold text-white">
+                  {mall.sellerCount} Stores
+                </span>
               )}
-            </View>
-            <Text style={styles.mallNameText}>{mall.name}</Text>
-            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 4 }}>
-              <Text style={[styles.taglineText, { flex: 1, marginRight: 8 }]} numberOfLines={1}>{mall.tagline}</Text>
+            </div>
+            <h1 className="text-2xl font-extrabold text-white drop-shadow">
+              {mall.name}
+            </h1>
+            <div className="mt-1 flex flex-row items-center justify-between">
+              <p className="mr-2 flex-1 truncate text-sm text-white/85">
+                {mall.tagline}
+              </p>
               {heroImages.length > 1 && (
-                <View style={{ flexDirection: "row", gap: 4 }}>
+                <div className="flex flex-row gap-1">
                   {heroImages.map((_: any, idx: number) => (
-                    <View key={idx}
+                    <span
+                      key={idx}
+                      className="h-1.5 w-1.5 rounded-full"
                       style={{
-                        width: 6,
-                        height: 6,
-                        borderRadius: 3,
-                        backgroundColor: idx === activeImageIndex ? "#FFF" : "rgba(255,255,255,0.4)"
+                        backgroundColor:
+                          idx === activeImageIndex
+                            ? "#FFF"
+                            : "rgba(255,255,255,0.4)",
                       }}
                     />
                   ))}
-                </View>
+                </div>
               )}
-            </View>
-          </View>
-        </View>
+            </div>
+          </div>
+        </div>
 
         {/* Mall Details Block */}
-        <View style={styles.detailBlock}>
+        <div className="p-4">
           {/* Breadcrumb trail (visible match for BreadcrumbList JSON-LD) */}
-          <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 8 }}>
-            <Link to="/" style={{ color: theme.secondaryText, fontSize: 12 }}>
+          <nav
+            className="mb-2 flex flex-row items-center text-xs"
+            style={{ color: theme.secondaryText }}
+          >
+            <Link
+              to="/"
+              className="text-xs"
+              style={{ color: theme.secondaryText }}
+            >
               Home
             </Link>
-            <Text style={{ color: theme.secondaryText, fontSize: 12 }}>{"  ›  "}</Text>
-            <Link to="/mall" style={{ color: theme.secondaryText, fontSize: 12 }}>
+            <span className="text-xs">{"  ›  "}</span>
+            <Link
+              to="/mall"
+              className="text-xs"
+              style={{ color: theme.secondaryText }}
+            >
               Malls
             </Link>
-            <Text style={{ color: theme.secondaryText, fontSize: 12 }}>{"  ›  "}</Text>
-            <Text numberOfLines={1} style={{ color: theme.secondaryText, fontSize: 12, flex: 1 }}>
+            <span className="text-xs">{"  ›  "}</span>
+            <span
+              className="flex-1 truncate text-xs"
+              style={{ color: theme.secondaryText }}
+            >
               {mall.name}
-            </Text>
-          </View>
-          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-            <View style={[styles.locationContainer, { marginBottom: 0, flex: 1, marginRight: 8 }]}>
+            </span>
+          </nav>
+          <div className="mb-3 flex flex-row items-center justify-between">
+            <div className="mr-2 mb-0 flex flex-1 flex-row items-center gap-1.5">
               <MapPin size={18} color={theme.primary} />
-              <Text style={[styles.locationText, { color: theme.secondaryText }]} numberOfLines={2}>{mall.location}</Text>
-            </View>
-            {mall.address?.latitude && mall.address?.longitude && (
-              <TouchableOpacity onPress={handleGetDirections}
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  backgroundColor: theme.primary,
-                  paddingHorizontal: 12,
-                  paddingVertical: 6,
-                  borderRadius: 20,
-                  elevation: 2,
-                  shadowColor: "#000",
-                  shadowOffset: { width: 0, height: 1 },
-                  shadowOpacity: 0.2,
-                  shadowRadius: 1.5,
-                }}
+              <p
+                className="line-clamp-2 text-sm font-medium"
+                style={{ color: theme.secondaryText }}
               >
-                <MapIcon size={14} color="#FFF" style={{ marginRight: 4 }} />
-                <Text style={{ color: "#FFF", fontSize: 12, fontWeight: "600" }}>Get Directions</Text>
-              </TouchableOpacity>
+                {mall.location}
+              </p>
+            </div>
+            {mall.address?.latitude && mall.address?.longitude && (
+              <button
+                type="button"
+                onClick={handleGetDirections}
+                className="flex cursor-pointer flex-row items-center rounded-full px-3 py-1.5 shadow"
+                style={{ backgroundColor: theme.primary }}
+              >
+                <MapIcon size={14} color="#FFF" className="mr-1" />
+                <span className="text-xs font-semibold text-white">
+                  Get Directions
+                </span>
+              </button>
             )}
-          </View>
+          </div>
 
           {mall.isMobileVisible !== false && !!mall.mobileNumber && (
-            <TouchableOpacity onPress={() => Linking.openURL(`tel:${mall.mobileNumber}`).catch(() => { })}
-              style={{ flexDirection: "row", alignItems: "center", marginBottom: 12 }}
+            <a
+              href={`tel:${mall.mobileNumber}`}
+              className="mb-3 flex flex-row items-center"
             >
-              <Phone size={16} color={theme.primary} style={{ marginRight: 6 }} />
-              <Text style={{ color: theme.secondaryText, fontSize: 14, fontWeight: "500" }}>
-                Contact: <Text style={{ color: theme.text, fontWeight: "600" }}>{mall.mobileNumber}</Text>
-              </Text>
-            </TouchableOpacity>
+              <Phone size={16} color={theme.primary} className="mr-1.5" />
+              <span
+                className="text-sm font-medium"
+                style={{ color: theme.secondaryText }}
+              >
+                Contact:{" "}
+                <span className="font-semibold" style={{ color: theme.text }}>
+                  {mall.mobileNumber}
+                </span>
+              </span>
+            </a>
           )}
 
           {mall.description && (
-            <Text style={[styles.descriptionText, { color: theme.tertiaryText }]}>{mall.description}</Text>
+            <p
+              className="mb-5 text-[13px] leading-[18px]"
+              style={{ color: theme.tertiaryText }}
+            >
+              {mall.description}
+            </p>
           )}
 
-          <View style={[styles.ratingOverviewRow, { borderColor: theme.border }]}>
-            <View style={styles.ratingOverviewLeft}>
-              <Text style={[styles.ratingNumber, { color: theme.text }]}>{mall.rating}</Text>
-              <View style={styles.starsRow}>
-                {[1, 2, 3, 4, 5].map((star) => (
+          <div
+            className="mt-2 flex flex-row items-center justify-between border-t pt-4"
+            style={{ borderTopColor: theme.border }}
+          >
+            <div className="flex flex-col gap-0.5">
+              <p
+                className="text-[28px] font-extrabold"
+                style={{ color: theme.text }}
+              >
+                {mall.rating}
+              </p>
+              <div className="my-0.5 flex flex-row gap-0.5">
+                {[1, 2, 3, 4, 5].map((star) =>
                   star <= Math.floor(mall.rating) ? (
                     <Star key={star} size={16} color="#F59E0B" fill="#F59E0B" />
                   ) : star - 0.5 <= mall.rating ? (
                     <StarHalf key={star} size={16} color="#F59E0B" />
                   ) : (
                     <Star key={star} size={16} color="#F59E0B" />
-                  )
-                ))}
-              </View>
-              <Text style={[styles.reviewsCountText, { color: theme.tertiaryText }]}>
+                  ),
+                )}
+              </div>
+              <p className="text-xs" style={{ color: theme.tertiaryText }}>
                 {reviews.length} Customer Reviews
-              </Text>
-            </View>
+              </p>
+            </div>
 
-            <TouchableOpacity style={[styles.writeReviewTriggerBtn, { borderColor: theme.primary }]}
-              onPress={() => {
+            <button
+              type="button"
+              onClick={() => {
                 if (!isAuthenticated) {
                   goTo(navigate, "/auth" as any);
                 } else {
                   setShowReviewForm(!showReviewForm);
                 }
               }}
+              className="flex cursor-pointer flex-row items-center gap-1.5 rounded-full border px-3.5 py-2"
+              style={{ borderColor: theme.primary }}
             >
               <SquarePen size={16} color={theme.primary} />
-              <Text style={[styles.writeReviewTriggerBtnText, { color: theme.primary }]}>
+              <span
+                className="text-xs font-semibold"
+                style={{ color: theme.primary }}
+              >
                 {showReviewForm ? "Cancel Review" : "Write Review"}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+              </span>
+            </button>
+          </div>
+        </div>
 
         {/* Expandable Write a Review Form */}
         {showReviewForm && (
-          <View style={[styles.reviewFormContainer, { backgroundColor: theme.tertiaryBackground, borderColor: theme.border }]}>
-            <Text style={[styles.sectionTitleSmall, { color: theme.text }]}>Rate your experience</Text>
-            <View style={styles.ratingSelectorRow}>
+          <div
+            className="mx-4 mb-5 rounded-xl border p-4"
+            style={{
+              backgroundColor: theme.tertiaryBackground,
+              borderColor: theme.border,
+            }}
+          >
+            <p
+              className="mb-2.5 text-sm font-bold"
+              style={{ color: theme.text }}
+            >
+              Rate your experience
+            </p>
+            <div className="mb-4 flex flex-row gap-2">
               {[1, 2, 3, 4, 5].map((star) => (
-                <TouchableOpacity key={star} onPress={() => setRating(star)} style={styles.starTouch}>
+                <button
+                  key={star}
+                  type="button"
+                  onClick={() => setRating(star)}
+                  aria-label={`Rate ${star} stars`}
+                  className="cursor-pointer p-1"
+                >
                   {star <= rating ? (
                     <Star size={32} color="#F59E0B" fill="#F59E0B" />
                   ) : (
                     <Star size={32} color="#F59E0B" />
                   )}
-                </TouchableOpacity>
+                </button>
               ))}
-            </View>
-            <TextInput placeholder="Tell us about the stores, parking, ambiance, etc. (optional)"
+            </div>
+            <TextInput
+              placeholder="Tell us about the stores, parking, ambiance, etc. (optional)"
               placeholderTextColor={theme.tertiaryText}
               multiline
               numberOfLines={4}
@@ -355,519 +487,234 @@ const MallDetailScreen: React.FC<MallDetailScreenProps> = ({ id, initialMall }) 
                 textAlignVertical: "top",
               }}
             />
-            <TouchableOpacity style={[styles.submitReviewBtn, { backgroundColor: theme.primary }]}
-              onPress={handleReviewSubmit}
+            <button
+              type="button"
+              onClick={handleReviewSubmit}
               disabled={submitReviewMutation.isPending}
+              className="flex w-full cursor-pointer items-center justify-center rounded-lg py-3"
+              style={{ backgroundColor: theme.primary }}
             >
               {submitReviewMutation.isPending ? (
-                <ActivityIndicator size="small" color="#FFF" />
+                <span className="block h-5 w-5 animate-spin rounded-full border-2 border-white/40 border-t-white" />
               ) : (
-                <Text style={styles.submitReviewBtnText}>Submit Review</Text>
+                <span className="text-sm font-bold text-white">
+                  Submit Review
+                </span>
               )}
-            </TouchableOpacity>
-          </View>
+            </button>
+          </div>
         )}
 
         {/* Mall Products Grid */}
-        <View style={styles.sectionContainer}>
-          <Text style={[styles.sectionTitle, { color: theme.text }]}>Trending Products in Mall</Text>
+        <div className="mt-5 px-4">
+          <h2
+            className="mb-3.5 text-lg font-extrabold tracking-tight"
+            style={{ color: theme.text }}
+          >
+            Trending Products in Mall
+          </h2>
           {products.length === 0 ? (
-            <View style={styles.emptyContainer}>
+            <div className="flex flex-col items-center justify-center gap-2 py-7.5">
               <ShoppingBag size={48} color={theme.tertiaryText} />
-              <Text style={[styles.emptyText, { color: theme.tertiaryText }]}>No products listed in this mall yet.</Text>
-            </View>
+              <p className="text-[13px]" style={{ color: theme.tertiaryText }}>
+                No products listed in this mall yet.
+              </p>
+            </div>
           ) : (
-            <View style={styles.productsGrid}>
+            <div className="flex flex-row flex-wrap justify-start gap-3">
               {products.map((item: any) => (
-                <TouchableOpacity key={item.id}
-                  style={[
-                    styles.productCard,
-                    {
-                      backgroundColor: theme.tertiaryBackground,
-                      width: Math.max((windowWidth - 44) / 2, 140),
-                    },
-                  ]}
-                  onPress={() => goTo(navigate, `/product/${item.slug || item.id}` as any)}
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() =>
+                    goTo(navigate, `/product/${item.slug || item.id}` as any)
+                  }
+                  className="relative cursor-pointer overflow-hidden rounded-xl text-left"
+                  style={{
+                    backgroundColor: theme.tertiaryBackground,
+                    width: Math.max((windowWidth - 44) / 2, 140),
+                  }}
                 >
-                  <Image source={{ uri: item.image }} style={styles.productImage} resizeMode="cover" />
+                  <img
+                    src={item.image}
+                    alt={item.name}
+                    className="h-40 w-full object-cover"
+                  />
                   {item.discount && (
-                    <View style={styles.discountBadge}>
-                      <Text style={styles.discountText}>{item.discount}</Text>
-                    </View>
+                    <span className="absolute top-2 left-2 rounded bg-green-500 px-1.5 py-0.5 text-[9px] font-bold text-white">
+                      {item.discount}
+                    </span>
                   )}
-                  <View style={styles.productDetails}>
-                    <Text style={[styles.productName, { color: theme.text }]} numberOfLines={1}>
+                  <span className="block p-2.5">
+                    <span
+                      className="mb-1 block truncate text-[13px] font-semibold"
+                      style={{ color: theme.text }}
+                    >
                       {item.name}
-                    </Text>
-                    <View style={styles.priceRow}>
-                      <Text style={[styles.productPrice, { color: theme.primary }]}>{item.price}</Text>
+                    </span>
+                    <span className="mb-1 flex flex-row items-center gap-1.5">
+                      <span
+                        className="text-sm font-bold"
+                        style={{ color: theme.primary }}
+                      >
+                        {item.price}
+                      </span>
                       {item.originalPrice && (
-                        <Text style={[styles.productOriginalPrice, { color: theme.tertiaryText }]}>
+                        <span
+                          className="text-[11px] line-through"
+                          style={{ color: theme.tertiaryText }}
+                        >
                           {item.originalPrice}
-                        </Text>
+                        </span>
                       )}
-                    </View>
-                    <View style={styles.productRatingRow}>
+                    </span>
+                    <span className="flex flex-row items-center gap-1">
                       <Star size={10} color="#F59E0B" fill="#F59E0B" />
-                      <Text style={[styles.productRatingVal, { color: theme.secondaryText }]}>{item.rating}</Text>
-                    </View>
-                  </View>
-                </TouchableOpacity>
+                      <span
+                        className="text-[10px] font-medium"
+                        style={{ color: theme.secondaryText }}
+                      >
+                        {item.rating}
+                      </span>
+                    </span>
+                  </span>
+                </button>
               ))}
-            </View>
+            </div>
           )}
-        </View>
+        </div>
 
         {/* Mall Reviews List */}
-        <View style={styles.sectionContainer}>
-          <Text style={[styles.sectionTitle, { color: theme.text }]}>Reviews ({reviews.length})</Text>
+        <div className="mt-5 px-4">
+          <h2
+            className="mb-3.5 text-lg font-extrabold tracking-tight"
+            style={{ color: theme.text }}
+          >
+            Reviews ({reviews.length})
+          </h2>
           {reviews.length === 0 ? (
-            <View style={styles.emptyContainer}>
+            <div className="flex flex-col items-center justify-center gap-2 py-7.5">
               <MessageCircle size={40} color={theme.tertiaryText} />
-              <Text style={[styles.emptyText, { color: theme.tertiaryText }]}>Be the first to review this mall!</Text>
-            </View>
+              <p className="text-[13px]" style={{ color: theme.tertiaryText }}>
+                Be the first to review this mall!
+              </p>
+            </div>
           ) : (
             reviews.map((review: any) => (
-              <View key={review.id} style={[styles.reviewCard, { borderBottomColor: theme.border }]}>
-                <View style={styles.reviewHeader}>
-                  <View style={styles.reviewerAvatar}>
+              <div
+                key={review.id}
+                className="border-b py-3.5"
+                style={{ borderBottomColor: theme.border }}
+              >
+                <div className="mb-2 flex flex-row items-center">
+                  <div className="mr-2.5">
                     {review.user.avatarUrl ? (
-                      <Image source={{ uri: review.user.avatarUrl }} style={styles.avatarImage} />
+                      <img
+                        src={review.user.avatarUrl}
+                        alt={review.user.fullName}
+                        className="h-9 w-9 rounded-full object-cover"
+                      />
                     ) : (
-                      <View style={[styles.avatarFallback, { backgroundColor: theme.primary + "20" }]}>
-                        <Text style={[styles.avatarFallbackText, { color: theme.primary }]}>
-                          {review.user.fullName.charAt(0).toUpperCase()}
-                        </Text>
-                      </View>
+                      <span
+                        className="flex h-9 w-9 items-center justify-center rounded-full text-sm font-bold"
+                        style={{
+                          backgroundColor: theme.primary + "20",
+                          color: theme.primary,
+                        }}
+                      >
+                        {review.user.fullName.charAt(0).toUpperCase()}
+                      </span>
                     )}
-                  </View>
-                  <View style={styles.reviewerInfo}>
-                    <Text style={[styles.reviewerName, { color: theme.text }]}>{review.user.fullName}</Text>
-                    <Text style={[styles.reviewDate, { color: theme.tertiaryText }]}>
+                  </div>
+                  <div className="flex-1">
+                    <p
+                      className="text-[13px] font-semibold"
+                      style={{ color: theme.text }}
+                    >
+                      {review.user.fullName}
+                    </p>
+                    <p
+                      className="mt-0.5 text-[10px]"
+                      style={{ color: theme.tertiaryText }}
+                    >
                       {new Date(review.createdAt).toLocaleDateString()}
-                    </Text>
-                  </View>
-                  <View style={styles.reviewRatingBadge}>
+                    </p>
+                  </div>
+                  <span className="flex flex-row items-center gap-1 rounded-[10px] bg-amber-500 px-2 py-1">
                     <Star size={12} color="#fff" fill="#fff" />
-                    <Text style={styles.reviewRatingBadgeText}>{review.rating}</Text>
-                  </View>
-                </View>
+                    <span className="text-[11px] font-bold text-white">
+                      {review.rating}
+                    </span>
+                  </span>
+                </div>
                 {review.comment ? (
-                  <Text style={[styles.reviewComment, { color: theme.secondaryText }]}>{review.comment}</Text>
+                  <p
+                    className="pl-[46px] text-[13px] leading-[18px]"
+                    style={{ color: theme.secondaryText }}
+                  >
+                    {review.comment}
+                  </p>
                 ) : null}
-              </View>
+              </div>
             ))
           )}
-        </View>
+        </div>
 
         {/* Matching Malls */}
-        <View style={[styles.sectionContainer, { paddingBottom: 40 }]}>
-          <Text style={[styles.sectionTitle, { color: theme.text }]}>Other Malls in City</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.matchingMallsScroll}>
+        <div className="mt-5 px-4 pb-10">
+          <h2
+            className="mb-3.5 text-lg font-extrabold tracking-tight"
+            style={{ color: theme.text }}
+          >
+            Other Malls in City
+          </h2>
+          <div
+            className="flex flex-row gap-3 overflow-x-auto"
+            style={{ scrollbarWidth: "none" }}
+          >
             {matchingMalls.map((item: any) => (
-              <TouchableOpacity key={item.id}
-                style={[styles.matchingCard, { backgroundColor: theme.tertiaryBackground }]}
-                onPress={() => goTo(navigate, `/mall/${item.id}` as any)}
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => goTo(navigate, `/mall/${item.id}` as any)}
+                className="w-[180px] shrink-0 cursor-pointer overflow-hidden rounded-xl text-left"
+                style={{ backgroundColor: theme.tertiaryBackground }}
               >
-                <Image source={{ uri: item.image }} style={styles.matchingImage} resizeMode="cover" />
-                <View style={styles.matchingDetails}>
-                  <Text style={[styles.matchingName, { color: theme.text }]} numberOfLines={1}>
+                <img
+                  src={item.image}
+                  alt={item.name}
+                  className="h-[110px] w-full object-cover"
+                />
+                <span className="block p-2.5">
+                  <span
+                    className="block truncate text-[13px] font-bold"
+                    style={{ color: theme.text }}
+                  >
                     {item.name}
-                  </Text>
-                  <Text style={[styles.matchingLocation, { color: theme.tertiaryText }]} numberOfLines={1}>
+                  </span>
+                  <span
+                    className="mt-0.5 block truncate text-[11px]"
+                    style={{ color: theme.tertiaryText }}
+                  >
                     {item.location}
-                  </Text>
-                  <View style={styles.matchingRatingRow}>
+                  </span>
+                  <span className="mt-1.5 flex flex-row items-center gap-1">
                     <Star size={12} color="#F59E0B" fill="#F59E0B" />
-                    <Text style={[styles.matchingRatingVal, { color: theme.text }]}>{item.rating}</Text>
-                  </View>
-                </View>
-              </TouchableOpacity>
+                    <span
+                      className="text-[11px] font-bold"
+                      style={{ color: theme.text }}
+                    >
+                      {item.rating}
+                    </span>
+                  </span>
+                </span>
+              </button>
             ))}
-          </ScrollView>
-        </View>
-      </ScrollView>
-    </SafeViewWrapper>
+          </div>
+        </div>
+      </div>
+    </>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  loadingText: {
-    marginTop: 12,
-    fontSize: 14,
-    fontWeight: "500",
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 24,
-  },
-  errorText: {
-    marginTop: 16,
-    fontSize: 16,
-    textAlign: "center",
-    fontWeight: "500",
-  },
-  backBtn: {
-    marginTop: 24,
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 8,
-  },
-  backBtnText: {
-    color: "#FFF",
-    fontWeight: "600",
-  },
-  heroContainer: {
-    width: "100%",
-    height: 300,
-    position: "relative",
-  },
-  heroSlider: {
-    width: "100%",
-    height: "100%",
-  },
-  coverImage: {
-    width: "100%",
-    height: "100%",
-  },
-  gradientOverlay: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    bottom: 0,
-    top: 0,
-  },
-  headerRow: {
-    position: "absolute",
-    top: 16,
-    left: 16,
-    right: 16,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    zIndex: 10,
-  },
-  navIconBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "rgba(0, 0, 0, 0.4)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  titleOverlay: {
-    position: "absolute",
-    left: 16,
-    right: 16,
-    bottom: 16,
-  },
-  badgeRow: {
-    flexDirection: "row",
-    gap: 8,
-    marginBottom: 8,
-  },
-  premiumBadge: {
-    backgroundColor: "#E11D48",
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 4,
-  },
-  premiumBadgeText: {
-    color: "#FFF",
-    fontSize: 10,
-    fontWeight: "800",
-  },
-  shopsBadge: {
-    backgroundColor: "rgba(255,255,255,0.25)",
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 4,
-  },
-  shopsBadgeText: {
-    color: "#FFF",
-    fontSize: 10,
-    fontWeight: "600",
-  },
-  mallNameText: {
-    color: "#FFF",
-    fontSize: 24,
-    fontWeight: "800",
-    textShadowColor: "rgba(0,0,0,0.5)",
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 3,
-  },
-  taglineText: {
-    color: "rgba(255,255,255,0.85)",
-    fontSize: 14,
-    marginTop: 4,
-  },
-  detailBlock: {
-    padding: 16,
-  },
-  locationContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    marginBottom: 12,
-  },
-  locationText: {
-    fontSize: 14,
-    fontWeight: "500",
-  },
-  descriptionText: {
-    fontSize: 13,
-    lineHeight: 18,
-    marginBottom: 20,
-  },
-  ratingOverviewRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    borderTopWidth: 1,
-    paddingTop: 16,
-    marginTop: 8,
-  },
-  ratingOverviewLeft: {
-    flexDirection: "column",
-    gap: 2,
-  },
-  ratingNumber: {
-    fontSize: 28,
-    fontWeight: "800",
-  },
-  starsRow: {
-    flexDirection: "row",
-    gap: 2,
-    marginVertical: 2,
-  },
-  reviewsCountText: {
-    fontSize: 12,
-  },
-  writeReviewTriggerBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    borderWidth: 1,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
-  },
-  writeReviewTriggerBtnText: {
-    fontSize: 12,
-    fontWeight: "600",
-  },
-  reviewFormContainer: {
-    marginHorizontal: 16,
-    padding: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    marginBottom: 20,
-  },
-  sectionTitleSmall: {
-    fontSize: 14,
-    fontWeight: "700",
-    marginBottom: 10,
-  },
-  ratingSelectorRow: {
-    flexDirection: "row",
-    gap: 8,
-    marginBottom: 16,
-  },
-  starTouch: {
-    padding: 4,
-  },
-  submitReviewBtn: {
-    justifyContent: "center",
-    alignItems: "center",
-    paddingVertical: 12,
-    borderRadius: 8,
-  },
-  submitReviewBtnText: {
-    color: "#FFF",
-    fontWeight: "700",
-    fontSize: 14,
-  },
-  sectionContainer: {
-    paddingHorizontal: 16,
-    marginTop: 20,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "800",
-    marginBottom: 14,
-    letterSpacing: -0.2,
-  },
-  emptyContainer: {
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 30,
-    gap: 8,
-  },
-  emptyText: {
-    fontSize: 13,
-  },
-  productsGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "flex-start",
-    gap: 12,
-  },
-  productCard: {
-    // Width is set inline from useWindowDimensions (see usage above).
-    borderRadius: 12,
-    overflow: "hidden",
-    position: "relative",
-  },
-  productImage: {
-    width: "100%",
-    height: 160,
-  },
-  discountBadge: {
-    position: "absolute",
-    top: 8,
-    left: 8,
-    backgroundColor: "#22C55E",
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  discountText: {
-    color: "#FFF",
-    fontSize: 9,
-    fontWeight: "700",
-  },
-  productDetails: {
-    padding: 10,
-  },
-  productName: {
-    fontSize: 13,
-    fontWeight: "600",
-    marginBottom: 4,
-  },
-  priceRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    marginBottom: 4,
-  },
-  productPrice: {
-    fontSize: 14,
-    fontWeight: "700",
-  },
-  productOriginalPrice: {
-    fontSize: 11,
-    textDecorationLine: "line-through",
-  },
-  productRatingRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 3,
-  },
-  productRatingVal: {
-    fontSize: 10,
-    fontWeight: "500",
-  },
-  reviewCard: {
-    paddingVertical: 14,
-    borderBottomWidth: 1,
-  },
-  reviewHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  reviewerAvatar: {
-    marginRight: 10,
-  },
-  avatarImage: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-  },
-  avatarFallback: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  avatarFallbackText: {
-    fontSize: 14,
-    fontWeight: "700",
-  },
-  reviewerInfo: {
-    flex: 1,
-  },
-  reviewerName: {
-    fontSize: 13,
-    fontWeight: "600",
-  },
-  reviewDate: {
-    fontSize: 10,
-    marginTop: 2,
-  },
-  reviewRatingBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 3,
-    backgroundColor: "#F59E0B",
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 10,
-  },
-  reviewRatingBadgeText: {
-    color: "#FFF",
-    fontSize: 11,
-    fontWeight: "700",
-  },
-  reviewComment: {
-    fontSize: 13,
-    lineHeight: 18,
-    paddingLeft: 46,
-  },
-  matchingMallsScroll: {
-    gap: 12,
-  },
-  matchingCard: {
-    width: 180,
-    borderRadius: 12,
-    overflow: "hidden",
-  },
-  matchingImage: {
-    width: "100%",
-    height: 110,
-  },
-  matchingDetails: {
-    padding: 10,
-  },
-  matchingName: {
-    fontSize: 13,
-    fontWeight: "700",
-  },
-  matchingLocation: {
-    fontSize: 11,
-    marginTop: 2,
-  },
-  matchingRatingRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    marginTop: 6,
-  },
-  matchingRatingVal: {
-    fontSize: 11,
-    fontWeight: "700",
-  },
-});
 
 export default MallDetailScreen;

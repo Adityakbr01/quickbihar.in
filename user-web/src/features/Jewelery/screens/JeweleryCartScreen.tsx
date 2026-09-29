@@ -12,7 +12,7 @@ import {
   StyleSheet,
   Text,
   View,
-} from "react-native";
+} from "@/components/primitives";
 import { useSafeAreaInsets } from "@/src/hooks/useSafeAreaInsets";
 
 import {

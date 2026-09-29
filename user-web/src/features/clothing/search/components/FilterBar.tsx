@@ -6,7 +6,7 @@ import {
   Pressable,
   Platform,
   View,
-} from "react-native";
+} from "@/components/primitives";
 import * as Haptics from "@/lib/haptics";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 

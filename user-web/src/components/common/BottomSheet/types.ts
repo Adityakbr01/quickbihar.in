@@ -1,5 +1,5 @@
 import type { ComponentType, ReactElement, ReactNode } from "react";
-import type { ColorValue, StyleProp, ViewStyle } from "react-native";
+import type { ColorValue, StyleProp, ViewStyle } from "@/components/primitives";
 import type {
   BackgroundBlur,
   InsetAdjustment,

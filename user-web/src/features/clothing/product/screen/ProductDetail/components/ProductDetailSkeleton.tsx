@@ -1,5 +1,5 @@
 import React from "react";
-import { View, TouchableOpacity, useWindowDimensions } from "react-native";
+import { View, TouchableOpacity, useWindowDimensions } from "@/components/primitives";
 import { ArrowLeft } from "lucide-react";
 import Skeleton from "@/src/components/common/Skeleton";
 import { styles as s } from "../styles";

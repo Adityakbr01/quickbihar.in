@@ -1,6 +1,6 @@
 import { Star } from "lucide-react";
 import React from "react";
-import { View } from "react-native";
+import { View } from "@/components/primitives";
 
 interface StarRatingProps {
   /** Numeric rating (0–5). Rounded to nearest integer for filled stars. */

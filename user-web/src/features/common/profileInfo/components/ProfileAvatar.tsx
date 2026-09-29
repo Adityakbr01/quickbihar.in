@@ -1,5 +1,5 @@
 import React from "react";
-import { View, TouchableOpacity, Image, ActivityIndicator } from "react-native";
+import { View, TouchableOpacity, Image, ActivityIndicator } from "@/components/primitives";
 import * as ImagePicker from "@/src/lib/photoPicker";
 import * as Haptics from "@/lib/haptics";
 import { AppIcon } from "@/src/components/common/AppIcon";

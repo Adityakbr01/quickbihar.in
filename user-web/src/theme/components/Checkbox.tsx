@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Pressable, StyleSheet, ViewStyle, View } from "react-native";
+import { Pressable, StyleSheet, ViewStyle, View } from "@/components/primitives";
 import { Square, SquareCheckBig } from "lucide-react";
 import { useTheme } from "../Provider/ThemeProvider";
 import ThemedText from "./ThemedText";

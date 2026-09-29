@@ -17,7 +17,7 @@ import {
   TextInput as RNTextInput,
   TouchableOpacity,
   View,
-} from "react-native";
+} from "@/components/primitives";
 import * as Haptics from "@/lib/haptics";
 import { sendPhoneOtpRequest, verifyPhoneOtpRequest } from "../api/address.api";
 import { createAddressStyles } from "../style/addressStyles";

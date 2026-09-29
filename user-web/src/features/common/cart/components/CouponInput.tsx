@@ -4,7 +4,7 @@ import {
   Text,
   TouchableOpacity,
   ActivityIndicator,
-} from "react-native";
+} from "@/components/primitives";
 import { Check, ChevronRight, Tags } from "lucide-react";
 import * as Haptics from "@/lib/haptics";
 import { useQuery } from "@tanstack/react-query";

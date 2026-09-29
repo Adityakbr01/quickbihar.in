@@ -3,7 +3,7 @@ import axiosInstance from "@/src/api/axiosInstance";
 import { socketClient } from "@/src/lib/socket";
 import { authStorage } from "@/src/lib/authStorage";
 import React, { useEffect } from "react";
-import { Platform } from "react-native";
+import { Platform } from "@/components/primitives";
 import * as Haptics from "@/lib/haptics";
 import { useCartStore } from "../features/common/cart/store/cartStore";
 import { useAuthStore } from "../features/common/auth/store/authStore";

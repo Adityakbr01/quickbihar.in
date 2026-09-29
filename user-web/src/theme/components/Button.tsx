@@ -6,7 +6,7 @@ import {
   ViewStyle,
   TextStyle,
   ActivityIndicator,
-} from "react-native";
+} from "@/components/primitives";
 import * as Haptics from "@/lib/haptics";
 import { useTheme } from "../Provider/ThemeProvider";
 import ThemedText from "./ThemedText";

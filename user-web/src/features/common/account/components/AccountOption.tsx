@@ -3,7 +3,7 @@ import { AppIcon } from "@/src/components/common/AppIcon";
 import { ChevronRight } from "lucide-react";
 import * as Haptics from "@/lib/haptics";
 import React, { useState } from "react";
-import { Text, TouchableOpacity, View } from "react-native";
+import { Text, TouchableOpacity, View } from "@/components/primitives";
 
 
 interface SubItem {

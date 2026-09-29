@@ -6,7 +6,7 @@ import {
   Text,
   TouchableOpacity,
   View,
-} from "react-native";
+} from "@/components/primitives";
 import { Check, CheckCheck, CircleCheck, Lock, Sparkles, Tag, Ticket } from "lucide-react";
 import * as Haptics from "@/lib/haptics";
 import { ICoupon } from "@/src/features/common/coupon/types/coupon.types";

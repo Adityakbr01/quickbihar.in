@@ -9,7 +9,7 @@ import {
   StyleSheet,
   Text,
   View,
-} from "react-native";
+} from "@/components/primitives";
 import { useSafeAreaInsets } from "@/src/hooks/useSafeAreaInsets";
 
 import { ProductCard } from "@/src/features/Jewelery/components/ProductCard";
@@ -116,10 +116,7 @@ export default function JeweleryWishlistScreen() {
         </View>
       ) : (
         <ScrollView showsVerticalScrollIndicator={false}
-          contentContainerStyle={[
-            styles.scrollContent,
-            Platform.OS === "web" && { paddingBottom: 34 },
-          ]}
+          contentContainerStyle={[styles.scrollContent]}
         >
           <View style={styles.productGrid}>
             {wishlistIds.map((id) => (

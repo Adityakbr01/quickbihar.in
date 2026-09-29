@@ -8,7 +8,7 @@ import {
   Dimensions,
   ScrollView,
   ActivityIndicator,
-} from "react-native";
+} from "@/components/primitives";
 import { ChevronDown, ChevronUp, Clock, MapPin, Phone, ShieldCheck, Star, User } from "lucide-react";
 import { formatDistance } from "../utils/geoUtils";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";

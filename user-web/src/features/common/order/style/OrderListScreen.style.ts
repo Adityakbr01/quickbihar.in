@@ -1,4 +1,4 @@
-import { StyleSheet } from "react-native";
+import { StyleSheet } from "@/components/primitives";
 import { Theme } from "@/src/theme/colors";
 
 // Same visual language as NotificationScreen: app bar with title + subtitle,

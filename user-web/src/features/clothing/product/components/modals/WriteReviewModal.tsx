@@ -6,7 +6,7 @@ import {
   Text,
   TouchableOpacity,
   View,
-} from "react-native";
+} from "@/components/primitives";
 import { Star } from "lucide-react";
 import { Theme } from "@/src/theme/Provider/ThemeProvider";
 import * as Haptics from "@/lib/haptics";

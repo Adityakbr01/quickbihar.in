@@ -4,7 +4,7 @@ import React, {
   useMemo,
   useRef,
 } from "react";
-import { View } from "react-native";
+import { View } from "@/components/primitives";
 import { TrueSheet, type TrueSheetMethods } from "./TrueSheetWeb";
 import type { SheetProps, SheetRef } from "./types";
 

@@ -6,7 +6,7 @@ import {
   View,
   Pressable,
   Platform,
-} from "react-native";
+} from "@/components/primitives";
 import LazyLottie from "@/src/components/common/LazyLottie";
 import * as Haptics from "@/lib/haptics";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";

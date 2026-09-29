@@ -1,9 +1,6 @@
 import React from "react";
-import { View, Text, TouchableOpacity } from "react-native";
-
 import { Gradient } from "@/src/components/common/Gradient";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
-import { createTopMallSectionStyles } from "../style/TopMallSection.style";
 import type { TopMall } from "../api/mall.api";
 import { AppIcon } from "@/src/components/common/AppIcon";
 import { MapPin, Star } from "lucide-react";
@@ -17,42 +14,58 @@ interface MallCardProps {
 export const MallCard = ({ mall }: MallCardProps) => {
   const navigate = useNavigate();
   const theme = useTheme() as any;
-  const styles = React.useMemo(() => createTopMallSectionStyles(theme), [theme]);
 
   const mallTitle = mall.name || "Shopping Mall";
   const mallLoc = mall.location || "Bihar";
 
   return (
-    <TouchableOpacity
-      activeOpacity={0.9}
-      style={styles.cardContainer}
-      accessibilityRole="link"
-      accessibilityLabel={`Visit ${mallTitle} in ${mallLoc}`}
-      {...({ title: `Explore ${mallTitle} stores and offers in ${mallLoc}` } as any)}
-      onPress={() => goTo(navigate, `/mall/${mall.id || mall._id}` as any)}
+    <div
+      role="link"
+      tabIndex={0}
+      aria-label={`Visit ${mallTitle} in ${mallLoc}`}
+      title={`Explore ${mallTitle} stores and offers in ${mallLoc}`}
+      onClick={() => goTo(navigate, `/mall/${mall.id || mall._id}` as any)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") goTo(navigate, `/mall/${mall.id || mall._id}` as any);
+      }}
+      className="relative h-[220px] w-full cursor-pointer overflow-hidden rounded-[20px] shadow-lg"
+      style={{ backgroundColor: theme.background }}
     >
-      <img src={mall.image} alt={`${mallTitle} - Shopping Mall in ${mallLoc}`} aria-label={`${mallTitle} Mall`} style={Object.assign({}, styles.cardImage, { objectFit: "cover" as const })} {...({ title: `${mallTitle} | QuickBihar Local Mall` } as any)} />
-      
+      <img
+        src={mall.image}
+        alt={`${mallTitle} - Shopping Mall in ${mallLoc}`}
+        title={`${mallTitle} | QuickBihar Local Mall`}
+        className="h-full w-full object-cover"
+      />
+
       {/* Dynamic Rating Badge */}
-      <View style={styles.ratingBadge}>
+      <div className="absolute top-3 right-3 flex flex-row items-center gap-1 rounded-xl bg-white/95 px-2 py-1">
         <Star size={12} color="#facc15" fill="#facc15" />
-        <Text style={styles.ratingText}>{mall.rating}</Text>
-      </View>
+        <span className="text-xs font-bold text-black">{mall.rating}</span>
+      </div>
 
       <Gradient
         colors={["transparent", "rgba(0,0,0,0.8)"]}
-        style={styles.gradientOverlay}
+        style={{
+          position: "absolute",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          height: "60%",
+          padding: 16,
+          justifyContent: "flex-end",
+        }}
       >
-        <Text style={styles.mallName} numberOfLines={1}>
+        <span className="mb-0.5 block truncate text-lg font-bold text-white">
           {mall.name}
-        </Text>
-        <View style={styles.locationContainer}>
+        </span>
+        <div className="flex flex-row items-center gap-1">
           <AppIcon icon={MapPin} size={12} color="rgba(255, 255, 255, 0.8)" />
-          <Text style={styles.locationText} numberOfLines={1}>
+          <span className="block truncate text-xs font-medium text-white/90">
             {mall.location}
-          </Text>
-        </View>
+          </span>
+        </div>
       </Gradient>
-    </TouchableOpacity>
+    </div>
   );
 };

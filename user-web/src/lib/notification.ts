@@ -1,4 +1,4 @@
-import { Platform } from "react-native";
+import { Platform } from "@/components/primitives";
 
 export async function registerForPushNotificationsAsync() {
   // Web has no native push — real Web Push needs a service worker + backend

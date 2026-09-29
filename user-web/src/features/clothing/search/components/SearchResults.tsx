@@ -8,7 +8,7 @@ import {
   Text,
   useWindowDimensions,
   View,
-} from "react-native";
+} from "@/components/primitives";
 import { Shirt, Star } from "lucide-react";
 
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";

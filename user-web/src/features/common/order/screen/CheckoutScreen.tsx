@@ -9,7 +9,7 @@ import {
   Text,
   TouchableOpacity,
   View,
-} from "react-native";
+} from "@/components/primitives";
 import { getAddressesRequest, updateAddressRequest } from "../../address/api/address.api";
 import PhoneOtpSheet from "../../address/components/PhoneOtpSheet";
 import { useCartStore } from "../../cart/store/cartStore";

@@ -13,7 +13,7 @@ import {
   StyleSheet,
   Text,
   View,
-} from "react-native";
+} from "@/components/primitives";
 import { useSafeAreaInsets } from "@/src/hooks/useSafeAreaInsets";
 
 import { ProductCard } from "@/src/features/Jewelery/components/ProductCard";
@@ -80,7 +80,7 @@ export default function JeweleryCollectionsScreen() {
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false}
-        contentContainerStyle={[Platform.OS === "web" && { paddingBottom: 34 }]}
+        
       >
         {/* Collections hero grid */}
         <View style={[styles.section, { backgroundColor: colors.pearl }]}>

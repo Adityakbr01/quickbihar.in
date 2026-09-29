@@ -16,7 +16,7 @@ import {
   useColorScheme,
   useWindowDimensions,
   View,
-} from "react-native";
+} from "@/components/primitives";
 import { useQueryClient } from "@tanstack/react-query";
 
 import { ModuleSwitcherButton } from "@/src/components/common/ModuleSwitcherButton";

@@ -1,24 +1,24 @@
 import React, { useState } from "react";
-import { Platform, StyleSheet, View, useWindowDimensions } from "react-native";
+import { useWindowWidth, BREAKPOINTS, DESKTOP } from "@/src/utils/responsive";
 import Carousel from "@/src/components/common/EmblaCarousel";
 
 import { useBanners } from "@/src/features/common/banner/hooks/useBanners";
 import { Banner } from "@/src/features/common/banner/types/banner.types";
 import DashIndicator from "./carousel/DashIndicator";
 import CarouselSlide from "./carousel/CarouselSlide";
-import Skeleton from "@/src/components/common/Skeleton";
-import { BREAKPOINTS, DESKTOP } from "@/src/utils/responsive";
+import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 
 const MAX_WIDTH = 800;
 
 const TopHomeCarousel = ({ placement = "home_top" }: { placement?: string } = {}) => {
-  const { width: windowWidth } = useWindowDimensions();
+  const windowWidth = useWindowWidth();
+  const theme = useTheme() as any;
   const [progress, setProgress] = useState(0);
 
   const { data: banners, isLoading } = useBanners(placement);
 
-  const isDesktop = Platform.OS === "web" && windowWidth >= BREAKPOINTS.desktopMin;
-  const isTablet = Platform.OS === "web" && windowWidth >= BREAKPOINTS.tabletMin;
+  const isDesktop = windowWidth >= BREAKPOINTS.desktopMin;
+  const isTablet = windowWidth >= BREAKPOINTS.tabletMin;
 
   // Mobile math: 16px side inset so the banner never touches the screen
   // edge (rounded corners stay visible) and rotation/foldables update live.
@@ -38,20 +38,20 @@ const TopHomeCarousel = ({ placement = "home_top" }: { placement?: string } = {}
 
   if (isLoading) {
     return (
-      <View
-        style={[
-          styles.container,
-          isDesktop || isTablet
-            ? { width: "100%", alignSelf: "center", paddingHorizontal: 0 }
-            : { width: "100%", alignSelf: "center", paddingHorizontal: sideInset },
-        ]}
+      <div
+        className="w-full items-center self-center"
+        style={{ paddingLeft: sideInset, paddingRight: sideInset }}
       >
-        <Skeleton
-          width={carouselWidth}
-          height={carouselHeight}
-          borderRadius={isDesktop ? 22 : 16}
+        <div
+          className="animate-pulse"
+          style={{
+            width: carouselWidth,
+            height: carouselHeight,
+            borderRadius: isDesktop ? 22 : 16,
+            backgroundColor: theme.border,
+          }}
         />
-      </View>
+      </div>
     );
   }
 
@@ -60,26 +60,18 @@ const TopHomeCarousel = ({ placement = "home_top" }: { placement?: string } = {}
   }
 
   return (
-    <View
-      style={[
-        styles.container,
-        isDesktop || isTablet
-          ? { width: "100%", alignSelf: "center", paddingHorizontal: 0 }
-          : { width: "100%", alignSelf: "center", paddingHorizontal: sideInset },
-      ]}
+    <div
+      className="w-full items-center self-center"
+      style={{ paddingLeft: sideInset, paddingRight: sideInset }}
     >
-      <View
+      <div
+        className="overflow-hidden"
         style={
           isDesktop
             ? {
                 width: carouselWidth,
                 borderRadius: 22,
-                overflow: "hidden",
-                shadowColor: "#000",
-                shadowOffset: { width: 0, height: 12 },
-                shadowOpacity: 0.16,
-                shadowRadius: 28,
-                elevation: 8,
+                boxShadow: "0 12px 28px rgba(0,0,0,0.16)",
               }
             : { width: carouselWidth }
         }
@@ -109,7 +101,7 @@ const TopHomeCarousel = ({ placement = "home_top" }: { placement?: string } = {}
         />
 
         {/* ── Dash indicators ── */}
-        <View style={styles.pagination}>
+        <div className="mt-2.5 flex flex-row items-center justify-center gap-1">
           {banners.map((_: Banner, i: number) => (
             <DashIndicator
               key={i}
@@ -118,23 +110,10 @@ const TopHomeCarousel = ({ placement = "home_top" }: { placement?: string } = {}
               dataLength={banners.length}
             />
           ))}
-        </View>
-      </View>
-    </View>
+        </div>
+      </div>
+    </div>
   );
 };
 
 export default TopHomeCarousel;
-
-const styles = StyleSheet.create({
-  container: {
-    alignItems: "center",
-  },
-  pagination: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 4,
-    marginTop: 10,
-  },
-});

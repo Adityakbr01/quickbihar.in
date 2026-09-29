@@ -1,11 +1,8 @@
 import React from "react";
-import { View, Text, TouchableOpacity } from "react-native";
-
 import { ArrowRight, CircleX, ShoppingBag, Star } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { goTo } from "@/src/utils/navigation";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
-import { createProductCardStyles } from "../style/ProductCard.style";
 import { IProduct } from "@/src/features/clothing/product/types/product.types";
 import { Product as MockProduct } from "../lib/mockData";
 import { useWishlistStore } from "@/src/features/common/wishlist/store/wishlistStore";
@@ -14,6 +11,7 @@ import * as Haptics from "@/lib/haptics";
 import WishlistHeart from "@/src/components/common/WishlistHeart";
 import { VariantSelectorBottomSheet } from "../../product/components/modals/VariantSelectorBottomSheet";
 import { formatPrice } from "@/src/utils/formatPrice";
+import { cn } from "@/src/lib/utils";
 
 interface ProductCardProps {
   item: IProduct | MockProduct;
@@ -23,7 +21,6 @@ interface ProductCardProps {
 
 export const ProductCard = ({ item, desktopWidth }: ProductCardProps) => {
   const theme = useTheme() as any;
-  const styles = React.useMemo(() => createProductCardStyles(theme), [theme]);
   const navigate = useNavigate();
   const addItem = useCartStore((state) => state.addItem);
   const id = (item as IProduct)._id || 'mock';
@@ -102,113 +99,132 @@ export const ProductCard = ({ item, desktopWidth }: ProductCardProps) => {
     reviews: Number(p.ratings?.count) || 0,
   };
 
+  const outOfStock = (item as IProduct).totalStock <= 0;
+
   return (
-    <TouchableOpacity accessibilityRole="link"
-      accessibilityLabel={productData.title}
-      {...({ title: `View ${productData.title} on QuickBihar` } as any)}
-      onPress={() => {
+    <div
+      role="link"
+      tabIndex={0}
+      aria-label={productData.title}
+      title={`View ${productData.title} on QuickBihar`}
+      onClick={() => {
         // Canonical slug URL for navigation (wishlist/cart keys above stay id-based).
         goTo(navigate, { pathname: "/product/[id]", params: { id: (item as IProduct).slug || id } });
       }}
-      style={[
-        styles.card,
-        {
-          backgroundColor: theme.background,
-          borderColor: theme.border,
-          ...(desktopWidth ? { width: "100%" as any } : null),
-        },
-      ]}
-      activeOpacity={0.85}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          goTo(navigate, { pathname: "/product/[id]", params: { id: (item as IProduct).slug || id } });
+        }
+      }}
+      className="w-full cursor-pointer overflow-hidden rounded-2xl border"
+      style={{
+        backgroundColor: theme.background,
+        borderColor: theme.border,
+        ...(desktopWidth ? { width: "100%" } : null),
+      }}
     >
       {/* Image & Overlays */}
-      <View style={styles.imageContainer}>
-        <img src={productData.image} alt={`${productData.title} - Shop Online in Bihar`} aria-label={productData.title} style={Object.assign({}, styles.image, { objectFit: "cover" as const })} {...({ title: `${productData.title} | QuickBihar` } as any)} />
+      <div className="relative h-[200px] w-full">
+        <img
+          src={productData.image}
+          alt={`${productData.title} - Shop Online in Bihar`}
+          title={`${productData.title} | QuickBihar`}
+          className="h-full w-full object-cover"
+        />
 
         {productData.discount ? (
-          <View style={styles.discountBadge}>
-            <Text style={styles.discountTextAbsolute}>{productData.discount}</Text>
-          </View>
+          <div className="absolute top-2 left-2 z-10 rounded-md bg-red-500 px-1.5 py-0.5">
+            <span className="text-[10px] font-extrabold tracking-wide text-white">{productData.discount}</span>
+          </div>
         ) : null}
 
         {/* Favorite absolute button */}
-        <WishlistHeart isWishlisted={isWishlisted}
+        <WishlistHeart
+          isWishlisted={isWishlisted}
           onToggle={() => toggleWishlist(id, item)}
           size={16}
-          style={styles.favoriteBtn}
+          style={{
+            position: 'absolute',
+            top: 8,
+            right: 8,
+            backgroundColor: 'rgba(255,255,255,0.9)',
+            width: 28,
+            height: 28,
+            borderRadius: 14,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
         />
 
         {productData.reviews > 0 && productData.rating > 0 ? (
-          <View style={styles.ratingContainer}>
+          <div className="absolute bottom-2.5 left-2 z-[5] flex flex-row items-center gap-1 rounded-lg border border-white/20 bg-slate-900/90 px-2 py-1 shadow">
             <Star size={11} color="#f59e0b" fill="#f59e0b" />
-            <Text style={styles.rating}>
+            <span className="text-[11px] font-bold text-white">
               {productData.rating.toFixed(1)}{" "}
-              <Text style={styles.reviews}>
+              <span className="text-[10px] font-medium text-white/75">
                 | {productData.reviews}
-              </Text>
-            </Text>
-          </View>
+              </span>
+            </span>
+          </div>
         ) : null}
 
         {/* Add to Cart absolute button (like DealProductCard) */}
-        <TouchableOpacity style={[
-            styles.addButton,
-            (item as IProduct).totalStock <= 0 && { opacity: 0.5, backgroundColor: theme.secondaryText },
-            isInCart && { backgroundColor: theme.primary }
-          ]}
-          activeOpacity={0.8}
-          disabled={(item as IProduct).totalStock <= 0}
-          onPress={(e) => {
+        <button
+          type="button"
+          disabled={outOfStock}
+          onClick={(e) => {
             e.stopPropagation();
             handleAddToCart();
           }}
+          className="absolute right-2.5 bottom-2.5 flex flex-row items-center gap-1.5 rounded-xl bg-slate-950 px-3 py-2 shadow"
+          style={{
+            opacity: outOfStock ? 0.5 : 1,
+            ...(outOfStock ? { backgroundColor: theme.secondaryText } : null),
+            ...(isInCart ? { backgroundColor: theme.primary } : null),
+          }}
         >
-          {(item as IProduct).totalStock <= 0 ? (
+          {outOfStock ? (
             <CircleX size={14} color="#fff" />
           ) : isInCart ? (
             <ArrowRight size={14} color="#fff" />
           ) : (
             <ShoppingBag size={14} color="#fff" />
           )}
-          <Text style={styles.addText}>
-            {(item as IProduct).totalStock <= 0
-              ? "Out of Stock"
-              : isInCart
-              ? "Go to Cart"
-              : "Add"}
-          </Text>
-        </TouchableOpacity>
-      </View>
+          <span className="text-xs font-bold text-white">
+            {outOfStock ? "Out of Stock" : isInCart ? "Go to Cart" : "Add"}
+          </span>
+        </button>
+      </div>
 
       {/* Product Info */}
-      <View style={styles.infoContainer}>
-
-
-        <Text style={[styles.name, { color: theme.text }]}
-          numberOfLines={2}
+      <div className="p-3">
+        <p
+          className={cn("mb-1 line-clamp-2 h-9 text-[13px] leading-[18px] font-semibold")}
+          style={{ color: theme.text }}
         >
           {productData.name}
-        </Text>
+        </p>
 
-        <View style={styles.priceContainer}>
-          <Text style={[styles.price, { color: theme.text }]}>
+        <div className="mb-2 flex flex-row flex-wrap items-center gap-1.5">
+          <span className="text-base font-extrabold" style={{ color: theme.text }}>
             {productData.price}
-          </Text>
+          </span>
           {productData.hasDiscount && productData.originalPrice ? (
-            <Text style={[styles.originalPrice, { color: theme.secondaryText }]}>
+            <span className="text-xs line-through" style={{ color: theme.secondaryText }}>
               {productData.originalPrice}
-            </Text>
+            </span>
           ) : null}
-        </View>
-      </View>
+        </div>
+      </div>
 
       {isSheetVisible && (
-        <VariantSelectorBottomSheet visible={isSheetVisible}
+        <VariantSelectorBottomSheet
+          visible={isSheetVisible}
           onClose={() => setIsSheetVisible(false)}
           product={item}
           theme={theme}
         />
       )}
-    </TouchableOpacity>
+    </div>
   );
 };
-

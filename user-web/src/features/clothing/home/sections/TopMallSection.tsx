@@ -1,20 +1,10 @@
 import React, { useRef } from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  useWindowDimensions,
-  StyleSheet,
-  Platform,
-  ScrollView,
-} from "react-native";
-import { BREAKPOINTS, DESKTOP } from "@/src/utils/responsive";
+import { BREAKPOINTS, DESKTOP, useWindowWidth } from "@/src/utils/responsive";
 import LazyLottie from "@/src/components/common/LazyLottie";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { goTo } from "@/src/utils/navigation";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
-import { createTopMallSectionStyles } from "../style/TopMallSection.style";
 import { MallCardSkeleton } from "../components/MallCardSkeleton";
 import { MallCard } from "../components/MallCard";
 import { getTopMallsRequest } from "../api/mall.api";
@@ -23,20 +13,15 @@ import fireLottie from "@/assets/lottie/Fire.json";
 
 const TopMallSection = () => {
   const theme = useTheme() as any;
-  const { width: windowWidth } = useWindowDimensions();
-  const scrollRef = useRef<ScrollView>(null);
-  const styles = React.useMemo(
-    () => createTopMallSectionStyles(theme),
-    [theme],
-  );
+  const windowWidth = useWindowWidth();
+  const scrollRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
-  const isDesktop = Platform.OS === "web" && windowWidth >= BREAKPOINTS.desktopMin;
-  const isWebMobile = Platform.OS === "web" && windowWidth > 600;
+  const isDesktop = windowWidth >= BREAKPOINTS.desktopMin;
+  const isWebMobile = windowWidth > 600;
   const gap = isDesktop ? 20 : 16;
   // Mobile widths stay 260 but shrink on very small phones / foldables
-  // so the card + 16px list padding never overflow. Native tablets in
-  // portrait keep the mobile card (desktop grid is web-only).
+  // so the card + 16px list padding never overflow.
   const mobileCardWidth = Math.min(260, Math.max(windowWidth - 64, 200));
   const webMobileCardWidth = Math.min(300, Math.max(windowWidth - 64, 200));
   // Mobile widths byte-identical. Desktop uses a 3-col grid cell.
@@ -50,52 +35,34 @@ const TopMallSection = () => {
 
   if (isLoading) {
     return (
-      <View style={styles.container}>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{
-            paddingHorizontal: 16,
-            paddingBottom: 8,
-            gap,
-          }}
-        >
+      <section className="mt-6 py-5">
+        <div className="flex flex-row gap-4 overflow-hidden px-4 pb-2">
           {[1, 2, 3].map((key) => (
-            <View key={key} style={{ width: cardWidth }}>
+            <div key={key} className="shrink-0" style={{ width: cardWidth }}>
               <MallCardSkeleton />
-            </View>
+            </div>
           ))}
-        </ScrollView>
-      </View>
+        </div>
+      </section>
     );
   }
 
   const malls = topMalls || [];
   // Never promise "Top 10" with fewer than 10 malls — dynamic, honest heading. (todo fix that in future)
-  const heading =
-    malls.length >= 10
-      ? "Top 10 Malls"
-      : malls.length > 1
-        ? "Top 10 Malls"
-        : "Top 10 Malls";
+  const heading = "Top 10 Malls";
 
   if (!malls.length) {
     return null;
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <View style={localStyles.titleContainer}>
-          <Text
-            accessibilityRole="header"
-            aria-level={2}
-            {...({ role: "heading" } as any)}
-            style={styles.title}
-          >
+    <section className="mt-6 py-5">
+      <div className="mb-6 flex flex-row items-center justify-between px-5">
+        <div className="flex flex-row items-center">
+          <h2 className="text-[22px] font-extrabold tracking-tight" style={{ color: theme.text }}>
             {heading}{" "}
-          </Text>
-          <View style={localStyles.lottieWrapper}>
+          </h2>
+          <div className="flex h-8 w-8 items-center justify-center overflow-hidden">
             <LazyLottie
               source={fireLottie}
               autoPlay
@@ -103,83 +70,53 @@ const TopMallSection = () => {
               resizeMode="contain"
               // NOTE: fire keeps its original colors in every theme —
               // no invert filter here (it would turn the flame blue).
-              style={[localStyles.fireLottie]}
+              style={{ width: "100%", height: "100%" }}
             />
-          </View>
-        </View>
-        <TouchableOpacity
-          style={styles.seeAllBtn}
-          accessibilityRole="link"
-          accessibilityLabel="Explore all malls"
-          {...({ title: "Explore top shopping malls and stores in Bihar" } as any)}
-          onPress={() => goTo(navigate, "/mall" as any)}
+          </div>
+        </div>
+        <button
+          type="button"
+          aria-label="Explore all malls"
+          title="Explore top shopping malls and stores in Bihar"
+          onClick={() => goTo(navigate, "/mall" as any)}
+          className="cursor-pointer p-1 text-sm font-semibold"
+          style={{ color: theme.iconColor }}
         >
-          <Text style={styles.seeAll}>Explore All</Text>
-        </TouchableOpacity>
-      </View>
+          Explore All
+        </button>
+      </div>
 
       {isDesktop ? (
-        <View
-          style={{
-            flexDirection: "row",
-            flexWrap: "wrap",
-            paddingHorizontal: 0,
-            gap,
-            rowGap: gap,
-          }}
-        >
+        <div className="flex flex-row flex-wrap gap-5" style={{ paddingLeft: 0, paddingRight: 0, rowGap: gap }}>
           {malls.slice(0, 6).map((item: any) => (
-            <View key={item.id} style={{ width: cardWidth }}>
+            <div key={item.id} className="shrink-0" style={{ width: cardWidth }}>
               <MallCard mall={item} />
-            </View>
+            </div>
           ))}
-        </View>
+        </div>
       ) : (
-      <ScrollView
-        ref={scrollRef}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{
-          paddingHorizontal: 16,
-          paddingBottom: 8,
-        }}
-        snapToInterval={cardWidth + gap}
-        snapToAlignment="start"
-        decelerationRate="fast"
-      >
-        {malls.map((item: any, index: number) => (
-          <View
-            key={item.id}
-            style={{
-              width: cardWidth,
-              marginRight: index === malls.length - 1 ? 0 : gap,
-            }}
-          >
-            <MallCard mall={item} />
-          </View>
-        ))}
-      </ScrollView>
+        <div
+          ref={scrollRef}
+          className="flex flex-row overflow-x-auto px-4 pb-2"
+          style={{ scrollbarWidth: "none", scrollSnapType: "x mandatory" }}
+        >
+          {malls.map((item: any, index: number) => (
+            <div
+              key={item.id}
+              className="shrink-0"
+              style={{
+                width: cardWidth,
+                marginRight: index === malls.length - 1 ? 0 : gap,
+                scrollSnapAlign: "start",
+              }}
+            >
+              <MallCard mall={item} />
+            </div>
+          ))}
+        </div>
       )}
-    </View>
+    </section>
   );
 };
-
-const localStyles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  lottieWrapper: {
-    width: 32,
-    height: 32,
-    overflow: "hidden",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  fireLottie: {
-    width: "100%",
-    height: "100%",
-  },
-});
 
 export default TopMallSection;

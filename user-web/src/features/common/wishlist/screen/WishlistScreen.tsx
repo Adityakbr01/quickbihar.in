@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   ScrollView,
   RefreshControl,
-} from "react-native";
+} from "@/components/primitives";
 import { ChevronLeft, Heart, X } from "lucide-react";
 import * as Haptics from "@/lib/haptics";
 import { useNavigate } from "react-router-dom";
@@ -17,7 +17,6 @@ import { useWishlist } from "../hooks/useWishlist";
 import { useWishlistStore } from "../store/wishlistStore";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
 import { WishlistCardSkeleton } from "../components/WishlistCardSkeleton";
-import SafeViewWrapper from "@/src/provider/SafeViewWrapper";
 
 const WishlistScreen = () => {
   const theme = useTheme() as any;
@@ -58,7 +57,7 @@ const WishlistScreen = () => {
   );
 
   return (
-    <SafeViewWrapper>
+    <>
       <View style={styles.container}>
         {/* Top app bar (same language as Notifications) */}
         <View style={styles.appBar}>
@@ -201,7 +200,7 @@ const WishlistScreen = () => {
           </ScrollView>
         )}
       </View>
-    </SafeViewWrapper>
+    </>
   );
 };
 

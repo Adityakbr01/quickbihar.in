@@ -1,5 +1,4 @@
 import React from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useNavigate } from "react-router-dom";
 import { goTo } from "@/src/utils/navigation";
 import { ArrowRight, MapPin, Zap } from "lucide-react";
@@ -23,223 +22,100 @@ export const HomeDeliveryLocations: React.FC = () => {
   ];
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.background, borderColor: theme.border }]}>
+    <section
+      className="mx-3 my-4 rounded-2xl border p-4"
+      style={{ backgroundColor: theme.background, borderColor: theme.border }}
+    >
       {/* Header */}
-      <View style={styles.headerRow}>
-        <View style={styles.titleWrap}>
-          <View style={styles.badgeRow}>
+      <div className="mb-3.5 flex flex-wrap items-start justify-between gap-2.5">
+        <div className="min-w-[200px] flex-1">
+          <div className="mb-1 flex flex-row items-center gap-1">
             <Zap size={13} color="#4F46E5" />
-            <Text style={styles.badgeText}>INSTANT DELIVERY</Text>
-          </View>
-          <Text style={[styles.title, { color: theme.text }]}>
+            <span className="text-[10px] font-extrabold tracking-[0.8px] text-indigo-600">INSTANT DELIVERY</span>
+          </div>
+          <h2 className="text-[17px] font-extrabold tracking-tight" style={{ color: theme.text }}>
             Fast Delivery in Buxar & Bihar
-          </Text>
-          <Text style={[styles.subtitle, { color: theme.secondaryText }]}>
+          </h2>
+          <p className="mt-0.5 text-xs leading-4" style={{ color: theme.secondaryText }}>
             Order fashion & clothing online with doorstep delivery across 26+ PIN codes
-          </Text>
-        </View>
+          </p>
+        </div>
 
-        <TouchableOpacity style={styles.districtBtn}
-          accessibilityRole="link"
-          accessibilityLabel="Explore Buxar District Delivery Hub"
-          {...({ href: "/locations/bihar/buxar", title: "Explore Buxar District Delivery Hub" } as any)}
-          onPress={() => goTo(navigate, "/locations/bihar/buxar" as any)}
+        <button
+          type="button"
+          aria-label="Explore Buxar District Delivery Hub"
+          title="Explore Buxar District Delivery Hub"
+          onClick={() => goTo(navigate, "/locations/bihar/buxar" as any)}
+          className="flex cursor-pointer flex-row items-center gap-1 self-start rounded-full bg-indigo-50 px-3 py-1.5"
         >
-          <Text style={styles.districtBtnText}>All Buxar Hubs</Text>
+          <span className="text-xs font-bold text-indigo-600">All Buxar Hubs</span>
           <ArrowRight size={14} color="#4F46E5" />
-        </TouchableOpacity>
-      </View>
+        </button>
+      </div>
 
       {/* Town Grid Chips */}
-      <View style={styles.chipsGrid}>
+      <div className="flex flex-row flex-wrap gap-2">
         {keyLocations.map((loc) => {
           const path = `/locations/bihar/buxar/${loc.slug}` as const;
           return (
-            <TouchableOpacity key={loc.slug}
-              style={[
-                styles.locationCard,
-                {
-                  backgroundColor: theme.secondaryBackground || "#F8FAFC",
-                  borderColor: theme.border || "#E2E8F0",
-                },
-              ]}
-              accessibilityRole="link"
-              accessibilityLabel={`Shop clothing & fashion in ${loc.name}, Buxar PIN ${loc.pin}`}
-              {...({ href: path, title: `Fashion store in ${loc.name}` } as any)}
-              onPress={() => goTo(navigate, path as any)}
+            <button
+              key={loc.slug}
+              type="button"
+              aria-label={`Shop clothing & fashion in ${loc.name}, Buxar PIN ${loc.pin}`}
+              title={`Fashion store in ${loc.name}`}
+              onClick={() => goTo(navigate, path as any)}
+              className="w-[48%] cursor-pointer rounded-xl border p-2.5 text-left"
+              style={{
+                backgroundColor: theme.secondaryBackground || "#F8FAFC",
+                borderColor: theme.border || "#E2E8F0",
+              }}
             >
-              <View style={styles.cardTop}>
+              <span className="mb-1 flex flex-row items-center gap-1.5">
                 <MapPin size={14} color="#4F46E5" />
-                <Text style={[styles.cardTitle, { color: theme.text }]} numberOfLines={1}>
+                <span className="block truncate text-[13px] font-bold" style={{ color: theme.text }}>
                   {loc.name}
-                </Text>
-              </View>
-              <View style={styles.cardBottom}>
-                <Text style={[styles.pinText, { color: theme.secondaryText }]}>
+                </span>
+              </span>
+              <span className="mt-0.5 flex flex-row items-center justify-between">
+                <span className="text-[11px] font-medium" style={{ color: theme.secondaryText }}>
                   PIN {loc.pin}
-                </Text>
-                <Text style={styles.timingBadge}>{loc.timing}</Text>
-              </View>
-            </TouchableOpacity>
+                </span>
+                <span className="rounded bg-green-100 px-1.5 py-px text-[10px] font-bold text-green-700">{loc.timing}</span>
+              </span>
+            </button>
           );
         })}
-      </View>
+      </div>
 
       {/* SEO Natural Text & All 11 Blocks Links */}
-      <View style={[styles.footerSeoWrap, { borderTopColor: theme.border || "#F1F5F9" }]}>
-        <Text style={[styles.seoPara, { color: theme.secondaryText }]}>
+      <div className="mt-3.5 border-t pt-2.5" style={{ borderTopColor: theme.border || "#F1F5F9" }}>
+        <p className="mb-1 text-[11px] leading-[18px]" style={{ color: theme.secondaryText }}>
           Serving Buxar Sadar & Dumraon Subdivisions:{" "}
-        </Text>
-        <View style={styles.linksRow}>
+        </p>
+        <div className="flex flex-row flex-wrap items-center gap-1">
           {BUXAR_BLOCKS.map((b: BuxarLocation, idx: number) => {
             const blockPath = `/locations/bihar/buxar/${b.slug}` as const;
             return (
               <React.Fragment key={b.slug}>
-                <TouchableOpacity accessibilityRole="link"
-                  {...({ href: blockPath, title: `Delivery in ${b.name}` } as any)}
-                  onPress={() => goTo(navigate, blockPath as any)}
-                  style={styles.linkTouch}
+                <button
+                  type="button"
+                  aria-label={`Delivery in ${b.name}`}
+                  title={`Delivery in ${b.name}`}
+                  onClick={() => goTo(navigate, blockPath as any)}
+                  className="cursor-pointer py-0.5"
                 >
-                  <Text style={styles.inlineLinkText}>{b.name}</Text>
-                </TouchableOpacity>
+                  <span className="text-[11px] font-semibold text-indigo-600 underline">{b.name}</span>
+                </button>
                 {idx < BUXAR_BLOCKS.length - 1 && (
-                  <Text style={[styles.bullet, { color: theme.secondaryText }]}>•</Text>
+                  <span className="mx-0.5 text-[11px]" style={{ color: theme.secondaryText }}>•</span>
                 )}
               </React.Fragment>
             );
           })}
-        </View>
-      </View>
-    </View>
+        </div>
+      </div>
+    </section>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    marginHorizontal: 12,
-    marginVertical: 16,
-    padding: 16,
-    borderRadius: 16,
-    borderWidth: 1,
-  },
-  headerRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    marginBottom: 14,
-    gap: 10,
-    flexWrap: "wrap",
-  },
-  titleWrap: {
-    flex: 1,
-    minWidth: 200,
-  },
-  badgeRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    marginBottom: 4,
-  },
-  badgeText: {
-    fontSize: 10,
-    fontWeight: "800",
-    color: "#4F46E5",
-    letterSpacing: 0.8,
-  },
-  title: {
-    fontSize: 17,
-    fontWeight: "800",
-    letterSpacing: -0.3,
-  },
-  subtitle: {
-    fontSize: 12,
-    marginTop: 2,
-    lineHeight: 16,
-  },
-  districtBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-    borderRadius: 20,
-    alignSelf: "flex-start",
-    backgroundColor: "#EEF2FF",
-  },
-  districtBtnText: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: "#4F46E5",
-  },
-  chipsGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-  },
-  locationCard: {
-    width: "48%",
-    padding: 10,
-    borderRadius: 12,
-    borderWidth: 1,
-  },
-  cardTop: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 5,
-    marginBottom: 4,
-  },
-  cardTitle: {
-    fontSize: 13,
-    fontWeight: "700",
-  },
-  cardBottom: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginTop: 2,
-  },
-  pinText: {
-    fontSize: 11,
-    fontWeight: "500",
-  },
-  timingBadge: {
-    fontSize: 10,
-    fontWeight: "700",
-    color: "#16A34A",
-    backgroundColor: "#DCFCE7",
-    paddingHorizontal: 5,
-    paddingVertical: 1,
-    borderRadius: 4,
-  },
-  footerSeoWrap: {
-    marginTop: 14,
-    paddingTop: 10,
-    borderTopWidth: 1,
-  },
-  seoPara: {
-    fontSize: 11,
-    lineHeight: 18,
-    marginBottom: 4,
-  },
-  linksRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    alignItems: "center",
-    gap: 4,
-  },
-  linkTouch: {
-    paddingVertical: 2,
-  },
-  inlineLinkText: {
-    fontSize: 11,
-    fontWeight: "600",
-    color: "#4F46E5",
-    textDecorationLine: "underline",
-  },
-  bullet: {
-    fontSize: 11,
-    marginHorizontal: 2,
-  },
-});
 
 export default HomeDeliveryLocations;

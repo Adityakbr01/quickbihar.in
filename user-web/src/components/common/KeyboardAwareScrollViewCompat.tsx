@@ -1,5 +1,5 @@
 import React from "react";
-import { ScrollView, ScrollViewProps } from "react-native";
+import { ScrollView, ScrollViewProps } from "@/components/primitives";
 
 /**
  * A ScrollView that defaults `keyboardShouldPersistTaps` to "handled".

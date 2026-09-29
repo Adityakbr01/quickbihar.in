@@ -1,5 +1,4 @@
 import React from "react";
-import { Pressable, StyleSheet, View } from "react-native";
 
 interface AnimatedBurgerProps {
   isOpen: boolean;
@@ -21,65 +20,50 @@ const AnimatedBurger: React.FC<AnimatedBurgerProps> = ({
   const barTransition = "transform 0.3s ease-out, opacity 0.2s ease-out";
 
   return (
-    <Pressable
-      onPress={onPress}
-      style={[styles.container, { width: size + 12, height: size + 12 }]}
-      hitSlop={10}
+    <button
+      type="button"
+      onClick={onPress}
+      aria-label={isOpen ? "Close menu" : "Open menu"}
+      className="flex items-center justify-center"
+      style={{ width: size + 12, height: size + 12 }}
     >
-      <View
-        style={[
-          styles.bar,
-          { width: size, height: barHeight, backgroundColor: color },
-          {
-            transform: [
-              { translateY: isOpen ? shift : 0 },
-              { rotateZ: isOpen ? "45deg" : "0deg" },
-            ],
-            transition: barTransition,
-          },
-        ]}
-      />
-      <View
-        style={[
-          styles.bar,
-          {
+      <span className="flex flex-col items-center">
+        <span
+          className="rounded-sm"
+          style={{
             width: size,
             height: barHeight,
             backgroundColor: color,
-            marginVertical: gap,
-          },
-          {
+            transform: `translateY(${isOpen ? shift : 0}px) rotate(${isOpen ? 45 : 0}deg)`,
+            transition: barTransition,
+          }}
+        />
+        <span
+          className="rounded-sm"
+          style={{
+            width: size,
+            height: barHeight,
+            backgroundColor: color,
+            marginTop: gap,
+            marginBottom: gap,
             opacity: isOpen ? 0 : 1,
-            transform: [{ scaleX: isOpen ? 0 : 1 }],
+            transform: `scaleX(${isOpen ? 0 : 1})`,
             transition: barTransition,
-          },
-        ]}
-      />
-      <View
-        style={[
-          styles.bar,
-          { width: size, height: barHeight, backgroundColor: color },
-          {
-            transform: [
-              { translateY: isOpen ? -shift : 0 },
-              { rotateZ: isOpen ? "-45deg" : "0deg" },
-            ],
+          }}
+        />
+        <span
+          className="rounded-sm"
+          style={{
+            width: size,
+            height: barHeight,
+            backgroundColor: color,
+            transform: `translateY(${isOpen ? -shift : 0}px) rotate(${isOpen ? -45 : 0}deg)`,
             transition: barTransition,
-          },
-        ]}
-      />
-    </Pressable>
+          }}
+        />
+      </span>
+    </button>
   );
 };
 
 export default AnimatedBurger;
-
-const styles = StyleSheet.create({
-  container: {
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  bar: {
-    borderRadius: 2,
-  },
-});

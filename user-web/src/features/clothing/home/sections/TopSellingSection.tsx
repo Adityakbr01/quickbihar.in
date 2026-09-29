@@ -1,19 +1,9 @@
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import LazyLottie from "@/src/components/common/LazyLottie";
 import React, { useRef } from "react";
-import {
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-  useWindowDimensions,
-} from "react-native";
-import { BREAKPOINTS, DESKTOP } from "@/src/utils/responsive";
+import { BREAKPOINTS, DESKTOP, useWindowWidth } from "@/src/utils/responsive";
 import { ProductCard } from "../components/ProductCard";
 import { ProductCardSkeleton } from "../components/ProductCardSkeleton";
-import { createTopSellingSectionStyles } from "../style/TopSellingSection.style";
 
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
@@ -26,34 +16,27 @@ import {
 import { IProduct } from "../../product/types/product.types";
 
 import arrowLottie from "@/assets/lottie/arrow.json";
+
 const CARD_WIDTH = 240;
 const GAP = 12;
+
 const TopSellingSection = ({ category }: { category?: string } = {}) => {
   const theme = useTheme() as any;
   const navigate = useNavigate();
-  const { width: windowWidth } = useWindowDimensions();
-  const isDesktop = Platform.OS === "web" && windowWidth >= BREAKPOINTS.desktopMin;
+  const windowWidth = useWindowWidth();
+  const isDesktop = windowWidth >= BREAKPOINTS.desktopMin;
   // Mobile: 240px card but shrink on very small phones / foldables so at
   // least a 48px peek of the next card stays visible (no overflow).
   const mobileCardWidth = Math.min(CARD_WIDTH, Math.max(windowWidth - 96, 180));
-  const ITEM_WIDTH = mobileCardWidth + GAP;
-  const scrollRef = useRef<ScrollView>(null);
-  const styles = React.useMemo(
-    () => createTopSellingSectionStyles(theme),
-    [theme],
-  );
+  const scrollRef = useRef<HTMLDivElement>(null);
   const desktopGap = 20;
   const desktopContainer = Math.min(windowWidth - DESKTOP.gutter * 2, DESKTOP.maxWidth - 48);
   const desktopCardWidth = isDesktop ? (desktopContainer - desktopGap * 3) / 4 : mobileCardWidth;
 
   // Desktop rail position + arrow scrolling (2 cards per click).
-  const railOffset = useRef(0);
   const scrollRail = (dir: 1 | -1) => {
     const step = (desktopCardWidth + desktopGap) * 2;
-    scrollRef.current?.scrollTo({
-      x: Math.max(0, railOffset.current + dir * step),
-      animated: true,
-    });
+    scrollRef.current?.scrollBy({ left: dir * step, behavior: "smooth" });
   };
 
   const handleSeeAll = () => {
@@ -101,23 +84,15 @@ const TopSellingSection = ({ category }: { category?: string } = {}) => {
 
   if (isLoading) {
     return (
-      <View style={styles.container}>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{
-            paddingHorizontal: 16,
-            paddingBottom: 8,
-            gap: GAP,
-          }}
-        >
+      <section className="mt-6 overflow-hidden rounded-t-[32px] py-5" style={{ backgroundColor: theme.secondaryBackground }}>
+        <div className="flex flex-row gap-3 overflow-hidden px-4 pb-2">
           {[1, 2, 3].map((key) => (
-            <View key={key} style={{ width: mobileCardWidth }}>
+            <div key={key} className="shrink-0" style={{ width: mobileCardWidth }}>
               <ProductCardSkeleton />
-            </View>
+            </div>
           ))}
-        </ScrollView>
-      </View>
+        </div>
+      </section>
     );
   }
 
@@ -126,25 +101,15 @@ const TopSellingSection = ({ category }: { category?: string } = {}) => {
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <View style={localStyles.titleContainer}>
-          <Text
-            accessibilityRole="header"
-            aria-level={2}
-            {...({ role: "heading" } as any)}
-            style={styles.title}
-          >
+    <section className="mt-6 overflow-hidden rounded-t-[32px] py-5" style={{ backgroundColor: theme.secondaryBackground }}>
+      <div className="mb-6 flex flex-row items-center justify-between px-5">
+        <div className="flex flex-row items-center">
+          <h2 className="text-xl font-extrabold tracking-tight" style={{ color: theme.text }}>
             Top Selling
-          </Text>
-          <View
-            style={[
-              localStyles.lottieWrapper,
-              Platform.OS === "web" &&
-                ({
-                  filter: theme.text === "#ffffff" ? "invert(1)" : "none",
-                } as any),
-            ]}
+          </h2>
+          <div
+            className="flex h-8 w-8 items-center justify-center overflow-hidden pt-2.5"
+            style={{ filter: theme.text === "#ffffff" ? "invert(1)" : "none" }}
           >
             <LazyLottie
               key={theme.text}
@@ -153,8 +118,7 @@ const TopSellingSection = ({ category }: { category?: string } = {}) => {
               loop
               resizeMode="contain"
               // NOTE: dark-theme invert lives on the wrapper above
-              // (double invert would turn the arrow black again).
-              style={[localStyles.arrowLottie]}
+              style={{ width: "100%", height: "100%" }}
               colorFilters={
                 theme.text === "#ffffff"
                   ? [
@@ -165,150 +129,76 @@ const TopSellingSection = ({ category }: { category?: string } = {}) => {
                   : []
               }
             />
-          </View>
-        </View>
-        <TouchableOpacity
-          style={styles.seeAllBtn}
-          accessibilityRole="link"
-          accessibilityLabel="See all top selling clothing"
-          {...({ title: "See all top selling clothing and fashion in Bihar" } as any)}
-          onPress={handleSeeAll}
-          activeOpacity={0.7}
+          </div>
+        </div>
+        <button
+          type="button"
+          aria-label="See all top selling clothing"
+          title="See all top selling clothing and fashion in Bihar"
+          onClick={handleSeeAll}
+          className="cursor-pointer p-1 text-sm font-semibold"
+          style={{ color: theme.iconColor }}
         >
-          <Text style={styles.seeAll}>See All</Text>
-        </TouchableOpacity>
-      </View>
+          See All
+        </button>
+      </div>
 
       {isDesktop ? (
-        <View style={{ position: "relative" }}>
-          <ScrollView
+        <div className="relative">
+          <div
             ref={scrollRef}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            scrollEventThrottle={16}
-            onScroll={(e) => {
-              railOffset.current = e.nativeEvent.contentOffset.x;
-            }}
-            contentContainerStyle={{
-              paddingHorizontal: 24,
-              paddingBottom: 8,
-              gap: desktopGap,
-            }}
+            className="flex flex-row gap-5 overflow-x-auto px-6 pb-2"
+            style={{ scrollbarWidth: "none" }}
           >
             {products.slice(0, 5).map((item: any) => (
-              <View key={item._id || item.id} style={{ width: desktopCardWidth }}>
+              <div key={item._id || item.id} className="shrink-0" style={{ width: desktopCardWidth }}>
                 <ProductCard item={item} desktopWidth={desktopCardWidth} />
-              </View>
+              </div>
             ))}
-          </ScrollView>
+          </div>
           {/* Desktop rail arrows — one line, scrollable both ways. */}
-          <TouchableOpacity
-            onPress={() => scrollRail(-1)}
-            accessibilityRole="button"
-            accessibilityLabel="Scroll top selling left"
-            activeOpacity={0.8}
-            style={[
-              localStyles.railArrow,
-              localStyles.railArrowLeft,
-              {
-                backgroundColor: theme.background,
-                borderColor: theme.border,
-              },
-            ]}
+          <button
+            type="button"
+            onClick={() => scrollRail(-1)}
+            aria-label="Scroll top selling left"
+            className="absolute top-[38%] left-7 z-[5] flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border shadow-lg"
+            style={{ backgroundColor: theme.background, borderColor: theme.border }}
           >
-            <Text style={[localStyles.railArrowText, { color: theme.text }]}>‹</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => scrollRail(1)}
-            accessibilityRole="button"
-            accessibilityLabel="Scroll top selling right"
-            activeOpacity={0.8}
-            style={[
-              localStyles.railArrow,
-              localStyles.railArrowRight,
-              {
-                backgroundColor: theme.background,
-                borderColor: theme.border,
-              },
-            ]}
+            <span className="-mt-1 text-[26px] leading-[30px] font-extrabold" style={{ color: theme.text }}>‹</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => scrollRail(1)}
+            aria-label="Scroll top selling right"
+            className="absolute top-[38%] right-7 z-[5] flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border shadow-lg"
+            style={{ backgroundColor: theme.background, borderColor: theme.border }}
           >
-            <Text style={[localStyles.railArrowText, { color: theme.text }]}>›</Text>
-          </TouchableOpacity>
-        </View>
+            <span className="-mt-1 text-[26px] leading-[30px] font-extrabold" style={{ color: theme.text }}>›</span>
+          </button>
+        </div>
       ) : (
-      <ScrollView
-        ref={scrollRef}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{
-          paddingHorizontal: 16,
-          paddingBottom: 8,
-        }}
-        snapToInterval={ITEM_WIDTH}
-        snapToAlignment="start"
-        decelerationRate="fast"
-        contentOffset={{ x: 0, y: 0 }}
-      >
-        {products.map((item: any, index: number) => (
-          <View
-            key={item._id || item.id}
-            style={{
-              width: mobileCardWidth,
-              marginRight: index === products.length - 1 ? 0 : GAP,
-            }}
-          >
-            <ProductCard item={item} />
-          </View>
-        ))}
-      </ScrollView>
+        <div
+          ref={scrollRef}
+          className="flex flex-row overflow-x-auto px-4 pb-2"
+          style={{ scrollbarWidth: "none", scrollSnapType: "x mandatory" }}
+        >
+          {products.map((item: any, index: number) => (
+            <div
+              key={item._id || item.id}
+              className="shrink-0"
+              style={{
+                width: mobileCardWidth,
+                marginRight: index === products.length - 1 ? 0 : GAP,
+                scrollSnapAlign: "start",
+              }}
+            >
+              <ProductCard item={item} />
+            </div>
+          ))}
+        </div>
       )}
-    </View>
+    </section>
   );
 };
-
-const localStyles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  lottieWrapper: {
-    width: 32,
-    height: 32,
-    overflow: "hidden",
-    justifyContent: "center",
-    alignItems: "center",
-    paddingTop: 10,
-  },
-  arrowLottie: {
-    width: "100%",
-    height: "100%",
-  },
-  railArrow: {
-    position: "absolute",
-    top: "38%",
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    borderWidth: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    zIndex: 5,
-    ...Platform.select({
-      web: { cursor: "pointer", boxShadow: "0 4px 14px rgba(0,0,0,0.18)" } as any,
-    }),
-  },
-  railArrowLeft: {
-    left: 28,
-  },
-  railArrowRight: {
-    right: 28,
-  },
-  railArrowText: {
-    fontSize: 26,
-    fontWeight: "800",
-    lineHeight: 30,
-    marginTop: -3,
-  },
-});
 
 export default TopSellingSection;

@@ -1,4 +1,4 @@
-import { StyleSheet, Platform } from "react-native";
+import { StyleSheet, Platform } from "@/components/primitives";
 import { Theme } from "@/src/theme/Provider/ThemeProvider";
 
 export const createAddressStyles = (theme: Theme) => StyleSheet.create({

@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState, useCallback } from "react";
-import { StyleSheet, View, ActivityIndicator, TouchableOpacity } from "react-native";
+import { StyleSheet, View, ActivityIndicator, TouchableOpacity } from "@/components/primitives";
 import { LocateFixed } from "lucide-react";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 

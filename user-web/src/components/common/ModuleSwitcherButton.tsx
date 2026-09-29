@@ -1,5 +1,5 @@
 import React, { useCallback, useRef } from "react";
-import { Pressable, StyleSheet, Text } from "react-native";
+import { Pressable, StyleSheet, Text } from "@/components/primitives";
 import { ArrowRight, Sparkles } from "lucide-react";
 import * as Haptics from "@/lib/haptics";
 import { useNavigate } from "react-router-dom";

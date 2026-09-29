@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity, LayoutAnimation } from "react-native";
+import { View, Text, TouchableOpacity, LayoutAnimation } from "@/components/primitives";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { styles as s } from "../styles";
 

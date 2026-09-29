@@ -1,7 +1,7 @@
 import { ArrowRight, X } from "lucide-react";
 import * as Haptics from "@/lib/haptics";
 import React from "react";
-import { StyleSheet, TouchableOpacity, View, Text } from "react-native";
+import { StyleSheet, TouchableOpacity, View, Text } from "@/components/primitives";
 
 
 

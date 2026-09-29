@@ -8,7 +8,7 @@ import {
   Text,
   useWindowDimensions,
   View,
-} from "react-native";
+} from "@/components/primitives";
 import Carousel from "@/src/components/common/EmblaCarousel";
 
 import { APP_CURRENCY } from "@/src/constants";

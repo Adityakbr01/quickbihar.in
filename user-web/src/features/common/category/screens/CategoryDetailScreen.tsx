@@ -1,12 +1,11 @@
 import React, { useMemo } from "react";
-import { ActivityIndicator, FlatList, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, FlatList, Text, TouchableOpacity, View } from "@/components/primitives";
 
 import { ChevronLeft } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import * as Haptics from "@/lib/haptics";
 
-import SafeViewWrapper from "@/src/provider/SafeViewWrapper";
 import { goBack, toWebPath } from "@/src/utils/navigation";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { SeoHead } from "@/src/components/seo/SeoHead";
@@ -71,17 +70,17 @@ const CategoryDetailScreen: React.FC<CategoryDetailScreenProps> = ({ slug }) => 
 
   if (categoryQuery.isLoading) {
     return (
-      <SafeViewWrapper>
+      <>
         <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
           <ActivityIndicator size="large" color={theme.primary} />
         </View>
-      </SafeViewWrapper>
+      </>
     );
   }
 
   if (categoryQuery.isError || !category) {
     return (
-      <SafeViewWrapper>
+      <>
         <SeoHead meta={{ ...meta, robots: "noindex, nofollow" }} />
         <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: 24 }}>
           <Text style={{ fontSize: 18, fontWeight: "700", color: theme.text, marginBottom: 8 }}>
@@ -89,18 +88,18 @@ const CategoryDetailScreen: React.FC<CategoryDetailScreenProps> = ({ slug }) => 
           </Text>
           <Link to={toWebPath("/(tabs)/clothing/home")}>Back to home</Link>
         </View>
-      </SafeViewWrapper>
+      </>
     );
   }
 
   return (
-    <SafeViewWrapper>
+    <>
       <SeoHead meta={meta} jsonLd={jsonLd} />
       <FlatList data={products}
         keyExtractor={(item) => item._id}
         numColumns={2}
         columnWrapperStyle={{ gap: 12, paddingHorizontal: 16 }}
-        contentContainerStyle={{ paddingBottom: 32 }}
+        
         ListHeaderComponent={
           <View style={{ padding: 16 }}>
             <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 12 }}>
@@ -163,7 +162,7 @@ const CategoryDetailScreen: React.FC<CategoryDetailScreenProps> = ({ slug }) => 
           ) : null
         }
       />
-    </SafeViewWrapper>
+    </>
   );
 };
 

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Pressable, StyleSheet, View, ViewStyle, Text } from "react-native";
+import { Pressable, StyleSheet, View, ViewStyle, Text } from "@/components/primitives";
 
 import { AppleIcon, GoogleIcon } from "@/src/components/common/BrandIcons";
 import * as Haptics from "@/lib/haptics";

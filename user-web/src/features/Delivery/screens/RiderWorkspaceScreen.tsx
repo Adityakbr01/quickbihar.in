@@ -7,11 +7,10 @@ import {
   ScrollView,
   Text,
   View,
-} from "react-native";
+} from "@/components/primitives";
 import { SocketEvents } from "@/src/constants/socketEvents";
 import { socketClient } from "@/src/lib/socket";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
-import SafeViewWrapper from "@/src/provider/SafeViewWrapper";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import IOSAlertDialog from "@/src/components/ui/IOSAlertDialog";
 import {
@@ -453,18 +452,18 @@ export default function RiderWorkspaceScreen() {
 
   if (loading) {
     return (
-      <SafeViewWrapper>
+      <>
         <View style={styles.center}>
           <ActivityIndicator size="large" color={theme.primary} />
           <Text style={styles.muted}>Loading rider workspace...</Text>
         </View>
         {dialogView}
-      </SafeViewWrapper>
+      </>
     );
   }
 
   return (
-    <SafeViewWrapper>
+    <>
       <KeyboardAvoidingView style={styles.keyboard} behavior={Platform.OS === "ios" ? "padding" : undefined}>
         <ScrollView
           contentContainerStyle={styles.content}
@@ -591,6 +590,6 @@ export default function RiderWorkspaceScreen() {
         </View>
       )}
       {dialogView}
-    </SafeViewWrapper>
+    </>
   );
 }

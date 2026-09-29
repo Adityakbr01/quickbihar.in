@@ -5,7 +5,7 @@ import {
     Animated,
     StyleSheet,
     View
-} from "react-native";
+} from "@/components/primitives";
 
 
 

@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text } from "react-native";
+import { View, Text } from "@/components/primitives";
 import { Star } from "lucide-react";
 import { styles as s } from "../styles";
 

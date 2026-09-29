@@ -5,7 +5,7 @@ import {
   Text,
   TextInput as RNTextInput,
   ActivityIndicator,
-} from "react-native";
+} from "@/components/primitives";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff, Lock, Mail } from "lucide-react";

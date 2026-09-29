@@ -6,7 +6,7 @@ import {
   Text,
   TouchableOpacity,
   View,
-} from "react-native";
+} from "@/components/primitives";
 import { useNavigate } from "react-router-dom";
 import { goBack, goTo, replaceTo } from "@/src/utils/navigation";
 import { ChevronLeft, ChevronRight, MapPin, Package, ShoppingBag } from "lucide-react";
@@ -17,7 +17,6 @@ import { getMyOrdersRequest } from "../api/order.api";
 import { orderHasModule } from "../lib/orderModule";
 import { socketClient } from "@/src/lib/socket";
 import { SocketEvents } from "@/src/constants/socketEvents";
-import SafeViewWrapper from "@/src/provider/SafeViewWrapper";
 import dayjs from "dayjs";
 import { createStyles } from "../style/OrderListScreen.style";
 
@@ -205,7 +204,7 @@ const OrderListScreen = () => {
   );
 
   return (
-    <SafeViewWrapper>
+    <>
       <View style={styles.container}>
         {/* Top app bar (same language as Notifications) */}
         <View style={styles.appBar}>
@@ -252,7 +251,7 @@ const OrderListScreen = () => {
           />
         )}
       </View>
-    </SafeViewWrapper>
+    </>
   );
 };
 

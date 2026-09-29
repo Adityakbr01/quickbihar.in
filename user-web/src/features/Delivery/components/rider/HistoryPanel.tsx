@@ -1,6 +1,6 @@
 import { Clock } from "lucide-react";
 import React from "react";
-import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { ScrollView, Text, TouchableOpacity, View } from "@/components/primitives";
 import type { Theme } from "@/src/theme/Provider/ThemeProvider";
 import type { RiderOrder, RiderOrderStatus } from "../../api/delivery.api";
 import { customerNameOf, cityOf, formatDate, historyStatusFilters, money } from "../../theme/riderTheme";

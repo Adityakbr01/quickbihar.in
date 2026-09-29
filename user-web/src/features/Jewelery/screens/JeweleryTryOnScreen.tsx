@@ -1,8 +1,7 @@
 import { Camera, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
-import SafeViewWrapper from "@/src/provider/SafeViewWrapper";
+import { Pressable, StyleSheet, Text, View } from "@/components/primitives";
 import { goBack, goTo } from "@/src/utils/navigation";
 
 import { useColors } from "../hooks/useColors";
@@ -17,7 +16,7 @@ export const JeweleryTryOnScreen = () => {
   const colors = useColors();
 
   return (
-    <SafeViewWrapper>
+    <>
       <View style={[styles.root, { backgroundColor: colors.ivory }]}>
         <View style={styles.header}>
           <Pressable style={styles.closeBtn} onPress={() => goBack(navigate)} hitSlop={8}>
@@ -68,7 +67,7 @@ export const JeweleryTryOnScreen = () => {
           </Pressable>
         </View>
       </View>
-    </SafeViewWrapper>
+    </>
   );
 };
 

@@ -6,7 +6,7 @@ import {
   StyleSheet,
   TextInput as RNTextInput,
   View,
-} from "react-native";
+} from "@/components/primitives";
 
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { TextInput } from "@/src/theme/components/TextInput";

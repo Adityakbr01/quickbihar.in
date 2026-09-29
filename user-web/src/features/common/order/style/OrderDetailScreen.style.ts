@@ -1,4 +1,4 @@
-import { StyleSheet, Platform } from "react-native";
+import { StyleSheet, Platform } from "@/components/primitives";
 import { Theme } from "@/src/theme/colors";
 import { spacing, radius } from "@/src/theme/spacing";
 

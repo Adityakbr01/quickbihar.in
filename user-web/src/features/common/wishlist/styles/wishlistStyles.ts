@@ -1,4 +1,4 @@
-import { StyleSheet, Dimensions } from "react-native";
+import { StyleSheet, Dimensions } from "@/components/primitives";
 import { Theme } from "@/src/theme/colors";
 
 const { width } = Dimensions.get("window");

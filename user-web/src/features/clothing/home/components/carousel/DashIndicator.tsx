@@ -1,5 +1,4 @@
 import React from 'react';
-import { View } from 'react-native';
 import { useTheme } from '@/src/theme/Provider/ThemeProvider';
 
 interface DashIndicatorProps {
@@ -14,13 +13,11 @@ const DashIndicator = ({ index, progress, dataLength }: DashIndicatorProps) => {
   const isActive = diff < 0.5 || diff > dataLength - 0.5;
 
   return (
-    <View
+    <div
+      className="h-[3px] rounded-full transition-all duration-200"
       style={{
         width: isActive ? 16 : 8,
-        height: 3,
-        borderRadius: 1.5,
         backgroundColor: isActive ? theme.text : theme.tertiaryText,
-        transition: 'width 0.25s ease-out, background-color 0.25s ease-out',
       }}
     />
   );

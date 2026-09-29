@@ -1,6 +1,4 @@
-import SafeViewWrapper from "@/src/provider/SafeViewWrapper";
 import React, { useCallback, useRef, useState } from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
 import LazyLottie from "@/src/components/common/LazyLottie";
 import * as Haptics from "@/lib/haptics";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
@@ -20,7 +18,6 @@ interface SnapchatPullToRefreshProps {
 export default function SnapchatPullToRefresh({
   onRefresh,
   children,
-  stickyHeaderIndices,
 }: SnapchatPullToRefreshProps) {
   const theme = useTheme() as any;
   const [isRefreshingState, setIsRefreshingState] = useState(false);
@@ -58,10 +55,8 @@ export default function SnapchatPullToRefresh({
     }
   }, [onRefresh]);
 
-  const handleScroll = (event: any) => {
-    const top =
-      event?.nativeEvent?.contentOffset?.y ?? event?.currentTarget?.scrollTop ?? 0;
-    scrollY.current = top;
+  const handleScroll = (event: React.UIEvent<HTMLDivElement>) => {
+    scrollY.current = event.currentTarget.scrollTop;
   };
 
   const handlePointerDown = (event: React.PointerEvent) => {
@@ -104,73 +99,44 @@ export default function SnapchatPullToRefresh({
   const pullRatio = Math.min(Math.max(pullOffset / REFRESH_THRESHOLD, 0), 1);
 
   return (
-    <View style={styles.container}>
-      <SafeViewWrapper>
-        <View
-          style={[
-            styles.container,
-            {
-              transform: [{ translateY: pullOffset }],
-              transition: dragging ? undefined : "transform 0.25s ease-out",
-            },
-          ]}
+    <div className="flex-1">
+      <>
+        <div
+          className="flex-1"
+          style={{
+            transform: `translateY(${pullOffset}px)`,
+            transition: dragging ? undefined : "transform 0.25s ease-out",
+          }}
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}
           onPointerUp={endDrag}
           onPointerCancel={endDrag}
         >
-          <View
-            style={[
-              {
-                opacity: pullRatio,
-                transform: [{ scale: 0.35 + pullRatio * 0.65 }],
-                transition: dragging ? undefined : "opacity 0.25s ease-out, transform 0.25s ease-out",
-                position: "absolute",
-                top: -120,
-                left: 0,
-                right: 0,
-                alignItems: "center",
-                justifyContent: "center",
-                height: 120,
-                zIndex: 2,
-              },
-              { pointerEvents: "none" },
-            ]}
+          <div
+            className="pointer-events-none absolute top-[-120px] right-0 left-0 z-[2] flex h-[120px] items-center justify-center"
+            style={{
+              opacity: pullRatio,
+              transform: `scale(${0.35 + pullRatio * 0.65})`,
+              transition: dragging ? undefined : "opacity 0.25s ease-out, transform 0.25s ease-out",
+            }}
           >
             <LazyLottie
               source={fireLottie}
               autoPlay={isRefreshingState}
               loop={isRefreshingState}
-              style={styles.fireLoader}
+              style={{ width: 90, height: 90 }}
             />
-          </View>
+          </div>
 
-          <ScrollView
-            style={[styles.scrollView, { backgroundColor: theme.background }]}
-            showsVerticalScrollIndicator={false}
-            stickyHeaderIndices={stickyHeaderIndices}
+          <div
+            className="flex-1 overflow-y-auto"
+            style={{ backgroundColor: theme.background }}
             onScroll={handleScroll}
-            bounces={false}
-            overScrollMode="never"
           >
             {children}
-          </ScrollView>
-        </View>
-      </SafeViewWrapper>
-    </View>
+          </div>
+        </div>
+      </>
+    </div>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  scrollView: {
-    flex: 1,
-    overflowY: "auto",
-  },
-  fireLoader: {
-    width: 90,
-    height: 90,
-  },
-});

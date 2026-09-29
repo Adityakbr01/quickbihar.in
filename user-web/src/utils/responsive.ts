@@ -1,13 +1,12 @@
-import { Platform, useWindowDimensions } from "react-native";
+import { useEffect, useState } from "react";
 
 /**
  * Desktop-only responsive helpers for the clothing catalog.
+ * Pure React + web — no primitives, no react-native.
  *
- * Contract: EVERYTHING mobile stays byte-identical.
- * - On native (iOS/Android) every helper reports "mobile".
- * - On web with width < 768 every helper reports "mobile".
- * - Only web width >= 1024 gets the full desktop treatment.
- * - 768–1023 is a tablet bridge (3 cols, bottom tabs kept).
+ * - width < 768 → "mobile"
+ * - 768–1023 → tablet bridge (3 cols, bottom tabs kept)
+ * - width >= 1024 → full desktop treatment
  */
 
 export const BREAKPOINTS = {
@@ -24,8 +23,20 @@ export const DESKTOP = {
   gutter: 24,
 } as const;
 
-export function getViewportKind(width: number, platform = Platform.OS) {
-  if (platform !== "web") return "mobile" as const;
+/** Live window width (SSR-safe, defaults to desktop-ish 1200). */
+export function useWindowWidth(): number {
+  const [width, setWidth] = useState(() =>
+    typeof window !== "undefined" ? window.innerWidth : 1200,
+  );
+  useEffect(() => {
+    const onResize = () => setWidth(window.innerWidth);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+  return width;
+}
+
+export function getViewportKind(width: number, _platform: string = "web") {
   if (width >= BREAKPOINTS.desktopMin) return "desktop" as const;
   if (width >= BREAKPOINTS.tabletMin) return "tablet" as const;
   return "mobile" as const;
@@ -36,32 +47,27 @@ export const BOTTOM_TAB_BAR_HEIGHT = 60;
 
 /**
  * Height a sticky bottom bar (Add to Bag, checkout CTA, ...) must be lifted
- * so the tab bar never covers it.
- *
- * Only mobile web overlays: there the tab bar is `position: fixed` (out of
- * flow, 60px over the viewport bottom). Desktop web renders no tab bar at
- * all, and native lays it in-flow below the screen — both need offset 0.
+ * so the tab bar never covers it. Desktop renders no tab bar → offset 0.
  */
 export function useStickyBarBottomOffset() {
-  const { width } = useWindowDimensions();
-  const isMobileWeb = Platform.OS === "web" && width < BREAKPOINTS.desktopMin;
-  return isMobileWeb ? BOTTOM_TAB_BAR_HEIGHT : 0;
+  const width = useWindowWidth();
+  return width < BREAKPOINTS.desktopMin ? BOTTOM_TAB_BAR_HEIGHT : 0;
 }
 
-/** True only on web + width >= 1024. Safe gate for ALL desktop-only UI. */
+/** True only on width >= 1024. Safe gate for ALL desktop-only UI. */
 export function useIsDesktop() {
-  const { width } = useWindowDimensions();
-  return Platform.OS === "web" && width >= BREAKPOINTS.desktopMin;
+  const width = useWindowWidth();
+  return width >= BREAKPOINTS.desktopMin;
 }
 
-/** True on web + width >= 768 (tablet + desktop). */
+/** True on width >= 768 (tablet + desktop). */
 export function useIsWide() {
-  const { width } = useWindowDimensions();
-  return Platform.OS === "web" && width >= BREAKPOINTS.tabletMin;
+  const width = useWindowWidth();
+  return width >= BREAKPOINTS.tabletMin;
 }
 
 export function useViewportKind() {
-  const { width } = useWindowDimensions();
+  const width = useWindowWidth();
   return getViewportKind(width);
 }
 
@@ -70,8 +76,7 @@ export function useViewportKind() {
  * Tablet 3, desktop 4, wide 5.
  */
 export function useProductColumns() {
-  const { width } = useWindowDimensions();
-  if (Platform.OS !== "web") return 2;
+  const width = useWindowWidth();
   if (width >= BREAKPOINTS.wideMin) return 5;
   if (width >= BREAKPOINTS.desktopMin) return 4;
   if (width >= BREAKPOINTS.tabletMin) return 3;
@@ -92,7 +97,7 @@ export function getGridCardWidth(
   const gap = opts?.gap ?? 16;
   const padding = opts?.padding ?? 16;
   // Mobile path — keep the legacy formula untouched.
-  if (Platform.OS !== "web" || windowWidth < BREAKPOINTS.tabletMin) {
+  if (windowWidth < BREAKPOINTS.tabletMin) {
     return (windowWidth - padding * 2 - 12) / 2;
   }
   const container = Math.min(windowWidth - gutter * 2, maxWidth);
@@ -107,8 +112,9 @@ export function useDesktopContainer(narrow = false) {
   return {
     width: "100%" as const,
     maxWidth: narrow ? DESKTOP.narrowMaxWidth : DESKTOP.maxWidth,
-    alignSelf: "center" as const,
-    marginHorizontal: "auto" as any,
-    paddingHorizontal: isDesktop ? DESKTOP.gutter : 16,
+    marginLeft: "auto" as const,
+    marginRight: "auto" as const,
+    paddingLeft: isDesktop ? DESKTOP.gutter : 16,
+    paddingRight: isDesktop ? DESKTOP.gutter : 16,
   };
 }

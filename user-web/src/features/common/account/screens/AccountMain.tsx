@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { View, ScrollView, Text, Linking } from "react-native";
+import { View, ScrollView, Text, Linking } from "@/components/primitives";
 import * as Haptics from "@/lib/haptics";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { AppIcon } from "@/src/components/common/AppIcon";
@@ -10,7 +10,7 @@ import AccountHeader from "../components/AccountHeader";
 import AccountOption from "../components/AccountOption";
 import GuestAccountView from "../components/GuestAccountView";
 import { ACCOUNT_SECTIONS, LOGOUT_OPTION } from "../lib/accountData";
-import { ActivityIndicator } from "react-native";
+import { ActivityIndicator } from "@/components/primitives";
 import EditProfileModal from "../components/EditProfileModal";
 
 import { useNavigate } from "react-router-dom";

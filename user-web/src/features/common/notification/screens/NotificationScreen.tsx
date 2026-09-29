@@ -9,7 +9,7 @@ import {
   Text,
   TouchableOpacity,
   View,
-} from "react-native";
+} from "@/components/primitives";
 import type { LucideIcon } from "lucide-react";
 import { ArrowRight, Bell, BellOff, CheckCheck, ChevronLeft, Circle, CircleAlert, Inbox, Layers, MessageCircle, ShoppingBag, Tag } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -22,7 +22,6 @@ import {
   useMarkAllAsRead,
   INotificationItem,
 } from "../hooks/useNotifications";
-import SafeViewWrapper from "@/src/provider/SafeViewWrapper";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import * as Haptics from "@/lib/haptics";
@@ -373,7 +372,7 @@ const NotificationScreen = ({ variant = "default" }: { variant?: ModuleVariant }
   }
 
   return (
-    <SafeViewWrapper>
+    <>
       <View style={styles.container}>
         {/* Top app bar */}
         <View style={styles.appBar}>
@@ -445,7 +444,7 @@ const NotificationScreen = ({ variant = "default" }: { variant?: ModuleVariant }
           showsVerticalScrollIndicator={false}
         />
       </View>
-    </SafeViewWrapper>
+    </>
   );
 };
 

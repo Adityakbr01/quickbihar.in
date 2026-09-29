@@ -9,7 +9,7 @@ import {
   Share,
   Linking,
   Platform,
-} from "react-native";
+} from "@/components/primitives";
 
 import { useNavigate } from "react-router-dom";
 import { goTo, replaceTo, useRouteParams } from "@/src/utils/navigation";
@@ -19,7 +19,6 @@ import * as Haptics from "@/lib/haptics";
 
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { SUPPORT_CALL_NUMBER } from "@/src/constants";
-import SafeViewWrapper from "@/src/provider/SafeViewWrapper";
 import { goBack } from "@/src/utils/navigation";
 import { getOrderByIdRequest } from "../api/order.api";
 import { useSocketStore } from "@/src/store/useSocketStore";
@@ -377,7 +376,7 @@ export default function OrderDetailScreen() {
 
   if (isLoading && !order) {
     return (
-      <SafeViewWrapper>
+      <>
         <View style={styles.header}>
           <TouchableOpacity style={styles.backButton}
             onPress={() => goBack(navigate, "/account/orders")}
@@ -391,13 +390,13 @@ export default function OrderDetailScreen() {
           <ActivityIndicator size="large" color={theme.primary} />
           <Text style={styles.loadingText}>Fetching order details...</Text>
         </View>
-      </SafeViewWrapper>
+      </>
     );
   }
 
   if (!order) {
     return (
-      <SafeViewWrapper>
+      <>
         <View style={styles.header}>
           <TouchableOpacity style={styles.backButton}
             onPress={() => goBack(navigate, "/account/orders")}
@@ -419,7 +418,7 @@ export default function OrderDetailScreen() {
             <Text style={styles.retryButtonText}>Try Again</Text>
           </TouchableOpacity>
         </View>
-      </SafeViewWrapper>
+      </>
     );
   }
 
@@ -476,7 +475,7 @@ export default function OrderDetailScreen() {
   };
 
   return (
-    <SafeViewWrapper>
+    <>
       {/* Top Header */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
@@ -1125,6 +1124,6 @@ export default function OrderDetailScreen() {
           </TouchableOpacity>
         </View>
       </ScrollView>
-    </SafeViewWrapper>
+    </>
   );
 }

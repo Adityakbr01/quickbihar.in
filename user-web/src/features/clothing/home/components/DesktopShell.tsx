@@ -1,12 +1,11 @@
 import React from "react";
-import { Platform, StyleSheet, View, useWindowDimensions } from "react-native";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
-import { BREAKPOINTS, DESKTOP } from "@/src/utils/responsive";
+import { BREAKPOINTS, DESKTOP, useWindowWidth } from "@/src/utils/responsive";
 import { DesktopFooter } from "./DesktopFooter";
 
 /**
  * Centers any clothing-catalog screen on desktop web (max 1280px).
- * On native + mobile web it renders children unchanged — zero visual diff.
+ * On mobile web it renders children unchanged — zero visual diff.
  */
 export const DesktopShell = ({
   children,
@@ -17,40 +16,29 @@ export const DesktopShell = ({
   narrow?: boolean;
   withFooter?: boolean;
 }) => {
-  const { width } = useWindowDimensions();
+  const width = useWindowWidth();
   const theme = useTheme() as any;
 
-  const isWide = Platform.OS === "web" && width >= BREAKPOINTS.tabletMin;
-  const isDesktop = Platform.OS === "web" && width >= BREAKPOINTS.desktopMin;
+  const isWide = width >= BREAKPOINTS.tabletMin;
+  const isDesktop = width >= BREAKPOINTS.desktopMin;
 
   if (!isWide) return <>{children}</>;
 
   return (
-    <View style={[styles.outer, { backgroundColor: theme.background }]}>
-      <View
-        style={[
-          styles.inner,
-          {
-            maxWidth: narrow ? DESKTOP.narrowMaxWidth : DESKTOP.maxWidth,
-            paddingHorizontal: isDesktop ? DESKTOP.gutter : 16,
-          },
-        ]}
+    <div className="w-full flex-1" style={{ backgroundColor: theme.background }}>
+      <div
+        className="mx-auto w-full flex-1"
+        style={{
+          maxWidth: narrow ? DESKTOP.narrowMaxWidth : DESKTOP.maxWidth,
+          paddingLeft: isDesktop ? DESKTOP.gutter : 16,
+          paddingRight: isDesktop ? DESKTOP.gutter : 16,
+        }}
       >
         {children}
-      </View>
+      </div>
       {withFooter && isDesktop ? <DesktopFooter /> : null}
-    </View>
+    </div>
   );
 };
-
-const styles = StyleSheet.create({
-  outer: { flex: 1, width: "100%" },
-  inner: {
-    width: "100%",
-    alignSelf: "center",
-    marginHorizontal: "auto" as any,
-    flex: 1,
-  },
-});
 
 export default DesktopShell;

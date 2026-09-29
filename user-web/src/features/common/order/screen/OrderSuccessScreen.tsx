@@ -8,7 +8,7 @@ import {
   Share,
   ActivityIndicator,
   Platform
-} from "react-native";
+} from "@/components/primitives";
 import { useNavigate } from "react-router-dom";
 import { goTo, replaceTo, useRouteParams } from "@/src/utils/navigation";
 import LazyLottie from "@/src/components/common/LazyLottie";

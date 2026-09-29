@@ -9,7 +9,7 @@ import {
   StyleSheet,
   View,
   useWindowDimensions,
-} from "react-native";
+} from "@/components/primitives";
 
 import { useColors } from "@/src/features/Jewelery/hooks/useColors";
 

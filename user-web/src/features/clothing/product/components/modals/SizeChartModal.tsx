@@ -5,7 +5,7 @@ import {
   Text,
   TouchableOpacity,
   View,
-} from "react-native";
+} from "@/components/primitives";
 import { CircleCheck, PersonStanding } from "lucide-react";
 import { Theme } from "@/src/theme/Provider/ThemeProvider";
 import { ISizeChart } from "../../types/product.types";

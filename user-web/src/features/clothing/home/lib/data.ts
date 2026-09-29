@@ -1,15 +1,15 @@
-import { ImageSourcePropType } from "react-native";
+export type WebImageSource = string | { uri?: string } | any;
 
 export interface CarouselItem {
     id: string;
-    image: string | ImageSourcePropType;
+    image: string | WebImageSource;
     link: string;
 }
 
 export interface CategoryItem {
     id: string;
     title: string;
-    image?: string | ImageSourcePropType;
+    image?: string | WebImageSource;
 }
 
 export const carouselData: CarouselItem[] = [

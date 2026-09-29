@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { Helmet } from "react-helmet-async";
-import { Platform } from "react-native";
+import { Platform } from "@/components/primitives";
 import { getSiteBase, DEFAULT_SITE_KEYWORDS, type PageMeta } from "@/src/lib/seo";
 import defaultOgUrl from "@/assets/images/icons/ios-icon-default.webp";
 

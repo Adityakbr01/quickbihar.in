@@ -9,7 +9,7 @@ import {
   Text,
   TouchableOpacity,
   View,
-} from "react-native";
+} from "@/components/primitives";
 import { CircleAlert, CircleCheck, Eye, EyeOff, Lock, Mail, ShieldCheck } from "lucide-react";
 import * as Haptics from "@/lib/haptics";
 

@@ -10,7 +10,7 @@ import {
   Text,
   useWindowDimensions,
   View,
-} from "react-native";
+} from "@/components/primitives";
 
 import { Sheet, SheetHeader, useSheet } from "@/src/components/common/BottomSheet";
 import {

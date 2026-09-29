@@ -6,7 +6,7 @@ import {
   LayoutAnimation,
   Platform,
   UIManager,
-} from "react-native";
+} from "@/components/primitives";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { createCartStyles } from "../styles/cartStyles";
 import { useCartStore, type AppliedCoupon } from "../store/cartStore";

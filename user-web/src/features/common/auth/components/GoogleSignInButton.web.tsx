@@ -7,7 +7,7 @@ import {
   StyleSheet,
   Text,
   View,
-} from "react-native";
+} from "@/components/primitives";
 import googleIconLogo from "@/assets/svg/google-icon-logo.svg";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 

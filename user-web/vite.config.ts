@@ -20,8 +20,7 @@ export default defineConfig(({ mode }) => {
     ],
     resolve: {
       alias: [
-                                        { find: 'expo-notifications', replacement: path.resolve(import.meta.dirname ?? '.', './src/shims/expo-notifications.web.ts') },
-                        { find: 'react-native', replacement: path.resolve(import.meta.dirname ?? '.', './src/shims/react-native.web.tsx') },
+        { find: 'expo-notifications', replacement: path.resolve(import.meta.dirname ?? '.', './src/shims/expo-notifications.web.ts') },
         { find: '@/src', replacement: path.resolve(import.meta.dirname ?? '.', './src') },
         { find: '@', replacement: path.resolve(import.meta.dirname ?? '.', './src') },
       ],

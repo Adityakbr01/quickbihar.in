@@ -5,7 +5,7 @@ import {
   TextInputProps as RNTextInputProps,
   StyleSheet,
   Platform,
-} from "react-native";
+} from "@/components/primitives";
 import { useTheme } from "../Provider/ThemeProvider";
 import ThemedText from "./ThemedText";
 import { spacing } from "../spacing";

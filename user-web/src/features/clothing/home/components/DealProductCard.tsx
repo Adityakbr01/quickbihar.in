@@ -3,7 +3,6 @@ import { IProduct } from "@/src/features/clothing/product/types/product.types";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { ArrowRight, Bike, ShoppingBag, Star } from "lucide-react";
 import * as Haptics from "@/lib/haptics";
-import { Platform, Text, TouchableOpacity, View } from "react-native";
 import { useNavigate } from "react-router-dom";
 import { goTo } from "@/src/utils/navigation";
 import LazyLottie from "@/src/components/common/LazyLottie";
@@ -12,10 +11,10 @@ import React from "react";
 import { useCartStore } from "@/src/features/common/cart/store/cartStore";
 import { useWishlistStore } from "@/src/features/common/wishlist/store/wishlistStore";
 import { DealProduct as MockProduct } from "../lib/dealsConfig";
-import { createDealProductCardStyles } from "../style/DealProductCard.style";
 import { VariantSelectorBottomSheet } from "../../product/components/modals/VariantSelectorBottomSheet";
 
 import cyclerLottie from "@/assets/lottie/Cycler.json";
+import { cn } from "@/src/lib/utils";
 
 interface DealProductCardProps {
   product: IProduct | MockProduct;
@@ -24,10 +23,6 @@ interface DealProductCardProps {
 
 export const DealProductCard = ({ product, width }: DealProductCardProps) => {
   const theme = useTheme() as any;
-  const styles = React.useMemo(
-    () => createDealProductCardStyles(theme),
-    [theme],
-  );
   const navigate = useNavigate();
   const addItem = useCartStore(state => state.addItem);
   const cartItems = useCartStore(state => state.items);
@@ -94,6 +89,7 @@ export const DealProductCard = ({ product, width }: DealProductCardProps) => {
   // Narrow phones (≤320px ⇒ card <150px): shrink overlays so the
   // rating pill and Add button never overlap.
   const isNarrowCard = width < 150;
+  const isWideCard = width > 240;
   const productData = {
     title: p.title || (product as MockProduct).title || "",
     image: p.images?.[0]?.url || (product as MockProduct).image || "",
@@ -112,66 +108,56 @@ export const DealProductCard = ({ product, width }: DealProductCardProps) => {
   };
 
   return (
-    <TouchableOpacity accessibilityRole="link"
-      accessibilityLabel={productData.title}
-      {...({ title: `Shop ${productData.title} on QuickBihar` } as any)}
-      activeOpacity={0.9}
-      onPress={() => {
-        const id = (product as IProduct).slug || (product as IProduct)._id || 'mock';
-        goTo(navigate, { pathname: "/product/[id]", params: { id } });
+    <div
+      role="link"
+      tabIndex={0}
+      aria-label={productData.title}
+      title={`Shop ${productData.title} on QuickBihar`}
+      onClick={() => {
+        const pid = (product as IProduct).slug || (product as IProduct)._id || 'mock';
+        goTo(navigate, { pathname: "/product/[id]", params: { id: pid } });
       }}
-      style={[
-        styles.productCard,
-        {
-          backgroundColor: theme.background,
-          borderColor: theme.border,
-          width,
-          ...(Platform.OS === "web" && width > 240
-            ? {
-                borderRadius: 18,
-                shadowColor: theme.shadow || "#000",
-                shadowOffset: { width: 0, height: 8 },
-                shadowOpacity: 0.12,
-                shadowRadius: 20,
-                elevation: 4,
-              }
-            : null),
-        },
-      ]}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          const pid = (product as IProduct).slug || (product as IProduct)._id || 'mock';
+          goTo(navigate, { pathname: "/product/[id]", params: { id: pid } });
+        }
+      }}
+      className={cn("cursor-pointer overflow-hidden rounded-2xl border", isWideCard && "rounded-[18px] shadow-xl")}
+      style={{
+        backgroundColor: theme.background,
+        borderColor: theme.border,
+        width,
+      }}
     >
       {/* Image & Overlays */}
-      {/* Desktop: taller image proportional to the wider grid cell;
-          mobile keeps the legacy 180px height. */}
-      <View style={[
-          styles.productImageContainer,
-          Platform.OS === "web" && width > 240
-            ? {
-                height: Math.min(300, Math.round(width * 0.92)),
-              }
-            : null,
-        ]}
-      >
-        <img src={productData.image} alt={`${productData.title} - Fashion Deal in Bihar`} aria-label={productData.title} style={Object.assign({}, styles.productImage, { objectFit: "cover" as const })} {...({ title: `${productData.title} - QuickBihar Deals` } as any)} />
+      <div className="relative w-full" style={{ height: isWideCard ? Math.min(300, Math.round(width * 0.92)) : 180 }}>
+        <img
+          src={productData.image}
+          alt={`${productData.title} - Fashion Deal in Bihar`}
+          title={`${productData.title} - QuickBihar Deals`}
+          className="h-full w-full object-cover"
+        />
 
         {/* Top-Left Discount Badge */}
         {productData.discount ? (
-          <View style={styles.discountBadge}>
-            <Text style={styles.discountBadgeText}>{productData.discount}</Text>
-          </View>
+          <div className="absolute top-2 left-2 z-10 rounded-md bg-red-500 px-1.5 py-0.5">
+            <span className="text-[10px] font-extrabold tracking-wide text-white">{productData.discount}</span>
+          </div>
         ) : null}
 
         {productData.tag ? (
-          <View style={[
-              styles.tagBadge,
-              productData.discount ? { top: 34 } : null,
-            ]}
+          <div
+            className="absolute left-2 z-[9] rounded-md bg-black/75 px-1.5 py-1"
+            style={productData.discount ? { top: 34 } : { top: 8 }}
           >
-            <Text style={styles.tagText}>{productData.tag}</Text>
-          </View>
+            <span className="text-[9px] font-extrabold text-white uppercase">{productData.tag}</span>
+          </div>
         ) : null}
 
         {/* Favorite absolute button */}
-        <WishlistHeart isWishlisted={isWishlisted}
+        <WishlistHeart
+          isWishlisted={isWishlisted}
           onToggle={() => toggleWishlist(id, product)}
           size={16}
           style={{
@@ -186,109 +172,99 @@ export const DealProductCard = ({ product, width }: DealProductCardProps) => {
 
         {/* Real Rating Pill (Only shown if product has real ratings) */}
         {productData.reviews > 0 && productData.rating > 0 ? (
-          <View style={[styles.ratingPill, isNarrowCard && { paddingHorizontal: 5 }]}>
+          <div
+            className="absolute bottom-2.5 left-2 z-[5] flex flex-row items-center gap-1 rounded-lg border border-white/20 bg-slate-900/90 py-1 shadow"
+            style={{ paddingLeft: 7, paddingRight: isNarrowCard ? 5 : 7 }}
+          >
             <Star size={10} color="#f59e0b" fill="#f59e0b" />
-            <Text style={styles.ratingText}>
+            <span className="text-[11px] font-bold text-white">
               {productData.rating.toFixed(1)}
               {!isNarrowCard && (
-                <Text style={styles.ratingCount}>
+                <span className="text-[10px] font-medium text-white/75">
                   {" "}| {productData.reviews}
-                </Text>
+                </span>
               )}
-            </Text>
-          </View>
+            </span>
+          </div>
         ) : null}
 
         {/* Add to Cart absolute button */}
-        {(product as IProduct).totalStock > 0 &&
-
-          (
-            <TouchableOpacity style={[
-                styles.addButton,
-                isInCart && { backgroundColor: theme.primary },
-                isNarrowCard && { paddingHorizontal: 8, paddingVertical: 6, right: 6 },
-              ]}
-              activeOpacity={0.8}
-              onPress={(e) => {
-                e.stopPropagation();
-                handleAddToCart();
-              }}
-            >
-              {isInCart ? (
-                <ArrowRight size={14} color="#fff" />
-              ) : (
-                <ShoppingBag size={14} color="#fff" />
-              )}
-              <Text style={styles.addText}>
-                {isInCart ? "Go to Cart" : "Add"}
-              </Text>
-            </TouchableOpacity>
-          )}
-      </View>
+        {(product as IProduct).totalStock > 0 && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleAddToCart();
+            }}
+            className="absolute right-1 bottom-2.5 flex flex-row items-center gap-1.5 rounded-xl bg-slate-950 px-3 py-2 shadow"
+            style={{
+              ...(isInCart ? { backgroundColor: theme.primary } : null),
+              ...(isNarrowCard ? { paddingLeft: 8, paddingRight: 8, paddingTop: 6, paddingBottom: 6, right: 6 } : null),
+            }}
+          >
+            {isInCart ? (
+              <ArrowRight size={14} color="#fff" />
+            ) : (
+              <ShoppingBag size={14} color="#fff" />
+            )}
+            <span className="text-xs font-bold text-white">
+              {isInCart ? "Go to Cart" : "Add"}
+            </span>
+          </button>
+        )}
+      </div>
 
       {/* Product Info */}
-      <View style={styles.productInfo}>
-        <Text style={[styles.productTitle, { color: theme.text }]}
-          numberOfLines={1}
-
-        >
+      <div className="p-3">
+        <p className="mb-1 line-clamp-1 text-[13px] leading-[18px] font-semibold" style={{ color: theme.text }}>
           {productData.title}
-        </Text>
+        </p>
 
         {productData.subtitle ? (
-          <Text style={[styles.benefitsText, { color: theme.secondaryText }]}
-            numberOfLines={1}
-          >
+          <p className="mb-2 line-clamp-1 text-[11px] font-medium" style={{ color: theme.secondaryText }}>
             {productData.subtitle}
-          </Text>
+          </p>
         ) : null}
 
-        <View style={styles.priceRow}>
-          <Text style={[styles.dealPrice, { color: theme.text }]}>
+        <div className="mb-2 flex flex-row flex-wrap items-center gap-1.5">
+          <span className="text-base font-extrabold" style={{ color: theme.text }}>
             {productData.price}
-          </Text>
+          </span>
           {productData.originalPrice && productData.originalPrice !== productData.price ? (
-            <Text style={[styles.originalPrice, { color: theme.secondaryText }]}>
+            <span className="text-xs line-through" style={{ color: theme.secondaryText }}>
               {productData.originalPrice}
-            </Text>
+            </span>
           ) : null}
-        </View>
+        </div>
 
         {productData.delivery ? (
-          <View style={styles.deliveryRow}>
+          <div className="flex flex-row items-center gap-1">
             {productData.delivery.toLowerCase().includes("express") ? (
-              <LazyLottie source={cyclerLottie}
+              <LazyLottie
+                source={cyclerLottie}
                 autoPlay
                 loop
-                style={{
-                  width: 22,
-                  height: 22,
-                  marginLeft: -4,
-                  marginRight: -2,
-                }}
+                style={{ width: 22, height: 22, marginLeft: -4, marginRight: -2 }}
                 resizeMode="contain"
               />
             ) : (
               <Bike size={14} color={theme.success || "#10b981"} />
             )}
-            <Text style={[
-                styles.deliveryText,
-                { color: theme.success || "#10b981" },
-              ]}
-            >
+            <span className="text-[10px] font-bold" style={{ color: theme.success || "#10b981" }}>
               {productData.delivery}
-            </Text>
-          </View>
+            </span>
+          </div>
         ) : null}
-      </View>
+      </div>
 
       {isSheetVisible && (
-        <VariantSelectorBottomSheet visible={isSheetVisible}
+        <VariantSelectorBottomSheet
+          visible={isSheetVisible}
           onClose={() => setIsSheetVisible(false)}
           product={product}
           theme={theme}
         />
       )}
-    </TouchableOpacity>
+    </div>
   );
 };

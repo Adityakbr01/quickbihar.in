@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { TouchableOpacity, Platform, View, ViewStyle } from "react-native";
+import { TouchableOpacity, Platform, View, ViewStyle } from "@/components/primitives";
 import { Heart } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";

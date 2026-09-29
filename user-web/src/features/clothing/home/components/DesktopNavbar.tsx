@@ -1,12 +1,4 @@
 import React, { useState } from "react";
-import {
-  Platform,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-  useWindowDimensions,
-} from "react-native";
 import { useLocation, useNavigate } from "react-router-dom";
 import { goTo } from "@/src/utils/navigation";
 
@@ -17,24 +9,23 @@ import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { useCartStore } from "@/src/features/common/cart/store/cartStore";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
 import { ModuleSwitcherButton } from "@/src/components/common/ModuleSwitcherButton";
-import { BREAKPOINTS, DESKTOP } from "@/src/utils/responsive";
+import { BREAKPOINTS, DESKTOP, useWindowWidth } from "@/src/utils/responsive";
 import { TextInput } from "@/src/theme/components/TextInput";
 import splashIcon from "@/assets/images/icons/splash-icon.webp";
 
 /**
  * Desktop-only top navbar for the clothing catalog (web >= 1024px).
- * Returns null on native + mobile web — mobile UI is 100% untouched.
+ * Returns null on mobile web — mobile UI is 100% untouched.
  */
 export const DesktopNavbar = () => {
-  const { width } = useWindowDimensions();
+  const width = useWindowWidth();
   const theme = useTheme() as any;
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const [query, setQuery] = useState("");
   const [focused, setFocused] = useState(false);
 
-  const isDesktop =
-    Platform.OS === "web" && width >= BREAKPOINTS.desktopMin;
+  const isDesktop = width >= BREAKPOINTS.desktopMin;
   const cartCount = useCartStore((s) => s.items.filter((i) => (i.module ?? "clothing") === "clothing").length);
   const { isAuthenticated } = useAuthStore();
   const toggleMode = (theme as any).toggleMode;
@@ -65,81 +56,68 @@ export const DesktopNavbar = () => {
   const navItem = (label: string, seg: string, href: string, Icon: LucideIcon, badge?: number) => {
     const active = isActive(seg);
     return (
-      <Pressable key={label}
-        onPress={() => go(href)}
-        accessibilityRole="link"
-        accessibilityLabel={label}
-        style={[
-          styles.navItem,
-          {
-            backgroundColor: active ? theme.primary : "transparent",
-            borderColor: active ? theme.primary : theme.border,
-          },
-          Platform.OS === "web" ? ({ cursor: "pointer" } as any) : null,
-        ]}
+      <button
+        key={label}
+        type="button"
+        onClick={() => go(href)}
+        aria-label={label}
+        className="flex cursor-pointer flex-row items-center gap-2 rounded-full border px-3.5 py-2"
+        style={{
+          backgroundColor: active ? theme.primary : "transparent",
+          borderColor: active ? theme.primary : theme.border,
+        }}
       >
-        <Icon
-          size={17}
-          color={active ? "#fff" : theme.secondaryText}
-        />
-        <Text style={[
-            styles.navLabel,
-            { color: active ? "#fff" : theme.text },
-          ]}
+        <Icon size={17} color={active ? "#fff" : theme.secondaryText} />
+        <span
+          className="text-sm font-bold"
+          style={{ color: active ? "#fff" : theme.text }}
         >
           {label}
-        </Text>
+        </span>
         {typeof badge === "number" && badge > 0 ? (
-          <View style={[
-              styles.badge,
-              { backgroundColor: active ? "#fff" : theme.primary },
-            ]}
+          <span
+            className="flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[11px] font-extrabold"
+            style={{ backgroundColor: active ? "#fff" : theme.primary, color: active ? theme.primary : "#fff" }}
           >
-            <Text style={[
-                styles.badgeText,
-                { color: active ? theme.primary : "#fff" },
-              ]}
-            >
-              {badge > 99 ? "99+" : badge}
-            </Text>
-          </View>
+            {badge > 99 ? "99+" : badge}
+          </span>
         ) : null}
-      </Pressable>
+      </button>
     );
   };
 
   return (
-    <View style={[
-        styles.shell,
-        {
-          backgroundColor: theme.background,
-          borderBottomColor: theme.border,
-          shadowColor: theme.shadow,
-        },
-      ]}
+    <div
+      className="z-50 w-full border-b shadow-lg"
+      style={{ backgroundColor: theme.background, borderBottomColor: theme.border }}
     >
-      <View style={styles.inner}>
+      <div
+        className="mx-auto flex w-full flex-row items-center gap-6 px-6 pt-3.5 pb-3"
+        style={{ maxWidth: DESKTOP.maxWidth }}
+      >
         {/* Brand */}
-        <Pressable onPress={() => go("/(tabs)/clothing/home")}
-          style={Platform.OS === "web" ? ({ cursor: "pointer" } as any) : null}
-          accessibilityRole="link"
-          accessibilityLabel="Quick Bihar home"
+        <button
+          type="button"
+          onClick={() => go("/(tabs)/clothing/home")}
+          aria-label="Quick Bihar home"
+          className="cursor-pointer"
         >
-          <View style={styles.brandRow}>
-            <img src={splashIcon} alt="Quick Bihar logo" aria-label="Quick Bihar logo" style={Object.assign({}, styles.logoImage, { objectFit: "contain" as const })} />
-            <View>
-              <Text style={[styles.brandName, { color: theme.text }]}>
+          <div className="flex min-w-[190px] flex-row items-center gap-2.5">
+            <img src={splashIcon} alt="Quick Bihar logo" className="h-[46px] w-[42px] rounded-xl object-contain" />
+            <div>
+              <p className="text-[19px] leading-[22px] font-black tracking-tight" style={{ color: theme.text }}>
                 Quick Bihar
-              </Text>
-              <Text style={[styles.brandSub, { color: theme.primary }]}>
+              </p>
+              <p className="mt-0.5 text-[10px] font-extrabold tracking-[1.6px]" style={{ color: theme.primary }}>
                 FASHION • BIHAR
-              </Text>
-            </View>
-          </View>
-        </Pressable>
+              </p>
+            </div>
+          </div>
+        </button>
 
         {/* Search */}
-        <TextInput value={query}
+        <TextInput
+          value={query}
           onChangeText={setQuery}
           onSubmitEditing={submitSearch}
           onFocus={() => setFocused(true)}
@@ -153,15 +131,18 @@ export const DesktopNavbar = () => {
           rightIcon={
             <>
               {query.length > 0 ? (
-                <Pressable onPress={() => setQuery("")} style={styles.searchClear}>
+                <button type="button" onClick={() => setQuery("")} className="cursor-pointer p-1">
                   <CircleX size={18} color={theme.secondaryText} />
-                </Pressable>
+                </button>
               ) : null}
-              <Pressable onPress={submitSearch}
-                style={[styles.searchBtn, { backgroundColor: theme.primary }]}
+              <button
+                type="button"
+                onClick={submitSearch}
+                className="rounded-full px-5 py-2.5 text-sm font-extrabold text-white"
+                style={{ backgroundColor: theme.primary }}
               >
-                <Text style={styles.searchBtnText}>Search</Text>
-              </Pressable>
+                Search
+              </button>
             </>
           }
           containerStyle={{ marginBottom: 0, flex: 1, maxWidth: 560 }}
@@ -177,7 +158,7 @@ export const DesktopNavbar = () => {
         />
 
         {/* Nav */}
-        <View style={styles.navRow}>
+        <nav className="ml-auto flex flex-row items-center gap-2">
           {navItem("Home", "/clothing/home", "/(tabs)/clothing/home", House)}
           {navItem("Cart", "/clothing/cart", "/(tabs)/clothing/cart", ShoppingBag, cartCount)}
           {navItem(
@@ -186,90 +167,33 @@ export const DesktopNavbar = () => {
             "/(tabs)/clothing/account",
             User,
           )}
-          <Pressable onPress={() => go("/account/notifications" as any)}
-            style={[styles.iconBtn, { borderColor: theme.border }]}
-            accessibilityLabel="Notifications"
+          <button
+            type="button"
+            onClick={() => go("/account/notifications" as any)}
+            aria-label="Notifications"
+            className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border"
+            style={{ borderColor: theme.border }}
           >
             <Bell size={18} color={theme.text} />
-          </Pressable>
+          </button>
           <ModuleSwitcherButton />
-          <Pressable onPress={() => toggleMode?.()}
-            style={[styles.iconBtn, { borderColor: theme.border }]}
-            accessibilityLabel="Toggle theme"
+          <button
+            type="button"
+            onClick={() => toggleMode?.()}
+            aria-label="Toggle theme"
+            className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border"
+            style={{ borderColor: theme.border }}
           >
             {isDark ? (
               <Sun size={18} color={theme.text} />
             ) : (
               <Moon size={18} color={theme.text} />
             )}
-          </Pressable>
-        </View>
-      </View>
-    </View>
+          </button>
+        </nav>
+      </div>
+    </div>
   );
 };
-
-const styles = StyleSheet.create({
-  shell: {
-    width: "100%",
-    borderBottomWidth: 1,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 4,
-    zIndex: 50,
-  },
-  inner: {
-    width: "100%",
-    maxWidth: DESKTOP.maxWidth,
-    alignSelf: "center",
-    marginHorizontal: "auto" as any,
-    paddingHorizontal: DESKTOP.gutter,
-    paddingTop: 14,
-    paddingBottom: 12,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 24,
-  },
-  brandRow: { flexDirection: "row", alignItems: "center", gap: 10, minWidth: 190 },
-  logoImage: {
-    width: 42,
-    height: 46,
-    borderRadius: 12,
-  },
-  brandName: { fontSize: 19, fontWeight: "900", letterSpacing: -0.4, lineHeight: 22 },
-  brandSub: { fontSize: 10, fontWeight: "800", letterSpacing: 1.6, marginTop: 1 },
-  searchClear: { padding: 4 },
-  searchBtn: { paddingHorizontal: 20, paddingVertical: 10, borderRadius: 999 },
-  searchBtnText: { color: "#fff", fontWeight: "800", fontSize: 14 },
-  navRow: { flexDirection: "row", alignItems: "center", gap: 8, marginLeft: "auto" },
-  navItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 7,
-    paddingHorizontal: 14,
-    paddingVertical: 9,
-    borderRadius: 999,
-    borderWidth: 1,
-  },
-  navLabel: { fontSize: 14, fontWeight: "700" },
-  badge: {
-    minWidth: 20,
-    height: 20,
-    borderRadius: 10,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 5,
-  },
-  badgeText: { fontSize: 11, fontWeight: "800" },
-  iconBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    borderWidth: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-});
 
 export default DesktopNavbar;

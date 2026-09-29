@@ -1,5 +1,5 @@
 import { spacing } from "@/src/theme/spacing";
-import { StyleSheet, Platform } from "react-native";
+import { StyleSheet, Platform } from "@/components/primitives";
 import { Theme } from "@/src/theme/colors";
 
 export const createAuthStyles = (theme: Theme) => StyleSheet.create({

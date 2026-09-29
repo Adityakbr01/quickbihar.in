@@ -19,7 +19,7 @@ import {
   Text,
   TouchableOpacity,
   View
-} from "react-native";
+} from "@/components/primitives";
 import AddressInput from "../components/AddressInput";
 import AddressTypeSelector from "../components/AddressTypeSelector";
 import LocationFetchButton from "../components/LocationFetchButton";

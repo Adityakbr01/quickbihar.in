@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Text, TouchableOpacity, View } from "react-native";
+import { Text, TouchableOpacity, View } from "@/components/primitives";
 import { useEffect, useRef } from "react";
 import { Calendar } from "lucide-react";
 import type { Theme } from "@/src/theme/Provider/ThemeProvider";

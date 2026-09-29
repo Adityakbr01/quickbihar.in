@@ -1,4 +1,4 @@
-import { useColorScheme } from "react-native";
+import { useColorScheme } from "@/components/primitives";
 
 import colors from "@/src/features/Jewelery/constants/jeweleryColors";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";

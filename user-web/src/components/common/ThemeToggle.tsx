@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { Pressable, StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, View } from "@/components/primitives";
 
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 

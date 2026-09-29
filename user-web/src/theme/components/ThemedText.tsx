@@ -1,5 +1,5 @@
 // components/ThemedText.tsx
-import { Text, TextProps } from "react-native";
+import { Text, TextProps } from "@/components/primitives";
 import { useTheme } from "../Provider/ThemeProvider";
 
 export default function ThemedText(props: TextProps) {

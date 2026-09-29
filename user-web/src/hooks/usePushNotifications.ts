@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Linking, Platform } from "react-native";
+import { Linking, Platform } from "@/components/primitives";
 import { registerForPushNotificationsAsync, initializeNotificationHandler } from "../lib/notification";
 import { useAuthStore } from "../features/common/auth/store/authStore";
 import { updateFcmTokenRequest } from "../features/common/profileInfo/api/profile.api";

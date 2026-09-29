@@ -3,7 +3,7 @@ import {
   StyleProp,
   TextStyle,
   Text,
-} from "react-native";
+} from "@/components/primitives";
 
 /**
  * Price text with a currency prefix (or any custom prefix).

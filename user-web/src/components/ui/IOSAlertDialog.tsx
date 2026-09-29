@@ -7,7 +7,7 @@ import {
   View,
   Dimensions,
   Platform,
-} from "react-native";
+} from "@/components/primitives";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 
 export interface AlertButton {

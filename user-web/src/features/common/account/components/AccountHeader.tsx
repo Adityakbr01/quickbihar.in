@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, TouchableOpacity, ActivityIndicator } from "react-native";
+import { View, Text, TouchableOpacity, ActivityIndicator } from "@/components/primitives";
 
 import { AppIcon } from "@/src/components/common/AppIcon";
 import { Camera, Pencil } from "lucide-react";

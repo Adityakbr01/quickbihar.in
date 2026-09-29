@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text } from "react-native";
+import { View, Text } from "@/components/primitives";
 import { AppIcon } from "@/src/components/common/AppIcon";
 import type { LucideIcon } from "lucide-react";
 import { Theme } from "@/src/theme/Provider/ThemeProvider";

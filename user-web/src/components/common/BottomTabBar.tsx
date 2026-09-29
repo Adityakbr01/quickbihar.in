@@ -6,7 +6,7 @@ import {
   Text,
   View,
   useWindowDimensions,
-} from "react-native";
+} from "@/components/primitives";
 import { useLocation, useNavigate } from "react-router-dom";
 import { goTo } from "@/src/utils/navigation";
 import { Bike, House, LayoutGrid, Search, ShoppingBag, ShoppingCart, User } from "lucide-react";

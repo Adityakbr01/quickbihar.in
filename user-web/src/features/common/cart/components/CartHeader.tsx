@@ -1,5 +1,5 @@
 import React from "react";
-import { Platform, View, Text } from "react-native";
+import { Platform, View, Text } from "@/components/primitives";
 import { Wallet } from "lucide-react";
 import LazyLottie from "@/src/components/common/LazyLottie";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";

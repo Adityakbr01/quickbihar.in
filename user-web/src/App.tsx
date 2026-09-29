@@ -1,5 +1,12 @@
 import React, { useEffect } from "react";
-import { BrowserRouter, Routes, Route, Navigate, useParams, useLocation } from "react-router-dom";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+  useParams,
+  useLocation,
+} from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { QueryProvider } from "@/src/provider/QueryProvider";
 import { ThemeProvider, useTheme } from "@/src/theme/Provider/ThemeProvider";
@@ -10,7 +17,7 @@ import { useModuleStore } from "@/src/store/useModuleStore";
 import { APP_MODULES } from "@/src/constants/modules";
 import { ErrorBoundary } from "@/src/components/common/ErrorBoundary";
 import { normalizeExpoPathForWeb } from "@/src/utils/navigation";
-import { View } from "react-native";
+import { View } from "@/components/primitives";
 import DesktopNavbar from "@/src/features/clothing/home/components/DesktopNavbar";
 import JeweleryDesktopNavbar from "@/src/features/Jewelery/components/JeweleryDesktopNavbar";
 import BottomTabBar from "@/src/components/common/BottomTabBar";
@@ -55,22 +62,23 @@ import JeweleryWishlistScreen from "@/src/features/Jewelery/screens/JeweleryWish
 
 function MallDetailRoute() {
   const { slug } = useParams<{ slug: string }>();
-  return <MallDetailScreen id={slug || ''} />;
+  return <MallDetailScreen id={slug || ""} />;
 }
 
 function ProductDetailRoute() {
   const { id } = useParams<{ id: string }>();
-  return <ProductDetailScreen id={id || ''} />;
+  return <ProductDetailScreen id={id || ""} />;
 }
 
 function CategoryDetailRoute() {
   const { slug } = useParams<{ slug: string }>();
-  return <CategoryDetailScreen slug={slug || ''} />;
+  return <CategoryDetailScreen slug={slug || ""} />;
 }
 
 function RootRedirect() {
   const { currentModuleId } = useModuleStore();
-  const activeModule = APP_MODULES.find((m) => m.id === currentModuleId) || APP_MODULES[0];
+  const activeModule =
+    APP_MODULES.find((m) => m.id === currentModuleId) || APP_MODULES[0];
   // Normalize: handles legacy "/(tabs)/clothing/home" left over from mobile.
   const targetRoute = normalizeExpoPathForWeb(activeModule.route);
   return <Navigate to={targetRoute} replace />;
@@ -116,7 +124,9 @@ function MainLayout() {
     location.pathname.startsWith("/jewelery/auth/");
 
   return (
-    <View style={{ flex: 1, backgroundColor: theme.background, minHeight: "100vh" }}>
+    <div
+      style={{ flex: 1, backgroundColor: theme.background, minHeight: "100vh" }}
+    >
       <ThemedChrome />
       <SocketListenerProvider>
         {isAuthRoute ? null : isJeweleryRoute ? (
@@ -127,12 +137,24 @@ function MainLayout() {
         <Routes>
           <Route path="/" element={<RootRedirect />} />
           {/* Legacy Expo URLs: "/(tabs)/clothing/home" -> "/clothing/home" */}
-          <Route path="/(tabs)/clothing/home" element={<ClothingHomeScreen />} />
-          <Route path="/(tabs)/clothing/search" element={<ClothingSearchScreen />} />
+          <Route
+            path="/(tabs)/clothing/home"
+            element={<ClothingHomeScreen />}
+          />
+          <Route
+            path="/(tabs)/clothing/search"
+            element={<ClothingSearchScreen />}
+          />
           <Route path="/(tabs)/clothing/cart" element={<CartContent />} />
           <Route path="/(tabs)/clothing/account" element={<AccountMain />} />
-          <Route path="/(tabs)/clothing/checkout" element={<CheckoutScreen />} />
-          <Route path="/(tabs)/clothing/rider" element={<RiderWorkspaceScreen />} />
+          <Route
+            path="/(tabs)/clothing/checkout"
+            element={<CheckoutScreen />}
+          />
+          <Route
+            path="/(tabs)/clothing/rider"
+            element={<RiderWorkspaceScreen />}
+          />
 
           {/* Clothing & Main Routes */}
           <Route path="/clothing/home" element={<ClothingHomeScreen />} />
@@ -141,62 +163,95 @@ function MainLayout() {
           <Route path="/clothing/account" element={<AccountMain />} />
           <Route path="/clothing/checkout" element={<CheckoutScreen />} />
           <Route path="/clothing/rider" element={<RiderWorkspaceScreen />} />
-          
+
           <Route path="/top-selling" element={<TopSellingScreen />} />
           <Route path="/mall/:slug" element={<MallDetailRoute />} />
           <Route path="/product/:id" element={<ProductDetailRoute />} />
           <Route path="/category/:slug" element={<CategoryDetailRoute />} />
-          
+
           {/* Account Routes */}
           <Route path="/account" element={<AccountMain />} />
           <Route path="/account/addresses" element={<SavedAddressesScreen />} />
           <Route path="/account/address-form" element={<AddressFormScreen />} />
           <Route path="/account/orders" element={<OrderListScreen />} />
           <Route path="/account/wishlist" element={<WishlistScreen />} />
-          <Route path="/account/notifications" element={<NotificationScreen />} />
-          
+          <Route
+            path="/account/notifications"
+            element={<NotificationScreen />}
+          />
+
           {/* Orders */}
           <Route path="/checkout" element={<CheckoutScreen />} />
           <Route path="/order-detail" element={<OrderDetailScreen />} />
           <Route path="/order-success" element={<OrderSuccessScreen />} />
-          
+
           {/* Other Modules */}
           <Route path="/food" element={<FoodHomeScreen />} />
           <Route path="/rider" element={<RiderWorkspaceScreen />} />
           <Route path="/Onboarding" element={<OnboardingScreen />} />
-          
+
           {/* Auth (common sign-in used by every module's guest flows) */}
           <Route path="/auth" element={<AuthScreen />} />
 
           {/* Jewelery Module */}
           <Route path="/jewelery" element={<JeweleryHomeScreen />} />
-          <Route path="/jewelery/collections" element={<JeweleryCollectionsScreen />} />
+          <Route
+            path="/jewelery/collections"
+            element={<JeweleryCollectionsScreen />}
+          />
           <Route path="/jewelery/cart" element={<JeweleryCartScreen />} />
-          <Route path="/jewelery/checkout" element={<JeweleryCheckoutScreen />} />
+          <Route
+            path="/jewelery/checkout"
+            element={<JeweleryCheckoutScreen />}
+          />
           <Route path="/jewelery/try-on" element={<JeweleryTryOnScreen />} />
           <Route path="/jewelery/account" element={<JeweleryAccountScreen />} />
           {/* Mobile profile tab renders the same account screen */}
           <Route path="/jewelery/profile" element={<JeweleryAccountScreen />} />
-          <Route path="/jewelery/addresses" element={<JeweleryAddressesScreen />} />
-          <Route path="/jewelery/address-form" element={<JeweleryAddressFormScreen />} />
+          <Route
+            path="/jewelery/addresses"
+            element={<JeweleryAddressesScreen />}
+          />
+          <Route
+            path="/jewelery/address-form"
+            element={<JeweleryAddressFormScreen />}
+          />
           <Route path="/jewelery/orders" element={<JeweleryOrdersScreen />} />
-          <Route path="/jewelery/order-detail" element={<JeweleryOrderDetailScreen />} />
+          <Route
+            path="/jewelery/order-detail"
+            element={<JeweleryOrderDetailScreen />}
+          />
           {/* Mobile dynamic route /jewelery/orders/[id] */}
-          <Route path="/jewelery/orders/:id" element={<JeweleryOrderDetailScreen />} />
-          <Route path="/jewelery/order-success" element={<JeweleryOrderSuccessScreen />} />
-          <Route path="/jewelery/wishlist" element={<JeweleryWishlistScreen />} />
+          <Route
+            path="/jewelery/orders/:id"
+            element={<JeweleryOrderDetailScreen />}
+          />
+          <Route
+            path="/jewelery/order-success"
+            element={<JeweleryOrderSuccessScreen />}
+          />
+          <Route
+            path="/jewelery/wishlist"
+            element={<JeweleryWishlistScreen />}
+          />
           <Route path="/jewelery/search" element={<JewelerySearchScreen />} />
-          <Route path="/jewelery/notifications" element={<NotificationScreen />} />
+          <Route
+            path="/jewelery/notifications"
+            element={<NotificationScreen />}
+          />
           <Route path="/jewelery/auth/sign-in" element={<AuthScreen />} />
           <Route path="/jewelery/auth/sign-up" element={<AuthScreen />} />
-          <Route path="/jewelery/product/:id" element={<JeweleryProductDetailScreen />} />
+          <Route
+            path="/jewelery/product/:id"
+            element={<JeweleryProductDetailScreen />}
+          />
 
           {/* Catch-all: normalize legacy Expo paths, else module home */}
           <Route path="*" element={<LegacyRedirect />} />
         </Routes>
         <BottomTabBar />
       </SocketListenerProvider>
-    </View>
+    </div>
   );
 }
 
@@ -210,15 +265,15 @@ export default function App() {
   return (
     <ErrorBoundary>
       <HelmetProvider>
-      <BrowserRouter>
-        <QueryProvider>
-          <ThemeProvider>
-            <SheetProvider>
-              <MainLayout />
-            </SheetProvider>
-          </ThemeProvider>
-        </QueryProvider>
-      </BrowserRouter>
+        <BrowserRouter>
+          <QueryProvider>
+            <ThemeProvider>
+              <SheetProvider>
+                <MainLayout />
+              </SheetProvider>
+            </ThemeProvider>
+          </QueryProvider>
+        </BrowserRouter>
       </HelmetProvider>
     </ErrorBoundary>
   );

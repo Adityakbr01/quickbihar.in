@@ -1,5 +1,5 @@
 import React from "react";
-import { ScrollView, Text, TouchableOpacity } from "react-native";
+import { ScrollView, Text, TouchableOpacity } from "@/components/primitives";
 
 import type { Theme } from "@/src/theme/Provider/ThemeProvider";
 import { riderTabs } from "../../theme/riderTheme";

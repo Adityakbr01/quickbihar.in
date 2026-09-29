@@ -1,17 +1,7 @@
 import React from "react";
-import {
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-  useWindowDimensions,
-} from "react-native";
-
 import { Gradient } from "@/src/components/common/Gradient";
 import { CAMPAIGNS } from "../lib/dealsConfig";
-import { BREAKPOINTS } from "@/src/utils/responsive";
+import { BREAKPOINTS, useWindowWidth } from "@/src/utils/responsive";
 
 export const MoreDealsHeader = ({
   theme,
@@ -23,9 +13,9 @@ export const MoreDealsHeader = ({
   );
 
   const activeId = activeCampaign ?? internalActiveId;
-  const { width } = useWindowDimensions();
-  const isDesktop = Platform.OS === "web" && width >= BREAKPOINTS.desktopMin;
-  // ponytail: festive active gradient is brand candy (same both modes);
+  const width = useWindowWidth();
+  const isDesktop = width >= BREAKPOINTS.desktopMin;
+  // festive active gradient is brand candy (same both modes);
   // only the idle-cream card adapts so it doesn't glow on dark.
   const isDark = theme?.isDark ?? theme?.text === "#ffffff";
   const idleGradient = (isDark
@@ -55,202 +45,97 @@ export const MoreDealsHeader = ({
 
   const list = CAMPAIGNS;
 
-  const renderCard = (camp: (typeof CAMPAIGNS)[number], cardWidth?: number) => {
+  const renderCard = (camp: (typeof CAMPAIGNS)[number]) => {
     const isActive = activeId === camp.id;
     const imageUri = typeof camp.image === "string" ? camp.image : undefined;
     return (
-      <TouchableOpacity
+      <button
         key={camp.id}
-        activeOpacity={0.85}
-        accessibilityRole="button"
-        accessibilityLabel={`View ${camp.title} Deals`}
-        {...({ title: `Explore ${camp.title} Deals on QuickBihar` } as any)}
-        onPress={() => handlePress(camp.id)}
+        type="button"
+        aria-label={`View ${camp.title} Deals`}
+        title={`Explore ${camp.title} Deals on QuickBihar`}
+        onClick={() => handlePress(camp.id)}
+        className="cursor-pointer"
       >
         <Gradient
           colors={isActive ? ["#F15E48", "#FDCE7F"] : idleGradient}
-          style={[
-            styles.campaignCard,
-            isDesktop && desktopStyles.card,
-            cardWidth ? { width: cardWidth } : null,
-            isActive
-              ? { borderColor: "#F15E48" }
-              : { borderColor: isDark ? "rgba(222,132,16,0.45)" : "#DE8410" },
-          ]}
+          style={{
+            width: isDesktop ? 196 : 120,
+            height: isDesktop ? 132 : 100,
+            borderRadius: isDesktop ? 18 : 14,
+            overflow: "hidden",
+            backgroundColor: "#FFF8E7",
+            borderTopWidth: 0,
+            borderBottomWidth: 3,
+            borderLeftWidth: 0.5,
+            borderRightWidth: 0.5,
+            borderStyle: "solid",
+            padding: 8,
+            position: "relative",
+            borderColor: isActive ? "#F15E48" : isDark ? "rgba(222,132,16,0.45)" : "#DE8410",
+          }}
         >
-          <Text
-            style={[
-              styles.campaignTitle,
-              isDesktop && desktopStyles.title,
-              isActive
-                ? { color: "#FFFFFF" }
-                : { color: isDark ? "#F5B04C" : "#E08616" },
-            ]}
-            numberOfLines={2}
+          <span
+            className="z-10 px-2 py-1.5 text-center font-black whitespace-pre-line"
+            style={{
+              fontSize: isDesktop ? 16 : 17,
+              lineHeight: isDesktop ? "18px" : "16px",
+              color: isActive ? "#FFFFFF" : isDark ? "#F5B04C" : "#E08616",
+            }}
           >
             {formatTitle(camp.title)}
-          </Text>
-          <img src={imageUri || camp.image} alt={`${camp.title} Deals in Bihar`} aria-label={`${camp.title} campaign`} style={Object.assign({}, styles.campaignImage, ...isDesktop && desktopStyles.image, { objectFit: "contain" as const })} {...({ title: `${camp.title} | QuickBihar Deals` } as any)} />
+          </span>
+          <img
+            src={imageUri || camp.image}
+            alt={`${camp.title} Deals in Bihar`}
+            title={`${camp.title} | QuickBihar Deals`}
+            className="absolute z-[11] opacity-80"
+            style={
+              isDesktop
+                ? { width: 120, height: 120, bottom: -28, right: 22, objectFit: "contain" }
+                : { width: 90, height: 90, bottom: -20, right: 16, objectFit: "contain" }
+            }
+          />
         </Gradient>
-      </TouchableOpacity>
+      </button>
     );
   };
 
   if (isDesktop) {
     return (
-      <View style={[styles.container, { paddingBottom: 0, alignItems: "center" }]}>
+      <div className="mt-8 flex flex-col items-center pb-0">
         {/* Left-aligned heading block like mobile section headers. */}
-        <View style={desktopStyles.headingWrap}>
-          <Text
-            accessibilityRole="header"
-            aria-level={2}
-            {...({ role: "heading" } as any)}
-            style={[styles.headerText, desktopStyles.heading, { color: theme?.text || "#fff" }]}
+        <div className="w-full max-w-[1080px] px-6 text-left">
+          <h2
+            className="mb-1.5 text-left text-[28px] font-extrabold tracking-tight"
+            style={{ color: theme?.text || "#fff" }}
           >
             Explore More Deals
-          </Text>
-          <Text style={[desktopStyles.sub, { color: theme?.secondaryText }]}>
+          </h2>
+          <p className="mb-5.5 text-left text-sm font-medium" style={{ color: theme?.secondaryText }}>
             {"Curated festive picks from Bihar's top local stores"}
-          </Text>
-        </View>
-        <View style={desktopStyles.grid}>
+          </p>
+        </div>
+        <div className="flex max-w-[1080px] flex-row flex-wrap justify-center gap-4">
           {list.map((camp) => renderCard(camp))}
-        </View>
-      </View>
+        </div>
+      </div>
     );
   }
 
   return (
-    <View style={[styles.container, { paddingBottom: 0 }]}>
-      <Text
-        accessibilityRole="header"
-        aria-level={2}
-        {...({ role: "heading" } as any)}
-        style={[styles.headerText, { color: theme?.text || "#fff" }]}
+    <div className="mt-8 pb-0">
+      <h2
+        className="mb-5 text-center text-[22px] font-extrabold tracking-tight"
+        style={{ color: theme?.text || "#fff" }}
       >
         Explore More Deals
-      </Text>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.campaignList}
-      >
-        {CAMPAIGNS.map((camp) => {
-          const isActive = activeId === camp.id;
-          const imageUri = typeof camp.image === "string" ? camp.image : undefined;
-          return (
-            <TouchableOpacity
-              key={camp.id}
-              activeOpacity={0.85}
-              accessibilityRole="button"
-              accessibilityLabel={`View ${camp.title} Deals`}
-              {...({ title: `Explore ${camp.title} Deals on QuickBihar` } as any)}
-              onPress={() => handlePress(camp.id)}
-            >
-              <Gradient
-                colors={
-                  isActive ? ["#F15E48", "#FDCE7F"] : idleGradient
-                }
-                style={[
-                  styles.campaignCard,
-                  isActive
-                    ? { borderColor: "#F15E48" }
-                    : { borderColor: isDark ? "rgba(222,132,16,0.45)" : "#DE8410" },
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.campaignTitle,
-                    isActive
-                      ? { color: "#FFFFFF" }
-                      : { color: isDark ? "#F5B04C" : "#E08616" },
-                  ]}
-                  numberOfLines={2}
-                >
-                  {formatTitle(camp.title)}
-                </Text>
-                <img src={imageUri || camp.image} alt={`${camp.title} Deals in Bihar`} aria-label={`${camp.title} campaign`} style={Object.assign({}, styles.campaignImage, { objectFit: "contain" as const })} {...({ title: `${camp.title} | QuickBihar Deals` } as any)} />
-              </Gradient>
-            </TouchableOpacity>
-          );
-        })}
-      </ScrollView>
-    </View>
+      </h2>
+      <div className="flex flex-row gap-3 overflow-x-auto px-3 py-2.5" style={{ scrollbarWidth: "none" }}>
+        {CAMPAIGNS.map((camp) => renderCard(camp))}
+      </div>
+    </div>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    marginTop: 32,
-    paddingBottom: 24,
-  },
-  headerText: {
-    fontSize: 22,
-    fontWeight: "800",
-    textAlign: "center",
-    marginBottom: 20,
-    letterSpacing: -0.5,
-  },
-  campaignList: {
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    gap: 12,
-  },
-  campaignCard: {
-    width: 120,
-    borderRadius: 14,
-    overflow: "hidden",
-    backgroundColor: "#FFF8E7",
-    borderTopWidth: 0,
-    borderBottomWidth: 3,
-    borderLeftWidth: 0.5,
-    borderRightWidth: 0.5,
-    borderColor: "#DE8410",
-    height: 100,
-    padding: 8,
-    position: "relative",
-  },
-  campaignImage: {
-    position: "absolute",
-    bottom: -20, // Let's sink the image down to make it look cool behind/under the text
-    right: 16, // Push it to the corner
-    width: 90,
-    height: 90,
-    zIndex: 11,
-    opacity: 0.8,
-  },
-  campaignTitle: {
-    fontSize: 17,
-    fontWeight: "900",
-    paddingHorizontal: 8,
-    paddingVertical: 6,
-    lineHeight: 16,
-    color: "#E08616",
-    textAlign: "center",
-    zIndex: 10,
-  },
-});
-
-// Desktop-only: 5-up festive grid. Never used on mobile.
-const desktopStyles = StyleSheet.create({
-  headingWrap: {
-    width: "100%",
-    maxWidth: 1080,
-    alignItems: "flex-start",
-    paddingHorizontal: 24,
-  },
-  heading: { fontSize: 28, marginBottom: 6, textAlign: "left" },
-  sub: { fontSize: 14, fontWeight: "500", marginBottom: 22, textAlign: "left" },
-  grid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "center",
-    gap: 16,
-    maxWidth: 1080,
-  },
-  card: { width: 196, height: 132, borderRadius: 18 },
-  title: { fontSize: 16, lineHeight: 18 },
-  image: { width: 120, height: 120, bottom: -28, right: 22 },
-});
 
 export default MoreDealsHeader;

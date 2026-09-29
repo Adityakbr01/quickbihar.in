@@ -1,5 +1,5 @@
 import React, { Suspense, forwardRef } from "react";
-import { View } from "react-native";
+import { View } from "@/components/primitives";
 
 const LottieInner = React.lazy(() =>
   import("lottie-react").then((m) => ({ default: m.Lottie }))

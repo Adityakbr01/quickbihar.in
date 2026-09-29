@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo } from "react";
-import { Platform, View, ScrollView, TouchableOpacity, Text, ActivityIndicator, useWindowDimensions } from "react-native";
+import { Platform, View, ScrollView, TouchableOpacity, Text, ActivityIndicator, useWindowDimensions } from "@/components/primitives";
 import { BREAKPOINTS, DESKTOP, BOTTOM_TAB_BAR_HEIGHT } from "@/src/utils/responsive";
 import { useSafeAreaInsets } from "@/src/hooks/useSafeAreaInsets";
 import { ArrowRight } from "lucide-react";
@@ -14,7 +14,7 @@ import EmptyCart from "../components/EmptyCart";
 import CouponInput from "../components/CouponInput";
 import { useNavigate } from "react-router-dom";
 import { goTo } from "@/src/utils/navigation";
-import { Alert } from "react-native";
+import { Alert } from "@/components/primitives";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
 import { AnimatedPrice } from "@/src/components/common/AnimatedPrice";
 

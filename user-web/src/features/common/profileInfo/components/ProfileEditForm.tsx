@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, TouchableOpacity, ActivityIndicator } from "react-native";
+import { View, Text, TouchableOpacity, ActivityIndicator } from "@/components/primitives";
 import { CircleAlert, ShieldCheck } from "lucide-react";
 import { Controller } from "react-hook-form";
 import { Theme } from "@/src/theme/Provider/ThemeProvider";

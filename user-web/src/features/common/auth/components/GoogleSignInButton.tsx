@@ -8,7 +8,7 @@ import {
   StyleSheet,
   Text,
   View,
-} from "react-native";
+} from "@/components/primitives";
 import {
   GoogleSignin,
   isErrorWithCode,

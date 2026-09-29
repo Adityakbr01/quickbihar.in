@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet } from "@/components/primitives";
 import { ArrowDown } from "lucide-react";
 import { OnboardingStepData } from "./types";
 import { PaginationControls, PaginationControlsProps } from "./PaginationControls";

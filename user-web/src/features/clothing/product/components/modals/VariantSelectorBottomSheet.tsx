@@ -7,7 +7,7 @@ import {
   Text,
   TouchableOpacity,
   View,
-} from "react-native";
+} from "@/components/primitives";
 import type { LucideIcon } from "lucide-react";
 import { ArrowRight, CircleX, Expand, Palette, ShoppingBag, X, Zap } from "lucide-react";
 import { Theme } from "@/src/theme/Provider/ThemeProvider";
