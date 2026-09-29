@@ -79,7 +79,7 @@ const JeweleryTabBar: React.FC<{
 
   return (
     <nav
-      className="fixed right-0 bottom-0 left-0 z-[9999] flex h-[60px] flex-row items-center justify-around border-t px-0 py-1 shadow-[0_-3px_6px_rgba(0,0,0,0.1)]"
+      className="fixed right-0 bottom-0 left-0 z-[9999] flex h-[calc(60px+env(safe-area-inset-bottom))] max-h-[calc(60px+env(safe-area-inset-bottom))] min-h-[calc(60px+env(safe-area-inset-bottom))] shrink-0 flex-row items-center justify-around overflow-hidden border-t px-0 py-1 shadow-[0_-3px_6px_rgba(0,0,0,0.1)]"
       style={{ backgroundColor: colors.ivory, borderTopColor: colors.midGray }}
       aria-label="Jewelery tabs"
     >
@@ -258,7 +258,7 @@ export const BottomTabBar: React.FC = () => {
 
   return (
     <nav
-      className="fixed right-0 bottom-0 left-0 z-[9999] flex h-[60px] flex-row items-center justify-around border-t px-0 py-1 shadow-[0_-3px_6px_rgba(0,0,0,0.1)]"
+      className="fixed right-0 bottom-0 left-0 z-[9999] flex h-[calc(60px+env(safe-area-inset-bottom))] max-h-[calc(60px+env(safe-area-inset-bottom))] min-h-[calc(60px+env(safe-area-inset-bottom))] shrink-0 flex-row items-center justify-around overflow-hidden border-t px-0 py-1 shadow-[0_-3px_6px_rgba(0,0,0,0.1)]"
       style={{
         backgroundColor: theme.background,
         borderTopColor: theme.border || "rgba(0,0,0,0.08)",

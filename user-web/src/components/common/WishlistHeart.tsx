@@ -50,10 +50,27 @@ const WishlistHeart: React.FC<WishlistHeartProps> = ({
   };
 
   return (
-    <div
+    <button
+      type="button"
       onClick={handlePress}
+      aria-label={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
+      aria-pressed={isWishlisted}
       className="cursor-pointer"
-      style={flatten(style)}
+      style={{
+        // Flex centering lives HERE (not at call sites): several callers
+        // pass alignItems/justifyContent without display:flex, which left
+        // the heart stuck top-left / half-cut inside its circle.
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        lineHeight: 0,
+        flexShrink: 0,
+        appearance: "none",
+        backgroundColor: "transparent",
+        borderWidth: 0,
+        padding: 0,
+        ...flatten(style),
+      }}
     >
       <div
         style={{ transform: popping ? "scale(1.4)" : undefined, transition: "transform 0.2s ease-out" }}
@@ -64,7 +81,7 @@ const WishlistHeart: React.FC<WishlistHeartProps> = ({
           fill={isWishlisted ? activeColor : "none"}
         />
       </div>
-    </div>
+    </button>
   );
 };
 
