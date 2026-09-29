@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { ScrollView, StyleSheet, Text, View, InteractionManager, ActivityIndicator } from "@/components/primitives";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import HomeHeader from "@/src/features/clothing/home/components/HomeHeader";
 import { Flame, Pizza, Sandwich, Star, UtensilsCrossed } from "lucide-react";
@@ -17,138 +16,91 @@ export const FoodHomeScreen = () => {
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    const task = InteractionManager.runAfterInteractions(() => {
+    const t = setTimeout(() => {
       setIsReady(true);
-    });
-    return () => task.cancel();
+    }, 0);
+    return () => clearTimeout(t);
   }, []);
 
   return (
     <>
       <HomeHeader />
-      <ScrollView contentContainerStyle={[styles.container]}>
-        <View style={[styles.banner, isDark
-          ? { backgroundColor: "rgba(225,29,72,0.14)", borderColor: "rgba(225,29,72,0.40)" }
-          : { backgroundColor: "#FFF1F2", borderColor: "#FECDD3" }]}>
-          <Sandwich size={40} color="#E11D48" />
-          <View style={styles.bannerTextContainer}>
-            <Text style={[styles.bannerTitle, { color: isDark ? "#FDA4AF" : "#9F1239" }]}>Quick Bihar Food Market 🍔</Text>
-            <Text style={[styles.bannerSub, { color: isDark ? "#FB7185" : "#BE123C" }]}>Hot & fresh meals delivered in 20 mins</Text>
-          </View>
-        </View>
-
-        <Text style={[styles.sectionTitle, { color: theme.text }]}>Popular Near You</Text>
-
-        {!isReady ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="small" color="#E11D48" />
-          </View>
-        ) : (
-          <View style={styles.grid}>
-            {MOCK_FOOD_ITEMS.map((item) => (
-              <View key={item.id}
-                style={[
-                  styles.card,
-                  { backgroundColor: theme.secondaryBackground, borderColor: theme.border },
-                ]}
+      <div className="overflow-auto">
+        <div className="flex flex-col gap-4 p-4">
+          <div
+            className="flex flex-row items-center gap-4 rounded-2xl border p-4"
+            style={
+              isDark
+                ? { backgroundColor: "rgba(225,29,72,0.14)", borderColor: "rgba(225,29,72,0.40)" }
+                : { backgroundColor: "#FFF1F2", borderColor: "#FECDD3" }
+            }
+          >
+            <Sandwich size={40} color="#E11D48" />
+            <div className="flex-1">
+              <h1
+                className="text-lg font-extrabold"
+                style={{ color: isDark ? "#FDA4AF" : "#9F1239" }}
               >
-                <View style={[styles.iconContainer, { backgroundColor: isDark ? "rgba(225,29,72,0.18)" : "#FFE4E6" }]}>
-                  <item.icon size={28} color="#E11D48" />
-                </View>
-                <Text style={[styles.cardTitle, { color: theme.text }]}>{item.title}</Text>
-                <Text style={[styles.cardCat, { color: theme.tertiaryText }]}>{item.category}</Text>
-                <View style={styles.cardFooter}>
-                  <Text style={styles.price}>{item.price}</Text>
-                  <View style={styles.ratingBadge}>
-                    <Star size={12} color="#EAB308" fill="#EAB308" />
-                    <Text style={styles.ratingText}>{item.rating}</Text>
-                  </View>
-                </View>
-              </View>
-            ))}
-          </View>
-        )}
-      </ScrollView>
+                Quick Bihar Food Market 🍔
+              </h1>
+              <p
+                className="mt-0.5 text-[13px]"
+                style={{ color: isDark ? "#FB7185" : "#BE123C" }}
+              >
+                Hot & fresh meals delivered in 20 mins
+              </p>
+            </div>
+          </div>
+
+          <h2 className="text-lg font-extrabold" style={{ color: theme.text }}>
+            Popular Near You
+          </h2>
+
+          {!isReady ? (
+            <div className="flex items-center justify-center py-10">
+              <span
+                className="block h-5 w-5 animate-spin rounded-full border-2 border-t-transparent"
+                style={{ borderColor: "rgba(225,29,72,0.25)", borderTopColor: "#E11D48" }}
+              />
+            </div>
+          ) : (
+            <div className="flex flex-row flex-wrap gap-3">
+              {MOCK_FOOD_ITEMS.map((item) => (
+                <div
+                  key={item.id}
+                  className="flex w-[48%] flex-col gap-2 rounded-2xl border p-3"
+                  style={{
+                    backgroundColor: theme.secondaryBackground,
+                    borderColor: theme.border,
+                  }}
+                >
+                  <div
+                    className="flex h-[90px] items-center justify-center rounded-xl"
+                    style={{ backgroundColor: isDark ? "rgba(225,29,72,0.18)" : "#FFE4E6" }}
+                  >
+                    <item.icon size={28} color="#E11D48" />
+                  </div>
+                  <p className="text-sm font-bold" style={{ color: theme.text }}>
+                    {item.title}
+                  </p>
+                  <p className="text-xs" style={{ color: theme.tertiaryText }}>
+                    {item.category}
+                  </p>
+                  <div className="mt-1 flex flex-row items-center justify-between">
+                    <span className="text-[15px] font-extrabold text-[#E11D48]">
+                      {item.price}
+                    </span>
+                    <div className="flex flex-row items-center gap-1">
+                      <Star size={12} color="#EAB308" fill="#EAB308" />
+                      <span className="text-xs font-bold">{item.rating}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
     </>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    padding: 16,
-    gap: 16,
-  },
-  loadingContainer: {
-    paddingVertical: 40,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  banner: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 16,
-    padding: 16,
-    borderRadius: 16,
-    borderWidth: 1,
-  },
-  bannerTextContainer: {
-    flex: 1,
-  },
-  bannerTitle: {
-    fontSize: 18,
-    fontWeight: "800",
-  },
-  bannerSub: {
-    fontSize: 13,
-    marginTop: 2,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "800",
-  },
-  grid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 12,
-  },
-  card: {
-    width: "48%",
-    padding: 12,
-    borderRadius: 16,
-    borderWidth: 1,
-    gap: 8,
-  },
-  iconContainer: {
-    height: 90,
-    borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  cardTitle: {
-    fontSize: 14,
-    fontWeight: "700",
-  },
-  cardCat: {
-    fontSize: 12,
-  },
-  cardFooter: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginTop: 4,
-  },
-  price: {
-    fontSize: 15,
-    fontWeight: "800",
-    color: "#E11D48",
-  },
-  ratingBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-  },
-  ratingText: {
-    fontSize: 12,
-    fontWeight: "700",
-  },
-});

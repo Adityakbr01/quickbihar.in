@@ -4,20 +4,6 @@ import * as Haptics from "@/lib/haptics";
 import { useNavigate } from "react-router-dom";
 import { goBack, goTo, useRouteParams } from "@/src/utils/navigation";
 import React, { useEffect, useState } from "react";
-import {
-  ActivityIndicator,
-  Image,
-  Platform,
-  Pressable,
-  RefreshControl,
-  ScrollView,
-  Share,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "@/components/primitives";
-import { useSafeAreaInsets } from "@/src/hooks/useSafeAreaInsets";
 
 import { APP_CURRENCY } from "@/src/constants";
 import { SocketEvents } from "@/src/constants/socketEvents";
@@ -25,6 +11,7 @@ import { getOrderByIdRequest } from "@/src/features/common/order/api/order.api";
 import { filterOrderItemsByModule } from "@/src/features/common/order/lib/orderModule";
 import { useColors } from "@/src/features/Jewelery/hooks/useColors";
 import { useTopPad } from "@/src/hooks/useTopPad";
+
 import { socketClient } from "@/src/lib/socket";
 
 const ORDER_TIMELINE = [
@@ -38,8 +25,7 @@ export default function JeweleryOrderDetailScreen() {
   const colors = useColors();
   const navigate = useNavigate();
   const topPad = useTopPad();
-  const insets = useSafeAreaInsets();
-  const bottomPad = Platform.OS === "web" ? 34 : Math.max(insets.bottom, 20);
+  const bottomPad = 34;
 
   const params = useRouteParams<{ id?: string; orderId?: string }>();
   const orderId = String(params.id || params.orderId || "");
@@ -80,6 +66,7 @@ export default function JeweleryOrderDetailScreen() {
     return () => {
       socketClient.off(SocketEvents.ORDER_STATUS_UPDATE);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orderId]);
 
   const handleRefresh = async () => {
@@ -103,16 +90,20 @@ export default function JeweleryOrderDetailScreen() {
         )
         .join("\n");
 
-      await Share.share({
-        title: `Receipt - Order #${order.orderId}`,
-        message:
-          `👑 QuickBihar Jewellery\n` +
-          `Order #${order.orderId}\n` +
-          `Status: ${order.status}\n\n` +
-          `Items:\n${itemsText}\n\n` +
-          `Total Paid: ${APP_CURRENCY}${(order.payableAmount || 0).toLocaleString("en-IN")}\n` +
-          `Thank you for acquiring our fine jewellery.`,
-      });
+      const title = `Receipt - Order #${order.orderId}`;
+      const text =
+        `👑 QuickBihar Jewellery\n` +
+        `Order #${order.orderId}\n` +
+        `Status: ${order.status}\n\n` +
+        `Items:\n${itemsText}\n\n` +
+        `Total Paid: ${APP_CURRENCY}${(order.payableAmount || 0).toLocaleString("en-IN")}\n` +
+        `Thank you for acquiring our fine jewellery.`;
+      if (navigator.share) {
+        await navigator.share({ title, text });
+      } else {
+        await navigator.clipboard.writeText(`${title}\n${text}`);
+        window.alert("Receipt copied to clipboard");
+      }
     } catch {}
   };
 
@@ -142,194 +133,177 @@ export default function JeweleryOrderDetailScreen() {
   const activeStep = getCurrentStepIndex(order?.status);
 
   return (
-    <View style={[styles.root, { backgroundColor: colors.ivory }]}>
+    <div className="flex min-h-screen flex-col" style={{ backgroundColor: colors.ivory }}>
       {/* Header */}
-      <View style={[
-          styles.header,
-          {
-            paddingTop: topPad + 12,
-            backgroundColor: colors.ivory,
-            borderBottomColor: colors.midGray,
-          },
-        ]}
+      <div
+        className="flex flex-row items-center gap-3 px-5 pb-[14px]"
+        style={{
+          paddingTop: topPad + 12,
+          backgroundColor: colors.ivory,
+          borderBottomColor: colors.midGray,
+          borderBottomWidth: 1,
+          borderBottomStyle: "solid",
+        }}
       >
-        <Pressable style={styles.backBtn}
-          onPress={() => {
+        <button
+          type="button"
+          onClick={() => {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
             goBack(navigate, "/jewelery/orders");
           }}
-          hitSlop={8}
-          accessibilityRole="button"
-          accessibilityLabel="Go back"
+          aria-label="Go back"
+          className="flex h-9 w-9 cursor-pointer items-center justify-center"
         >
           <ArrowLeft size={18} color={colors.ink} />
-        </Pressable>
+        </button>
 
-        <View style={styles.headerTitleWrap}>
-          <Text style={[
-              styles.headerTitle,
-              {
-                color: colors.ink,
-                fontFamily: "CormorantGaramond_600SemiBold",
-              },
-            ]}
+        <div className="flex-1">
+          <h1
+            className="text-[17px] tracking-[1.2px]"
+            style={{
+              color: colors.ink,
+              fontFamily: "CormorantGaramond_600SemiBold",
+            }}
           >
             {order ? `ORDER #${order.orderId}` : "ORDER DETAILS"}
-          </Text>
+          </h1>
           {order && (
-            <Text style={[
-                styles.headerSubtitle,
-                { color: colors.warmGray, fontFamily: "DMSans_400Regular" },
-              ]}
+            <p
+              className="mt-[2px] text-[11px]"
+              style={{ color: colors.warmGray, fontFamily: "DMSans_400Regular" }}
             >
               Placed on {dayjs(order.createdAt).format("DD MMMM YYYY")}
-            </Text>
+            </p>
           )}
-        </View>
+        </div>
 
-        <TouchableOpacity onPress={handleShare}
-          style={styles.shareBtn}
-          hitSlop={8}
+        <button
+          type="button"
+          onClick={handleShare}
+          aria-label="Share receipt"
+          className="flex h-9 w-9 cursor-pointer items-center justify-center"
         >
           <Share2 size={16} color={colors.gold} />
-        </TouchableOpacity>
-      </View>
+        </button>
+      </div>
 
-      <ScrollView contentContainerStyle={[
-          styles.scrollContent,
-          { paddingBottom: bottomPad + 40 },
-        ]}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={isRefreshing}
-            onRefresh={handleRefresh}
-            tintColor={colors.gold}
-          />
-        }
-      >
+      <div className="overflow-auto p-4" style={{ paddingBottom: bottomPad + 40 }}>
         {isLoading && !order ? (
-          <View style={styles.loadingWrap}>
-            <ActivityIndicator size="small" color={colors.gold} />
-            <Text style={[
-                styles.loadingText,
-                { color: colors.warmGray, fontFamily: "DMSans_400Regular" },
-              ]}
+          <div className="flex flex-col items-center justify-center gap-3 py-20">
+            <span
+              className="h-5 w-5 animate-spin rounded-full border-2"
+              style={{ borderColor: `${colors.gold}30`, borderTopColor: colors.gold }}
+            />
+            <span
+              className="text-[13px]"
+              style={{ color: colors.warmGray, fontFamily: "DMSans_400Regular" }}
             >
               Loading order details...
-            </Text>
-          </View>
+            </span>
+          </div>
         ) : order ? (
-          <View style={{ gap: 16 }}>
+          <div className="flex flex-col gap-4">
             {/* Status Timeline */}
-            <View style={[
-                styles.sectionCard,
-                {
-                  backgroundColor: colors.cardBg,
-                  borderColor: colors.border,
-                },
-              ]}
+            <div
+              className="rounded-[3px] border p-4 shadow-sm"
+              style={{
+                backgroundColor: colors.cardBg,
+                borderColor: colors.border,
+              }}
             >
-              <Text style={[
-                  styles.sectionTitle,
-                  {
-                    color: colors.ink,
-                    fontFamily: "CormorantGaramond_600SemiBold",
-                  },
-                ]}
+              <h2
+                className="mb-3 text-[14px] tracking-[1px]"
+                style={{
+                  color: colors.ink,
+                  fontFamily: "CormorantGaramond_600SemiBold",
+                }}
               >
                 DELIVERY PROGRESS
-              </Text>
+              </h2>
 
-              <View style={styles.timelineList}>
+              <div className="flex flex-col gap-1">
                 {ORDER_TIMELINE.map((step, idx) => {
                   const isDone = idx <= activeStep;
                   const isCurrent = idx === activeStep;
 
                   return (
-                    <View key={step.key} style={styles.timelineRow}>
-                      <View style={styles.nodeColumn}>
-                        <View style={[
-                            styles.nodeCircle,
-                            {
-                              backgroundColor: isDone ? colors.gold : colors.pearl,
-                              borderColor: isDone ? colors.gold : colors.midGray,
-                            },
-                          ]}
+                    <div key={step.key} className="flex flex-row gap-3">
+                      <div className="flex w-5 flex-col items-center">
+                        <div
+                          className="flex h-[18px] w-[18px] items-center justify-center rounded-full border"
+                          style={{
+                            backgroundColor: isDone ? colors.gold : colors.pearl,
+                            borderColor: isDone ? colors.gold : colors.midGray,
+                            borderWidth: 1.5,
+                          }}
                         >
                           {isDone ? (
                             <Check size={10} color={colors.onBrand} />
                           ) : (
-                            <View style={[
-                                styles.nodeDot,
-                                { backgroundColor: colors.warmGray },
-                              ]}
+                            <div
+                              className="h-1.5 w-1.5 rounded-full"
+                              style={{ backgroundColor: colors.warmGray }}
                             />
                           )}
-                        </View>
+                        </div>
                         {idx < ORDER_TIMELINE.length - 1 && (
-                          <View style={[
-                              styles.nodeLine,
-                              {
-                                backgroundColor:
-                                  idx < activeStep ? colors.gold : colors.midGray,
-                              },
-                            ]}
+                          <div
+                            className="my-[2px] h-7 w-[1.5px]"
+                            style={{
+                              backgroundColor:
+                                idx < activeStep ? colors.gold : colors.midGray,
+                            }}
                           />
                         )}
-                      </View>
+                      </div>
 
-                      <View style={styles.nodeContent}>
-                        <Text style={[
-                            styles.nodeTitle,
-                            {
-                              color: isCurrent ? colors.gold : colors.ink,
-                              fontFamily: isCurrent
-                                ? "DMSans_700Bold"
-                                : "DMSans_500Medium",
-                            },
-                          ]}
+                      <div className="flex-1 pb-4">
+                        <span
+                          className="block text-[13px]"
+                          style={{
+                            color: isCurrent ? colors.gold : colors.ink,
+                            fontFamily: isCurrent
+                              ? "DMSans_700Bold"
+                              : "DMSans_500Medium",
+                          }}
                         >
                           {step.title}
-                        </Text>
-                        <Text style={[
-                            styles.nodeSub,
-                            {
-                              color: colors.warmGray,
-                              fontFamily: "DMSans_400Regular",
-                            },
-                          ]}
+                        </span>
+                        <span
+                          className="mt-[2px] block text-[11px]"
+                          style={{
+                            color: colors.warmGray,
+                            fontFamily: "DMSans_400Regular",
+                          }}
                         >
                           {step.sub}
-                        </Text>
-                      </View>
-                    </View>
+                        </span>
+                      </div>
+                    </div>
                   );
                 })}
-              </View>
-            </View>
+              </div>
+            </div>
 
             {/* Pieces in Order */}
-            <View style={[
-                styles.sectionCard,
-                {
-                  backgroundColor: colors.cardBg,
-                  borderColor: colors.border,
-                },
-              ]}
+            <div
+              className="rounded-[3px] border p-4 shadow-sm"
+              style={{
+                backgroundColor: colors.cardBg,
+                borderColor: colors.border,
+              }}
             >
-              <Text style={[
-                  styles.sectionTitle,
-                  {
-                    color: colors.ink,
-                    fontFamily: "CormorantGaramond_600SemiBold",
-                  },
-                ]}
+              <h2
+                className="mb-3 text-[14px] tracking-[1px]"
+                style={{
+                  color: colors.ink,
+                  fontFamily: "CormorantGaramond_600SemiBold",
+                }}
               >
                 YOUR ACQUISITIONS ({jeweleryItems.length})
-              </Text>
+              </h2>
 
-              <View style={{ gap: 12 }}>
+              <div className="flex flex-col gap-3">
                 {jeweleryItems.map((item: any, idx: number) => {
                   const imgUri =
                     typeof item.image === "string"
@@ -339,555 +313,324 @@ export default function JeweleryOrderDetailScreen() {
                         item.productId?.image;
 
                   return (
-                    <TouchableOpacity key={item.sku || idx}
-                      style={[
-                        styles.itemCard,
-                        {
-                          borderBottomColor: colors.border,
-                          borderBottomWidth:
-                            idx < jeweleryItems.length - 1 ? 0.5 : 0,
-                        },
-                      ]}
-                      onPress={() => handleNavigateToProduct(item)}
-                      activeOpacity={0.8}
+                    <button
+                      key={item.sku || idx}
+                      type="button"
+                      onClick={() => handleNavigateToProduct(item)}
+                      className="flex w-full cursor-pointer flex-row gap-3 py-[10px] text-left"
+                      style={{
+                        borderBottomColor: colors.border,
+                        borderBottomWidth:
+                          idx < jeweleryItems.length - 1 ? 1 : 0,
+                        borderBottomStyle:
+                          idx < jeweleryItems.length - 1 ? "solid" : undefined,
+                      }}
                     >
                       {imgUri ? (
-                        <Image source={{ uri: imgUri }}
-                          style={styles.itemImage}
-                          resizeMode="cover"
+                        <img
+                          src={imgUri}
+                          alt={item.title || item.productTitle || "Fine Jewellery Piece"}
+                          className="h-20 w-16 rounded-[2px] object-cover"
                         />
                       ) : (
-                        <View style={[
-                            styles.itemImage,
-                            styles.itemImgPlaceholder,
-                            { backgroundColor: colors.champagne },
-                          ]}
+                        <div
+                          className="flex h-20 w-16 items-center justify-center rounded-[2px]"
+                          style={{ backgroundColor: colors.champagne }}
                         >
                           <Gift size={20} color={colors.gold} />
-                        </View>
+                        </div>
                       )}
 
-                      <View style={{ flex: 1, gap: 3 }}>
-                        <Text style={[
-                            styles.itemTitle,
-                            {
-                              color: colors.ink,
-                              fontFamily: "CormorantGaramond_600SemiBold",
-                            },
-                          ]}
-                          numberOfLines={2}
+                      <div className="flex min-w-0 flex-1 flex-col gap-[3px]">
+                        <span
+                          className="line-clamp-2 text-[15px] tracking-[0.3px]"
+                          style={{
+                            color: colors.ink,
+                            fontFamily: "CormorantGaramond_600SemiBold",
+                          }}
                         >
                           {item.title || item.productTitle || "Fine Jewellery Piece"}
-                        </Text>
+                        </span>
 
                         {item.sku && (
-                          <Text style={[
-                              styles.itemSku,
-                              {
-                                color: colors.warmGray,
-                                fontFamily: "DMSans_400Regular",
-                              },
-                            ]}
+                          <span
+                            className="text-[10.5px]"
+                            style={{
+                              color: colors.warmGray,
+                              fontFamily: "DMSans_400Regular",
+                            }}
                           >
                             SKU: {item.sku}
-                          </Text>
+                          </span>
                         )}
 
-                        <View style={styles.itemPriceRow}>
-                          <Text style={[
-                              styles.itemQty,
-                              {
-                                color: colors.warmGray,
-                                fontFamily: "DMSans_400Regular",
-                              },
-                            ]}
+                        <div className="mt-1.5 flex flex-row items-center justify-between">
+                          <span
+                            className="text-[11.5px]"
+                            style={{
+                              color: colors.warmGray,
+                              fontFamily: "DMSans_400Regular",
+                            }}
                           >
                             Qty: {item.quantity || 1}
-                          </Text>
-                          <Text style={[
-                              styles.itemPrice,
-                              {
-                                color: colors.ink,
-                                fontFamily: "DMSans_600SemiBold",
-                              },
-                            ]}
+                          </span>
+                          <span
+                            className="text-[14px]"
+                            style={{
+                              color: colors.ink,
+                              fontFamily: "DMSans_600SemiBold",
+                            }}
                           >
                             {APP_CURRENCY}
                             {(
                               (item.price || 0) * (item.quantity || 1)
                             ).toLocaleString("en-IN")}
-                          </Text>
-                        </View>
-                      </View>
-                    </TouchableOpacity>
+                          </span>
+                        </div>
+                      </div>
+                    </button>
                   );
                 })}
-              </View>
-            </View>
+              </div>
+            </div>
 
             {/* Delivery Address */}
             {order.shippingAddress && (
-              <View style={[
-                  styles.sectionCard,
-                  {
-                    backgroundColor: colors.cardBg,
-                    borderColor: colors.border,
-                  },
-                ]}
+              <div
+                className="rounded-[3px] border p-4 shadow-sm"
+                style={{
+                  backgroundColor: colors.cardBg,
+                  borderColor: colors.border,
+                }}
               >
-                <View style={styles.sectionHeaderRow}>
-                  <Text style={[
-                      styles.sectionTitle,
-                      {
-                        color: colors.ink,
-                        fontFamily: "CormorantGaramond_600SemiBold",
-                      },
-                    ]}
+                <div className="mb-3 flex flex-row items-center justify-between">
+                  <h2
+                    className="text-[14px] tracking-[1px]"
+                    style={{
+                      color: colors.ink,
+                      fontFamily: "CormorantGaramond_600SemiBold",
+                    }}
                   >
                     DESTINATION
-                  </Text>
+                  </h2>
                   <MapPin size={14} color={colors.gold} />
-                </View>
+                </div>
 
-                <Text style={[
-                    styles.addressName,
-                    {
-                      color: colors.ink,
-                      fontFamily: "DMSans_600SemiBold",
-                    },
-                  ]}
+                <p
+                  className="mb-1 text-[14px]"
+                  style={{
+                    color: colors.ink,
+                    fontFamily: "DMSans_600SemiBold",
+                  }}
                 >
                   {order.shippingAddress.fullName}
-                </Text>
-                <Text style={[
-                    styles.addressText,
-                    {
-                      color: colors.warmGray,
-                      fontFamily: "DMSans_400Regular",
-                    },
-                  ]}
+                </p>
+                <p
+                  className="mb-[10px] text-[12.5px] leading-[18px]"
+                  style={{
+                    color: colors.warmGray,
+                    fontFamily: "DMSans_400Regular",
+                  }}
                 >
                   {order.shippingAddress.street}
                   {order.shippingAddress.landmark
                     ? `, Near ${order.shippingAddress.landmark}`
                     : ""}
-                  {"\n"}
+                  <br />
                   {order.shippingAddress.city}, {order.shippingAddress.state} —{" "}
                   {order.shippingAddress.pincode}
-                </Text>
-                <View style={styles.phoneBadge}>
+                </p>
+                <div className="flex flex-row items-center gap-1.5">
                   <Phone size={11} color={colors.gold} />
-                  <Text style={[
-                      styles.phoneText,
-                      {
-                        color: colors.ink,
-                        fontFamily: "DMSans_500Medium",
-                      },
-                    ]}
+                  <span
+                    className="text-[12px]"
+                    style={{
+                      color: colors.ink,
+                      fontFamily: "DMSans_500Medium",
+                    }}
                   >
                     {order.shippingAddress.phone}
-                  </Text>
-                </View>
-              </View>
+                  </span>
+                </div>
+              </div>
             )}
 
             {/* Payment & Charges Summary */}
-            <View style={[
-                styles.sectionCard,
-                {
-                  backgroundColor: colors.cardBg,
-                  borderColor: colors.border,
-                },
-              ]}
+            <div
+              className="rounded-[3px] border p-4 shadow-sm"
+              style={{
+                backgroundColor: colors.cardBg,
+                borderColor: colors.border,
+              }}
             >
-              <Text style={[
-                  styles.sectionTitle,
-                  {
-                    color: colors.ink,
-                    fontFamily: "CormorantGaramond_600SemiBold",
-                  },
-                ]}
+              <h2
+                className="mb-3 text-[14px] tracking-[1px]"
+                style={{
+                  color: colors.ink,
+                  fontFamily: "CormorantGaramond_600SemiBold",
+                }}
               >
                 PAYMENT BREAKDOWN
-              </Text>
+              </h2>
 
-              <View style={styles.breakdownRow}>
-                <Text style={[
-                    styles.breakdownKey,
-                    {
-                      color: colors.warmGray,
-                      fontFamily: "DMSans_400Regular",
-                    },
-                  ]}
+              <div className="mb-2 flex flex-row items-center justify-between">
+                <span
+                  className="text-[12px]"
+                  style={{
+                    color: colors.warmGray,
+                    fontFamily: "DMSans_400Regular",
+                  }}
                 >
                   Payment Method
-                </Text>
-                <Text style={[
-                    styles.breakdownVal,
-                    {
-                      color: colors.ink,
-                      fontFamily: "DMSans_500Medium",
-                    },
-                  ]}
+                </span>
+                <span
+                  className="text-[12.5px]"
+                  style={{
+                    color: colors.ink,
+                    fontFamily: "DMSans_500Medium",
+                  }}
                 >
                   {order.paymentMethod === "COD" ? "Cash on Delivery" : "Online Gateway (Razorpay)"}
-                </Text>
-              </View>
+                </span>
+              </div>
 
-              <View style={styles.breakdownRow}>
-                <Text style={[
-                    styles.breakdownKey,
-                    {
-                      color: colors.warmGray,
-                      fontFamily: "DMSans_400Regular",
-                    },
-                  ]}
+              <div className="mb-2 flex flex-row items-center justify-between">
+                <span
+                  className="text-[12px]"
+                  style={{
+                    color: colors.warmGray,
+                    fontFamily: "DMSans_400Regular",
+                  }}
                 >
                   Subtotal
-                </Text>
-                <Text style={[
-                    styles.breakdownVal,
-                    {
-                      color: colors.ink,
-                      fontFamily: "DMSans_500Medium",
-                    },
-                  ]}
+                </span>
+                <span
+                  className="text-[12.5px]"
+                  style={{
+                    color: colors.ink,
+                    fontFamily: "DMSans_500Medium",
+                  }}
                 >
                   {APP_CURRENCY}
                   {(order.subtotal || order.payableAmount || 0).toLocaleString("en-IN")}
-                </Text>
-              </View>
+                </span>
+              </div>
 
-              <View style={styles.breakdownRow}>
-                <Text style={[
-                    styles.breakdownKey,
-                    {
-                      color: colors.warmGray,
-                      fontFamily: "DMSans_400Regular",
-                    },
-                  ]}
+              <div className="mb-2 flex flex-row items-center justify-between">
+                <span
+                  className="text-[12px]"
+                  style={{
+                    color: colors.warmGray,
+                    fontFamily: "DMSans_400Regular",
+                  }}
                 >
                   Insured Delivery
-                </Text>
-                <Text style={[
-                    styles.breakdownVal,
-                    {
-                      color: colors.gold,
-                      fontFamily: "DMSans_600SemiBold",
-                    },
-                  ]}
+                </span>
+                <span
+                  className="text-[12.5px]"
+                  style={{
+                    color: colors.gold,
+                    fontFamily: "DMSans_600SemiBold",
+                  }}
                 >
                   {order.shippingFee === 0 || !order.shippingFee
                     ? "Complimentary"
                     : `${APP_CURRENCY}${order.shippingFee}`}
-                </Text>
-              </View>
+                </span>
+              </div>
 
               {order.discountAmount > 0 && (
-                <View style={styles.breakdownRow}>
-                  <Text style={[
-                      styles.breakdownKey,
-                      {
-                        color: colors.warmGray,
-                        fontFamily: "DMSans_400Regular",
-                      },
-                    ]}
+                <div className="mb-2 flex flex-row items-center justify-between">
+                  <span
+                    className="text-[12px]"
+                    style={{
+                      color: colors.warmGray,
+                      fontFamily: "DMSans_400Regular",
+                    }}
                   >
                     Privilege Savings
-                  </Text>
-                  <Text style={[
-                      styles.breakdownVal,
-                      {
-                        color: colors.gold,
-                        fontFamily: "DMSans_600SemiBold",
-                      },
-                    ]}
+                  </span>
+                  <span
+                    className="text-[12.5px]"
+                    style={{
+                      color: colors.gold,
+                      fontFamily: "DMSans_600SemiBold",
+                    }}
                   >
                     -{APP_CURRENCY}
                     {(order.discountAmount || 0).toLocaleString("en-IN")}
-                  </Text>
-                </View>
+                  </span>
+                </div>
               )}
 
-              <View style={[
-                  styles.divider,
-                  { backgroundColor: colors.border },
-                ]}
+              <div
+                className="my-[10px] h-px"
+                style={{ backgroundColor: colors.border }}
               />
 
-              <View style={styles.totalRow}>
-                <Text style={[
-                    styles.totalKey,
-                    {
-                      color: colors.ink,
-                      fontFamily: "DMSans_700Bold",
-                    },
-                  ]}
+              <div className="flex flex-row items-center justify-between">
+                <span
+                  className="text-[14px]"
+                  style={{
+                    color: colors.ink,
+                    fontFamily: "DMSans_700Bold",
+                  }}
                 >
                   Total Paid
-                </Text>
-                <Text style={[
-                    styles.totalVal,
-                    {
-                      color: colors.gold,
-                      fontFamily: "DMSans_700Bold",
-                    },
-                  ]}
+                </span>
+                <span
+                  className="text-[16px]"
+                  style={{
+                    color: colors.gold,
+                    fontFamily: "DMSans_700Bold",
+                  }}
                 >
                   {APP_CURRENCY}
                   {(order.payableAmount || 0).toLocaleString("en-IN")}
-                </Text>
-              </View>
-            </View>
+                </span>
+              </div>
+            </div>
 
             {/* Assistance & Concierge Card */}
-            <View style={[
-                styles.conciergeCard,
-                {
-                  backgroundColor: colors.champagne,
-                  borderColor: colors.gold,
-                },
-              ]}
+            <div
+              className="flex flex-row items-center gap-3 rounded-[2px] border p-[14px]"
+              style={{
+                backgroundColor: colors.champagne,
+                borderColor: colors.gold,
+                borderWidth: 1,
+              }}
             >
               <Shield size={20} color={colors.gold} />
-              <View style={{ flex: 1, gap: 2 }}>
-                <Text style={[
-                    styles.conciergeTitle,
-                    {
-                      color: colors.ink,
-                      fontFamily: "CormorantGaramond_600SemiBold",
-                    },
-                  ]}
+              <div className="flex flex-1 flex-col gap-[2px]">
+                <span
+                  className="text-[15px]"
+                  style={{
+                    color: colors.ink,
+                    fontFamily: "CormorantGaramond_600SemiBold",
+                  }}
                 >
                   Jewellery Concierge
-                </Text>
-                <Text style={[
-                    styles.conciergeSub,
-                    {
-                      color: colors.warmGray,
-                      fontFamily: "DMSans_400Regular",
-                    },
-                  ]}
+                </span>
+                <span
+                  className="text-[11.5px] leading-4"
+                  style={{
+                    color: colors.warmGray,
+                    fontFamily: "DMSans_400Regular",
+                  }}
                 >
                   Every piece is certified, insured, and handled with white-glove delivery care.
-                </Text>
-              </View>
-            </View>
-          </View>
+                </span>
+              </div>
+            </div>
+          </div>
         ) : (
-          <View style={styles.emptyWrap}>
-            <Text style={{ color: colors.warmGray, fontSize: 13 }}>
+          <div className="flex items-center justify-center py-[60px]">
+            <span className="text-[13px]" style={{ color: colors.warmGray }}>
               Order could not be located.
-            </Text>
-          </View>
+            </span>
+          </div>
         )}
-      </ScrollView>
-    </View>
+      </div>
+    </div>
   );
 }
-
-const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    paddingBottom: 14,
-    borderBottomWidth: 0.5,
-    gap: 12,
-  },
-  backBtn: {
-    width: 36,
-    height: 36,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  headerTitleWrap: {
-    flex: 1,
-  },
-  headerTitle: {
-    fontSize: 17,
-    letterSpacing: 1.2,
-  },
-  headerSubtitle: {
-    fontSize: 11,
-    marginTop: 2,
-  },
-  shareBtn: {
-    width: 36,
-    height: 36,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  scrollContent: {
-    padding: 16,
-  },
-  loadingWrap: {
-    paddingVertical: 80,
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 12,
-  },
-  loadingText: {
-    fontSize: 13,
-  },
-  sectionCard: {
-    borderRadius: 3,
-    borderWidth: 1,
-    padding: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 3,
-    elevation: 1,
-  },
-  sectionHeaderRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  sectionTitle: {
-    fontSize: 14,
-    letterSpacing: 1,
-    marginBottom: 12,
-  },
-  timelineList: {
-    gap: 4,
-  },
-  timelineRow: {
-    flexDirection: "row",
-    gap: 12,
-  },
-  nodeColumn: {
-    alignItems: "center",
-    width: 20,
-  },
-  nodeCircle: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1.5,
-  },
-  nodeDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-  },
-  nodeLine: {
-    width: 1.5,
-    height: 28,
-    marginVertical: 2,
-  },
-  nodeContent: {
-    flex: 1,
-    paddingBottom: 16,
-  },
-  nodeTitle: {
-    fontSize: 13,
-  },
-  nodeSub: {
-    fontSize: 11,
-    marginTop: 2,
-  },
-  itemCard: {
-    flexDirection: "row",
-    gap: 12,
-    paddingVertical: 10,
-  },
-  itemImage: {
-    width: 64,
-    height: 80,
-    borderRadius: 2,
-  },
-  itemImgPlaceholder: {
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  itemTitle: {
-    fontSize: 15,
-    letterSpacing: 0.3,
-  },
-  itemSku: {
-    fontSize: 10.5,
-  },
-  itemPriceRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginTop: 6,
-  },
-  itemQty: {
-    fontSize: 11.5,
-  },
-  itemPrice: {
-    fontSize: 14,
-  },
-  addressName: {
-    fontSize: 14,
-    marginBottom: 4,
-  },
-  addressText: {
-    fontSize: 12.5,
-    lineHeight: 18,
-    marginBottom: 10,
-  },
-  phoneBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-  },
-  phoneText: {
-    fontSize: 12,
-  },
-  breakdownRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  breakdownKey: {
-    fontSize: 12,
-  },
-  breakdownVal: {
-    fontSize: 12.5,
-  },
-  divider: {
-    height: 0.5,
-    marginVertical: 10,
-  },
-  totalRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  totalKey: {
-    fontSize: 14,
-  },
-  totalVal: {
-    fontSize: 16,
-  },
-  conciergeCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    padding: 14,
-    borderRadius: 2,
-    borderWidth: 0.5,
-  },
-  conciergeTitle: {
-    fontSize: 15,
-  },
-  conciergeSub: {
-    fontSize: 11.5,
-    lineHeight: 16,
-  },
-  emptyWrap: {
-    paddingVertical: 60,
-    alignItems: "center",
-  },
-});

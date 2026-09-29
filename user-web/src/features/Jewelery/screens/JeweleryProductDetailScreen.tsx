@@ -3,17 +3,6 @@ import * as Haptics from "@/lib/haptics";
 import { useNavigate } from "react-router-dom";
 import { goTo, useRouteParams } from "@/src/utils/navigation";
 import React, { useState } from "react";
-import {
-  ActivityIndicator,
-  Image,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "@/components/primitives";
-import { useSafeAreaInsets } from "@/src/hooks/useSafeAreaInsets";
 import { goBack } from "@/src/utils/navigation";
 
 import { APP_CURRENCY, JEWELERY_MODULE_CONFIG } from "@/src/constants";
@@ -36,18 +25,17 @@ import { useModuleTheme } from "@/src/theme/useModuleTheme";
 function Stars({ rating, count }: { rating: number; count: number }) {
   const colors = useColors();
   return (
-    <View style={styles.starsRow}>
+    <div className="flex flex-row items-center gap-1">
       {[1, 2, 3, 4, 5].map((s) => (
         <Star key={s} size={12} color={s <= Math.round(rating) ? colors.gold : colors.midGray} />
       ))}
-      <Text style={[
-          styles.ratingText,
-          { color: colors.warmGray, fontFamily: "DMSans_400Regular" },
-        ]}
+      <span
+        className="ml-1 text-[11px]"
+        style={{ color: colors.warmGray, fontFamily: "DMSans_400Regular" }}
       >
         {rating} ({count} reviews)
-      </Text>
-    </View>
+      </span>
+    </div>
   );
 }
 
@@ -55,14 +43,11 @@ export default function JeweleryProductDetailScreen() {
   const navigate = useNavigate();
   const { id } = useRouteParams<{ id: string }>();
   const colors = useColors();
-  const insets = useSafeAreaInsets();
   const { addToCart, toggleWishlist, isWishlisted, cartItems } = useCart();
   const [addedToCart, setAddedToCart] = useState(false);
   // Mobile web tab bar is fixed-position and overlays the viewport bottom —
-  // lift the sticky bar above it (0 on desktop/native, no visual diff).
+  // lift the sticky bar above it (0 on desktop, no visual diff).
   const stickyBarOffset = useStickyBarBottomOffset();
-
-  const bottomPad = Platform.OS === "web" ? 34 : insets.bottom;
 
   const { data: product, isLoading } = useJeweleryProduct(id);
   const { data: related = [] } = useSimilarJewelery(id, 4);
@@ -121,19 +106,25 @@ export default function JeweleryProductDetailScreen() {
 
   if (isLoading) {
     return (
-      <View style={[styles.root, { backgroundColor: colors.ivory, alignItems: "center", justifyContent: "center" }]}>
-        <ActivityIndicator color={colors.gold} />
-      </View>
+      <div
+        className="flex min-h-screen items-center justify-center"
+        style={{ backgroundColor: colors.ivory }}
+      >
+        <span
+          className="h-6 w-6 animate-spin rounded-full border-2"
+          style={{ borderColor: `${colors.gold}30`, borderTopColor: colors.gold }}
+        />
+      </div>
     );
   }
 
   if (!product) {
     return (
-      <View style={[styles.root, { backgroundColor: colors.ivory }]}>
-        <Text style={[styles.notFound, { color: colors.warmGray }]}>
+      <div className="flex min-h-screen flex-col" style={{ backgroundColor: colors.ivory }}>
+        <p className="mt-[100px] text-center text-[16px]" style={{ color: colors.warmGray }}>
           Product not found
-        </Text>
-      </View>
+        </p>
+      </div>
     );
   }
 
@@ -165,23 +156,24 @@ export default function JeweleryProductDetailScreen() {
   };
 
   return (
-    <View style={[styles.root, { backgroundColor: colors.ivory }]}>
+    <div className="flex min-h-screen flex-col overflow-hidden" style={{ backgroundColor: colors.ivory }}>
       {/* Back button overlay */}
-      <View style={[
-          styles.backBtn,
-          { top: (Platform.OS === "web" ? 16 : insets.top) + 10 },
-        ]}
+      <div
+        className="absolute right-4 left-4 z-10 flex flex-row justify-between"
+        style={{ top: 16 + 10 }}
       >
-        <Pressable onPress={() => goBack(navigate)}
-          style={[
-            styles.backBtnInner,
-            { backgroundColor: colors.card, borderColor: colors.midGray, borderWidth: 0.5 },
-          ]}
-          hitSlop={8}
+        <button
+          type="button"
+          onClick={() => goBack(navigate)}
+          aria-label="Go back"
+          className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border"
+          style={{ backgroundColor: colors.card, borderColor: colors.midGray, borderWidth: 1 }}
         >
           <ArrowLeft size={18} color={colors.ink} />
-        </Pressable>
-        <Pressable onPress={() => {
+        </button>
+        <button
+          type="button"
+          onClick={() => {
             if (!useAuthStore.getState().isAuthenticated) {
               navigate("/auth");
               return;
@@ -189,127 +181,116 @@ export default function JeweleryProductDetailScreen() {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
             toggleWishlist(product);
           }}
-          style={[
-            styles.backBtnInner,
-            { backgroundColor: colors.card, borderColor: colors.midGray, borderWidth: 0.5 },
-          ]}
-          hitSlop={8}
+          aria-label="Toggle wishlist"
+          className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border"
+          style={{ backgroundColor: colors.card, borderColor: colors.midGray, borderWidth: 1 }}
         >
           <Heart size={18} color={wishlisted ? colors.gold : colors.ink} />
-        </Pressable>
-      </View>
+        </button>
+      </div>
 
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <div className="overflow-auto">
         {/* Image carousel */}
         <ImageCarousel images={product.images} />
 
         {/* Content */}
-        <View style={[styles.content, { backgroundColor: colors.ivory }]}>
+        <div className="flex flex-col gap-[14px] p-5" style={{ backgroundColor: colors.ivory }}>
           {/* Breadcrumb — real collection only, never a hardcoded category */}
           {product.collection ? (
-            <Text style={[
-                styles.breadcrumb,
-                { color: colors.warmGray, fontFamily: "DMSans_400Regular" },
-              ]}
+            <p
+              className="text-[10px] tracking-[0.5px]"
+              style={{ color: colors.warmGray, fontFamily: "DMSans_400Regular" }}
             >
               {product.collection}
-            </Text>
+            </p>
           ) : null}
 
           {/* Name & rating */}
-          <Text style={[
-              styles.productName,
-              {
-                color: colors.ink,
-                fontFamily: "CormorantGaramond_500Medium_Italic",
-              },
-            ]}
+          <h1
+            className="text-[30px] leading-9"
+            style={{
+              color: colors.ink,
+              fontFamily: "CormorantGaramond_500Medium_Italic",
+            }}
           >
             {product.name}
-          </Text>
+          </h1>
           {totalReviews > 0 ? (
             <Stars rating={averageRating} count={totalReviews} />
           ) : (
-            <Pressable onPress={handleRateAndReview}
-              style={[
-                styles.firstReviewTeaser,
-                { borderColor: colors.gold, backgroundColor: colors.champagne },
-              ]}
+            <button
+              type="button"
+              onClick={handleRateAndReview}
+              className="mt-[10px] flex cursor-pointer flex-row items-center gap-2 rounded-[2px] border px-[14px] py-[10px] text-left"
+              style={{ borderColor: colors.gold, backgroundColor: colors.champagne, borderWidth: 1 }}
             >
               <Star size={14} color={colors.gold} />
-              <Text style={[
-                  styles.firstReviewText,
-                  { color: colors.ink, fontFamily: "DMSans_500Medium" },
-                ]}
+              <span
+                className="text-[13px]"
+                style={{ color: colors.ink, fontFamily: "DMSans_500Medium" }}
               >
                 Be the first to review this piece
-              </Text>
-            </Pressable>
+              </span>
+            </button>
           )}
 
           {/* Price */}
-          <View style={styles.priceRow}>
-            <Text style={[
-                styles.price,
-                { color: colors.ink, fontFamily: "DMSans_500Medium" },
-              ]}
+          <div className="flex flex-row items-center gap-[10px]">
+            <span
+              className="text-[24px]"
+              style={{ color: colors.ink, fontFamily: "DMSans_500Medium" }}
             >
               {APP_CURRENCY}{product.price.toLocaleString("en-IN")}
-            </Text>
+            </span>
             {product.originalPrice && (
-              <Text style={[
-                  styles.originalPrice,
-                  {
-                    color: colors.warmGray,
-                    fontFamily: "DMSans_400Regular",
-                  },
-                ]}
+              <span
+                className="text-[14px] line-through"
+                style={{
+                  color: colors.warmGray,
+                  fontFamily: "DMSans_400Regular",
+                }}
               >
                 {APP_CURRENCY}{product.originalPrice.toLocaleString("en-IN")}
-              </Text>
+              </span>
             )}
-          </View>
+          </div>
 
           {/* Description */}
-          <Text style={[
-              styles.description,
-              {
-                color: colors.warmGray,
-                fontFamily: "CormorantGaramond_400Regular_Italic",
-              },
-            ]}
+          <p
+            className="text-[16px] leading-[26px]"
+            style={{
+              color: colors.warmGray,
+              fontFamily: "CormorantGaramond_400Regular_Italic",
+            }}
           >
             {product.description}
-          </Text>
+          </p>
 
           {/* Occasions */}
-          <View style={styles.occasionRow}>
+          <div className="flex flex-row flex-wrap gap-1.5">
             {product.occasions.map((o) => (
-              <View key={o}
-                style={[
-                  styles.occasionTag,
-                  {
-                    backgroundColor: colors.champagne,
-                    borderColor: colors.midGray,
-                  },
-                ]}
+              <div key={o}
+                className="rounded-full border px-[10px] py-1"
+                style={{
+                  backgroundColor: colors.champagne,
+                  borderColor: colors.midGray,
+                  borderWidth: 1,
+                }}
               >
-                <Text style={[
-                    styles.occasionTagText,
-                    { color: colors.warmGray, fontFamily: "DMSans_400Regular" },
-                  ]}
+                <span
+                  className="text-[10px] tracking-[0.3px]"
+                  style={{ color: colors.warmGray, fontFamily: "DMSans_400Regular" }}
                 >
                   {o}
-                </Text>
-              </View>
+                </span>
+              </div>
             ))}
-          </View>
+          </div>
 
           {/* Delivery & trust */}
-          <View style={[
-              styles.trustSection,
-              { backgroundColor: colors.pearl, borderColor: colors.midGray },
-            ]}
+          <div
+            className="flex flex-col gap-[10px] rounded-[2px] border p-[14px]"
+            style={{ backgroundColor: colors.pearl, borderColor: colors.midGray, borderWidth: 1 }}
           >
             {[
               { icon: Truck, text: "Ships in 3–5 days" },
@@ -321,33 +302,33 @@ export default function JeweleryProductDetailScreen() {
                 : []),
               { icon: Gift, text: "Gift box included" },
             ].map((t) => (
-              <View key={t.text} style={styles.trustItem}>
+              <div key={t.text} className="flex flex-row items-center gap-[10px]">
                 <t.icon size={13} color={colors.gold} />
-                <Text style={[
-                    styles.trustText,
-                    {
-                      color: colors.warmGray,
-                      fontFamily: "DMSans_400Regular",
-                    },
-                  ]}
+                <span
+                  className="text-[12px]"
+                  style={{
+                    color: colors.warmGray,
+                    fontFamily: "DMSans_400Regular",
+                  }}
                 >
                   {t.text}
-                </Text>
-              </View>
+                </span>
+              </div>
             ))}
-          </View>
+          </div>
 
           {/* Craftsmanship */}
-          <View style={[styles.craftSection, { borderTopColor: colors.midGray }]}
+          <div
+            className="flex flex-col gap-3 border-t pt-4"
+            style={{ borderTopColor: colors.midGray, borderTopWidth: 1 }}
           >
-            <Text style={[
-                styles.craftLabel,
-                { color: colors.gold, fontFamily: "DMSans_500Medium" },
-              ]}
+            <p
+              className="text-[9px] tracking-[2px]"
+              style={{ color: colors.gold, fontFamily: "DMSans_500Medium" }}
             >
               CRAFTSMANSHIP DETAILS
-            </Text>
-            <View style={styles.specGrid}>
+            </p>
+            <div className="flex flex-row flex-wrap gap-3">
               {[
                 product.metal ? { key: "Metal", val: product.metal } : null,
                 product.stone ? { key: "Stone", val: product.stone } : null,
@@ -357,81 +338,77 @@ export default function JeweleryProductDetailScreen() {
               ]
                 .filter(Boolean)
                 .map((spec) => (
-                  <View key={spec!.key} style={styles.specItem}>
-                    <Text style={[
-                        styles.specKey,
-                        {
-                          color: colors.warmGray,
-                          fontFamily: "DMSans_400Regular",
-                        },
-                      ]}
+                  <div key={spec!.key} className="w-[47%]">
+                    <p
+                      className="text-[10px] tracking-[0.5px]"
+                      style={{
+                        color: colors.warmGray,
+                        fontFamily: "DMSans_400Regular",
+                      }}
                     >
                       {spec!.key}
-                    </Text>
-                    <Text style={[
-                        styles.specVal,
-                        { color: colors.ink, fontFamily: "DMSans_500Medium" },
-                      ]}
+                    </p>
+                    <p
+                      className="mt-[2px] text-[13px]"
+                      style={{ color: colors.ink, fontFamily: "DMSans_500Medium" }}
                     >
                       {spec!.val}
-                    </Text>
-                  </View>
+                    </p>
+                  </div>
                 ))}
-            </View>
+            </div>
             {product.craftDetail ? (
-              <Text style={[
-                  styles.craftDetail,
-                  {
-                    color: colors.warmGray,
-                    fontFamily: "CormorantGaramond_400Regular_Italic",
-                  },
-                ]}
+              <p
+                className="text-[14px] leading-[22px]"
+                style={{
+                  color: colors.warmGray,
+                  fontFamily: "CormorantGaramond_400Regular_Italic",
+                }}
               >
                 {product.craftDetail}
-              </Text>
+              </p>
             ) : null}
-          </View>
+          </div>
 
           {/* Ratings & Reviews — same review pipeline as clothing,
               dressed in the jewellery theme */}
-          <View style={[styles.reviewsSection, { borderTopColor: colors.midGray }]}
+          <div
+            className="flex flex-col gap-[14px] border-t pt-4"
+            style={{ borderTopColor: colors.midGray, borderTopWidth: 1 }}
           >
-            <Text style={[
-                styles.reviewsLabel,
-                { color: colors.gold, fontFamily: "DMSans_500Medium" },
-              ]}
+            <p
+              className="text-[9px] tracking-[2px]"
+              style={{ color: colors.gold, fontFamily: "DMSans_500Medium" }}
             >
               RATINGS & REVIEWS
               {totalReviews > 0 ? ` (${totalReviews})` : ""}
-            </Text>
+            </p>
 
             {totalReviews > 0 ? (
-              <View style={styles.summaryRow}>
-                <View style={styles.summaryLeft}>
-                  <Text style={[
-                      styles.bigRating,
-                      {
-                        color: colors.ink,
-                        fontFamily: "CormorantGaramond_600SemiBold",
-                      },
-                    ]}
+              <div className="flex flex-row gap-5">
+                <div className="flex min-w-[110px] flex-col items-center gap-1">
+                  <span
+                    className="text-[38px] leading-[44px]"
+                    style={{
+                      color: colors.ink,
+                      fontFamily: "CormorantGaramond_600SemiBold",
+                    }}
                   >
                     {averageRating > 0 ? averageRating.toFixed(1) : "0.0"}
-                  </Text>
+                  </span>
                   <Stars rating={averageRating} count={totalReviews} />
-                  <Text style={[
-                      styles.summaryCount,
-                      {
-                        color: colors.warmGray,
-                        fontFamily: "DMSans_400Regular",
-                      },
-                    ]}
+                  <span
+                    className="text-center text-[11px]"
+                    style={{
+                      color: colors.warmGray,
+                      fontFamily: "DMSans_400Regular",
+                    }}
                   >
                     {totalReviews} verified rating
                     {totalReviews === 1 ? "" : "s"}
-                  </Text>
-                </View>
-                <View style={styles.distCol}>
+                  </span>
+                </div>
+                <div className="flex flex-1 flex-col justify-center gap-1.5">
                   {[5, 4, 3, 2, 1].map((star) => {
                     const count = (distribution as any)[star] || 0;
                     const pct =
@@ -439,92 +416,85 @@ export default function JeweleryProductDetailScreen() {
                         ? Math.round((count / totalReviews) * 100)
                         : 0;
                     return (
-                      <View key={star} style={styles.distRow}>
-                        <Text style={[
-                            styles.distStar,
-                            {
-                              color: colors.warmGray,
-                              fontFamily: "DMSans_500Medium",
-                            },
-                          ]}
+                      <div key={star} className="flex flex-row items-center gap-2">
+                        <span
+                          className="w-[22px] text-[11px]"
+                          style={{
+                            color: colors.warmGray,
+                            fontFamily: "DMSans_500Medium",
+                          }}
                         >
                           {star}★
-                        </Text>
-                        <View style={[
-                            styles.distTrack,
-                            { backgroundColor: colors.pearl },
-                          ]}
+                        </span>
+                        <div
+                          className="h-1.5 flex-1 overflow-hidden rounded-full"
+                          style={{ backgroundColor: colors.pearl }}
                         >
-                          <View style={[
-                              styles.distFill,
-                              {
-                                backgroundColor: colors.gold,
-                                width: `${pct}%` as any,
-                              },
-                            ]}
+                          <div
+                            className="h-1.5 rounded-full"
+                            style={{
+                              backgroundColor: colors.gold,
+                              width: `${pct}%`,
+                            }}
                           />
-                        </View>
-                        <Text style={[
-                            styles.distCount,
-                            {
-                              color: colors.warmGray,
-                              fontFamily: "DMSans_400Regular",
-                            },
-                          ]}
+                        </div>
+                        <span
+                          className="w-5 text-right text-[11px]"
+                          style={{
+                            color: colors.warmGray,
+                            fontFamily: "DMSans_400Regular",
+                          }}
                         >
                           {count}
-                        </Text>
-                      </View>
+                        </span>
+                      </div>
                     );
                   })}
-                </View>
-              </View>
+                </div>
+              </div>
             ) : null}
 
-            <Pressable onPress={handleRateAndReview}
-              style={[
-                styles.rateBtn,
-                {
-                  borderColor: colors.gold,
-                  backgroundColor: colors.champagne,
-                },
-              ]}
+            <button
+              type="button"
+              onClick={handleRateAndReview}
+              className="flex cursor-pointer flex-row items-center justify-center gap-2 rounded-[2px] border py-[13px]"
+              style={{
+                borderColor: colors.gold,
+                backgroundColor: colors.champagne,
+              }}
             >
               <PenLine size={14} color={colors.gold} />
-              <Text style={[
-                  styles.rateBtnText,
-                  { color: colors.gold, fontFamily: "DMSans_500Medium" },
-                ]}
+              <span
+                className="text-[13px] tracking-[1px]"
+                style={{ color: colors.gold, fontFamily: "DMSans_500Medium" }}
               >
                 Rate & Review
-              </Text>
-            </Pressable>
+              </span>
+            </button>
 
             {reviewsList.length === 0 ? (
-              <View style={styles.emptyReviewsWrap}>
-                <Text style={[
-                    styles.emptyReviewsTitle,
-                    {
-                      color: colors.ink,
-                      fontFamily: "CormorantGaramond_500Medium_Italic",
-                    },
-                  ]}
+              <div className="flex flex-col items-center gap-1.5 py-2">
+                <p
+                  className="text-[18px]"
+                  style={{
+                    color: colors.ink,
+                    fontFamily: "CormorantGaramond_500Medium_Italic",
+                  }}
                 >
                   No reviews yet
-                </Text>
-                <Text style={[
-                    styles.emptyReviewsSub,
-                    {
-                      color: colors.warmGray,
-                      fontFamily: "DMSans_400Regular",
-                    },
-                  ]}
+                </p>
+                <p
+                  className="text-center text-[12px] leading-[18px]"
+                  style={{
+                    color: colors.warmGray,
+                    fontFamily: "DMSans_400Regular",
+                  }}
                 >
                   Bought this piece? Share your experience with other shoppers.
-                </Text>
-              </View>
+                </p>
+              </div>
             ) : (
-              <View>
+              <div className="flex flex-col">
                 {reviewsList.map((review: any, idx: number) => {
                   const userName =
                     review.user?.fullName || review.user || "Customer";
@@ -543,176 +513,155 @@ export default function JeweleryProductDetailScreen() {
                         ? colors.gold
                         : colors.maroon;
                   return (
-                    <View key={review._id || review.id || idx}
-                      style={[
-                        styles.reviewCard,
-                        { borderBottomColor: colors.midGray },
-                      ]}
+                    <div key={review._id || review.id || idx}
+                      className="flex flex-col gap-2 border-b py-[14px]"
+                      style={{ borderBottomColor: colors.midGray, borderBottomWidth: 1 }}
                     >
-                      <View style={styles.reviewTopRow}>
-                        <View style={[styles.ratingPill, { backgroundColor: pillBg }]}
+                      <div className="flex flex-row items-center gap-2">
+                        <div className="rounded-[2px] px-2 py-[3px]"
+                          style={{ backgroundColor: pillBg }}
                         >
-                          <Text style={[styles.ratingPillText, { color: colors.onBrand }]}>
+                          <span className="text-[11px] font-extrabold" style={{ color: colors.onBrand }}>
                             {review.rating} ★
-                          </Text>
-                        </View>
-                        <Text style={[
-                            styles.reviewTitle,
-                            {
-                              color: colors.ink,
-                              fontFamily: "DMSans_500Medium",
-                            },
-                          ]}
-                          numberOfLines={1}
+                          </span>
+                        </div>
+                        <span
+                          className="flex-1 truncate text-[13px]"
+                          style={{
+                            color: colors.ink,
+                            fontFamily: "DMSans_500Medium",
+                          }}
                         >
                           {review.title || "Customer Review"}
-                        </Text>
-                      </View>
-                      <Text style={[
-                          styles.reviewBody,
-                          {
-                            color: colors.warmGray,
-                            fontFamily: "DMSans_400Regular",
-                          },
-                        ]}
+                        </span>
+                      </div>
+                      <p
+                        className="text-[13px] leading-[19px]"
+                        style={{
+                          color: colors.warmGray,
+                          fontFamily: "DMSans_400Regular",
+                        }}
                       >
                         {review.comment}
-                      </Text>
-                      <View style={styles.reviewerRow}>
-                        <Text style={[
-                            styles.reviewerName,
-                            {
-                              color: colors.ink,
-                              fontFamily: "DMSans_500Medium",
-                            },
-                          ]}
-                          numberOfLines={1}
+                      </p>
+                      <div className="flex flex-row items-center gap-1.5">
+                        <span
+                          className="max-w-[140px] truncate text-[12px]"
+                          style={{
+                            color: colors.ink,
+                            fontFamily: "DMSans_500Medium",
+                          }}
                         >
                           {userName}
-                        </Text>
+                        </span>
                         {review.isVerifiedBuyer ? (
-                          <View style={styles.verifiedRow}>
+                          <span className="flex flex-row items-center gap-[3px]">
                             <CircleCheck size={12} color={colors.gold} />
-                            <Text style={[
-                                styles.verifiedText,
-                                {
-                                  color: colors.gold,
-                                  fontFamily: "DMSans_500Medium",
-                                },
-                              ]}
+                            <span
+                              className="text-[11px]"
+                              style={{
+                                color: colors.gold,
+                                fontFamily: "DMSans_500Medium",
+                              }}
                             >
                               Verified Buyer
-                            </Text>
-                          </View>
+                            </span>
+                          </span>
                         ) : null}
-                        <Text style={[
-                            styles.reviewerDate,
-                            {
-                              color: colors.warmGray,
-                              fontFamily: "DMSans_400Regular",
-                            },
-                          ]}
+                        <span
+                          className="text-[11px]"
+                          style={{
+                            color: colors.warmGray,
+                            fontFamily: "DMSans_400Regular",
+                          }}
                         >
                           · {formattedDate}
-                        </Text>
-                        <View style={{ flex: 1 }} />
-                        <Pressable onPress={() =>
+                        </span>
+                        <div className="flex-1" />
+                        <button
+                          type="button"
+                          onClick={() =>
                             review._id && handleHelpfulVote(review._id)
                           }
-                          hitSlop={8}
-                          style={[
-                            styles.helpfulBtn,
-                            {
-                              borderColor: voted
-                                ? colors.gold
-                                : colors.midGray,
-                              backgroundColor: voted
-                                ? colors.champagne
-                                : "transparent",
-                            },
-                          ]}
+                          className="flex cursor-pointer flex-row items-center gap-[5px] rounded-[2px] border px-[10px] py-1.5"
+                          style={{
+                            borderColor: voted
+                              ? colors.gold
+                              : colors.midGray,
+                            borderWidth: 1,
+                            backgroundColor: voted
+                              ? colors.champagne
+                              : "transparent",
+                          }}
                         >
                           <ThumbsUp size={12} color={voted ? colors.gold : colors.warmGray} />
-                          <Text style={[
-                              styles.helpfulText,
-                              {
-                                color: voted
-                                  ? colors.gold
-                                  : colors.warmGray,
-                                fontFamily: "DMSans_500Medium",
-                              },
-                            ]}
+                          <span
+                            className="text-[11px]"
+                            style={{
+                              color: voted
+                                ? colors.gold
+                                : colors.warmGray,
+                              fontFamily: "DMSans_500Medium",
+                            }}
                           >
                             {review.helpfulCount ?? review.helpful ?? 0}
-                          </Text>
-                        </Pressable>
-                      </View>
-                    </View>
+                          </span>
+                        </button>
+                      </div>
+                    </div>
                   );
                 })}
-              </View>
+              </div>
             )}
-          </View>
+          </div>
 
           {/* Related products */}
           {related.length > 0 && (
-            <View style={styles.relatedSection}>
-              <Text style={[
-                  styles.relatedLabel,
-                  { color: colors.gold, fontFamily: "DMSans_500Medium" },
-                ]}
+            <div className="flex flex-col gap-[10px]">
+              <p
+                className="text-[9px] tracking-[2px]"
+                style={{ color: colors.gold, fontFamily: "DMSans_500Medium" }}
               >
                 YOU MAY ALSO LOVE
-              </Text>
-              <Text style={[
-                  styles.relatedTitle,
-                  {
-                    color: colors.ink,
-                    fontFamily: "CormorantGaramond_500Medium_Italic",
-                  },
-                ]}
+              </p>
+              <h2
+                className="text-[22px] leading-7"
+                style={{
+                  color: colors.ink,
+                  fontFamily: "CormorantGaramond_500Medium_Italic",
+                }}
               >
                 Complete the Look
-              </Text>
-              <View style={styles.relatedGrid}>
+              </h2>
+              <div className="flex flex-row flex-wrap justify-between gap-2">
                 {related.map((p: JeweleryProduct) => (
                   <ProductCard key={p.id} product={p} />
                 ))}
-              </View>
-            </View>
+              </div>
+            </div>
           )}
 
-          <View style={{ height: 100 + stickyBarOffset }} />
-        </View>
-      </ScrollView>
+          <div style={{ height: 100 + stickyBarOffset }} />
+        </div>
+      </div>
 
       {/* Sticky bottom bar — viewport-fixed on web so it is always
           visible (the page scrolls at document level, so in-flow would
-          park it at the end of the content). Native keeps it in-flow
-          below its bounded ScrollView. */}
-      <View style={[
-          styles.stickyBar,
-          {
-            backgroundColor: colors.ivory,
-            borderTopColor: colors.midGray,
-            // Web: the bar is fixed above the 60px tab bar, so no safe-area
-            // padding needed — the old bottomPad+12 left a cream gap.
-            // Native keeps the inset for the home indicator.
-            paddingBottom: Platform.OS === "web" ? 12 : bottomPad + 12,
-            ...(Platform.OS === "web"
-              ? ({
-                  position: "fixed",
-                  bottom: stickyBarOffset,
-                  left: 0,
-                  right: 0,
-                  zIndex: 60,
-                } as any)
-              : null),
-          },
-        ]}
+          park it at the end of the content). */}
+      <div
+        className="fixed right-0 left-0 z-[60] flex w-full flex-row items-center gap-3 border-t px-5 pt-[14px]"
+        style={{
+          backgroundColor: colors.ivory,
+          borderTopColor: colors.midGray,
+          borderTopWidth: 1,
+          paddingBottom: 12,
+          bottom: stickyBarOffset,
+        }}
       >
-        <Pressable style={[styles.wishlistStickyBtn, { borderColor: colors.midGray }]}
-          onPress={() => {
+        <button
+          type="button"
+          aria-label="Toggle wishlist"
+          onClick={() => {
             if (!useAuthStore.getState().isAuthenticated) {
               navigate("/auth");
               return;
@@ -720,30 +669,39 @@ export default function JeweleryProductDetailScreen() {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
             toggleWishlist(product);
           }}
+          className="flex h-[52px] w-12 shrink-0 cursor-pointer items-center justify-center rounded-[2px] border"
+          style={{ borderColor: colors.midGray }}
         >
           <Heart size={18} color={wishlisted ? colors.gold : colors.ink} />
-        </Pressable>
+        </button>
         {canTryOn && (
-          <Pressable onPress={handleTryOn}
-            style={({ pressed }) => [
-              styles.tryOnBtn,
-              {
-                borderColor: colors.gold,
-                backgroundColor: pressed ? colors.champagne : "transparent",
-              },
-            ]}
+          <button
+            type="button"
+            onClick={handleTryOn}
+            className="flex h-[52px] shrink-0 cursor-pointer flex-row items-center justify-center gap-2 rounded-[2px] border px-3"
+            style={{
+              borderColor: colors.gold,
+              backgroundColor: "transparent",
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.backgroundColor = colors.champagne;
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.backgroundColor = "transparent";
+            }}
           >
             <Camera size={16} color={colors.gold} />
-            <Text style={[
-                styles.tryOnText,
-                { color: colors.gold, fontFamily: "DMSans_500Medium" },
-              ]}
+            <span
+              className="text-[12px] tracking-[1.1px]"
+              style={{ color: colors.gold, fontFamily: "DMSans_500Medium" }}
             >
               Try Live
-            </Text>
-          </Pressable>
+            </span>
+          </button>
         )}
-        <Pressable onPress={
+        <button
+          type="button"
+          onClick={
             isInCart
               ? () => {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -751,20 +709,26 @@ export default function JeweleryProductDetailScreen() {
                 }
               : handleAddToCart
           }
-          style={({ pressed }) => [
-            styles.addToCartBtn,
-            {
-              backgroundColor: isInCart
-                ? pressed
-                  ? colors.goldLight
-                  : colors.emerald
-                : addedToCart
-                  ? colors.emerald
-                  : pressed
-                    ? colors.goldLight
-                    : colors.gold,
-            },
-          ]}
+          className="flex h-[52px] min-w-0 flex-1 cursor-pointer flex-row items-center justify-center gap-2 rounded-[2px]"
+          style={{
+            backgroundColor: isInCart
+              ? colors.emerald
+              : addedToCart
+                ? colors.emerald
+                : colors.gold,
+          }}
+          onMouseEnter={(e) => {
+            if (!isInCart && !addedToCart) {
+              (e.currentTarget as HTMLButtonElement).style.backgroundColor = colors.goldLight;
+            }
+          }}
+          onMouseLeave={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.backgroundColor = isInCart
+              ? colors.emerald
+              : addedToCart
+                ? colors.emerald
+                : colors.gold;
+          }}
         >
           {isInCart ? (
             <ArrowRight size={16} color={colors.onBrand} />
@@ -773,19 +737,18 @@ export default function JeweleryProductDetailScreen() {
           ) : (
             <ShoppingBag size={16} color={colors.onBrand} />
           )}
-          <Text style={[
-              styles.addToCartText,
-              { color: colors.onBrand, fontFamily: "DMSans_500Medium" },
-            ]}
+          <span
+            className="text-[13px] tracking-[1.5px]"
+            style={{ color: colors.onBrand, fontFamily: "DMSans_500Medium" }}
           >
             {isInCart
               ? "Go to Cart →"
               : addedToCart
                 ? "Added to Bag"
                 : "Add to Bag"}
-          </Text>
-        </Pressable>
-      </View>
+          </span>
+        </button>
+      </div>
 
       {/* Write-a-review sheet — same review pipeline as clothing,
           rendered in the jewellery palette */}
@@ -798,203 +761,6 @@ export default function JeweleryProductDetailScreen() {
         authRoute="/jewelery/auth/sign-in"
         theme={modalTheme}
       />
-    </View>
+    </div>
   );
 }
-
-const styles = StyleSheet.create({
-  root: { flex: 1, overflow: "hidden" },
-  notFound: { textAlign: "center", marginTop: 100, fontSize: 16 },
-  backBtn: {
-    position: "absolute",
-    left: 16,
-    right: 16,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    zIndex: 10,
-  },
-  backBtnInner: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  content: {
-    padding: 20,
-    gap: 14,
-  },
-  breadcrumb: { fontSize: 10, letterSpacing: 0.5 },
-  productName: {
-    fontSize: 30,
-    lineHeight: 36,
-  },
-  starsRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-  },
-  ratingText: { fontSize: 11, marginLeft: 4 },
-  priceRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-  },
-  price: { fontSize: 24 },
-  originalPrice: {
-    fontSize: 14,
-    textDecorationLine: "line-through",
-  },
-  description: { fontSize: 16, lineHeight: 26 },
-  occasionRow: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
-  occasionTag: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-    borderWidth: 0.5,
-  },
-  occasionTagText: { fontSize: 10, letterSpacing: 0.3 },
-  trustSection: {
-    borderWidth: 0.5,
-    borderRadius: 2,
-    padding: 14,
-    gap: 10,
-  },
-  trustItem: { flexDirection: "row", alignItems: "center", gap: 10 },
-  trustText: { fontSize: 12 },
-  craftSection: {
-    borderTopWidth: 0.5,
-    paddingTop: 16,
-    gap: 12,
-  },
-  craftLabel: { fontSize: 9, letterSpacing: 2 },
-  specGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 12,
-  },
-  specItem: { width: "47%" },
-  specKey: { fontSize: 10, letterSpacing: 0.5 },
-  specVal: { fontSize: 13, marginTop: 2 },
-  craftDetail: { fontSize: 14, lineHeight: 22 },
-  firstReviewTeaser: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    marginTop: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderWidth: 0.5,
-    borderRadius: 2,
-  },
-  firstReviewText: { fontSize: 13 },
-  reviewsSection: {
-    borderTopWidth: 0.5,
-    paddingTop: 16,
-    gap: 14,
-  },
-  reviewsLabel: { fontSize: 9, letterSpacing: 2 },
-  summaryRow: { flexDirection: "row", gap: 20 },
-  summaryLeft: { alignItems: "center", gap: 4, minWidth: 110 },
-  bigRating: { fontSize: 38, lineHeight: 44 },
-  summaryCount: { fontSize: 11, textAlign: "center" },
-  distCol: { flex: 1, gap: 6, justifyContent: "center" },
-  distRow: { flexDirection: "row", alignItems: "center", gap: 8 },
-  distStar: { fontSize: 11, width: 22 },
-  distTrack: { flex: 1, height: 6, borderRadius: 3, overflow: "hidden" },
-  distFill: { height: 6, borderRadius: 3 },
-  distCount: { fontSize: 11, width: 20, textAlign: "right" },
-  rateBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    paddingVertical: 13,
-    borderWidth: 1,
-    borderRadius: 2,
-  },
-  rateBtnText: { fontSize: 13, letterSpacing: 1 },
-  emptyReviewsWrap: { alignItems: "center", gap: 6, paddingVertical: 8 },
-  emptyReviewsTitle: { fontSize: 18 },
-  emptyReviewsSub: { fontSize: 12, textAlign: "center", lineHeight: 18 },
-  reviewCard: {
-    paddingVertical: 14,
-    borderBottomWidth: 0.5,
-    gap: 8,
-  },
-  reviewTopRow: { flexDirection: "row", alignItems: "center", gap: 8 },
-  ratingPill: {
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 2,
-  },
-  ratingPillText: { fontSize: 11, fontWeight: "800" },
-  reviewTitle: { fontSize: 13, flex: 1 },
-  reviewBody: { fontSize: 13, lineHeight: 19 },
-  reviewerRow: { flexDirection: "row", alignItems: "center", gap: 6 },
-  reviewerName: { fontSize: 12, maxWidth: 140 },
-  verifiedRow: { flexDirection: "row", alignItems: "center", gap: 3 },
-  verifiedText: { fontSize: 11 },
-  reviewerDate: { fontSize: 11 },
-  helpfulBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 5,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderWidth: 0.5,
-    borderRadius: 2,
-  },
-  helpfulText: { fontSize: 11 },
-  relatedSection: { gap: 10 },
-  relatedLabel: { fontSize: 9, letterSpacing: 2 },
-  relatedTitle: { fontSize: 22, lineHeight: 28 },
-  relatedGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-    justifyContent: "space-between",
-  },
-  stickyBar: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    paddingTop: 14,
-    gap: 12,
-    borderTopWidth: 0.5,
-    width: "100%",
-  },
-  wishlistStickyBtn: {
-    width: 48,
-    height: 52,
-    flexShrink: 0,
-    borderWidth: 1,
-    borderRadius: 2,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  tryOnBtn: {
-    height: 52,
-    flexShrink: 0,
-    borderWidth: 1,
-    borderRadius: 2,
-    paddingHorizontal: 12,
-    alignItems: "center",
-    justifyContent: "center",
-    flexDirection: "row",
-    gap: 8,
-  },
-  tryOnText: { fontSize: 12, letterSpacing: 1.1 },
-  addToCartBtn: {
-    flex: 1,
-    flexShrink: 1,
-    minWidth: 0,
-    height: 52,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    borderRadius: 2,
-  },
-  addToCartText: { fontSize: 13, letterSpacing: 1.5 },
-});

@@ -1,14 +1,26 @@
 import React from "react";
-import { ScrollView, Text, TouchableOpacity, View } from "@/components/primitives";
 import { BellOff, Box, Camera, Layers, Lock } from "lucide-react";
 import type { Theme } from "@/src/theme/Provider/ThemeProvider";
 import { TextInput } from "@/src/theme/components/TextInput";
-import { riderInputChrome } from "../../styles/rider.styles";
 import { deliveryApi, type RiderOffer } from "../../api/delivery.api";
 import { activeStatuses, label, money, subOrderIdOf } from "../../theme/riderTheme";
 import { currentLocation, pickProofPhoto } from "../../utils/riderMedia";
 import type { ProofState, RiderStyles, ShowDialog } from "../../types/rider.types";
 import { EmptyCard, ProofImages, SectionTitle, SummaryTile } from "./RiderShared";
+import { cn } from "@/src/lib/utils";
+
+const riderInputChrome = (theme: Theme) => ({
+  containerStyle: { marginBottom: 0 },
+  inputContainerStyle: {
+    backgroundColor: theme.background,
+    borderRadius: 14,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 11,
+    minHeight: 48,
+  },
+  style: { fontSize: 15, color: theme.text },
+});
 
 type RunAction = (action: () => Promise<any>, successMessage?: string) => Promise<void>;
 
@@ -49,91 +61,147 @@ export function JobsPanel({
   updateProof: (subOrderId: string, patch: Partial<ProofState>) => void;
   showDialog: ShowDialog;
 }) {
+  void styles;
   const nextAction = actionFor(activeOrder, proofFor);
 
   return (
-    <View style={styles.panel}>
+    <div className="flex flex-col gap-3.5">
       {currentCapacity && (
-        <View style={styles.capacityBar}>
-          <View style={styles.flexOne}>
-            <Text style={styles.capacityTitle}>Acceptance Capacity</Text>
-            <Text style={styles.muted}>
+        <div
+          className="flex flex-row items-center justify-between gap-2.5 rounded-[14px] border p-3"
+          style={{ backgroundColor: `${theme.primary}12`, borderColor: `${theme.primary}35` }}
+        >
+          <div className="min-w-0 flex-1">
+            <span className="mb-0.5 block text-[13px] font-extrabold" style={{ color: theme.text }}>
+              Acceptance Capacity
+            </span>
+            <span className="block text-[13px] leading-[18px]" style={{ color: theme.secondaryText }}>
               {currentCapacity.acceptedCountInWindow || 0}/{currentCapacity.maxAcceptedOrders || 15} accepted in {currentCapacity.acceptanceWindowHours || 12}h
-            </Text>
-          </View>
-          <Text style={styles.capacityPill}>{currentCapacity.remainingAfterAccept ?? "-"} left</Text>
-        </View>
+            </span>
+          </div>
+          <span className="rounded-full px-2.5 py-1.5 text-xs font-black text-white" style={{ backgroundColor: theme.primary }}>
+            {currentCapacity.remainingAfterAccept ?? "-"} left
+          </span>
+        </div>
       )}
 
-      <View style={styles.summaryGrid}>
+      <div className="flex flex-row gap-2.5">
         <SummaryTile styles={styles} label="Active Jobs" value={String(activeOrders.length)} />
         <SummaryTile styles={styles} label="Open Offers" value={String(offers.length)} />
         <SummaryTile styles={styles} label="Offer Value" value={money(totalOpenValue)} />
-      </View>
+      </div>
 
       <SectionTitle styles={styles} title="Active Queue" meta={`${activeOrders.length} jobs`} />
       {activeOrders.length === 0 ? (
         <EmptyCard styles={styles} theme={theme} icon={Box} label="No active delivery assigned." />
       ) : (
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.jobTabs}>
+        <div className="flex flex-row gap-2.5 overflow-x-auto pr-[18px]">
           {activeOrders.map((order) => {
             const jobId = subOrderIdOf(order);
             const selected = selectedJobId === jobId;
             return (
-              <TouchableOpacity key={jobId}
-                style={[styles.jobTab, selected && styles.jobTabSelected]}
-                onPress={() => onSelectJob(jobId)}
-                activeOpacity={0.8}
+              <button
+                key={jobId}
+                type="button"
+                onClick={() => onSelectJob(jobId)}
+                className="flex min-h-[78px] w-[178px] shrink-0 cursor-pointer flex-col justify-center rounded-[14px] border p-3 text-left"
+                style={{
+                  backgroundColor: selected ? `${theme.primary}12` : theme.secondaryBackground,
+                  borderColor: selected ? theme.primary : theme.border,
+                }}
               >
-                <Text style={[styles.jobTabId, selected && styles.jobTabIdSelected]} numberOfLines={1}>
+                <span
+                  className={cn("line-clamp-1 block truncate text-[13px] font-black")}
+                  style={{ color: selected ? theme.primary : theme.text }}
+                >
                   {jobId}
-                </Text>
-                <Text style={[styles.jobTabStatus, selected && styles.jobTabStatusSelected]} numberOfLines={1}>
+                </span>
+                <span
+                  className="mt-1 line-clamp-1 block truncate text-xs font-bold"
+                  style={{ color: selected ? theme.text : theme.secondaryText }}
+                >
                   {label(order.status)}
-                </Text>
-              </TouchableOpacity>
+                </span>
+              </button>
             );
           })}
-        </ScrollView>
+        </div>
       )}
 
       <SectionTitle styles={styles} title="Offer Queue" meta={`${offers.length} waiting`} />
       {!canAcceptOffers ? (
-        <View style={[styles.noticeCard, styles.noticeWarning]}>
-          <View style={styles.rowBetween}>
-            <View style={styles.flexOne}>
-              <Text style={styles.noticeTitle}>Complete Profile First</Text>
-              <Text style={styles.noticeCopy}>{profileBlockReason}</Text>
-            </View>
+        <div
+          className="flex flex-col gap-2.5 rounded-2xl border p-3.5"
+          style={{ backgroundColor: `${theme.warning}12`, borderColor: `${theme.warning}55` }}
+        >
+          <div className="flex flex-row items-center justify-between gap-2.5">
+            <div className="min-w-0 flex-1">
+              <span className="mb-1 block text-sm font-black" style={{ color: theme.text }}>
+                Complete Profile First
+              </span>
+              <span className="block text-xs leading-[17px]" style={{ color: theme.secondaryText }}>
+                {profileBlockReason}
+              </span>
+            </div>
             <Lock size={20} color={theme.warning} />
-          </View>
-        </View>
+          </div>
+        </div>
       ) : offers.length === 0 ? (
         <EmptyCard styles={styles} theme={theme} icon={BellOff} label="No active rider offers right now." />
       ) : (
         offers.map((item) => (
-          <View key={item.offerId} style={styles.offerCard}>
-            <View style={styles.offerTop}>
-              <View style={styles.flexOne}>
-                <Text style={styles.offerId}>{item.subOrderId}</Text>
-                <Text style={styles.muted}>{item.metadata?.storeName || item.subOrder?.storeId?.name || "Pickup store"}</Text>
-              </View>
-              <Text style={styles.payout}>{money(item.payoutAmount)}</Text>
-            </View>
-            <View style={styles.metricsRow}>
-              <Text style={styles.metric}>{item.riderDistanceToStoreKm ?? "-"} km to store</Text>
-              <Text style={styles.metric}>{item.distanceKm ?? "-"} km delivery</Text>
-              <Text style={styles.metric}>Stage {item.stage}</Text>
-            </View>
-            <View style={styles.actionsRow}>
-              <TouchableOpacity style={styles.primaryButton} onPress={() => onOfferResponse(item, true)} disabled={busy}>
-                <Text style={styles.primaryText}>Accept</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.secondaryButton} onPress={() => onOfferResponse(item, false)} disabled={busy}>
-                <Text style={styles.secondaryText}>Reject</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
+          <div
+            key={item.offerId}
+            className="flex flex-col gap-2 rounded-2xl border p-3.5"
+            style={{ backgroundColor: theme.secondaryBackground, borderColor: theme.border }}
+          >
+            <div className="flex flex-row justify-between gap-2.5">
+              <div className="min-w-0 flex-1">
+                <span className="block flex-1 text-base font-extrabold" style={{ color: theme.text }}>
+                  {item.subOrderId}
+                </span>
+                <span className="block text-[13px] leading-[18px]" style={{ color: theme.secondaryText }}>
+                  {item.metadata?.storeName || item.subOrder?.storeId?.name || "Pickup store"}
+                </span>
+              </div>
+              <span className="text-[17px] font-black" style={{ color: theme.primary }}>
+                {money(item.payoutAmount)}
+              </span>
+            </div>
+            <div className="mt-1 flex flex-row flex-wrap gap-2">
+              <span className="rounded-[10px] px-2 py-1 text-xs" style={{ color: theme.secondaryText, backgroundColor: theme.tertiaryBackground }}>
+                {item.riderDistanceToStoreKm ?? "-"} km to store
+              </span>
+              <span className="rounded-[10px] px-2 py-1 text-xs" style={{ color: theme.secondaryText, backgroundColor: theme.tertiaryBackground }}>
+                {item.distanceKm ?? "-"} km delivery
+              </span>
+              <span className="rounded-[10px] px-2 py-1 text-xs" style={{ color: theme.secondaryText, backgroundColor: theme.tertiaryBackground }}>
+                Stage {item.stage}
+              </span>
+            </div>
+            <div className="flex flex-row gap-2.5">
+              <button
+                type="button"
+                onClick={() => onOfferResponse(item, true)}
+                disabled={busy}
+                className="flex min-h-[46px] flex-1 cursor-pointer flex-row items-center justify-center gap-1.5 rounded-[14px] px-3.5 py-3 disabled:cursor-not-allowed disabled:opacity-60"
+                style={{ backgroundColor: theme.primary }}
+              >
+                <span className="font-black text-white">Accept</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => onOfferResponse(item, false)}
+                disabled={busy}
+                className="flex min-h-[46px] flex-1 cursor-pointer flex-row items-center justify-center gap-1.5 rounded-[14px] border px-3.5 py-3 disabled:cursor-not-allowed disabled:opacity-60"
+                style={{ backgroundColor: theme.background, borderColor: theme.border }}
+              >
+                <span className="font-extrabold" style={{ color: theme.text }}>
+                  Reject
+                </span>
+              </button>
+            </div>
+          </div>
         ))
       )}
 
@@ -141,7 +209,8 @@ export function JobsPanel({
       {!activeOrder ? (
         <EmptyCard styles={styles} theme={theme} icon={Layers} label="Select an active job to manage checkpoints." />
       ) : (
-        <SelectedJobCard styles={styles}
+        <SelectedJobCard
+          styles={styles}
           theme={theme}
           order={activeOrder}
           proofFor={proofFor}
@@ -152,7 +221,7 @@ export function JobsPanel({
           busy={busy}
         />
       )}
-    </View>
+    </div>
   );
 }
 
@@ -177,6 +246,7 @@ function SelectedJobCard({
   runAction: RunAction;
   busy: boolean;
 }) {
+  void styles;
   const jobId = subOrderIdOf(order);
   const proof = proofFor(jobId);
   const pickupPhoto = proof.pickupPhoto || order.delivery?.pickupPhoto;
@@ -184,61 +254,100 @@ function SelectedJobCard({
   const inputChrome = riderInputChrome(theme);
 
   return (
-    <View style={styles.jobCard}>
-      <View style={styles.offerTop}>
-        <View style={styles.flexOne}>
-          <Text style={styles.offerId}>{jobId}</Text>
-          <Text style={styles.statusText}>{label(order.status)}</Text>
-        </View>
-        <Text style={styles.payout}>{money(order.delivery?.payoutAmount)}</Text>
-      </View>
+    <div
+      className="flex flex-col gap-3 rounded-2xl border p-3.5"
+      style={{ backgroundColor: theme.secondaryBackground, borderColor: theme.border }}
+    >
+      <div className="flex flex-row justify-between gap-2.5">
+        <div className="min-w-0 flex-1">
+          <span className="block text-base font-extrabold" style={{ color: theme.text }}>
+            {jobId}
+          </span>
+          <span className="mt-0.5 block text-[13px] font-extrabold" style={{ color: theme.primary }}>
+            {label(order.status)}
+          </span>
+        </div>
+        <span className="text-[17px] font-black" style={{ color: theme.primary }}>
+          {money(order.delivery?.payoutAmount)}
+        </span>
+      </div>
 
       <ProofImages styles={styles} pickupPhoto={pickupPhoto} deliveryPhoto={deliveryPhoto} />
 
       {order.status === "RIDER_REACHED_STORE" && (
-        <View style={styles.formBlock}>
-          <TextInput {...inputChrome}
+        <div className="flex flex-col gap-2.5">
+          <TextInput
+            {...inputChrome}
             value={proof.pickupOtp}
-            onChangeText={(value) => updateProof(jobId, { pickupOtp: value })}
+            onChangeText={(value: string) => updateProof(jobId, { pickupOtp: value })}
             placeholder="Pickup OTP"
             placeholderTextColor={theme.secondaryText}
             keyboardType="number-pad"
           />
-          <TouchableOpacity style={styles.secondaryButton} onPress={async () => updateProof(jobId, { pickupPhoto: await pickProofPhoto(showDialog, "pickup") })}>
+          <button
+            type="button"
+            onClick={async () => updateProof(jobId, { pickupPhoto: await pickProofPhoto(showDialog, "pickup") })}
+            className="flex min-h-[46px] w-full cursor-pointer flex-row items-center justify-center gap-1.5 rounded-[14px] border px-3.5 py-3"
+            style={{ backgroundColor: theme.background, borderColor: theme.border }}
+          >
             <Camera size={16} color={theme.text} />
-            <Text style={styles.secondaryText}>{proof.pickupPhoto ? "Pickup Photo Added" : "Add Pickup Photo"}</Text>
-          </TouchableOpacity>
-        </View>
+            <span className="font-extrabold" style={{ color: theme.text }}>
+              {proof.pickupPhoto ? "Pickup Photo Added" : "Add Pickup Photo"}
+            </span>
+          </button>
+        </div>
       )}
 
       {order.status === "NEAR_CUSTOMER" && (
-        <View style={styles.formBlock}>
-          <TextInput {...inputChrome}
+        <div className="flex flex-col gap-2.5">
+          <TextInput
+            {...inputChrome}
             value={proof.deliveryOtp}
-            onChangeText={(value) => updateProof(jobId, { deliveryOtp: value })}
+            onChangeText={(value: string) => updateProof(jobId, { deliveryOtp: value })}
             placeholder="Delivery OTP"
             placeholderTextColor={theme.secondaryText}
             keyboardType="number-pad"
           />
-          <TouchableOpacity style={styles.secondaryButton} onPress={async () => updateProof(jobId, { deliveryPhoto: await pickProofPhoto(showDialog, "delivery") })}>
+          <button
+            type="button"
+            onClick={async () => updateProof(jobId, { deliveryPhoto: await pickProofPhoto(showDialog, "delivery") })}
+            className="flex min-h-[46px] w-full cursor-pointer flex-row items-center justify-center gap-1.5 rounded-[14px] border px-3.5 py-3"
+            style={{ backgroundColor: theme.background, borderColor: theme.border }}
+          >
             <Camera size={16} color={theme.text} />
-            <Text style={styles.secondaryText}>{proof.deliveryPhoto ? "Delivery Photo Added" : "Add Delivery Photo"}</Text>
-          </TouchableOpacity>
-        </View>
+            <span className="font-extrabold" style={{ color: theme.text }}>
+              {proof.deliveryPhoto ? "Delivery Photo Added" : "Add Delivery Photo"}
+            </span>
+          </button>
+        </div>
       )}
 
       {nextAction && activeStatuses.includes(order.status) && (
-        <TouchableOpacity style={styles.primaryButton} onPress={() => runAction(nextAction.run)} disabled={busy}>
-          <Text style={styles.primaryText}>{busy ? "Working..." : nextAction.label}</Text>
-        </TouchableOpacity>
+        <button
+          type="button"
+          onClick={() => runAction(nextAction.run)}
+          disabled={busy}
+          className="flex min-h-[46px] w-full cursor-pointer flex-row items-center justify-center gap-1.5 rounded-[14px] px-3.5 py-3 disabled:cursor-not-allowed disabled:opacity-60"
+          style={{ backgroundColor: theme.primary }}
+        >
+          <span className="font-black text-white">{busy ? "Working..." : nextAction.label}</span>
+        </button>
       )}
 
       {!["PICKED_UP", "IN_TRANSIT", "NEAR_CUSTOMER", "DELIVERED", "COMPLETED"].includes(order.status) && (
-        <TouchableOpacity style={styles.cancelButton} onPress={() => runAction(() => deliveryApi.cancel(jobId, "Rider unavailable"))} disabled={busy}>
-          <Text style={styles.cancelText}>Cancel Before Pickup</Text>
-        </TouchableOpacity>
+        <button
+          type="button"
+          onClick={() => runAction(() => deliveryApi.cancel(jobId, "Rider unavailable"))}
+          disabled={busy}
+          className="flex min-h-[46px] w-full cursor-pointer items-center justify-center rounded-[14px] border disabled:cursor-not-allowed disabled:opacity-60"
+          style={{ borderColor: `${theme.error}55`, backgroundColor: `${theme.error}10` }}
+        >
+          <span className="font-extrabold" style={{ color: theme.error }}>
+            Cancel Before Pickup
+          </span>
+        </button>
       )}
-    </View>
+    </div>
   );
 }
 

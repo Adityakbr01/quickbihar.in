@@ -6,20 +6,6 @@ import { useNavigate } from "react-router-dom";
 import { goBack, replaceTo, useRouteParams } from "@/src/utils/navigation";
 import React, { useEffect, useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
-import {
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Linking,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Switch,
-  Text,
-  TouchableOpacity,
-  View,
-} from "@/components/primitives";
-import { useSafeAreaInsets } from "@/src/hooks/useSafeAreaInsets";
 
 import IOSAlertDialog, { AlertButton } from "@/src/components/ui/IOSAlertDialog";
 import { reverseGeocodeRequest } from "@/src/features/common/address/api/address.api";
@@ -34,13 +20,16 @@ import { useAuthStore } from "@/src/features/common/auth/store/authStore";
 import { TextInput } from "@/src/theme/components/TextInput";
 import { useColors } from "@/src/features/Jewelery/hooks/useColors";
 import { useTopPad } from "@/src/hooks/useTopPad";
+import { useSafeAreaInsets } from "@/src/hooks/useSafeAreaInsets";
+import { useStickyBarBottomOffset } from "@/src/utils/responsive";
 
 export default function JeweleryAddressFormScreen() {
   const colors = useColors();
   const navigate = useNavigate();
   const topPad = useTopPad();
   const insets = useSafeAreaInsets();
-  const bottomPad = Platform.OS === "web" ? 34 : Math.max(insets.bottom, 20);
+  const bottomPad = 34;
+  const stickyBarOffset = useStickyBarBottomOffset();
 
   const { id, data, returnTo } = useRouteParams<{
     id?: string;
@@ -155,6 +144,7 @@ export default function JeweleryAddressFormScreen() {
         }
       });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleFetchLocation = async () => {
@@ -172,7 +162,7 @@ export default function JeweleryAddressFormScreen() {
             {
               text: "Open Settings",
               style: "default",
-              onPress: () => Linking.openSettings(),
+              onPress: () => window.open(window.location.href, "_blank"),
             },
           ]
         );
@@ -189,7 +179,7 @@ export default function JeweleryAddressFormScreen() {
             {
               text: "Open Settings",
               style: "default",
-              onPress: () => Linking.openSettings(),
+              onPress: () => window.open(window.location.href, "_blank"),
             },
           ]
         );
@@ -218,36 +208,16 @@ export default function JeweleryAddressFormScreen() {
       let state: string | undefined;
       let pincode: string | undefined;
 
-      if (Platform.OS !== "web") {
-        try {
-          const [address] = await Location.reverseGeocodeAsync({
-            latitude: lat,
-            longitude: lng,
-          });
-          if (address) {
-            const streetParts = [address.name, address.street].filter(Boolean);
-            street =
-              streetParts.length > 0
-                ? Array.from(new Set(streetParts)).join(", ")
-                : address.subregion || address.district || undefined;
-            city = address.city || address.district || address.subregion || undefined;
-            state = address.region || undefined;
-            pincode = address.postalCode || undefined;
-          }
-        } catch {}
-      }
-
-      if (!city || !state || !street || !pincode) {
-        try {
-          const apiAddress = await reverseGeocodeRequest(lat, lng);
-          if (apiAddress) {
-            if (!street && apiAddress.street) street = apiAddress.street;
-            if (!city && apiAddress.city) city = apiAddress.city;
-            if (!state && apiAddress.state) state = apiAddress.state;
-            if (!pincode && apiAddress.pincode) pincode = apiAddress.pincode;
-          }
-        } catch {}
-      }
+      // Web: expo-location reverse geocoding is unsupported — use the API directly.
+      try {
+        const apiAddress = await reverseGeocodeRequest(lat, lng);
+        if (apiAddress) {
+          if (!street && apiAddress.street) street = apiAddress.street;
+          if (!city && apiAddress.city) city = apiAddress.city;
+          if (!state && apiAddress.state) state = apiAddress.state;
+          if (!pincode && apiAddress.pincode) pincode = apiAddress.pincode;
+        }
+      } catch {}
 
       if (street) setValue("street", street, { shouldValidate: true, shouldDirty: true });
       if (city) setValue("city", city, { shouldValidate: true, shouldDirty: true });
@@ -329,122 +299,111 @@ export default function JeweleryAddressFormScreen() {
   const isSaving = createAddress.isPending || updateAddress.isPending;
 
   return (
-    <View style={[styles.root, { backgroundColor: colors.ivory }]}>
+    <div className="flex min-h-screen flex-col" style={{ backgroundColor: colors.ivory }}>
       {/* Header */}
-      <View style={[
-          styles.header,
-          {
-            paddingTop: topPad + 12,
-            backgroundColor: colors.ivory,
-            borderBottomColor: colors.midGray,
-          },
-        ]}
+      <div
+        className="flex flex-row items-center justify-between px-5 pb-[14px]"
+        style={{
+          paddingTop: topPad + 12,
+          backgroundColor: colors.ivory,
+          borderBottomColor: colors.midGray,
+          borderBottomWidth: 1,
+          borderBottomStyle: "solid",
+        }}
       >
-        <Pressable style={styles.backBtn}
-          onPress={handleBack}
-          hitSlop={8}
-          accessibilityRole="button"
-          accessibilityLabel="Go back"
+        <button
+          type="button"
+          onClick={handleBack}
+          aria-label="Go back"
+          className="flex h-9 w-9 cursor-pointer items-center justify-center"
         >
           <ArrowLeft size={18} color={colors.ink} />
-        </Pressable>
+        </button>
 
-        <Text style={[
-            styles.headerTitle,
-            {
-              color: colors.ink,
-              fontFamily: "CormorantGaramond_600SemiBold",
-            },
-          ]}
+        <h1
+          className="text-[17px] tracking-[1.5px]"
+          style={{
+            color: colors.ink,
+            fontFamily: "CormorantGaramond_600SemiBold",
+          }}
         >
           {isEditing ? "EDIT ADDRESS" : "ADD NEW ADDRESS"}
-        </Text>
+        </h1>
 
         <Shield size={16} color={colors.gold} />
-      </View>
+      </div>
 
-      <KeyboardAvoidingView style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-      >
-        <ScrollView contentContainerStyle={[
-            styles.scrollContent,
-            { paddingBottom: bottomPad + 90 },
-          ]}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-        >
+      <div className="flex flex-1 flex-col">
+        <div className="overflow-auto p-5" style={{ paddingBottom: bottomPad + 90 }}>
           {/* GPS Location Button */}
-          <View style={styles.section}>
-            <TouchableOpacity style={[
-                styles.locationBtn,
-                {
-                  backgroundColor: colors.champagne,
-                  borderColor: colors.gold,
-                  opacity: isLocating ? 0.7 : 1,
-                },
-              ]}
-              onPress={handleFetchLocation}
+          <div className="mb-5">
+            <button
+              type="button"
+              onClick={handleFetchLocation}
               disabled={isLocating}
-              activeOpacity={0.85}
+              className="flex w-full cursor-pointer flex-row items-center justify-center gap-2 rounded-[2px] border py-[14px] disabled:opacity-70"
+              style={{
+                backgroundColor: colors.champagne,
+                borderColor: colors.gold,
+              }}
             >
               {isLocating ? (
-                <ActivityIndicator size="small" color={colors.gold} />
+                <span
+                  className="h-4 w-4 animate-spin rounded-full border-2"
+                  style={{ borderColor: `${colors.gold}30`, borderTopColor: colors.gold }}
+                />
               ) : (
                 <NavigationIcon size={16} color={colors.gold} />
               )}
-              <Text style={[
-                  styles.locationBtnText,
-                  { color: colors.gold, fontFamily: "DMSans_500Medium" },
-                ]}
+              <span
+                className="text-[13px] tracking-[0.5px]"
+                style={{ color: colors.gold, fontFamily: "DMSans_500Medium" }}
               >
                 {isLocating
                   ? "Detecting Location..."
                   : hasLocationPin
                   ? "Location Pinned — Tap to Refresh"
                   : "Use My Current Location"}
-              </Text>
-            </TouchableOpacity>
+              </span>
+            </button>
 
             {hasLocationPin && (
-              <View style={styles.coordsRow}>
+              <div className="mt-2 flex flex-row items-center justify-center gap-[5px]">
                 <MapPin size={12} color={colors.gold} />
-                <Text style={[
-                    styles.coordsText,
-                    { color: colors.warmGray, fontFamily: "DMSans_400Regular" },
-                  ]}
+                <span
+                  className="text-[11px]"
+                  style={{ color: colors.warmGray, fontFamily: "DMSans_400Regular" }}
                 >
                   GPS: {latitude?.toFixed(5)}, {longitude?.toFixed(5)}
-                </Text>
-              </View>
+                </span>
+              </div>
             )}
-          </View>
+          </div>
 
           {/* Address Type Selector */}
-          <View style={styles.section}>
-            <Text style={[
-                styles.fieldLabel,
-                { color: colors.warmGray, fontFamily: "DMSans_500Medium" },
-              ]}
+          <div className="mb-5">
+            <p
+              className="mb-[7px] text-[10.5px] tracking-[0.8px]"
+              style={{ color: colors.warmGray, fontFamily: "DMSans_500Medium" }}
             >
               ADDRESS TYPE
-            </Text>
-            <View style={styles.typeRow}>
+            </p>
+            <div className="flex flex-row gap-[10px]">
               {[AddressType.HOME, AddressType.WORK, AddressType.OTHER].map((type) => {
                 const selected = addressType === type;
                 return (
-                  <TouchableOpacity key={type}
-                    style={[
-                      styles.typeChip,
-                      {
-                        backgroundColor: selected ? colors.champagne : colors.cardBg,
-                        borderColor: selected ? colors.gold : colors.border,
-                      },
-                    ]}
-                    onPress={() => {
+                  <button
+                    key={type}
+                    type="button"
+                    onClick={() => {
                       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                       setValue("addressType", type, { shouldValidate: true });
                     }}
-                    activeOpacity={0.8}
+                    className="flex flex-1 cursor-pointer flex-row items-center justify-center gap-1.5 rounded-[2px] border py-[10px]"
+                    style={{
+                      backgroundColor: selected ? colors.champagne : colors.cardBg,
+                      borderColor: selected ? colors.gold : colors.border,
+                    }}
                   >
                     {type === AddressType.HOME ? (
                       <House size={12} color={selected ? colors.gold : colors.warmGray} />
@@ -453,33 +412,31 @@ export default function JeweleryAddressFormScreen() {
                     ) : (
                       <MapPin size={12} color={selected ? colors.gold : colors.warmGray} />
                     )}
-                    <Text style={[
-                        styles.typeChipText,
-                        {
-                          color: selected ? colors.gold : colors.ink,
-                          fontFamily: selected
-                            ? "DMSans_700Bold"
-                            : "DMSans_400Regular",
-                        },
-                      ]}
+                    <span
+                      className="text-[12px] tracking-[0.5px]"
+                      style={{
+                        color: selected ? colors.gold : colors.ink,
+                        fontFamily: selected
+                          ? "DMSans_700Bold"
+                          : "DMSans_400Regular",
+                      }}
                     >
                       {type}
-                    </Text>
-                  </TouchableOpacity>
+                    </span>
+                  </button>
                 );
               })}
-            </View>
-          </View>
+            </div>
+          </div>
 
           {/* Full Name */}
-          <View style={styles.fieldGroup}>
-            <Text style={[
-                styles.fieldLabel,
-                { color: colors.warmGray, fontFamily: "DMSans_500Medium" },
-              ]}
+          <div className="mb-4">
+            <p
+              className="mb-[7px] text-[10.5px] tracking-[0.8px]"
+              style={{ color: colors.warmGray, fontFamily: "DMSans_500Medium" }}
             >
               FULL NAME *
-            </Text>
+            </p>
             <Controller control={control}
               name="fullName"
               render={({ field: { onChange, onBlur, value } }) => (
@@ -505,56 +462,54 @@ export default function JeweleryAddressFormScreen() {
                 />
               )}
             />
-          </View>
+          </div>
 
           {/* Mobile Number & Verification */}
-          <View style={styles.fieldGroup}>
-            <View style={styles.labelWithBadge}>
-              <Text style={[
-                  styles.fieldLabel,
-                  { color: colors.warmGray, fontFamily: "DMSans_500Medium" },
-                ]}
+          <div className="mb-4">
+            <div className="mb-[7px] flex flex-row items-center justify-between">
+              <p
+                className="text-[10.5px] tracking-[0.8px]"
+                style={{ color: colors.warmGray, fontFamily: "DMSans_500Medium" }}
               >
                 PHONE NUMBER *
-              </Text>
+              </p>
               {isPhoneVerified ? (
-                <View style={[
-                    styles.verifiedBadge,
-                    {
-                      backgroundColor: colors.champagne,
-                      borderColor: colors.gold,
-                    },
-                  ]}
+                <div
+                  className="flex flex-row items-center gap-1 rounded-[2px] border px-[7px] py-[2.5px]"
+                  style={{
+                    backgroundColor: colors.champagne,
+                    borderColor: colors.gold,
+                    borderWidth: 1,
+                  }}
                 >
                   <ShieldCheck size={10} color={colors.gold} />
-                  <Text style={[
-                      styles.verifiedBadgeText,
-                      { color: colors.gold, fontFamily: "DMSans_500Medium" },
-                    ]}
+                  <span
+                    className="text-[9.5px]"
+                    style={{ color: colors.gold, fontFamily: "DMSans_500Medium" }}
                   >
                     Verified
-                  </Text>
-                </View>
+                  </span>
+                </div>
               ) : (
-                <TouchableOpacity onPress={() => setOtpSheetVisible(true)}
-                  style={[
-                    styles.verifiedBadge,
-                    {
-                      backgroundColor: colors.pearl,
-                      borderColor: colors.gold,
-                    },
-                  ]}
+                <button
+                  type="button"
+                  onClick={() => setOtpSheetVisible(true)}
+                  className="cursor-pointer rounded-[2px] border px-[7px] py-[2.5px]"
+                  style={{
+                    backgroundColor: colors.pearl,
+                    borderColor: colors.gold,
+                    borderWidth: 1,
+                  }}
                 >
-                  <Text style={[
-                      styles.verifiedBadgeText,
-                      { color: colors.gold, fontFamily: "DMSans_500Medium" },
-                    ]}
+                  <span
+                    className="text-[9.5px]"
+                    style={{ color: colors.gold, fontFamily: "DMSans_500Medium" }}
                   >
                     Verify via OTP
-                  </Text>
-                </TouchableOpacity>
+                  </span>
+                </button>
               )}
-            </View>
+            </div>
             <Controller control={control}
               name="phone"
               render={({ field: { onChange, onBlur, value } }) => (
@@ -585,17 +540,16 @@ export default function JeweleryAddressFormScreen() {
                 />
               )}
             />
-          </View>
+          </div>
 
           {/* House / Flat / Street */}
-          <View style={styles.fieldGroup}>
-            <Text style={[
-                styles.fieldLabel,
-                { color: colors.warmGray, fontFamily: "DMSans_500Medium" },
-              ]}
+          <div className="mb-4">
+            <p
+              className="mb-[7px] text-[10.5px] tracking-[0.8px]"
+              style={{ color: colors.warmGray, fontFamily: "DMSans_500Medium" }}
             >
               HOUSE / FLAT / STREET ADDRESS *
-            </Text>
+            </p>
             <Controller control={control}
               name="street"
               render={({ field: { onChange, onBlur, value } }) => (
@@ -625,17 +579,16 @@ export default function JeweleryAddressFormScreen() {
                 />
               )}
             />
-          </View>
+          </div>
 
           {/* Landmark */}
-          <View style={styles.fieldGroup}>
-            <Text style={[
-                styles.fieldLabel,
-                { color: colors.warmGray, fontFamily: "DMSans_500Medium" },
-              ]}
+          <div className="mb-4">
+            <p
+              className="mb-[7px] text-[10.5px] tracking-[0.8px]"
+              style={{ color: colors.warmGray, fontFamily: "DMSans_500Medium" }}
             >
               LANDMARK (OPTIONAL)
-            </Text>
+            </p>
             <Controller control={control}
               name="landmark"
               render={({ field: { onChange, onBlur, value } }) => (
@@ -660,18 +613,17 @@ export default function JeweleryAddressFormScreen() {
                 />
               )}
             />
-          </View>
+          </div>
 
           {/* City and State */}
-          <View style={styles.row}>
-            <View style={[styles.fieldGroup, { flex: 1 }]}>
-              <Text style={[
-                  styles.fieldLabel,
-                  { color: colors.warmGray, fontFamily: "DMSans_500Medium" },
-                ]}
+          <div className="flex flex-row gap-3">
+            <div className="mb-4 min-w-0 flex-1">
+              <p
+                className="mb-[7px] text-[10.5px] tracking-[0.8px]"
+                style={{ color: colors.warmGray, fontFamily: "DMSans_500Medium" }}
               >
                 CITY *
-              </Text>
+              </p>
               <Controller control={control}
                 name="city"
               render={({ field: { onChange, onBlur, value } }) => (
@@ -697,16 +649,15 @@ export default function JeweleryAddressFormScreen() {
                 />
               )}
             />
-            </View>
+            </div>
 
-            <View style={[styles.fieldGroup, { flex: 1 }]}>
-              <Text style={[
-                  styles.fieldLabel,
-                  { color: colors.warmGray, fontFamily: "DMSans_500Medium" },
-                ]}
+            <div className="mb-4 min-w-0 flex-1">
+              <p
+                className="mb-[7px] text-[10.5px] tracking-[0.8px]"
+                style={{ color: colors.warmGray, fontFamily: "DMSans_500Medium" }}
               >
                 STATE *
-              </Text>
+              </p>
               <Controller control={control}
                 name="state"
               render={({ field: { onChange, onBlur, value } }) => (
@@ -732,18 +683,17 @@ export default function JeweleryAddressFormScreen() {
                 />
               )}
             />
-            </View>
-          </View>
+            </div>
+          </div>
 
           {/* Pincode */}
-          <View style={styles.fieldGroup}>
-            <Text style={[
-                styles.fieldLabel,
-                { color: colors.warmGray, fontFamily: "DMSans_500Medium" },
-              ]}
+          <div className="mb-4">
+            <p
+              className="mb-[7px] text-[10.5px] tracking-[0.8px]"
+              style={{ color: colors.warmGray, fontFamily: "DMSans_500Medium" }}
             >
               PIN CODE *
-            </Text>
+            </p>
             <Controller control={control}
               name="pincode"
               render={({ field: { onChange, onBlur, value } }) => (
@@ -771,88 +721,91 @@ export default function JeweleryAddressFormScreen() {
                 />
               )}
             />
-          </View>
+          </div>
 
           {/* Default Address Toggle */}
-          <View style={[
-              styles.defaultRow,
-              {
-                backgroundColor: colors.cardBg,
-                borderColor: colors.border,
-              },
-            ]}
+          <div
+            className="mt-2 flex flex-row items-center rounded-[2px] border p-4"
+            style={{
+              backgroundColor: colors.cardBg,
+              borderColor: colors.border,
+            }}
           >
-            <View style={{ flex: 1, gap: 2 }}>
-              <Text style={[
-                  styles.defaultRowTitle,
-                  {
-                    color: colors.ink,
-                    fontFamily: "DMSans_500Medium",
-                  },
-                ]}
+            <div className="flex flex-1 flex-col gap-[2px]">
+              <span
+                className="text-[14px]"
+                style={{
+                  color: colors.ink,
+                  fontFamily: "DMSans_500Medium",
+                }}
               >
                 Set as Default Address
-              </Text>
-              <Text style={[
-                  styles.defaultRowSub,
-                  { color: colors.warmGray, fontFamily: "DMSans_400Regular" },
-                ]}
+              </span>
+              <span
+                className="mt-[2px] text-[11px]"
+                style={{ color: colors.warmGray, fontFamily: "DMSans_400Regular" }}
               >
                 Automatically selected during checkout
-              </Text>
-            </View>
-            <Switch value={Boolean(isDefault)}
-              onValueChange={(val) => {
+              </span>
+            </div>
+            <input
+              type="checkbox"
+              checked={Boolean(isDefault)}
+              onChange={(e) => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                setValue("isDefault", val);
+                setValue("isDefault", e.target.checked);
               }}
-              trackColor={{ false: colors.midGray, true: colors.champagne }}
-              thumbColor={isDefault ? colors.gold : colors.ivory}
+              aria-label="Set as default address"
+              className="h-6 w-11 cursor-pointer appearance-none rounded-full transition-colors"
+              style={{
+                backgroundColor: isDefault ? colors.gold : colors.midGray,
+                position: "relative",
+              }}
             />
-          </View>
-        </ScrollView>
+          </div>
+          <div style={{ height: 16 }} />
+        </div>
 
-        {/* Footer CTA */}
-        <View style={[
-            styles.footer,
-            {
-              backgroundColor: colors.ivory,
-              borderTopColor: colors.midGray,
-              paddingBottom: bottomPad,
-            },
-          ]}
+        {/* Footer CTA — viewport-fixed above the tab bar */}
+        <div
+          className="fixed right-0 left-0 z-[60] px-5 pt-3"
+          style={{
+            bottom: stickyBarOffset + 12 + (insets?.bottom ?? 0),
+            backgroundColor: colors.ivory,
+            borderTopColor: colors.midGray,
+            borderTopWidth: 1,
+            borderTopStyle: "solid",
+            paddingBottom: 12,
+          }}
         >
-          <TouchableOpacity style={[
-              styles.submitBtn,
-              {
-                backgroundColor: colors.gold,
-                opacity: isSaving ? 0.7 : 1,
-              },
-            ]}
-            onPress={handleSubmit(onSubmit)}
+          <button
+            type="button"
+            onClick={handleSubmit(onSubmit)}
             disabled={isSaving}
-            activeOpacity={0.88}
+            className="flex h-[50px] w-full cursor-pointer items-center justify-center rounded-[2px] shadow-md disabled:opacity-70"
+            style={{
+              backgroundColor: colors.gold,
+            }}
           >
             {isSaving ? (
-              <ActivityIndicator color={colors.onBrand} size="small" />
+              <span className="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white" />
             ) : (
-              <View style={styles.submitBtnContent}>
-                <Text style={[
-                    styles.submitBtnText,
-                    {
-                      color: colors.onBrand,
-                      fontFamily: "DMSans_600SemiBold",
-                    },
-                  ]}
+              <span className="flex flex-row items-center gap-2">
+                <span
+                  className="text-[12px] tracking-[1.5px]"
+                  style={{
+                    color: colors.onBrand,
+                    fontFamily: "DMSans_600SemiBold",
+                  }}
                 >
                   {isEditing ? "UPDATE ADDRESS" : "SAVE ADDRESS"}
-                </Text>
+                </span>
                 <ArrowRight size={14} color={colors.onBrand} />
-              </View>
+              </span>
             )}
-          </TouchableOpacity>
-        </View>
-      </KeyboardAvoidingView>
+          </button>
+        </div>
+      </div>
 
       {/* Phone OTP Sheet */}
       <PhoneOtpSheet visible={otpSheetVisible}
@@ -873,147 +826,6 @@ export default function JeweleryAddressFormScreen() {
         buttons={alertConfig.buttons}
         onClose={() => setAlertConfig((p) => ({ ...p, visible: false }))}
       />
-    </View>
+    </div>
   );
 }
-
-const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingBottom: 14,
-    borderBottomWidth: 0.5,
-  },
-  backBtn: {
-    width: 36,
-    height: 36,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  headerTitle: {
-    fontSize: 17,
-    letterSpacing: 1.5,
-  },
-  scrollContent: {
-    padding: 20,
-  },
-  section: {
-    marginBottom: 20,
-  },
-  locationBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    paddingVertical: 14,
-    borderRadius: 2,
-    borderWidth: 1,
-  },
-  locationBtnText: {
-    fontSize: 13,
-    letterSpacing: 0.5,
-  },
-  coordsRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 5,
-    marginTop: 8,
-  },
-  coordsText: {
-    fontSize: 11,
-  },
-  fieldGroup: {
-    marginBottom: 16,
-  },
-  fieldLabel: {
-    fontSize: 10.5,
-    letterSpacing: 0.8,
-    marginBottom: 7,
-  },
-  labelWithBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 7,
-  },
-  verifiedBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    paddingHorizontal: 7,
-    paddingVertical: 2.5,
-    borderRadius: 2,
-    borderWidth: 0.5,
-  },
-  verifiedBadgeText: {
-    fontSize: 9.5,
-  },
-  typeRow: {
-    flexDirection: "row",
-    gap: 10,
-  },
-  typeChip: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 6,
-    paddingVertical: 10,
-    borderRadius: 2,
-    borderWidth: 1,
-  },
-  typeChipText: {
-    fontSize: 12,
-    letterSpacing: 0.5,
-  },
-  row: {
-    flexDirection: "row",
-    gap: 12,
-  },
-  defaultRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 16,
-    borderRadius: 2,
-    borderWidth: 1,
-    marginTop: 8,
-  },
-  defaultRowTitle: {
-    fontSize: 14,
-  },
-  defaultRowSub: {
-    fontSize: 11,
-    marginTop: 2,
-  },
-  footer: {
-    paddingHorizontal: 20,
-    paddingTop: 12,
-    borderTopWidth: 0.5,
-  },
-  submitBtn: {
-    height: 50,
-    borderRadius: 2,
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.12,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  submitBtnContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  submitBtnText: {
-    fontSize: 12,
-    letterSpacing: 1.5,
-  },
-});

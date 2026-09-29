@@ -1,6 +1,5 @@
 import { Gradient } from "@/src/components/common/Gradient";
 import React, { useEffect, useRef, useState } from "react";
-import { PanResponder, StatusBar, StyleSheet, View } from "@/components/primitives";
 import { useSafeAreaInsets } from "@/src/hooks/useSafeAreaInsets";
 
 import { lightTheme } from "@/src/theme/colors";
@@ -67,45 +66,48 @@ export default function OnboardingScreen({ onDone }: { onDone?: () => void }) {
     handlePrevRef.current = handlePrev;
   });
 
-  const panResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => false,
-      onMoveShouldSetPanResponder: (_, gestureState) => {
-        return (
-          Math.abs(gestureState.dx) > 30 &&
-          Math.abs(gestureState.dx) > Math.abs(gestureState.dy)
-        );
-      },
-      onPanResponderRelease: (_, gestureState) => {
-        if (gestureState.dx < -50) {
-          // Swiped left
-          handleNextRef.current();
-        } else if (gestureState.dx > 50) {
-          // Swiped right
-          handlePrevRef.current();
-        }
-      },
-    }),
-  ).current;
+  // Minimal left/right swipe via touch events (replaces PanResponder on web).
+  const touchStartX = useRef<number | null>(null);
+  const touchStartY = useRef<number | null>(null);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    const t = e.touches[0];
+    touchStartX.current = t.clientX;
+    touchStartY.current = t.clientY;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current === null || touchStartY.current === null) return;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - touchStartX.current;
+    const dy = t.clientY - touchStartY.current;
+    touchStartX.current = null;
+    touchStartY.current = null;
+    if (Math.abs(dx) > 30 && Math.abs(dx) > Math.abs(dy)) {
+      if (dx < -50) {
+        // Swiped left
+        handleNextRef.current();
+      } else if (dx > 50) {
+        // Swiped right
+        handlePrevRef.current();
+      }
+    }
+  };
 
   const animTransition = "opacity 0.3s ease-out, transform 0.32s cubic-bezier(0.16, 1, 0.3, 1)";
-  const topStyle = {
+  const topStyle: React.CSSProperties = {
     opacity: phase === "visible" ? 1 : 0,
-    transform: [
-      { translateY: phase === "leaving" ? -16 : phase === "entering" ? 16 : 0 },
-    ],
+    transform: `translateY(${phase === "leaving" ? -16 : phase === "entering" ? 16 : 0}px)`,
     transition: animTransition,
   };
-  const iconStyle = {
+  const iconStyle: React.CSSProperties = {
     opacity: phase === "visible" ? 1 : 0,
-    transform: [{ scale: phase === "visible" ? 1 : 0.88 }],
+    transform: `scale(${phase === "visible" ? 1 : 0.88})`,
     transition: animTransition,
   };
-  const bottomStyle = {
+  const bottomStyle: React.CSSProperties = {
     opacity: phase === "visible" ? 1 : 0,
-    transform: [
-      { translateY: phase === "leaving" ? 16 : phase === "entering" ? -16 : 0 },
-    ],
+    transform: `translateY(${phase === "leaving" ? 16 : phase === "entering" ? -16 : 0}px)`,
     transition: animTransition,
   };
 
@@ -116,18 +118,18 @@ export default function OnboardingScreen({ onDone }: { onDone?: () => void }) {
   }
 
   return (
-    <View style={styles.screen} {...panResponder.panHandlers}>
-      <StatusBar
-        barStyle="light-content"
-        translucent
-        backgroundColor="transparent"
-      />
+    <div
+      className="relative flex min-h-dvh flex-1 flex-col overflow-hidden"
+      style={{ backgroundColor: "#020617" }}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+    >
       <Gradient
         colors={lightTheme.spgradient}
         locations={[0, 0.28, 0.52, 0.78, 1]}
         start={{ x: 0.2, y: 0 }}
         end={{ x: 0.8, y: 1 }}
-        style={StyleSheet.absoluteFill}
+        style={{ position: "absolute", inset: 0 }}
       />
 
       <OnboardingSlide
@@ -141,15 +143,6 @@ export default function OnboardingScreen({ onDone }: { onDone?: () => void }) {
         onSkip={handleSkip}
         onNext={handleNext}
       />
-    </View>
+    </div>
   );
 }
-
-// ─── Styles ───────────────────────────────────────────────────
-
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: "#020617",
-  },
-});

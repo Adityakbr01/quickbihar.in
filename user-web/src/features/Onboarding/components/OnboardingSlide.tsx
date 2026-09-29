@@ -1,15 +1,13 @@
 import React from "react";
-import { View, Text, StyleSheet } from "@/components/primitives";
-import { ArrowDown } from "lucide-react";
 import { OnboardingStepData } from "./types";
 import { PaginationControls, PaginationControlsProps } from "./PaginationControls";
 import { EdgeInsets } from "@/src/hooks/useSafeAreaInsets";
 
 export interface OnboardingSlideProps extends PaginationControlsProps {
   step: OnboardingStepData;
-  topStyle: any;
-  iconStyle: any;
-  bottomStyle: any;
+  topStyle: React.CSSProperties;
+  iconStyle: React.CSSProperties;
+  bottomStyle: React.CSSProperties;
   insets: EdgeInsets;
 }
 
@@ -24,78 +22,50 @@ export const OnboardingSlide: React.FC<OnboardingSlideProps> = ({
   return (
     <>
       {/* Top section */}
-      <View
-        style={[styles.topSection, { paddingTop: insets.top + 40 }, topStyle]}
+      <div
+        className="z-10 px-9"
+        style={{ paddingTop: insets.top + 40, ...topStyle }}
       >
-        <Text style={styles.caption}>{step.caption}</Text>
+        <p
+          className="mb-0.5 text-base font-light text-white/60"
+          style={{ letterSpacing: 0.4 }}
+        >
+          {step.caption}
+        </p>
         {/* <ArrowDown size={18} color="rgba(255,255,255,0.6)" style={{ marginVertical: 8 }} /> */}
-        <Text style={styles.topTitle}>{step.title}</Text>
-      </View>
+        <h1
+          className="text-[38px] font-medium whitespace-pre-line text-white"
+          style={{ lineHeight: "38px", letterSpacing: -0.5 }}
+        >
+          {step.title}
+        </h1>
+      </div>
 
       {/* Icon section */}
-      <View style={styles.iconSection}>
-        <View style={iconStyle}>{step.icon}</View>
-      </View>
+      <div className="z-10 flex flex-1 items-center justify-center">
+        <div style={iconStyle}>{step.icon}</div>
+      </div>
 
       {/* Bottom section (fades out during swipe) */}
-      <View style={[styles.bottomSection, bottomStyle]}>
-        <Text style={styles.bottomTitle}>{step.bottomTitle}</Text>
-        <Text style={styles.bottomDesc}>{step.bottomDesc}</Text>
-      </View>
+      <div className="z-10 px-9" style={bottomStyle}>
+        <h2
+          className="mb-2.5 text-[28px] font-medium whitespace-pre-line text-[#111827]"
+          style={{ lineHeight: "34px", letterSpacing: 0.9 }}
+        >
+          {step.bottomTitle}
+        </h2>
+        <p
+          className="text-lg font-light whitespace-pre-line text-[#374151]"
+          style={{ lineHeight: "22px" }}
+        >
+          {step.bottomDesc}
+        </p>
+      </div>
 
       {/* Controls (static layout anchored to bottom) */}
-      <View style={[styles.controlsSection, { paddingBottom: insets.bottom + 24 }]}>
+      <div className="z-10 px-9" style={{ paddingBottom: insets.bottom + 24 }}>
         <PaginationControls {...paginationProps} />
-      </View>
+      </div>
     </>
   );
 };
-
-const styles = StyleSheet.create({
-  topSection: {
-    paddingHorizontal: 36,
-    zIndex: 10,
-  },
-  caption: {
-    color: "rgba(255,255,255,0.6)",
-    fontSize: 16,
-    fontWeight: "300",
-    letterSpacing: 0.4,
-    marginBottom: 2,
-  },
-  topTitle: {
-    color: "#ffffff",
-    fontSize: 38,
-    fontWeight: "500",
-    lineHeight: 38,
-    letterSpacing: -0.5,
-  },
-  iconSection: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    zIndex: 10,
-  },
-  bottomSection: {
-    paddingHorizontal: 36,
-    zIndex: 10,
-  },
-  bottomTitle: {
-    color: "#111827",
-    fontSize: 28,
-    fontWeight: "500",
-    lineHeight: 34,
-    letterSpacing: 0.9,
-    marginBottom: 10,
-  },
-  bottomDesc: {
-    color: "#374151",
-    fontSize: 18,
-    fontWeight: "300",
-    lineHeight: 22,
-  },
-  controlsSection: {
-    paddingHorizontal: 36,
-    zIndex: 10,
-  },
-});

@@ -1,13 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import {
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-  RefreshControl,
-  ScrollView,
-  Text,
-  View,
-} from "@/components/primitives";
+import React, { useEffect, useRef, useState } from "react";
 import { SocketEvents } from "@/src/constants/socketEvents";
 import { socketClient } from "@/src/lib/socket";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
@@ -31,7 +22,6 @@ import { JobsPanel } from "../components/rider/JobsPanel";
 import { HistoryPanel } from "../components/rider/HistoryPanel";
 import { EarningsPanel } from "../components/rider/EarningsPanel";
 import { ProfilePanel } from "../components/rider/ProfilePanel";
-import { createRiderStyles } from "../styles/rider.styles";
 import {
   emptyProfileForm,
   emptyProof,
@@ -54,7 +44,7 @@ import type { ProfileForm, ProofState, RiderDialog, RiderTab, ShowDialog } from 
 
 export default function RiderWorkspaceScreen() {
   const theme = useTheme();
-  const styles = useMemo(() => createRiderStyles(theme), [theme]) as any;
+  const styles = {} as any;
   const { token } = useAuthStore();
   const [activeTab, setActiveTab] = useState<RiderTab>("overview");
   const [loading, setLoading] = useState(true);
@@ -89,10 +79,13 @@ export default function RiderWorkspaceScreen() {
   const [requestNote, setRequestNote] = useState("");
   const notifiedOfferIds = useRef<Set<string>>(new Set());
 
+  void refreshing;
+  void money;
+
   const isOnline = Boolean(profile?.isOnline);
   const wallet = payouts?.wallet || earnings?.wallet || profile?.wallet || dashboard?.profile?.wallet;
   const codLiability = Number(wallet?.collectedCodLiability || 0);
-  const activeOrder = useMemo(
+  const activeOrder = React.useMemo(
     () => activeOrders.find((order) => subOrderIdOf(order) === selectedJobId) || activeOrders[0] || null,
     [activeOrders, selectedJobId],
   );
@@ -453,10 +446,18 @@ export default function RiderWorkspaceScreen() {
   if (loading) {
     return (
       <>
-        <View style={styles.center}>
-          <ActivityIndicator size="large" color={theme.primary} />
-          <Text style={styles.muted}>Loading rider workspace...</Text>
-        </View>
+        <div
+          className="flex min-h-[60vh] flex-1 flex-col items-center justify-center gap-3"
+          style={{ backgroundColor: theme.background }}
+        >
+          <span
+            className="block h-8 w-8 animate-spin rounded-full border-2"
+            style={{ borderColor: `${theme.primary}40`, borderTopColor: theme.primary }}
+          />
+          <span className="text-[13px] leading-[18px]" style={{ color: theme.secondaryText }}>
+            Loading rider workspace...
+          </span>
+        </div>
         {dialogView}
       </>
     );
@@ -464,20 +465,8 @@ export default function RiderWorkspaceScreen() {
 
   return (
     <>
-      <KeyboardAvoidingView style={styles.keyboard} behavior={Platform.OS === "ios" ? "padding" : undefined}>
-        <ScrollView
-          contentContainerStyle={styles.content}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={() => refreshAll(true).catch(() => undefined)}
-              tintColor={theme.primary}
-              colors={[theme.primary]}
-            />
-          }
-        >
+      <div className="flex-1" style={{ backgroundColor: theme.background }}>
+        <div className="mx-auto w-full max-w-3xl p-[18px] pb-[118px]">
           <RiderHeader styles={styles} theme={theme} profile={profile} isOnline={isOnline} busy={busy} onToggleOnline={toggleOnline} />
           <RiderTabs styles={styles} theme={theme} activeTab={activeTab} onTabChange={setActiveTab} />
 
@@ -582,12 +571,15 @@ export default function RiderWorkspaceScreen() {
               onSaveProfile={saveProfile}
             />
           )}
-        </ScrollView>
-      </KeyboardAvoidingView>
+        </div>
+      </div>
       {busy && (
-        <View style={styles.busyOverlay}>
-          <ActivityIndicator size="small" color="#fff" />
-        </View>
+        <div
+          className="fixed right-[18px] bottom-[112px] z-[90] flex h-[42px] w-[42px] items-center justify-center rounded-full"
+          style={{ backgroundColor: theme.primary }}
+        >
+          <span className="block h-5 w-5 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+        </div>
       )}
       {dialogView}
     </>

@@ -1,14 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 import { Bell, CircleX, Heart, House, LayoutGrid, Moon, Search, ShoppingBag, Sun, User } from "lucide-react";
 import React, { useState } from "react";
-import {
-  Platform,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-  useWindowDimensions,
-} from "@/components/primitives";
 import { useLocation, useNavigate } from "react-router-dom";
 import { goTo } from "@/src/utils/navigation";
 
@@ -22,7 +14,7 @@ import {
 } from "@/src/features/common/cart/store/cartStore";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
 import { ModuleSwitcherButton } from "@/src/components/common/ModuleSwitcherButton";
-import { BREAKPOINTS, DESKTOP } from "@/src/utils/responsive";
+import { BREAKPOINTS, DESKTOP, useWindowWidth } from "@/src/utils/responsive";
 import { TextInput } from "@/src/theme/components/TextInput";
 import splashIcon from "@/assets/images/icons/splash-icon.webp";
 
@@ -31,10 +23,10 @@ import splashIcon from "@/assets/images/icons/splash-icon.webp";
  * Mirrors the clothing `DesktopNavbar` layout 1:1 — brand + pill search +
  * nav pills + notifications + module switcher + theme toggle — but with
  * jewelery routes and the gold/ivory palette.
- * Returns null on native + mobile web — mobile UI is 100% untouched.
+ * Returns null on mobile web — mobile UI is 100% untouched.
  */
 export const JeweleryDesktopNavbar = () => {
-  const { width } = useWindowDimensions();
+  const width = useWindowWidth();
   const colors = useColors();
   const theme = useTheme() as any;
   const navigate = useNavigate();
@@ -42,8 +34,7 @@ export const JeweleryDesktopNavbar = () => {
   const [query, setQuery] = useState("");
   const [focused, setFocused] = useState(false);
 
-  const isDesktop =
-    Platform.OS === "web" && width >= BREAKPOINTS.desktopMin;
+  const isDesktop = width >= BREAKPOINTS.desktopMin;
   const bagCount = useCartStore(
     (s) => filterItemsByModule(s.items, "jewelery").length,
   );
@@ -84,78 +75,70 @@ export const JeweleryDesktopNavbar = () => {
   ) => {
     const active = isActive(route);
     return (
-      <Pressable key={label}
-        onPress={() => go(route)}
-        accessibilityRole="link"
-        accessibilityLabel={label}
-        style={[
-          styles.navItem,
-          {
-            backgroundColor: active ? colors.gold : "transparent",
-            borderColor: active ? colors.gold : colors.midGray,
-          },
-          Platform.OS === "web" ? ({ cursor: "pointer" } as any) : null,
-        ]}
+      <button
+        key={label}
+        type="button"
+        onClick={() => go(route)}
+        aria-label={label}
+        className="flex cursor-pointer flex-row items-center gap-[7px] rounded-full border px-3.5 py-[9px]"
+        style={{
+          backgroundColor: active ? colors.gold : "transparent",
+          borderColor: active ? colors.gold : colors.midGray,
+        }}
       >
         <Icon
           size={17}
           color={active ? colors.onBrand : colors.warmGray}
         />
-        <Text style={[
-            styles.navLabel,
-            { color: active ? colors.onBrand : colors.ink },
-          ]}
+        <span
+          className="text-sm font-bold"
+          style={{ color: active ? colors.onBrand : colors.ink }}
         >
           {label}
-        </Text>
+        </span>
         {typeof badge === "number" && badge > 0 ? (
-          <View style={[
-              styles.badge,
-              { backgroundColor: active ? colors.onBrand : colors.gold },
-            ]}
+          <span
+            className="flex h-5 min-w-5 items-center justify-center rounded-full px-[5px] text-[11px] font-extrabold"
+            style={{ backgroundColor: active ? colors.onBrand : colors.gold, color: active ? colors.gold : colors.onBrand }}
           >
-            <Text style={[
-                styles.badgeText,
-                { color: active ? colors.gold : colors.onBrand },
-              ]}
-            >
-              {badge > 99 ? "99+" : badge}
-            </Text>
-          </View>
+            {badge > 99 ? "99+" : badge}
+          </span>
         ) : null}
-      </Pressable>
+      </button>
     );
   };
 
   return (
-    <View style={[
-        styles.shell,
-        {
-          backgroundColor: colors.ivory,
-          borderBottomColor: colors.midGray,
-          shadowColor: "#000",
-        },
-      ]}
+    <div
+      className="z-50 w-full border-b shadow-lg"
+      style={{
+        backgroundColor: colors.ivory,
+        borderBottomColor: colors.midGray,
+      }}
     >
-      <View style={styles.inner}>
+      <div
+        className="mx-auto flex w-full flex-row items-center gap-6 px-6 pt-3.5 pb-3"
+        style={{ maxWidth: DESKTOP.maxWidth }}
+      >
         {/* Brand */}
-        <Pressable onPress={() => go("/jewelery")}
-          style={Platform.OS === "web" ? ({ cursor: "pointer" } as any) : null}
-          accessibilityRole="link"
-          accessibilityLabel="Quick Bihar jewellery home"
+        <button
+          type="button"
+          onClick={() => go("/jewelery")}
+          aria-label="Quick Bihar jewellery home"
+          className="cursor-pointer"
         >
-          <View style={styles.brandRow}>
-            <img src={splashIcon} alt="Quick Bihar logo" aria-label="Quick Bihar logo" style={Object.assign({}, styles.logoImage, { objectFit: "contain" as const })} />
-            <View>
-              <Text style={[styles.brandName, { color: colors.ink }]}>
+          <div className="flex min-w-[190px] flex-row items-center gap-2.5">
+            <img src={splashIcon} alt="Quick Bihar logo" aria-label="Quick Bihar logo" className="h-[46px] w-[42px] rounded-xl object-contain" />
+            <div>
+              <p className="text-[19px] leading-[22px] font-black tracking-tight" style={{ color: colors.ink }}>
                 Quick Bihar
-              </Text>
-              <Text style={[styles.brandSub, { color: colors.gold }]}>
+              </p>
+              <p className="mt-[1px] text-[10px] font-extrabold tracking-[1.6px]" style={{ color: colors.gold }}>
                 JEWELLERY • BIHAR
-              </Text>
-            </View>
-          </View>
-        </Pressable>
+              </p>
+            </div>
+          </div>
+        </button>
 
         {/* Search */}
         <TextInput value={query}
@@ -173,17 +156,18 @@ export const JeweleryDesktopNavbar = () => {
           rightIcon={
             <>
               {query.length > 0 ? (
-                <Pressable onPress={() => setQuery("")} style={styles.searchClear}>
+                <button type="button" onClick={() => setQuery("")} aria-label="Clear search" className="cursor-pointer p-1">
                   <CircleX size={18} color={colors.warmGray} />
-                </Pressable>
+                </button>
               ) : null}
-              <Pressable onPress={submitSearch}
-                style={[styles.searchBtn, { backgroundColor: colors.gold }]}
+              <button
+                type="button"
+                onClick={submitSearch}
+                className="cursor-pointer rounded-full px-5 py-2.5 text-sm font-extrabold"
+                style={{ backgroundColor: colors.gold, color: colors.onBrand }}
               >
-                <Text style={[styles.searchBtnText, { color: colors.onBrand }]}>
-                  Search
-                </Text>
-              </Pressable>
+                Search
+              </button>
             </>
           }
           containerStyle={{ marginBottom: 0, flex: 1, maxWidth: 560 }}
@@ -199,7 +183,7 @@ export const JeweleryDesktopNavbar = () => {
         />
 
         {/* Nav */}
-        <View style={styles.navRow}>
+        <nav className="ml-auto flex flex-row items-center gap-2">
           {navItem("Home", "/jewelery", House)}
           {navItem("Collections", "/jewelery/collections", LayoutGrid)}
           {navItem("Wishlist", "/jewelery/wishlist", Heart)}
@@ -209,90 +193,33 @@ export const JeweleryDesktopNavbar = () => {
             "/jewelery/account",
             User,
           )}
-          <Pressable onPress={() => go("/jewelery/notifications" as any)}
-            style={[styles.iconBtn, { borderColor: colors.midGray }]}
-            accessibilityLabel="Notifications"
+          <button
+            type="button"
+            onClick={() => go("/jewelery/notifications" as any)}
+            aria-label="Notifications"
+            className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border"
+            style={{ borderColor: colors.midGray }}
           >
             <Bell size={18} color={colors.ink} />
-          </Pressable>
+          </button>
           <ModuleSwitcherButton />
-          <Pressable onPress={() => toggleMode?.()}
-            style={[styles.iconBtn, { borderColor: colors.midGray }]}
-            accessibilityLabel="Toggle theme"
+          <button
+            type="button"
+            onClick={() => toggleMode?.()}
+            aria-label="Toggle theme"
+            className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border"
+            style={{ borderColor: colors.midGray }}
           >
             {isDark ? (
               <Sun size={18} color={colors.ink} />
             ) : (
               <Moon size={18} color={colors.ink} />
             )}
-          </Pressable>
-        </View>
-      </View>
-    </View>
+          </button>
+        </nav>
+      </div>
+    </div>
   );
 };
-
-const styles = StyleSheet.create({
-  shell: {
-    width: "100%",
-    borderBottomWidth: 1,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 4,
-    zIndex: 50,
-  },
-  inner: {
-    width: "100%",
-    maxWidth: DESKTOP.maxWidth,
-    alignSelf: "center",
-    marginHorizontal: "auto" as any,
-    paddingHorizontal: DESKTOP.gutter,
-    paddingTop: 14,
-    paddingBottom: 12,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 24,
-  },
-  brandRow: { flexDirection: "row", alignItems: "center", gap: 10, minWidth: 190 },
-  logoImage: {
-    width: 42,
-    height: 46,
-    borderRadius: 12,
-  },
-  brandName: { fontSize: 19, fontWeight: "900", letterSpacing: -0.4, lineHeight: 22 },
-  brandSub: { fontSize: 10, fontWeight: "800", letterSpacing: 1.6, marginTop: 1 },
-  searchClear: { padding: 4 },
-  searchBtn: { paddingHorizontal: 20, paddingVertical: 10, borderRadius: 999 },
-  searchBtnText: { fontWeight: "800", fontSize: 14 },
-  navRow: { flexDirection: "row", alignItems: "center", gap: 8, marginLeft: "auto" },
-  navItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 7,
-    paddingHorizontal: 14,
-    paddingVertical: 9,
-    borderRadius: 999,
-    borderWidth: 1,
-  },
-  navLabel: { fontSize: 14, fontWeight: "700" },
-  badge: {
-    minWidth: 20,
-    height: 20,
-    borderRadius: 10,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 5,
-  },
-  badgeText: { fontSize: 11, fontWeight: "800" },
-  iconBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    borderWidth: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-});
 
 export default JeweleryDesktopNavbar;

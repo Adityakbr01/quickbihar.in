@@ -1,18 +1,9 @@
-import { ChevronLeft, ChevronRight, Mail } from "lucide-react";
+import { ChevronLeft, ChevronRight, Mail, X } from "lucide-react";
 import { WhatsappIcon } from "@/src/components/common/BrandIcons";
 import * as Haptics from "@/lib/haptics";
 import React, { useEffect, useState } from "react";
-import {
-  Linking,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  useWindowDimensions,
-  View,
-} from "@/components/primitives";
+import { cn } from "@/src/lib/utils";
 
-import { Sheet, SheetHeader, useSheet } from "@/src/components/common/BottomSheet";
 import {
   JEWELERY_MODULE_CONFIG,
   SUPPORT_EMAIL,
@@ -71,19 +62,26 @@ export const HelpSupportSheet: React.FC<HelpSupportSheetProps> = ({
   onClose,
 }) => {
   const colors = useColors();
-  const sheet = useSheet();
   const [channel, setChannel] = useState<Channel | null>(null);
-  const { height: winH } = useWindowDimensions();
+  const [winH, setWinH] = useState(() =>
+    typeof window !== "undefined" ? window.innerHeight : 800,
+  );
 
-  // Imperative present/dismiss from the parent `visible` prop.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const onResize = () => setWinH(window.innerHeight);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
+  // Reset channel selection each time the sheet opens.
   useEffect(() => {
     if (visible) {
       setChannel(null);
-      sheet.current?.present();
-    } else {
-      sheet.current?.dismiss();
     }
-  }, [visible, sheet]);
+  }, [visible]);
+
+  if (!visible) return null;
 
   const openChannel = (faq: Faq) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -95,9 +93,11 @@ export const HelpSupportSheet: React.FC<HelpSupportSheetProps> = ({
         ? `mailto:${JEWELERY_MODULE_CONFIG.supportEmail}?subject=${encodeURIComponent(`Help: ${faq.q}`)}&body=${encodeURIComponent(`${message}\n\nOrder ID (if any): `)}`
         : `https://wa.me/${SUPPORT_WHATSAPP_INTL}?text=${encodeURIComponent(message)}`;
     onClose();
-    Linking.openURL(url).catch(() => {
+    try {
+      window.open(url, "_blank", "noopener");
+    } catch {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-    });
+    }
   };
 
   const pickChannel = (c: Channel) => {
@@ -105,165 +105,173 @@ export const HelpSupportSheet: React.FC<HelpSupportSheetProps> = ({
     setChannel(c);
   };
 
+  const subtitle =
+    channel === null
+      ? "How would you like to reach us?"
+      : channel === "whatsapp"
+        ? "Pick a topic — we'll open WhatsApp with it filled in"
+        : `Pick a topic — we'll draft an email to ${JEWELERY_MODULE_CONFIG.supportEmail}`;
+
   return (
-    <Sheet ref={sheet}
-      onDidDismiss={onClose}
-      backgroundColor={colors.ivory}
-      cornerRadius={2}
+    <div
+      className="fixed inset-0 z-[100] flex items-end justify-center bg-black/50"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Help & Support"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
     >
-      <SheetHeader title="Help & Support"
-        subtitle={
-          channel === null
-            ? "How would you like to reach us?"
-            : channel === "whatsapp"
-              ? "Pick a topic — we'll open WhatsApp with it filled in"
-              : `Pick a topic — we'll draft an email to ${JEWELERY_MODULE_CONFIG.supportEmail}`
-        }
-        onClose={onClose}
-      />
-
-      <ScrollView showsVerticalScrollIndicator={false}
-        nestedScrollEnabled
-        // Bounded height is what makes this scroll: inside the auto-sized
-        // sheet an unbounded ScrollView grows past the screen instead.
-        style={{ maxHeight: Math.round(winH * 0.62) }}
-        contentContainerStyle={s.content}
+      <div
+        className="flex max-h-[85vh] w-full max-w-lg flex-col overflow-hidden rounded-t-3xl"
+        style={{ backgroundColor: colors.ivory }}
       >
-        {channel === null ? (
-          <>
-            <Pressable style={[s.channelCard, { backgroundColor: colors.pearl, borderColor: colors.midGray }]}
-              onPress={() => pickChannel("whatsapp")}
+        {/* Header */}
+        <div className="flex flex-row items-start justify-between gap-3 px-5 pt-4 pb-2">
+          <div className="flex min-w-0 flex-1 flex-col">
+            <h3
+              className="text-lg font-bold"
+              style={{ color: colors.ink, fontFamily: "DMSans_500Medium" }}
             >
-              <View style={[s.channelIcon, { backgroundColor: "#25D366" }]}>
-                <WhatsappIcon size={20} color="#fff" />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={[s.channelTitle, { color: colors.ink }]}>
-                  WhatsApp
-                </Text>
-                <Text style={[s.channelSub, { color: colors.warmGray }]}>
-                  {SUPPORT_WHATSAPP_DISPLAY} · replies within minutes
-                </Text>
-              </View>
-              <ChevronRight size={18} color={colors.gold} />
-            </Pressable>
+              Help & Support
+            </h3>
+            <p
+              className="mt-0.5 text-xs"
+              style={{ color: colors.warmGray, fontFamily: "DMSans_400Regular" }}
+            >
+              {subtitle}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close Help & Support"
+            className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full"
+            style={{ backgroundColor: colors.pearl }}
+          >
+            <X size={18} color={colors.ink} />
+          </button>
+        </div>
 
-            <Pressable style={[s.channelCard, { backgroundColor: colors.pearl, borderColor: colors.midGray }]}
-              onPress={() => pickChannel("email")}
-            >
-              <View style={[s.channelIcon, { backgroundColor: colors.gold }]}>
-                <Mail size={18} color="#fff" />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={[s.channelTitle, { color: colors.ink }]}>
-                  Email
-                </Text>
-                <Text style={[s.channelSub, { color: colors.warmGray }]}>
-                  {SUPPORT_EMAIL} · replies within a day
-                </Text>
-              </View>
-              <ChevronRight size={18} color={colors.gold} />
-            </Pressable>
-          </>
-        ) : (
-          <>
-            <Pressable style={s.backRow}
-              onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                setChannel(null);
-              }}
-              hitSlop={8}
-            >
-              <ChevronLeft size={16} color={colors.gold} />
-              <Text style={[s.backText, { color: colors.gold }]}>
-                {channel === "whatsapp" ? "WhatsApp" : "Email"} · change
-              </Text>
-            </Pressable>
+        <div
+          className="min-h-0 flex-1 overflow-y-auto"
+          style={{ maxHeight: Math.round(winH * 0.62) }}
+        >
+          <div className="flex flex-col gap-3 px-5 pb-8">
+            {channel === null ? (
+              <>
+                <button
+                  type="button"
+                  onClick={() => pickChannel("whatsapp")}
+                  className="flex cursor-pointer flex-row items-center gap-3 rounded-[2px] border-[0.5px] p-4 text-left"
+                  style={{ backgroundColor: colors.pearl, borderColor: colors.midGray }}
+                >
+                  <span
+                    className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full"
+                    style={{ backgroundColor: "#25D366" }}
+                  >
+                    <WhatsappIcon size={20} color="#fff" />
+                  </span>
+                  <span className="flex min-w-0 flex-1 flex-col">
+                    <span
+                      className="text-base"
+                      style={{ color: colors.ink, fontFamily: "DMSans_500Medium" }}
+                    >
+                      WhatsApp
+                    </span>
+                    <span
+                      className="mt-0.5 text-xs"
+                      style={{ color: colors.warmGray, fontFamily: "DMSans_400Regular" }}
+                    >
+                      {SUPPORT_WHATSAPP_DISPLAY} · replies within minutes
+                    </span>
+                  </span>
+                  <ChevronRight size={18} color={colors.gold} />
+                </button>
 
-            {FAQS.map((faq) => (
-              <Pressable key={faq.q}
-                style={[s.faqCard, { backgroundColor: colors.pearl, borderColor: colors.midGray }]}
-                onPress={() => openChannel(faq)}
-              >
-                <View style={{ flex: 1 }}>
-                  <Text style={[s.faqQ, { color: colors.ink }]}>
-                    {faq.q}
-                  </Text>
-                  <Text style={[s.faqA, { color: colors.warmGray }]}>
-                    {faq.a}
-                  </Text>
-                  <Text style={[s.faqCta, { color: colors.gold }]}>
-                    {channel === "whatsapp" ? "Ask on WhatsApp →" : "Ask over Email →"}
-                  </Text>
-                </View>
-              </Pressable>
-            ))}
-          </>
-        )}
-      </ScrollView>
-    </Sheet>
+                <button
+                  type="button"
+                  onClick={() => pickChannel("email")}
+                  className="flex cursor-pointer flex-row items-center gap-3 rounded-[2px] border-[0.5px] p-4 text-left"
+                  style={{ backgroundColor: colors.pearl, borderColor: colors.midGray }}
+                >
+                  <span
+                    className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full"
+                    style={{ backgroundColor: colors.gold }}
+                  >
+                    <Mail size={18} color="#fff" />
+                  </span>
+                  <span className="flex min-w-0 flex-1 flex-col">
+                    <span
+                      className="text-base"
+                      style={{ color: colors.ink, fontFamily: "DMSans_500Medium" }}
+                    >
+                      Email
+                    </span>
+                    <span
+                      className="mt-0.5 text-xs"
+                      style={{ color: colors.warmGray, fontFamily: "DMSans_400Regular" }}
+                    >
+                      {SUPPORT_EMAIL} · replies within a day
+                    </span>
+                  </span>
+                  <ChevronRight size={18} color={colors.gold} />
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={() => {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    setChannel(null);
+                  }}
+                  className="flex cursor-pointer flex-row items-center gap-0.5 self-start py-1"
+                >
+                  <ChevronLeft size={16} color={colors.gold} />
+                  <span
+                    className="text-[13px]"
+                    style={{ color: colors.gold, fontFamily: "DMSans_500Medium" }}
+                  >
+                    {channel === "whatsapp" ? "WhatsApp" : "Email"} · change
+                  </span>
+                </button>
+
+                {FAQS.map((faq) => (
+                  <button
+                    key={faq.q}
+                    type="button"
+                    onClick={() => openChannel(faq)}
+                    className={cn("cursor-pointer rounded-[2px] border-[0.5px] p-3.5 text-left")}
+                    style={{ backgroundColor: colors.pearl, borderColor: colors.midGray }}
+                  >
+                    <span className="flex min-w-0 flex-1 flex-col">
+                      <span
+                        className="text-sm"
+                        style={{ color: colors.ink, fontFamily: "DMSans_500Medium" }}
+                      >
+                        {faq.q}
+                      </span>
+                      <span
+                        className="mt-1 text-xs leading-[17px]"
+                        style={{ color: colors.warmGray, fontFamily: "DMSans_400Regular" }}
+                      >
+                        {faq.a}
+                      </span>
+                      <span
+                        className="mt-2 text-xs"
+                        style={{ color: colors.gold, fontFamily: "DMSans_500Medium" }}
+                      >
+                        {channel === "whatsapp" ? "Ask on WhatsApp →" : "Ask over Email →"}
+                      </span>
+                    </span>
+                  </button>
+                ))}
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
-
-const s = StyleSheet.create({
-  content: {
-    paddingHorizontal: 20,
-    paddingBottom: 32,
-    gap: 12,
-  },
-  channelCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    padding: 16,
-    borderRadius: 2,
-    borderWidth: 0.5,
-  },
-  channelIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  channelTitle: {
-    fontSize: 16,
-    fontFamily: "DMSans_500Medium",
-  },
-  channelSub: {
-    fontSize: 12,
-    fontFamily: "DMSans_400Regular",
-    marginTop: 2,
-  },
-  backRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 2,
-    alignSelf: "flex-start",
-    paddingVertical: 4,
-  },
-  backText: {
-    fontSize: 13,
-    fontFamily: "DMSans_500Medium",
-  },
-  faqCard: {
-    padding: 14,
-    borderRadius: 2,
-    borderWidth: 0.5,
-  },
-  faqQ: {
-    fontSize: 14,
-    fontFamily: "DMSans_500Medium",
-  },
-  faqA: {
-    fontSize: 12,
-    fontFamily: "DMSans_400Regular",
-    marginTop: 4,
-    lineHeight: 17,
-  },
-  faqCta: {
-    fontSize: 12,
-    fontFamily: "DMSans_500Medium",
-    marginTop: 8,
-  },
-});

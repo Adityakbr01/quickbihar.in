@@ -1,9 +1,7 @@
 import { ArrowRight, X } from "lucide-react";
 import * as Haptics from "@/lib/haptics";
 import React from "react";
-import { StyleSheet, TouchableOpacity, View, Text } from "@/components/primitives";
-
-
+import { cn } from "@/src/lib/utils";
 
 export interface PaginationControlsProps {
   currentStep: number;
@@ -18,101 +16,58 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
   onSkip,
   onNext,
 }) => {
+  const isLast = currentStep === totalSteps - 1;
+
   return (
-    <View style={styles.controls}>
+    <div className="mt-10 flex flex-row items-center justify-between">
       {/* Skip */}
-      <TouchableOpacity onPress={() => {
+      <button
+        type="button"
+        aria-label="Skip onboarding"
+        onClick={() => {
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
           onSkip();
         }}
-        style={styles.skipBtn}
-        activeOpacity={0.7}
+        className="flex h-[50px] w-[50px] items-center justify-center rounded-full active:opacity-70"
+        style={{ backgroundColor: "rgba(56, 56, 59, 0.6)" }}
       >
         <X size={20} color="rgba(255,255,255,0.75)" />
-      </TouchableOpacity>
+      </button>
 
       {/* Dots */}
-      <View style={styles.dots}>
+      <div className="flex flex-row items-center gap-2">
         {Array.from({ length: totalSteps }).map((_, idx) => (
-          <View
+          <div
             key={idx}
-            style={[
-              styles.dot,
-              idx === currentStep ? styles.dotActive : styles.dotInactive,
-            ]}
+            className={cn(
+              "h-1.5 rounded-full transition-all",
+              idx === currentStep
+                ? "w-7 bg-[#1f2937]"
+                : "w-2 bg-[rgba(180,180,190,0.6)]",
+            )}
           />
         ))}
-      </View>
+      </div>
 
       {/* Next */}
-      <TouchableOpacity
-        onPress={() => {
+      <button
+        type="button"
+        aria-label={isLast ? "Finish onboarding" : "Next step"}
+        onClick={() => {
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
           onNext();
         }}
-        style={[
-          styles.nextBtn,
-          currentStep === totalSteps - 1 && styles.nextBtnDone,
-        ]}
-        activeOpacity={0.85}
+        className={cn(
+          "flex h-14 items-center justify-center rounded-full bg-[#0f172a] active:opacity-85",
+          isLast ? "w-[110px] bg-black" : "w-14",
+        )}
       >
-        {currentStep === totalSteps - 1 ? (
-          <Text style={styles.finishText} numberOfLines={1}>Finish</Text>
+        {isLast ? (
+          <span className="block truncate text-lg font-semibold text-white">Finish</span>
         ) : (
           <ArrowRight size={24} color="#fff" />
         )}
-      </TouchableOpacity>
-    </View>
+      </button>
+    </div>
   );
 };
-
-const styles = StyleSheet.create({
-  controls: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginTop: 40,
-  },
-  skipBtn: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: "rgba(56, 56, 59, 0.6)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  dots: {
-    flexDirection: "row",
-    gap: 8,
-    alignItems: "center",
-  },
-  dot: {
-    height: 6,
-    borderRadius: 3,
-  },
-  dotActive: {
-    width: 28,
-    backgroundColor: "#1f2937",
-  },
-  dotInactive: {
-    width: 8,
-    backgroundColor: "rgba(180,180,190,0.6)",
-  },
-  nextBtn: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: "#0f172a",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  nextBtnDone: {
-    width: 110,
-    backgroundColor: "#000000ff",
-  },
-  finishText: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "600",
-  },
-});

@@ -1,14 +1,6 @@
 import { CircleAlert, X } from "lucide-react";
 import React, { useState } from "react";
-import {
-  Modal,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "@/components/primitives";
+import { cn } from "@/src/lib/utils";
 import { useSafeAreaInsets } from "@/src/hooks/useSafeAreaInsets";
 
 import { useColors } from "@/src/features/Jewelery/hooks/useColors";
@@ -23,6 +15,7 @@ export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
   const insets = useSafeAreaInsets();
 
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const isDev = import.meta.env.DEV;
 
   const handleRestart = async () => {
     try {
@@ -41,227 +34,113 @@ export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
     return details;
   };
 
-  const monoFont = Platform.select({
-    ios: "Menlo",
-    android: "monospace",
-    default: "monospace",
-  });
+  const monoFont = "monospace";
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      {import.meta.env.DEV ? (
-        <Pressable onPress={() => setIsModalVisible(true)}
-          accessibilityLabel="View error details"
-          accessibilityRole="button"
-          style={({ pressed }) => [
-            styles.topButton,
-            {
-              top: insets.top + 16,
-              backgroundColor: colors.card,
-              opacity: pressed ? 0.8 : 1,
-            },
-          ]}
+    <div
+      className="flex h-full w-full items-center justify-center p-6"
+      style={{ backgroundColor: colors.background }}
+    >
+      {isDev ? (
+        <button
+          type="button"
+          onClick={() => setIsModalVisible(true)}
+          aria-label="View error details"
+          className="absolute right-4 flex h-11 w-11 cursor-pointer flex-row items-center justify-center rounded-lg transition-opacity active:opacity-80"
+          style={{
+            top: insets.top + 16,
+            backgroundColor: colors.card,
+          }}
         >
           <CircleAlert size={20} color={colors.foreground} />
-        </Pressable>
+        </button>
       ) : null}
 
-      <View style={styles.content}>
-        <Text style={[styles.title, { color: colors.foreground }]}>
-          Something went wrong
-        </Text>
-
-        <Text style={[styles.message, { color: colors.mutedForeground }]}>
-          Please reload the app to continue.
-        </Text>
-
-        <Pressable onPress={handleRestart}
-          style={({ pressed }) => [
-            styles.button,
-            {
-              backgroundColor: colors.primary,
-              opacity: pressed ? 0.9 : 1,
-              transform: [{ scale: pressed ? 0.98 : 1 }],
-            },
-          ]}
-        >
-          <Text style={[
-              styles.buttonText,
-              { color: colors.primaryForeground },
-            ]}
+      <div className="flex w-full max-w-[600px] items-center justify-center gap-4">
+        <div className="flex w-full flex-col items-center justify-center gap-4">
+          <p
+            className="text-center text-[28px] leading-10 font-bold"
+            style={{ color: colors.foreground }}
           >
-            Try Again
-          </Text>
-        </Pressable>
-      </View>
+            Something went wrong
+          </p>
 
-      {import.meta.env.DEV ? (
-        <Modal visible={isModalVisible}
-          animationType="slide"
-          transparent={true}
-          onRequestClose={() => setIsModalVisible(false)}
-        >
-          <View style={styles.modalOverlay}>
-            <View style={[
-                styles.modalContainer,
-                { backgroundColor: colors.background },
-              ]}
+          <p
+            className="text-center text-base leading-6"
+            style={{ color: colors.mutedForeground }}
+          >
+            Please reload the app to continue.
+          </p>
+
+          <button
+            type="button"
+            onClick={handleRestart}
+            className="min-w-[200px] cursor-pointer rounded-lg px-6 py-4 shadow-md transition-all active:scale-[0.98] active:opacity-90"
+            style={{ backgroundColor: colors.primary }}
+          >
+            <span
+              className="text-center text-base font-semibold"
+              style={{ color: colors.primaryForeground }}
             >
-              <View style={[
-                  styles.modalHeader,
-                  { borderBottomColor: colors.border },
-                ]}
-              >
-                <Text style={[styles.modalTitle, { color: colors.foreground }]}>
-                  Error Details
-                </Text>
-                <Pressable onPress={() => setIsModalVisible(false)}
-                  accessibilityLabel="Close error details"
-                  accessibilityRole="button"
-                  style={({ pressed }) => [
-                    styles.closeButton,
-                    { opacity: pressed ? 0.6 : 1 },
-                  ]}
-                >
-                  <X size={24} color={colors.foreground} />
-                </Pressable>
-              </View>
+              Try Again
+            </span>
+          </button>
+        </div>
+      </div>
 
-              <ScrollView style={styles.modalScrollView}
-                contentContainerStyle={[
-                  styles.modalScrollContent,
-                  { paddingBottom: insets.bottom + 16 },
-                ]}
-                showsVerticalScrollIndicator
+      {isDev && isModalVisible ? (
+        <div
+          className="fixed inset-0 z-[100] flex items-end justify-center bg-black/50"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Error Details"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setIsModalVisible(false);
+          }}
+        >
+          <div
+            className="flex h-[90%] max-h-[85vh] w-full max-w-lg flex-col overflow-hidden rounded-t-3xl"
+            style={{ backgroundColor: colors.background }}
+          >
+            <div
+              className="flex flex-row items-center justify-between border-b px-4 pt-4 pb-3"
+              style={{ borderBottomColor: colors.border }}
+            >
+              <p
+                className="text-xl font-semibold"
+                style={{ color: colors.foreground }}
               >
-                <View style={[
-                    styles.errorContainer,
-                    { backgroundColor: colors.card },
-                  ]}
+                Error Details
+              </p>
+              <button
+                type="button"
+                onClick={() => setIsModalVisible(false)}
+                aria-label="Close error details"
+                className="flex h-11 w-11 cursor-pointer items-center justify-center transition-opacity active:opacity-60"
+              >
+                <X size={24} color={colors.foreground} />
+              </button>
+            </div>
+
+            <div
+              className="min-h-0 flex-1 overflow-auto p-4"
+              style={{ paddingBottom: insets.bottom + 16 }}
+            >
+              <div
+                className="w-full overflow-hidden rounded-lg p-4"
+                style={{ backgroundColor: colors.card }}
+              >
+                <pre
+                  className={cn("w-full text-xs leading-[18px] whitespace-pre-wrap break-words")}
+                  style={{ color: colors.foreground, fontFamily: monoFont }}
                 >
-                  <Text style={[
-                      styles.errorText,
-                      {
-                        color: colors.foreground,
-                        fontFamily: monoFont,
-                      },
-                    ]}
-                    selectable
-                  >
-                    {formatErrorDetails()}
-                  </Text>
-                </View>
-              </ScrollView>
-            </View>
-          </View>
-        </Modal>
+                  {formatErrorDetails()}
+                </pre>
+              </div>
+            </div>
+          </div>
+        </div>
       ) : null}
-    </View>
+    </div>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    width: "100%",
-    height: "100%",
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 24,
-  },
-  content: {
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 16,
-    width: "100%",
-    maxWidth: 600,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "700",
-    textAlign: "center",
-    lineHeight: 40,
-  },
-  message: {
-    fontSize: 16,
-    textAlign: "center",
-    lineHeight: 24,
-  },
-  topButton: {
-    position: "absolute",
-    right: 16,
-    width: 44,
-    height: 44,
-    borderRadius: 8,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    zIndex: 10,
-  },
-  button: {
-    paddingVertical: 16,
-    borderRadius: 8,
-    paddingHorizontal: 24,
-    minWidth: 200,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  buttonText: {
-    fontWeight: "600",
-    textAlign: "center",
-    fontSize: 16,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "flex-end",
-  },
-  modalContainer: {
-    width: "100%",
-    height: "90%",
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-  },
-  modalHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 12,
-    borderBottomWidth: 1,
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: "600",
-  },
-  closeButton: {
-    width: 44,
-    height: 44,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  modalScrollView: {
-    flex: 1,
-  },
-  modalScrollContent: {
-    padding: 16,
-  },
-  errorContainer: {
-    width: "100%",
-    borderRadius: 8,
-    overflow: "hidden",
-    padding: 16,
-  },
-  errorText: {
-    fontSize: 12,
-    lineHeight: 18,
-    width: "100%",
-  },
-});

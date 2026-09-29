@@ -4,18 +4,6 @@ import * as Haptics from "@/lib/haptics";
 import { useNavigate } from "react-router-dom";
 import { goBack, goTo, replaceTo } from "@/src/utils/navigation";
 import React, { useEffect, useState } from "react";
-import {
-  ActivityIndicator,
-  Platform,
-  Pressable,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "@/components/primitives";
-import { useSafeAreaInsets } from "@/src/hooks/useSafeAreaInsets";
 
 import { APP_CURRENCY } from "@/src/constants";
 import { SocketEvents } from "@/src/constants/socketEvents";
@@ -29,8 +17,7 @@ export default function JeweleryOrdersScreen() {
   const colors = useColors();
   const navigate = useNavigate();
   const topPad = useTopPad();
-  const insets = useSafeAreaInsets();
-  const bottomPad = Platform.OS === "web" ? 34 : Math.max(insets.bottom, 20);
+  const bottomPad = 34;
 
   const [orders, setOrders] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -60,6 +47,7 @@ export default function JeweleryOrdersScreen() {
     return () => {
       socketClient.off(SocketEvents.ORDER_STATUS_UPDATE);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleRefresh = async () => {
@@ -113,80 +101,69 @@ export default function JeweleryOrdersScreen() {
   };
 
   return (
-    <View style={[styles.root, { backgroundColor: colors.ivory }]}>
+    <div className="flex min-h-screen flex-col" style={{ backgroundColor: colors.ivory }}>
       {/* Header */}
-      <View style={[
-          styles.header,
-          {
-            paddingTop: topPad + 12,
-            backgroundColor: colors.ivory,
-            borderBottomColor: colors.midGray,
-          },
-        ]}
+      <div
+        className="flex flex-row items-center gap-3 px-5 pb-[14px]"
+        style={{
+          paddingTop: topPad + 12,
+          backgroundColor: colors.ivory,
+          borderBottomColor: colors.midGray,
+          borderBottomWidth: 1,
+          borderBottomStyle: "solid",
+        }}
       >
-        <Pressable style={styles.backBtn}
-          onPress={() => {
+        <button
+          type="button"
+          onClick={() => {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
             goBack(navigate, "/jewelery/(tabs)/profile");
           }}
-          hitSlop={8}
-          accessibilityRole="button"
-          accessibilityLabel="Go back"
+          aria-label="Go back"
+          className="flex h-9 w-9 cursor-pointer items-center justify-center"
         >
           <ArrowLeft size={18} color={colors.ink} />
-        </Pressable>
+        </button>
 
-        <View style={styles.headerTitleWrap}>
-          <Text style={[
-              styles.headerTitle,
-              {
-                color: colors.ink,
-                fontFamily: "CormorantGaramond_600SemiBold",
-              },
-            ]}
+        <div className="flex-1">
+          <h1
+            className="text-[18px] tracking-[1.5px]"
+            style={{
+              color: colors.ink,
+              fontFamily: "CormorantGaramond_600SemiBold",
+            }}
           >
             YOUR ORDERS
-          </Text>
-          <Text style={[
-              styles.headerSubtitle,
-              { color: colors.warmGray, fontFamily: "DMSans_400Regular" },
-            ]}
+          </h1>
+          <p
+            className="mt-[2px] text-[11px]"
+            style={{ color: colors.warmGray, fontFamily: "DMSans_400Regular" }}
           >
             {orders.length > 0
               ? `${orders.length} order${orders.length === 1 ? "" : "s"} on record`
               : "Track and manage your pieces"}
-          </Text>
-        </View>
+          </p>
+        </div>
 
         <Package size={16} color={colors.gold} />
-      </View>
+      </div>
 
-      <ScrollView contentContainerStyle={[
-          styles.scrollContent,
-          { paddingBottom: bottomPad + 40 },
-        ]}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={isRefreshing}
-            onRefresh={handleRefresh}
-            tintColor={colors.gold}
-          />
-        }
-      >
+      <div className="overflow-auto p-4" style={{ paddingBottom: bottomPad + 40 }}>
         {isLoading ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="small" color={colors.gold} />
-            <Text style={[
-                styles.loadingText,
-                { color: colors.warmGray, fontFamily: "DMSans_400Regular" },
-              ]}
+          <div className="flex flex-col items-center justify-center gap-3 py-[60px]">
+            <span
+              className="h-5 w-5 animate-spin rounded-full border-2"
+              style={{ borderColor: `${colors.gold}30`, borderTopColor: colors.gold }}
+            />
+            <span
+              className="text-[13px]"
+              style={{ color: colors.warmGray, fontFamily: "DMSans_400Regular" }}
             >
               Loading your orders...
-            </Text>
-          </View>
+            </span>
+          </div>
         ) : orders.length > 0 ? (
-          <View style={styles.ordersList}>
+          <div className="flex flex-col gap-[14px]">
             {orders.map((order) => {
               const statusMeta = getStatusBadge(order.status);
               const totalItems = (order.items || []).reduce(
@@ -195,94 +172,86 @@ export default function JeweleryOrdersScreen() {
               );
 
               return (
-                <TouchableOpacity key={order._id || order.orderId}
-                  style={[
-                    styles.orderCard,
-                    {
-                      backgroundColor: colors.cardBg,
-                      borderColor: colors.border,
-                    },
-                  ]}
-                  onPress={() => {
+                <button
+                  key={order._id || order.orderId}
+                  type="button"
+                  onClick={() => {
                     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                     goTo(navigate, {
                       pathname: "/jewelery/orders/[id]" as any,
                       params: { id: order.orderId },
                     });
                   }}
-                  activeOpacity={0.88}
+                  className="w-full cursor-pointer rounded-[3px] border p-4 text-left shadow-sm"
+                  style={{
+                    backgroundColor: colors.cardBg,
+                    borderColor: colors.border,
+                  }}
                 >
                   {/* Top Bar */}
-                  <View style={styles.cardTop}>
-                    <View>
-                      <Text style={[
-                          styles.orderIdText,
-                          {
-                            color: colors.ink,
-                            fontFamily: "DMSans_700Bold",
-                          },
-                        ]}
+                  <div className="flex flex-row items-start justify-between">
+                    <div>
+                      <span
+                        className="block text-[13px] tracking-[0.8px]"
+                        style={{
+                          color: colors.ink,
+                          fontFamily: "DMSans_700Bold",
+                        }}
                       >
                         ORDER #{order.orderId}
-                      </Text>
-                      <Text style={[
-                          styles.orderDate,
-                          {
-                            color: colors.warmGray,
-                            fontFamily: "DMSans_400Regular",
-                          },
-                        ]}
+                      </span>
+                      <span
+                        className="mt-[3px] block text-[11px]"
+                        style={{
+                          color: colors.warmGray,
+                          fontFamily: "DMSans_400Regular",
+                        }}
                       >
                         {dayjs(order.createdAt).format("DD MMM YYYY, hh:mm A")}
-                      </Text>
-                    </View>
+                      </span>
+                    </div>
 
-                    <View style={[
-                        styles.statusBadge,
-                        {
-                          backgroundColor: statusMeta.bg,
-                          borderColor: statusMeta.color,
-                        },
-                      ]}
+                    <div
+                      className="flex flex-row items-center gap-1 rounded-[2px] border px-2 py-[3px]"
+                      style={{
+                        backgroundColor: statusMeta.bg,
+                        borderColor: statusMeta.color,
+                        borderWidth: 1,
+                      }}
                     >
                       <statusMeta.icon size={10} color={statusMeta.color} />
-                      <Text style={[
-                          styles.statusText,
-                          {
-                            color: statusMeta.color,
-                            fontFamily: "DMSans_600SemiBold",
-                          },
-                        ]}
+                      <span
+                        className="text-[10px] tracking-[0.4px]"
+                        style={{
+                          color: statusMeta.color,
+                          fontFamily: "DMSans_600SemiBold",
+                        }}
                       >
                         {statusMeta.label}
-                      </Text>
-                    </View>
-                  </View>
+                      </span>
+                    </div>
+                  </div>
 
-                  <View style={[
-                      styles.cardDivider,
-                      { backgroundColor: colors.border },
-                    ]}
+                  <div
+                    className="my-3 h-px"
+                    style={{ backgroundColor: colors.border }}
                   />
 
                   {/* Items Preview */}
-                  <View style={styles.itemsPreview}>
-                    <View style={[
-                        styles.packageIconWrap,
-                        { backgroundColor: colors.champagne },
-                      ]}
+                  <div className="flex flex-row items-center gap-3">
+                    <div
+                      className="flex h-9 w-9 items-center justify-center rounded-full"
+                      style={{ backgroundColor: colors.champagne }}
                     >
                       <Gift size={16} color={colors.gold} />
-                    </View>
-                    <View style={{ flex: 1 }}>
-                      <Text style={[
-                          styles.itemsPreviewTitle,
-                          {
-                            color: colors.ink,
-                            fontFamily: "CormorantGaramond_500Medium_Italic",
-                          },
-                        ]}
-                        numberOfLines={1}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <span
+                        className="mb-[2px] block truncate text-[15px]"
+                        style={{
+                          color: colors.ink,
+                          fontFamily: "CormorantGaramond_500Medium_Italic",
+                        }}
                       >
                         {order.items?.[0]?.title ||
                           order.items?.[0]?.productTitle ||
@@ -290,293 +259,118 @@ export default function JeweleryOrdersScreen() {
                         {order.items?.length > 1
                           ? ` & ${order.items.length - 1} other piece${order.items.length > 2 ? "s" : ""}`
                           : ""}
-                      </Text>
-                      <Text style={[
-                          styles.itemsCount,
-                          {
-                            color: colors.warmGray,
-                            fontFamily: "DMSans_400Regular",
-                          },
-                        ]}
+                      </span>
+                      <span
+                        className="block text-[11.5px]"
+                        style={{
+                          color: colors.warmGray,
+                          fontFamily: "DMSans_400Regular",
+                        }}
                       >
                         {totalItems} piece{totalItems !== 1 ? "s" : ""} ·{" "}
                         {order.paymentMethod === "COD" ? "Cash on Delivery" : "Online Payment"}
-                      </Text>
-                    </View>
-                  </View>
+                      </span>
+                    </div>
+                  </div>
 
-                  <View style={[
-                      styles.cardDivider,
-                      { backgroundColor: colors.border },
-                    ]}
+                  <div
+                    className="my-3 h-px"
+                    style={{ backgroundColor: colors.border }}
                   />
 
                   {/* Footer */}
-                  <View style={styles.cardFooter}>
-                    <View>
-                      <Text style={[
-                          styles.totalLabel,
-                          {
-                            color: colors.warmGray,
-                            fontFamily: "DMSans_400Regular",
-                          },
-                        ]}
+                  <div className="flex flex-row items-center justify-between">
+                    <div>
+                      <span
+                        className="block text-[10.5px] tracking-[0.5px]"
+                        style={{
+                          color: colors.warmGray,
+                          fontFamily: "DMSans_400Regular",
+                        }}
                       >
                         Total Amount
-                      </Text>
-                      <Text style={[
-                          styles.totalAmount,
-                          {
-                            color: colors.ink,
-                            fontFamily: "DMSans_700Bold",
-                          },
-                        ]}
+                      </span>
+                      <span
+                        className="mt-[2px] block text-[15px]"
+                        style={{
+                          color: colors.ink,
+                          fontFamily: "DMSans_700Bold",
+                        }}
                       >
                         {APP_CURRENCY}
                         {(order.payableAmount || 0).toLocaleString("en-IN")}
-                      </Text>
-                    </View>
+                      </span>
+                    </div>
 
-                    <View style={styles.viewDetailsRow}>
-                      <Text style={[
-                          styles.viewDetailsText,
-                          {
-                            color: colors.gold,
-                            fontFamily: "DMSans_600SemiBold",
-                          },
-                        ]}
+                    <div className="flex flex-row items-center gap-1">
+                      <span
+                        className="text-[11px] tracking-[1px]"
+                        style={{
+                          color: colors.gold,
+                          fontFamily: "DMSans_600SemiBold",
+                        }}
                       >
                         VIEW DETAILS
-                      </Text>
+                      </span>
                       <ChevronRight size={14} color={colors.gold} />
-                    </View>
-                  </View>
-                </TouchableOpacity>
+                    </div>
+                  </div>
+                </button>
               );
             })}
-          </View>
+          </div>
         ) : (
-          <View style={styles.emptyWrap}>
-            <View style={[
-                styles.emptyIconWrap,
-                {
-                  backgroundColor: colors.champagne,
-                  borderColor: colors.gold,
-                },
-              ]}
+          <div className="flex flex-col items-center px-6 py-20">
+            <div
+              className="mb-5 flex h-[76px] w-[76px] items-center justify-center rounded-full border"
+              style={{
+                backgroundColor: colors.champagne,
+                borderColor: colors.gold,
+              }}
             >
               <Gift size={32} color={colors.gold} />
-            </View>
-            <Text style={[
-                styles.emptyTitle,
-                {
-                  color: colors.ink,
-                  fontFamily: "CormorantGaramond_600SemiBold",
-                },
-              ]}
+            </div>
+            <h2
+              className="mb-2 text-[22px] tracking-[0.5px]"
+              style={{
+                color: colors.ink,
+                fontFamily: "CormorantGaramond_600SemiBold",
+              }}
             >
               No Jewellery Orders Yet
-            </Text>
-            <Text style={[
-                styles.emptySub,
-                {
-                  color: colors.warmGray,
-                  fontFamily: "DMSans_400Regular",
-                },
-              ]}
+            </h2>
+            <p
+              className="mb-7 text-center text-[13px] leading-5"
+              style={{
+                color: colors.warmGray,
+                fontFamily: "DMSans_400Regular",
+              }}
             >
               Explore our handcrafted collections and acquire your first signature piece.
-            </Text>
-            <TouchableOpacity style={[
-                styles.emptyBtn,
-                { backgroundColor: colors.gold },
-              ]}
-              onPress={() => {
+            </p>
+            <button
+              type="button"
+              onClick={() => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                 replaceTo(navigate, "/jewelery/(tabs)/collections" as any);
               }}
-              activeOpacity={0.88}
+              className="flex cursor-pointer flex-row items-center justify-center gap-2 rounded-[2px] px-6 py-[14px]"
+              style={{ backgroundColor: colors.gold }}
             >
-              <Text style={[
-                  styles.emptyBtnText,
-                  {
-                    color: colors.onBrand,
-                    fontFamily: "DMSans_600SemiBold",
-                  },
-                ]}
+              <span
+                className="text-[12px] tracking-[1.2px]"
+                style={{
+                  color: colors.onBrand,
+                  fontFamily: "DMSans_600SemiBold",
+                }}
               >
                 EXPLORE COLLECTIONS
-              </Text>
+              </span>
               <ArrowRight size={14} color={colors.onBrand} />
-            </TouchableOpacity>
-          </View>
+            </button>
+          </div>
         )}
-      </ScrollView>
-    </View>
+      </div>
+    </div>
   );
 }
-
-const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    paddingBottom: 14,
-    borderBottomWidth: 0.5,
-    gap: 12,
-  },
-  backBtn: {
-    width: 36,
-    height: 36,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  headerTitleWrap: {
-    flex: 1,
-  },
-  headerTitle: {
-    fontSize: 18,
-    letterSpacing: 1.5,
-  },
-  headerSubtitle: {
-    fontSize: 11,
-    marginTop: 2,
-  },
-  scrollContent: {
-    padding: 16,
-  },
-  loadingContainer: {
-    paddingVertical: 60,
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 12,
-  },
-  loadingText: {
-    fontSize: 13,
-  },
-  ordersList: {
-    gap: 14,
-  },
-  orderCard: {
-    borderRadius: 3,
-    borderWidth: 1,
-    padding: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 1,
-  },
-  cardTop: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-  },
-  orderIdText: {
-    fontSize: 13,
-    letterSpacing: 0.8,
-  },
-  orderDate: {
-    fontSize: 11,
-    marginTop: 3,
-  },
-  statusBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 2,
-    borderWidth: 0.5,
-  },
-  statusText: {
-    fontSize: 10,
-    letterSpacing: 0.4,
-  },
-  cardDivider: {
-    height: 0.5,
-    marginVertical: 12,
-  },
-  itemsPreview: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-  packageIconWrap: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  itemsPreviewTitle: {
-    fontSize: 15,
-    marginBottom: 2,
-  },
-  itemsCount: {
-    fontSize: 11.5,
-  },
-  cardFooter: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  totalLabel: {
-    fontSize: 10.5,
-    letterSpacing: 0.5,
-  },
-  totalAmount: {
-    fontSize: 15,
-    marginTop: 2,
-  },
-  viewDetailsRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-  },
-  viewDetailsText: {
-    fontSize: 11,
-    letterSpacing: 1,
-  },
-  emptyWrap: {
-    alignItems: "center",
-    paddingVertical: 80,
-    paddingHorizontal: 24,
-  },
-  emptyIconWrap: {
-    width: 76,
-    height: 76,
-    borderRadius: 38,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-    marginBottom: 20,
-  },
-  emptyTitle: {
-    fontSize: 22,
-    letterSpacing: 0.5,
-    marginBottom: 8,
-  },
-  emptySub: {
-    fontSize: 13,
-    textAlign: "center",
-    lineHeight: 20,
-    marginBottom: 28,
-  },
-  emptyBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    paddingHorizontal: 24,
-    paddingVertical: 14,
-    borderRadius: 2,
-  },
-  emptyBtnText: {
-    fontSize: 12,
-    letterSpacing: 1.2,
-  },
-});

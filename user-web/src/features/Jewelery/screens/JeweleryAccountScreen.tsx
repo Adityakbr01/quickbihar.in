@@ -4,16 +4,7 @@ import * as Haptics from "@/lib/haptics";
 import { useNavigate } from "react-router-dom";
 import { goTo, replaceTo } from "@/src/utils/navigation";
 import React, { useState } from "react";
-import {
-  Linking,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "@/components/primitives";
-import { useSafeAreaInsets } from "@/src/hooks/useSafeAreaInsets";
+import { cn } from "@/src/lib/utils";
 
 import { JEWELERY_MODULE_CONFIG, APP_COUNTRY_CODE, APP_NAME, SUPPORT_WHATSAPP_INTL, SUPPORT_WHATSAPP_DISPLAY } from "@/src/constants";
 import { useAuth } from "@/src/features/Jewelery/context/AuthContext";
@@ -61,15 +52,9 @@ function MenuItem({
   const navigate = useNavigate();
   const colors = useColors();
   return (
-    <Pressable style={({ pressed }) => [
-        styles.menuItem,
-        {
-          borderBottomColor: colors.midGray,
-          borderBottomWidth: last ? 0 : 0.5,
-          backgroundColor: pressed ? colors.pearl : "transparent",
-        },
-      ]}
-      onPress={() => {
+    <button
+      type="button"
+      onClick={() => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         if (onPress) {
           onPress();
@@ -77,38 +62,55 @@ function MenuItem({
         }
         if (route) goTo(navigate, route as any);
       }}
+      className={cn(
+        "flex w-full cursor-pointer flex-row items-center gap-3 px-5 py-[10px] text-left transition-colors",
+      )}
+      style={
+        {
+          borderBottomColor: colors.midGray,
+          borderBottomWidth: last ? 0 : 1,
+          borderBottomStyle: last ? undefined : "solid",
+          ["--press-bg" as any]: colors.pearl,
+        } as React.CSSProperties
+      }
+      onMouseEnter={(e) => {
+        (e.currentTarget as HTMLButtonElement).style.backgroundColor = colors.pearl;
+      }}
+      onMouseLeave={(e) => {
+        (e.currentTarget as HTMLButtonElement).style.backgroundColor = "transparent";
+      }}
     >
       <Icon size={16} color={colors.gold} />
-      <View style={styles.menuContent}>
-        <Text style={[
-            styles.menuLabel,
-            { color: colors.ink, fontFamily: "DMSans_500Medium" },
-          ]}
+      <div className="flex-1">
+        <span
+          className="block text-[14px]"
+          style={{ color: colors.ink, fontFamily: "DMSans_500Medium" }}
         >
           {label}
-        </Text>
-        <Text style={[
-            styles.menuSub,
-            { color: colors.warmGray, fontFamily: "DMSans_400Regular" },
-          ]}
+        </span>
+        <span
+          className="mt-[2px] block text-[11px]"
+          style={{ color: colors.warmGray, fontFamily: "DMSans_400Regular" }}
         >
           {sub}
-        </Text>
-      </View>
+        </span>
+      </div>
       {badge ? (
-        <View style={[styles.badge, { backgroundColor: colors.gold }]}>
-          <Text style={[
-              styles.badgeText,
-              { color: colors.onBrand, fontFamily: "DMSans_500Medium" },
-            ]}
+        <div
+          className="flex h-5 min-w-5 items-center justify-center rounded-full px-1.5"
+          style={{ backgroundColor: colors.gold }}
+        >
+          <span
+            className="text-[10px]"
+            style={{ color: colors.onBrand, fontFamily: "DMSans_500Medium" }}
           >
             {badge}
-          </Text>
-        </View>
+          </span>
+        </div>
       ) : (
         <ChevronRight size={14} color={colors.midGray} />
       )}
-    </Pressable>
+    </button>
   );
 }
 
@@ -117,61 +119,60 @@ function AppearanceSection() {
   const theme = useTheme();
 
   return (
-    <View style={styles.appearanceSection}>
-      <Text style={[
-          styles.appearanceTitle,
-          { color: colors.warmGray, fontFamily: "DMSans_500Medium" },
-        ]}
+    <div className="mt-4">
+      <p
+        className="mb-2 px-5 text-[10px] tracking-[1.5px]"
+        style={{ color: colors.warmGray, fontFamily: "DMSans_500Medium" }}
       >
         APPEARANCE
-      </Text>
-      <View style={[
-          styles.appearanceRow,
-          {
-            backgroundColor: colors.ivory,
-            borderTopColor: colors.midGray,
-            borderBottomColor: colors.midGray,
-          },
-        ]}
+      </p>
+      <div
+        className="flex flex-row items-center gap-3 px-5 py-[10px]"
+        style={{
+          backgroundColor: colors.ivory,
+          borderTopColor: colors.midGray,
+          borderBottomColor: colors.midGray,
+          borderTopWidth: 1,
+          borderBottomWidth: 1,
+          borderTopStyle: "solid",
+          borderBottomStyle: "solid",
+        }}
       >
         {theme.isDark ? (
           <Moon size={16} color={colors.gold} />
         ) : (
           <Sun size={16} color={colors.gold} />
         )}
-        <View style={styles.appearanceContent}>
-          <Text style={[
-              styles.menuLabel,
-              { color: colors.ink, fontFamily: "DMSans_500Medium" },
-            ]}
+        <div className="flex-1">
+          <span
+            className="block text-[14px]"
+            style={{ color: colors.ink, fontFamily: "DMSans_500Medium" }}
           >
             {theme.isDark ? "Dark Mode" : "Light Mode"}
-          </Text>
-          <Text style={[
-              styles.menuSub,
-              { color: colors.warmGray, fontFamily: "DMSans_400Regular" },
-            ]}
+          </span>
+          <span
+            className="mt-[2px] block text-[11px]"
+            style={{ color: colors.warmGray, fontFamily: "DMSans_400Regular" }}
           >
             {theme.isDark ? "Currently using dark theme" : "Currently using light theme"}
-          </Text>
-        </View>
+          </span>
+        </div>
         <ThemeToggle value={theme.isDark}
           onToggle={() => {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
             theme.toggleMode();
           }}
         />
-      </View>
-    </View>
+      </div>
+    </div>
   );
 }
 
 export default function JeweleryAccountScreen() {
   const navigate = useNavigate();
   const colors = useColors();
-  const insets = useSafeAreaInsets();
   const topPad = useTopPad();
-  const bottomPad = Platform.OS === "web" ? 34 : 0;
+  const bottomPad = 34;
   const { user } = useAuth();
   const { wishlist } = useCart();
   const setPasswordSheetVisible = useAccountStore(
@@ -186,9 +187,11 @@ export default function JeweleryAccountScreen() {
     const url = message
       ? `https://wa.me/${SUPPORT_WHATSAPP_INTL}?text=${encodeURIComponent(message)}`
       : `https://wa.me/${SUPPORT_WHATSAPP_INTL}`;
-    Linking.openURL(url).catch(() => {
+    try {
+      window.open(url, "_blank", "noopener,noreferrer");
+    } catch {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-    });
+    }
   };
 
   // Guest menu rows that need a real action (the rest are informational).
@@ -240,107 +243,109 @@ export default function JeweleryAccountScreen() {
     : "";
 
   return (
-    <View style={[styles.root, { backgroundColor: colors.ivory }]}>
+    <div className="flex min-h-screen flex-col" style={{ backgroundColor: colors.ivory }}>
       {/* Header */}
-      <View style={[
-          styles.header,
-          {
-            paddingTop: topPad + 12,
-            backgroundColor: colors.ivory,
-            borderBottomColor: colors.midGray,
-          },
-        ]}
+      <div
+        className="flex flex-row items-center justify-between px-5 pb-[14px]"
+        style={{
+          paddingTop: topPad + 12,
+          backgroundColor: colors.ivory,
+          borderBottomColor: colors.midGray,
+          borderBottomWidth: 1,
+          borderBottomStyle: "solid",
+        }}
       >
-        <Text style={[
-            styles.headerTitle,
-            { color: colors.ink, fontFamily: "CormorantGaramond_600SemiBold" },
-          ]}
+        <h1
+          className="text-[22px] tracking-[3px]"
+          style={{ color: colors.ink, fontFamily: "CormorantGaramond_600SemiBold" }}
         >
           Account
-        </Text>
+        </h1>
         {user && (
-          <Pressable onPress={handleSignOut} hitSlop={8}>
+          <button type="button" onClick={handleSignOut} aria-label="Sign out" className="cursor-pointer p-1">
             <LogOut size={18} color={colors.warmGray} />
-          </Pressable>
+          </button>
         )}
-      </View>
+      </div>
 
-      <ScrollView showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: bottomPad + 24 }}
-      >
+      <div className="overflow-auto" style={{ paddingBottom: bottomPad + 24 }}>
         {user ? (
           /* ── SIGNED IN ─────────────────────────── */
           <>
             {/* Profile card */}
-            <View style={[styles.profileCard, { backgroundColor: colors.emerald }]}
+            <div
+              className="m-4 flex flex-row items-start gap-[14px] rounded-[4px] p-[18px]"
+              style={{ backgroundColor: colors.emerald }}
             >
-              <View style={[styles.avatar, { backgroundColor: colors.gold }]}>
-                <Text style={[
-                    styles.avatarText,
-                    {
-                      color: colors.onBrand,
-                      fontFamily: "CormorantGaramond_600SemiBold",
-                    },
-                  ]}
+              <div
+                className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full"
+                style={{ backgroundColor: colors.gold }}
+              >
+                <span
+                  className="text-[20px]"
+                  style={{
+                    color: colors.onBrand,
+                    fontFamily: "CormorantGaramond_600SemiBold",
+                  }}
                 >
                   {initials}
-                </Text>
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={[
-                    styles.profileName,
-                    {
-                      color: "#F7F3EC",
-                      fontFamily: "CormorantGaramond_500Medium_Italic",
-                    },
-                  ]}
+                </span>
+              </div>
+              <div className="flex-1">
+                <span
+                  className="mb-[2px] block text-[18px] leading-6"
+                  style={{
+                    color: "#F7F3EC",
+                    fontFamily: "CormorantGaramond_500Medium_Italic",
+                  }}
                 >
                   {user.name}
-                </Text>
-                <Text style={[
-                    styles.profilePhone,
-                    {
-                      color: "rgba(247,243,236,0.75)",
-                      fontFamily: "DMSans_400Regular",
-                    },
-                  ]}
+                </span>
+                <span
+                  className="mb-[2px] block text-[12px]"
+                  style={{
+                    color: "rgba(247,243,236,0.75)",
+                    fontFamily: "DMSans_400Regular",
+                  }}
                 >
                   {APP_COUNTRY_CODE} {user.phone}
-                </Text>
+                </span>
                 {user.email ? (
-                  <Text style={[
-                      styles.profileEmail,
-                      {
-                        color: "rgba(247,243,236,0.6)",
-                        fontFamily: "DMSans_300Light",
-                      },
-                    ]}
+                  <span
+                    className="block text-[11px]"
+                    style={{
+                      color: "rgba(247,243,236,0.6)",
+                      fontFamily: "DMSans_300Light",
+                    }}
                   >
                     {user.email}
-                  </Text>
+                  </span>
                 ) : null}
-              </View>
+              </div>
               {joinedDate ? (
-                <View style={styles.joinedBadge}>
-                  <Text style={[
-                      styles.joinedText,
-                      { color: colors.gold, fontFamily: "DMSans_400Regular" },
-                    ]}
+                <div
+                  className="self-start rounded-[2px] border px-2 py-1"
+                  style={{ borderColor: "rgba(184,146,74,0.4)", borderWidth: 1 }}
+                >
+                  <span
+                    className="text-[9px] tracking-[0.5px]"
+                    style={{ color: colors.gold, fontFamily: "DMSans_400Regular" }}
                   >
                     Since {joinedDate}
-                  </Text>
-                </View>
+                  </span>
+                </div>
               ) : null}
-            </View>
+            </div>
 
             {/* Stats row */}
-            <View style={[
-                styles.statsRow,
-                {
-                  backgroundColor: colors.pearl,
-                  borderBottomColor: colors.midGray,
-                },
-              ]}
+            <div
+              className="mb-1 flex flex-row px-5 py-[14px]"
+              style={{
+                backgroundColor: colors.pearl,
+                borderBottomColor: colors.midGray,
+                borderBottomWidth: 1,
+                borderBottomStyle: "solid",
+              }}
             >
               {[
                 {
@@ -360,67 +365,65 @@ export default function JeweleryAccountScreen() {
                 },
               ].map((s, i) => (
                 <React.Fragment key={s.label}>
-                  <Pressable style={styles.stat}
-                    onPress={() => {
+                  <button
+                    type="button"
+                    onClick={() => {
                       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                       s.onPress();
                     }}
+                    className="flex flex-1 cursor-pointer flex-col items-center gap-[3px]"
                   >
-                    <Text style={[
-                        styles.statValue,
-                        {
-                          color: colors.ink,
-                          fontFamily: "CormorantGaramond_600SemiBold",
-                        },
-                      ]}
+                    <span
+                      className="text-[22px] leading-[26px]"
+                      style={{
+                        color: colors.ink,
+                        fontFamily: "CormorantGaramond_600SemiBold",
+                      }}
                     >
                       {s.value}
-                    </Text>
-                    <Text style={[
-                        styles.statLabel,
-                        {
-                          color: colors.warmGray,
-                          fontFamily: "DMSans_400Regular",
-                        },
-                      ]}
+                    </span>
+                    <span
+                      className="text-[10px] tracking-[0.5px]"
+                      style={{
+                        color: colors.warmGray,
+                        fontFamily: "DMSans_400Regular",
+                      }}
                     >
                       {s.label}
-                    </Text>
-                  </Pressable>
+                    </span>
+                  </button>
                   {i < 2 && (
-                    <View style={[
-                        styles.statSep,
-                        { backgroundColor: colors.midGray },
-                      ]}
+                    <div
+                      className="my-1.5 w-px"
+                      style={{ backgroundColor: colors.midGray }}
                     />
                   )}
                 </React.Fragment>
               ))}
-            </View>
+            </div>
 
             {/* Active order banner */}
             {activeOrders.length > 0 && (
-              <Pressable style={[
-                  styles.activeOrderBanner,
-                  { backgroundColor: colors.champagne, borderColor: colors.gold },
-                ]}
-                onPress={() => goTo(navigate, "/jewelery/orders" as any)}
+              <button
+                type="button"
+                onClick={() => goTo(navigate, "/jewelery/orders" as any)}
+                className="mx-4 my-2 flex cursor-pointer flex-row items-center gap-2 rounded-[4px] border p-[10px] text-left"
+                style={{ backgroundColor: colors.champagne, borderColor: colors.gold }}
               >
                 <Truck size={14} color={colors.gold} />
-                <Text style={[
-                    styles.activeOrderText,
-                    { color: colors.ink, fontFamily: "DMSans_400Regular" },
-                  ]}
+                <span
+                  className="flex-1 text-[12px]"
+                  style={{ color: colors.ink, fontFamily: "DMSans_400Regular" }}
                 >
                   {activeOrders.length} order
                   {activeOrders.length > 1 ? "s" : ""} on the way — Tap to track
-                </Text>
+                </span>
                 <ChevronRight size={13} color={colors.gold} />
-              </Pressable>
+              </button>
             )}
 
             {/* Menu */}
-            <View style={[styles.menu, { backgroundColor: colors.ivory }]}>
+            <div style={{ backgroundColor: colors.ivory }}>
               <MenuItem icon={Package}
                 label="My Orders"
                 sub={`${realOrders.length} orders · ${activeOrders.length} active`}
@@ -472,113 +475,121 @@ export default function JeweleryAccountScreen() {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
                 }
               />
-            </View>
+            </div>
 
             {/* Sign out */}
-            <Pressable style={({ pressed }) => [
-                styles.signOutRow,
-                {
-                  backgroundColor: pressed ? colors.pearl : "transparent",
-                  borderTopColor: colors.midGray,
-                  borderBottomColor: colors.midGray,
-                },
-              ]}
-              onPress={handleSignOut}
+            <button
+              type="button"
+              onClick={handleSignOut}
+              className="mt-3 flex w-full cursor-pointer flex-row items-center gap-3 px-5 py-4 text-left transition-colors"
+              style={{
+                borderTopColor: colors.midGray,
+                borderBottomColor: colors.midGray,
+                borderTopWidth: 1,
+                borderBottomWidth: 1,
+                borderTopStyle: "solid",
+                borderBottomStyle: "solid",
+              }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.backgroundColor = colors.pearl;
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.backgroundColor = "transparent";
+              }}
             >
               <LogOut size={16} color={colors.maroon} />
-              <Text style={[
-                  styles.signOutText,
-                  { color: colors.maroon, fontFamily: "DMSans_500Medium" },
-                ]}
+              <span
+                className="text-[14px]"
+                style={{ color: colors.maroon, fontFamily: "DMSans_500Medium" }}
               >
                 Sign Out
-              </Text>
-            </Pressable>
+              </span>
+            </button>
           </>
         ) : (
           /* ── GUEST ─────────────────────────────── */
           <>
-            <View style={[styles.guestCard, { backgroundColor: colors.emerald }]}
+            <div
+              className="m-4 flex flex-col gap-4 rounded-lg p-6"
+              style={{ backgroundColor: colors.emerald }}
             >
-              <View style={[
-                  styles.guestIconCircle,
-                  { backgroundColor: "rgba(184,146,74,0.2)" },
-                ]}
+              <div
+                className="flex h-16 w-16 items-center justify-center rounded-full"
+                style={{ backgroundColor: "rgba(184,146,74,0.2)" }}
               >
                 <User size={32} color={colors.gold} />
-              </View>
-              <Text style={[
-                  styles.guestHeadline,
-                  {
-                    color: "#F7F3EC",
-                    fontFamily: "CormorantGaramond_400Regular_Italic",
-                  },
-                ]}
+              </div>
+              <h2
+                className="text-[30px] leading-[38px]"
+                style={{
+                  color: "#F7F3EC",
+                  fontFamily: "CormorantGaramond_400Regular_Italic",
+                }}
               >
-                Your jewellery story{"\n"}starts here.
-              </Text>
-              <Text style={[
-                  styles.guestSub,
-                  {
-                    color: "rgba(247,243,236,0.7)",
-                    fontFamily: "DMSans_300Light",
-                  },
-                ]}
+                Your jewellery story<br />starts here.
+              </h2>
+              <p
+                className="text-[13px] leading-[21px]"
+                style={{
+                  color: "rgba(247,243,236,0.7)",
+                  fontFamily: "DMSans_300Light",
+                }}
               >
                 Sign in to track orders, save your wishlist, and get early
                 access to new drops.
-              </Text>
-              <View style={styles.guestBtns}>
-                <Pressable style={({ pressed }) => [
-                    styles.guestSignInBtn,
-                    {
-                      backgroundColor: pressed ? colors.goldLight : colors.gold,
-                    },
-                  ]}
-                  onPress={() => goTo(navigate, "/jewelery/auth/sign-in" as any)}
+              </p>
+              <div className="mt-1 flex flex-col gap-[10px]">
+                <button
+                  type="button"
+                  onClick={() => goTo(navigate, "/jewelery/auth/sign-in" as any)}
+                  className="cursor-pointer rounded-[2px] py-[15px] text-center transition-colors"
+                  style={{ backgroundColor: colors.gold }}
+                  onMouseEnter={(e) => {
+                    (e.currentTarget as HTMLButtonElement).style.backgroundColor = colors.goldLight;
+                  }}
+                  onMouseLeave={(e) => {
+                    (e.currentTarget as HTMLButtonElement).style.backgroundColor = colors.gold;
+                  }}
                 >
-                  <Text style={[
-                      styles.guestSignInText,
-                      { color: colors.onBrand, fontFamily: "DMSans_500Medium" },
-                    ]}
+                  <span
+                    className="text-[13px] tracking-[2px]"
+                    style={{ color: colors.onBrand, fontFamily: "DMSans_500Medium" }}
                   >
                     Sign In
-                  </Text>
-                </Pressable>
-                <Pressable style={({ pressed }) => [
-                    styles.guestSignUpBtn,
-                    {
-                      borderColor: colors.gold,
-                      backgroundColor: pressed
-                        ? "rgba(184,146,74,0.15)"
-                        : "transparent",
-                    },
-                  ]}
-                  onPress={() => goTo(navigate, "/jewelery/auth/sign-up" as any)}
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => goTo(navigate, "/jewelery/auth/sign-up" as any)}
+                  className="cursor-pointer rounded-[2px] border py-[14px] text-center transition-colors"
+                  style={{ borderColor: colors.gold, backgroundColor: "transparent" }}
+                  onMouseEnter={(e) => {
+                    (e.currentTarget as HTMLButtonElement).style.backgroundColor = "rgba(184,146,74,0.15)";
+                  }}
+                  onMouseLeave={(e) => {
+                    (e.currentTarget as HTMLButtonElement).style.backgroundColor = "transparent";
+                  }}
                 >
-                  <Text style={[
-                      styles.guestSignUpText,
-                      { color: colors.gold, fontFamily: "DMSans_400Regular" },
-                    ]}
+                  <span
+                    className="text-[13px] tracking-[1px]"
+                    style={{ color: colors.gold, fontFamily: "DMSans_400Regular" }}
                   >
                     Create Account
-                  </Text>
-                </Pressable>
-              </View>
-            </View>
+                  </span>
+                </button>
+              </div>
+            </div>
 
-            <View style={[
-                styles.perksSection,
-                { backgroundColor: colors.champagne },
-              ]}
+            <div
+              className="mx-4 flex flex-col gap-3 rounded-md p-4"
+              style={{ backgroundColor: colors.champagne }}
             >
-              <Text style={[
-                  styles.perksLabel,
-                  { color: colors.gold, fontFamily: "DMSans_500Medium" },
-                ]}
+              <p
+                className="mb-[2px] text-[9px] tracking-[2px]"
+                style={{ color: colors.gold, fontFamily: "DMSans_500Medium" }}
               >
                 MEMBER PERKS
-              </Text>
+              </p>
               {[
                 {
                   icon: Zap,
@@ -591,30 +602,24 @@ export default function JeweleryAccountScreen() {
                 { icon: Gift, text: "Exclusive member-only gifts" },
                 { icon: Truck, text: "Faster checkout with saved addresses" },
               ].map((p) => (
-                <View key={p.text} style={styles.perkRow}>
-                  <View style={[
-                      styles.perkIconWrap,
-                      { backgroundColor: colors.pearl },
-                    ]}
+                <div key={p.text} className="flex flex-row items-center gap-3">
+                  <div
+                    className="flex h-8 w-8 items-center justify-center rounded-full"
+                    style={{ backgroundColor: colors.pearl }}
                   >
                     <p.icon size={14} color={colors.gold} />
-                  </View>
-                  <Text style={[
-                      styles.perkText,
-                      { color: colors.ink, fontFamily: "DMSans_400Regular" },
-                    ]}
+                  </div>
+                  <span
+                    className="flex-1 text-[13px] leading-[19px]"
+                    style={{ color: colors.ink, fontFamily: "DMSans_400Regular" }}
                   >
                     {p.text}
-                  </Text>
-                </View>
+                  </span>
+                </div>
               ))}
-            </View>
+            </div>
 
-            <View style={[
-                styles.menu,
-                { backgroundColor: colors.ivory, marginTop: 12 },
-              ]}
-            >
+            <div className="mt-3" style={{ backgroundColor: colors.ivory }}>
               {guestMenuItems.map((item, i) => (
                 <MenuItem key={item.label}
                   {...item}
@@ -622,7 +627,7 @@ export default function JeweleryAccountScreen() {
                   last={i === guestMenuItems.length - 1}
                 />
               ))}
-            </View>
+            </div>
           </>
         )}
 
@@ -630,33 +635,30 @@ export default function JeweleryAccountScreen() {
         <AppearanceSection />
 
         {/* Footer brand */}
-        <View style={styles.bottomBrand}>
-          <Text style={[
-              styles.brandName,
-              {
-                color: colors.gold,
-                fontFamily: "CormorantGaramond_600SemiBold",
-              },
-            ]}
+        <div className="flex flex-col items-center gap-1.5 py-8">
+          <span
+            className="text-[18px] tracking-[4px]"
+            style={{
+              color: colors.gold,
+              fontFamily: "CormorantGaramond_600SemiBold",
+            }}
           >
             {APP_NAME}
-          </Text>
-          <Text style={[
-              styles.brandSub,
-              { color: colors.warmGray, fontFamily: "DMSans_300Light" },
-            ]}
+          </span>
+          <span
+            className="text-[10px] tracking-[0.5px]"
+            style={{ color: colors.warmGray, fontFamily: "DMSans_300Light" }}
           >
             Hallmark Certified · BIS Certified · Made in India
-          </Text>
-          <Text style={[
-              styles.version,
-              { color: colors.midGray, fontFamily: "DMSans_400Regular" },
-            ]}
+          </span>
+          <span
+            className="mt-1 text-[10px]"
+            style={{ color: colors.midGray, fontFamily: "DMSans_400Regular" }}
           >
             v1.0.0
-          </Text>
-        </View>
-      </ScrollView>
+          </span>
+        </div>
+      </div>
 
       {/* Password & Email Setup bottom sheet (same sheet as clothing
           account — opened via the account store, single instance per
@@ -667,171 +669,6 @@ export default function JeweleryAccountScreen() {
       <HelpSupportSheet visible={helpVisible}
         onClose={() => setHelpVisible(false)}
       />
-    </View>
+    </div>
   );
 }
-
-const styles = StyleSheet.create({
-  root: { flex: 1 },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingBottom: 14,
-    borderBottomWidth: 0.5,
-  },
-  headerTitle: { fontSize: 22, letterSpacing: 3 },
-
-  profileCard: {
-    margin: 16,
-    padding: 18,
-    borderRadius: 4,
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 14,
-  },
-  avatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    alignItems: "center",
-    justifyContent: "center",
-    flexShrink: 0,
-  },
-  avatarText: { fontSize: 20 },
-  profileName: { fontSize: 18, lineHeight: 24, marginBottom: 2 },
-  profilePhone: { fontSize: 12, marginBottom: 2 },
-  profileEmail: { fontSize: 11 },
-  joinedBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 2,
-    borderWidth: 0.5,
-    borderColor: "rgba(184,146,74,0.4)",
-    alignSelf: "flex-start",
-  },
-  joinedText: { fontSize: 9, letterSpacing: 0.5 },
-
-  statsRow: {
-    flexDirection: "row",
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    borderBottomWidth: 0.5,
-    marginBottom: 4,
-  },
-  stat: { flex: 1, alignItems: "center", gap: 3 },
-  statValue: { fontSize: 22, lineHeight: 26 },
-  statLabel: { fontSize: 10, letterSpacing: 0.5 },
-  statSep: { width: 0.5, marginVertical: 6 },
-
-  activeOrderBanner: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    marginHorizontal: 16,
-    marginVertical: 8,
-    padding: 10,
-    borderRadius: 4,
-    borderWidth: 1,
-  },
-  activeOrderText: { flex: 1, fontSize: 12 },
-
-  menu: {},
-  menuItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    gap: 12,
-  },
-  menuContent: { flex: 1 },
-  menuLabel: { fontSize: 14 },
-  menuSub: { fontSize: 11, marginTop: 2 },
-  badge: {
-    minWidth: 20,
-    height: 20,
-    borderRadius: 10,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 6,
-  },
-  badgeText: { fontSize: 10 },
-
-  signOutRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderTopWidth: 0.5,
-    borderBottomWidth: 0.5,
-    marginTop: 12,
-  },
-  signOutText: { fontSize: 14 },
-
-  /* Guest */
-  guestCard: { margin: 16, padding: 24, borderRadius: 8, gap: 16 },
-  guestIconCircle: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  guestHeadline: { fontSize: 30, lineHeight: 38 },
-  guestSub: { fontSize: 13, lineHeight: 21 },
-  guestBtns: { gap: 10, marginTop: 4 },
-  guestSignInBtn: {
-    paddingVertical: 15,
-    borderRadius: 2,
-    alignItems: "center",
-  },
-  guestSignInText: { fontSize: 13, letterSpacing: 2 },
-  guestSignUpBtn: {
-    paddingVertical: 14,
-    borderRadius: 2,
-    alignItems: "center",
-    borderWidth: 1,
-  },
-  guestSignUpText: { fontSize: 13, letterSpacing: 1 },
-
-  perksSection: { marginHorizontal: 16, borderRadius: 6, padding: 16, gap: 12 },
-  perksLabel: { fontSize: 9, letterSpacing: 2, marginBottom: 2 },
-  perkRow: { flexDirection: "row", alignItems: "center", gap: 12 },
-  perkIconWrap: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  perkText: { fontSize: 13, lineHeight: 19, flex: 1 },
-
-  bottomBrand: { alignItems: "center", paddingVertical: 32, gap: 6 },
-  brandName: { fontSize: 18, letterSpacing: 4 },
-  brandSub: { fontSize: 10, letterSpacing: 0.5 },
-  version: { fontSize: 10, marginTop: 4 },
-
-  appearanceSection: {
-    marginTop: 16,
-  },
-  appearanceTitle: {
-    fontSize: 10,
-    letterSpacing: 1.5,
-    paddingHorizontal: 20,
-    marginBottom: 8,
-  },
-  appearanceRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    gap: 12,
-    borderTopWidth: 0.5,
-    borderBottomWidth: 0.5,
-  },
-  appearanceContent: {
-    flex: 1,
-  },
-});

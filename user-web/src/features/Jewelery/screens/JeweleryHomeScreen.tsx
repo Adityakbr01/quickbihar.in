@@ -2,26 +2,13 @@ import { Award, House, RefreshCw, Star, Wrench } from "lucide-react";
 import * as Haptics from "@/lib/haptics";
 import { useNavigate } from "react-router-dom";
 import { goTo } from "@/src/utils/navigation";
-import React, { useCallback, useEffect, useRef, useState } from "react";
-import {
-  ActivityIndicator,
-  Dimensions,
-  FlatList,
-  Platform,
-  Pressable,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text,
-  useColorScheme,
-  useWindowDimensions,
-  View,
-} from "@/components/primitives";
+import React, { useEffect } from "react";
+import { cn } from "@/src/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
 
 import { ModuleSwitcherButton } from "@/src/components/common/ModuleSwitcherButton";
 import { useTopPad } from "@/src/hooks/useTopPad";
-import { BREAKPOINTS } from "@/src/utils/responsive";
+import { BREAKPOINTS, useWindowWidth } from "@/src/utils/responsive";
 import {
   APP_CURRENCY,
   APP_NAME,
@@ -39,7 +26,21 @@ import { useColors } from "@/src/features/Jewelery/hooks/useColors";
 import { TextInput } from "@/src/theme/components/TextInput";
 import axiosInstance from "@/src/api/axiosInstance";
 
-const { width } = Dimensions.get("window");
+function Spinner({ color, size = 20 }: { color: string; size?: number }) {
+  return (
+    <span
+      className="inline-block animate-spin rounded-full border-2"
+      style={{
+        width: size,
+        height: size,
+        borderColor: color,
+        borderTopColor: "transparent",
+      }}
+      role="status"
+      aria-label="Loading"
+    />
+  );
+}
 
 const testimonials = [
   {
@@ -67,62 +68,63 @@ const testimonials = [
 
 function AnnouncementBar() {
   const colors = useColors();
-  const scheme = useColorScheme();
-  const isDark = scheme === "dark";
+  const isDark = colors.isDark;
 
   // High-contrast emerald & gold luxury palette pairing
   const bg = isDark ? "#122A20" : colors.emerald;
   const textColor = isDark ? "#EAD7B5" : colors.champagne;
 
   return (
-    <View style={[styles.announcementBar, { backgroundColor: bg }]}>
-      <Text style={[
-          styles.announcementText,
-          { color: textColor, fontFamily: "DMSans_400Regular" },
-        ]}
+    <div
+      className="flex items-center justify-center py-2"
+      style={{ backgroundColor: bg }}
+    >
+      <span
+        className="px-4 text-center text-[10px] tracking-[0.8px]"
+        style={{ color: textColor, fontFamily: "DMSans_400Regular" }}
       >
         Free shipping above {APP_CURRENCY}
         {JEWELERY_MODULE_CONFIG.freeShippingThreshold.toLocaleString("en-IN")} ·
         Hallmarked gold · Try at home available
-      </Text>
-    </View>
+      </span>
+    </div>
   );
 }
 
 function Header() {
   const colors = useColors();
-  const topPad = useTopPad();
-  const { width: windowWidth } = useWindowDimensions();
+  useTopPad();
+  const windowWidth = useWindowWidth();
   // Desktop web uses the global JeweleryDesktopNavbar — hide the mobile
   // brand row there so we don't render two headers. Mobile untouched.
-  if (Platform.OS === "web" && windowWidth >= BREAKPOINTS.desktopMin)
-    return null;
+  if (windowWidth >= BREAKPOINTS.desktopMin) return null;
   // Narrow phones: icon-only switcher so logo + search + pill fit 360px.
   const compactSwitcher = windowWidth < 400;
 
   return (
-    <View style={[
-        styles.header,
-        {
-          paddingHorizontal: 16,
-          paddingVertical: 20,
-          backgroundColor: colors.ivory,
-          borderBottomColor: colors.midGray,
-        },
-      ]}
+    <div
+      className="flex flex-row items-center justify-between border-b px-4 py-5"
+      style={{
+        backgroundColor: colors.ivory,
+        borderBottomColor: colors.midGray,
+        borderBottomWidth: 1,
+      }}
     >
-      <Text style={[
-          styles.logoText,
-          { color: colors.ink, fontFamily: "CormorantGaramond_600SemiBold" },
-        ]}
+      <span
+        className="text-[18px] tracking-[4px]"
+        style={{ color: colors.ink, fontFamily: "CormorantGaramond_600SemiBold" }}
       >
         {APP_NAME}
-      </Text>
-      <View style={{ flexDirection: "row", alignItems: "center", gap: compactSwitcher ? 10 : 12 }}>
-        
+      </span>
+      <div
+        className={cn(
+          "flex flex-row items-center",
+          compactSwitcher ? "gap-2.5" : "gap-3",
+        )}
+      >
         <ModuleSwitcherButton compact={compactSwitcher} />
-      </View>
-    </View>
+      </div>
+    </div>
   );
 }
 
@@ -136,28 +138,28 @@ function BrandPillars() {
   ];
 
   return (
-    <View style={[
-        styles.pillarsContainer,
-        {
-          backgroundColor: colors.ivory,
-          borderTopColor: colors.gold,
-          borderBottomColor: colors.gold,
-        },
-      ]}
+    <div
+      className="flex flex-row border-y px-3 py-4"
+      style={{
+        backgroundColor: colors.ivory,
+        borderTopColor: colors.gold,
+        borderBottomColor: colors.gold,
+        borderTopWidth: 1,
+        borderBottomWidth: 1,
+      }}
     >
-      {pillars.map((p, i) => (
-        <View key={p.label} style={styles.pillar}>
+      {pillars.map((p) => (
+        <div key={p.label} className="flex flex-1 flex-col items-center gap-1.5">
           <p.icon size={16} color={colors.gold} />
-          <Text style={[
-              styles.pillarLabel,
-              { color: colors.ink, fontFamily: "DMSans_400Regular" },
-            ]}
+          <span
+            className="whitespace-pre-line text-center text-[9px] leading-[13px] tracking-[0.5px]"
+            style={{ color: colors.ink, fontFamily: "DMSans_400Regular" }}
           >
             {p.label}
-          </Text>
-        </View>
+          </span>
+        </div>
       ))}
-    </View>
+    </div>
   );
 }
 
@@ -172,40 +174,41 @@ function SectionHeader({
 }) {
   const colors = useColors();
   return (
-    <View style={styles.sectionHeader}>
-      <View>
+    <div className="flex flex-row items-end justify-between">
+      <div>
         {label && (
-          <Text style={[
-              styles.sectionLabel,
-              { color: colors.gold, fontFamily: "DMSans_500Medium" },
-            ]}
+          <span
+            className="mb-1 block text-[9px] tracking-[2px]"
+            style={{ color: colors.gold, fontFamily: "DMSans_500Medium" }}
           >
             {label}
-          </Text>
+          </span>
         )}
-        <Text style={[
-            styles.sectionTitle,
-            {
-              color: colors.ink,
-              fontFamily: "CormorantGaramond_500Medium_Italic",
-            },
-          ]}
+        <h2
+          className="text-[26px] leading-[30px]"
+          style={{
+            color: colors.ink,
+            fontFamily: "CormorantGaramond_500Medium_Italic",
+          }}
         >
           {title}
-        </Text>
-      </View>
+        </h2>
+      </div>
       {onSeeAll && (
-        <Pressable onPress={onSeeAll}>
-          <Text style={[
-              styles.seeAll,
-              { color: colors.gold, fontFamily: "DMSans_400Regular" },
-            ]}
+        <button
+          type="button"
+          onClick={onSeeAll}
+          className="cursor-pointer"
+        >
+          <span
+            className="text-[11px] tracking-[0.5px]"
+            style={{ color: colors.gold, fontFamily: "DMSans_400Regular" }}
           >
             See all
-          </Text>
-        </Pressable>
+          </span>
+        </button>
       )}
-    </View>
+    </div>
   );
 }
 
@@ -246,138 +249,135 @@ function FeaturedCollections() {
   });
   if (!top.length) return null;
   return (
-    <View style={[styles.section, { backgroundColor: colors.ivory }]}>
+    <div className="p-5" style={{ backgroundColor: colors.ivory }}>
       <SectionHeader label="CURATED FOR YOU"
         title="Our Collections"
         onSeeAll={() => goTo(navigate, "/jewelery/collections" as any)}
       />
-      <View style={styles.collectionsGrid}>
+      <div className="mt-4 flex h-[320px] flex-row gap-2.5">
         <CollectionCard collection={top[0]} large style={{ flex: 1 }} />
         {top.length > 1 && (
-          <View style={styles.collectionsStack}>
+          <div className="flex flex-[0.6] flex-col gap-2.5">
             {top.slice(1).map((c) => (
               <CollectionCard key={c.id} collection={c} style={{ flex: 1 }} />
             ))}
-          </View>
+          </div>
         )}
-      </View>
-    </View>
+      </div>
+    </div>
   );
 }
 
 function NewArrivals() {
   const navigate = useNavigate();
   const colors = useColors();
-  const scheme = useColorScheme();
-  const isDark = scheme === "dark";
+  const isDark = colors.isDark;
   const { data: newItems = [], isLoading } = useJeweleryNewArrivals(8);
   if (!isLoading && newItems.length === 0) return null;
   return (
-    <View style={[
-        styles.section,
-        { backgroundColor: isDark ? colors.card : colors.champagne },
-      ]}
+    <div
+      className="p-5"
+      style={{ backgroundColor: isDark ? colors.card : colors.champagne }}
     >
       <SectionHeader label="JUST IN"
         title="New Arrivals"
         onSeeAll={() => goTo(navigate, "/jewelery/collections" as any)}
       />
       {isLoading ? (
-        <ActivityIndicator color={colors.gold} />
+        <div className="mt-4 flex justify-center">
+          <Spinner color={colors.gold} />
+        </div>
       ) : (
-        <FlatList data={newItems}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          keyExtractor={(i) => i.id}
-          contentContainerStyle={styles.horizontalList}
-          renderItem={({ item }) => (
-            <ProductCard product={item} style={{ width: 164, marginRight: 12 }} />
-          )}
-        />
+        <div className="mt-4 flex flex-row gap-3 overflow-x-auto pb-1 pr-5">
+          {newItems.map((i) => (
+            <div key={i.id} className="w-[164px] shrink-0">
+              <ProductCard product={i} style={{ width: 164, marginRight: 12 }} />
+            </div>
+          ))}
+        </div>
       )}
-    </View>
+    </div>
   );
 }
 
 function OccasionsSection() {
   const colors = useColors();
   return (
-    <View style={[styles.section, { backgroundColor: colors.ivory }]}>
+    <div className="p-5" style={{ backgroundColor: colors.ivory }}>
       <SectionHeader label="FIND YOUR MOMENT" title="Shop by Occasion" />
-      <View style={styles.occasionsGrid}>
+      <div className="mt-4 flex flex-row flex-wrap gap-2">
         {occasions.map((o) => (
-          <Pressable key={o.id}
-            style={({ pressed }) => [
-              styles.occasionPill,
-              {
-                borderColor: colors.gold,
-                backgroundColor: pressed ? colors.champagne : "transparent",
-              },
-            ]}
-            onPress={() =>
+          <button
+            key={o.id}
+            type="button"
+            className="flex cursor-pointer flex-row items-center gap-1.5 rounded-full border px-3 py-2 transition-colors active:opacity-80"
+            style={{
+              borderColor: colors.gold,
+              borderWidth: 1,
+              backgroundColor: "transparent",
+            }}
+            onClick={() =>
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
             }
           >
             <o.icon size={13} color={colors.gold} />
-            <Text style={[
-                styles.occasionLabel,
-                {
-                  color: colors.ink,
-                  fontFamily: "CormorantGaramond_500Medium_Italic",
-                },
-              ]}
+            <span
+              className="text-[13px]"
+              style={{
+                color: colors.ink,
+                fontFamily: "CormorantGaramond_500Medium_Italic",
+              }}
             >
               {o.label}
-            </Text>
-          </Pressable>
+            </span>
+          </button>
         ))}
-      </View>
-    </View>
+      </div>
+    </div>
   );
 }
 
 function HeritageSection() {
   const colors = useColors();
   return (
-    <View style={[styles.heritageSection, { backgroundColor: colors.pearl }]}>
-      <View style={styles.heritageContent}>
-        <Text style={[
-            styles.heritageLabel,
-            { color: colors.gold, fontFamily: "DMSans_500Medium" },
-          ]}
+    <div style={{ backgroundColor: colors.pearl }}>
+      <div className="flex flex-col gap-3 p-6">
+        <span
+          className="text-[9px] tracking-[2px]"
+          style={{ color: colors.gold, fontFamily: "DMSans_500Medium" }}
         >
           OUR CRAFT
-        </Text>
-        <Text style={[
-            styles.heritageTitle,
-            {
-              color: colors.ink,
-              fontFamily: "CormorantGaramond_400Regular_Italic",
-            },
-          ]}
+        </span>
+        <h2
+          className="text-[26px] leading-[32px]"
+          style={{
+            color: colors.ink,
+            fontFamily: "CormorantGaramond_400Regular_Italic",
+          }}
         >
           Every piece holds the memory of hands that shaped it.
-        </Text>
-        <Text style={[
-            styles.heritageBody,
-            { color: colors.warmGray, fontFamily: "DMSans_300Light" },
-          ]}
+        </h2>
+        <p
+          className="text-[13px] leading-[22px]"
+          style={{ color: colors.warmGray, fontFamily: "DMSans_300Light" }}
         >
           We work with master karigar families across Jaipur, Thrissur, and
           Banarasi ateliers — artisans whose craft has been passed down for
-          generations.{"\n\n"}Our jewellery is not manufactured. It is made.
-        </Text>
-        <Pressable onPress={() => {}}>
-          <Text style={[
-              styles.heritageLink,
-              { color: colors.gold, fontFamily: "DMSans_400Regular" },
-            ]}
+          generations.
+          <br />
+          <br />
+          Our jewellery is not manufactured. It is made.
+        </p>
+        <button type="button" className="cursor-pointer self-start" onClick={() => {}}>
+          <span
+            className="text-xs tracking-[1px]"
+            style={{ color: colors.gold, fontFamily: "DMSans_400Regular" }}
           >
             Read Our Story →
-          </Text>
-        </Pressable>
-      </View>
-    </View>
+          </span>
+        </button>
+      </div>
+    </div>
   );
 }
 
@@ -387,19 +387,21 @@ function BestsellerSection() {
   const { data: bestsellers = [], isLoading } = useJeweleryBestsellers(6);
   if (!isLoading && bestsellers.length === 0) return null;
   return (
-    <View style={[styles.section, { backgroundColor: colors.ivory }]}>
+    <div className="p-5" style={{ backgroundColor: colors.ivory }}>
       <SectionHeader label="MOST LOVED"
         title="Bestsellers"
         onSeeAll={() => goTo(navigate, "/jewelery/collections" as any)}
       />
-      <View style={styles.productGrid}>
+      <div className="mt-4 flex flex-row flex-wrap justify-between gap-2">
         {isLoading ? (
-          <ActivityIndicator color={colors.gold} style={{ flex: 1 }} />
+          <div className="flex flex-1 justify-center py-6">
+            <Spinner color={colors.gold} />
+          </div>
         ) : (
           bestsellers.map((p) => <ProductCard key={p.id} product={p} />)
         )}
-      </View>
-    </View>
+      </div>
+    </div>
   );
 }
 
@@ -407,136 +409,137 @@ function FestiveCampaign() {
   const navigate = useNavigate();
   const colors = useColors();
   return (
-    <View style={[styles.festiveSec, { backgroundColor: colors.emerald }]}>
-      <Text style={[
-          styles.festiveLabel,
-          {
-            color: colors.gold,
-            fontFamily: "CormorantGaramond_400Regular_Italic",
-          },
-        ]}
+    <div
+      className="flex flex-col items-center gap-3.5 p-8"
+      style={{ backgroundColor: colors.emerald }}
+    >
+      <span
+        className="text-base"
+        style={{
+          color: colors.gold,
+          fontFamily: "CormorantGaramond_400Regular_Italic",
+        }}
       >
         This festive season —
-      </Text>
-      <Text style={[
-          styles.festiveTitle,
-          {
-            color: "#F7F3EC",
-            fontFamily: "CormorantGaramond_300Light_Italic",
-          },
-        ]}
+      </span>
+      <h2
+        className="text-center text-[36px] leading-[42px]"
+        style={{
+          color: "#F7F3EC",
+          fontFamily: "CormorantGaramond_300Light_Italic",
+        }}
       >
         Adorn yourself in your own story.
-      </Text>
-      <Text style={[
-          styles.festiveBody,
-          { color: "rgba(247,243,236,0.7)", fontFamily: "DMSans_300Light" },
-        ]}
+      </h2>
+      <p
+        className="text-center text-[13px] leading-5"
+        style={{ color: "rgba(247,243,236,0.7)", fontFamily: "DMSans_300Light" }}
       >
         Curated festive edits in gold, kundan, and polki. New drops every
         fortnight. Gifting boxes available.
-      </Text>
-      <Pressable style={({ pressed }) => [
-          styles.festiveBtn,
-          { backgroundColor: pressed ? colors.goldLight : colors.gold },
-        ]}
-        onPress={() => goTo(navigate, "/jewelery/collections" as any)}
+      </p>
+      <button
+        type="button"
+        className="mt-1.5 cursor-pointer rounded-[1px] px-7 py-3.5 transition-opacity active:opacity-90"
+        style={{ backgroundColor: colors.gold }}
+        onClick={() => goTo(navigate, "/jewelery/collections" as any)}
       >
-        <Text style={[
-            styles.festiveBtnText,
-            { color: colors.onBrand, fontFamily: "DMSans_500Medium" },
-          ]}
+        <span
+          className="text-xs tracking-[1.5px]"
+          style={{ color: colors.onBrand, fontFamily: "DMSans_500Medium" }}
         >
           Shop Festive Edit
-        </Text>
-      </Pressable>
-    </View>
+        </span>
+      </button>
+    </div>
   );
 }
 
 function TestimonialsSection() {
   const colors = useColors();
   return (
-    <View style={[styles.section, { backgroundColor: colors.pearl }]}>
+    <div className="p-5" style={{ backgroundColor: colors.pearl }}>
       <SectionHeader label="LOVED & TRUSTED" title="What They Say" />
-      {testimonials.map((t) => (
-        <View key={t.id}
-          style={[styles.testimonialCard, { backgroundColor: colors.ivory }]}
-        >
-          <View style={styles.starsRow}>
-            {Array.from({ length: t.rating }).map((_, i) => (
-              <Star key={i} size={12} color={colors.gold} />
-            ))}
-          </View>
-          <Text style={[
-              styles.testimonialText,
-              {
+      <div className="mt-4">
+        {testimonials.map((t) => (
+          <div
+            key={t.id}
+            className="mb-3 flex flex-col gap-2 rounded-[2px] p-4"
+            style={{ backgroundColor: colors.ivory }}
+          >
+            <div className="flex flex-row gap-0.5">
+              {Array.from({ length: t.rating }).map((_, i) => (
+                <Star key={i} size={12} color={colors.gold} />
+              ))}
+            </div>
+            <p
+              className="text-[15px] leading-6"
+              style={{
                 color: colors.ink,
                 fontFamily: "CormorantGaramond_400Regular_Italic",
-              },
-            ]}
-          >
-            "{t.text}"
-          </Text>
-          <Text style={[
-              styles.testimonialMeta,
-              { color: colors.warmGray, fontFamily: "DMSans_400Regular" },
-            ]}
-          >
-            — {t.name}, {t.city} · Verified Purchase
-          </Text>
-        </View>
-      ))}
-    </View>
+              }}
+            >
+              &ldquo;{t.text}&rdquo;
+            </p>
+            <span
+              className="text-[11px] tracking-[0.3px]"
+              style={{ color: colors.warmGray, fontFamily: "DMSans_400Regular" }}
+            >
+              — {t.name}, {t.city} · Verified Purchase
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
 
 function GiftingSection() {
   const colors = useColors();
   return (
-    <View style={[styles.section, { backgroundColor: colors.champagne }]}>
-      <Text style={[
-          styles.sectionLabel,
-          { color: colors.gold, fontFamily: "DMSans_500Medium" },
-        ]}
+    <div
+      className="flex flex-col gap-4 p-5"
+      style={{ backgroundColor: colors.champagne }}
+    >
+      <span
+        className="text-[9px] tracking-[2px]"
+        style={{ color: colors.gold, fontFamily: "DMSans_500Medium" }}
       >
         GIVE SOMETHING FOREVER
-      </Text>
-      <Text style={[
-          styles.giftingTitle,
-          {
-            color: colors.ink,
-            fontFamily: "CormorantGaramond_500Medium_Italic",
-          },
-        ]}
+      </span>
+      <h2
+        className="text-[26px] leading-[32px]"
+        style={{
+          color: colors.ink,
+          fontFamily: "CormorantGaramond_500Medium_Italic",
+        }}
       >
         Because some gifts outlive the occasion.
-      </Text>
-      <Text style={[
-          styles.giftingBody,
-          { color: colors.warmGray, fontFamily: "DMSans_300Light" },
-        ]}
+      </h2>
+      <p
+        className="text-[13px] leading-[22px]"
+        style={{ color: colors.warmGray, fontFamily: "DMSans_300Light" }}
       >
         Every {APP_NAME} order ships in our signature ivory and gold gift box —
         complimentary. Add a handwritten note. Make it unforgettable.
-      </Text>
-      <Pressable style={({ pressed }) => [
-          styles.giftingBtn,
-          {
-            borderColor: colors.gold,
-            backgroundColor: pressed ? colors.pearl : "transparent",
-          },
-        ]}
+      </p>
+      <button
+        type="button"
+        className="cursor-pointer self-start rounded-[1px] border px-5 py-3 transition-colors active:opacity-80"
+        style={{
+          borderColor: colors.gold,
+          borderWidth: 1,
+          backgroundColor: "transparent",
+        }}
       >
-        <Text style={[
-            styles.giftingBtnText,
-            { color: colors.gold, fontFamily: "DMSans_400Regular" },
-          ]}
+        <span
+          className="text-xs tracking-[1px]"
+          style={{ color: colors.gold, fontFamily: "DMSans_400Regular" }}
         >
           Explore Gifting →
-        </Text>
-      </Pressable>
-    </View>
+        </span>
+      </button>
+    </div>
   );
 }
 
@@ -581,60 +584,54 @@ function NewsletterSection() {
   };
 
   return (
-    <View style={[
-        styles.section,
-        { backgroundColor: colors.ivory, alignItems: "center" },
-      ]}
+    <div
+      className="flex flex-col items-center gap-4 p-5"
+      style={{ backgroundColor: colors.ivory }}
     >
-      <Text style={[
-          styles.newsletterTitle,
-          {
-            color: colors.ink,
-            fontFamily: "CormorantGaramond_400Regular_Italic",
-            textAlign: "center",
-          },
-        ]}
+      <h2
+        className="text-center text-[30px] leading-[36px]"
+        style={{
+          color: colors.ink,
+          fontFamily: "CormorantGaramond_400Regular_Italic",
+        }}
       >
         Be the first to know.
-      </Text>
-      <Text style={[
-          styles.newsletterBody,
-          {
-            color: colors.warmGray,
-            fontFamily: "DMSans_300Light",
-            textAlign: "center",
-          },
-        ]}
+      </h2>
+      <p
+        className="max-w-[280px] text-center text-[13px] leading-5"
+        style={{ color: colors.warmGray, fontFamily: "DMSans_300Light" }}
       >
         New collections. Artisan stories. Early access. Festive drops.
-      </Text>
+      </p>
       {status === "done" ? (
-        <View style={[
-            styles.newsletterDone,
-            { borderColor: colors.gold, backgroundColor: colors.champagne },
-          ]}
+        <div
+          className="mt-3 flex w-full flex-col items-center rounded-[2px] border p-4"
+          style={{
+            borderColor: colors.gold,
+            borderWidth: 1,
+            backgroundColor: colors.champagne,
+          }}
         >
-          <Text style={[
-              styles.newsletterDoneText,
-              { color: colors.ink, fontFamily: "DMSans_500Medium" },
-            ]}
+          <span
+            className="text-center text-sm leading-5"
+            style={{ color: colors.ink, fontFamily: "DMSans_500Medium" }}
           >
             {message || "You're on the list. Welcome to the Circle!"}
-          </Text>
-        </View>
+          </span>
+        </div>
       ) : (
         <>
-          <View style={[
-              styles.newsletterInput,
-              {
-                borderColor:
-                  status === "error"
-                    ? "#dc2626"
-                    : focused
-                      ? colors.gold
-                      : colors.midGray,
-              },
-            ]}
+          <div
+            className="mt-3 flex w-full flex-row items-center overflow-hidden rounded-[2px] border"
+            style={{
+              borderColor:
+                status === "error"
+                  ? "#dc2626"
+                  : focused
+                    ? colors.gold
+                    : colors.midGray,
+              borderWidth: 1,
+            }}
           >
             <TextInput value={email}
               bare
@@ -668,89 +665,64 @@ function NewsletterSection() {
                 minHeight: 48,
               }}
             />
-            <Pressable style={[
-                styles.joinBtn,
-                {
-                  backgroundColor: colors.gold,
-                  opacity: status === "loading" ? 0.7 : 1,
-                },
-              ]}
-              onPress={subscribe}
+            <button
+              type="button"
+              className={cn(
+                "cursor-pointer px-4 py-3",
+                status === "loading" && "opacity-70",
+              )}
+              style={{ backgroundColor: colors.gold }}
+              onClick={subscribe}
               disabled={status === "loading"}
             >
               {status === "loading" ? (
-                <ActivityIndicator size="small" color={colors.onBrand} />
+                <Spinner size={14} color={colors.onBrand} />
               ) : (
-                <Text style={[
-                    styles.joinBtnText,
-                    { color: colors.onBrand, fontFamily: "DMSans_500Medium" },
-                  ]}
+                <span
+                  className="text-[11px] tracking-[0.5px]"
+                  style={{ color: colors.onBrand, fontFamily: "DMSans_500Medium" }}
                 >
                   Join the Circle
-                </Text>
+                </span>
               )}
-            </Pressable>
-          </View>
+            </button>
+          </div>
           {status === "error" && message ? (
-            <Text style={[
-                styles.newsletterError,
-                { color: "#dc2626", fontFamily: "DMSans_400Regular" },
-              ]}
+            <span
+              className="mt-2 text-xs"
+              style={{ color: "#dc2626", fontFamily: "DMSans_400Regular" }}
             >
               {message}
-            </Text>
+            </span>
           ) : null}
         </>
       )}
-      <Text style={[
-          styles.newsletterFine,
-          { color: colors.warmGray, fontFamily: "DMSans_300Light" },
-        ]}
+      <span
+        className="text-[10px] tracking-[0.5px]"
+        style={{ color: colors.warmGray, fontFamily: "DMSans_300Light" }}
       >
         No spam. Only gold.
-      </Text>
-    </View>
+      </span>
+    </div>
   );
 }
 
 export default function JeweleryHomeScreen() {
   const colors = useColors();
   const queryClient = useQueryClient();
-  const [refreshing, setRefreshing] = useState(false);
   const { data: heroItems } = useJeweleryBestsellers(4);
 
   useEffect(() => {
     queryClient.invalidateQueries({ queryKey: ["jewelery-categories"] });
   }, [queryClient]);
 
-  const onRefresh = useCallback(async () => {
-    setRefreshing(true);
-    await Promise.allSettled([
-      queryClient.invalidateQueries({ queryKey: ["jewelery-categories"] }),
-      queryClient.invalidateQueries({ queryKey: ["jewelery-bestsellers"] }),
-      queryClient.invalidateQueries({ queryKey: ["jewelery-new-arrivals"] }),
-      queryClient.invalidateQueries({ queryKey: ["jewelery-products"] }),
-    ]);
-    setRefreshing(false);
-  }, [queryClient]);
-
   return (
-    <View style={[styles.root, { backgroundColor: colors.ivory }]}>
+    <div
+      className="flex min-h-screen flex-col"
+      style={{ backgroundColor: colors.ivory }}
+    >
       <Header />
-      <ScrollView showsVerticalScrollIndicator={false}
-        contentContainerStyle={[
-          styles.scrollContent,
-          { paddingBottom: Platform.OS === "web" ? 110 : 90 },
-        ]}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={colors.gold}
-            colors={[colors.gold]}
-          />
-        }
-      >
+      <div className="overflow-y-auto" style={{ paddingBottom: 110 }}>
         <AnnouncementBar />
         <HeroCarousel items={heroItems} />
         <BrandPillars />
@@ -763,251 +735,7 @@ export default function JeweleryHomeScreen() {
         {/* Testimonials hidden until real verified reviews exist. */}
         <GiftingSection />
         <NewsletterSection />
-      </ScrollView>
-    </View>
+      </div>
+    </div>
   );
 }
-
-const styles = StyleSheet.create({
-  root: { flex: 1 },
-  scrollContent: { flexGrow: 1 },
-  announcementBar: {
-    paddingVertical: 8,
-    alignItems: "center",
-  },
-  announcementText: {
-    fontSize: 10,
-    letterSpacing: 0.8,
-    textAlign: "center",
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingBottom: 16,
-    borderBottomWidth: 0.5,
-    zIndex: 10,
-  },
-  logoText: {
-    fontSize: 18,
-    letterSpacing: 4,
-  },
-  pillarsContainer: {
-    flexDirection: "row",
-    paddingVertical: 16,
-    paddingHorizontal: 12,
-    borderTopWidth: 0.5,
-    borderBottomWidth: 0.5,
-  },
-  pillar: {
-    flex: 1,
-    alignItems: "center",
-    gap: 6,
-  },
-  pillarLabel: {
-    fontSize: 9,
-    letterSpacing: 0.5,
-    textAlign: "center",
-    lineHeight: 13,
-  },
-  section: {
-    padding: 20,
-    gap: 16,
-  },
-  sectionHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-end",
-  },
-  sectionLabel: {
-    fontSize: 9,
-    letterSpacing: 2,
-    marginBottom: 4,
-  },
-  sectionTitle: {
-    fontSize: 26,
-    lineHeight: 30,
-  },
-  seeAll: {
-    fontSize: 11,
-    letterSpacing: 0.5,
-  },
-  collectionsGrid: {
-    flexDirection: "row",
-    gap: 10,
-    height: 320,
-  },
-  collectionsStack: {
-    flex: 0.6,
-    gap: 10,
-  },
-  horizontalList: {
-    paddingRight: 20,
-  },
-  occasionsGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-  },
-  occasionPill: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderWidth: 1,
-    borderRadius: 20,
-  },
-  occasionLabel: {
-    fontSize: 13,
-  },
-  heritageSection: {
-    minHeight: 0,
-  },
-  heritageContent: {
-    padding: 24,
-    gap: 12,
-  },
-  heritageLabel: {
-    fontSize: 9,
-    letterSpacing: 2,
-  },
-  heritageTitle: {
-    fontSize: 26,
-    lineHeight: 32,
-  },
-  heritageBody: {
-    fontSize: 13,
-    lineHeight: 22,
-  },
-  heritageLink: {
-    fontSize: 12,
-    letterSpacing: 1,
-  },
-  trustBar: {
-    fontSize: 11,
-    textAlign: "center",
-    letterSpacing: 0.5,
-    fontStyle: "italic",
-  },
-  productGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-    justifyContent: "space-between",
-  },
-  festiveSec: {
-    padding: 32,
-    gap: 14,
-    alignItems: "center",
-  },
-  festiveLabel: {
-    fontSize: 16,
-  },
-  festiveTitle: {
-    fontSize: 36,
-    lineHeight: 42,
-    textAlign: "center",
-  },
-  festiveBody: {
-    fontSize: 13,
-    textAlign: "center",
-    lineHeight: 20,
-  },
-  festiveBtn: {
-    paddingVertical: 14,
-    paddingHorizontal: 28,
-    borderRadius: 1,
-    marginTop: 6,
-  },
-  festiveBtnText: {
-    fontSize: 12,
-    letterSpacing: 1.5,
-  },
-  testimonialCard: {
-    padding: 16,
-    borderRadius: 2,
-    gap: 8,
-    marginBottom: 12,
-  },
-  starsRow: {
-    flexDirection: "row",
-    gap: 2,
-  },
-  testimonialText: {
-    fontSize: 15,
-    lineHeight: 24,
-  },
-  testimonialMeta: {
-    fontSize: 11,
-    letterSpacing: 0.3,
-  },
-  giftingTitle: {
-    fontSize: 26,
-    lineHeight: 32,
-  },
-  giftingBody: {
-    fontSize: 13,
-    lineHeight: 22,
-  },
-  giftingBtn: {
-    borderWidth: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    alignSelf: "flex-start",
-    borderRadius: 1,
-  },
-  giftingBtnText: {
-    fontSize: 12,
-    letterSpacing: 1,
-  },
-  newsletterTitle: {
-    fontSize: 30,
-    lineHeight: 36,
-  },
-  newsletterBody: {
-    fontSize: 13,
-    lineHeight: 20,
-    maxWidth: 280,
-  },
-  newsletterInput: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderWidth: 1,
-    borderRadius: 2,
-    overflow: "hidden",
-    alignSelf: "stretch",
-    marginTop: 12,
-  },
-  newsletterError: {
-    fontSize: 12,
-    marginTop: 8,
-  },
-  newsletterDone: {
-    alignSelf: "stretch",
-    marginTop: 12,
-    padding: 16,
-    borderWidth: 0.5,
-    borderRadius: 2,
-    alignItems: "center",
-  },
-  newsletterDoneText: {
-    fontSize: 14,
-    textAlign: "center",
-    lineHeight: 20,
-  },
-  joinBtn: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    justifyContent: "center",
-  },
-  joinBtnText: {
-    fontSize: 11,
-    letterSpacing: 0.5,
-  },
-  newsletterFine: {
-    fontSize: 10,
-    letterSpacing: 0.5,
-  },
-});

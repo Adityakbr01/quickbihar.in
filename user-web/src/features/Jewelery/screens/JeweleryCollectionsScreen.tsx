@@ -3,30 +3,34 @@ import * as Haptics from "@/lib/haptics";
 import { useNavigate } from "react-router-dom";
 import { goTo } from "@/src/utils/navigation";
 import React, { useMemo, useState } from "react";
-import {
-  ActivityIndicator,
-  FlatList,
-  Image,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "@/components/primitives";
-import { useSafeAreaInsets } from "@/src/hooks/useSafeAreaInsets";
+import { cn } from "@/src/lib/utils";
 
 import { ProductCard } from "@/src/features/Jewelery/components/ProductCard";
 import { useJeweleryCategories, useJeweleryProducts } from "@/src/features/Jewelery/hooks/useJeweleryCatalog";
 import { useColors } from "@/src/features/Jewelery/hooks/useColors";
 import { resolveJeweleryCollectionImage } from "@/src/features/Jewelery/screens/JeweleryHomeScreen";
 
+function Spinner({ color, size = 20 }: { color: string; size?: number }) {
+  return (
+    <span
+      className="inline-block animate-spin rounded-full border-2"
+      style={{
+        width: size,
+        height: size,
+        borderColor: color,
+        borderTopColor: "transparent",
+      }}
+      role="status"
+      aria-label="Loading"
+    />
+  );
+}
+
 export default function JeweleryCollectionsScreen() {
   const navigate = useNavigate();
   const colors = useColors();
-  const insets = useSafeAreaInsets();
   const [activeTab, setActiveTab] = useState("All");
-  const topPad = Platform.OS === "web" ? 16 : insets.top;
+  const topPad = 16;
 
   const { data: cats } = useJeweleryCategories();
   const collectionTabs = useMemo(
@@ -36,7 +40,7 @@ export default function JeweleryCollectionsScreen() {
   const chips = useMemo(
     () => (cats ?? []).map((c) => {
       const imgUri = resolveJeweleryCollectionImage(c);
-      return { id: c._id, name: c.title, image: imgUri ? { uri: imgUri } : null };
+      return { id: c._id, name: c.title, image: imgUri || null };
     }),
     [cats]
   );
@@ -54,271 +58,181 @@ export default function JeweleryCollectionsScreen() {
   );
 
   return (
-    <View style={[styles.root, { backgroundColor: colors.ivory }]}>
-      <View style={[
-          styles.header,
-          {
-            paddingTop: topPad + 12,
-            backgroundColor: colors.ivory,
-            borderBottomColor: colors.midGray,
-          },
-        ]}
+    <div
+      className="flex min-h-screen flex-col"
+      style={{ backgroundColor: colors.ivory }}
+    >
+      <div
+        className="flex flex-row items-center justify-between border-b px-5 pb-3.5"
+        style={{
+          paddingTop: topPad + 12,
+          backgroundColor: colors.ivory,
+          borderBottomColor: colors.midGray,
+          borderBottomWidth: 1,
+        }}
       >
-        <Text style={[
-            styles.headerTitle,
-            { color: colors.ink, fontFamily: "CormorantGaramond_600SemiBold" },
-          ]}
+        <h1
+          className="text-[22px] tracking-[3px]"
+          style={{ color: colors.ink, fontFamily: "CormorantGaramond_600SemiBold" }}
         >
           Collections
-        </Text>
-        <Pressable onPress={() => {
-          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-          goTo(navigate, "/jewelery/search" as any);
-        }} hitSlop={8}>
+        </h1>
+        <button
+          type="button"
+          className="cursor-pointer"
+          onClick={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            goTo(navigate, "/jewelery/search" as any);
+          }}
+          aria-label="Search jewellery"
+        >
           <Search size={20} color={colors.ink} />
-        </Pressable>
-      </View>
+        </button>
+      </div>
 
-      <ScrollView showsVerticalScrollIndicator={false}
-        
-      >
+      <div className="overflow-y-auto">
         {/* Collections hero grid */}
-        <View style={[styles.section, { backgroundColor: colors.pearl }]}>
-          <Text style={[
-              styles.sectionLabel,
-              { color: colors.gold, fontFamily: "DMSans_500Medium" },
-            ]}
+        <div className="p-5" style={{ backgroundColor: colors.pearl }}>
+          <span
+            className="block text-[9px] tracking-[2px]"
+            style={{ color: colors.gold, fontFamily: "DMSans_500Medium" }}
           >
             OUR WORLD
-          </Text>
-          <Text style={[
-              styles.sectionTitle,
-              {
-                color: colors.ink,
-                fontFamily: "CormorantGaramond_400Regular_Italic",
-              },
-            ]}
+          </span>
+          <h2
+            className="mt-3 text-[24px] leading-[30px]"
+            style={{
+              color: colors.ink,
+              fontFamily: "CormorantGaramond_400Regular_Italic",
+            }}
           >
             Five worlds. One story.
-          </Text>
-          <ScrollView horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.collectionScroll}
-          >
+          </h2>
+          <div className="mt-3 flex flex-row gap-2.5 overflow-x-auto pb-1 pr-1">
             {chips.map((c) => (
-              <Pressable key={c.id}
-                style={({ pressed }) => [
-                  styles.collectionChip,
-                  {
-                    opacity: pressed ? 0.85 : 1,
-                  },
-                ]}
-                onPress={() => {
+              <button
+                key={c.id}
+                type="button"
+                className="relative h-[180px] w-[140px] shrink-0 cursor-pointer overflow-hidden rounded-[2px] transition-opacity active:opacity-85"
+                onClick={() => {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                   setActiveTab(c.name);
                 }}
               >
                 {c.image && (
-                  <Image source={c.image}
-                    style={styles.collectionChipImage}
-                    resizeMode="cover"
+                  <img
+                    src={c.image}
+                    alt={c.name}
+                    className="absolute inset-0 h-full w-full object-cover"
                   />
                 )}
-                <View style={styles.collectionChipOverlay} />
-                <View style={styles.collectionChipContent}>
-                  <Text style={[
-                      styles.collectionChipName,
-                      {
-                        color: "#F7F3EC",
-                        fontFamily: "CormorantGaramond_500Medium_Italic",
-                      },
-                    ]}
+                <div
+                  className="absolute inset-0"
+                  style={{ backgroundColor: "rgba(26,22,20,0.32)" }}
+                />
+                <div className="absolute inset-x-2.5 bottom-2.5">
+                  <span
+                    className="block text-[16px] leading-5"
+                    style={{
+                      color: "#F7F3EC",
+                      fontFamily: "CormorantGaramond_500Medium_Italic",
+                    }}
                   >
                     {c.name}
-                  </Text>
-                </View>
-              </Pressable>
+                  </span>
+                </div>
+              </button>
             ))}
-          </ScrollView>
-        </View>
+          </div>
+        </div>
 
         {/* Filter tabs */}
-        <View style={[
-            styles.filterBar,
-            {
-              backgroundColor: colors.ivory,
-              borderBottomColor: colors.midGray,
-            },
-          ]}
+        <div
+          className="border-b"
+          style={{
+            backgroundColor: colors.ivory,
+            borderBottomColor: colors.midGray,
+            borderBottomWidth: 1,
+          }}
         >
-          <ScrollView horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.filterScroll}
-          >
+          <div className="flex flex-row overflow-x-auto px-4">
             {collectionTabs.map((tab) => (
-              <Pressable key={tab}
-                style={[
-                  styles.filterTab,
-                  {
-                    borderBottomWidth: activeTab === tab ? 1.5 : 0,
-                    borderBottomColor: colors.gold,
-                  },
-                ]}
-                onPress={() => setActiveTab(tab)}
+              <button
+                key={tab}
+                type="button"
+                className="mr-1 cursor-pointer px-3 py-3.5"
+                style={{
+                  borderBottomWidth: activeTab === tab ? 1.5 : 0,
+                  borderBottomColor: colors.gold,
+                  borderBottomStyle: "solid",
+                }}
+                onClick={() => setActiveTab(tab)}
               >
-                <Text style={[
-                    styles.filterTabText,
-                    {
-                      color: activeTab === tab ? colors.gold : colors.warmGray,
-                      fontFamily:
-                        activeTab === tab
-                          ? "DMSans_500Medium"
-                          : "DMSans_400Regular",
-                    },
-                  ]}
+                <span
+                  className="text-xs tracking-[0.3px]"
+                  style={{
+                    color: activeTab === tab ? colors.gold : colors.warmGray,
+                    fontFamily:
+                      activeTab === tab
+                        ? "DMSans_500Medium"
+                        : "DMSans_400Regular",
+                  }}
                 >
                   {tab}
-                </Text>
-              </Pressable>
+                </span>
+              </button>
             ))}
-          </ScrollView>
-        </View>
+          </div>
+        </div>
 
         {/* Product grid */}
-        <View style={[styles.productsSection, { backgroundColor: colors.ivory }]}
-        >
-          <View style={styles.productGrid}>
+        <div className="p-4" style={{ backgroundColor: colors.ivory }}>
+          <div className="flex flex-row flex-wrap justify-between gap-2">
             {isLoading ? (
-              <ActivityIndicator color={colors.gold} style={{ flex: 1, paddingVertical: 40 }} />
+              <div className="flex flex-1 justify-center py-10">
+                <Spinner color={colors.gold} />
+              </div>
             ) : (
               filtered.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))
             )}
-          </View>
+          </div>
           {!isLoading && filtered.length === 0 && (
-            <View style={styles.emptyState}>
+            <div className="flex flex-col items-center gap-3 py-[60px]">
               <Package size={32} color={colors.midGray} />
-              <Text style={[
-                  styles.emptyText,
-                  { color: colors.warmGray, fontFamily: "DMSans_400Regular" },
-                ]}
+              <span
+                className="text-sm"
+                style={{ color: colors.warmGray, fontFamily: "DMSans_400Regular" }}
               >
                 No pieces found in this collection
-              </Text>
-            </View>
+              </span>
+            </div>
           )}
           {hasNextPage && !isLoading && (
-            <Pressable onPress={() => fetchNextPage()}
+            <button
+              type="button"
+              onClick={() => fetchNextPage()}
               disabled={isFetchingNextPage}
-              style={{ alignItems: "center", paddingVertical: 16 }}
+              className={cn(
+                "flex w-full cursor-pointer items-center justify-center py-4",
+                isFetchingNextPage && "opacity-60",
+              )}
             >
               {isFetchingNextPage ? (
-                <ActivityIndicator color={colors.gold} />
+                <Spinner color={colors.gold} />
               ) : (
-                <Text style={[{ color: colors.gold, fontFamily: "DMSans_500Medium", fontSize: 12, letterSpacing: 1 }]}>
+                <span
+                  className="text-xs tracking-[1px]"
+                  style={{ color: colors.gold, fontFamily: "DMSans_500Medium" }}
+                >
                   LOAD MORE
-                </Text>
+                </span>
               )}
-            </Pressable>
+            </button>
           )}
-        </View>
-      </ScrollView>
-    </View>
+        </div>
+      </div>
+    </div>
   );
 }
-
-const styles = StyleSheet.create({
-  root: { flex: 1 },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingBottom: 14,
-    borderBottomWidth: 0.5,
-  },
-  headerTitle: {
-    fontSize: 22,
-    letterSpacing: 3,
-  },
-  section: {
-    padding: 20,
-    gap: 12,
-  },
-  sectionLabel: {
-    fontSize: 9,
-    letterSpacing: 2,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    lineHeight: 30,
-  },
-  collectionScroll: {
-    gap: 10,
-    paddingRight: 4,
-  },
-  collectionChip: {
-    width: 140,
-    height: 180,
-    borderRadius: 2,
-    overflow: "hidden",
-    position: "relative",
-  },
-  collectionChipImage: {
-    width: "100%",
-    height: "100%",
-    position: "absolute",
-  },
-  collectionChipOverlay: {
-    ...StyleSheet.absoluteFill,
-    backgroundColor: "rgba(26,22,20,0.32)",
-  },
-  collectionChipContent: {
-    position: "absolute",
-    bottom: 10,
-    left: 10,
-    right: 10,
-  },
-  collectionChipName: {
-    fontSize: 16,
-    lineHeight: 20,
-  },
-  collectionChipCount: {
-    fontSize: 10,
-    marginTop: 2,
-  },
-  filterBar: {
-    borderBottomWidth: 0.5,
-  },
-  filterScroll: {
-    paddingHorizontal: 16,
-    gap: 0,
-  },
-  filterTab: {
-    paddingVertical: 14,
-    paddingHorizontal: 12,
-    marginRight: 4,
-  },
-  filterTabText: {
-    fontSize: 12,
-    letterSpacing: 0.3,
-  },
-  productsSection: {
-    padding: 16,
-  },
-  productGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-    justifyContent: "space-between",
-  },
-  emptyState: {
-    alignItems: "center",
-    paddingVertical: 60,
-    gap: 12,
-  },
-  emptyText: {
-    fontSize: 14,
-  },
-});

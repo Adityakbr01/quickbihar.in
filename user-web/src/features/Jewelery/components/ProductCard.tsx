@@ -3,15 +3,8 @@ import * as Haptics from "@/lib/haptics";
 import { useNavigate } from "react-router-dom";
 import { goTo } from "@/src/utils/navigation";
 import React from "react";
-import {
-  Image,
-  Platform,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-  useWindowDimensions,
-} from "@/components/primitives";
+import { cn } from "@/src/lib/utils";
+import { useWindowWidth } from "@/src/utils/responsive";
 
 import { useCart } from "@/src/features/Jewelery/context/CartContext";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
@@ -21,17 +14,24 @@ import { APP_CURRENCY } from "@/src/constants";
 
 interface ProductCardProps {
   product: Product;
-  style?: object;
+  style?: React.CSSProperties;
+}
+
+function resolveSrc(source: any): string | undefined {
+  if (!source) return undefined;
+  if (typeof source === "string") return source;
+  if (typeof source === "object" && typeof source.uri === "string") return source.uri;
+  return source as any;
 }
 
 function Stars({ rating }: { rating: number }) {
   const colors = useColors();
   return (
-    <View style={styles.stars}>
+    <div className="flex flex-row">
       {[1, 2, 3, 4, 5].map((s) => (
-        <Star key={s} size={9} color={s <= Math.round(rating) ? colors.gold : colors.midGray} style={{ marginRight: 1 }} />
+        <Star key={s} size={9} color={s <= Math.round(rating) ? colors.gold : colors.midGray} className="mr-[1px]" />
       ))}
-    </View>
+    </div>
   );
 }
 
@@ -40,7 +40,7 @@ export function ProductCard({ product, style }: ProductCardProps) {
   const colors = useColors();
   // Live viewport width — a module-level Dimensions.get() goes stale on
   // resize/device-emulation/rotation and makes grid cards overflow the page.
-  const { width: windowWidth } = useWindowDimensions();
+  const windowWidth = useWindowWidth();
   const cardWidth = (windowWidth - 48) / 2;
   const { toggleWishlist, isWishlisted, addToCart } = useCart();
   const wishlisted = isWishlisted(product.id);
@@ -55,7 +55,8 @@ export function ProductCard({ product, style }: ProductCardProps) {
   );
 
   const { isAuthenticated } = useAuthStore();
-  const handleWishlist = () => {
+  const handleWishlist = (e: React.MouseEvent) => {
+    e.stopPropagation();
     if (!isAuthenticated) {
       navigate("/auth");
       return;
@@ -64,7 +65,8 @@ export function ProductCard({ product, style }: ProductCardProps) {
     toggleWishlist(product);
   };
 
-  const handleAddToCart = async () => {
+  const handleAddToCart = async (e: React.MouseEvent) => {
+    e.stopPropagation();
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     const ok = await addToCart(product);
     if (!ok) return;
@@ -77,193 +79,135 @@ export function ProductCard({ product, style }: ProductCardProps) {
     goTo(navigate, `/jewelery/product/${product.id}` as any);
   };
 
+  const src = resolveSrc(product.image);
+
   return (
-    <Pressable onPress={handlePress}
-      style={({ pressed }) => [
-        styles.card,
-        { backgroundColor: colors.pearl, width: cardWidth },
-        pressed && { opacity: 0.92 },
-        style,
-      ]}
+    <div
+      role="link"
+      tabIndex={0}
+      aria-label={product.name}
+      onClick={handlePress}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          handlePress();
+        }
+      }}
+      className={cn("mb-4 cursor-pointer overflow-hidden rounded-[2px] transition-opacity active:opacity-92")}
+      style={{ backgroundColor: colors.pearl, width: cardWidth, ...style }}
     >
-      <View style={styles.imageContainer}>
-        {product.image ? (
-          <Image source={product.image}
-            style={styles.image}
-            resizeMode="cover"
+      <div className="relative aspect-[3/4]">
+        {src ? (
+          <img
+            src={src}
+            alt={product.name}
+            className="h-full w-full object-cover"
+            draggable={false}
           />
         ) : (
-          <View style={[styles.image, styles.imageFallback, { backgroundColor: colors.champagne }]}>
+          <div
+            className="flex h-full w-full items-center justify-center"
+            style={{ backgroundColor: colors.champagne }}
+          >
             <ImageIcon size={28} color={colors.gold} />
-          </View>
+          </div>
         )}
         {product.badge && (
-          <View style={[styles.badge, { backgroundColor: colors.gold }]}
+          <div
+            className="absolute top-2 left-2 rounded-[1px] px-[7px] py-[3px]"
+            style={{ backgroundColor: colors.gold }}
           >
-            <Text style={[styles.badgeText, { color: colors.onBrand }]}>
+            <span
+              className="text-[8px] tracking-[1.2px]"
+              style={{ color: colors.onBrand }}
+            >
               {product.badge.toUpperCase()}
-            </Text>
-          </View>
+            </span>
+          </div>
         )}
-        <Pressable style={styles.wishlistBtn}
-          onPress={handleWishlist}
-          hitSlop={8}
+        <button
+          type="button"
+          onClick={handleWishlist}
+          aria-label="Toggle wishlist"
+          className="absolute top-2 right-2 flex h-[30px] w-[30px] cursor-pointer items-center justify-center rounded-full"
+          style={{ backgroundColor: "rgba(247,243,236,0.85)" }}
         >
-          <Heart size={16} color={wishlisted ? colors.gold : colors.warmGray} style={wishlisted ? { opacity: 1 } : { opacity: 0.7 }} />
-        </Pressable>
+          <Heart
+            size={16}
+            color={wishlisted ? colors.gold : colors.warmGray}
+            style={wishlisted ? { opacity: 1 } : { opacity: 0.7 }}
+          />
+        </button>
         {product.inStock <= 5 && (
-          <View style={[styles.stockBadge, { backgroundColor: colors.maroon }]}>
-            <Text style={[styles.stockText, { color: "#fff" }]}>
+          <div
+            className="absolute bottom-2 left-2 rounded-[1px] px-1.5 py-0.5"
+            style={{ backgroundColor: colors.maroon }}
+          >
+            <span
+              className="text-[8px] tracking-[0.5px]"
+              style={{ color: "#fff" }}
+            >
               Only {product.inStock} left
-            </Text>
-          </View>
+            </span>
+          </div>
         )}
-      </View>
-      <View style={styles.info}>
-        <Text style={[styles.name, { color: colors.ink, fontFamily: "CormorantGaramond_500Medium_Italic" }]}
-          numberOfLines={1}
+      </div>
+      <div className="flex flex-col gap-[3px] p-2.5">
+        <span
+          className="line-clamp-1 text-[15px] leading-[19px]"
+          style={{ color: colors.ink, fontFamily: "CormorantGaramond_500Medium_Italic" }}
         >
           {product.name}
-        </Text>
-        <Text style={[styles.subtitle, { color: colors.warmGray, fontFamily: "DMSans_400Regular" }]}
-          numberOfLines={1}
+        </span>
+        <span
+          className="line-clamp-1 text-[11px] tracking-[0.2px]"
+          style={{ color: colors.warmGray, fontFamily: "DMSans_400Regular" }}
         >
           {product.metal}{product.stone ? ` · ${product.stone}` : ""}
-        </Text>
-        <View style={styles.ratingRow}>
+        </span>
+        <div className="mt-0.5 flex flex-row items-center gap-1">
           <Stars rating={product.rating} />
-          <Text style={[styles.reviewCount, { color: colors.warmGray, fontFamily: "DMSans_400Regular" }]}>
+          <span
+            className="text-[10px]"
+            style={{ color: colors.warmGray, fontFamily: "DMSans_400Regular" }}
+          >
             ({product.reviewCount})
-          </Text>
-        </View>
-        <View style={styles.priceRow}>
-          <Text style={[styles.price, { color: colors.ink, fontFamily: "DMSans_500Medium" }]}>
+          </span>
+        </div>
+        <div className="mt-0.5 flex flex-row items-center gap-1.5">
+          <span
+            className="text-sm"
+            style={{ color: colors.ink, fontFamily: "DMSans_500Medium" }}
+          >
             {APP_CURRENCY}{product.price.toLocaleString("en-IN")}
-          </Text>
+          </span>
           {product.originalPrice && (
-            <Text style={[styles.originalPrice, { color: colors.warmGray, fontFamily: "DMSans_400Regular" }]}>
+            <span
+              className="text-[11px] line-through"
+              style={{ color: colors.warmGray, fontFamily: "DMSans_400Regular" }}
+            >
               {APP_CURRENCY}{product.originalPrice.toLocaleString("en-IN")}
-            </Text>
+            </span>
           )}
-        </View>
-        <Pressable onPress={handleAddToCart}
-          style={({ pressed }) => [
-            styles.addBtn,
-            {
-              borderColor: colors.gold,
-              backgroundColor:
-                justAdded || pressed ? colors.champagne : "transparent",
-            },
-          ]}
+        </div>
+        <button
+          type="button"
+          onClick={handleAddToCart}
+          className="mt-1.5 cursor-pointer rounded-[1px] border py-[7px] text-center transition-colors active:opacity-90"
+          style={{
+            borderColor: colors.gold,
+            backgroundColor:
+              justAdded ? colors.champagne : "transparent",
+          }}
         >
-          <Text style={[styles.addBtnText, { color: justAdded ? colors.ink : colors.gold, fontFamily: "DMSans_400Regular" }]}>
+          <span
+            className="text-[10px] tracking-[1.5px]"
+            style={{ color: justAdded ? colors.ink : colors.gold, fontFamily: "DMSans_400Regular" }}
+          >
             {justAdded ? "Added ✓" : "Add to Bag"}
-          </Text>
-        </Pressable>
-      </View>
-    </Pressable>
+          </span>
+        </button>
+      </div>
+    </div>
   );
 }
-
-const styles = StyleSheet.create({
-  card: {
-    borderRadius: 2,
-    overflow: "hidden",
-    marginBottom: 16,
-  },
-  imageContainer: {
-    position: "relative",
-    aspectRatio: 3 / 4,
-  },
-  image: {
-    width: "100%",
-    height: "100%",
-  },
-  imageFallback: {
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  badge: {
-    position: "absolute",
-    top: 8,
-    left: 8,
-    paddingHorizontal: 7,
-    paddingVertical: 3,
-    borderRadius: 1,
-  },
-  badgeText: {
-    fontSize: 8,
-    letterSpacing: 1.2,
-  },
-  wishlistBtn: {
-    position: "absolute",
-    top: 8,
-    right: 8,
-    width: 30,
-    height: 30,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "rgba(247,243,236,0.85)",
-    borderRadius: 15,
-  },
-  stockBadge: {
-    position: "absolute",
-    bottom: 8,
-    left: 8,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 1,
-  },
-  stockText: {
-    fontSize: 8,
-    letterSpacing: 0.5,
-  },
-  info: {
-    padding: 10,
-    gap: 3,
-  },
-  name: {
-    fontSize: 15,
-    lineHeight: 19,
-  },
-  subtitle: {
-    fontSize: 11,
-    letterSpacing: 0.2,
-  },
-  ratingRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    marginTop: 2,
-  },
-  stars: {
-    flexDirection: "row",
-  },
-  reviewCount: {
-    fontSize: 10,
-  },
-  priceRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    marginTop: 2,
-  },
-  price: {
-    fontSize: 14,
-  },
-  originalPrice: {
-    fontSize: 11,
-    textDecorationLine: "line-through",
-  },
-  addBtn: {
-    borderWidth: 1,
-    paddingVertical: 7,
-    alignItems: "center",
-    marginTop: 6,
-    borderRadius: 1,
-  },
-  addBtnText: {
-    fontSize: 10,
-    letterSpacing: 1.5,
-  },
-});

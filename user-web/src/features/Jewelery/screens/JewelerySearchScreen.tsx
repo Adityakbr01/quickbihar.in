@@ -2,17 +2,6 @@ import { Search, X } from "lucide-react";
 import * as Haptics from "@/lib/haptics";
 import { useNavigate } from "react-router-dom";
 import React, { useEffect, useMemo, useState } from "react";
-import {
-  ActivityIndicator,
-  Keyboard,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "@/components/primitives";
-import { useSafeAreaInsets } from "@/src/hooks/useSafeAreaInsets";
 
 import { ProductCard } from "@/src/features/Jewelery/components/ProductCard";
 import { useJewelerySearch } from "@/src/features/Jewelery/hooks/useJeweleryCatalog";
@@ -29,13 +18,33 @@ const popularSearches = [
   "Everyday wear",
 ];
 
+function Spinner({ color, size = 20 }: { color: string; size?: number }) {
+  return (
+    <span
+      className="inline-block animate-spin rounded-full border-2"
+      style={{
+        width: size,
+        height: size,
+        borderColor: color,
+        borderTopColor: "transparent",
+      }}
+      role="status"
+      aria-label="Loading"
+    />
+  );
+}
+
+function dismissKeyboard() {
+  const el = document.activeElement;
+  if (el instanceof HTMLElement) el.blur();
+}
+
 export default function JewelerySearchScreen() {
   const navigate = useNavigate();
   const colors = useColors();
-  const insets = useSafeAreaInsets();
   const [query, setQuery] = useState("");
   const [debounced, setDebounced] = useState("");
-  const topPad = Platform.OS === "web" ? 16 : insets.top;
+  const topPad = 16;
 
   useEffect(() => {
     const t = setTimeout(() => setDebounced(query.trim()), 400);
@@ -48,18 +57,20 @@ export default function JewelerySearchScreen() {
     [pages]
   );
   const total = pages?.pages?.[0]?.total ?? filtered.length;
-  const hasQuery = query.trim() !== "";
 
   return (
-    <View style={[styles.root, { backgroundColor: colors.ivory }]}>
-      <View style={[
-          styles.header,
-          {
-            paddingTop: topPad + 12,
-            backgroundColor: colors.ivory,
-            borderBottomColor: colors.midGray,
-          },
-        ]}
+    <div
+      className="flex min-h-screen flex-col"
+      style={{ backgroundColor: colors.ivory }}
+    >
+      <div
+        className="flex flex-row items-center gap-3 border-b px-4 pb-3.5"
+        style={{
+          paddingTop: topPad + 12,
+          backgroundColor: colors.ivory,
+          borderBottomColor: colors.midGray,
+          borderBottomWidth: 1,
+        }}
       >
         <TextInput value={query}
           onChangeText={setQuery}
@@ -67,13 +78,18 @@ export default function JewelerySearchScreen() {
           placeholderTextColor={colors.warmGray}
           autoFocus
           returnKeyType="search"
-          onSubmitEditing={Keyboard.dismiss}
+          onSubmitEditing={dismissKeyboard}
           icon={<Search size={16} color={colors.warmGray} />}
           rightIcon={
             query.length > 0 ? (
-              <Pressable onPress={() => setQuery("")} hitSlop={8}>
+              <button
+                type="button"
+                onClick={() => setQuery("")}
+                className="cursor-pointer"
+                aria-label="Clear search"
+              >
                 <X size={16} color={colors.warmGray} />
-              </Pressable>
+              </button>
             ) : undefined
           }
           focusBorderColor={colors.gold}
@@ -92,150 +108,106 @@ export default function JewelerySearchScreen() {
             fontFamily: "DMSans_400Regular",
           }}
         />
-        <Pressable onPress={() => {
-          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-          goBack(navigate);
-        }} hitSlop={8}>
-          <Text style={[
-              styles.cancelText,
-              { color: colors.gold, fontFamily: "DMSans_400Regular" },
-            ]}
+        <button
+          type="button"
+          className="cursor-pointer"
+          onClick={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            goBack(navigate);
+          }}
+        >
+          <span
+            className="text-[13px]"
+            style={{ color: colors.gold, fontFamily: "DMSans_400Regular" }}
           >
             Cancel
-          </Text>
-        </Pressable>
-      </View>
+          </span>
+        </button>
+      </div>
 
       {query.trim() === "" ? (
-        <View style={styles.suggestions}>
-          <Text style={[
-              styles.sugLabel,
-              { color: colors.gold, fontFamily: "DMSans_500Medium" },
-            ]}
+        <div className="flex flex-col gap-3.5 p-5">
+          <span
+            className="text-[9px] tracking-[2px]"
+            style={{ color: colors.gold, fontFamily: "DMSans_500Medium" }}
           >
             POPULAR SEARCHES
-          </Text>
-          <View style={styles.chips}>
+          </span>
+          <div className="flex flex-row flex-wrap gap-2">
             {popularSearches.map((s) => (
-              <Pressable key={s}
-                style={({ pressed }) => [
-                  styles.chip,
-                  {
-                    borderColor: colors.midGray,
-                    backgroundColor: pressed ? colors.pearl : "transparent",
-                  },
-                ]}
-                onPress={() => {
+              <button
+                key={s}
+                type="button"
+                className="cursor-pointer rounded-full border px-3.5 py-2 transition-colors active:opacity-80"
+                style={{
+                  borderColor: colors.midGray,
+                  borderWidth: 1,
+                  backgroundColor: "transparent",
+                }}
+                onClick={() => {
                   Haptics.selectionAsync();
                   setQuery(s);
                 }}
               >
-                <Text style={[
-                    styles.chipText,
-                    {
-                      color: colors.ink,
-                      fontFamily: "CormorantGaramond_400Regular_Italic",
-                    },
-                  ]}
+                <span
+                  className="text-sm"
+                  style={{
+                    color: colors.ink,
+                    fontFamily: "CormorantGaramond_400Regular_Italic",
+                  }}
                 >
                   {s}
-                </Text>
-              </Pressable>
+                </span>
+              </button>
             ))}
-          </View>
-        </View>
+          </div>
+        </div>
       ) : isLoading ? (
-        <View style={styles.emptyState}>
-          <ActivityIndicator color={colors.gold} />
-          <Text style={[
-              styles.emptyBody,
-              { color: colors.warmGray, fontFamily: "DMSans_400Regular" },
-            ]}
+        <div className="flex flex-1 flex-col items-center justify-center gap-3 p-10">
+          <Spinner color={colors.gold} />
+          <span
+            className="text-center text-sm"
+            style={{ color: colors.warmGray, fontFamily: "DMSans_400Regular" }}
           >
             Searching the vault...
-          </Text>
-        </View>
+          </span>
+        </div>
       ) : filtered.length === 0 ? (
-        <View style={styles.emptyState}>
+        <div className="flex flex-1 flex-col items-center justify-center gap-3 p-10">
           <Search size={32} color={colors.midGray} />
-          <Text style={[
-              styles.emptyText,
-              {
-                color: colors.ink,
-                fontFamily: "CormorantGaramond_500Medium_Italic",
-              },
-            ]}
+          <span
+            className="text-center text-[22px]"
+            style={{
+              color: colors.ink,
+              fontFamily: "CormorantGaramond_500Medium_Italic",
+            }}
           >
-            No results for "{query}"
-          </Text>
-          <Text style={[
-              styles.emptyBody,
-              { color: colors.warmGray, fontFamily: "DMSans_400Regular" },
-            ]}
+            No results for &ldquo;{query}&rdquo;
+          </span>
+          <span
+            className="text-center text-sm"
+            style={{ color: colors.warmGray, fontFamily: "DMSans_400Regular" }}
           >
             Try a different search term
-          </Text>
-        </View>
+          </span>
+        </div>
       ) : (
-        <ScrollView showsVerticalScrollIndicator={false}
-          
-        >
-          <View style={styles.results}>
-            <Text style={[
-                styles.resultCount,
-                { color: colors.warmGray, fontFamily: "DMSans_400Regular" },
-              ]}
+        <div className="overflow-y-auto">
+          <div className="flex flex-col gap-3 p-4">
+            <span
+              className="text-xs"
+              style={{ color: colors.warmGray, fontFamily: "DMSans_400Regular" }}
             >
               {total} piece{total !== 1 ? "s" : ""} found
-            </Text>
-            <View style={styles.productGrid}>
+            </span>
+            <div className="flex flex-row flex-wrap justify-between gap-2">
               {filtered.map((p) => (
                 <ProductCard key={p.id} product={p} />
               ))}
-            </View>
-          </View>
-        </ScrollView>
+            </div>
+          </div>
+        </div>
       )}
-    </View>
+    </div>
   );
 }
-
-const styles = StyleSheet.create({
-  root: { flex: 1 },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    paddingHorizontal: 16,
-    paddingBottom: 14,
-    borderBottomWidth: 0.5,
-  },
-  cancelText: { fontSize: 13 },
-  suggestions: { padding: 20, gap: 14 },
-  sugLabel: { fontSize: 9, letterSpacing: 2 },
-  chips: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
-  chip: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderWidth: 0.5,
-    borderRadius: 20,
-  },
-  chipText: { fontSize: 14 },
-  emptyState: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 12,
-    padding: 40,
-  },
-  emptyText: { fontSize: 22, textAlign: "center" },
-  emptyBody: { fontSize: 14, textAlign: "center" },
-  results: { padding: 16, gap: 12 },
-  resultCount: { fontSize: 12 },
-  productGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-    justifyContent: "space-between",
-  },
-});

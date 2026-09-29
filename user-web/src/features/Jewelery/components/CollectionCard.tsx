@@ -1,24 +1,21 @@
 import { useNavigate } from "react-router-dom";
 import { goTo } from "@/src/utils/navigation";
 import React from "react";
-import {
-  Dimensions,
-  Image,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from "@/components/primitives";
+import { cn } from "@/src/lib/utils";
 
 import { Collection } from "@/src/features/Jewelery/data/collections";
-import { useColors } from "@/src/features/Jewelery/hooks/useColors";
 
-const { width } = Dimensions.get("window");
+function resolveSrc(source: any): string | undefined {
+  if (!source) return undefined;
+  if (typeof source === "string") return source;
+  if (typeof source === "object" && typeof source.uri === "string") return source.uri;
+  return source as any;
+}
 
 interface CollectionCardProps {
   collection: Collection;
   large?: boolean;
-  style?: object;
+  style?: React.CSSProperties;
 }
 
 export function CollectionCard({
@@ -27,109 +24,60 @@ export function CollectionCard({
   style,
 }: CollectionCardProps) {
   const navigate = useNavigate();
-  const colors = useColors();
 
   const handlePress = () => {
     goTo(navigate, "/jewelery/collections" as any);
   };
 
+  const src = resolveSrc(collection.image);
+
   return (
-    <Pressable
-      onPress={handlePress}
-      style={({ pressed }) => [
-        styles.card,
-        large ? styles.large : styles.small,
-        { opacity: pressed ? 0.92 : 1 },
-        style,
-      ]}
+    <button
+      type="button"
+      onClick={handlePress}
+      aria-label={collection.name}
+      className={cn(
+        "relative cursor-pointer overflow-hidden rounded-[2px] text-left transition-opacity active:opacity-92",
+        large ? "h-[320px]" : "h-[152px]",
+      )}
+      style={style}
     >
-      <Image
-        source={collection.image}
-        style={styles.image}
-        resizeMode="cover"
-      />
-      <View style={styles.overlay} />
-      <View style={styles.content}>
-        <Text
-          style={[
-            styles.name,
-            {
-              color: "#F7F3EC",
-              fontFamily: "CormorantGaramond_500Medium_Italic",
-              fontSize: large ? 26 : 20,
-            },
-          ]}
+      {src ? (
+        <img
+          src={src}
+          alt={collection.name}
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+      ) : null}
+      <div className="absolute inset-0" style={{ backgroundColor: "rgba(26,22,20,0.28)" }} />
+      <div className="absolute right-0 bottom-0 left-0 flex flex-col gap-0.5 p-3.5">
+        <span
+          className="leading-[30px]"
+          style={{
+            color: "#F7F3EC",
+            fontFamily: "CormorantGaramond_500Medium_Italic",
+            fontSize: large ? 26 : 20,
+          }}
         >
           {collection.name}
-        </Text>
+        </span>
         {collection.pieceCount > 0 && (
-          <Text
-            style={[
-              styles.count,
-              { color: "rgba(247,243,236,0.7)", fontFamily: "DMSans_400Regular" },
-            ]}
+          <span
+            className="text-[11px] tracking-[0.3px]"
+            style={{ color: "rgba(247,243,236,0.7)", fontFamily: "DMSans_400Regular" }}
           >
             {collection.pieceCount} pieces
-          </Text>
+          </span>
         )}
-        <View
-          style={[styles.exploreRow]}
-        >
-          <Text
-            style={[
-              styles.explore,
-              { color: "#D4A85A", fontFamily: "DMSans_400Regular" },
-            ]}
+        <div className="mt-1">
+          <span
+            className="text-[11px] tracking-[1px]"
+            style={{ color: "#D4A85A", fontFamily: "DMSans_400Regular" }}
           >
             Explore →
-          </Text>
-        </View>
-      </View>
-    </Pressable>
+          </span>
+        </div>
+      </div>
+    </button>
   );
 }
-
-const styles = StyleSheet.create({
-  card: {
-    borderRadius: 2,
-    overflow: "hidden",
-    position: "relative",
-  },
-  large: {
-    height: 320,
-  },
-  small: {
-    height: 152,
-  },
-  image: {
-    width: "100%",
-    height: "100%",
-    position: "absolute",
-  },
-  overlay: {
-    ...StyleSheet.absoluteFill,
-    backgroundColor: "rgba(26,22,20,0.28)",
-  },
-  content: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    padding: 14,
-    gap: 2,
-  },
-  name: {
-    lineHeight: 30,
-  },
-  count: {
-    fontSize: 11,
-    letterSpacing: 0.3,
-  },
-  exploreRow: {
-    marginTop: 4,
-  },
-  explore: {
-    fontSize: 11,
-    letterSpacing: 1,
-  },
-});

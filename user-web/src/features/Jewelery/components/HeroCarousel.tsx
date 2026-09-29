@@ -1,14 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import { goTo } from "@/src/utils/navigation";
 import { useState } from "react";
-import {
-  Image,
-  Pressable,
-  StyleSheet,
-  Text,
-  useWindowDimensions,
-  View,
-} from "@/components/primitives";
+import { cn } from "@/src/lib/utils";
+import { useWindowWidth } from "@/src/utils/responsive";
 import Carousel from "@/src/components/common/EmblaCarousel";
 
 import { APP_CURRENCY } from "@/src/constants";
@@ -66,6 +60,13 @@ const BRAND_SLIDES: HeroSlide[] = [
   },
 ];
 
+function resolveSrc(source: any): string | undefined {
+  if (!source) return undefined;
+  if (typeof source === "string") return source;
+  if (typeof source === "object" && typeof source.uri === "string") return source.uri;
+  return source as any;
+}
+
 /**
  * Hero carousel powered by Embla for butter-smooth snapping,
  * responsive resizing, and authentic luxury presentation.
@@ -73,7 +74,7 @@ const BRAND_SLIDES: HeroSlide[] = [
 export function HeroCarousel({ items }: { items?: Product[] }) {
   const navigate = useNavigate();
   const colors = useColors();
-  const { width: windowWidth } = useWindowDimensions();
+  const windowWidth = useWindowWidth();
   const [activeIndex, setActiveIndex] = useState(0);
 
   const carouselWidth = windowWidth;
@@ -93,11 +94,9 @@ export function HeroCarousel({ items }: { items?: Product[] }) {
     : BRAND_SLIDES;
 
   return (
-    <View
-      style={[
-        styles.container,
-        { width: carouselWidth, height: carouselHeight },
-      ]}
+    <div
+      className="relative overflow-hidden"
+      style={{ width: carouselWidth, height: carouselHeight }}
     >
       <Carousel<HeroSlide>
         width={carouselWidth}
@@ -106,227 +105,128 @@ export function HeroCarousel({ items }: { items?: Product[] }) {
         autoPlay
         loop
         autoPlayInterval={AUTO_SCROLL_INTERVAL}
-        onSnapToItem={(index) => setActiveIndex(index)}
-        onConfigurePanGesture={(gesture) => {
-          "worklet";
-          gesture.activeOffsetX([-10, 10]);
-        }}
-        renderItem={({ item }) => (
-          <View
-            style={[
-              styles.slide,
-              { width: carouselWidth, height: carouselHeight },
-            ]}
-          >
-            {item.image ? (
-              <Image
-                source={
-                  typeof item.image === "string"
-                    ? { uri: item.image }
-                    : item.image
-                }
-                style={styles.slideImage}
-                resizeMode="cover"
+        onSnapToItem={(index: number) => setActiveIndex(index)}
+        renderItem={({ item }: { item: HeroSlide }) => {
+          const src = resolveSrc(item.image);
+          return (
+            <div
+              className="relative overflow-hidden"
+              style={{ width: carouselWidth, height: carouselHeight }}
+            >
+              {src ? (
+                <img
+                  src={src}
+                  alt={item.headline}
+                  className="absolute inset-0 h-full w-full object-cover"
+                />
+              ) : (
+                <div
+                  className="absolute inset-0 h-full w-full"
+                  style={{ backgroundColor: colors.emerald }}
+                />
+              )}
+              <div
+                className="absolute inset-0"
+                style={{ backgroundColor: "rgba(18, 15, 13, 0.45)" }}
               />
-            ) : (
-              <View
-                style={[
-                  styles.slideImage,
-                  { backgroundColor: colors.emerald },
-                ]}
-              />
-            )}
-            <View style={styles.overlay} />
-            <View style={styles.slideContent}>
-              <Text
-                style={[
-                  styles.slideLabel,
-                  { color: colors.gold, fontFamily: "DMSans_500Medium" },
-                ]}
-              >
-                {item.label}
-              </Text>
-              <Text
-                style={[
-                  styles.slideHeadline,
-                  {
+              <div className="absolute right-0 bottom-0 left-0 flex flex-col gap-2.5 p-6 pb-12">
+                <span
+                  className="text-[9px] tracking-[2px]"
+                  style={{ color: colors.gold, fontFamily: "DMSans_500Medium" }}
+                >
+                  {item.label}
+                </span>
+                <span
+                  className={cn("line-clamp-3 text-[28px] leading-[34px] whitespace-pre-line")}
+                  style={{
                     color: "#F7F3EC",
                     fontFamily: "CormorantGaramond_300Light_Italic",
-                  },
-                ]}
-                numberOfLines={3}
-              >
-                {item.headline}
-              </Text>
-              <Text
-                style={[
-                  styles.slideBody,
-                  {
+                  }}
+                >
+                  {item.headline}
+                </span>
+                <span
+                  className="line-clamp-2 text-[13px] leading-5"
+                  style={{
                     color: "rgba(247,243,236,0.85)",
                     fontFamily: "DMSans_300Light",
-                  },
-                ]}
-                numberOfLines={2}
-              >
-                {item.body}
-              </Text>
-              <View style={styles.ctaRow}>
-                <Pressable
-                  style={({ pressed }) => [
-                    styles.ctaBtn,
-                    {
-                      borderColor: colors.gold,
-                      backgroundColor: pressed
-                        ? "rgba(184,146,74,0.18)"
-                        : "transparent",
-                    },
-                  ]}
-                  onPress={() => goTo(navigate, item.ctaRoute as any)}
+                  }}
                 >
-                  <Text
-                    style={[
-                      styles.ctaBtnText,
-                      { color: colors.gold, fontFamily: "DMSans_400Regular" },
-                    ]}
+                  {item.body}
+                </span>
+                <div className="mt-1 flex flex-col gap-2.5">
+                  <button
+                    type="button"
+                    onClick={() => goTo(navigate, item.ctaRoute as any)}
+                    className="cursor-pointer self-start rounded-[1px] border px-5 py-3 transition-colors hover:bg-[rgba(184,146,74,0.18)] active:bg-[rgba(184,146,74,0.18)]"
+                    style={{ borderColor: colors.gold, backgroundColor: "transparent" }}
                   >
-                    {item.ctaLabel}
-                  </Text>
-                </Pressable>
-                {item.secondaryCta && (
-                  <Pressable onPress={() => goTo(navigate, item.ctaRoute as any)}>
-                    <Text
-                      style={[
-                        styles.secondaryCta,
-                        {
+                    <span
+                      className="text-xs tracking-[1px]"
+                      style={{ color: colors.gold, fontFamily: "DMSans_400Regular" }}
+                    >
+                      {item.ctaLabel}
+                    </span>
+                  </button>
+                  {item.secondaryCta && (
+                    <button
+                      type="button"
+                      onClick={() => goTo(navigate, item.ctaRoute as any)}
+                      className="cursor-pointer self-start"
+                    >
+                      <span
+                        className="text-xs tracking-[1px]"
+                        style={{
                           color: "rgba(247,243,236,0.7)",
                           fontFamily: "DMSans_400Regular",
-                        },
-                      ]}
-                    >
-                      {item.secondaryCta}
-                    </Text>
-                  </Pressable>
-                )}
-              </View>
-            </View>
-          </View>
-        )}
+                        }}
+                      >
+                        {item.secondaryCta}
+                      </span>
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          );
+        }}
       />
 
       {/* Dot indicators */}
-      <View style={styles.dots} pointerEvents="none">
-        {slides.map((_, i) => (
-          <View
-            key={i}
-            style={[
-              styles.dot,
-              {
-                backgroundColor:
-                  i === activeIndex
-                    ? colors.gold
-                    : "rgba(247,243,236,0.45)",
-                width: i === activeIndex ? 20 : 6,
-              },
-            ]}
+      <div
+        className="absolute bottom-4 left-6 flex flex-row items-center gap-1.5"
+        style={{ pointerEvents: "none" }}
+      >
+        {slides.map((s, i) => (
+          <span
+            key={s.id ?? i}
+            className="h-1.5 rounded-full"
+            style={{
+              backgroundColor:
+                i === activeIndex
+                  ? colors.gold
+                  : "rgba(247,243,236,0.45)",
+              width: i === activeIndex ? 20 : 6,
+            }}
           />
         ))}
-      </View>
+      </div>
 
       {/* Slide counter */}
-      <View style={styles.counter} pointerEvents="none">
-        <Text
-          style={[
-            styles.counterText,
-            {
-              color: "rgba(247,243,236,0.6)",
-              fontFamily: "DMSans_400Regular",
-            },
-          ]}
+      <div
+        className="absolute right-5 bottom-[18px]"
+        style={{ pointerEvents: "none" }}
+      >
+        <span
+          className="text-[10px] tracking-[1px]"
+          style={{
+            color: "rgba(247,243,236,0.6)",
+            fontFamily: "DMSans_400Regular",
+          }}
         >
           {activeIndex + 1} / {slides.length}
-        </Text>
-      </View>
-    </View>
+        </span>
+      </div>
+    </div>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    position: "relative",
-    overflow: "hidden",
-  },
-  slide: {
-    position: "relative",
-    overflow: "hidden",
-  },
-  slideImage: {
-    width: "100%",
-    height: "100%",
-    position: "absolute",
-  },
-  overlay: {
-    ...StyleSheet.absoluteFill,
-    backgroundColor: "rgba(18, 15, 13, 0.45)",
-  },
-  slideContent: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    padding: 24,
-    paddingBottom: 48,
-    gap: 10,
-  },
-  slideLabel: {
-    fontSize: 9,
-    letterSpacing: 2,
-  },
-  slideHeadline: {
-    fontSize: 28,
-    lineHeight: 34,
-  },
-  slideBody: {
-    fontSize: 13,
-    lineHeight: 20,
-  },
-  ctaRow: {
-    gap: 10,
-    marginTop: 4,
-  },
-  ctaBtn: {
-    borderWidth: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    alignSelf: "flex-start",
-    borderRadius: 1,
-  },
-  ctaBtnText: {
-    fontSize: 12,
-    letterSpacing: 1,
-  },
-  secondaryCta: {
-    fontSize: 12,
-    letterSpacing: 1,
-  },
-  dots: {
-    position: "absolute",
-    bottom: 16,
-    left: 24,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-  },
-  dot: {
-    height: 6,
-    borderRadius: 3,
-  },
-  counter: {
-    position: "absolute",
-    bottom: 18,
-    right: 20,
-  },
-  counterText: {
-    fontSize: 10,
-    letterSpacing: 1,
-  },
-});

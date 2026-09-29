@@ -1,5 +1,4 @@
 import React from "react";
-import { Text, TouchableOpacity, View } from "@/components/primitives";
 import { Power, Radio } from "lucide-react";
 import type { Theme } from "@/src/theme/Provider/ThemeProvider";
 import type { RiderProfile } from "../../api/delivery.api";
@@ -20,25 +19,35 @@ export function RiderHeader({
   busy: boolean;
   onToggleOnline: () => void;
 }) {
+  void styles;
   return (
-    <View style={styles.header}>
-      <View style={styles.headerText}>
-        <Text style={styles.eyebrow}>QuickBihar Rider</Text>
-        <Text style={styles.title}>Delivery Workspace</Text>
-        <Text style={styles.muted} numberOfLines={1}>
+    <div className="mb-3.5 flex flex-row items-center justify-between gap-3">
+      <div className="min-w-0 flex-1">
+        <span className="text-xs font-bold tracking-wide uppercase" style={{ color: theme.primary }}>
+          QuickBihar Rider
+        </span>
+        <h1 className="mt-0.5 text-2xl font-extrabold" style={{ color: theme.text }}>
+          Delivery Workspace
+        </h1>
+        <span className="line-clamp-1 block truncate text-[13px] leading-[18px]" style={{ color: theme.secondaryText }}>
           {profile?.fullName || "Delivery Partner"} - {profile?.isVerified ? "Verified" : "Verification pending"}
-        </Text>
-      </View>
-      <TouchableOpacity style={[styles.statusButton, isOnline && styles.statusOnline]} onPress={onToggleOnline} disabled={busy}>
-        {isOnline ? (
-        <Radio size={17} color="#fff" />
-      ) : (
-        <Power size={17} color={theme.background} />
-      )}
-        <Text style={[styles.statusButtonText, isOnline && styles.statusOnlineText]}>
+        </span>
+      </div>
+      <button
+        type="button"
+        onClick={onToggleOnline}
+        disabled={busy}
+        className="flex min-h-[42px] cursor-pointer flex-row items-center gap-1.5 rounded-[14px] px-3 py-2 disabled:cursor-not-allowed disabled:opacity-60"
+        style={{ backgroundColor: isOnline ? theme.primary : theme.text }}
+      >
+        {isOnline ? <Radio size={17} color="#fff" /> : <Power size={17} color={theme.background} />}
+        <span
+          className="font-extrabold"
+          style={{ color: isOnline ? "#fff" : theme.background }}
+        >
           {isOnline ? "Online" : "Go Online"}
-        </Text>
-      </TouchableOpacity>
-    </View>
+        </span>
+      </button>
+    </div>
   );
 }

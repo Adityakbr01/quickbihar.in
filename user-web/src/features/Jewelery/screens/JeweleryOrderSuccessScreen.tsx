@@ -3,17 +3,7 @@ import * as Haptics from "@/lib/haptics";
 import { useNavigate } from "react-router-dom";
 import { replaceTo, useRouteParams } from "@/src/utils/navigation";
 import React, { useEffect, useState } from "react";
-import {
-  ActivityIndicator,
-  BackHandler,
-  Platform,
-  Share,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "@/components/primitives";
-import { useSafeAreaInsets } from "@/src/hooks/useSafeAreaInsets";
+import { BREAKPOINTS, useWindowWidth } from "@/src/utils/responsive";
 
 import { APP_CURRENCY } from "@/src/constants";
 import { getOrderByIdRequest } from "@/src/features/common/order/api/order.api";
@@ -24,8 +14,12 @@ export default function JeweleryOrderSuccessScreen() {
   const colors = useColors();
   const navigate = useNavigate();
   const topPad = useTopPad();
-  const insets = useSafeAreaInsets();
-  const bottomPad = Platform.OS === "web" ? 34 : Math.max(insets.bottom, 20);
+  const bottomPad = 34;
+  const width = useWindowWidth();
+  const isDesktop = width >= BREAKPOINTS.desktopMin;
+  // Viewport-fixed action bar: clears the 60px tab bar + 12px breathing
+  // room on mobile; small offset on desktop where there is no tab bar.
+  const stickyBottom = isDesktop ? 12 : 60 + 12;
 
   const { orderId } = useRouteParams<{ orderId?: string }>();
   const [order, setOrder] = useState<any>(null);
@@ -41,313 +35,215 @@ export default function JeweleryOrderSuccessScreen() {
         .catch(() => {})
         .finally(() => setIsLoading(false));
     }
-
-    const backHandler = BackHandler.addEventListener("hardwareBackPress", () => {
-      replaceTo(navigate, "/jewelery" as any);
-      return true;
-    });
-
-    return () => backHandler.remove();
   }, [orderId, navigate]);
 
   const handleShare = async () => {
     if (!orderId) return;
     try {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      await Share.share({
-        title: `Order #${orderId} Confirmed`,
-        message: `👑 My QuickBihar Jewellery order #${orderId} has been confirmed!`,
-      });
+      const shareText = `👑 My QuickBihar Jewellery order #${orderId} has been confirmed!`;
+      if (typeof navigator !== "undefined" && "share" in navigator) {
+        await (navigator as any).share({
+          title: `Order #${orderId} Confirmed`,
+          text: shareText,
+        });
+      } else if (typeof navigator !== "undefined" && (navigator as any).clipboard) {
+        await (navigator as any).clipboard.writeText(shareText);
+        window.alert("Order details copied to clipboard!");
+      }
     } catch {}
   };
 
   return (
-    <View style={[styles.root, { backgroundColor: colors.ivory }]}>
+    <div
+      className="flex min-h-screen flex-col"
+      style={{ backgroundColor: colors.ivory }}
+    >
       {/* Top bar with share */}
-      <View style={[
-          styles.header,
-          {
-            paddingTop: topPad + 12,
-            backgroundColor: colors.ivory,
-          },
-        ]}
+      <div
+        className="flex flex-row items-center justify-between px-5 pb-3.5"
+        style={{
+          paddingTop: topPad + 12,
+          backgroundColor: colors.ivory,
+        }}
       >
-        <View style={{ width: 36 }} />
-        <Text style={[
-            styles.headerTitle,
-            {
-              color: colors.gold,
-              fontFamily: "CormorantGaramond_600SemiBold",
-            },
-          ]}
+        <div className="w-9" />
+        <h1
+          className="text-sm tracking-[2px]"
+          style={{
+            color: colors.gold,
+            fontFamily: "CormorantGaramond_600SemiBold",
+          }}
         >
           QUICKBIHAR JEWELLERY
-        </Text>
-        <TouchableOpacity onPress={handleShare} style={styles.shareBtn}>
+        </h1>
+        <button
+          type="button"
+          onClick={handleShare}
+          className="flex h-9 w-9 cursor-pointer items-center justify-center"
+          aria-label="Share order"
+        >
           <Share2 size={18} color={colors.ink} />
-        </TouchableOpacity>
-      </View>
+        </button>
+      </div>
 
       {/* Main Content */}
-      <View style={styles.content}>
-        <View style={[
-            styles.checkCircle,
-            {
-              backgroundColor: colors.champagne,
-              borderColor: colors.gold,
-            },
-          ]}
+      <div
+        className="flex flex-1 flex-col items-center justify-center px-7"
+        style={{ paddingBottom: 140 }}
+      >
+        <div
+          className="mb-6 flex h-20 w-20 items-center justify-center rounded-full border"
+          style={{
+            backgroundColor: colors.champagne,
+            borderColor: colors.gold,
+            borderWidth: 1.5,
+          }}
         >
           <Check size={36} color={colors.gold} />
-        </View>
+        </div>
 
-        <Text style={[
-            styles.title,
-            {
-              color: colors.ink,
-              fontFamily: "CormorantGaramond_600SemiBold",
-            },
-          ]}
+        <h2
+          className="mb-2 text-center text-[24px] tracking-[1px]"
+          style={{
+            color: colors.ink,
+            fontFamily: "CormorantGaramond_600SemiBold",
+          }}
         >
           ACQUISITION CONFIRMED
-        </Text>
+        </h2>
 
-        <Text style={[
-            styles.orderIdBadge,
-            {
-              color: colors.gold,
-              fontFamily: "DMSans_700Bold",
-            },
-          ]}
+        <span
+          className="mb-4 block text-[13px] tracking-[1.2px]"
+          style={{
+            color: colors.gold,
+            fontFamily: "DMSans_700Bold",
+          }}
         >
           ORDER #{orderId}
-        </Text>
+        </span>
 
-        <Text style={[
-            styles.subtitle,
-            {
-              color: colors.warmGray,
-              fontFamily: "DMSans_400Regular",
-            },
-          ]}
+        <p
+          className="mb-6 text-center text-[13px] leading-5"
+          style={{
+            color: colors.warmGray,
+            fontFamily: "DMSans_400Regular",
+          }}
         >
           Thank you for choosing QuickBihar Jewellery. Your bespoke creation is now being
           carefully prepared with artisanal care and white-glove delivery standards.
-        </Text>
+        </p>
 
         {order && (
-          <View style={[
-              styles.summaryCard,
-              {
-                backgroundColor: colors.cardBg,
-                borderColor: colors.border,
-              },
-            ]}
+          <div
+            className="flex w-full flex-col gap-2.5 rounded-[3px] border p-4"
+            style={{
+              backgroundColor: colors.cardBg,
+              borderColor: colors.border,
+              borderWidth: 1,
+            }}
           >
-            <View style={styles.summaryRow}>
-              <Text style={[
-                  styles.summaryLabel,
-                  { color: colors.warmGray, fontFamily: "DMSans_400Regular" },
-                ]}
+            <div className="flex flex-row items-center justify-between">
+              <span
+                className="text-xs"
+                style={{ color: colors.warmGray, fontFamily: "DMSans_400Regular" }}
               >
                 Pieces Acquired
-              </Text>
-              <Text style={[
-                  styles.summaryVal,
-                  { color: colors.ink, fontFamily: "DMSans_500Medium" },
-                ]}
+              </span>
+              <span
+                className="text-[13px]"
+                style={{ color: colors.ink, fontFamily: "DMSans_500Medium" }}
               >
                 {(order.items || []).length} piece
                 {(order.items || []).length !== 1 ? "s" : ""}
-              </Text>
-            </View>
+              </span>
+            </div>
 
-            <View style={styles.summaryRow}>
-              <Text style={[
-                  styles.summaryLabel,
-                  { color: colors.warmGray, fontFamily: "DMSans_400Regular" },
-                ]}
+            <div className="flex flex-row items-center justify-between">
+              <span
+                className="text-xs"
+                style={{ color: colors.warmGray, fontFamily: "DMSans_400Regular" }}
               >
                 Amount Paid
-              </Text>
-              <Text style={[
-                  styles.summaryVal,
-                  { color: colors.gold, fontFamily: "DMSans_700Bold" },
-                ]}
+              </span>
+              <span
+                className="text-[13px]"
+                style={{ color: colors.gold, fontFamily: "DMSans_700Bold" }}
               >
                 {APP_CURRENCY}
                 {(order.payableAmount || 0).toLocaleString("en-IN")}
-              </Text>
-            </View>
+              </span>
+            </div>
 
-            <View style={styles.summaryRow}>
-              <Text style={[
-                  styles.summaryLabel,
-                  { color: colors.warmGray, fontFamily: "DMSans_400Regular" },
-                ]}
+            <div className="flex flex-row items-center justify-between">
+              <span
+                className="text-xs"
+                style={{ color: colors.warmGray, fontFamily: "DMSans_400Regular" }}
               >
                 Payment Method
-              </Text>
-              <Text style={[
-                  styles.summaryVal,
-                  { color: colors.ink, fontFamily: "DMSans_500Medium" },
-                ]}
+              </span>
+              <span
+                className="text-[13px]"
+                style={{ color: colors.ink, fontFamily: "DMSans_500Medium" }}
               >
                 {order.paymentMethod === "COD" ? "Cash on Delivery" : "Online Secured"}
-              </Text>
-            </View>
-          </View>
+              </span>
+            </div>
+          </div>
         )}
-      </View>
+      </div>
 
       {/* Action Buttons */}
-      <View style={[
-          styles.footer,
-          {
-            paddingBottom: bottomPad + 12,
-            backgroundColor: colors.ivory,
-          },
-        ]}
+      <div
+        className="fixed inset-x-0 z-40 flex flex-col gap-2.5 px-6"
+        style={{
+          bottom: stickyBottom,
+          paddingBottom: bottomPad + 12,
+          backgroundColor: colors.ivory,
+        }}
       >
-        <TouchableOpacity style={[styles.primaryBtn, { backgroundColor: colors.gold }]}
-          onPress={() => {
+        <button
+          type="button"
+          className="flex h-[50px] w-full cursor-pointer flex-row items-center justify-center gap-2 rounded-[2px] transition-opacity active:opacity-90"
+          style={{ backgroundColor: colors.gold }}
+          onClick={() => {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
             replaceTo(navigate, {
               pathname: "/jewelery/orders/[id]" as any,
               params: { id: orderId },
             });
           }}
-          activeOpacity={0.88}
         >
-          <Text style={[
-              styles.primaryBtnText,
-              { color: colors.onBrand, fontFamily: "DMSans_600SemiBold" },
-            ]}
+          <span
+            className="text-xs tracking-[1.5px]"
+            style={{ color: colors.onBrand, fontFamily: "DMSans_600SemiBold" }}
           >
             VIEW ORDER DETAILS
-          </Text>
+          </span>
           <ArrowRight size={14} color={colors.onBrand} />
-        </TouchableOpacity>
+        </button>
 
-        <TouchableOpacity style={[
-            styles.secondaryBtn,
-            { borderColor: colors.gold, backgroundColor: colors.cardBg },
-          ]}
-          onPress={() => {
+        <button
+          type="button"
+          className="flex h-12 w-full cursor-pointer items-center justify-center rounded-[2px] border transition-opacity active:opacity-90"
+          style={{
+            borderColor: colors.gold,
+            borderWidth: 1,
+            backgroundColor: colors.cardBg,
+          }}
+          onClick={() => {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
             replaceTo(navigate, "/jewelery" as any);
           }}
-          activeOpacity={0.88}
         >
-          <Text style={[
-              styles.secondaryBtnText,
-              { color: colors.gold, fontFamily: "DMSans_600SemiBold" },
-            ]}
+          <span
+            className="text-xs tracking-[1.5px]"
+            style={{ color: colors.gold, fontFamily: "DMSans_600SemiBold" }}
           >
             CONTINUE EXPLORING
-          </Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+          </span>
+        </button>
+      </div>
+    </div>
   );
 }
-
-const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingBottom: 14,
-  },
-  headerTitle: {
-    fontSize: 14,
-    letterSpacing: 2,
-  },
-  shareBtn: {
-    width: 36,
-    height: 36,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  content: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 28,
-  },
-  checkCircle: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1.5,
-    marginBottom: 24,
-  },
-  title: {
-    fontSize: 24,
-    letterSpacing: 1,
-    marginBottom: 8,
-    textAlign: "center",
-  },
-  orderIdBadge: {
-    fontSize: 13,
-    letterSpacing: 1.2,
-    marginBottom: 16,
-  },
-  subtitle: {
-    fontSize: 13,
-    lineHeight: 20,
-    textAlign: "center",
-    marginBottom: 24,
-  },
-  summaryCard: {
-    width: "100%",
-    borderRadius: 3,
-    borderWidth: 1,
-    padding: 16,
-    gap: 10,
-  },
-  summaryRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  summaryLabel: {
-    fontSize: 12,
-  },
-  summaryVal: {
-    fontSize: 13,
-  },
-  footer: {
-    paddingHorizontal: 24,
-    gap: 10,
-  },
-  primaryBtn: {
-    height: 50,
-    borderRadius: 2,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-  },
-  primaryBtnText: {
-    fontSize: 12,
-    letterSpacing: 1.5,
-  },
-  secondaryBtn: {
-    height: 48,
-    borderRadius: 2,
-    borderWidth: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  secondaryBtnText: {
-    fontSize: 12,
-    letterSpacing: 1.5,
-  },
-});

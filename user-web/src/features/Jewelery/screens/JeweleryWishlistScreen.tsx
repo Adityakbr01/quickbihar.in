@@ -2,15 +2,6 @@ import { Heart } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { goTo } from "@/src/utils/navigation";
 import React, { useEffect, useMemo } from "react";
-import {
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "@/components/primitives";
-import { useSafeAreaInsets } from "@/src/hooks/useSafeAreaInsets";
 
 import { ProductCard } from "@/src/features/Jewelery/components/ProductCard";
 import { useJeweleryProduct } from "@/src/features/Jewelery/hooks/useJeweleryCatalog";
@@ -32,7 +23,6 @@ function WishlistRow({ id, cached }: { id: string; cached?: any }) {
 export default function JeweleryWishlistScreen() {
   const navigate = useNavigate();
   const colors = useColors();
-  const insets = useSafeAreaInsets();
   // Stable primitive store subscriptions — compute wishlistIds with useMemo
   // rather than returning a fresh array from the selector on every render.
   const items = useWishlistStore((s) => s.items);
@@ -53,134 +43,77 @@ export default function JeweleryWishlistScreen() {
     [items, modules, cachedProducts]
   );
 
-  const topPad = Platform.OS === "web" ? 16 : insets.top;
+  const topPad = 16;
 
   return (
-    <View style={[styles.root, { backgroundColor: colors.ivory }]}>
-      <View style={[
-          styles.header,
-          {
-            paddingTop: topPad + 12,
-            backgroundColor: colors.ivory,
-            borderBottomColor: colors.midGray,
-          },
-        ]}
+    <div
+      className="flex min-h-screen flex-col"
+      style={{ backgroundColor: colors.ivory }}
+    >
+      <div
+        className="flex flex-row items-center justify-between border-b px-5 pb-3.5"
+        style={{
+          paddingTop: topPad + 12,
+          backgroundColor: colors.ivory,
+          borderBottomColor: colors.midGray,
+          borderBottomWidth: 1,
+        }}
       >
-        <Text style={[
-            styles.headerTitle,
-            { color: colors.ink, fontFamily: "CormorantGaramond_600SemiBold" },
-          ]}
+        <h1
+          className="text-[22px] tracking-[3px]"
+          style={{ color: colors.ink, fontFamily: "CormorantGaramond_600SemiBold" }}
         >
           Wishlist
-        </Text>
-        <Text style={[
-            styles.headerCount,
-            { color: colors.warmGray, fontFamily: "DMSans_400Regular" },
-          ]}
+        </h1>
+        <span
+          className="text-xs"
+          style={{ color: colors.warmGray, fontFamily: "DMSans_400Regular" }}
         >
           {wishlistIds.length} piece{wishlistIds.length !== 1 ? "s" : ""}
-        </Text>
-      </View>
+        </span>
+      </div>
 
       {wishlistIds.length === 0 ? (
-        <View style={styles.emptyState}>
+        <div className="flex flex-1 flex-col items-center justify-center gap-3.5 p-10">
           <Heart size={40} color={colors.midGray} />
-          <Text style={[
-              styles.emptyTitle,
-              {
-                color: colors.ink,
-                fontFamily: "CormorantGaramond_500Medium_Italic",
-              },
-            ]}
+          <span
+            className="text-center text-[22px] leading-[30px]"
+            style={{
+              color: colors.ink,
+              fontFamily: "CormorantGaramond_500Medium_Italic",
+            }}
           >
             Save for later, dream about now.
-          </Text>
-          <Text style={[
-              styles.emptyBody,
-              { color: colors.warmGray, fontFamily: "DMSans_400Regular" },
-            ]}
+          </span>
+          <span
+            className="text-center text-sm leading-[22px]"
+            style={{ color: colors.warmGray, fontFamily: "DMSans_400Regular" }}
           >
             Tap the heart icon on any piece to save it here.
-          </Text>
-          <Pressable style={[styles.browseBtn, { borderColor: colors.gold }]}
-            onPress={() => goTo(navigate, "/jewelery/collections" as any)}
+          </span>
+          <button
+            type="button"
+            className="mt-2 cursor-pointer rounded-[1px] border px-6 py-3"
+            style={{ borderColor: colors.gold, borderWidth: 1 }}
+            onClick={() => goTo(navigate, "/jewelery/collections" as any)}
           >
-            <Text style={[
-                styles.browseBtnText,
-                { color: colors.gold, fontFamily: "DMSans_400Regular" },
-              ]}
+            <span
+              className="text-xs tracking-[1px]"
+              style={{ color: colors.gold, fontFamily: "DMSans_400Regular" }}
             >
               Browse Collections →
-            </Text>
-          </Pressable>
-        </View>
+            </span>
+          </button>
+        </div>
       ) : (
-        <ScrollView showsVerticalScrollIndicator={false}
-          contentContainerStyle={[styles.scrollContent]}
-        >
-          <View style={styles.productGrid}>
+        <div className="overflow-y-auto p-4">
+          <div className="flex flex-row flex-wrap justify-between gap-2">
             {wishlistIds.map((id) => (
               <WishlistRow key={id} id={id} cached={cachedProducts[id]} />
             ))}
-          </View>
-        </ScrollView>
+          </div>
+        </div>
       )}
-    </View>
+    </div>
   );
 }
-
-const styles = StyleSheet.create({
-  root: { flex: 1 },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingBottom: 14,
-    borderBottomWidth: 0.5,
-  },
-  headerTitle: {
-    fontSize: 22,
-    letterSpacing: 3,
-  },
-  headerCount: {
-    fontSize: 12,
-  },
-  emptyState: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 40,
-    gap: 14,
-  },
-  emptyTitle: {
-    fontSize: 22,
-    textAlign: "center",
-    lineHeight: 30,
-  },
-  emptyBody: {
-    fontSize: 14,
-    textAlign: "center",
-    lineHeight: 22,
-  },
-  browseBtn: {
-    borderWidth: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 1,
-    marginTop: 8,
-  },
-  browseBtnText: {
-    fontSize: 12,
-    letterSpacing: 1,
-  },
-  scrollContent: {
-    padding: 16,
-  },
-  productGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-    justifyContent: "space-between",
-  },
-});

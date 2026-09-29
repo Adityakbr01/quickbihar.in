@@ -4,18 +4,6 @@ import * as Haptics from "@/lib/haptics";
 import { useNavigate } from "react-router-dom";
 import { goBack, goTo, replaceTo, useRouteParams } from "@/src/utils/navigation";
 import React, { useState } from "react";
-import {
-  ActivityIndicator,
-  Platform,
-  Pressable,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "@/components/primitives";
-import { useSafeAreaInsets } from "@/src/hooks/useSafeAreaInsets";
 
 import IOSAlertDialog, { AlertButton } from "@/src/components/ui/IOSAlertDialog";
 import { useAddressActions, useAddresses } from "@/src/features/common/address/hooks/useAddress";
@@ -27,8 +15,7 @@ export default function JeweleryAddressesScreen() {
   const colors = useColors();
   const navigate = useNavigate();
   const topPad = useTopPad();
-  const insets = useSafeAreaInsets();
-  const bottomPad = Platform.OS === "web" ? 34 : Math.max(insets.bottom, 20);
+  const bottomPad = 34;
   const { returnTo } = useRouteParams<{ returnTo?: string }>();
 
   const { data: addresses, isLoading, refetch } = useAddresses();
@@ -130,90 +117,80 @@ export default function JeweleryAddressesScreen() {
   };
 
   return (
-    <View style={[styles.root, { backgroundColor: colors.ivory }]}>
+    <div className="relative flex min-h-screen flex-col" style={{ backgroundColor: colors.ivory }}>
       {/* Header */}
-      <View style={[
-          styles.header,
-          {
-            paddingTop: topPad + 12,
-            backgroundColor: colors.ivory,
-            borderBottomColor: colors.midGray,
-          },
-        ]}
+      <div
+        className="flex flex-row items-center gap-3 px-5 pb-[14px]"
+        style={{
+          paddingTop: topPad + 12,
+          backgroundColor: colors.ivory,
+          borderBottomColor: colors.midGray,
+          borderBottomWidth: 1,
+          borderBottomStyle: "solid",
+        }}
       >
-        <Pressable style={styles.backBtn}
-          onPress={handleBack}
-          hitSlop={8}
-          accessibilityRole="button"
-          accessibilityLabel="Go back"
+        <button
+          type="button"
+          onClick={handleBack}
+          aria-label="Go back"
+          className="flex h-9 w-9 cursor-pointer items-center justify-center"
         >
           <ArrowLeft size={18} color={colors.ink} />
-        </Pressable>
+        </button>
 
-        <View style={styles.headerTitleWrap}>
-          <Text style={[
-              styles.headerTitle,
-              {
-                color: colors.ink,
-                fontFamily: "CormorantGaramond_600SemiBold",
-              },
-            ]}
+        <div className="flex-1">
+          <h1
+            className="text-[18px] tracking-[1.5px]"
+            style={{
+              color: colors.ink,
+              fontFamily: "CormorantGaramond_600SemiBold",
+            }}
           >
             SAVED ADDRESSES
-          </Text>
-          <Text style={[
-              styles.headerSubtitle,
-              { color: colors.warmGray, fontFamily: "DMSans_400Regular" },
-            ]}
+          </h1>
+          <p
+            className="mt-[2px] text-[11px]"
+            style={{ color: colors.warmGray, fontFamily: "DMSans_400Regular" }}
           >
             {addresses && addresses.length > 0
               ? `${addresses.length} address${addresses.length === 1 ? "" : "es"} on file`
               : "Manage delivery addresses"}
-          </Text>
-        </View>
+          </p>
+        </div>
 
-        <TouchableOpacity style={[styles.headerAddBtn, { borderColor: colors.gold }]}
-          onPress={handleAddAddress}
-          activeOpacity={0.8}
+        <button
+          type="button"
+          onClick={handleAddAddress}
+          className="flex cursor-pointer flex-row items-center gap-1 rounded-[2px] border px-[10px] py-[5px]"
+          style={{ borderColor: colors.gold }}
         >
           <Plus size={14} color={colors.gold} />
-          <Text style={[
-              styles.headerAddBtnText,
-              { color: colors.gold, fontFamily: "DMSans_500Medium" },
-            ]}
+          <span
+            className="text-[11px] tracking-[0.5px]"
+            style={{ color: colors.gold, fontFamily: "DMSans_500Medium" }}
           >
             Add
-          </Text>
-        </TouchableOpacity>
-      </View>
+          </span>
+        </button>
+      </div>
 
       {/* Main Content */}
-      <ScrollView contentContainerStyle={[
-          styles.scrollContent,
-          { paddingBottom: bottomPad + 70 },
-        ]}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={false}
-            onRefresh={refetch}
-            tintColor={colors.gold}
-          />
-        }
-      >
+      <div className="overflow-auto p-4" style={{ paddingBottom: bottomPad + 70 }}>
         {isLoading ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="small" color={colors.gold} />
-            <Text style={[
-                styles.loadingText,
-                { color: colors.warmGray, fontFamily: "DMSans_400Regular" },
-              ]}
+          <div className="flex flex-col items-center justify-center gap-3 py-[60px]">
+            <span
+              className="h-5 w-5 animate-spin rounded-full border-2"
+              style={{ borderColor: `${colors.gold}30`, borderTopColor: colors.gold }}
+            />
+            <span
+              className="text-[13px]"
+              style={{ color: colors.warmGray, fontFamily: "DMSans_400Regular" }}
             >
               Loading addresses...
-            </Text>
-          </View>
+            </span>
+          </div>
         ) : addresses && addresses.length > 0 ? (
-          <View style={styles.addressList}>
+          <div className="flex flex-col gap-[14px]">
             {addresses.map((address) => {
               const TypeIcon = getTypeIcon(address.addressType);
               const isPinned =
@@ -222,247 +199,234 @@ export default function JeweleryAddressesScreen() {
                 Number.isFinite(Number(address.latitude));
 
               return (
-                <View key={address._id}
-                  style={[
-                    styles.card,
-                    {
-                      backgroundColor: colors.cardBg,
-                      borderColor: address.isDefault ? colors.gold : colors.border,
-                      borderWidth: address.isDefault ? 1.5 : 1,
-                    },
-                  ]}
+                <div key={address._id}
+                  className="rounded-[3px] border p-4 shadow-sm"
+                  style={{
+                    backgroundColor: colors.cardBg,
+                    borderColor: address.isDefault ? colors.gold : colors.border,
+                    borderWidth: address.isDefault ? 1.5 : 1,
+                  }}
                 >
                   {/* Card Header Badges */}
-                  <View style={styles.cardHeader}>
-                    <View style={styles.badgesLeft}>
-                      <View style={[
-                          styles.badge,
-                          {
-                            backgroundColor: colors.champagne,
-                            borderColor: colors.gold,
-                          },
-                        ]}
+                  <div className="mb-[10px] flex flex-row items-center justify-between">
+                    <div className="flex flex-row flex-wrap items-center gap-1.5">
+                      <div
+                        className="flex flex-row items-center gap-1 rounded-[2px] border px-[7px] py-[2.5px]"
+                        style={{
+                          backgroundColor: colors.champagne,
+                          borderColor: colors.gold,
+                          borderWidth: 1,
+                        }}
                       >
                         <TypeIcon size={10} color={colors.gold} />
-                        <Text style={[
-                            styles.badgeText,
-                            { color: colors.gold, fontFamily: "DMSans_500Medium" },
-                          ]}
+                        <span
+                          className="text-[9.5px] tracking-[0.6px]"
+                          style={{ color: colors.gold, fontFamily: "DMSans_500Medium" }}
                         >
                           {address.addressType}
-                        </Text>
-                      </View>
+                        </span>
+                      </div>
 
                       {address.isDefault && (
-                        <View style={[
-                            styles.badge,
-                            { backgroundColor: colors.gold },
-                          ]}
+                        <div
+                          className="flex flex-row items-center gap-1 rounded-[2px] px-[7px] py-[2.5px]"
+                          style={{ backgroundColor: colors.gold }}
                         >
                           <Check size={10} color={colors.onBrand} />
-                          <Text style={[
-                              styles.badgeText,
-                              { color: colors.onBrand, fontFamily: "DMSans_700Bold" },
-                            ]}
+                          <span
+                            className="text-[9.5px] tracking-[0.6px]"
+                            style={{ color: colors.onBrand, fontFamily: "DMSans_700Bold" }}
                           >
                             DEFAULT
-                          </Text>
-                        </View>
+                          </span>
+                        </div>
                       )}
 
                       {isPinned && (
-                        <View style={[
-                            styles.badge,
-                            {
-                              backgroundColor: colors.pearl,
-                              borderColor: colors.border,
-                            },
-                          ]}
+                        <div
+                          className="flex flex-row items-center gap-1 rounded-[2px] border px-[7px] py-[2.5px]"
+                          style={{
+                            backgroundColor: colors.pearl,
+                            borderColor: colors.border,
+                            borderWidth: 1,
+                          }}
                         >
                           <MapPin size={10} color={colors.gold} />
-                          <Text style={[
-                              styles.badgeText,
-                              { color: colors.warmGray, fontFamily: "DMSans_400Regular" },
-                            ]}
+                          <span
+                            className="text-[9.5px] tracking-[0.6px]"
+                            style={{ color: colors.warmGray, fontFamily: "DMSans_400Regular" }}
                           >
                             PINNED
-                          </Text>
-                        </View>
+                          </span>
+                        </div>
                       )}
 
                       {address.isPhoneVerified && (
-                        <View style={[
-                            styles.badge,
-                            {
-                              backgroundColor: colors.champagne,
-                              borderColor: colors.gold,
-                            },
-                          ]}
+                        <div
+                          className="flex flex-row items-center gap-1 rounded-[2px] border px-[7px] py-[2.5px]"
+                          style={{
+                            backgroundColor: colors.champagne,
+                            borderColor: colors.gold,
+                            borderWidth: 1,
+                          }}
                         >
                           <ShieldCheck size={10} color={colors.gold} />
-                          <Text style={[
-                              styles.badgeText,
-                              { color: colors.gold, fontFamily: "DMSans_500Medium" },
-                            ]}
+                          <span
+                            className="text-[9.5px] tracking-[0.6px]"
+                            style={{ color: colors.gold, fontFamily: "DMSans_500Medium" }}
                           >
                             VERIFIED
-                          </Text>
-                        </View>
+                          </span>
+                        </div>
                       )}
-                    </View>
-                  </View>
+                    </div>
+                  </div>
 
                   {/* Address Details */}
-                  <Text style={[
-                      styles.cardName,
-                      {
-                        color: colors.ink,
-                        fontFamily: "CormorantGaramond_600SemiBold",
-                      },
-                    ]}
+                  <h2
+                    className="mb-1 text-[17px] tracking-[0.5px]"
+                    style={{
+                      color: colors.ink,
+                      fontFamily: "CormorantGaramond_600SemiBold",
+                    }}
                   >
                     {address.fullName}
-                  </Text>
+                  </h2>
 
-                  <View style={styles.phoneRow}>
+                  <div className="mb-2 flex flex-row items-center gap-1.5">
                     <Phone size={11} color={colors.warmGray} />
-                    <Text style={[
-                        styles.cardPhone,
-                        { color: colors.warmGray, fontFamily: "DMSans_400Regular" },
-                      ]}
+                    <span
+                      className="text-[12px]"
+                      style={{ color: colors.warmGray, fontFamily: "DMSans_400Regular" }}
                     >
                       {address.phone}
-                    </Text>
-                  </View>
+                    </span>
+                  </div>
 
-                  <Text style={[
-                      styles.cardAddress,
-                      { color: colors.ink, fontFamily: "DMSans_400Regular" },
-                    ]}
+                  <p
+                    className="mb-3 text-[13px] leading-[19px]"
+                    style={{ color: colors.ink, fontFamily: "DMSans_400Regular" }}
                   >
                     {address.street}
                     {address.landmark ? `, Near ${address.landmark}` : ""}
-                    {"\n"}
+                    <br />
                     {address.city}, {address.state} — {address.pincode}
-                  </Text>
+                  </p>
 
                   {/* Actions Divider */}
-                  <View style={[
-                      styles.cardDivider,
-                      { backgroundColor: colors.border },
-                    ]}
+                  <div
+                    className="mb-[10px] h-px"
+                    style={{ backgroundColor: colors.border }}
                   />
 
                   {/* Action Buttons */}
-                  <View style={styles.cardActions}>
-                    <TouchableOpacity style={styles.actionBtn}
-                      onPress={() => handleEditAddress(address)}
-                      activeOpacity={0.7}
+                  <div className="flex flex-row items-center gap-4">
+                    <button
+                      type="button"
+                      onClick={() => handleEditAddress(address)}
+                      className="flex cursor-pointer flex-row items-center gap-[5px] py-1"
                     >
                       <Pen size={13} color={colors.ink} />
-                      <Text style={[
-                          styles.actionBtnText,
-                          { color: colors.ink, fontFamily: "DMSans_500Medium" },
-                        ]}
+                      <span
+                        className="text-[12px]"
+                        style={{ color: colors.ink, fontFamily: "DMSans_500Medium" }}
                       >
                         Edit
-                      </Text>
-                    </TouchableOpacity>
+                      </span>
+                    </button>
 
-                    <TouchableOpacity style={styles.actionBtn}
-                      onPress={() => handleDeleteAddress(address._id)}
-                      activeOpacity={0.7}
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteAddress(address._id)}
+                      className="flex cursor-pointer flex-row items-center gap-[5px] py-1"
                     >
                       <Trash2 size={13} color="#b91c1c" />
-                      <Text style={[
-                          styles.actionBtnText,
-                          { color: "#b91c1c", fontFamily: "DMSans_500Medium" },
-                        ]}
+                      <span
+                        className="text-[12px]"
+                        style={{ color: "#b91c1c", fontFamily: "DMSans_500Medium" }}
                       >
                         Delete
-                      </Text>
-                    </TouchableOpacity>
+                      </span>
+                    </button>
 
                     {!address.isDefault && (
-                      <TouchableOpacity style={[styles.actionBtn, styles.setDefaultBtn]}
-                        onPress={() => handleSetDefault(address._id)}
-                        activeOpacity={0.7}
+                      <button
+                        type="button"
+                        onClick={() => handleSetDefault(address._id)}
+                        className="ml-auto flex cursor-pointer flex-row items-center gap-[5px] py-1"
                       >
                         <CircleCheck size={13} color={colors.gold} />
-                        <Text style={[
-                            styles.actionBtnText,
-                            { color: colors.gold, fontFamily: "DMSans_500Medium" },
-                          ]}
+                        <span
+                          className="text-[12px]"
+                          style={{ color: colors.gold, fontFamily: "DMSans_500Medium" }}
                         >
                           Set Default
-                        </Text>
-                      </TouchableOpacity>
+                        </span>
+                      </button>
                     )}
-                  </View>
-                </View>
+                  </div>
+                </div>
               );
             })}
-          </View>
+          </div>
         ) : (
-          <View style={styles.emptyContainer}>
-            <View style={[
-                styles.emptyIconWrap,
-                {
-                  backgroundColor: colors.champagne,
-                  borderColor: colors.gold,
-                },
-              ]}
+          <div className="flex flex-col items-center px-6 py-[70px]">
+            <div
+              className="mb-5 flex h-[72px] w-[72px] items-center justify-center rounded-full border"
+              style={{
+                backgroundColor: colors.champagne,
+                borderColor: colors.gold,
+              }}
             >
               <MapPin size={32} color={colors.gold} />
-            </View>
-            <Text style={[
-                styles.emptyTitle,
-                {
-                  color: colors.ink,
-                  fontFamily: "CormorantGaramond_600SemiBold",
-                },
-              ]}
+            </div>
+            <h2
+              className="mb-2 text-[22px] tracking-[0.5px]"
+              style={{
+                color: colors.ink,
+                fontFamily: "CormorantGaramond_600SemiBold",
+              }}
             >
               No Addresses Saved
-            </Text>
-            <Text style={[
-                styles.emptySub,
-                { color: colors.warmGray, fontFamily: "DMSans_400Regular" },
-              ]}
+            </h2>
+            <p
+              className="mb-7 text-center text-[13px] leading-5"
+              style={{ color: colors.warmGray, fontFamily: "DMSans_400Regular" }}
             >
               Save your delivery addresses for an effortless, seamless shopping experience.
-            </Text>
-            <TouchableOpacity style={[styles.addFirstBtn, { backgroundColor: colors.gold }]}
-              onPress={handleAddAddress}
-              activeOpacity={0.88}
+            </p>
+            <button
+              type="button"
+              onClick={handleAddAddress}
+              className="flex cursor-pointer flex-row items-center justify-center gap-2 rounded-[2px] px-6 py-[14px] shadow-md"
+              style={{ backgroundColor: colors.gold }}
             >
               <Plus size={15} color={colors.onBrand} />
-              <Text style={[
-                  styles.addFirstBtnText,
-                  { color: colors.onBrand, fontFamily: "DMSans_600SemiBold" },
-                ]}
+              <span
+                className="text-[12px] tracking-[1.2px]"
+                style={{ color: colors.onBrand, fontFamily: "DMSans_600SemiBold" }}
               >
                 ADD DELIVERY ADDRESS
-              </Text>
-            </TouchableOpacity>
-          </View>
+              </span>
+            </button>
+          </div>
         )}
-      </ScrollView>
+      </div>
 
       {/* Floating Add Button when addresses exist */}
       {addresses && addresses.length > 0 && (
-        <TouchableOpacity style={[
-            styles.fab,
-            {
-              backgroundColor: colors.gold,
-              bottom: bottomPad + 16,
-            },
-          ]}
-          onPress={handleAddAddress}
-          activeOpacity={0.88}
+        <button
+          type="button"
+          onClick={handleAddAddress}
+          aria-label="Add address"
+          className="absolute right-5 flex h-[52px] w-[52px] cursor-pointer items-center justify-center rounded-full shadow-lg"
+          style={{
+            backgroundColor: colors.gold,
+            bottom: bottomPad + 16,
+          }}
         >
           <Plus size={22} color={colors.onBrand} />
-        </TouchableOpacity>
+        </button>
       )}
 
       {/* Alert Dialog */}
@@ -472,196 +436,6 @@ export default function JeweleryAddressesScreen() {
         buttons={alertConfig.buttons}
         onClose={() => setAlertConfig((p) => ({ ...p, visible: false }))}
       />
-    </View>
+    </div>
   );
 }
-
-const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    paddingBottom: 14,
-    borderBottomWidth: 0.5,
-    gap: 12,
-  },
-  backBtn: {
-    width: 36,
-    height: 36,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  headerTitleWrap: {
-    flex: 1,
-  },
-  headerTitle: {
-    fontSize: 18,
-    letterSpacing: 1.5,
-  },
-  headerSubtitle: {
-    fontSize: 11,
-    marginTop: 2,
-  },
-  headerAddBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    borderWidth: 1,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 2,
-  },
-  headerAddBtnText: {
-    fontSize: 11,
-    letterSpacing: 0.5,
-  },
-  scrollContent: {
-    padding: 16,
-  },
-  loadingContainer: {
-    paddingVertical: 60,
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 12,
-  },
-  loadingText: {
-    fontSize: 13,
-  },
-  addressList: {
-    gap: 14,
-  },
-  card: {
-    borderRadius: 3,
-    padding: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 1,
-  },
-  cardHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 10,
-  },
-  badgesLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    flexWrap: "wrap",
-    gap: 6,
-  },
-  badge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    paddingHorizontal: 7,
-    paddingVertical: 2.5,
-    borderRadius: 2,
-    borderWidth: 0.5,
-  },
-  badgeText: {
-    fontSize: 9.5,
-    letterSpacing: 0.6,
-  },
-  cardName: {
-    fontSize: 17,
-    letterSpacing: 0.5,
-    marginBottom: 4,
-  },
-  phoneRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    marginBottom: 8,
-  },
-  cardPhone: {
-    fontSize: 12,
-  },
-  cardAddress: {
-    fontSize: 13,
-    lineHeight: 19,
-    marginBottom: 12,
-  },
-  cardDivider: {
-    height: 0.5,
-    marginBottom: 10,
-  },
-  cardActions: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 16,
-  },
-  actionBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 5,
-    paddingVertical: 4,
-  },
-  setDefaultBtn: {
-    marginLeft: "auto",
-  },
-  actionBtnText: {
-    fontSize: 12,
-  },
-  emptyContainer: {
-    alignItems: "center",
-    paddingVertical: 70,
-    paddingHorizontal: 24,
-  },
-  emptyIconWrap: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-    marginBottom: 20,
-  },
-  emptyTitle: {
-    fontSize: 22,
-    letterSpacing: 0.5,
-    marginBottom: 8,
-  },
-  emptySub: {
-    fontSize: 13,
-    textAlign: "center",
-    lineHeight: 20,
-    marginBottom: 28,
-  },
-  addFirstBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    paddingHorizontal: 24,
-    paddingVertical: 14,
-    borderRadius: 2,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  addFirstBtnText: {
-    fontSize: 12,
-    letterSpacing: 1.2,
-  },
-  fab: {
-    position: "absolute",
-    right: 20,
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.2,
-    shadowRadius: 5,
-    elevation: 5,
-  },
-});

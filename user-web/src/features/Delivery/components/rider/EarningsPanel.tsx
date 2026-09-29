@@ -1,9 +1,7 @@
 import React from "react";
-import { ScrollView, Text, TouchableOpacity, View } from "@/components/primitives";
 import { Banknote, CreditCard, Wallet } from "lucide-react";
 import type { Theme } from "@/src/theme/Provider/ThemeProvider";
 import { TextInput } from "@/src/theme/components/TextInput";
-import { riderInputChrome } from "../../styles/rider.styles";
 import type {
   RiderEarningsResponse,
   RiderPayoutMethod,
@@ -13,6 +11,20 @@ import type {
 import { formatDate, money, payoutMethodName } from "../../theme/riderTheme";
 import type { RiderStyles } from "../../types/rider.types";
 import { EmptyCard, SectionTitle, StatusPill, SummaryTile } from "./RiderShared";
+import { cn } from "@/src/lib/utils";
+
+const riderInputChrome = (theme: Theme) => ({
+  containerStyle: { marginBottom: 0 },
+  inputContainerStyle: {
+    backgroundColor: theme.background,
+    borderRadius: 14,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 11,
+    minHeight: 48,
+  },
+  style: { fontSize: 15, color: theme.text },
+});
 
 export function EarningsPanel({
   styles,
@@ -85,50 +97,61 @@ export function EarningsPanel({
   onRequestPayout: () => void;
   onSetDefault: (methodId: string) => void;
 }) {
+  void styles;
   const verifiedMethods = payoutRequestMethods.filter((method) => method.status === "VERIFIED");
   const inputChrome = riderInputChrome(theme);
 
   return (
-    <View style={styles.panel}>
+    <div className="flex flex-col gap-3.5">
       <SectionTitle styles={styles} title="Earnings" meta={`${earnings?.ledger?.length || 0} ledger entries`} />
-      <View style={styles.inlineInputs}>
-        <TextInput {...inputChrome}
+      <div className="flex flex-row gap-2.5">
+        <TextInput
+          {...inputChrome}
           value={earningsDateFrom}
           onChangeText={onEarningsDateFromChange}
           placeholder="From YYYY-MM-DD"
           placeholderTextColor={theme.secondaryText}
           containerStyle={{ marginBottom: 0, flex: 1 }}
         />
-        <TextInput {...inputChrome}
+        <TextInput
+          {...inputChrome}
           value={earningsDateTo}
           onChangeText={onEarningsDateToChange}
           placeholder="To YYYY-MM-DD"
           placeholderTextColor={theme.secondaryText}
           containerStyle={{ marginBottom: 0, flex: 1 }}
         />
-      </View>
-      <View style={styles.summaryGrid}>
+      </div>
+      <div className="flex flex-row gap-2.5">
         <SummaryTile styles={styles} label="Available" value={money(wallet?.availableBalance)} />
         <SummaryTile styles={styles} label="Pending" value={money(wallet?.pendingPayoutBalance)} />
         <SummaryTile styles={styles} label="Credited" value={money(earnings?.totalCredited)} />
-      </View>
+      </div>
 
       <SectionTitle styles={styles} title="Earnings Ledger" meta="" />
       {(earnings?.ledger || []).length === 0 ? (
         <EmptyCard styles={styles} theme={theme} icon={Wallet} label="No credited earnings in this date range." />
       ) : (
         (earnings?.ledger || []).map((entry) => (
-          <View key={entry._id} style={styles.listCard}>
-            <View style={styles.rowBetween}>
-              <View style={styles.flexOne}>
-                <Text style={styles.cardTitle}>{entry.orderId}</Text>
-                <Text style={styles.muted}>
+          <div
+            key={entry._id}
+            className="flex flex-col gap-2 rounded-2xl border p-3.5"
+            style={{ backgroundColor: theme.secondaryBackground, borderColor: theme.border }}
+          >
+            <div className="flex flex-row items-center justify-between gap-2.5">
+              <div className="min-w-0 flex-1">
+                <span className="block text-[15px] font-extrabold" style={{ color: theme.text }}>
+                  {entry.orderId}
+                </span>
+                <span className="block text-[13px] leading-[18px]" style={{ color: theme.secondaryText }}>
                   {entry.customerName || "Customer"} - {formatDate(entry.creditedAt || entry.deliveredAt)}
-                </Text>
-              </View>
-              <Text style={styles.payout}>{money(entry.amount)}</Text>
-            </View>
-          </View>
+                </span>
+              </div>
+              <span className="text-[17px] font-black" style={{ color: theme.primary }}>
+                {money(entry.amount)}
+              </span>
+            </div>
+          </div>
         ))
       )}
 
@@ -137,37 +160,91 @@ export function EarningsPanel({
         <EmptyCard styles={styles} theme={theme} icon={CreditCard} label="No payout methods yet." />
       ) : (
         (payouts?.payoutMethods || []).map((method) => (
-          <View key={method._id} style={styles.methodCard}>
-            <View style={styles.rowBetween}>
-              <View style={styles.flexOne}>
-                <Text style={styles.cardTitle}>{method.displayName || method.label || method.type}</Text>
-                <Text style={styles.muted}>{payoutMethodName(method)}</Text>
-              </View>
+          <div
+            key={method._id}
+            className="flex flex-col gap-2 rounded-2xl border p-3.5"
+            style={{ backgroundColor: theme.secondaryBackground, borderColor: theme.border }}
+          >
+            <div className="flex flex-row items-center justify-between gap-2.5">
+              <div className="min-w-0 flex-1">
+                <span className="block text-[15px] font-extrabold" style={{ color: theme.text }}>
+                  {method.displayName || method.label || method.type}
+                </span>
+                <span className="block text-[13px] leading-[18px]" style={{ color: theme.secondaryText }}>
+                  {payoutMethodName(method)}
+                </span>
+              </div>
               <StatusPill styles={styles} status={method.status} />
-            </View>
-            <Text style={styles.muted}>Submitted: {formatDate(method.createdAt)}</Text>
-            {method.rejectionReason ? <Text style={styles.errorText}>Rejected: {method.rejectionReason}</Text> : null}
+            </div>
+            <span className="block text-[13px] leading-[18px]" style={{ color: theme.secondaryText }}>
+              Submitted: {formatDate(method.createdAt)}
+            </span>
+            {method.rejectionReason ? (
+              <span className="block text-xs font-bold" style={{ color: theme.error }}>
+                Rejected: {method.rejectionReason}
+              </span>
+            ) : null}
             {method.status === "VERIFIED" && !method.isDefault && method.source !== "PROFILE" && (
-              <TouchableOpacity style={styles.smallSecondaryButton} onPress={() => onSetDefault(method._id)}>
-                <Text style={styles.secondaryText}>Set Default</Text>
-              </TouchableOpacity>
+              <button
+                type="button"
+                onClick={() => onSetDefault(method._id)}
+                className="cursor-pointer self-start rounded-xl border px-3 py-2"
+                style={{ backgroundColor: theme.background, borderColor: theme.border }}
+              >
+                <span className="font-extrabold" style={{ color: theme.text }}>
+                  Set Default
+                </span>
+              </button>
             )}
-            {method.source === "PROFILE" && <Text style={styles.primaryLine}>Verified from rider profile</Text>}
-            {method.isDefault && <Text style={styles.primaryLine}>Default method</Text>}
-          </View>
+            {method.source === "PROFILE" && (
+              <span className="block text-xs font-extrabold" style={{ color: theme.primary }}>
+                Verified from rider profile
+              </span>
+            )}
+            {method.isDefault && (
+              <span className="block text-xs font-extrabold" style={{ color: theme.primary }}>
+                Default method
+              </span>
+            )}
+          </div>
         ))
       )}
 
       <SectionTitle styles={styles} title="Add Payout Method" meta="" />
-      <View style={styles.formCard}>
-        <View style={styles.actionsRow}>
-          <TouchableOpacity style={[styles.secondaryButton, payoutType === "UPI" && styles.segmentSelected]} onPress={() => onPayoutTypeChange("UPI")}>
-            <Text style={[styles.secondaryText, payoutType === "UPI" && styles.segmentSelectedText]}>UPI</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={[styles.secondaryButton, payoutType === "BANK" && styles.segmentSelected]} onPress={() => onPayoutTypeChange("BANK")}>
-            <Text style={[styles.secondaryText, payoutType === "BANK" && styles.segmentSelectedText]}>Bank</Text>
-          </TouchableOpacity>
-        </View>
+      <div
+        className="flex flex-col gap-2.5 rounded-2xl border p-3.5"
+        style={{ backgroundColor: theme.secondaryBackground, borderColor: theme.border }}
+      >
+        <div className="flex flex-row gap-2.5">
+          <button
+            type="button"
+            onClick={() => onPayoutTypeChange("UPI")}
+            className={cn("flex min-h-[46px] flex-1 cursor-pointer flex-row items-center justify-center gap-1.5 rounded-[14px] border px-3.5 py-3")}
+            style={
+              payoutType === "UPI"
+                ? { backgroundColor: theme.primary, borderColor: theme.primary }
+                : { backgroundColor: theme.background, borderColor: theme.border }
+            }
+          >
+            <span className="font-extrabold" style={{ color: payoutType === "UPI" ? "#fff" : theme.text }}>
+              UPI
+            </span>
+          </button>
+          <button
+            type="button"
+            onClick={() => onPayoutTypeChange("BANK")}
+            className={cn("flex min-h-[46px] flex-1 cursor-pointer flex-row items-center justify-center gap-1.5 rounded-[14px] border px-3.5 py-3")}
+            style={
+              payoutType === "BANK"
+                ? { backgroundColor: theme.primary, borderColor: theme.primary }
+                : { backgroundColor: theme.background, borderColor: theme.border }
+            }
+          >
+            <span className="font-extrabold" style={{ color: payoutType === "BANK" ? "#fff" : theme.text }}>
+              Bank
+            </span>
+          </button>
+        </div>
         <TextInput {...inputChrome} value={methodLabel} onChangeText={onMethodLabelChange} placeholder="Label" placeholderTextColor={theme.secondaryText} />
         {payoutType === "UPI" ? (
           <TextInput {...inputChrome} value={upiId} onChangeText={onUpiIdChange} placeholder="UPI ID" placeholderTextColor={theme.secondaryText} autoCapitalize="none" />
@@ -179,64 +256,106 @@ export function EarningsPanel({
             <TextInput {...inputChrome} value={bankName} onChangeText={onBankNameChange} placeholder="Bank name" placeholderTextColor={theme.secondaryText} />
           </>
         )}
-        <TouchableOpacity style={styles.primaryButton} onPress={onSubmitPayoutMethod} disabled={busy}>
+        <button
+          type="button"
+          onClick={onSubmitPayoutMethod}
+          disabled={busy}
+          className="flex min-h-[46px] w-full cursor-pointer flex-row items-center justify-center gap-1.5 rounded-[14px] px-3.5 py-3 disabled:cursor-not-allowed disabled:opacity-60"
+          style={{ backgroundColor: theme.primary }}
+        >
           <CreditCard size={16} color="#fff" />
-          <Text style={styles.primaryText}>Add Method</Text>
-        </TouchableOpacity>
-      </View>
+          <span className="font-black text-white">Add Method</span>
+        </button>
+      </div>
 
       <SectionTitle styles={styles} title="Request Payout" meta={`${verifiedMethods.length} verified methods`} />
-      <View style={styles.formCard}>
+      <div
+        className="flex flex-col gap-2.5 rounded-2xl border p-3.5"
+        style={{ backgroundColor: theme.secondaryBackground, borderColor: theme.border }}
+      >
         {payoutRequestMethods.length === 0 ? (
-          <Text style={styles.muted}>A verified payout method is required before requesting payout.</Text>
+          <span className="block text-[13px] leading-[18px]" style={{ color: theme.secondaryText }}>
+            A verified payout method is required before requesting payout.
+          </span>
         ) : (
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterChips}>
+          <div className="flex flex-row gap-2 overflow-x-auto pr-[18px]">
             {payoutRequestMethods.map((method) => {
               const selected = requestMethodId === method._id;
               const verified = method.status === "VERIFIED";
               return (
-                <TouchableOpacity key={method._id}
-                  style={[styles.filterChip, !verified && styles.filterChipDisabled, selected && styles.filterChipSelected]}
-                  onPress={() => verified && onRequestMethodIdChange(method._id)}
+                <button
+                  key={method._id}
+                  type="button"
+                  onClick={() => verified && onRequestMethodIdChange(method._id)}
                   disabled={!verified}
+                  className="min-h-[36px] shrink-0 cursor-pointer rounded-full border px-3 py-2 text-left disabled:cursor-not-allowed"
+                  style={{
+                    backgroundColor: selected ? theme.primary : theme.secondaryBackground,
+                    borderColor: selected ? theme.primary : theme.border,
+                    opacity: !verified ? 0.62 : 1,
+                  }}
                 >
-                  <Text style={[styles.filterChipText, selected && styles.filterChipTextSelected]}>
+                  <span className="block text-xs font-extrabold" style={{ color: selected ? "#fff" : theme.secondaryText }}>
                     {method.displayName || payoutMethodName(method)}
-                  </Text>
-                  {!verified && <Text style={styles.filterChipMeta}>{method.status.replace(/_/g, " ")}</Text>}
-                </TouchableOpacity>
+                  </span>
+                  {!verified && (
+                    <span className="mt-0.5 block text-[9px] font-black" style={{ color: theme.tertiaryText }}>
+                      {method.status.replace(/_/g, " ")}
+                    </span>
+                  )}
+                </button>
               );
             })}
-          </ScrollView>
+          </div>
         )}
         <TextInput {...inputChrome} value={requestAmount} onChangeText={onRequestAmountChange} placeholder="Amount" placeholderTextColor={theme.secondaryText} keyboardType="numeric" />
         <TextInput {...inputChrome} value={requestNote} onChangeText={onRequestNoteChange} placeholder="Note" placeholderTextColor={theme.secondaryText} />
-        <TouchableOpacity style={styles.primaryButton} onPress={onRequestPayout} disabled={busy || !verifiedMethods.length}>
+        <button
+          type="button"
+          onClick={onRequestPayout}
+          disabled={busy || !verifiedMethods.length}
+          className="flex min-h-[46px] w-full cursor-pointer flex-row items-center justify-center gap-1.5 rounded-[14px] px-3.5 py-3 disabled:cursor-not-allowed disabled:opacity-60"
+          style={{ backgroundColor: theme.primary }}
+        >
           <Banknote size={16} color="#fff" />
-          <Text style={styles.primaryText}>Request Payout</Text>
-        </TouchableOpacity>
-      </View>
+          <span className="font-black text-white">Request Payout</span>
+        </button>
+      </div>
 
       <SectionTitle styles={styles} title="Payout Requests" meta={`${payouts?.payouts?.length || 0}`} />
       {(payouts?.payouts || []).length === 0 ? (
         <EmptyCard styles={styles} theme={theme} icon={Wallet} label="No payout requests yet." />
       ) : (
         (payouts?.payouts || []).map((payout) => (
-          <View key={payout._id} style={styles.listCard}>
-            <View style={styles.rowBetween}>
-              <View style={styles.flexOne}>
-                <Text style={styles.cardTitle}>{money(payout.amount)}</Text>
-                <Text style={styles.muted}>
+          <div
+            key={payout._id}
+            className="flex flex-col gap-2 rounded-2xl border p-3.5"
+            style={{ backgroundColor: theme.secondaryBackground, borderColor: theme.border }}
+          >
+            <div className="flex flex-row items-center justify-between gap-2.5">
+              <div className="min-w-0 flex-1">
+                <span className="block text-[15px] font-extrabold" style={{ color: theme.text }}>
+                  {money(payout.amount)}
+                </span>
+                <span className="block text-[13px] leading-[18px]" style={{ color: theme.secondaryText }}>
                   {payout.method || "Payout method"} - {formatDate(payout.createdAt)}
-                </Text>
-              </View>
+                </span>
+              </div>
               <StatusPill styles={styles} status={payout.status} />
-            </View>
-            {payout.referenceId ? <Text style={styles.muted}>Reference: {payout.referenceId}</Text> : null}
-            {payout.note ? <Text style={styles.muted}>{payout.note}</Text> : null}
-          </View>
+            </div>
+            {payout.referenceId ? (
+              <span className="block text-[13px] leading-[18px]" style={{ color: theme.secondaryText }}>
+                Reference: {payout.referenceId}
+              </span>
+            ) : null}
+            {payout.note ? (
+              <span className="block text-[13px] leading-[18px]" style={{ color: theme.secondaryText }}>
+                {payout.note}
+              </span>
+            ) : null}
+          </div>
         ))
       )}
-    </View>
+    </div>
   );
 }

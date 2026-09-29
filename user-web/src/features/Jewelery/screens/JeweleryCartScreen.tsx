@@ -3,17 +3,8 @@ import * as Haptics from "@/lib/haptics";
 import { useNavigate } from "react-router-dom";
 import { goTo } from "@/src/utils/navigation";
 import React from "react";
-import {
-  Alert,
-  Image,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "@/components/primitives";
-import { useSafeAreaInsets } from "@/src/hooks/useSafeAreaInsets";
+import { cn } from "@/src/lib/utils";
+import { BREAKPOINTS, useWindowWidth } from "@/src/utils/responsive";
 
 import {
   APP_CURRENCY,
@@ -24,6 +15,13 @@ import { useCart } from "@/src/features/Jewelery/context/CartContext";
 import { useColors } from "@/src/features/Jewelery/hooks/useColors";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
 
+function resolveImgSrc(source: any): string {
+  if (!source) return "";
+  if (typeof source === "string") return source;
+  if (typeof source?.uri === "string") return source.uri;
+  return "";
+}
+
 export default function JeweleryCartScreen() {
   const navigate = useNavigate();
   const colors = useColors();
@@ -31,8 +29,13 @@ export default function JeweleryCartScreen() {
   const { cartItems, cartCount, removeFromCart, updateQuantity, cartTotal } =
     useCart();
   const { isAuthenticated } = useAuthStore();
-  const insets = useSafeAreaInsets();
-  const bottomPad = Platform.OS === "web" ? 34 : insets.bottom;
+  const bottomPad = 34;
+  const width = useWindowWidth();
+  const isDesktop = width >= BREAKPOINTS.desktopMin;
+  // Viewport-fixed checkout bar: clears the 60px tab bar + 12px breathing
+  // room on mobile; small offset on desktop where there is no tab bar.
+  const stickyBottom = isDesktop ? 12 : 60 + 12;
+  const totalQty = cartItems.reduce((s, i) => s + i.quantity, 0);
 
   const handleCheckout = () => {
     if (!isAuthenticated) {
@@ -45,399 +48,293 @@ export default function JeweleryCartScreen() {
   };
 
   return (
-    <View style={[styles.root, { backgroundColor: colors.ivory }]}>
-      <View style={[
-          styles.header,
-          {
-            paddingTop: topPad + 12,
-            backgroundColor: colors.ivory,
-            borderBottomColor: colors.midGray,
-          },
-        ]}
+    <div
+      className="flex min-h-screen flex-col"
+      style={{ backgroundColor: colors.ivory }}
+    >
+      <div
+        className="flex flex-row items-center justify-between border-b px-5 pb-3.5"
+        style={{
+          paddingTop: topPad + 12,
+          backgroundColor: colors.ivory,
+          borderBottomColor: colors.midGray,
+          borderBottomWidth: 1,
+        }}
       >
-        <Text style={[
-            styles.headerTitle,
-            {
-              color: colors.ink,
-              fontFamily: "CormorantGaramond_600SemiBold",
-            },
-          ]}
+        <h1
+          className="text-[22px] tracking-[3px]"
+          style={{
+            color: colors.ink,
+            fontFamily: "CormorantGaramond_600SemiBold",
+          }}
         >
           Your Bag
-        </Text>
-        <Text style={[
-            styles.headerCount,
-            { color: colors.warmGray, fontFamily: "DMSans_400Regular" },
-          ]}
+        </h1>
+        <span
+          className="text-xs"
+          style={{ color: colors.warmGray, fontFamily: "DMSans_400Regular" }}
         >
           {cartCount} item{cartCount !== 1 ? "s" : ""}
-        </Text>
-      </View>
+        </span>
+      </div>
 
       {cartItems.length === 0 ? (
-        <View style={styles.emptyState}>
+        <div className="flex flex-1 flex-col items-center justify-center gap-4 p-10">
           <ShoppingBag size={40} color={colors.midGray} />
-          <Text style={[
-              styles.emptyTitle,
-              {
-                color: colors.ink,
-                fontFamily: "CormorantGaramond_500Medium_Italic",
-              },
-            ]}
+          <span
+            className="whitespace-pre-line text-center text-[26px] leading-[34px]"
+            style={{
+              color: colors.ink,
+              fontFamily: "CormorantGaramond_500Medium_Italic",
+            }}
           >
-            Your cart is quiet.{"\n"}Let's change that.
-          </Text>
-          <Pressable style={[styles.browseBtn, { borderColor: colors.gold }]}
-            onPress={() => goTo(navigate, "/jewelery/collections" as any)}
+            {"Your cart is quiet.\nLet's change that."}
+          </span>
+          <button
+            type="button"
+            className="mt-2 cursor-pointer rounded-[1px] border px-6 py-3"
+            style={{ borderColor: colors.gold }}
+            onClick={() => goTo(navigate, "/jewelery/collections" as any)}
           >
-            <Text style={[
-                styles.browseBtnText,
-                { color: colors.gold, fontFamily: "DMSans_400Regular" },
-              ]}
+            <span
+              className="text-xs tracking-[1px]"
+              style={{ color: colors.gold, fontFamily: "DMSans_400Regular" }}
             >
               Browse Collections →
-            </Text>
-          </Pressable>
-        </View>
+            </span>
+          </button>
+        </div>
       ) : (
         <>
-          <ScrollView showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.scrollContent}
+          <div
+            className="overflow-y-auto pb-4"
+            style={{ paddingBottom: 16 + 96 }}
           >
             {/* Cart items */}
             {cartItems.map(({ product, quantity }) => (
-              <View key={product.id}
-                style={[
-                  styles.cartItem,
-                  {
-                    backgroundColor: colors.pearl,
-                    borderBottomColor: colors.midGray,
-                  },
-                ]}
+              <div
+                key={product.id}
+                className="flex flex-row gap-3.5 border-b p-4"
+                style={{
+                  backgroundColor: colors.pearl,
+                  borderBottomColor: colors.midGray,
+                  borderBottomWidth: 1,
+                }}
               >
-                <Image source={product.image}
-                  style={styles.itemImage}
-                  resizeMode="cover"
+                <img
+                  src={resolveImgSrc(product.image)}
+                  alt={product.name}
+                  className="h-[120px] w-[90px] rounded-[2px] object-cover"
                 />
-                <View style={styles.itemContent}>
-                  <Text style={[
-                      styles.itemName,
-                      {
-                        color: colors.ink,
-                        fontFamily: "CormorantGaramond_500Medium_Italic",
-                      },
-                    ]}
+                <div className="flex flex-1 flex-col gap-1">
+                  <span
+                    className="text-[17px] leading-[22px]"
+                    style={{
+                      color: colors.ink,
+                      fontFamily: "CormorantGaramond_500Medium_Italic",
+                    }}
                   >
                     {product.name}
-                  </Text>
-                  <Text style={[
-                      styles.itemSub,
-                      {
-                        color: colors.warmGray,
-                        fontFamily: "DMSans_400Regular",
-                      },
-                    ]}
+                  </span>
+                  <span
+                    className="text-[11px]"
+                    style={{
+                      color: colors.warmGray,
+                      fontFamily: "DMSans_400Regular",
+                    }}
                   >
                     {product.metal}
                     {product.stone ? ` · ${product.stone}` : ""}
-                  </Text>
-                  <Text style={[
-                      styles.itemPrice,
-                      { color: colors.ink, fontFamily: "DMSans_500Medium" },
-                    ]}
+                  </span>
+                  <span
+                    className="mt-1 text-[15px]"
+                    style={{ color: colors.ink, fontFamily: "DMSans_500Medium" }}
                   >
                     {APP_CURRENCY}{product.price.toLocaleString("en-IN")}
-                  </Text>
-                  <View style={styles.qtyRow}>
-                    <Pressable onPress={() => {
+                  </span>
+                  <div className="mt-2 flex flex-row items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => {
                         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                         updateQuantity(product.id, quantity - 1);
                       }}
-                      style={[
-                        styles.qtyBtn,
-                        { borderColor: colors.midGray },
-                      ]}
-                      hitSlop={6}
+                      className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full border"
+                      style={{ borderColor: colors.midGray }}
+                      aria-label="Decrease quantity"
                     >
                       <Minus size={12} color={colors.ink} />
-                    </Pressable>
-                    <Text style={[
-                        styles.qtyText,
-                        { color: colors.ink, fontFamily: "DMSans_500Medium" },
-                      ]}
+                    </button>
+                    <span
+                      className="min-w-5 text-center text-sm"
+                      style={{ color: colors.ink, fontFamily: "DMSans_500Medium" }}
                     >
                       {quantity}
-                    </Text>
-                    <Pressable onPress={() => {
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
                         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                         updateQuantity(product.id, quantity + 1);
                       }}
-                      style={[
-                        styles.qtyBtn,
-                        { borderColor: colors.midGray },
-                      ]}
-                      hitSlop={6}
+                      className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full border"
+                      style={{ borderColor: colors.midGray }}
+                      aria-label="Increase quantity"
                     >
                       <Plus size={12} color={colors.ink} />
-                    </Pressable>
-                    <Pressable onPress={() => {
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
                         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                         removeFromCart(product.id);
                       }}
-                      style={{ marginLeft: "auto" }}
-                      hitSlop={8}
+                      className="ml-auto cursor-pointer"
+                      aria-label="Remove item"
                     >
                       <Trash2 size={14} color={colors.warmGray} />
-                    </Pressable>
-                  </View>
-                </View>
-              </View>
+                    </button>
+                  </div>
+                </div>
+              </div>
             ))}
 
             {/* Order summary */}
-            <View style={[
-                styles.summarySection,
-                { backgroundColor: colors.champagne },
-              ]}
+            <div
+              className="m-4 flex flex-col gap-2 rounded-[2px] p-4"
+              style={{ backgroundColor: colors.champagne }}
             >
-              <Text style={[
-                  styles.summaryLabel,
-                  { color: colors.gold, fontFamily: "DMSans_500Medium" },
-                ]}
+              <span
+                className="mb-1 text-[9px] tracking-[2px]"
+                style={{ color: colors.gold, fontFamily: "DMSans_500Medium" }}
               >
                 ORDER SUMMARY
-              </Text>
-              <View style={styles.summaryRow}>
-                <Text style={[
-                    styles.summaryKey,
-                    {
-                      color: colors.warmGray,
-                      fontFamily: "DMSans_400Regular",
-                    },
-                  ]}
+              </span>
+              <div className="flex flex-row justify-between">
+                <span
+                  className="text-[13px]"
+                  style={{
+                    color: colors.warmGray,
+                    fontFamily: "DMSans_400Regular",
+                  }}
                 >
                   Subtotal
-                </Text>
-                <Text style={[
-                    styles.summaryVal,
-                    { color: colors.ink, fontFamily: "DMSans_500Medium" },
-                  ]}
+                </span>
+                <span
+                  className="text-[13px]"
+                  style={{ color: colors.ink, fontFamily: "DMSans_500Medium" }}
                 >
                   {APP_CURRENCY}{cartTotal.toLocaleString("en-IN")}
-                </Text>
-              </View>
-              <View style={styles.summaryRow}>
-                <Text style={[
-                    styles.summaryKey,
-                    {
-                      color: colors.warmGray,
-                      fontFamily: "DMSans_400Regular",
-                    },
-                  ]}
+                </span>
+              </div>
+              <div className="flex flex-row justify-between">
+                <span
+                  className="text-[13px]"
+                  style={{
+                    color: colors.warmGray,
+                    fontFamily: "DMSans_400Regular",
+                  }}
                 >
                   Shipping
-                </Text>
-                <Text style={[
-                    styles.summaryVal,
-                    { color: colors.gold, fontFamily: "DMSans_400Regular" },
-                  ]}
+                </span>
+                <span
+                  className="text-[13px]"
+                  style={{ color: colors.gold, fontFamily: "DMSans_400Regular" }}
                 >
                   {cartTotal >= JEWELERY_MODULE_CONFIG.freeShippingThreshold ? "Free" : "At checkout"}
-                </Text>
-              </View>
-              <View style={[styles.divider, { backgroundColor: colors.midGray }]}
+                </span>
+              </div>
+              <div
+                className="my-1 h-px"
+                style={{ backgroundColor: colors.midGray }}
               />
-              <View style={styles.summaryRow}>
-                <Text style={[
-                    styles.totalKey,
-                    { color: colors.ink, fontFamily: "DMSans_500Medium" },
-                  ]}
+              <div className="flex flex-row justify-between">
+                <span
+                  className="text-[15px]"
+                  style={{ color: colors.ink, fontFamily: "DMSans_500Medium" }}
                 >
                   Total
-                </Text>
-                <Text style={[
-                    styles.totalVal,
-                    { color: colors.ink, fontFamily: "CormorantGaramond_600SemiBold" },
-                  ]}
+                </span>
+                <span
+                  className="text-[20px]"
+                  style={{ color: colors.ink, fontFamily: "CormorantGaramond_600SemiBold" }}
                 >
                   {APP_CURRENCY}
                   {cartTotal.toLocaleString("en-IN")}
-                </Text>
-              </View>
-            </View>
+                </span>
+              </div>
+            </div>
 
             {/* Trust signals */}
-            <View style={[styles.trustRow, { borderTopColor: colors.midGray }]}>
+            <div
+              className="mx-4 flex flex-row justify-around border-t p-4"
+              style={{ borderTopColor: colors.midGray, borderTopWidth: 1 }}
+            >
               {[
                 { icon: Shield, text: "Hallmark Certified" },
                 { icon: RefreshCw, text: `Free Returns ${JEWELERY_MODULE_CONFIG.returnPolicyDays}d` },
                 { icon: Gift, text: "Gift Box Included" },
               ].map((t) => (
-                <View key={t.text} style={styles.trustItem}>
+                <div key={t.text} className="flex flex-col items-center gap-1">
                   <t.icon size={13} color={colors.gold} />
-                  <Text style={[
-                      styles.trustText,
-                      {
-                        color: colors.warmGray,
-                        fontFamily: "DMSans_400Regular",
-                      },
-                    ]}
+                  <span
+                    className="text-center text-[9px] tracking-[0.3px]"
+                    style={{
+                      color: colors.warmGray,
+                      fontFamily: "DMSans_400Regular",
+                    }}
                   >
                     {t.text}
-                  </Text>
-                </View>
+                  </span>
+                </div>
               ))}
-            </View>
-          </ScrollView>
+            </div>
+          </div>
 
           {/* Sticky checkout */}
-          <View style={[
-              styles.checkoutBar,
-              {
-                backgroundColor: colors.ivory,
-                borderTopColor: colors.midGray,
-                paddingBottom: bottomPad + 16,
-              },
-            ]}
+          <div
+            className={cn("fixed inset-x-0 z-40 flex flex-row items-center px-5 pt-3.5")}
+            style={{
+              bottom: stickyBottom,
+              backgroundColor: colors.ivory,
+              borderTopColor: colors.midGray,
+              borderTopWidth: 1,
+              paddingBottom: bottomPad + 16,
+            }}
           >
-            <View>
-              <Text style={[
-                  styles.checkoutTotal,
-                  { color: colors.ink, fontFamily: "DMSans_500Medium" },
-                ]}
+            <div>
+              <span
+                className="block text-[18px]"
+                style={{ color: colors.ink, fontFamily: "DMSans_500Medium" }}
               >
                 {APP_CURRENCY}{cartTotal.toLocaleString("en-IN")}
-              </Text>
-              <Text style={[
-                  styles.checkoutItems,
-                  {
-                    color: colors.warmGray,
-                    fontFamily: "DMSans_400Regular",
-                  },
-                ]}
+              </span>
+              <span
+                className="block text-[11px]"
+                style={{
+                  color: colors.warmGray,
+                  fontFamily: "DMSans_400Regular",
+                }}
               >
-                {cartItems.reduce((s, i) => s + i.quantity, 0)} item
-                {cartItems.reduce((s, i) => s + i.quantity, 0) !== 1 ? "s" : ""}
-              </Text>
-            </View>
-            <Pressable onPress={handleCheckout}
-              style={({ pressed }) => [
-                styles.checkoutBtn,
-                {
-                  backgroundColor: pressed ? colors.goldLight : colors.gold,
-                  flex: 1,
-                  marginLeft: 16,
-                },
-              ]}
+                {totalQty} item{totalQty !== 1 ? "s" : ""}
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={handleCheckout}
+              className="ml-4 flex-1 cursor-pointer rounded-[1px] py-4 text-center transition-opacity active:opacity-90"
+              style={{ backgroundColor: colors.gold }}
             >
-              <Text style={[
-                  styles.checkoutBtnText,
-                  { color: colors.onBrand, fontFamily: "DMSans_500Medium" },
-                ]}
+              <span
+                className="text-[13px] tracking-[1.5px]"
+                style={{ color: colors.onBrand, fontFamily: "DMSans_500Medium" }}
               >
                 Place Order
-              </Text>
-            </Pressable>
-          </View>
+              </span>
+            </button>
+          </div>
         </>
       )}
-    </View>
+    </div>
   );
 }
-
-const styles = StyleSheet.create({
-  root: { flex: 1 },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingBottom: 14,
-    borderBottomWidth: 0.5,
-  },
-  headerTitle: { fontSize: 22, letterSpacing: 3 },
-  headerCount: { fontSize: 12 },
-  emptyState: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 40,
-    gap: 16,
-  },
-  emptyTitle: {
-    fontSize: 26,
-    textAlign: "center",
-    lineHeight: 34,
-  },
-  browseBtn: {
-    borderWidth: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 1,
-    marginTop: 8,
-  },
-  browseBtnText: { fontSize: 12, letterSpacing: 1 },
-  scrollContent: { paddingBottom: 16 },
-  cartItem: {
-    flexDirection: "row",
-    padding: 16,
-    gap: 14,
-    borderBottomWidth: 0.5,
-  },
-  itemImage: {
-    width: 90,
-    height: 120,
-    borderRadius: 2,
-  },
-  itemContent: { flex: 1, gap: 4 },
-  itemName: { fontSize: 17, lineHeight: 22 },
-  itemSub: { fontSize: 11 },
-  itemPrice: { fontSize: 15, marginTop: 4 },
-  qtyRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    marginTop: 8,
-  },
-  qtyBtn: {
-    width: 28,
-    height: 28,
-    borderWidth: 1,
-    borderRadius: 14,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  qtyText: { fontSize: 14, minWidth: 20, textAlign: "center" },
-  summarySection: { margin: 16, padding: 16, borderRadius: 2, gap: 8 },
-  summaryLabel: { fontSize: 9, letterSpacing: 2, marginBottom: 4 },
-  summaryRow: { flexDirection: "row", justifyContent: "space-between" },
-  summaryKey: { fontSize: 13 },
-  summaryVal: { fontSize: 13 },
-  divider: { height: 0.5, marginVertical: 4 },
-  totalKey: { fontSize: 15 },
-  totalVal: { fontSize: 20 },
-  trustRow: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    padding: 16,
-    borderTopWidth: 0.5,
-    marginHorizontal: 16,
-  },
-  trustItem: { alignItems: "center", gap: 4 },
-  trustText: { fontSize: 9, textAlign: "center", letterSpacing: 0.3 },
-  checkoutBar: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    paddingTop: 14,
-    borderTopWidth: 0.5,
-  },
-  checkoutTotal: { fontSize: 18 },
-  checkoutItems: { fontSize: 11 },
-  checkoutBtn: {
-    paddingVertical: 16,
-    alignItems: "center",
-    borderRadius: 1,
-  },
-  checkoutBtnText: { fontSize: 13, letterSpacing: 1.5 },
-});

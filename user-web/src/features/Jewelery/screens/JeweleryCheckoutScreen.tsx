@@ -2,18 +2,8 @@ import { ArrowLeft, ArrowRight, Circle, CircleDot, CreditCard, DollarSign, Lock,
 import * as Haptics from "@/lib/haptics";
 import { useNavigate } from "react-router-dom";
 import React, { useEffect, useMemo, useState } from "react";
-import {
-  ActivityIndicator,
-  Image,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "@/components/primitives";
-import { useSafeAreaInsets } from "@/src/hooks/useSafeAreaInsets";
+import { cn } from "@/src/lib/utils";
+import { BREAKPOINTS, useWindowWidth } from "@/src/utils/responsive";
 
 import { APP_CURRENCY, JEWELERY_MODULE_CONFIG } from "@/src/constants";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
@@ -34,12 +24,32 @@ import { useColors } from "@/src/features/Jewelery/hooks/useColors";
 import { useTopPad } from "@/src/hooks/useTopPad";
 import { goBack, goTo, replaceTo } from "@/src/utils/navigation";
 
+function Spinner({ color, size = 20 }: { color: string; size?: number }) {
+  return (
+    <span
+      className="inline-block animate-spin rounded-full border-2"
+      style={{
+        width: size,
+        height: size,
+        borderColor: color,
+        borderTopColor: "transparent",
+      }}
+      role="status"
+      aria-label="Loading"
+    />
+  );
+}
+
 export default function JeweleryCheckoutScreen() {
   const colors = useColors();
   const navigate = useNavigate();
   const topPad = useTopPad();
-  const insets = useSafeAreaInsets();
-  const bottomPad = Platform.OS === "web" ? 34 : insets.bottom;
+  const bottomPad = 34;
+  const width = useWindowWidth();
+  const isDesktop = width >= BREAKPOINTS.desktopMin;
+  // Viewport-fixed footer CTA: clears the 60px tab bar + 12px breathing
+  // room on mobile; small offset on desktop where there is no tab bar.
+  const stickyBottom = isDesktop ? 12 : 60 + 12;
 
   const {
     items: allItems,
@@ -298,369 +308,255 @@ export default function JeweleryCheckoutScreen() {
     }
   };
 
-  const styles = StyleSheet.create({
-    root: { flex: 1, backgroundColor: colors.ivory },
-    header: {
-      flexDirection: "row",
-      alignItems: "center",
-      paddingTop: topPad + 8,
-      paddingBottom: 14,
-      paddingHorizontal: 20,
-      borderBottomWidth: 0.5,
-      borderBottomColor: colors.midGray,
-      backgroundColor: colors.ivory,
-      gap: 12,
-    },
-    backBtn: {
-      width: 36,
-      height: 36,
-      borderRadius: 18,
-      borderWidth: 1,
-      borderColor: colors.midGray,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    headerTitle: {
-      flex: 1,
-      fontSize: 20,
-      color: colors.ink,
-      fontFamily: "CormorantGaramond_600SemiBold",
-      letterSpacing: 2,
-    },
-    scroll: { flex: 1 },
-    scrollContent: { paddingBottom: 160 },
-    section: {
-      marginHorizontal: 16,
-      marginTop: 16,
-      backgroundColor: colors.pearl,
-      borderRadius: 2,
-      padding: 16,
-      borderWidth: 0.5,
-      borderColor: colors.midGray,
-    },
-    sectionLabel: {
-      fontSize: 9,
-      letterSpacing: 2,
-      color: colors.gold,
-      fontFamily: "DMSans_500Medium",
-      marginBottom: 12,
-    },
-    sectionRow: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      marginBottom: 8,
-    },
-    changeText: {
-      fontSize: 12,
-      color: colors.gold,
-      fontFamily: "DMSans_400Regular",
-    },
-    addressName: {
-      fontSize: 15,
-      color: colors.ink,
-      fontFamily: "DMSans_500Medium",
-    },
-    addressLine: {
-      fontSize: 13,
-      color: colors.warmGray,
-      fontFamily: "DMSans_400Regular",
-      marginTop: 2,
-      lineHeight: 18,
-    },
-    phoneRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 6,
-      marginTop: 6,
-    },
-    phoneText: {
-      fontSize: 12,
-      color: colors.warmGray,
-      fontFamily: "DMSans_400Regular",
-    },
-    verifiedBadge: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 4,
-      backgroundColor: colors.champagne,
-      paddingHorizontal: 8,
-      paddingVertical: 3,
-      borderRadius: 10,
-    },
-    verifiedText: {
-      fontSize: 10,
-      color: colors.gold,
-      fontFamily: "DMSans_500Medium",
-    },
-    noAddress: {
-      fontSize: 13,
-      color: colors.warmGray,
-      fontFamily: "DMSans_400Regular",
-      fontStyle: "italic",
-      textAlign: "center",
-      paddingVertical: 8,
-    },
-    itemRow: {
-      flexDirection: "row",
-      gap: 12,
-      marginBottom: 12,
-      paddingBottom: 12,
-      borderBottomWidth: 0.5,
-      borderBottomColor: colors.midGray,
-    },
-    itemImg: { width: 60, height: 80, borderRadius: 2 },
-    itemInfo: { flex: 1, gap: 3 },
-    itemTitle: {
-      fontSize: 14,
-      color: colors.ink,
-      fontFamily: "CormorantGaramond_500Medium_Italic",
-    },
-    itemMeta: {
-      fontSize: 11,
-      color: colors.warmGray,
-      fontFamily: "DMSans_400Regular",
-    },
-    itemPrice: {
-      fontSize: 13,
-      color: colors.ink,
-      fontFamily: "DMSans_500Medium",
-    },
-    payOpt: {
-      flexDirection: "row",
-      alignItems: "center",
-      padding: 14,
-      marginBottom: 8,
-      borderWidth: 1,
-      borderRadius: 2,
-      gap: 12,
-    },
-    payOptLabel: {
-      fontSize: 14,
-      fontFamily: "DMSans_500Medium",
-    },
-    payOptDesc: {
-      fontSize: 11,
-      fontFamily: "DMSans_400Regular",
-      color: colors.warmGray,
-    },
-    summaryRow: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      marginBottom: 8,
-    },
-    summaryKey: {
-      fontSize: 13,
-      color: colors.warmGray,
-      fontFamily: "DMSans_400Regular",
-    },
-    summaryVal: {
-      fontSize: 13,
-      color: colors.ink,
-      fontFamily: "DMSans_500Medium",
-    },
-    divider: { height: 0.5, backgroundColor: colors.midGray, marginVertical: 8 },
-    totalRow: { flexDirection: "row", justifyContent: "space-between", marginTop: 4 },
-    totalKey: {
-      fontSize: 16,
-      color: colors.ink,
-      fontFamily: "DMSans_500Medium",
-    },
-    totalVal: {
-      fontSize: 22,
-      color: colors.ink,
-      fontFamily: "CormorantGaramond_600SemiBold",
-    },
-    quoteErrorBox: {
-      margin: 16,
-      padding: 14,
-      borderRadius: 2,
-      borderWidth: 0.5,
-      borderColor: colors.maroon,
-      backgroundColor: colors.champagne,
-      gap: 6,
-    },
-    quoteErrorTitle: {
-      fontSize: 13,
-      color: colors.maroon,
-      fontFamily: "DMSans_500Medium",
-    },
-    quoteErrorMsg: {
-      fontSize: 12,
-      color: colors.maroon,
-      fontFamily: "DMSans_400Regular",
-      lineHeight: 18,
-    },
-    footer: {
-      position: "absolute",
-      bottom: 0,
-      left: 0,
-      right: 0,
-      backgroundColor: colors.ivory,
-      borderTopWidth: 0.5,
-      borderTopColor: colors.midGray,
-      paddingHorizontal: 20,
-      paddingTop: 14,
-      paddingBottom: bottomPad + 16,
-    },
-    placeBtn: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      backgroundColor: colors.gold,
-      paddingVertical: 16,
-      paddingHorizontal: 20,
-      borderRadius: 1,
-    },
-    placeBtnLeft: { gap: 2 },
-    placeBtnAmount: {
-      fontSize: 18,
-      color: colors.onBrand,
-      fontFamily: "CormorantGaramond_600SemiBold",
-    },
-    placeBtnLabel: {
-      fontSize: 11,
-      color: colors.champagne,
-      fontFamily: "DMSans_400Regular",
-    },
-    placeBtnText: {
-      fontSize: 12,
-      color: colors.onBrand,
-      fontFamily: "DMSans_500Medium",
-      letterSpacing: 1.5,
-    },
-    trustRow: {
-      flexDirection: "row",
-      justifyContent: "space-around",
-      padding: 16,
-      borderTopWidth: 0.5,
-      borderTopColor: colors.midGray,
-    },
-    trustItem: { alignItems: "center", gap: 4 },
-    trustText: {
-      fontSize: 9,
-      color: colors.warmGray,
-      fontFamily: "DMSans_400Regular",
-      textAlign: "center",
-      letterSpacing: 0.3,
-    },
-  });
-
   if (isLoading) {
     return (
-      <View style={[styles.root, { alignItems: "center", justifyContent: "center" }]}>
-        <ActivityIndicator color={colors.gold} />
-      </View>
+      <div
+        className="flex min-h-screen items-center justify-center"
+        style={{ backgroundColor: colors.ivory }}
+      >
+        <Spinner color={colors.gold} />
+      </div>
     );
   }
 
   if (!isAuthenticated) {
     return (
-      <View style={[styles.root, { justifyContent: "center", alignItems: "center" }]}>
-        <ActivityIndicator size="small" color={colors.gold} />
-      </View>
+      <div
+        className="flex min-h-screen items-center justify-center"
+        style={{ backgroundColor: colors.ivory }}
+      >
+        <Spinner color={colors.gold} size={16} />
+      </div>
     );
   }
 
-  return (
-    <View style={styles.root}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Pressable style={styles.backBtn} onPress={() => {
-          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-          goBack(navigate);
-        }} hitSlop={8}>
-          <ArrowLeft size={16} color={colors.ink} />
-        </Pressable>
-        <Text style={styles.headerTitle}>CHECKOUT</Text>
-        <Shield size={16} color={colors.gold} />
-      </View>
+  const ctaDisabled = isProcessingPayment || isQuoteLoading || Boolean(quoteError);
 
-      <ScrollView style={styles.scroll}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
+  return (
+    <div
+      className="flex min-h-screen flex-col"
+      style={{ backgroundColor: colors.ivory }}
+    >
+      {/* Header */}
+      <div
+        className="flex flex-row items-center gap-3 border-b px-5 pb-3.5"
+        style={{
+          paddingTop: topPad + 8,
+          borderBottomColor: colors.midGray,
+          borderBottomWidth: 1,
+          backgroundColor: colors.ivory,
+        }}
       >
+        <button
+          type="button"
+          className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border"
+          style={{ borderColor: colors.midGray }}
+          onClick={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            goBack(navigate);
+          }}
+          aria-label="Go back"
+        >
+          <ArrowLeft size={16} color={colors.ink} />
+        </button>
+        <h1
+          className="flex-1 text-[20px] tracking-[2px]"
+          style={{
+            color: colors.ink,
+            fontFamily: "CormorantGaramond_600SemiBold",
+          }}
+        >
+          CHECKOUT
+        </h1>
+        <Shield size={16} color={colors.gold} />
+      </div>
+
+      <div className="overflow-y-auto" style={{ paddingBottom: 160 }}>
         {/* Phone missing banner */}
         {Boolean(isAuthenticated && !user?.phone) && <PhoneMissingBanner />}
 
         {/* Delivery Address */}
-        <View style={styles.section}>
-          <View style={styles.sectionRow}>
-            <Text style={styles.sectionLabel}>DELIVERY ADDRESS</Text>
-            <TouchableOpacity onPress={() =>
+        <div
+          className="mx-4 mt-4 rounded-[2px] border p-4"
+          style={{
+            backgroundColor: colors.pearl,
+            borderColor: colors.midGray,
+            borderWidth: 1,
+          }}
+        >
+          <div className="mb-3 flex flex-row items-center justify-between">
+            <span
+              className="text-[9px] tracking-[2px]"
+              style={{ color: colors.gold, fontFamily: "DMSans_500Medium" }}
+            >
+              DELIVERY ADDRESS
+            </span>
+            <button
+              type="button"
+              className="cursor-pointer"
+              onClick={() =>
                 goTo(navigate, {
                   pathname: "/jewelery/addresses" as any,
                   params: { returnTo: "/jewelery/checkout" },
                 })
               }
             >
-              <Text style={styles.changeText}>
+              <span
+                className="text-xs"
+                style={{ color: colors.gold, fontFamily: "DMSans_400Regular" }}
+              >
                 {selectedAddress ? "Change" : "Add Address"}
-              </Text>
-            </TouchableOpacity>
-          </View>
+              </span>
+            </button>
+          </div>
 
           {selectedAddress ? (
             <>
-              <Text style={styles.addressName}>{selectedAddress.fullName}</Text>
-              <Text style={styles.addressLine}>
+              <span
+                className="block text-[15px]"
+                style={{ color: colors.ink, fontFamily: "DMSans_500Medium" }}
+              >
+                {selectedAddress.fullName}
+              </span>
+              <span
+                className="mt-0.5 block text-[13px] leading-[18px]"
+                style={{ color: colors.warmGray, fontFamily: "DMSans_400Regular" }}
+              >
                 {selectedAddress.street}, {selectedAddress.city}, {selectedAddress.state} - {selectedAddress.pincode}
-              </Text>
-              <View style={styles.phoneRow}>
-                <Text style={styles.phoneText}>{selectedAddress.phone}</Text>
+              </span>
+              <div className="mt-1.5 flex flex-row items-center gap-1.5">
+                <span
+                  className="text-xs"
+                  style={{ color: colors.warmGray, fontFamily: "DMSans_400Regular" }}
+                >
+                  {selectedAddress.phone}
+                </span>
                 {selectedAddress.isPhoneVerified ? (
-                  <View style={styles.verifiedBadge}>
-                    <ShieldCheck size={10} color={colors.gold} />
-                    <Text style={styles.verifiedText}>Verified</Text>
-                  </View>
-                ) : (
-                  <TouchableOpacity onPress={() => setOtpSheetVisible(true)}
-                    style={[styles.verifiedBadge, { backgroundColor: colors.pearl, borderWidth: 0.5, borderColor: colors.gold }]}
+                  <span
+                    className="flex flex-row items-center gap-1 rounded-[10px] px-2 py-[3px]"
+                    style={{ backgroundColor: colors.champagne }}
                   >
-                    <Text style={[styles.verifiedText, { color: colors.gold }]}>Verify Now</Text>
-                  </TouchableOpacity>
+                    <ShieldCheck size={10} color={colors.gold} />
+                    <span
+                      className="text-[10px]"
+                      style={{ color: colors.gold, fontFamily: "DMSans_500Medium" }}
+                    >
+                      Verified
+                    </span>
+                  </span>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setOtpSheetVisible(true)}
+                    className="flex cursor-pointer flex-row items-center gap-1 rounded-[10px] border px-2 py-[3px]"
+                    style={{ backgroundColor: colors.pearl, borderColor: colors.gold, borderWidth: 1 }}
+                  >
+                    <span
+                      className="text-[10px]"
+                      style={{ color: colors.gold, fontFamily: "DMSans_500Medium" }}
+                    >
+                      Verify Now
+                    </span>
+                  </button>
                 )}
-              </View>
+              </div>
             </>
           ) : (
-            <TouchableOpacity onPress={() =>
+            <button
+              type="button"
+              className="w-full cursor-pointer"
+              onClick={() =>
                 goTo(navigate, {
                   pathname: "/jewelery/addresses" as any,
                   params: { returnTo: "/jewelery/checkout" },
                 })
               }
             >
-              <Text style={styles.noAddress}>No address selected — tap to add one</Text>
-            </TouchableOpacity>
+              <span
+                className="block py-2 text-center text-[13px] italic"
+                style={{ color: colors.warmGray, fontFamily: "DMSans_400Regular" }}
+              >
+                No address selected — tap to add one
+              </span>
+            </button>
           )}
-        </View>
+        </div>
 
         {/* Order Items */}
-        <View style={styles.section}>
-          <Text style={styles.sectionLabel}>YOUR PIECES</Text>
+        <div
+          className="mx-4 mt-4 rounded-[2px] border p-4"
+          style={{
+            backgroundColor: colors.pearl,
+            borderColor: colors.midGray,
+            borderWidth: 1,
+          }}
+        >
+          <span
+            className="mb-3 block text-[9px] tracking-[2px]"
+            style={{ color: colors.gold, fontFamily: "DMSans_500Medium" }}
+          >
+            YOUR PIECES
+          </span>
           {items.map((item) => (
-            <View key={item.sku} style={styles.itemRow}>
+            <div
+              key={item.sku}
+              className="mb-3 flex flex-row gap-3 border-b pb-3"
+              style={{ borderBottomColor: colors.midGray, borderBottomWidth: 1 }}
+            >
               {item.image ? (
-                <Image source={{ uri: item.image }} style={styles.itemImg} resizeMode="cover" />
+                <img
+                  src={item.image}
+                  alt={item.productTitle || "Jewellery"}
+                  className="h-20 w-[60px] rounded-[2px] object-cover"
+                />
               ) : (
-                <View style={[styles.itemImg, { backgroundColor: colors.champagne }]} />
+                <div
+                  className="h-20 w-[60px] rounded-[2px]"
+                  style={{ backgroundColor: colors.champagne }}
+                />
               )}
-              <View style={styles.itemInfo}>
-                <Text style={styles.itemTitle} numberOfLines={2}>
+              <div className="flex flex-1 flex-col gap-[3px]">
+                <span
+                  className="line-clamp-2 block text-sm"
+                  style={{
+                    color: colors.ink,
+                    fontFamily: "CormorantGaramond_500Medium_Italic",
+                  }}
+                >
                   {item.productTitle || "Jewellery"}
-                </Text>
-                <Text style={styles.itemMeta}>Qty {item.quantity}</Text>
-                <Text style={styles.itemPrice}>
+                </span>
+                <span
+                  className="block text-[11px]"
+                  style={{ color: colors.warmGray, fontFamily: "DMSans_400Regular" }}
+                >
+                  Qty {item.quantity}
+                </span>
+                <span
+                  className="block text-[13px]"
+                  style={{ color: colors.ink, fontFamily: "DMSans_500Medium" }}
+                >
                   {APP_CURRENCY}{((item.price || 0) * item.quantity).toLocaleString("en-IN")}
-                </Text>
-              </View>
-            </View>
+                </span>
+              </div>
+            </div>
           ))}
-        </View>
+        </div>
 
         {/* Payment Method */}
-        <View style={styles.section}>
-          <Text style={styles.sectionLabel}>PAYMENT METHOD</Text>
+        <div
+          className="mx-4 mt-4 rounded-[2px] border p-4"
+          style={{
+            backgroundColor: colors.pearl,
+            borderColor: colors.midGray,
+            borderWidth: 1,
+          }}
+        >
+          <span
+            className="mb-3 block text-[9px] tracking-[2px]"
+            style={{ color: colors.gold, fontFamily: "DMSans_500Medium" }}
+          >
+            PAYMENT METHOD
+          </span>
           {(
             [
               { key: "ONLINE", label: "Pay Online", desc: "UPI, Cards, Netbanking & Wallets", icon: CreditCard },
@@ -669,130 +565,244 @@ export default function JeweleryCheckoutScreen() {
           ).map((opt) => {
             const isSelected = paymentMethod === opt.key;
             return (
-              <Pressable key={opt.key}
-                onPress={() => {
+              <button
+                key={opt.key}
+                type="button"
+                onClick={() => {
                   Haptics.selectionAsync();
                   setPaymentMethod(opt.key);
                 }}
-                style={[
-                  styles.payOpt,
-                  {
-                    borderColor: isSelected ? colors.gold : colors.midGray,
-                    backgroundColor: isSelected ? colors.champagne : "transparent",
-                  },
-                ]}
+                className="mb-2 flex w-full cursor-pointer flex-row items-center gap-3 rounded-[2px] border p-3.5 text-left"
+                style={{
+                  borderColor: isSelected ? colors.gold : colors.midGray,
+                  borderWidth: 1,
+                  backgroundColor: isSelected ? colors.champagne : "transparent",
+                }}
               >
                 <opt.icon size={18} color={isSelected ? colors.gold : colors.warmGray} />
-                <View style={{ flex: 1 }}>
-                  <Text style={[styles.payOptLabel, { color: isSelected ? colors.ink : colors.warmGray }]}>
+                <div className="flex-1">
+                  <span
+                    className="block text-sm"
+                    style={{
+                      color: isSelected ? colors.ink : colors.warmGray,
+                      fontFamily: "DMSans_500Medium",
+                    }}
+                  >
                     {opt.label}
-                  </Text>
-                  <Text style={styles.payOptDesc}>{opt.desc}</Text>
-                </View>
+                  </span>
+                  <span
+                    className="block text-[11px]"
+                    style={{ fontFamily: "DMSans_400Regular", color: colors.warmGray }}
+                  >
+                    {opt.desc}
+                  </span>
+                </div>
                 {isSelected ? (
                   <CircleDot size={18} color={colors.gold} />
                 ) : (
                   <Circle size={18} color={colors.midGray} />
                 )}
-              </Pressable>
+              </button>
             );
           })}
-        </View>
+        </div>
 
         {/* Bill Details */}
-        <View style={styles.section}>
-          <Text style={styles.sectionLabel}>BILL DETAILS</Text>
+        <div
+          className="mx-4 mt-4 rounded-[2px] border p-4"
+          style={{
+            backgroundColor: colors.pearl,
+            borderColor: colors.midGray,
+            borderWidth: 1,
+          }}
+        >
+          <span
+            className="mb-3 block text-[9px] tracking-[2px]"
+            style={{ color: colors.gold, fontFamily: "DMSans_500Medium" }}
+          >
+            BILL DETAILS
+          </span>
 
-          <View style={styles.summaryRow}>
-            <Text style={styles.summaryKey}>Subtotal</Text>
-            <Text style={styles.summaryVal}>
+          <div className="mb-2 flex flex-row justify-between">
+            <span
+              className="text-[13px]"
+              style={{ color: colors.warmGray, fontFamily: "DMSans_400Regular" }}
+            >
+              Subtotal
+            </span>
+            <span
+              className="text-[13px]"
+              style={{ color: colors.ink, fontFamily: "DMSans_500Medium" }}
+            >
               {APP_CURRENCY}{subtotal.toLocaleString("en-IN")}
-            </Text>
-          </View>
+            </span>
+          </div>
 
-          <View style={styles.summaryRow}>
-            <Text style={styles.summaryKey}>Shipping</Text>
-            <Text style={[styles.summaryVal, { color: displayShipping === 0 ? colors.gold : colors.ink }]}>
+          <div className="mb-2 flex flex-row justify-between">
+            <span
+              className="text-[13px]"
+              style={{ color: colors.warmGray, fontFamily: "DMSans_400Regular" }}
+            >
+              Shipping
+            </span>
+            <span
+              className="text-[13px]"
+              style={{
+                color: displayShipping === 0 ? colors.gold : colors.ink,
+                fontFamily: "DMSans_500Medium",
+              }}
+            >
               {displayShipping === 0 ? "FREE" : `${APP_CURRENCY}${displayShipping.toLocaleString("en-IN")}`}
-            </Text>
-          </View>
+            </span>
+          </div>
 
           {dynamicDeliverySurcharge > 0 && (
-            <View style={styles.summaryRow}>
-              <Text style={styles.summaryKey}>Dynamic Surcharge</Text>
-              <Text style={styles.summaryVal}>
+            <div className="mb-2 flex flex-row justify-between">
+              <span
+                className="text-[13px]"
+                style={{ color: colors.warmGray, fontFamily: "DMSans_400Regular" }}
+              >
+                Dynamic Surcharge
+              </span>
+              <span
+                className="text-[13px]"
+                style={{ color: colors.ink, fontFamily: "DMSans_500Medium" }}
+              >
                 {APP_CURRENCY}{dynamicDeliverySurcharge.toLocaleString("en-IN")}
-              </Text>
-            </View>
+              </span>
+            </div>
           )}
 
           {isQuoteLoading && (
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 8 }}>
-              <ActivityIndicator size="small" color={colors.gold} />
-              <Text style={[styles.summaryKey, { fontStyle: "italic" }]}>Calculating delivery...</Text>
-            </View>
+            <div className="mb-2 flex flex-row items-center gap-1.5">
+              <Spinner color={colors.gold} size={14} />
+              <span
+                className="text-[13px] italic"
+                style={{ color: colors.warmGray, fontFamily: "DMSans_400Regular" }}
+              >
+                Calculating delivery...
+              </span>
+            </div>
           )}
 
           {quoteError ? (
-            <View style={styles.quoteErrorBox}>
-              <Text style={styles.quoteErrorTitle}>Cannot Deliver to This Address</Text>
-              <Text style={styles.quoteErrorMsg}>{quoteError}</Text>
-            </View>
+            <div
+              className="m-4 flex flex-col gap-1.5 rounded-[2px] border p-3.5"
+              style={{
+                borderColor: colors.maroon,
+                borderWidth: 1,
+                backgroundColor: colors.champagne,
+              }}
+            >
+              <span
+                className="block text-[13px]"
+                style={{ color: colors.maroon, fontFamily: "DMSans_500Medium" }}
+              >
+                Cannot Deliver to This Address
+              </span>
+              <span
+                className="block text-xs leading-[18px]"
+                style={{ color: colors.maroon, fontFamily: "DMSans_400Regular" }}
+              >
+                {quoteError}
+              </span>
+            </div>
           ) : null}
 
-          <View style={styles.divider} />
+          <div
+            className="my-2 h-px"
+            style={{ backgroundColor: colors.midGray }}
+          />
 
-          <View style={styles.totalRow}>
-            <Text style={styles.totalKey}>Total Payable</Text>
-            <Text style={styles.totalVal}>
+          <div className="mt-1 flex flex-row justify-between">
+            <span
+              className="text-base"
+              style={{ color: colors.ink, fontFamily: "DMSans_500Medium" }}
+            >
+              Total Payable
+            </span>
+            <span
+              className="text-[22px]"
+              style={{ color: colors.ink, fontFamily: "CormorantGaramond_600SemiBold" }}
+            >
               {APP_CURRENCY}{totalPayable.toLocaleString("en-IN")}
-            </Text>
-          </View>
-        </View>
+            </span>
+          </div>
+        </div>
 
         {/* Trust Signals */}
-        <View style={styles.trustRow}>
+        <div
+          className="flex flex-row justify-around border-t p-4"
+          style={{ borderTopColor: colors.midGray, borderTopWidth: 1 }}
+        >
           {[
             { icon: Shield, text: "Hallmark Certified" },
             { icon: RefreshCw, text: `Free Returns ${JEWELERY_MODULE_CONFIG.returnPolicyDays}d` },
             { icon: Lock, text: "Secure Payment" },
           ].map((t) => (
-            <View key={t.text} style={styles.trustItem}>
+            <div key={t.text} className="flex flex-col items-center gap-1">
               <t.icon size={13} color={colors.gold} />
-              <Text style={styles.trustText}>{t.text}</Text>
-            </View>
+              <span
+                className="text-center text-[9px] tracking-[0.3px]"
+                style={{ color: colors.warmGray, fontFamily: "DMSans_400Regular" }}
+              >
+                {t.text}
+              </span>
+            </div>
           ))}
-        </View>
-      </ScrollView>
+        </div>
+      </div>
 
       {/* Footer CTA */}
-      <View style={styles.footer}>
-        <TouchableOpacity style={[
-            styles.placeBtn,
-            { opacity: isProcessingPayment || isQuoteLoading || Boolean(quoteError) ? 0.5 : 1 },
-          ]}
-          onPress={handlePlaceOrder}
-          disabled={isProcessingPayment || isQuoteLoading || Boolean(quoteError)}
-          activeOpacity={0.88}
-        >
-          <View style={styles.placeBtnLeft}>
-            <Text style={styles.placeBtnAmount}>
-              {APP_CURRENCY}{totalPayable.toLocaleString("en-IN")}
-            </Text>
-            <Text style={styles.placeBtnLabel}>inclusive of all taxes</Text>
-          </View>
-          {isProcessingPayment ? (
-            <ActivityIndicator color={colors.onBrand} size="small" />
-          ) : (
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-              <Text style={styles.placeBtnText}>
-                {paymentMethod === "COD" ? "PLACE ORDER" : "PAY & ORDER"}
-              </Text>
-              <ArrowRight size={14} color={colors.onBrand} />
-            </View>
+      <div
+        className="fixed inset-x-0 z-40 px-5 pt-3.5"
+        style={{
+          bottom: stickyBottom,
+          backgroundColor: colors.ivory,
+          borderTopColor: colors.midGray,
+          borderTopWidth: 1,
+          paddingBottom: bottomPad + 16,
+        }}
+      >
+        <button
+          type="button"
+          className={cn(
+            "flex w-full cursor-pointer flex-row items-center justify-between rounded-[1px] px-5 py-4",
+            ctaDisabled && "opacity-50",
           )}
-        </TouchableOpacity>
-      </View>
+          style={{ backgroundColor: colors.gold }}
+          onClick={handlePlaceOrder}
+          disabled={ctaDisabled}
+        >
+          <div className="flex flex-col gap-0.5 text-left">
+            <span
+              className="block text-[18px]"
+              style={{ color: colors.onBrand, fontFamily: "CormorantGaramond_600SemiBold" }}
+            >
+              {APP_CURRENCY}{totalPayable.toLocaleString("en-IN")}
+            </span>
+            <span
+              className="block text-[11px]"
+              style={{ color: colors.champagne, fontFamily: "DMSans_400Regular" }}
+            >
+              inclusive of all taxes
+            </span>
+          </div>
+          {isProcessingPayment ? (
+            <Spinner color={colors.onBrand} size={16} />
+          ) : (
+            <div className="flex flex-row items-center gap-2">
+              <span
+                className="text-xs tracking-[1.5px]"
+                style={{ color: colors.onBrand, fontFamily: "DMSans_500Medium" }}
+              >
+                {paymentMethod === "COD" ? "PLACE ORDER" : "PAY & ORDER"}
+              </span>
+              <ArrowRight size={14} color={colors.onBrand} />
+            </div>
+          )}
+        </button>
+      </div>
 
       <IOSAlertDialog visible={alertConfig.visible}
         onClose={hideAlert}
@@ -817,6 +827,6 @@ export default function JeweleryCheckoutScreen() {
           onClose={() => setOtpSheetVisible(false)}
         />
       )}
-    </View>
+    </div>
   );
 }
