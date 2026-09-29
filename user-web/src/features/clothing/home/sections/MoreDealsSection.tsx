@@ -1,5 +1,10 @@
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
-import { BREAKPOINTS, getGridCardWidth, useProductColumns, useWindowWidth } from "@/src/utils/responsive";
+import {
+  BREAKPOINTS,
+  getGridCardWidth,
+  useProductColumns,
+  useWindowWidth,
+} from "@/src/utils/responsive";
 import { ChevronDown, CircleX, Search, Zap } from "lucide-react";
 import { AppIcon } from "@/src/components/common/AppIcon";
 import type { LucideIcon } from "lucide-react";
@@ -32,12 +37,45 @@ import { cn } from "@/src/lib/utils";
 // ponytail: linear scan on small fixed-size list — perfectly fine
 const CATEGORY_ICON_MAP: { keywords: string[]; icon: LucideIcon }[] = [
   { keywords: ["shirt", "top", "tee", "t-shirt", "polo"], icon: Shirt },
-  { keywords: ["pant", "trouser", "chino", "jeans", "denim", "short"], icon: Scissors },
-  { keywords: ["jacket", "coat", "blazer", "overcoat", "windbreaker", "hoodie", "sweater", "sweat", "pullover"], icon: Snowflake },
+  {
+    keywords: ["pant", "trouser", "chino", "jeans", "denim", "short"],
+    icon: Scissors,
+  },
+  {
+    keywords: [
+      "jacket",
+      "coat",
+      "blazer",
+      "overcoat",
+      "windbreaker",
+      "hoodie",
+      "sweater",
+      "sweat",
+      "pullover",
+    ],
+    icon: Snowflake,
+  },
   { keywords: ["dress", "gown", "maxi", "midi", "skirt"], icon: Flower2 },
-  { keywords: ["kurta", "kurti", "ethnic", "salwar", "lehenga", "saree"], icon: Layers },
-  { keywords: ["shoe", "boot", "sneaker", "footwear", "sandal", "slipper", "chappal"], icon: Footprints },
-  { keywords: ["accessories", "bag", "wallet", "belt", "watch", "glasses"], icon: Glasses },
+  {
+    keywords: ["kurta", "kurti", "ethnic", "salwar", "lehenga", "saree"],
+    icon: Layers,
+  },
+  {
+    keywords: [
+      "shoe",
+      "boot",
+      "sneaker",
+      "footwear",
+      "sandal",
+      "slipper",
+      "chappal",
+    ],
+    icon: Footprints,
+  },
+  {
+    keywords: ["accessories", "bag", "wallet", "belt", "watch", "glasses"],
+    icon: Glasses,
+  },
   { keywords: ["kids", "child", "baby", "infant"], icon: Smile },
   { keywords: ["women", "ladies", "girl", "female"], icon: User },
   { keywords: ["men", "gents", "male"], icon: User },
@@ -77,13 +115,20 @@ export const useMoreDealsLogic = () => {
   const [activeFilter, setActiveFilter] = useState(FILTERS[0]);
   const [activeCampaign, setActiveCampaign] = useState("1");
   const [dropdownVisible, setDropdownVisible] = useState(false);
-  const [activeDropdownType, setActiveDropdownType] = useState<"Gender" | "Categories" | null>(null);
-  const [selectedGenderOptions, setSelectedGenderOptions] = useState<string[]>([]);
-  const [selectedCategoryOptions, setSelectedCategoryOptions] = useState<string[]>([]);
+  const [activeDropdownType, setActiveDropdownType] = useState<
+    "Gender" | "Categories" | null
+  >(null);
+  const [selectedGenderOptions, setSelectedGenderOptions] = useState<string[]>(
+    [],
+  );
+  const [selectedCategoryOptions, setSelectedCategoryOptions] = useState<
+    string[]
+  >([]);
   const [searchQuery, setSearchQuery] = useState("");
 
   const debouncedSearchQuery = useDebouncedValue(searchQuery.trim(), 500);
-  const effectiveSearchQuery = debouncedSearchQuery.length >= 2 ? debouncedSearchQuery : "";
+  const effectiveSearchQuery =
+    debouncedSearchQuery.length >= 2 ? debouncedSearchQuery : "";
 
   // 1. Fetch real categories — CLOTHING vertical only
   const { data: rawCategories } = useQuery({
@@ -113,7 +158,9 @@ export const useMoreDealsLogic = () => {
     // Root categories: those without a parentId, excluding a generic "Clothing" node if any
     const roots = cleanCats.filter((cat) => {
       const hasParent = Boolean(
-        typeof cat.parentId === "object" ? (cat.parentId as any)?._id : cat.parentId,
+        typeof cat.parentId === "object"
+          ? (cat.parentId as any)?._id
+          : cat.parentId,
       );
       return (
         !hasParent &&
@@ -133,7 +180,10 @@ export const useMoreDealsLogic = () => {
     return roots.map((parent) => {
       const pIdStr = parent._id.toString();
       const subCats = cleanCats.filter((cat) => {
-        const pId = typeof cat.parentId === "object" ? (cat.parentId as any)?._id : cat.parentId;
+        const pId =
+          typeof cat.parentId === "object"
+            ? (cat.parentId as any)?._id
+            : cat.parentId;
         return pId && pId.toString() === pIdStr;
       });
 
@@ -194,14 +244,19 @@ export const useMoreDealsLogic = () => {
         // Send EVERY selected gender (backend $in-matches + always includes
         // Unisex). Previously only [0] was sent, so multi-select showed just
         // the first gender's products.
-        gender: selectedGenderOptions.length > 0 ? [...selectedGenderOptions] : undefined,
+        gender:
+          selectedGenderOptions.length > 0
+            ? [...selectedGenderOptions]
+            : undefined,
         search: effectiveSearchQuery || undefined,
       };
 
       // Smart category & subcategory query handling
       if (selectedCategoryOptions.length > 0) {
         const selectedTitles = selectedCategoryOptions;
-        const matchingRoot = categoryGroups.find((g) => selectedTitles.includes(g.title));
+        const matchingRoot = categoryGroups.find((g) =>
+          selectedTitles.includes(g.title),
+        );
 
         if (matchingRoot && selectedTitles.length === 1) {
           // Entire parent category selected (e.g. "Men's Wear")
@@ -213,28 +268,58 @@ export const useMoreDealsLogic = () => {
       }
 
       // Campaign → server params
-      if (activeCampaign === "2") { params.isNewArrival = true; params.sortBy = "newest"; }
-      else if (activeCampaign === "3") { params.dealOfDay = true; params.sortBy = "discount"; }
-      else if (activeCampaign === "4") { params.isExpressAvailable = true; }
-      else if (activeCampaign === "5") { params.minRating = 4; params.sortBy = "rating"; }
+      if (activeCampaign === "2") {
+        params.isNewArrival = true;
+        params.sortBy = "newest";
+      } else if (activeCampaign === "3") {
+        params.dealOfDay = true;
+        params.sortBy = "discount";
+      } else if (activeCampaign === "4") {
+        params.isExpressAvailable = true;
+      } else if (activeCampaign === "5") {
+        params.minRating = 4;
+        params.sortBy = "rating";
+      }
 
       // Filter pill → server params
       switch (activeFilter.title) {
-        case "Rising Star": params.isTrending = true; break;
-        case "New Arrival": params.isNewArrival = true; params.sortBy = "newest"; break;
-        case "Top Brand": params.isFeatured = true; break;
-        case "Top Rated": params.minRating = 4; params.sortBy = "rating"; break;
-        case "₹1000 and above": params.minPrice = 1000; break;
-        case "₹500 - ₹999": params.minPrice = 500; params.maxPrice = 999; break;
-        case "₹200 - ₹499": params.minPrice = 200; params.maxPrice = 499; break;
-        case "Under ₹199": params.maxPrice = 199; break;
+        case "Rising Star":
+          params.isTrending = true;
+          break;
+        case "New Arrival":
+          params.isNewArrival = true;
+          params.sortBy = "newest";
+          break;
+        case "Top Brand":
+          params.isFeatured = true;
+          break;
+        case "Top Rated":
+          params.minRating = 4;
+          params.sortBy = "rating";
+          break;
+        case "₹1000 and above":
+          params.minPrice = 1000;
+          break;
+        case "₹500 - ₹999":
+          params.minPrice = 500;
+          params.maxPrice = 999;
+          break;
+        case "₹200 - ₹499":
+          params.minPrice = 200;
+          params.maxPrice = 499;
+          break;
+        case "Under ₹199":
+          params.maxPrice = 199;
+          break;
       }
 
       return getPublicProductsRequest(params);
     },
     getNextPageParam: (lastPage, allPages) => {
       if (!lastPage || typeof lastPage.total === "undefined") return undefined;
-      return allPages.length * 10 < lastPage.total ? allPages.length + 1 : undefined;
+      return allPages.length * 10 < lastPage.total
+        ? allPages.length + 1
+        : undefined;
     },
     initialPageParam: 1,
   });
@@ -246,7 +331,8 @@ export const useMoreDealsLogic = () => {
 
   const handleApply = (selected: string[]) => {
     if (activeDropdownType === "Gender") setSelectedGenderOptions(selected);
-    else if (activeDropdownType === "Categories") setSelectedCategoryOptions(selected);
+    else if (activeDropdownType === "Categories")
+      setSelectedCategoryOptions(selected);
   };
 
   // One-tap reset for the pills row — clears gender + category selections.
@@ -255,7 +341,8 @@ export const useMoreDealsLogic = () => {
     setSelectedCategoryOptions([]);
   }, []);
 
-  const currentOptionsList = activeDropdownType === "Gender" ? GENDER_OPTIONS : categoryOptions;
+  const currentOptionsList =
+    activeDropdownType === "Gender" ? GENDER_OPTIONS : categoryOptions;
 
   // Dynamic pill labels
   const categoryPillLabel = useMemo(() => {
@@ -332,65 +419,42 @@ export const MoreDealsFilters = ({
   const hookTheme = useTheme();
   const theme = propTheme || hookTheme;
   const winW = useWindowWidth();
-  const isDesktop = propIsDesktop ?? (winW >= BREAKPOINTS.desktopMin);
-  const [isListening, setIsListening] = useState(false);
-  const [speechError, setSpeechError] = useState<string | null>(null);
-  const speechModule = useMemo<any>(() => getSpeechRecognitionModule(), []);
-  const isSpeechModuleAvailable = !!speechModule;
-
-  useEffect(() => {
-    if (!speechModule?.addListener) return;
-
-    const startSub = speechModule.addListener("start", () => { setIsListening(true); setSpeechError(null); });
-    const endSub = speechModule.addListener("end", () => setIsListening(false));
-    const resultSub = speechModule.addListener("result", (event: any) => {
-      const transcript = event?.results?.[0]?.transcript?.trim();
-      if (transcript) setSearchQuery(transcript);
-    });
-    const errorSub = speechModule.addListener("error", (event: any) => {
-      setIsListening(false);
-      setSpeechError(event?.message || "Voice search is unavailable right now.");
-    });
-
-    return () => {
-      startSub?.remove?.();
-      endSub?.remove?.();
-      resultSub?.remove?.();
-      errorSub?.remove?.();
-    };
-  }, [setSearchQuery, speechModule]);
-
-  const handleMicPress = useCallback(async () => {
-    setSpeechError(null);
-    if (!speechModule || !speechModule.isRecognitionAvailable?.()) return;
-    if (isListening) { speechModule.stop?.(); return; }
-    try {
-      const permission = await speechModule.requestPermissionsAsync?.();
-      if (!permission.granted) { setSpeechError("Microphone permission is required for voice search."); return; }
-      speechModule.start?.({ lang: "en-IN", interimResults: true, continuous: false, maxAlternatives: 1, iosTaskHint: "search" });
-    } catch {
-      setSpeechError("Could not start voice search.");
-    }
-  }, [isListening, speechModule]);
+  const isDesktop = propIsDesktop ?? winW >= BREAKPOINTS.desktopMin;
 
   // Dynamic filter pills with resolved display labels
   const dynamicFilters = useMemo(
     () =>
       FILTERS.map((f) => {
         if (f.title === "Categories") {
-          return { ...f, displayTitle: categoryPillLabel, hasSelection: selectedCategoryOptions.length > 0 };
+          return {
+            ...f,
+            displayTitle: categoryPillLabel,
+            hasSelection: selectedCategoryOptions.length > 0,
+          };
         }
         if (f.title === "Gender") {
-          return { ...f, displayTitle: genderPillLabel, hasSelection: selectedGenderOptions.length > 0 };
+          return {
+            ...f,
+            displayTitle: genderPillLabel,
+            hasSelection: selectedGenderOptions.length > 0,
+          };
         }
         return { ...f, displayTitle: f.title, hasSelection: false };
       }),
-    [categoryPillLabel, genderPillLabel, selectedCategoryOptions, selectedGenderOptions],
+    [
+      categoryPillLabel,
+      genderPillLabel,
+      selectedCategoryOptions,
+      selectedGenderOptions,
+    ],
   );
 
   return (
     <div
-      className={cn("z-10 mb-6 pb-3", isDesktop && "mt-2 rounded-[20px] border px-0 pt-4 pb-4 shadow-xl")}
+      className={cn(
+        "z-10 mb-6 pb-3",
+        isDesktop && "mt-2 rounded-[20px] border px-0 pt-4 pb-4 shadow-xl",
+      )}
       style={{
         backgroundColor: theme.background,
         ...(isDesktop ? { borderColor: theme.border } : null),
@@ -399,7 +463,7 @@ export const MoreDealsFilters = ({
       {/* Search bar — mobile only. Desktop uses the navbar search;
           the deals card keeps filters alone. */}
       {!isDesktop && (
-        <div className="mt-3.5 mb-4.5 px-6">
+        <div className="pt-3.5 mb-4.5 px-6">
           <TextInput
             placeholder="Search products, brands..."
             placeholderTextColor={theme.tertiaryText}
@@ -409,27 +473,28 @@ export const MoreDealsFilters = ({
             returnKeyType="search"
             selectionColor={theme.primary}
             icon={
-              <span className="flex h-[30px] w-[30px] items-center justify-center rounded-full" style={{ backgroundColor: theme.tertiaryBackground }}>
-                <Search size={17} color={searchQuery ? theme.primary : theme.secondaryText} />
+              <span
+                className="flex h-[30px] w-[30px] items-center justify-center rounded-full"
+                style={{ backgroundColor: theme.tertiaryBackground }}
+              >
+                <Search
+                  size={17}
+                  color={searchQuery ? theme.primary : theme.secondaryText}
+                />
               </span>
             }
             rightIcon={
               <>
                 {searchQuery.length > 0 ? (
-                  <button type="button" onClick={() => setSearchQuery("")} className="mr-1 cursor-pointer p-1" aria-label="Clear search">
+                  <button
+                    type="button"
+                    onClick={() => setSearchQuery("")}
+                    className="mr-1 cursor-pointer p-1"
+                    aria-label="Clear search"
+                  >
                     <CircleX size={20} color={theme.secondaryText} />
                   </button>
                 ) : null}
-                <button
-                  type="button"
-                  onClick={handleMicPress}
-                  disabled={!isSpeechModuleAvailable}
-                  aria-label="Voice search"
-                  className="flex h-7 w-7 items-center justify-center rounded-full"
-                  style={{ backgroundColor: isListening ? theme.primary : "transparent", opacity: isSpeechModuleAvailable ? 1 : 0.5 }}
-                >
-                  <Mic size={18} color={isListening ? "#fff" : theme.tertiaryText} />
-                </button>
               </>
             }
             containerStyle={{ marginBottom: 0 }}
@@ -440,34 +505,44 @@ export const MoreDealsFilters = ({
               paddingVertical: 9,
               borderWidth: 1,
             }}
-            style={{ color: theme.text, fontSize: 16, fontWeight: "500", letterSpacing: -0.2 }}
+            style={{
+              color: theme.text,
+              fontSize: 16,
+              fontWeight: "500",
+              letterSpacing: -0.2,
+            }}
           />
 
           {searchQuery.length > 0 && (
             <div className="mt-2.5 flex flex-row items-center px-1.5">
               <Zap size={13} color={theme.primary} />
-              <p className="ml-1.5 text-xs font-medium" style={{ color: theme.secondaryText }}>
+              <p
+                className="ml-1.5 text-xs font-medium"
+                style={{ color: theme.secondaryText }}
+              >
                 Showing results for{" "}
-                <span className="font-bold" style={{ color: theme.primary }}>"{searchQuery}"</span>
+                <span className="font-bold" style={{ color: theme.primary }}>
+                  "{searchQuery}"
+                </span>
               </p>
             </div>
           )}
-          {speechError ? (
-            <p className="mt-2 ml-1.5 text-xs font-medium" style={{ color: theme.error }}>
-              {speechError}
-            </p>
-          ) : null}
         </div>
       )}
 
       {/* Filter pills */}
       <div
-        className={cn("flex flex-row gap-2.5 overflow-x-auto px-6", isDesktop && "gap-3 px-5")}
+        className={cn(
+          "flex flex-row gap-2.5 overflow-x-auto px-6",
+          isDesktop && "gap-3 px-5",
+        )}
         style={{ scrollbarWidth: "none" }}
       >
         {dynamicFilters.map((filter) => {
-          const isActive = activeFilter.title === filter.title || filter.hasSelection;
-          const isDropdown = filter.title === "Gender" || filter.title === "Categories";
+          const isActive =
+            activeFilter.title === filter.title || filter.hasSelection;
+          const isDropdown =
+            filter.title === "Gender" || filter.title === "Categories";
 
           return (
             <button
@@ -476,7 +551,9 @@ export const MoreDealsFilters = ({
               onClick={() => {
                 setActiveFilter({ title: filter.title, icon: filter.icon });
                 if (isDropdown) {
-                  setActiveDropdownType(filter.title as "Gender" | "Categories");
+                  setActiveDropdownType(
+                    filter.title as "Gender" | "Categories",
+                  );
                   setDropdownVisible(true);
                 }
               }}
@@ -487,28 +564,45 @@ export const MoreDealsFilters = ({
               }}
             >
               {filter.icon && (
-                <AppIcon icon={filter.icon} size={14} color={isActive ? "#fff" : theme.iconColor} />
+                <AppIcon
+                  icon={filter.icon}
+                  size={14}
+                  color={isActive ? "#fff" : theme.iconColor}
+                />
               )}
-              <span className="text-[13px] font-semibold" style={{ color: isActive ? "#fff" : theme.text }}>
+              <span
+                className="text-[13px] font-semibold"
+                style={{ color: isActive ? "#fff" : theme.text }}
+              >
                 {filter.displayTitle}
               </span>
               {isDropdown && (
-                <ChevronDown size={14} color={isActive ? "#fff" : theme.iconColor} />
+                <ChevronDown
+                  size={14}
+                  color={isActive ? "#fff" : theme.iconColor}
+                />
               )}
             </button>
           );
         })}
 
         {/* One-tap reset — only when gender/category selections are active */}
-        {(selectedGenderOptions.length > 0 || selectedCategoryOptions.length > 0) && (
+        {(selectedGenderOptions.length > 0 ||
+          selectedCategoryOptions.length > 0) && (
           <button
             type="button"
             onClick={() => clearFilterSelections?.()}
             className="flex shrink-0 cursor-pointer flex-row items-center gap-1.5 rounded-full border px-4 py-2"
-            style={{ borderColor: theme.border, backgroundColor: theme.secondaryBackground }}
+            style={{
+              borderColor: theme.border,
+              backgroundColor: theme.secondaryBackground,
+            }}
           >
             <CircleX size={14} color={theme.secondaryText} />
-            <span className="text-[13px] font-semibold" style={{ color: theme.secondaryText }}>
+            <span
+              className="text-[13px] font-semibold"
+              style={{ color: theme.secondaryText }}
+            >
               Reset
             </span>
           </button>
@@ -541,27 +635,44 @@ export const MoreDealsGrid = ({
   const hookTheme = useTheme();
   const theme = propTheme || hookTheme;
   const winW = useWindowWidth();
-  const isDesktop = propIsDesktop ?? (winW >= BREAKPOINTS.desktopMin);
+  const isDesktop = propIsDesktop ?? winW >= BREAKPOINTS.desktopMin;
 
   return (
     <div
-      className={cn("flex flex-row flex-wrap justify-start gap-3 px-4", isDesktop && "gap-5 px-0")}
+      className={cn(
+        "flex flex-row flex-wrap justify-start gap-3 px-4",
+        isDesktop && "gap-5 px-0",
+      )}
       style={isDesktop ? { rowGap: 28 } : { rowGap: 24 }}
     >
       {isLoading && !allProducts.length ? (
-        [1, 2, 3, 4, 5, 6].map((key) => <DealProductSkeleton key={key} width={cardWidth} />)
+        [1, 2, 3, 4, 5, 6].map((key) => (
+          <DealProductSkeleton key={key} width={cardWidth} />
+        ))
       ) : allProducts.length > 0 ? (
         allProducts.map((product: any) => (
-          <DealProductCard key={product._id} product={product} width={cardWidth} />
+          <DealProductCard
+            key={product._id}
+            product={product}
+            width={cardWidth}
+          />
         ))
       ) : (
         <div className="flex w-full flex-col items-center py-15">
           <Search size={48} color={theme.tertiaryText} />
-          <p className="mt-4 text-base font-semibold" style={{ color: theme.secondaryText }}>
+          <p
+            className="mt-4 text-base font-semibold"
+            style={{ color: theme.secondaryText }}
+          >
             No products found
           </p>
-          <p className="mt-2 px-10 text-center text-sm" style={{ color: theme.tertiaryText }}>
-            {"Try adjusting your search or filters to find what you're looking for."}
+          <p
+            className="mt-2 px-10 text-center text-sm"
+            style={{ color: theme.tertiaryText }}
+          >
+            {
+              "Try adjusting your search or filters to find what you're looking for."
+            }
           </p>
         </div>
       )}
@@ -576,10 +687,15 @@ export const MoreDealsGrid = ({
           {isFetchingNextPage ? (
             <span
               className="mx-auto block h-5 w-5 animate-spin rounded-full border-2 border-t-transparent"
-              style={{ borderColor: `${theme.primary}40`, borderTopColor: theme.primary }}
+              style={{
+                borderColor: `${theme.primary}40`,
+                borderTopColor: theme.primary,
+              }}
             />
           ) : (
-            <span className="font-semibold" style={{ color: theme.primary }}>Load More</span>
+            <span className="font-semibold" style={{ color: theme.primary }}>
+              Load More
+            </span>
           )}
         </button>
       )}
@@ -590,8 +706,14 @@ export const MoreDealsGrid = ({
           onClose={() => setDropdownVisible(false)}
           title={activeDropdownType}
           options={currentOptionsList}
-          categoryGroups={activeDropdownType === "Categories" ? categoryGroups : undefined}
-          initialSelected={activeDropdownType === "Gender" ? selectedGenderOptions : selectedCategoryOptions}
+          categoryGroups={
+            activeDropdownType === "Categories" ? categoryGroups : undefined
+          }
+          initialSelected={
+            activeDropdownType === "Gender"
+              ? selectedGenderOptions
+              : selectedCategoryOptions
+          }
           onApply={handleApply}
         />
       )}

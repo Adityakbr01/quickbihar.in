@@ -1,11 +1,23 @@
 import React, { useEffect, useMemo } from "react";
-import { Platform, View, ScrollView, TouchableOpacity, Text, ActivityIndicator, useWindowDimensions } from "react-native";
+import {
+  Platform,
+  View,
+  ScrollView,
+  TouchableOpacity,
+  Text,
+  ActivityIndicator,
+  useWindowDimensions,
+} from "react-native";
 import { BREAKPOINTS, DESKTOP } from "@/src/utils/responsive";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { createCartStyles } from "../styles/cartStyles";
-import { useCartStore, filterItemsByModule, totalsForItems } from "../store/cartStore";
+import {
+  useCartStore,
+  filterItemsByModule,
+  totalsForItems,
+} from "../store/cartStore";
 import CartHeader from "../components/CartHeader";
 import CartItem from "../components/CartItem";
 import CartSummary from "../components/CartSummary";
@@ -29,12 +41,15 @@ const CartContent = () => {
     appliedCoupons = [],
     discountAmount,
     shippingRules,
-    fetchShippingConfig
+    fetchShippingConfig,
   } = useCartStore();
 
   // Clothing cart shows ONLY clothing lines — jewelery lines live in the
   // jewelery bag even though both modules share the server cart.
-  const items = useMemo(() => filterItemsByModule(allItems, "clothing"), [allItems]);
+  const items = useMemo(
+    () => filterItemsByModule(allItems, "clothing"),
+    [allItems],
+  );
   const { subtotal, totalTax } = useMemo(() => totalsForItems(items), [items]);
 
   useEffect(() => {
@@ -43,7 +58,7 @@ const CartContent = () => {
   }, []);
 
   const handleUpdateQuantity = (sku: string, delta: number) => {
-    const item = items.find(i => i.sku === sku);
+    const item = items.find((i) => i.sku === sku);
     if (item) {
       const newQty = item.quantity + delta;
       if (newQty > 0) {
@@ -83,7 +98,12 @@ const CartContent = () => {
 
   if (isLoading && items.length === 0) {
     return (
-      <View style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
+      <View
+        style={[
+          styles.container,
+          { justifyContent: "center", alignItems: "center" },
+        ]}
+      >
         <ActivityIndicator size="large" color={theme.primary} />
       </View>
     );
@@ -104,9 +124,10 @@ const CartContent = () => {
   // Calculated values for summary & checkout
   const shipping = subtotal >= shippingRules.threshold ? 0 : shippingRules.fee;
   const autoDiscount = 0;
-  const couponsTotalDiscount = appliedCoupons.length > 0
-    ? appliedCoupons.reduce((sum, c) => sum + (c.appliedDiscount || 0), 0)
-    : (discountAmount || 0);
+  const couponsTotalDiscount =
+    appliedCoupons.length > 0
+      ? appliedCoupons.reduce((sum, c) => sum + (c.appliedDiscount || 0), 0)
+      : discountAmount || 0;
 
   const totalDiscount = autoDiscount + couponsTotalDiscount;
   const totalAmount = Math.max(0, subtotal + shipping - totalDiscount);
@@ -128,7 +149,7 @@ const CartContent = () => {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          {items.map(item => (
+          {items.map((item) => (
             <CartItem
               key={item.sku}
               item={{
@@ -141,9 +162,11 @@ const CartContent = () => {
                 quantity: item.quantity,
                 sku: item.sku,
                 selectedSize: item.selectedSize,
-                selectedColor: item.selectedColor
+                selectedColor: item.selectedColor,
               }}
-              onUpdateQuantity={(id, delta) => handleUpdateQuantity(item.sku, delta)}
+              onUpdateQuantity={(id, delta) =>
+                handleUpdateQuantity(item.sku, delta)
+              }
               onRemove={() => handleRemoveItem(item.sku)}
             />
           ))}
@@ -177,9 +200,7 @@ const CartContent = () => {
           >
             <View style={styles.checkoutTotalInfo}>
               <Text style={styles.checkoutTotalLabel}>
-                {totalDiscount > 0
-                  ? "Total · You save"
-                  : "Total Amount"}
+                {totalDiscount > 0 ? "Total · You save" : "Total Amount"}
               </Text>
               <View style={styles.checkoutTotalRow}>
                 <AnimatedPrice

@@ -1,10 +1,19 @@
 import React, { useEffect, useMemo } from "react";
-import { BREAKPOINTS, DESKTOP, BOTTOM_TAB_BAR_HEIGHT, useWindowWidth } from "@/src/utils/responsive";
+import {
+  BREAKPOINTS,
+  DESKTOP,
+  BOTTOM_TAB_BAR_HEIGHT,
+  useWindowWidth,
+} from "@/src/utils/responsive";
 import { useSafeAreaInsets } from "@/src/hooks/useSafeAreaInsets";
 import { ArrowRight } from "lucide-react";
 import * as Haptics from "@/lib/haptics";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
-import { useCartStore, filterItemsByModule, totalsForItems } from "../store/cartStore";
+import {
+  useCartStore,
+  filterItemsByModule,
+  totalsForItems,
+} from "../store/cartStore";
 import CartHeader from "../components/CartHeader";
 import CartItem from "../components/CartItem";
 import CartSummary from "../components/CartSummary";
@@ -27,12 +36,15 @@ const CartContent = () => {
     appliedCoupons = [],
     discountAmount,
     shippingRules,
-    fetchShippingConfig
+    fetchShippingConfig,
   } = useCartStore();
 
   // Clothing cart shows ONLY clothing lines — jewelery lines live in the
   // jewelery bag even though both modules share the server cart.
-  const items = useMemo(() => filterItemsByModule(allItems, "clothing"), [allItems]);
+  const items = useMemo(
+    () => filterItemsByModule(allItems, "clothing"),
+    [allItems],
+  );
   const { subtotal, totalTax } = useMemo(() => totalsForItems(items), [items]);
 
   useEffect(() => {
@@ -41,7 +53,7 @@ const CartContent = () => {
   }, []);
 
   const handleUpdateQuantity = (sku: string, delta: number) => {
-    const item = items.find(i => i.sku === sku);
+    const item = items.find((i) => i.sku === sku);
     if (item) {
       const newQty = item.quantity + delta;
       if (newQty > 0) {
@@ -66,7 +78,9 @@ const CartContent = () => {
   const insets = useSafeAreaInsets();
   // Footer must clear the fixed tab bar + home-indicator safe area on
   // notched phones (hardcoded 70 buried the CTA behind the tab bar there).
-  const footerBottom = isDesktop ? 0 : BOTTOM_TAB_BAR_HEIGHT + 12 + (insets?.bottom ?? 0);
+  const footerBottom = isDesktop
+    ? 0
+    : BOTTOM_TAB_BAR_HEIGHT + (insets?.bottom ?? 0);
 
   const handleCheckout = () => {
     if (!isAuthenticated) {
@@ -84,7 +98,10 @@ const CartContent = () => {
       >
         <span
           className="block h-8 w-8 animate-spin rounded-full border-2 border-t-transparent"
-          style={{ borderColor: `${theme.primary}40`, borderTopColor: theme.primary }}
+          style={{
+            borderColor: `${theme.primary}40`,
+            borderTopColor: theme.primary,
+          }}
           role="status"
           aria-label="Loading cart"
         />
@@ -94,7 +111,10 @@ const CartContent = () => {
 
   if (items.length === 0) {
     return (
-      <div className="flex flex-1" style={{ backgroundColor: theme.background }}>
+      <div
+        className="flex flex-1"
+        style={{ backgroundColor: theme.background }}
+      >
         <EmptyCart />
       </div>
     );
@@ -107,9 +127,10 @@ const CartContent = () => {
   // Calculated values for summary & checkout
   const shipping = subtotal >= shippingRules.threshold ? 0 : shippingRules.fee;
   const autoDiscount = 0;
-  const couponsTotalDiscount = appliedCoupons.length > 0
-    ? appliedCoupons.reduce((sum, c) => sum + (c.appliedDiscount || 0), 0)
-    : (discountAmount || 0);
+  const couponsTotalDiscount =
+    appliedCoupons.length > 0
+      ? appliedCoupons.reduce((sum, c) => sum + (c.appliedDiscount || 0), 0)
+      : discountAmount || 0;
 
   const totalDiscount = autoDiscount + couponsTotalDiscount;
   const totalAmount = Math.max(0, subtotal + shipping - totalDiscount);
@@ -134,8 +155,9 @@ const CartContent = () => {
         <CartHeader productsCount={productsCount} totalUnits={totalUnits} />
 
         <div className="flex-1 overflow-y-auto pb-[220px]">
-          {items.map(item => (
-            <CartItem key={item.sku}
+          {items.map((item) => (
+            <CartItem
+              key={item.sku}
               item={{
                 id: item.sku,
                 name: item.productTitle || "Product",
@@ -146,16 +168,19 @@ const CartContent = () => {
                 quantity: item.quantity,
                 sku: item.sku,
                 selectedSize: item.selectedSize,
-                selectedColor: item.selectedColor
+                selectedColor: item.selectedColor,
               }}
-              onUpdateQuantity={(id, delta) => handleUpdateQuantity(item.sku, delta)}
+              onUpdateQuantity={(id, delta) =>
+                handleUpdateQuantity(item.sku, delta)
+              }
               onRemove={() => handleRemoveItem(item.sku)}
             />
           ))}
 
           <CouponInput />
 
-          <CartSummary subtotal={subtotal}
+          <CartSummary
+            subtotal={subtotal}
             totalTax={totalTax}
             shipping={shipping}
             discount={autoDiscount}
@@ -185,9 +210,7 @@ const CartContent = () => {
           >
             <span className="flex flex-col justify-center">
               <span className="text-[11px] font-semibold tracking-[0.3px] text-white/80 uppercase">
-                {totalDiscount > 0
-                  ? "Total · You save"
-                  : "Total Amount"}
+                {totalDiscount > 0 ? "Total · You save" : "Total Amount"}
               </span>
               <span className="mt-0.5 flex flex-row items-baseline gap-2.5">
                 <AnimatedPrice
@@ -200,13 +223,20 @@ const CartContent = () => {
                     value={totalDiscount}
                     duration={700}
                     noPulse
-                    style={{ color: "rgba(255,255,255,0.85)", fontSize: 12, fontWeight: 700, textDecorationLine: "line-through" }}
+                    style={{
+                      color: "rgba(255,255,255,0.85)",
+                      fontSize: 12,
+                      fontWeight: 700,
+                      textDecorationLine: "line-through",
+                    }}
                   />
                 ) : null}
               </span>
             </span>
             <span className="flex flex-row items-center gap-1.5">
-              <span className="text-base font-extrabold text-white">Place Order</span>
+              <span className="text-base font-extrabold text-white">
+                Place Order
+              </span>
               <ArrowRight size={18} color="#fff" />
             </span>
           </button>

@@ -1,8 +1,21 @@
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
-import { ArrowLeft, Banknote, Circle, CircleAlert, CircleDot, CreditCard, Info, MapPin, ShieldCheck } from "lucide-react";
+import {
+  ArrowLeft,
+  Banknote,
+  Circle,
+  CircleAlert,
+  CircleDot,
+  CreditCard,
+  Info,
+  MapPin,
+  ShieldCheck,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import React, { useEffect, useMemo, useState } from "react";
-import { getAddressesRequest, updateAddressRequest } from "../../address/api/address.api";
+import {
+  getAddressesRequest,
+  updateAddressRequest,
+} from "../../address/api/address.api";
 import PhoneOtpSheet from "../../address/components/PhoneOtpSheet";
 import { useCartStore } from "../../cart/store/cartStore";
 import {
@@ -49,7 +62,10 @@ const CheckoutScreen = () => {
   const { subtotal, totalTax } = useMemo(
     () => ({
       subtotal: items.reduce((acc, i) => acc + (i.price || 0) * i.quantity, 0),
-      totalTax: items.reduce((acc, i) => acc + (i.taxAmount || 0) * i.quantity, 0),
+      totalTax: items.reduce(
+        (acc, i) => acc + (i.taxAmount || 0) * i.quantity,
+        0,
+      ),
     }),
     [items],
   );
@@ -66,9 +82,10 @@ const CheckoutScreen = () => {
   const [quote, setQuote] = useState<OrderQuoteData | null>(null);
   const [isQuoteLoading, setIsQuoteLoading] = useState(false);
   const [quoteError, setQuoteError] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState<"ONLINE" | "COD">("ONLINE");
+  const [paymentMethod, setPaymentMethod] = useState<"ONLINE" | "COD">(
+    "ONLINE",
+  );
   const [otpSheetVisible, setOtpSheetVisible] = useState(false);
-
 
   // Alert Configuration
   const [alertConfig, setAlertConfig] = useState<{
@@ -97,25 +114,35 @@ const CheckoutScreen = () => {
 
   // Constants using dynamic rules
   const shipping = subtotal >= shippingRules.threshold ? 0 : shippingRules.fee;
-  const totalPayable = quote?.payableAmount ?? (subtotal + shipping - discountAmount);
+  const totalPayable =
+    quote?.payableAmount ?? subtotal + shipping - discountAmount;
   const displayShipping = quote?.shippingFee ?? shipping;
   const dynamicDeliverySurcharge = quote?.dynamicDeliverySurcharge ?? 0;
-  const activeBonusLabels = quote?.sellerBreakdowns
-    ?.flatMap((breakdown) => {
+  const activeBonusLabels =
+    quote?.sellerBreakdowns?.flatMap((breakdown) => {
       const labels: string[] = [];
-      if (breakdown.bonusFlags?.rain && breakdown.riderBonuses?.rain > 0) labels.push(`Rain Rs. ${breakdown.riderBonuses.rain}`);
-      if (breakdown.bonusFlags?.peak && breakdown.riderBonuses?.peak > 0) labels.push(`Peak Rs. ${breakdown.riderBonuses.peak}`);
-      if (breakdown.bonusFlags?.festival && breakdown.riderBonuses?.festival > 0) labels.push(`Festival Rs. ${breakdown.riderBonuses.festival}`);
-      if (breakdown.bonusFlags?.night && breakdown.riderBonuses?.night > 0) labels.push(`Night Rs. ${breakdown.riderBonuses.night}`);
+      if (breakdown.bonusFlags?.rain && breakdown.riderBonuses?.rain > 0)
+        labels.push(`Rain Rs. ${breakdown.riderBonuses.rain}`);
+      if (breakdown.bonusFlags?.peak && breakdown.riderBonuses?.peak > 0)
+        labels.push(`Peak Rs. ${breakdown.riderBonuses.peak}`);
+      if (
+        breakdown.bonusFlags?.festival &&
+        breakdown.riderBonuses?.festival > 0
+      )
+        labels.push(`Festival Rs. ${breakdown.riderBonuses.festival}`);
+      if (breakdown.bonusFlags?.night && breakdown.riderBonuses?.night > 0)
+        labels.push(`Night Rs. ${breakdown.riderBonuses.night}`);
       return labels;
     }) || [];
 
   const hasAddressGps = (address: any) => {
     const latitude = Number(address?.latitude);
     const longitude = Number(address?.longitude);
-    return Number.isFinite(latitude)
-      && Number.isFinite(longitude)
-      && !(latitude === 0 && longitude === 0);
+    return (
+      Number.isFinite(latitude) &&
+      Number.isFinite(longitude) &&
+      !(latitude === 0 && longitude === 0)
+    );
   };
 
   // Refetch addresses every time the checkout screen comes into focus
@@ -162,7 +189,11 @@ const CheckoutScreen = () => {
     let cancelled = false;
 
     const fetchQuote = async () => {
-      if (!selectedAddress || !hasAddressGps(selectedAddress) || items.length === 0) {
+      if (
+        !selectedAddress ||
+        !hasAddressGps(selectedAddress) ||
+        items.length === 0
+      ) {
         setQuote(null);
         return;
       }
@@ -244,7 +275,10 @@ const CheckoutScreen = () => {
             onPress: () =>
               goTo(navigate, {
                 pathname: "/account/address-form",
-                params: { id: selectedAddress._id, data: JSON.stringify(selectedAddress) },
+                params: {
+                  id: selectedAddress._id,
+                  data: JSON.stringify(selectedAddress),
+                },
               }),
           },
         ],
@@ -268,7 +302,6 @@ const CheckoutScreen = () => {
       );
       return;
     }
-
 
     try {
       setIsProcessingPayment(true);
@@ -347,7 +380,9 @@ const CheckoutScreen = () => {
           );
         });
     } catch (error: any) {
-      showAlert("Error", error.message || "Failed to initiate order", [{ text: "OK", style: "default" }]);
+      showAlert("Error", error.message || "Failed to initiate order", [
+        { text: "OK", style: "default" },
+      ]);
     } finally {
       setIsProcessingPayment(false);
     }
@@ -361,7 +396,10 @@ const CheckoutScreen = () => {
       >
         <span
           className="h-5 w-5 animate-spin rounded-full border-2 border-t-transparent"
-          style={{ borderColor: `${theme.primary}55`, borderTopColor: theme.primary }}
+          style={{
+            borderColor: `${theme.primary}55`,
+            borderTopColor: theme.primary,
+          }}
         />
       </div>
     );
@@ -375,7 +413,10 @@ const CheckoutScreen = () => {
       >
         <span
           className="h-8 w-8 animate-spin rounded-full border-[3px] border-t-transparent"
-          style={{ borderColor: `${theme.primary}44`, borderTopColor: theme.primary }}
+          style={{
+            borderColor: `${theme.primary}44`,
+            borderTopColor: theme.primary,
+          }}
         />
       </div>
     );
@@ -435,7 +476,10 @@ const CheckoutScreen = () => {
             >
               Delivery Address
             </h3>
-            <button type="button" onClick={() => goTo(navigate, "/account/addresses")}>
+            <button
+              type="button"
+              onClick={() => goTo(navigate, "/account/addresses")}
+            >
               <span
                 className="text-sm font-bold"
                 style={{ color: theme.primary }}
@@ -476,7 +520,10 @@ const CheckoutScreen = () => {
                 {selectedAddress.isPhoneVerified ? (
                   <div className="mt-[5px] flex flex-row items-center gap-[5px]">
                     <ShieldCheck size={13} color="#16a34a" />
-                    <span className="text-[11px] font-bold" style={{ color: "#16a34a" }}>
+                    <span
+                      className="text-[11px] font-bold"
+                      style={{ color: "#16a34a" }}
+                    >
                       Verified Number
                     </span>
                   </div>
@@ -484,7 +531,10 @@ const CheckoutScreen = () => {
                   <div className="mt-[5px] flex flex-row items-center gap-2">
                     <div className="flex flex-row items-center gap-1">
                       <CircleAlert size={13} color="#ea580c" />
-                      <span className="text-[11px] font-semibold" style={{ color: "#ea580c" }}>
+                      <span
+                        className="text-[11px] font-semibold"
+                        style={{ color: "#ea580c" }}
+                      >
                         Phone not verified
                       </span>
                     </div>
@@ -536,106 +586,143 @@ const CheckoutScreen = () => {
             Order Summary
           </h3>
           {(() => {
-            const groupedItems = items.reduce((acc, item) => {
-              const sellerId = item.sellerId || "unknown";
-              if (!acc[sellerId]) acc[sellerId] = [];
-              acc[sellerId].push(item);
-              return acc;
-            }, {} as Record<string, typeof items>);
+            const groupedItems = items.reduce(
+              (acc, item) => {
+                const sellerId = item.sellerId || "unknown";
+                if (!acc[sellerId]) acc[sellerId] = [];
+                acc[sellerId].push(item);
+                return acc;
+              },
+              {} as Record<string, typeof items>,
+            );
 
-            return Object.entries(groupedItems).map(([sellerId, sellerItems]) => {
-              const sellerSubtotal = sellerItems.reduce(
-                (sum, item) => sum + (item.price || 0) * item.quantity,
-                0
-              );
+            return Object.entries(groupedItems).map(
+              ([sellerId, sellerItems]) => {
+                const sellerSubtotal = sellerItems.reduce(
+                  (sum, item) => sum + (item.price || 0) * item.quantity,
+                  0,
+                );
 
-              const sellerCoupon = (appliedCoupons || []).find(
-                (c) => (c.sellerId || "global") === sellerId
-              );
-              const couponDiscount = sellerCoupon?.appliedDiscount || 0;
-              const finalSellerSubtotal = Math.max(0, sellerSubtotal - couponDiscount);
-              const sellerDisplayName = sellerId !== "unknown"
-                ? `Store: #${sellerId.substring(sellerId.length - 6).toUpperCase()}`
-                : "Seller Section";
+                const sellerCoupon = (appliedCoupons || []).find(
+                  (c) => (c.sellerId || "global") === sellerId,
+                );
+                const couponDiscount = sellerCoupon?.appliedDiscount || 0;
+                const finalSellerSubtotal = Math.max(
+                  0,
+                  sellerSubtotal - couponDiscount,
+                );
+                const sellerDisplayName =
+                  sellerId !== "unknown"
+                    ? `Store: #${sellerId.substring(sellerId.length - 6).toUpperCase()}`
+                    : "Seller Section";
 
-              return (
-                <div
-                  key={sellerId}
-                  className="mb-5 border-b pb-4"
-                  style={{ borderBottomColor: theme.border }}
-                >
-                  <p
-                    className="mb-3 text-[15px] font-bold"
-                    style={{ color: theme.text }}
+                return (
+                  <div
+                    key={sellerId}
+                    className="mb-5 border-b pb-4"
+                    style={{ borderBottomColor: theme.border }}
                   >
-                    {sellerDisplayName}
-                  </p>
+                    <p
+                      className="mb-3 text-[15px] font-bold"
+                      style={{ color: theme.text }}
+                    >
+                      {sellerDisplayName}
+                    </p>
 
-                  {sellerItems.map((item) => (
-                    <div key={item.sku} className="mb-5 flex flex-row items-center gap-4">
-                      <img
-                        src={item.image}
-                        alt={item.productTitle}
-                        className="h-16 w-16 rounded-xl border object-cover"
-                        style={{
-                          backgroundColor: theme.tertiaryBackground,
-                          borderColor: theme.border,
-                        }}
-                      />
-                      <div className="flex flex-1 flex-col justify-center">
-                        <p
-                          className={cn("mb-1 line-clamp-1 text-[15px] font-bold")}
+                    {sellerItems.map((item) => (
+                      <div
+                        key={item.sku}
+                        className="mb-5 flex flex-row items-center gap-4"
+                      >
+                        <img
+                          src={item.image}
+                          alt={item.productTitle}
+                          className="h-16 w-16 rounded-xl border object-cover"
+                          style={{
+                            backgroundColor: theme.tertiaryBackground,
+                            borderColor: theme.border,
+                          }}
+                        />
+                        <div className="flex flex-1 flex-col justify-center">
+                          <p
+                            className={cn(
+                              "mb-1 line-clamp-1 text-[15px] font-bold",
+                            )}
+                            style={{ color: theme.text }}
+                          >
+                            {item.productTitle}
+                          </p>
+                          <p
+                            className="text-xs font-semibold"
+                            style={{ color: theme.secondaryText }}
+                          >
+                            {item.selectedSize} / {item.selectedColor} • Qty{" "}
+                            {item.quantity}
+                          </p>
+                        </div>
+                        <span
+                          className="text-right text-[15px] font-black"
                           style={{ color: theme.text }}
                         >
-                          {item.productTitle}
-                        </p>
-                        <p
-                          className="text-xs font-semibold"
+                          ₹
+                          {((item.price || 0) * item.quantity).toLocaleString()}
+                        </span>
+                      </div>
+                    ))}
+
+                    <div className="mt-3 flex flex-col gap-1.5 pl-2">
+                      <div className="flex flex-row justify-between">
+                        <span
+                          className="text-[13px]"
                           style={{ color: theme.secondaryText }}
                         >
-                          {item.selectedSize} / {item.selectedColor} • Qty{" "}
-                          {item.quantity}
-                        </p>
+                          Subtotal
+                        </span>
+                        <span
+                          className="text-[13px] font-semibold"
+                          style={{ color: theme.text }}
+                        >
+                          ₹{sellerSubtotal.toLocaleString()}
+                        </span>
                       </div>
-                      <span
-                        className="text-right text-[15px] font-black"
-                        style={{ color: theme.text }}
+                      {couponDiscount > 0 && (
+                        <div className="flex flex-row justify-between">
+                          <span
+                            className="text-[13px]"
+                            style={{ color: theme.primary }}
+                          >
+                            Coupon ({sellerCoupon?.code})
+                          </span>
+                          <span
+                            className="text-[13px] font-semibold"
+                            style={{ color: theme.primary }}
+                          >
+                            -₹{couponDiscount.toLocaleString()}
+                          </span>
+                        </div>
+                      )}
+                      <div
+                        className="flex flex-row justify-between border-t pt-1.5"
+                        style={{ borderTopColor: theme.border }}
                       >
-                        ₹{((item.price || 0) * item.quantity).toLocaleString()}
-                      </span>
-                    </div>
-                  ))}
-
-                  <div className="mt-3 flex flex-col gap-1.5 pl-2">
-                    <div className="flex flex-row justify-between">
-                      <span className="text-[13px]" style={{ color: theme.secondaryText }}>Subtotal</span>
-                      <span className="text-[13px] font-semibold" style={{ color: theme.text }}>
-                        ₹{sellerSubtotal.toLocaleString()}
-                      </span>
-                    </div>
-                    {couponDiscount > 0 && (
-                      <div className="flex flex-row justify-between">
-                        <span className="text-[13px]" style={{ color: theme.primary }}>
-                          Coupon ({sellerCoupon?.code})
+                        <span
+                          className="text-[13px] font-bold"
+                          style={{ color: theme.text }}
+                        >
+                          Net Seller Total
                         </span>
-                        <span className="text-[13px] font-semibold" style={{ color: theme.primary }}>
-                          -₹{couponDiscount.toLocaleString()}
+                        <span
+                          className="text-[13px] font-bold"
+                          style={{ color: theme.primary }}
+                        >
+                          ₹{finalSellerSubtotal.toLocaleString()}
                         </span>
                       </div>
-                    )}
-                    <div
-                      className="flex flex-row justify-between border-t pt-1.5"
-                      style={{ borderTopColor: theme.border }}
-                    >
-                      <span className="text-[13px] font-bold" style={{ color: theme.text }}>Net Seller Total</span>
-                      <span className="text-[13px] font-bold" style={{ color: theme.primary }}>
-                        ₹{finalSellerSubtotal.toLocaleString()}
-                      </span>
                     </div>
                   </div>
-                </div>
-              );
-            });
+                );
+              },
+            );
           })()}
         </div>
 
@@ -653,10 +740,22 @@ const CheckoutScreen = () => {
           >
             Payment Method
           </h3>
-          {([
-            { key: "ONLINE", label: "Pay Online", desc: "UPI, Cards, Netbanking & Wallets", icon: CreditCard },
-            { key: "COD", label: "Cash on Delivery", desc: "Pay in cash when your order arrives", icon: Banknote },
-          ] as const).map((option) => {
+          {(
+            [
+              {
+                key: "ONLINE",
+                label: "Pay Online",
+                desc: "UPI, Cards, Netbanking & Wallets",
+                icon: CreditCard,
+              },
+              {
+                key: "COD",
+                label: "Cash on Delivery",
+                desc: "Pay in cash when your order arrives",
+                icon: Banknote,
+              },
+            ] as const
+          ).map((option) => {
             const isSelected = paymentMethod === option.key;
             return (
               <button
@@ -666,7 +765,9 @@ const CheckoutScreen = () => {
                 className="mb-2.5 flex w-full flex-row items-center rounded-xl border-[1.5px] p-3.5"
                 style={{
                   borderColor: isSelected ? theme.primary : theme.border,
-                  backgroundColor: isSelected ? `${theme.primary}12` : "transparent",
+                  backgroundColor: isSelected
+                    ? `${theme.primary}12`
+                    : "transparent",
                 }}
               >
                 <option.icon
@@ -674,10 +775,16 @@ const CheckoutScreen = () => {
                   color={isSelected ? theme.primary : theme.secondaryText}
                 />
                 <div className="ml-3 flex-1 text-left">
-                  <p className="text-[15px] font-bold" style={{ color: theme.text }}>
+                  <p
+                    className="text-[15px] font-bold"
+                    style={{ color: theme.text }}
+                  >
                     {option.label}
                   </p>
-                  <p className="mt-0.5 text-xs" style={{ color: theme.secondaryText }}>
+                  <p
+                    className="mt-0.5 text-xs"
+                    style={{ color: theme.secondaryText }}
+                  >
                     {option.desc}
                   </p>
                 </div>
@@ -718,16 +825,32 @@ const CheckoutScreen = () => {
             return (
               <>
                 <div className="mb-3.5 flex flex-row justify-between">
-                  <span className="text-[15px]" style={{ color: theme.secondaryText }}>Item Total (MRP)</span>
-                  <span className="text-[15px] font-bold" style={{ color: theme.text }}>
+                  <span
+                    className="text-[15px]"
+                    style={{ color: theme.secondaryText }}
+                  >
+                    Item Total (MRP)
+                  </span>
+                  <span
+                    className="text-[15px] font-bold"
+                    style={{ color: theme.text }}
+                  >
                     ₹{totalMRP.toLocaleString()}
                   </span>
                 </div>
 
                 {productDiscount > 0 && (
                   <div className="mb-3.5 flex flex-row justify-between">
-                    <span className="text-[15px]" style={{ color: theme.secondaryText }}>Product Discount</span>
-                    <span className="text-[15px] font-bold" style={{ color: "#059669" }}>
+                    <span
+                      className="text-[15px]"
+                      style={{ color: theme.secondaryText }}
+                    >
+                      Product Discount
+                    </span>
+                    <span
+                      className="text-[15px] font-bold"
+                      style={{ color: "#059669" }}
+                    >
                       -₹{productDiscount.toLocaleString()}
                     </span>
                   </div>
@@ -736,11 +859,22 @@ const CheckoutScreen = () => {
             );
           })()}
 
-          <div className="my-[18px] h-px" style={{ backgroundColor: theme.border }} />
+          <div
+            className="my-[18px] h-px"
+            style={{ backgroundColor: theme.border }}
+          />
 
           <div className="mb-3.5 flex flex-row justify-between">
-            <span className="text-[15px]" style={{ color: theme.secondaryText }}>Subtotal (Excl. Tax)</span>
-            <span className="text-[15px] font-bold" style={{ color: theme.text }}>
+            <span
+              className="text-[15px]"
+              style={{ color: theme.secondaryText }}
+            >
+              Subtotal (Excl. Tax)
+            </span>
+            <span
+              className="text-[15px] font-bold"
+              style={{ color: theme.text }}
+            >
               ₹{(subtotal - totalTax).toLocaleString()}
             </span>
           </div>
@@ -763,22 +897,43 @@ const CheckoutScreen = () => {
           )}
 
           <div className="mb-3.5 flex flex-row justify-between">
-            <span className="text-[15px]" style={{ color: theme.secondaryText }}>Shipping Fee</span>
-            <span className="text-[15px] font-bold" style={{ color: theme.text }}>
-              {displayShipping === 0 ? "FREE" : `Rs. ${displayShipping.toLocaleString()}`}
+            <span
+              className="text-[15px]"
+              style={{ color: theme.secondaryText }}
+            >
+              Shipping Fee
+            </span>
+            <span
+              className="text-[15px] font-bold"
+              style={{ color: theme.text }}
+            >
+              {displayShipping === 0
+                ? "FREE"
+                : `Rs. ${displayShipping.toLocaleString()}`}
             </span>
           </div>
 
           {dynamicDeliverySurcharge > 0 && (
             <>
               <div className="mb-3.5 flex flex-row justify-between">
-                <span className="text-[15px]" style={{ color: theme.secondaryText }}>Dynamic Delivery Surcharge</span>
-                <span className="text-[15px] font-bold" style={{ color: theme.text }}>
+                <span
+                  className="text-[15px]"
+                  style={{ color: theme.secondaryText }}
+                >
+                  Dynamic Delivery Surcharge
+                </span>
+                <span
+                  className="text-[15px] font-bold"
+                  style={{ color: theme.text }}
+                >
                   Rs. {dynamicDeliverySurcharge.toLocaleString()}
                 </span>
               </div>
               {activeBonusLabels.length > 0 && (
-                <p className="-mt-2 mb-3 text-xs" style={{ color: theme.secondaryText }}>
+                <p
+                  className="-mt-2 mb-3 text-xs"
+                  style={{ color: theme.secondaryText }}
+                >
                   {Array.from(new Set(activeBonusLabels)).join(" | ")}
                 </p>
               )}
@@ -789,7 +944,10 @@ const CheckoutScreen = () => {
             <div className="mb-3 flex flex-row items-center gap-1.5">
               <span
                 className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-t-transparent"
-                style={{ borderColor: `${theme.secondaryText}44`, borderTopColor: theme.secondaryText }}
+                style={{
+                  borderColor: `${theme.secondaryText}44`,
+                  borderTopColor: theme.secondaryText,
+                }}
               />
               <span className="text-xs" style={{ color: theme.secondaryText }}>
                 Checking delivery availability...
@@ -806,11 +964,17 @@ const CheckoutScreen = () => {
             >
               <div className="flex flex-row items-center gap-1.5">
                 <CircleAlert size={16} color="#dc2626" />
-                <span className="text-[13px] font-bold" style={{ color: "#dc2626" }}>
+                <span
+                  className="text-[13px] font-bold"
+                  style={{ color: "#dc2626" }}
+                >
                   Cannot Deliver to This Address
                 </span>
               </div>
-              <p className="text-xs leading-[18px]" style={{ color: "#7f1d1d" }}>
+              <p
+                className="text-xs leading-[18px]"
+                style={{ color: "#7f1d1d" }}
+              >
                 {quoteError}
               </p>
               <div className="mt-0.5 flex flex-row items-center gap-1">
@@ -823,11 +987,20 @@ const CheckoutScreen = () => {
           ) : null}
 
           {appliedCoupons.map((coupon) => (
-            <div key={coupon.code} className="mb-3.5 flex flex-row justify-between">
-              <span className="text-[15px]" style={{ color: theme.secondaryText }}>
+            <div
+              key={coupon.code}
+              className="mb-3.5 flex flex-row justify-between"
+            >
+              <span
+                className="text-[15px]"
+                style={{ color: theme.secondaryText }}
+              >
                 Coupon ({coupon.code})
               </span>
-              <span className="text-[15px] font-bold" style={{ color: "#059669" }}>
+              <span
+                className="text-[15px] font-bold"
+                style={{ color: "#059669" }}
+              >
                 -₹{(coupon.appliedDiscount || 0).toLocaleString()}
               </span>
             </div>
@@ -835,20 +1008,37 @@ const CheckoutScreen = () => {
 
           {appliedCoupons.length === 0 && discountAmount > 0 && (
             <div className="mb-3.5 flex flex-row justify-between">
-              <span className="text-[15px]" style={{ color: theme.secondaryText }}>
+              <span
+                className="text-[15px]"
+                style={{ color: theme.secondaryText }}
+              >
                 Coupon ({appliedCoupon?.code || ""})
               </span>
-              <span className="text-[15px] font-bold" style={{ color: "#059669" }}>
+              <span
+                className="text-[15px] font-bold"
+                style={{ color: "#059669" }}
+              >
                 -₹{discountAmount.toLocaleString()}
               </span>
             </div>
           )}
 
-          <div className="my-[18px] h-px" style={{ backgroundColor: theme.border }} />
+          <div
+            className="my-[18px] h-px"
+            style={{ backgroundColor: theme.border }}
+          />
 
           <div className="flex flex-row items-center justify-between">
-            <span className="text-lg font-extrabold" style={{ color: theme.text }}>Total Payable</span>
-            <span className="text-[22px] font-black" style={{ color: theme.primary }}>
+            <span
+              className="text-lg font-extrabold"
+              style={{ color: theme.text }}
+            >
+              Total Payable
+            </span>
+            <span
+              className="text-[22px] font-black"
+              style={{ color: theme.primary }}
+            >
               ₹{totalPayable.toLocaleString()}
             </span>
           </div>
@@ -866,11 +1056,16 @@ const CheckoutScreen = () => {
         <button
           type="button"
           onClick={handlePlaceOrder}
-          disabled={isProcessingPayment || isQuoteLoading || Boolean(quoteError)}
+          disabled={
+            isProcessingPayment || isQuoteLoading || Boolean(quoteError)
+          }
           className="h-16 w-full overflow-hidden rounded-[20px]"
           style={{
             backgroundColor: theme.primary,
-            opacity: isProcessingPayment || isQuoteLoading || Boolean(quoteError) ? 0.5 : 1,
+            opacity:
+              isProcessingPayment || isQuoteLoading || Boolean(quoteError)
+                ? 0.5
+                : 1,
             cursor:
               isProcessingPayment || isQuoteLoading || Boolean(quoteError)
                 ? "not-allowed"
@@ -888,7 +1083,9 @@ const CheckoutScreen = () => {
               </span>
               <div className="mx-4 h-6 w-px bg-white/30" />
               <span className="text-lg font-extrabold tracking-[0.5px] text-white">
-                {paymentMethod === "COD" ? "Place COD Order" : "Pay & Place Order"}
+                {paymentMethod === "COD"
+                  ? "Place COD Order"
+                  : "Pay & Place Order"}
               </span>
             </div>
           )}
@@ -896,7 +1093,8 @@ const CheckoutScreen = () => {
       </div>
 
       {/* Custom Alert Dialog */}
-      <IOSAlertDialog visible={alertConfig.visible}
+      <IOSAlertDialog
+        visible={alertConfig.visible}
         onClose={hideAlert}
         title={alertConfig.title}
         message={alertConfig.message}
@@ -905,7 +1103,8 @@ const CheckoutScreen = () => {
 
       {/* Phone OTP verification sheet for checkout */}
       {selectedAddress && (
-        <PhoneOtpSheet visible={otpSheetVisible}
+        <PhoneOtpSheet
+          visible={otpSheetVisible}
           initialPhone={selectedAddress.phone || user?.phone || ""}
           onVerified={async (verifiedPhone) => {
             setOtpSheetVisible(false);
