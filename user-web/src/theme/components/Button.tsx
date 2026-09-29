@@ -1,12 +1,4 @@
 import React, { useState } from "react";
-import {
-  Pressable,
-  StyleSheet,
-  View,
-  ViewStyle,
-  TextStyle,
-  ActivityIndicator,
-} from "@/components/primitives";
 import * as Haptics from "@/lib/haptics";
 import { useTheme } from "../Provider/ThemeProvider";
 import ThemedText from "./ThemedText";
@@ -19,7 +11,7 @@ interface ButtonProps {
   size?: "small" | "medium" | "large";
   loading?: boolean;
   disabled?: boolean;
-  style?: ViewStyle;
+  style?: React.CSSProperties;
   accessibilityLabel?: string;
   accessibilityHint?: string;
 }
@@ -38,14 +30,6 @@ export const Button: React.FC<ButtonProps> = ({
   const theme = useTheme() as any;
   const [pressed, setPressed] = useState(false);
 
-  const handlePressIn = () => {
-    setPressed(true);
-  };
-
-  const handlePressOut = () => {
-    setPressed(false);
-  };
-
   const handlePress = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     if (onPress) {
@@ -53,45 +37,33 @@ export const Button: React.FC<ButtonProps> = ({
     }
   };
 
-  const getSizeStyles = () => {
+  const sizeStyles = (() => {
     switch (size) {
       case "small":
-        return {
-          paddingVertical: 8,
-          paddingHorizontal: 16,
-          fontSize: 14,
-        };
+        return { paddingTop: 8, paddingBottom: 8, paddingLeft: 16, paddingRight: 16, fontSize: 14 };
       case "medium":
-        return {
-          paddingVertical: 10,
-          paddingHorizontal: 20,
-          fontSize: 15,
-        };
+        return { paddingTop: 10, paddingBottom: 10, paddingLeft: 20, paddingRight: 20, fontSize: 15 };
       case "large":
       default:
-        return {
-          paddingVertical: 14,
-          paddingHorizontal: 24,
-          fontSize: 16,
-        };
+        return { paddingTop: 14, paddingBottom: 14, paddingLeft: 24, paddingRight: 24, fontSize: 16 };
     }
-  };
+  })();
 
-  const sizeStyles = getSizeStyles();
-
-  const getVariantStyles = () => {
+  const variantStyles: React.CSSProperties = (() => {
     switch (variant) {
       case "secondary":
         return {
           backgroundColor: theme.secondaryBackground,
           borderColor: theme.border,
           borderWidth: 1.5,
+          borderStyle: "solid",
         };
       case "outline":
         return {
           backgroundColor: "transparent",
           borderColor: disabled || loading ? theme.border : theme.primary,
           borderWidth: 1.5,
+          borderStyle: "solid",
         };
       case "primary":
       default:
@@ -99,7 +71,7 @@ export const Button: React.FC<ButtonProps> = ({
           backgroundColor: theme.primary,
         };
     }
-  };
+  })();
 
   const getTextColor = () => {
     if (variant === "secondary" || variant === "outline") {
@@ -108,42 +80,39 @@ export const Button: React.FC<ButtonProps> = ({
     return "#ffffff";
   };
 
-  const styles = StyleSheet.create({
-    button: {
-      borderRadius: 25,
-      alignItems: "center",
-      justifyContent: "center",
-      paddingVertical: sizeStyles.paddingVertical,
-      paddingHorizontal: sizeStyles.paddingHorizontal,
-      ...getVariantStyles(),
-      opacity: disabled || loading ? 0.6 : 1,
-    },
-    text: {
-      color: getTextColor(),
-      fontSize: sizeStyles.fontSize,
-      fontWeight: "600",
-    },
-  });
-
   return (
-    <View style={[style, { transform: [{ scale: pressed ? 0.97 : 1 }], transition: "transform 0.15s ease-out" }]}>
-      <Pressable
-        onPress={handlePress}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
+    <div
+      className="transition-transform duration-150"
+      style={{ ...style, transform: pressed ? "scale(0.97)" : undefined }}
+    >
+      <button
+        type="button"
+        onClick={handlePress}
+        onMouseDown={() => setPressed(true)}
+        onMouseUp={() => setPressed(false)}
+        onMouseLeave={() => setPressed(false)}
         disabled={disabled || loading}
-        style={styles.button}
-        accessibilityRole="button"
-        accessibilityLabel={accessibilityLabel || title}
-        accessibilityHint={accessibilityHint}
-        accessibilityState={{ disabled: disabled || loading }}
+        aria-label={accessibilityLabel || title}
+        aria-description={accessibilityHint}
+        className="flex w-full cursor-pointer items-center justify-center rounded-[25px]"
+        style={{
+          paddingTop: sizeStyles.paddingTop,
+          paddingBottom: sizeStyles.paddingBottom,
+          paddingLeft: sizeStyles.paddingLeft,
+          paddingRight: sizeStyles.paddingRight,
+          ...variantStyles,
+          opacity: disabled || loading ? 0.6 : 1,
+        }}
       >
         {loading ? (
-          <ActivityIndicator color={getTextColor()} size="small" />
+          <span
+            className="block h-5 w-5 animate-spin rounded-full border-2 border-t-transparent"
+            style={{ borderColor: `${getTextColor()}40`, borderTopColor: getTextColor() }}
+          />
         ) : (
-          <ThemedText style={styles.text}>{title}</ThemedText>
+          <ThemedText className="font-semibold" style={{ color: getTextColor(), fontSize: sizeStyles.fontSize }}>{title}</ThemedText>
         )}
-      </Pressable>
-    </View>
+      </button>
+    </div>
   );
 };

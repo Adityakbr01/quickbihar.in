@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { CircleCheck, PersonStanding, X } from "lucide-react";
+import { CircleCheck, PersonStanding } from "lucide-react";
+import { AppSheet } from "@/src/components/common/AppSheet";
 import { Theme } from "@/src/theme/Provider/ThemeProvider";
 import { ISizeChart } from "../../types/product.types";
 import * as Haptics from "@/lib/haptics";
@@ -46,8 +47,6 @@ const SizeChartModal = ({
 }: SizeChartModalProps) => {
   const [activeUnit, setActiveUnit] = useState<"inches" | "cm">("inches");
 
-  if (!visible) return null;
-
   const effectiveChart =
     sizeChart && sizeChart.data && sizeChart.data.length > 0
       ? sizeChart
@@ -73,41 +72,13 @@ const SizeChartModal = ({
   };
 
   return (
-    <div
-      className="fixed inset-0 z-[100] flex items-end justify-center bg-black/50 sm:items-center"
-      role="dialog"
-      aria-modal="true"
-      aria-label={name || "Size & Fit Guide"}
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
+    <AppSheet
+      visible={visible}
+      onClose={onClose}
+      title={name || "Size & Fit Guide"}
+      subtitle={`Find your perfect fit (${category || "Apparel"})`}
     >
-      <div
-        className="flex max-h-[85vh] w-full max-w-lg flex-col overflow-hidden rounded-t-3xl sm:rounded-3xl"
-        style={{ backgroundColor: theme.background }}
-      >
-        {/* Header */}
-        <div className="flex flex-row items-center justify-between px-4 py-3">
-          <div className="flex-1">
-            <h3 className="text-base font-bold" style={{ color: theme.text }}>
-              {name || "Size & Fit Guide"}
-            </h3>
-            <p className="mt-0.5 text-xs" style={{ color: theme.secondaryText }}>
-              Find your perfect fit ({category || "Apparel"})
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close size guide"
-            className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full"
-            style={{ backgroundColor: theme.secondaryBackground }}
-          >
-            <X size={18} color={theme.text} />
-          </button>
-        </div>
-
-        <div className="min-h-0 flex-1 overflow-y-auto p-6">
+      <div className="p-6">
           {/* Unit Toggle Buttons */}
           <div className="mb-4 flex justify-center">
             <div
@@ -223,9 +194,8 @@ const SizeChartModal = ({
           )}
 
           <div style={{ height: 40 }} />
-        </div>
       </div>
-    </div>
+    </AppSheet>
   );
 };
 

@@ -19,6 +19,8 @@ function getSystemIsDark(): boolean {
  * Synchronized with the global ThemeProvider switcher.
  */
 export function useColors() {
+  // Unconditional (ThemeContext always has a fallback default, never throws).
+  const theme = useTheme();
   const [systemIsDark, setSystemIsDark] = useState<boolean>(getSystemIsDark);
 
   useEffect(() => {
@@ -44,12 +46,9 @@ export function useColors() {
   }, []);
 
   let isDark = systemIsDark;
-  try {
-    const theme = useTheme();
-    if (theme && typeof (theme as any).isDark === "boolean") {
-      isDark = (theme as any).isDark;
-    }
-  } catch {}
+  if (theme && typeof (theme as any).isDark === "boolean") {
+    isDark = (theme as any).isDark;
+  }
 
   const palette =
     isDark && "dark" in colors

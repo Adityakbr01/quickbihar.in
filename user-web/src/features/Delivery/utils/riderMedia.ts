@@ -44,7 +44,7 @@ export async function pickProofPhoto(showDialog: ShowDialog, kind: "pickup" | "d
 
 export async function notifyLocalOffer(offer: RiderOffer) {
   try {
-    const Notifications = await import("expo-notifications");
+    const { webNotifications: Notifications } = await import("@/src/lib/webNotifications");
     await Notifications.scheduleNotificationAsync({
       content: {
         title: "New Delivery Offer",

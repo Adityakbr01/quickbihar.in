@@ -13,6 +13,7 @@ import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
 import { TextInput } from "@/src/theme/components/TextInput";
 import { cn } from "@/src/lib/utils";
+import { AppSheet } from "@/src/components/common/AppSheet";
 
 
 interface PhoneOtpSheetProps {
@@ -123,62 +124,22 @@ const PhoneOtpSheet: React.FC<PhoneOtpSheetProps> = ({
   // Split OTP string into 6 display slots
   const otpDigits = otp.padEnd(6, " ").split("");
 
-  if (!visible) return null;
+  const sheetTitle = step === "phone" ? "Verify Your Number" : "Enter OTP";
+  const sheetSubtitle =
+    step === "phone"
+      ? "We'll send a 6-digit OTP to your WhatsApp"
+      : `Sent to WhatsApp +${phone.replace(/\D/g, "")}`;
 
   return (
-    <div
-      className="fixed inset-0 z-[100] flex items-end justify-center bg-black/50"
-      role="dialog"
-      aria-modal="true"
-      aria-label="Verify phone number"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-    >
-      <div
-        className="flex max-h-[85vh] w-full max-w-lg flex-col gap-4 overflow-y-auto rounded-t-3xl p-7"
-        style={{ backgroundColor: theme.background }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        {step === "phone" ? (
-          <>
-            <p
-              className="text-xl font-extrabold tracking-[-0.4px]"
-              style={{ color: theme.text }}
-            >
-              Verify Your Number
-            </p>
-            <p
-              className="-mt-2 text-sm leading-5"
-              style={{ color: theme.secondaryText }}
-            >
-              We&apos;ll send a 6-digit OTP to your WhatsApp
-            </p>
-
-            {/* Phone input */}
-            <TextInput
-              placeholder="e.g. 9876543210"
-              placeholderTextColor={theme.tertiaryText}
-              keyboardType="phone-pad"
-              maxLength={15}
-              value={phone}
-              onChangeText={(v: string) => {
-                setPhone(v);
-                setError(null);
-              }}
-              autoFocus
-              returnKeyType="send"
-              onSubmitEditing={handleSendOtp}
-              error={error ?? undefined}
-              icon={
-                <span style={{ color: theme.secondaryText, fontWeight: "600" }}>
-                  +91
-                </span>
-              }
-              containerStyle={{ marginBottom: 0 }}
-              style={{ color: theme.text }}
-            />
-
+    <AppSheet
+      visible={visible}
+      onClose={onClose}
+      title={sheetTitle}
+      subtitle={sheetSubtitle}
+      label="Verify phone number"
+      footer={
+        step === "phone" ? (
+          <div className="flex flex-col gap-1">
             <button
               type="button"
               onClick={handleSendOtp}
@@ -209,22 +170,72 @@ const PhoneOtpSheet: React.FC<PhoneOtpSheetProps> = ({
                 Cancel
               </span>
             </button>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-1">
+            <button
+              type="button"
+              onClick={handleVerifyOtp}
+              disabled={loading || otp.length < 6}
+              className="flex h-[54px] w-full cursor-pointer items-center justify-center rounded-2xl shadow-md disabled:opacity-60"
+              style={{ backgroundColor: theme.primary }}
+            >
+              {loading ? (
+                <span className="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+              ) : (
+                <span className="text-base font-bold text-white">Verify</span>
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setStep("phone");
+                setOtp("");
+                setError(null);
+              }}
+              className="flex h-11 cursor-pointer items-center justify-center"
+            >
+              <span
+                className="text-sm font-medium"
+                style={{ color: theme.secondaryText }}
+              >
+                ← Change Number
+              </span>
+            </button>
+          </div>
+        )
+      }
+    >
+      <div className="flex flex-col gap-4 px-4 pb-4">
+        {step === "phone" ? (
+          <>
+            {/* Phone input */}
+            <TextInput
+              placeholder="e.g. 9876543210"
+              placeholderTextColor={theme.tertiaryText}
+              keyboardType="phone-pad"
+              maxLength={15}
+              value={phone}
+              onChangeText={(v: string) => {
+                setPhone(v);
+                setError(null);
+              }}
+              autoFocus
+              returnKeyType="send"
+              onSubmitEditing={handleSendOtp}
+              error={error ?? undefined}
+              icon={
+                <span style={{ color: theme.secondaryText, fontWeight: "600" }}>
+                  +91
+                </span>
+              }
+              containerStyle={{ marginBottom: 0 }}
+              style={{ color: theme.text }}
+            />
           </>
         ) : (
           <>
-            <p
-              className="text-xl font-extrabold tracking-[-0.4px]"
-              style={{ color: theme.text }}
-            >
-              Enter OTP
-            </p>
-            <p
-              className="-mt-2 text-sm leading-5"
-              style={{ color: theme.secondaryText }}
-            >
-              Sent to WhatsApp +{phone.replace(/\D/g, "")}
-            </p>
-
             {/* 6-slot visual OTP display + hidden real input */}
             <div className="relative">
               <button
@@ -299,41 +310,10 @@ const PhoneOtpSheet: React.FC<PhoneOtpSheetProps> = ({
                 </span>
               </button>
             </div>
-
-            <button
-              type="button"
-              onClick={handleVerifyOtp}
-              disabled={loading || otp.length < 6}
-              className="flex h-[54px] w-full cursor-pointer items-center justify-center rounded-2xl shadow-md disabled:opacity-60"
-              style={{ backgroundColor: theme.primary }}
-            >
-              {loading ? (
-                <span className="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-              ) : (
-                <span className="text-base font-bold text-white">Verify</span>
-              )}
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                setStep("phone");
-                setOtp("");
-                setError(null);
-              }}
-              className="flex h-11 cursor-pointer items-center justify-center"
-            >
-              <span
-                className="text-sm font-medium"
-                style={{ color: theme.secondaryText }}
-              >
-                ← Change Number
-              </span>
-            </button>
           </>
         )}
       </div>
-    </div>
+    </AppSheet>
   );
 };
 

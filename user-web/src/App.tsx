@@ -10,14 +10,12 @@ import {
 import { HelmetProvider } from "react-helmet-async";
 import { QueryProvider } from "@/src/provider/QueryProvider";
 import { ThemeProvider, useTheme } from "@/src/theme/Provider/ThemeProvider";
-import { SheetProvider } from "@/src/components/common/BottomSheet";
 import { SocketListenerProvider } from "@/src/provider/SocketListenerProvider";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
 import { useModuleStore } from "@/src/store/useModuleStore";
 import { APP_MODULES } from "@/src/constants/modules";
 import { ErrorBoundary } from "@/src/components/common/ErrorBoundary";
 import { normalizeExpoPathForWeb } from "@/src/utils/navigation";
-import { View } from "@/components/primitives";
 import DesktopNavbar from "@/src/features/clothing/home/components/DesktopNavbar";
 import JeweleryDesktopNavbar from "@/src/features/Jewelery/components/JeweleryDesktopNavbar";
 import BottomTabBar from "@/src/components/common/BottomTabBar";
@@ -268,9 +266,7 @@ export default function App() {
         <BrowserRouter>
           <QueryProvider>
             <ThemeProvider>
-              <SheetProvider>
-                <MainLayout />
-              </SheetProvider>
+              <MainLayout />
             </ThemeProvider>
           </QueryProvider>
         </BrowserRouter>

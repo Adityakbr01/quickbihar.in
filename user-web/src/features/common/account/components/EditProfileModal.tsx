@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { AppIcon } from "@/src/components/common/AppIcon";
-import { CircleAlert, ShieldCheck, X } from "lucide-react";
+import { CircleAlert, ShieldCheck } from "lucide-react";
 import * as Haptics from "@/lib/haptics";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import IOSAlertDialog from "@/src/components/ui/IOSAlertDialog";
@@ -12,6 +11,7 @@ import { useAccountStore } from "../store/accountStore";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
 import PhoneOtpSheet from "@/src/features/common/address/components/PhoneOtpSheet";
 import { TextInput } from "@/src/theme/components/TextInput";
+import { AppSheet } from "@/src/components/common/AppSheet";
 
 const EditProfileModal = () => {
   const theme = useTheme() as any;
@@ -110,39 +110,36 @@ const EditProfileModal = () => {
 
   return (
     <>
-      {isVisible && (
-        <div
-          className="fixed inset-0 z-[100] flex items-end justify-center bg-black/50"
-          role="dialog"
-          aria-modal="true"
-          aria-label="Edit Profile"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setVisible(false);
-          }}
-        >
-          <div
-            className="max-h-[85vh] w-full max-w-lg overflow-hidden rounded-t-3xl"
-            style={{ backgroundColor: theme.background }}
+      <AppSheet
+        visible={isVisible}
+        onClose={() => setVisible(false)}
+        title="Edit Profile"
+        label="Edit Profile"
+        footer={
+          <button
+            type="button"
+            onClick={handleSubmit(onSubmit)}
+            disabled={isUpdating}
+            className="flex h-14 w-full flex-row items-center justify-center rounded-2xl text-base font-bold text-white transition active:opacity-90 disabled:opacity-70"
+            style={{
+              backgroundColor: theme.primary,
+              boxShadow: "0 4px 8px rgba(0,0,0,0.3)",
+              opacity: isUpdating ? 0.7 : 1,
+            }}
           >
-            {/* Header */}
-            <div className="flex flex-row items-center justify-between px-6 pb-2 pt-4">
-              <h3
-                className="text-xl font-bold"
-                style={{ color: theme.text }}
-              >
-                Edit Profile
-              </h3>
-              <button
-                type="button"
-                onClick={() => setVisible(false)}
-                aria-label="Close edit profile"
-                className="rounded-full p-1 transition active:opacity-70"
-              >
-                <AppIcon icon={X} size={24} color={theme.text} />
-              </button>
-            </div>
-
-            <div className="overflow-y-auto px-6 pb-2.5">
+            {isUpdating ? (
+              <span
+                role="status"
+                aria-label="Saving profile"
+                className="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white"
+              />
+            ) : (
+              "Save Changes"
+            )}
+          </button>
+        }
+      >
+        <div className="flex flex-col px-4 pb-4">
               {/* Full Name Field */}
               <div className="mb-5">
                 <p
@@ -214,32 +211,8 @@ const EditProfileModal = () => {
                   </div>
                 ) : null}
               </div>
-
-              <button
-                type="button"
-                onClick={handleSubmit(onSubmit)}
-                disabled={isUpdating}
-                className="mt-3 flex h-14 w-full flex-row items-center justify-center rounded-2xl text-base font-bold text-white transition active:opacity-90 disabled:opacity-70"
-                style={{
-                  backgroundColor: theme.primary,
-                  boxShadow: "0 4px 8px rgba(0,0,0,0.3)",
-                  opacity: isUpdating ? 0.7 : 1,
-                }}
-              >
-                {isUpdating ? (
-                  <span
-                    role="status"
-                    aria-label="Saving profile"
-                    className="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white"
-                  />
-                ) : (
-                  "Save Changes"
-                )}
-              </button>
-            </div>
-          </div>
         </div>
-      )}
+      </AppSheet>
 
       <IOSAlertDialog visible={alertVisible}
         onClose={handleAlertClose}

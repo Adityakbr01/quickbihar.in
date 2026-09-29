@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { Star, X } from "lucide-react";
+import { Star } from "lucide-react";
+import { AppSheet } from "@/src/components/common/AppSheet";
 import { Theme } from "@/src/theme/Provider/ThemeProvider";
 import * as Haptics from "@/lib/haptics";
 
@@ -47,8 +48,6 @@ export const WriteReviewModal: React.FC<WriteReviewModalProps> = ({
   const [comment, setComment] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  if (!visible) return null;
-
   const handleStarPress = (score: number) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setRating(score);
@@ -89,39 +88,32 @@ export const WriteReviewModal: React.FC<WriteReviewModalProps> = ({
   };
 
   return (
-    <div
-      className="fixed inset-0 z-[100] flex items-end justify-center bg-black/50 sm:items-center"
-      role="dialog"
-      aria-modal="true"
-      aria-label="Write a Review"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
+    <AppSheet
+      visible={visible}
+      onClose={onClose}
+      title="Write a Review"
+      subtitle={productTitle}
+      footer={
+        <button
+          type="button"
+          disabled={isSubmitting}
+          onClick={handleSubmit}
+          className="flex h-12 w-full cursor-pointer items-center justify-center text-[15px] font-bold text-white"
+          style={{
+            backgroundColor: theme.primary,
+            borderRadius: theme.radius ?? 10,
+            opacity: isSubmitting ? 0.7 : 1,
+          }}
+        >
+          {isSubmitting ? (
+            <span className="block h-5 w-5 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+          ) : (
+            "Submit Review"
+          )}
+        </button>
+      }
     >
-      <div
-        className="flex max-h-[85vh] w-full max-w-lg flex-col overflow-hidden rounded-t-3xl sm:rounded-3xl"
-        style={{ backgroundColor: theme.background, borderRadius: theme.radius ?? 24 }}
-      >
-        {/* Header */}
-        <div className="flex flex-row items-center justify-between px-4 py-3">
-          <div className="flex-1">
-            <h3 className="text-base font-bold" style={{ color: theme.text }}>Write a Review</h3>
-            {productTitle ? (
-              <p className="mt-0.5 truncate text-xs" style={{ color: theme.secondaryText }}>{productTitle}</p>
-            ) : null}
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close review form"
-            className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full"
-            style={{ backgroundColor: theme.secondaryBackground }}
-          >
-            <X size={18} color={theme.text} />
-          </button>
-        </div>
-
-        <div className="min-h-0 flex-1 overflow-y-auto p-6">
+      <div className="p-6">
           {/* Rating Stars Selector */}
           <div className="mb-6 flex flex-col items-center">
             <p className="mb-3 text-sm font-semibold" style={{ color: theme.text }}>
@@ -200,29 +192,7 @@ export const WriteReviewModal: React.FC<WriteReviewModalProps> = ({
               {comment.length}/1000
             </p>
           </div>
-        </div>
-
-        {/* Footer Submit Button */}
-        <div className="border-t px-4 py-3" style={{ borderTopColor: theme.border }}>
-          <button
-            type="button"
-            disabled={isSubmitting}
-            onClick={handleSubmit}
-            className="flex h-12 w-full cursor-pointer items-center justify-center text-[15px] font-bold text-white"
-            style={{
-              backgroundColor: theme.primary,
-              borderRadius: theme.radius ?? 10,
-              opacity: isSubmitting ? 0.7 : 1,
-            }}
-          >
-            {isSubmitting ? (
-              <span className="block h-5 w-5 animate-spin rounded-full border-2 border-white/40 border-t-white" />
-            ) : (
-              "Submit Review"
-            )}
-          </button>
-        </div>
       </div>
-    </div>
+    </AppSheet>
   );
 };

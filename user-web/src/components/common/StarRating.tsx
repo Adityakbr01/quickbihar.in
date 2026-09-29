@@ -1,6 +1,5 @@
 import { Star } from "lucide-react";
 import React from "react";
-import { View } from "@/components/primitives";
 
 interface StarRatingProps {
   /** Numeric rating (0–5). Rounded to nearest integer for filled stars. */
@@ -27,10 +26,10 @@ export function StarRating({
   emptyColor,
 }: StarRatingProps) {
   return (
-    <View style={{ flexDirection: "row" }}>
+    <div className="flex flex-row">
       {[1, 2, 3, 4, 5].map((s) => (
-        <Star key={s} size={size} color={s <= Math.round(rating) ? filledColor : emptyColor} style={{ marginRight: 1 }} />
+        <Star key={s} size={size} color={s <= Math.round(rating) ? filledColor : emptyColor} className="mr-px" />
       ))}
-    </View>
+    </div>
   );
 }

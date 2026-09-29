@@ -1,9 +1,4 @@
 import React from "react";
-import {
-  StyleProp,
-  TextStyle,
-  Text,
-} from "@/components/primitives";
 
 /**
  * Price text with a currency prefix (or any custom prefix).
@@ -18,7 +13,7 @@ interface AnimatedPriceProps {
   /** Total tween duration in ms. */
   duration?: number;
   /** Style for the price text (fontSize, color, weight, etc.). */
-  style?: StyleProp<TextStyle>;
+  style?: React.CSSProperties;
   /** Whether to render the value as an integer (default true). */
   integer?: boolean;
   /** Number of decimal digits when `integer` is false. */
@@ -44,7 +39,7 @@ export const AnimatedPrice: React.FC<AnimatedPriceProps> = ({
   freeText = "FREE",
 }) => {
   if (freeOnZero && value === 0) {
-    return <Text style={style}>{freeText}</Text>;
+    return <span style={style}>{freeText}</span>;
   }
   const current = integer
     ? Math.round(value)
@@ -54,7 +49,7 @@ export const AnimatedPrice: React.FC<AnimatedPriceProps> = ({
     minimumFractionDigits: integer ? 0 : decimals,
   });
   const sign = showMinus && value > 0 ? "-" : "";
-  return <Text style={style}>{`${sign}${prefix}${formatted}`}</Text>;
+  return <span style={style}>{`${sign}${prefix}${formatted}`}</span>;
 };
 
 export default AnimatedPrice;

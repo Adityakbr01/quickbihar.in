@@ -1,66 +1,17 @@
-import { Platform } from "@/components/primitives";
+import { webNotifications as Notifications } from "@/src/lib/webNotifications";
 
 export async function registerForPushNotificationsAsync() {
-  // Web has no native push — real Web Push needs a service worker + backend
-  // (see EXPO_REMOVAL_RESEARCH.md §6 Phase 5). Skip like before.
-  if (Platform.OS === "web") {
-    console.log("[Notification] Skipping registration on web.");
-    return;
-  }
-
-  // ✅ Dynamic Import (CRITICAL FIX)
-  const Notifications = await import("expo-notifications");
-
-  let token;
-
-  if (Platform.OS === "android") {
-    await Notifications.setNotificationChannelAsync("default", {
-      name: "default",
-      importance: Notifications.AndroidImportance.MAX,
-      vibrationPattern: [0, 250, 250, 250],
-      lightColor: "#FF231F7C",
-    });
-
-    await Notifications.setNotificationChannelAsync("promotions", {
-      name: "Promotions",
-      importance: Notifications.AndroidImportance.MAX,
-      vibrationPattern: [0, 250, 250, 250],
-      lightColor: "#FF231F7C",
-      lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
-    });
-  }
-
-  const { status: existingStatus } = await Notifications.getPermissionsAsync();
-  let finalStatus = existingStatus;
-  if (existingStatus !== "granted") {
-    const { status } = await Notifications.requestPermissionsAsync();
-    finalStatus = status;
-  }
-  if (finalStatus !== "granted") {
-    console.warn("Failed to get push token for push notification!");
-    return;
-  }
-
-  // Reachable only off-web (early return above): retrieve the native token.
-  try {
-    token = (await Notifications.getDevicePushTokenAsync()).data;
-    console.log("[Notification] Direct FCM Device Token retrieved successfully");
-  } catch (e) {
-    console.error("[Notification] Error getting native device token:", e);
-  }
-
-  return token;
+  // Web has no native push — real Web Push needs a service worker + backend.
+  // Skip like before.
+  console.log("[Notification] Skipping registration on web.");
+  return;
 }
 
 /**
  * Lazy initialization of the notification handler.
- * Call this only in non-Expo-Go environments.
+ * Web build: no-op stub (same as before).
  */
 export async function initializeNotificationHandler() {
-  if (Platform.OS === "web") return;
-
-  const Notifications = await import("expo-notifications");
-
   Notifications.setNotificationHandler({
     handleNotification: async () => ({
       shouldPlaySound: true,

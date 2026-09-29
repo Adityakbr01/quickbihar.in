@@ -1,13 +1,4 @@
 import React from "react";
-import {
-  Modal,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-  Dimensions,
-  Platform,
-} from "@/components/primitives";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 
 export interface AlertButton {
@@ -24,8 +15,6 @@ interface IOSAlertDialogProps {
   buttons: AlertButton[];
 }
 
-const { width } = Dimensions.get("window");
-
 const IOSAlertDialog: React.FC<IOSAlertDialogProps> = ({
   visible,
   onClose,
@@ -36,132 +25,75 @@ const IOSAlertDialog: React.FC<IOSAlertDialogProps> = ({
   const theme = useTheme();
   const isDark = theme.background === "#0f0f0f"; // Simple check for dark mode
 
+  if (!visible) return null;
+
   return (
-    <Modal
-      transparent
-      visible={visible}
-      animationType="fade"
-      onRequestClose={onClose}
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40"
+      role="alertdialog"
+      aria-modal="true"
+      aria-label={title}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
     >
-      <View style={styles.overlay}>
-        <View style={styles.container}>
-          <View
-            style={[
-              styles.alertContent,
-              {
-                backgroundColor: isDark
-                  ? "rgba(30,30,30)"
-                  : "rgba(255,255,255)",
-                backdropFilter: "blur(20px)",
-                WebkitBackdropFilter: "blur(20px)",
-              },
-            ]}
-          >
-            <View style={styles.textContainer}>
-              <Text style={[styles.title, { color: theme.text }]}>{title}</Text>
-              {message && (
-                <Text style={[styles.message, { color: theme.text }]}>
-                  {message}
-                </Text>
-              )}
-            </View>
+      <div className="w-[75vw] max-w-[400px] overflow-hidden rounded-[14px]">
+        <div
+          className="pt-5"
+          style={{
+            backgroundColor: isDark ? "rgba(30,30,30)" : "rgba(255,255,255)",
+            backdropFilter: "blur(20px)",
+            WebkitBackdropFilter: "blur(20px)",
+          }}
+        >
+          <div className="flex flex-col items-center px-4 pb-5">
+            <h2 className="mb-1 text-center text-[17px] font-semibold" style={{ color: theme.text }}>{title}</h2>
+            {message && (
+              <p className="text-center text-[13px] leading-[18px]" style={{ color: theme.text }}>
+                {message}
+              </p>
+            )}
+          </div>
 
-            <View style={styles.buttonContainer}>
-              {buttons.map((button, index) => {
-                const isDestructive = button.style === "destructive";
-                const isCancel = button.style === "cancel";
-                const isLast = index === buttons.length - 1;
+          <div className="flex flex-col">
+            {buttons.map((button, index) => {
+              const isDestructive = button.style === "destructive";
+              const isCancel = button.style === "cancel";
 
-                return (
-                  <TouchableOpacity
-                    key={index}
-                    activeOpacity={0.7}
-                    style={[
-                      styles.button,
-                      !isLast && styles.borderBottom,
-                      {
-                        borderTopColor: isDark
-                          ? "rgba(255,255,255,0.1)"
-                          : "rgba(0,0,0,0.1)",
-                      },
-                    ]}
-                    onPress={() => {
-                      if (button.onPress) button.onPress();
-                      onClose();
+              return (
+                <button
+                  key={index}
+                  type="button"
+                  className="flex h-11 cursor-pointer items-center justify-center border-t transition-opacity hover:opacity-70"
+                  style={{
+                    borderTopColor: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)",
+                  }}
+                  onClick={() => {
+                    if (button.onPress) button.onPress();
+                    onClose();
+                  }}
+                >
+                  <span
+                    className="text-[17px]"
+                    style={{
+                      color: isDestructive
+                        ? "#FF3B30"
+                        : isDark
+                          ? "#0A84FF"
+                          : "#007AFF", // iOS System Blue
+                      fontWeight: isCancel ? "600" : "400",
                     }}
                   >
-                    <Text
-                      style={[
-                        styles.buttonText,
-                        {
-                          color: isDestructive
-                            ? "#FF3B30"
-                            : isDark
-                              ? "#0A84FF"
-                              : "#007AFF", // iOS System Blue
-                          fontWeight: isCancel ? "600" : "400",
-                        },
-                      ]}
-                    >
-                      {button.text}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-          </View>
-        </View>
-      </View>
-    </Modal>
+                    {button.text}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
-
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.4)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  container: {
-    width: width * 0.75,
-    borderRadius: 14,
-    overflow: "hidden",
-  },
-  alertContent: {
-    paddingTop: 20,
-  },
-  textContainer: {
-    paddingHorizontal: 16,
-    paddingBottom: 20,
-    alignItems: "center",
-  },
-  title: {
-    fontSize: 17,
-    fontWeight: "600",
-    textAlign: "center",
-    marginBottom: 4,
-  },
-  message: {
-    fontSize: 13,
-    textAlign: "center",
-    lineHeight: 18,
-  },
-  buttonContainer: {
-    flexDirection: "column",
-  },
-  button: {
-    height: 44,
-    justifyContent: "center",
-    alignItems: "center",
-    borderTopWidth: StyleSheet.hairlineWidth,
-  },
-  borderBottom: {
-    // Optional: for grid layout if we had 2 buttons side-by-side
-  },
-  buttonText: {
-    fontSize: 17,
-  },
-});
 
 export default IOSAlertDialog;

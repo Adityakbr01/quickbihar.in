@@ -1,13 +1,9 @@
 import { useEffect } from "react";
-import { Linking, Platform } from "@/components/primitives";
 import { registerForPushNotificationsAsync, initializeNotificationHandler } from "../lib/notification";
 import { useAuthStore } from "../features/common/auth/store/authStore";
-import { updateFcmTokenRequest } from "../features/common/profileInfo/api/profile.api";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { goTo } from "@/src/utils/navigation";
-
-const HAS_ASKED_KEY = "has_asked_push_notifications";
 
 export const usePushNotifications = () => {
   const { isAuthenticated, isInitialized } = useAuthStore();
@@ -20,74 +16,8 @@ export const usePushNotifications = () => {
 
     const registerListener = async () => {
       try {
-        if (Platform.OS === "web") return;
-        const Notifications = await import("expo-notifications");
-        subscription = Notifications.addNotificationReceivedListener((notification) => {
-          console.log("[usePushNotifications] Foreground notification received:", notification);
-          queryClient.invalidateQueries({ queryKey: ["user-notifications"] });
-        });
-
-        responseSubscription = Notifications.addNotificationResponseReceivedListener((response) => {
-          console.log("[usePushNotifications] Notification clicked/interacted:", response);
-          const data = response?.notification?.request?.content?.data;
-          const actionIdentifier = response.actionIdentifier;
-
-          if (data) {
-            const { redirectType, redirectId, externalUrl, deepLink } = data as {
-              redirectType?: string;
-              redirectId?: string;
-              externalUrl?: string;
-              deepLink?: string;
-            };
-            console.log(`[usePushNotifications] Handling click redirect: type=${redirectType}, id=${redirectId}, url=${externalUrl}, deepLink=${deepLink}, action=${actionIdentifier}`);
-            
-            const promoActions = [
-              "BUY_NOW",
-              "SHOP_NOW",
-              "VIEW_DETAILS",
-              "ORDER_NOW",
-              "CLAIM_OFFER",
-              "LEARN_MORE",
-              "OPEN_LINK",
-              "CHECK_IT_OUT",
-              "VIEW_PRODUCT",
-              "VIEW_ORDER",
-              "EXPLORE_MALL"
-            ];
-            const isPromoAction = promoActions.includes(actionIdentifier);
-            if (isPromoAction || actionIdentifier === "default") {
-              const fallbackRouting = () => {
-                if (redirectType === "product" && redirectId) {
-                  goTo(navigate, `/product/${redirectId}` as any);
-                } else if (redirectType === "category" && redirectId) {
-                  goTo(navigate, `/mall` as any);
-                } else if (redirectType === "mall" && redirectId) {
-                  goTo(navigate, `/mall/${redirectId}` as any);
-                } else if (redirectType === "external" && externalUrl) {
-                  window.open(externalUrl, "_blank");
-                }
-              };
-
-              if (deepLink) {
-                Linking.canOpenURL(deepLink).then((supported) => {
-                  if (supported) {
-                    Linking.openURL(deepLink).catch((err) => {
-                      console.error("[usePushNotifications] Failed to open deepLink, using local routing:", err);
-                      fallbackRouting();
-                    });
-                  } else {
-                    console.warn("[usePushNotifications] Deep link scheme not supported locally, using local routing:", deepLink);
-                    fallbackRouting();
-                  }
-                });
-                return;
-              }
-
-              // Fallback to legacy app routing directly if no deepLink
-              fallbackRouting();
-            }
-          }
-        });
+        // Web build: no native push runtime — listeners are a no-op.
+        return;
       } catch (err) {
         console.warn("[usePushNotifications] Failed to register notification listener:", err);
       }
@@ -110,15 +40,9 @@ export const usePushNotifications = () => {
 
     const setupNotifications = async () => {
       try {
-        if (Platform.OS === "web") return;
-        // 1. Initialize Handler (Lazy)
+        // Web build: no native push runtime — setup is a no-op.
         await initializeNotificationHandler();
-
-        // 2. Register & request permission (handles prompts automatically)
-        const token = await registerForPushNotificationsAsync();
-        if (token) {
-          await updateFcmTokenRequest(token);
-        }
+        await registerForPushNotificationsAsync();
       } catch (error: any) {
         console.log("[usePushNotifications] Setup skipped:", error.message);
       }

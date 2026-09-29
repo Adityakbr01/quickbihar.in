@@ -7,6 +7,7 @@ import { useAuthStore } from "@/src/features/common/auth/store/authStore";
 import axiosInstance from "@/src/api/axiosInstance";
 import { useAccountStore } from "../store/accountStore";
 import { TextInput } from "@/src/theme/components/TextInput";
+import { AppSheet } from "@/src/components/common/AppSheet";
 
 /**
  * Bottom sheet version of the "Password & Email Setup" form.
@@ -161,46 +162,44 @@ const PasswordEmailSetupSheet = ({ variant = "default" }: { variant?: ModuleVari
   const inputText = theme.text;
   const inputPlaceholder = theme.tertiaryText; // muted so it never competes with real text
 
-  if (!isVisible) return null;
-
   return (
-    <div
-      className="fixed inset-0 z-[100] flex items-end justify-center bg-black/50"
-      role="dialog"
-      aria-modal="true"
-      aria-label="Password and Email Setup"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) setVisible(false);
-      }}
+    <AppSheet
+      visible={isVisible}
+      onClose={() => setVisible(false)}
+      title="Password & Email Setup"
+      subtitle="Link your email and set a secure password for password login."
+      label="Password and Email Setup"
+      footer={
+        success ? null : (
+          <button
+            type="button"
+            onClick={handleSubmit}
+            disabled={loading}
+            className="flex w-full flex-row items-center justify-center gap-2 rounded-2xl py-4 text-[15px] font-extrabold tracking-[0.4px] text-white transition active:opacity-85 disabled:opacity-70"
+            style={{
+              backgroundColor: theme.primary,
+              borderRadius: theme.radius ?? 16,
+              opacity: loading ? 0.7 : 1,
+              boxShadow: "0 4px 10px rgba(0,0,0,0.18)",
+            }}
+          >
+            {loading ? (
+              <span
+                role="status"
+                aria-label="Saving"
+                className="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white"
+              />
+            ) : (
+              <>
+                <ShieldCheck size={18} color="#fff" />
+                <span>Save Password &amp; Email</span>
+              </>
+            )}
+          </button>
+        )
+      }
     >
-      <div
-        className="flex max-h-[85vh] w-full max-w-lg flex-col overflow-hidden rounded-t-3xl"
-        style={{ backgroundColor: theme.background }}
-      >
-        {/*
-          Header WITHOUT a close button — the backdrop tap or system back
-          dismisses. Keeps the chrome minimal.
-        */}
-        <div className="px-5 pb-1 pt-3 text-center">
-          <div
-            className="mx-auto mb-2 h-[5px] w-10 rounded-full"
-            style={{ backgroundColor: theme.border }}
-          />
-          <h3
-            className="text-base font-bold"
-            style={{ color: theme.text }}
-          >
-            Password &amp; Email Setup
-          </h3>
-          <p
-            className="mt-1 text-[13px] leading-[18px]"
-            style={{ color: theme.secondaryText }}
-          >
-            Link your email and set a secure password for password login.
-          </p>
-        </div>
-
-        <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-8 pt-1">
+      <div className="flex flex-col px-4 pb-4">
           {success ? (
             <div
               className="mt-2 flex flex-col items-center rounded-[20px] border p-7 text-center"
@@ -415,38 +414,10 @@ const PasswordEmailSetupSheet = ({ variant = "default" }: { variant?: ModuleVari
                   style={{ fontSize: 15, fontWeight: "600", color: inputText }}
                 />
               </div>
-
-              {/* Primary CTA — WHITE text on brand primary */}
-              <button
-                type="button"
-                onClick={handleSubmit}
-                disabled={loading}
-                className="mt-1 flex w-full flex-row items-center justify-center gap-2 rounded-2xl py-4 text-[15px] font-extrabold tracking-[0.4px] text-white transition active:opacity-85 disabled:opacity-70"
-                style={{
-                  backgroundColor: theme.primary,
-                  borderRadius: theme.radius ?? 16,
-                  opacity: loading ? 0.7 : 1,
-                  boxShadow: "0 4px 10px rgba(0,0,0,0.18)",
-                }}
-              >
-                {loading ? (
-                  <span
-                    role="status"
-                    aria-label="Saving"
-                    className="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white"
-                  />
-                ) : (
-                  <>
-                    <ShieldCheck size={18} color="#fff" />
-                    <span>Save Password &amp; Email</span>
-                  </>
-                )}
-              </button>
             </>
           )}
-        </div>
       </div>
-    </div>
+    </AppSheet>
   );
 };
 

@@ -1,15 +1,5 @@
 import { RefreshCw, TriangleAlert, X } from "lucide-react";
 import React, { useState } from "react";
-import {
-  Modal,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "@/components/primitives";
-import { useSafeAreaInsets } from "@/src/hooks/useSafeAreaInsets";
 
 export type ErrorFallbackProps = {
   error: Error;
@@ -36,7 +26,6 @@ const neutral = {
  * need themed colours.
  */
 export function CommonErrorFallback({ error, resetError }: ErrorFallbackProps) {
-  const insets = useSafeAreaInsets();
   const [isModalVisible, setIsModalVisible] = useState(false);
 
   const handleRestart = async () => {
@@ -55,175 +44,94 @@ export function CommonErrorFallback({ error, resetError }: ErrorFallbackProps) {
     return details;
   };
 
-  const topPad = Platform.OS === "web" ? 24 : insets.top + 16;
-  const bottomPad = Platform.OS === "web" ? 24 : insets.bottom + 16;
-
   return (
-    <View style={[
-        styles.root,
-        {
-          backgroundColor: neutral.bg,
-          paddingTop: topPad,
-          paddingBottom: bottomPad,
-        },
-      ]}
+    <div
+      className="flex flex-1 flex-col items-center justify-center px-6"
+      style={{ backgroundColor: neutral.bg, paddingTop: 24, paddingBottom: 24 }}
     >
-      <View style={styles.iconContainer}>
-        <View style={[styles.iconCircle, { backgroundColor: neutral.card }]}>
+      <div className="mb-5">
+        <div
+          className="flex h-[72px] w-[72px] items-center justify-center rounded-full"
+          style={{ backgroundColor: neutral.card }}
+        >
           <TriangleAlert size={32} color={neutral.danger} />
-        </View>
-      </View>
+        </div>
+      </div>
 
-      <Text style={[styles.title, { color: neutral.text }]}>
+      <h2 className="mb-2 text-center text-[22px] font-bold" style={{ color: neutral.text }}>
         Something went wrong
-      </Text>
-      <Text style={[styles.message, { color: neutral.subtext }]}>
+      </h2>
+      <p className="mb-8 text-center text-sm leading-5" style={{ color: neutral.subtext }}>
         {error.message || "An unexpected error occurred."}
-      </Text>
+      </p>
 
-      <View style={styles.actions}>
-        <Pressable style={[styles.primaryBtn, { backgroundColor: neutral.primary }]}
-          onPress={handleRestart}
+      <div className="flex w-full flex-col items-center gap-3">
+        <button
+          type="button"
+          onClick={handleRestart}
+          className="flex w-full cursor-pointer flex-row items-center justify-center gap-2 rounded-lg py-3.5"
+          style={{ backgroundColor: neutral.primary }}
         >
           <RefreshCw size={14} color="#fff" />
-          <Text style={styles.primaryBtnText}>Restart App</Text>
-        </Pressable>
+          <span className="text-[15px] font-semibold text-white">Restart App</span>
+        </button>
 
-        <Pressable style={[styles.secondaryBtn, { borderColor: neutral.border }]}
-          onPress={resetError}
+        <button
+          type="button"
+          onClick={resetError}
+          className="w-full cursor-pointer rounded-lg border py-3"
+          style={{ borderColor: neutral.border }}
         >
-          <Text style={[styles.secondaryBtnText, { color: neutral.text }]}>
+          <span className="text-[15px] font-medium" style={{ color: neutral.text }}>
             Try Again
-          </Text>
-        </Pressable>
+          </span>
+        </button>
 
-        <Pressable onPress={() => setIsModalVisible(true)}>
-          <Text style={[styles.detailsLink, { color: neutral.subtext }]}>
+        <button type="button" onClick={() => setIsModalVisible(true)} className="mt-1 cursor-pointer">
+          <span className="text-xs underline" style={{ color: neutral.subtext }}>
             View error details
-          </Text>
-        </Pressable>
-      </View>
+          </span>
+        </button>
+      </div>
 
-      <Modal visible={isModalVisible}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => setIsModalVisible(false)}
-      >
-        <View style={[styles.modal, { backgroundColor: neutral.bg }]}>
-          <View style={styles.modalHeader}>
-            <Text style={[styles.modalTitle, { color: neutral.text }]}>
-              Error Details
-            </Text>
-            <Pressable onPress={() => setIsModalVisible(false)} hitSlop={8}>
-              <X size={22} color={neutral.text} />
-            </Pressable>
-          </View>
-          <ScrollView style={styles.modalBody}>
-            <Text style={[
-                styles.errorDetails,
-                {
-                  color: neutral.subtext,
-                  backgroundColor: neutral.card,
-                  borderColor: neutral.border,
-                },
-              ]}
-            >
-              {formatErrorDetails()}
-            </Text>
-          </ScrollView>
-        </View>
-      </Modal>
-    </View>
+      {isModalVisible ? (
+        <div
+          className="fixed inset-0 z-[100] flex items-end justify-center bg-black/50 sm:items-center"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Error details"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setIsModalVisible(false);
+          }}
+        >
+          <div
+            className="flex max-h-[85vh] w-full max-w-lg flex-col overflow-hidden rounded-t-3xl p-5 sm:rounded-3xl"
+            style={{ backgroundColor: neutral.bg }}
+          >
+            <div className="mb-4 flex flex-row items-center justify-between">
+              <h3 className="text-lg font-bold" style={{ color: neutral.text }}>
+                Error Details
+              </h3>
+              <button
+                type="button"
+                onClick={() => setIsModalVisible(false)}
+                aria-label="Close error details"
+                className="cursor-pointer p-1"
+              >
+                <X size={22} color={neutral.text} />
+              </button>
+            </div>
+            <div className="min-h-0 flex-1 overflow-y-auto">
+              <pre
+                className="rounded-lg border p-4 text-[11px] leading-[18px] whitespace-pre-wrap"
+                style={{ color: neutral.subtext, backgroundColor: neutral.card, borderColor: neutral.border, fontFamily: "monospace" }}
+              >
+                {formatErrorDetails()}
+              </pre>
+            </div>
+          </div>
+        </div>
+      ) : null}
+    </div>
   );
 }
-
-const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 24,
-  },
-  iconContainer: {
-    marginBottom: 20,
-  },
-  iconCircle: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: "700",
-    marginBottom: 8,
-    textAlign: "center",
-  },
-  message: {
-    fontSize: 14,
-    textAlign: "center",
-    lineHeight: 20,
-    marginBottom: 32,
-  },
-  actions: {
-    width: "100%",
-    gap: 12,
-    alignItems: "center",
-  },
-  primaryBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    width: "100%",
-    paddingVertical: 14,
-    borderRadius: 8,
-    justifyContent: "center",
-  },
-  primaryBtnText: {
-    color: "#fff",
-    fontSize: 15,
-    fontWeight: "600",
-  },
-  secondaryBtn: {
-    width: "100%",
-    paddingVertical: 13,
-    borderRadius: 8,
-    borderWidth: 1,
-    alignItems: "center",
-  },
-  secondaryBtnText: {
-    fontSize: 15,
-    fontWeight: "500",
-  },
-  detailsLink: {
-    fontSize: 12,
-    marginTop: 4,
-    textDecorationLine: "underline",
-  },
-  modal: {
-    flex: 1,
-    padding: 20,
-  },
-  modalHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 16,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-  },
-  modalBody: {
-    flex: 1,
-  },
-  errorDetails: {
-    padding: 16,
-    borderRadius: 8,
-    borderWidth: 1,
-    fontSize: 11,
-    lineHeight: 18,
-    fontFamily: Platform.OS === "ios" ? "Menlo" : "monospace",
-  },
-});

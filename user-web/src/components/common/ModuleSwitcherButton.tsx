@@ -1,5 +1,4 @@
-import React, { useCallback, useRef } from "react";
-import { Pressable, StyleSheet, Text } from "@/components/primitives";
+import React, { useCallback, useRef, useState } from "react";
 import { ArrowRight, Sparkles } from "lucide-react";
 import * as Haptics from "@/lib/haptics";
 import { useNavigate } from "react-router-dom";
@@ -7,6 +6,7 @@ import { replaceTo } from "@/src/utils/navigation";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { useModuleStore } from "@/src/store/useModuleStore";
 import { APP_MODULES } from "@/src/constants/modules";
+import { cn } from "@/src/lib/utils";
 
 /**
  * Catalog switcher pill — shows WHERE the tap goes (next catalog's icon +
@@ -20,6 +20,7 @@ export const ModuleSwitcherButton: React.FC<{ compact?: boolean }> = ({
   const navigate = useNavigate();
   const { currentModule, setModule } = useModuleStore();
   const isNavigating = useRef(false);
+  const [pressed, setPressed] = useState(false);
   // Food module hidden for now — switcher cycles Clothing <-> Jewelry only.
   const visibleModules = APP_MODULES.filter((m) => m.id !== "food");
   const currentIndex = visibleModules.findIndex((m) => m.id === currentModule.id);
@@ -49,54 +50,32 @@ export const ModuleSwitcherButton: React.FC<{ compact?: boolean }> = ({
   }, [navigate, setModule, nextModule]);
 
   return (
-    <Pressable onPress={handlePress}
-      hitSlop={8}
-      accessibilityRole="button"
-      accessibilityLabel={`Switch to ${nextLabel} catalog`}
-      style={({ pressed }) => [
-        styles.pill,
-        {
-          backgroundColor: theme.tertiaryBackground,
-          borderColor: (nextModule?.badgeColor ?? theme.text) + "90",
-          ...(compact ? { paddingHorizontal: 10, gap: 4 } : null),
-        },
-        pressed && styles.pressed,
-      ]}
+    <button
+      type="button"
+      onClick={handlePress}
+      onMouseDown={() => setPressed(true)}
+      onMouseUp={() => setPressed(false)}
+      onMouseLeave={() => setPressed(false)}
+      aria-label={`Switch to ${nextLabel} catalog`}
+      className={cn(
+        "flex h-[38px] cursor-pointer flex-row items-center gap-1.5 rounded-[19px] border-[1.5px] px-3 transition-all duration-150",
+        compact && "gap-1 px-2.5",
+      )}
+      style={{
+        backgroundColor: theme.tertiaryBackground,
+        borderColor: (nextModule?.badgeColor ?? theme.text) + "90",
+        opacity: pressed ? 0.6 : 1,
+        transform: pressed ? "scale(0.95)" : undefined,
+      }}
     >
       <NextIcon size={15} color={nextModule?.badgeColor ?? theme.text} />
-      <Text style={[
-          styles.label,
-          {
-            color: theme.text,
-            fontFamily: "DMSans_500Medium",
-            ...(compact ? { fontSize: 11 } : null),
-          },
-        ]}
-        numberOfLines={1}
+      <span
+        className="block truncate text-xs tracking-wide"
+        style={{ color: theme.text, fontFamily: "DMSans_500Medium", fontSize: compact ? 11 : 12 }}
       >
         {nextLabel}
-      </Text>
+      </span>
       <ArrowRight size={13} color={theme.tertiaryText} />
-    </Pressable>
+    </button>
   );
 };
-
-const styles = StyleSheet.create({
-  pill: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 5,
-    height: 38,
-    paddingHorizontal: 12,
-    borderRadius: 19,
-    borderWidth: 1.5,
-  },
-  label: {
-    fontSize: 12,
-    letterSpacing: 0.3,
-  },
-  pressed: {
-    opacity: 0.6,
-    transform: [{ scale: 0.95 }],
-  },
-});

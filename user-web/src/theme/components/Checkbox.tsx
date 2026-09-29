@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { Pressable, StyleSheet, ViewStyle, View } from "@/components/primitives";
 import { Square, SquareCheckBig } from "lucide-react";
 import { useTheme } from "../Provider/ThemeProvider";
 import ThemedText from "./ThemedText";
@@ -9,7 +8,7 @@ interface CheckboxProps {
   label: string;
   checked: boolean;
   onChange: (checked: boolean) => void;
-  style?: ViewStyle;
+  style?: React.CSSProperties;
 }
 
 export const Checkbox: React.FC<CheckboxProps> = ({
@@ -21,46 +20,30 @@ export const Checkbox: React.FC<CheckboxProps> = ({
   const theme = useTheme() as any;
   const [pressed, setPressed] = useState(false);
 
-  const handlePressIn = () => {
-    setPressed(true);
-  };
-
-  const handlePressOut = () => {
-    setPressed(false);
-  };
-
-  const styles = StyleSheet.create({
-    container: {
-      flexDirection: "row",
-      alignItems: "center",
-      marginVertical: 8,
-    },
-    iconContainer: {
-      marginRight: 8,
-    },
-    label: {
-      fontSize: 14,
-      color: theme.text,
-    },
-  });
-
   return (
-    <Pressable style={[styles.container, style]}
-      onPress={() => onChange(!checked)}
-      onPressIn={handlePressIn}
-      onPressOut={handlePressOut}
-      accessibilityRole="checkbox"
-      accessibilityState={{ checked }}
-      accessibilityLabel={label}
+    <button
+      type="button"
+      onClick={() => onChange(!checked)}
+      onMouseDown={() => setPressed(true)}
+      onMouseUp={() => setPressed(false)}
+      onMouseLeave={() => setPressed(false)}
+      role="checkbox"
+      aria-checked={checked}
+      aria-label={label}
+      className="my-2 flex cursor-pointer flex-row items-center"
+      style={style}
     >
-      <View style={[styles.iconContainer, { transform: [{ scale: pressed ? 0.9 : 1 }], transition: "transform 0.15s ease-out" }]}>
+      <span
+        className="mr-2 block transition-transform duration-150"
+        style={{ transform: pressed ? "scale(0.9)" : undefined }}
+      >
         {checked ? (
           <SquareCheckBig size={24} color={theme.primary} />
         ) : (
           <Square size={24} color={theme.secondaryText} />
         )}
-      </View>
-      <ThemedText style={styles.label}>{label}</ThemedText>
-    </Pressable>
+      </span>
+      <ThemedText className="text-sm" style={{ color: theme.text }}>{label}</ThemedText>
+    </button>
   );
 };

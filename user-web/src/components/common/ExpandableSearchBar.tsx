@@ -1,5 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Keyboard, Platform, Pressable, StyleSheet, TextInput as RNTextInput, View } from "@/components/primitives";
+import React, { useCallback, useRef, useState } from "react";
 
 import { Search } from "lucide-react";
 import * as Haptics from "@/lib/haptics";
@@ -21,27 +20,29 @@ export const ExpandableSearchBar: React.FC<ExpandableSearchBarProps> = ({
   placeholder = "Search...",
   searchRoute = "/(tabs)/clothing/search",
 }) => {
-  const isWeb = Platform.OS === "web";
-  const expandedWidth = isWeb ? 220 : 210;
+  const expandedWidth = 220;
   const theme = useTheme();
   const navigate = useNavigate();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchText, setSearchText] = useState("");
-  const isSearchOpenRef = useRef(false);
-  const inputRef = useRef<RNTextInput>(null);
+  const inputRef = useRef<any>(null);
 
   const openSearch = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setIsSearchOpen(true);
-    isSearchOpenRef.current = true;
     setTimeout(() => inputRef.current?.focus(), 200);
-  }, [expandedWidth]);
+  }, []);
 
   const collapseSearch = useCallback(() => {
     setIsSearchOpen(false);
-    isSearchOpenRef.current = false;
     setSearchText("");
   }, []);
+
+  const dismissKeyboard = () => {
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+  };
 
   const handleSearchSubmit = useCallback(() => {
     if (searchText.trim()) {
@@ -55,41 +56,29 @@ export const ExpandableSearchBar: React.FC<ExpandableSearchBarProps> = ({
         });
       }
       collapseSearch();
-      Keyboard.dismiss();
+      dismissKeyboard();
     }
   }, [searchText, navigate, collapseSearch, onSearchSubmit, searchRoute]);
 
-  useEffect(() => {
-    const sub = Keyboard.addListener("keyboardDidHide", () => {
-      if (isSearchOpenRef.current) {
-        collapseSearch();
-      }
-    });
-    return () => sub.remove();
-  }, [collapseSearch]);
-
-  const searchAnimStyle = {
-    width: isSearchOpen ? expandedWidth : SEARCH_COLLAPSED,
-    transition: "width 0.3s ease-out",
-  };
-
-  const webPressableStyle = isWeb ? ({ cursor: "pointer" } as any) : {};
-
   return (
-    <View
-      style={[
-        styles.searchBtn,
-        { backgroundColor: theme.tertiaryBackground },
-        searchAnimStyle,
-      ]}
+    <div
+      className="flex h-[38px] flex-row items-center overflow-hidden rounded-[19px] transition-all duration-300"
+      style={{
+        backgroundColor: theme.tertiaryBackground,
+        width: isSearchOpen ? expandedWidth : SEARCH_COLLAPSED,
+      }}
     >
-      <Pressable onPress={isSearchOpen ? collapseSearch : openSearch}
-        style={[styles.searchTouchable, webPressableStyle]}
+      <button
+        type="button"
+        onClick={isSearchOpen ? collapseSearch : openSearch}
+        aria-label={isSearchOpen ? "Close search" : "Open search"}
+        className="flex h-[38px] w-[38px] shrink-0 cursor-pointer items-center justify-center"
       >
         <Search size={20} color={theme.text} />
-      </Pressable>
+      </button>
       {isSearchOpen && (
-        <TextInput ref={inputRef}
+        <TextInput
+          ref={inputRef}
           bare
           placeholder={placeholder}
           placeholderTextColor={theme.tertiaryText}
@@ -108,22 +97,6 @@ export const ExpandableSearchBar: React.FC<ExpandableSearchBarProps> = ({
           style={{ fontSize: 14, color: theme.text }}
         />
       )}
-    </View>
+    </div>
   );
 };
-
-const styles = StyleSheet.create({
-  searchBtn: {
-    height: 38,
-    borderRadius: 19,
-    flexDirection: "row",
-    alignItems: "center",
-    overflow: "hidden",
-  },
-  searchTouchable: {
-    width: 38,
-    height: 38,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-});

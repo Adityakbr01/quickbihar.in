@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, Mail, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Mail } from "lucide-react";
 import { WhatsappIcon } from "@/src/components/common/BrandIcons";
 import * as Haptics from "@/lib/haptics";
 import React, { useEffect, useState } from "react";
@@ -11,6 +11,7 @@ import {
   SUPPORT_WHATSAPP_INTL,
 } from "@/src/constants";
 import { useColors } from "@/src/features/Jewelery/hooks/useColors";
+import { AppSheet } from "@/src/components/common/AppSheet";
 
 type Channel = "whatsapp" | "email";
 
@@ -63,16 +64,6 @@ export const HelpSupportSheet: React.FC<HelpSupportSheetProps> = ({
 }) => {
   const colors = useColors();
   const [channel, setChannel] = useState<Channel | null>(null);
-  const [winH, setWinH] = useState(() =>
-    typeof window !== "undefined" ? window.innerHeight : 800,
-  );
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const onResize = () => setWinH(window.innerHeight);
-    window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
-  }, []);
 
   // Reset channel selection each time the sheet opens.
   useEffect(() => {
@@ -80,8 +71,6 @@ export const HelpSupportSheet: React.FC<HelpSupportSheetProps> = ({
       setChannel(null);
     }
   }, [visible]);
-
-  if (!visible) return null;
 
   const openChannel = (faq: Faq) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -113,51 +102,14 @@ export const HelpSupportSheet: React.FC<HelpSupportSheetProps> = ({
         : `Pick a topic — we'll draft an email to ${JEWELERY_MODULE_CONFIG.supportEmail}`;
 
   return (
-    <div
-      className="fixed inset-0 z-[100] flex items-end justify-center bg-black/50"
-      role="dialog"
-      aria-modal="true"
-      aria-label="Help & Support"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
+    <AppSheet
+      visible={visible}
+      onClose={onClose}
+      title="Help & Support"
+      subtitle={subtitle}
+      label="Help & Support"
     >
-      <div
-        className="flex max-h-[85vh] w-full max-w-lg flex-col overflow-hidden rounded-t-3xl"
-        style={{ backgroundColor: colors.ivory }}
-      >
-        {/* Header */}
-        <div className="flex flex-row items-start justify-between gap-3 px-5 pt-4 pb-2">
-          <div className="flex min-w-0 flex-1 flex-col">
-            <h3
-              className="text-lg font-bold"
-              style={{ color: colors.ink, fontFamily: "DMSans_500Medium" }}
-            >
-              Help & Support
-            </h3>
-            <p
-              className="mt-0.5 text-xs"
-              style={{ color: colors.warmGray, fontFamily: "DMSans_400Regular" }}
-            >
-              {subtitle}
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close Help & Support"
-            className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full"
-            style={{ backgroundColor: colors.pearl }}
-          >
-            <X size={18} color={colors.ink} />
-          </button>
-        </div>
-
-        <div
-          className="min-h-0 flex-1 overflow-y-auto"
-          style={{ maxHeight: Math.round(winH * 0.62) }}
-        >
-          <div className="flex flex-col gap-3 px-5 pb-8">
+          <div className="flex flex-col gap-3 px-5 pb-6">
             {channel === null ? (
               <>
                 <button
@@ -270,8 +222,6 @@ export const HelpSupportSheet: React.FC<HelpSupportSheetProps> = ({
               </>
             )}
           </div>
-        </div>
-      </div>
-    </div>
+    </AppSheet>
   );
 };

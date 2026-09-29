@@ -1,5 +1,4 @@
 import React, { Suspense, forwardRef } from "react";
-import { View } from "@/components/primitives";
 
 const LottieInner = React.lazy(() =>
   import("lottie-react").then((m) => ({ default: m.Lottie }))
@@ -17,9 +16,11 @@ const LottieInner = React.lazy(() =>
  */
 const LazyLottie = forwardRef<any, any>(function LazyLottie(props: any, ref: any) {
   const { source, autoPlay, autoplay, loop, resizeMode: _resizeMode, style, ..._rest } = props ?? {};
-  const cssStyle = Array.isArray(style) ? Object.assign({}, ...style.filter(Boolean)) : style;
+  const cssStyle: React.CSSProperties | undefined = Array.isArray(style)
+    ? Object.assign({}, ...style.filter(Boolean))
+    : style;
   return (
-    <Suspense fallback={<View style={style} />}>
+    <Suspense fallback={<div style={cssStyle} />}>
       <LottieInner
         src={source}
         autoplay={autoplay ?? autoPlay ?? true}

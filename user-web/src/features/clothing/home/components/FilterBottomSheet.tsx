@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Check, ChevronRight, CircleX, Layers, Search, X } from "lucide-react";
 import { AppIcon } from "@/src/components/common/AppIcon";
+import { AppSheet } from "@/src/components/common/AppSheet";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { cn } from "@/src/lib/utils";
 
@@ -136,38 +137,31 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
     return categoryGroups.find((g) => g.title === selectedParentTab) || null;
   }, [categoryGroups, selectedParentTab]);
 
-  if (!visible) return null;
-
   const pillBase = "flex cursor-pointer flex-row items-center gap-1.5 rounded-full border-[1.5px] px-4 py-2.5 text-[13px] font-semibold";
 
-  return (
-    <div
-      className="fixed inset-0 z-[100] flex items-end justify-center bg-black/50 sm:items-center"
-      role="dialog"
-      aria-modal="true"
-      aria-label={title}
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-    >
-      <div
-        className="flex max-h-[85vh] w-full max-w-lg flex-col overflow-hidden rounded-t-3xl sm:rounded-3xl"
-        style={{ backgroundColor: theme.background }}
+  const footer = (
+    <div className="flex flex-row gap-3">
+      <button
+        type="button"
+        onClick={handleClearAll}
+        className="flex-1 cursor-pointer rounded-[14px] border py-4 text-base font-bold"
+        style={{ borderColor: theme.border, backgroundColor: theme.background, color: theme.text }}
       >
-        {/* Header */}
-        <div className="flex flex-row items-center justify-between px-4 py-3">
-          <h3 className="text-base font-bold" style={{ color: theme.text }}>{title}</h3>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label={`Close ${title}`}
-            className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full"
-            style={{ backgroundColor: theme.secondaryBackground }}
-          >
-            <X size={18} color={theme.text} />
-          </button>
-        </div>
+        Clear All
+      </button>
+      <button
+        type="button"
+        onClick={handleApply}
+        className="flex-[2] cursor-pointer rounded-[14px] py-4 text-base font-bold text-white shadow-lg"
+        style={{ backgroundColor: theme.primary }}
+      >
+        Apply{tempOptions.length > 0 ? ` (${tempOptions.length})` : ""}
+      </button>
+    </div>
+  );
 
+  return (
+    <AppSheet visible={visible} onClose={onClose} title={title} footer={footer} label={title}>
         {/* Search bar */}
         <div className="mx-6 mb-1">
           <div
@@ -217,7 +211,7 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
         )}
 
         {/* Main Content Area */}
-        <div className="min-h-0 flex-1 overflow-y-auto pb-8">
+        <div className="pb-2">
           {/* Case 1: Searching */}
           {searchText.trim().length > 0 ? (
             searchResults.length === 0 ? (
@@ -490,27 +484,6 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
             </div>
           )}
         </div>
-
-        {/* Footer */}
-        <div className="flex flex-row gap-3 border-t px-4 py-3" style={{ borderTopColor: theme.border }}>
-          <button
-            type="button"
-            onClick={handleClearAll}
-            className="flex-1 cursor-pointer rounded-[14px] border py-4 text-base font-bold"
-            style={{ borderColor: theme.border, backgroundColor: theme.background, color: theme.text }}
-          >
-            Clear All
-          </button>
-          <button
-            type="button"
-            onClick={handleApply}
-            className="flex-[2] cursor-pointer rounded-[14px] py-4 text-base font-bold text-white shadow-lg"
-            style={{ backgroundColor: theme.primary }}
-          >
-            Apply{tempOptions.length > 0 ? ` (${tempOptions.length})` : ""}
-          </button>
-        </div>
-      </div>
-    </div>
+    </AppSheet>
   );
 };

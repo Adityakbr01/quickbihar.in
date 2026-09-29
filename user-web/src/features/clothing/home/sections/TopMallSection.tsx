@@ -25,9 +25,16 @@ const TopMallSection = () => {
   const mobileCardWidth = Math.min(260, Math.max(windowWidth - 64, 200));
   const webMobileCardWidth = Math.min(300, Math.max(windowWidth - 64, 200));
   // Mobile widths byte-identical. Desktop uses a 3-col grid cell.
-  const desktopContainer = Math.min(windowWidth - DESKTOP.gutter * 2, DESKTOP.maxWidth);
+  const desktopContainer = Math.min(
+    windowWidth - DESKTOP.gutter * 2,
+    DESKTOP.maxWidth,
+  );
   const desktopCardWidth = (desktopContainer - gap * 2) / 3;
-  const cardWidth = isDesktop ? desktopCardWidth : isWebMobile ? webMobileCardWidth : mobileCardWidth;
+  const cardWidth = isDesktop
+    ? desktopCardWidth
+    : isWebMobile
+      ? webMobileCardWidth
+      : mobileCardWidth;
   const { data: topMalls, isLoading } = useQuery({
     queryKey: ["topMalls"],
     queryFn: getTopMallsRequest,
@@ -56,10 +63,13 @@ const TopMallSection = () => {
   }
 
   return (
-    <section className="mt-6 py-5">
+    <section className="mt-6">
       <div className="mb-6 flex flex-row items-center justify-between px-5">
         <div className="flex flex-row items-center">
-          <h2 className="text-[22px] font-extrabold tracking-tight" style={{ color: theme.text }}>
+          <h2
+            className="text-[22px] font-extrabold tracking-tight"
+            style={{ color: theme.text }}
+          >
             {heading}{" "}
           </h2>
           <div className="flex h-8 w-8 items-center justify-center overflow-hidden">
@@ -87,9 +97,16 @@ const TopMallSection = () => {
       </div>
 
       {isDesktop ? (
-        <div className="flex flex-row flex-wrap gap-5" style={{ paddingLeft: 0, paddingRight: 0, rowGap: gap }}>
+        <div
+          className="flex flex-row flex-wrap gap-5"
+          style={{ paddingLeft: 0, paddingRight: 0, rowGap: gap }}
+        >
           {malls.slice(0, 6).map((item: any) => (
-            <div key={item.id} className="shrink-0" style={{ width: cardWidth }}>
+            <div
+              key={item.id}
+              className="shrink-0"
+              style={{ width: cardWidth }}
+            >
               <MallCard mall={item} />
             </div>
           ))}

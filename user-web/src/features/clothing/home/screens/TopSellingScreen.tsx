@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { LucideIcon } from "lucide-react";
-import { ArrowUpDown, ChevronLeft, CircleCheck, Clock, Flame, LayoutGrid, Star, TrendingDown, TrendingUp, User, Users, X } from "lucide-react";
+import { ArrowUpDown, ChevronLeft, CircleCheck, Clock, Flame, LayoutGrid, Star, TrendingDown, TrendingUp, User, Users } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { goBack } from "@/src/utils/navigation";
 import { useInfiniteQuery } from "@tanstack/react-query";
@@ -10,6 +10,7 @@ import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { IProduct } from "@/src/features/clothing/product/types/product.types";
 import { getPublicProductsRequest } from "@/src/features/clothing/product/api/product.api";
 import { DealProductCard } from "../components/DealProductCard";
+import { AppSheet } from "@/src/components/common/AppSheet";
 
 const COLUMN_GAP = 12;
 const HORIZONTAL_PADDING = 16;
@@ -332,66 +333,44 @@ const TopSellingScreen: React.FC<TopSellingScreenProps> = ({ category }) => {
         ) : null}
 
         {/* Sort dialog */}
-        {sortOpen ? (
-          <div
-            className="fixed inset-0 z-[100] flex items-end justify-center bg-black/50 sm:items-center"
-            role="dialog"
-            aria-modal="true"
-            aria-label="Sort by"
-            onClick={(e) => {
-              if (e.target === e.currentTarget) setSortOpen(false);
-            }}
-          >
-            <div
-              className="w-full max-w-lg rounded-t-3xl p-4 sm:rounded-3xl"
-              style={{ backgroundColor: theme.background }}
-            >
-              <div className="mb-2 flex flex-row items-center justify-between">
-                <h3 className="text-base font-bold" style={{ color: theme.text }}>Sort By</h3>
+        <AppSheet
+          visible={sortOpen}
+          onClose={() => setSortOpen(false)}
+          title="Sort By"
+          label="Sort by"
+        >
+          <div className="flex flex-col gap-2.5 px-4 pb-4">
+            {SORT_OPTIONS.map((opt) => {
+              const isActive = sortBy === opt.key;
+              return (
                 <button
+                  key={opt.key}
                   type="button"
-                  onClick={() => setSortOpen(false)}
-                  aria-label="Close sort options"
-                  className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full"
-                  style={{ backgroundColor: theme.secondaryBackground }}
+                  onClick={() => handleSortSelect(opt.key)}
+                  className="flex cursor-pointer flex-row items-center gap-3 rounded-[14px] border-[1.5px] p-3.5"
+                  style={{
+                    backgroundColor: isActive ? theme.primary + "12" : theme.secondaryBackground,
+                    borderColor: isActive ? theme.primary : theme.border,
+                  }}
                 >
-                  <X size={18} color={theme.text} />
+                  <span
+                    className="flex h-9 w-9 items-center justify-center rounded-full"
+                    style={{ backgroundColor: isActive ? theme.primary : theme.tertiaryBackground }}
+                  >
+                    <opt.icon size={18} color={isActive ? "#fff" : theme.text} />
+                  </span>
+                  <span
+                    className="flex-1 text-left text-[15px]"
+                    style={{ color: isActive ? theme.primary : theme.text, fontWeight: isActive ? 700 : 500 }}
+                  >
+                    {opt.label}
+                  </span>
+                  {isActive && <CircleCheck size={20} color={theme.primary} />}
                 </button>
-              </div>
-              <div className="flex flex-col gap-2.5">
-                {SORT_OPTIONS.map((opt) => {
-                  const isActive = sortBy === opt.key;
-                  return (
-                    <button
-                      key={opt.key}
-                      type="button"
-                      onClick={() => handleSortSelect(opt.key)}
-                      className="flex cursor-pointer flex-row items-center gap-3 rounded-[14px] border-[1.5px] p-3.5"
-                      style={{
-                        backgroundColor: isActive ? theme.primary + "12" : theme.secondaryBackground,
-                        borderColor: isActive ? theme.primary : theme.border,
-                      }}
-                    >
-                      <span
-                        className="flex h-9 w-9 items-center justify-center rounded-full"
-                        style={{ backgroundColor: isActive ? theme.primary : theme.tertiaryBackground }}
-                      >
-                        <opt.icon size={18} color={isActive ? "#fff" : theme.text} />
-                      </span>
-                      <span
-                        className="flex-1 text-left text-[15px]"
-                        style={{ color: isActive ? theme.primary : theme.text, fontWeight: isActive ? 700 : 500 }}
-                      >
-                        {opt.label}
-                      </span>
-                      {isActive && <CircleCheck size={20} color={theme.primary} />}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
+              );
+            })}
           </div>
-        ) : null}
+        </AppSheet>
       </div>
     </>
   );

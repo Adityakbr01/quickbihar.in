@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { Pressable, StyleSheet, View, ViewStyle, Text } from "@/components/primitives";
 
 import { AppleIcon, GoogleIcon } from "@/src/components/common/BrandIcons";
 import * as Haptics from "@/lib/haptics";
@@ -9,7 +8,7 @@ interface SocialButtonProps {
   provider: "google" | "apple";
   onPress: () => void;
   disabled?: boolean;
-  style?: ViewStyle;
+  style?: React.CSSProperties;
 }
 
 export const SocialButton: React.FC<SocialButtonProps> = ({
@@ -21,14 +20,6 @@ export const SocialButton: React.FC<SocialButtonProps> = ({
   const theme = useTheme() as any;
   const [pressed, setPressed] = useState(false);
 
-  const handlePressIn = () => {
-    setPressed(true);
-  };
-
-  const handlePressOut = () => {
-    setPressed(false);
-  };
-
   const handlePress = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     if (onPress) {
@@ -36,51 +27,40 @@ export const SocialButton: React.FC<SocialButtonProps> = ({
     }
   };
 
-  const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-    },
-    button: {
-      flex: 1,
-      height: 50,
-      borderRadius: 50,
-      alignItems: "center",
-      justifyContent: "center",
-      backgroundColor:
-        provider === "google"
-          ? theme.secondaryBackground
-          : theme.text === "#ffffff"
-            ? "#ffffff"
-            : "#000000",
-      borderWidth: 1.5,
-      borderColor: provider === "google" ? theme.border : "transparent",
-      opacity: disabled ? 0.5 : 1,
-    },
-    iconText: {
-      fontSize: 20,
-      fontWeight: "700",
-      color:
-        provider === "google"
-          ? theme.text
-          : theme.text === "#ffffff"
-            ? "#000000"
-            : "#ffffff",
-    },
-  });
+  const bg =
+    provider === "google"
+      ? theme.secondaryBackground
+      : theme.text === "#ffffff"
+        ? "#ffffff"
+        : "#000000";
+  const fg =
+    provider === "google"
+      ? theme.text
+      : theme.text === "#ffffff"
+        ? "#000000"
+        : "#ffffff";
 
   return (
-    <View style={[style, styles.container, { transform: [{ scale: pressed ? 0.95 : 1 }], transition: "transform 0.15s ease-out" }]}>
-      <Pressable
-        onPress={handlePress}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
+    <div
+      className="flex-1 transition-transform duration-150"
+      style={{ ...style, transform: pressed ? "scale(0.95)" : undefined }}
+    >
+      <button
+        type="button"
+        onClick={handlePress}
+        onMouseDown={() => !disabled && setPressed(true)}
+        onMouseUp={() => !disabled && setPressed(false)}
+        onMouseLeave={() => !disabled && setPressed(false)}
         disabled={disabled}
-        style={styles.button}
-        accessibilityRole="button"
-        accessibilityLabel={`${provider === "google" ? "Google" : "Apple"} Login`}
-        accessibilityState={{ disabled }}
+        aria-label={`${provider === "google" ? "Google" : "Apple"} Login`}
+        className="flex h-[50px] w-full cursor-pointer items-center justify-center rounded-full border-[1.5px]"
+        style={{
+          backgroundColor: bg,
+          borderColor: provider === "google" ? theme.border : "transparent",
+          opacity: disabled ? 0.5 : 1,
+        }}
       >
-        <Text style={styles.iconText}>
+        <span className="text-xl font-bold" style={{ color: fg }}>
           {provider === "google" ? (
             <GoogleIcon size={24} />
           ) : (
@@ -89,8 +69,8 @@ export const SocialButton: React.FC<SocialButtonProps> = ({
               color={theme.text === "#ffffff" ? "#000000" : "#ffffff"}
             />
           )}
-        </Text>
-      </Pressable>
-    </View>
+        </span>
+      </button>
+    </div>
   );
 };

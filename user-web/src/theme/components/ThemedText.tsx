@@ -1,17 +1,18 @@
 // components/ThemedText.tsx
-import { Text, TextProps } from "@/components/primitives";
+import React from "react";
 import { useTheme } from "../Provider/ThemeProvider";
 
-export default function ThemedText(props: TextProps) {
+export interface ThemedTextProps extends React.HTMLAttributes<HTMLSpanElement> {
+  style?: React.CSSProperties;
+}
+
+export default function ThemedText({ style, ...props }: ThemedTextProps) {
   const theme = useTheme();
 
   return (
-    <Text
+    <span
       {...props}
-      style={[
-        { color: theme.text },
-        props.style, // override allow karega
-      ]}
+      style={{ color: theme.text, ...style }} // override allow karega
     />
   );
 }

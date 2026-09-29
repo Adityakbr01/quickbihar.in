@@ -1,36 +1,23 @@
 import { ChevronRight } from "lucide-react";
 
-import * as Haptics from "@/lib/haptics";
-import React, { useState } from "react";
-import {
-  GoogleSignin,
-  isErrorWithCode,
-  statusCodes,
-  signOutGoogleNative,
-} from "../config/googleSignInConfig";
+import React, { useEffect, useRef, useState } from "react";
 import googleIconLogo from "@/assets/svg/google-icon-logo.svg";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { cn } from "@/src/lib/utils";
 
 interface GoogleSignInButtonProps {
-  /**
-   * Called with the Google `idToken` on a successful native sign-in.
-   * The parent should POST it to `/auth/google` and let the server
-   * create / link the user. We do NOT auto-navigate from this
-   * component — the auth flow lives in the parent (useAuth hook).
-   */
   onSuccess: (idToken: string) => void | Promise<void>;
   onError?: (message: string) => void;
-  /** When true, shows a subtle "Link account" label instead of "Continue with Google". */
   mode?: "signin" | "link";
   disabled?: boolean;
 }
 
+const GIS_SRC = "https://accounts.google.com/gsi/client";
+
 /**
- * Google sign-in button. Triggers the native Google account chooser
- * (Android: Credential Manager / iOS: ASWebAuthenticationSession),
- * then bubbles the id_token up via `onSuccess`. The server does the
- * actual identity verification + user creation.
+ * Google Sign-In button for Web platform using Google Identity Services (GIS).
+ * Does not rely on native Google Play Services, ensuring full functionality
+ * on mobile web browsers (Chrome, Safari, Brave) and desktop.
  */
 export const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({
   onSuccess,
@@ -41,70 +28,117 @@ export const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({
   const theme = useTheme() as any;
   const isDark = theme.isDark ?? theme.text === "#ffffff";
   const [loading, setLoading] = useState(false);
+  const [gisReady, setGisReady] = useState(false);
   const [pressed, setPressed] = useState(false);
+  const gisMountRef = useRef<any>(null);
 
-  const handlePress = async () => {
-    if (loading || disabled) return;
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+  // Web build has no app.json extra block — client ID comes from env.
+  const google: any = {};
+  const webClientId =
+    google.webClientId ||
+    process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ||
+    "183149129805-vf8pkq6h066lcapjanjv1271g36jvij4.apps.googleusercontent.com";
+
+  // 1. Load Google Identity Services script
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    if ((window as any).google?.accounts?.id) {
+      setGisReady(true);
+      return;
+    }
+
+    const existing = document.querySelector(`script[src="${GIS_SRC}"]`);
+    if (existing) {
+      existing.addEventListener("load", () => setGisReady(true), {
+        once: true,
+      });
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src = GIS_SRC;
+    script.async = true;
+    script.defer = true;
+    script.onload = () => setGisReady(true);
+    script.onerror = () =>
+      onError?.("Could not load Google Sign-In. Check your network.");
+    document.head.appendChild(script);
+  }, [onError]);
+
+  // 2. Initialize GIS when ready
+  useEffect(() => {
+    if (!gisReady || !webClientId || typeof window === "undefined") return;
+    const googleAuth = (window as any).google?.accounts?.id;
+    if (!googleAuth) return;
 
     try {
-      setLoading(true);
+      googleAuth.initialize({
+        client_id: webClientId,
+        callback: (response: { credential?: string }) => {
+          setLoading(false);
+          if (response?.credential) {
+            onSuccess(response.credential);
+          } else {
+            onError?.("Google sign-in did not return credentials.");
+          }
+        },
+        cancel_on_tap_outside: true,
+      });
 
-      // Check Play Services on Android (no-op on iOS).
-      try {
-        await GoogleSignin.hasPlayServices({
-          showPlayServicesUpdateDialog: true,
+      // If hidden mount node is available, render Google's real button
+      // so users can click or tap it directly
+      if (gisMountRef.current) {
+        const domNode = gisMountRef.current as HTMLElement;
+        domNode.innerHTML = "";
+        googleAuth.renderButton(domNode, {
+          type: "standard",
+          theme: "outline",
+          size: "large",
+          text: mode === "link" ? "signin_with" : "continue_with",
+          shape: "rectangular",
+          width: 320,
         });
-      } catch {
-        // iOS will throw here, which is fine.
       }
-
-      // Force the account chooser: drop any cached Google session first so
-      // signIn() always shows ALL accounts instead of silently reusing the
-      // last one (e.g. stale cache from a logout before this fix shipped).
-      // Never throws — safe to run on every tap.
-      await signOutGoogleNative();
-
-      const response = await GoogleSignin.signIn();
-      // Native returns { type: "success", data: User }; web returns
-      // User directly. Unwrap both shapes uniformly.
-      const user = (response as any)?.data ?? response;
-      const idToken = (user as any)?.idToken;
-
-      if (!idToken) {
-        throw new Error(
-          "Google sign-in succeeded but no id_token was returned. Check your OAuth client configuration."
-        );
-      }
-
-      await onSuccess(idToken);
     } catch (err: any) {
-      // Silently ignore user-cancellation; report everything else.
-      if (isErrorWithCode(err)) {
-        switch (err.code) {
-          case statusCodes.SIGN_IN_CANCELLED:
-          case statusCodes.IN_PROGRESS:
-            return;
-          case statusCodes.PLAY_SERVICES_NOT_AVAILABLE:
-            onError?.("Google Play Services are not available on this device.");
-            return;
-          default:
-            if (
-              String(err.code) === "10" ||
-              err.message?.includes("DEVELOPER_ERROR")
-            ) {
-              onError?.(
-                "DEVELOPER_ERROR (10): Keystore SHA-1 fingerprint Google Cloud Console me add nahi hai."
-              );
-            } else {
-              onError?.(err.message ?? "Google sign-in failed.");
-            }
-            return;
+      console.warn("[GoogleSignInButton.web] GIS init failed:", err);
+    }
+  }, [gisReady, webClientId, mode, onSuccess, onError]);
+
+  const handlePress = () => {
+    if (loading || disabled) return;
+    const googleAuth = (window as any).google?.accounts?.id;
+
+    if (!googleAuth) {
+      onError?.("Google Sign-In is initializing. Please tap again.");
+      return;
+    }
+
+    setLoading(true);
+
+    // Try finding the rendered iframe button inside our mount and clicking it
+    try {
+      if (gisMountRef.current) {
+        const iframe = (gisMountRef.current as HTMLElement).querySelector(
+          "iframe"
+        );
+        const button = (gisMountRef.current as HTMLElement).querySelector(
+          "[role='button']"
+        ) as HTMLElement;
+        if (button) {
+          button.click();
+          return;
         }
       }
-      onError?.(err?.message ?? "Google sign-in failed. Please try again.");
-    } finally {
+      // Fallback: prompt One Tap / chooser
+      googleAuth.prompt((notification: any) => {
+        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+          setLoading(false);
+        }
+      });
+    } catch (e: any) {
       setLoading(false);
+      onError?.(e.message || "Failed to launch Google Sign-In.");
     }
   };
 
@@ -112,52 +146,63 @@ export const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({
     mode === "link" ? "Link Google Account" : "Continue with Google";
 
   return (
-    <button
-      type="button"
-      aria-label={label}
-      onClick={handlePress}
-      disabled={loading || disabled}
-      onMouseDown={() => setPressed(true)}
-      onMouseUp={() => setPressed(false)}
-      onMouseLeave={() => setPressed(false)}
-      onTouchStart={() => setPressed(true)}
-      onTouchEnd={() => setPressed(false)}
-      className={cn(
-        "flex min-h-[52px] w-full cursor-pointer items-center justify-center rounded-xl border px-[18px] py-3.5 transition-opacity disabled:cursor-not-allowed",
-      )}
-      style={{
-        backgroundColor: isDark ? "rgba(255,255,255,0.08)" : "#FFFFFF",
-        borderColor: isDark ? "rgba(255,255,255,0.18)" : theme.border || "#E5E7EB",
-        opacity: disabled ? 0.5 : pressed ? 0.85 : 1,
-      }}
-    >
-      {loading ? (
-        <span
-          className="h-5 w-5 animate-spin rounded-full border-2 border-current opacity-70"
-          style={{ color: theme.text, borderTopColor: "transparent" }}
-        />
-      ) : (
-        <div className="flex w-full flex-row items-center gap-3">
-          <div className="flex h-[26px] w-[26px] items-center justify-center rounded-full bg-white">
-            <img
-              src={googleIconLogo}
-              alt=""
-              className="h-[18px] w-[18px] object-contain"
+    <div className="relative w-full">
+      {/* Real GIS Button Container (Transparent overlay for direct touch interaction) */}
+      <div
+        ref={gisMountRef}
+        className="absolute inset-0 z-10 flex items-center justify-center overflow-hidden"
+        style={{ opacity: 0.001 }}
+      />
+
+      <button
+        type="button"
+        aria-label={label}
+        onClick={handlePress}
+        disabled={loading || disabled}
+        onMouseDown={() => setPressed(true)}
+        onMouseUp={() => setPressed(false)}
+        onMouseLeave={() => setPressed(false)}
+        onTouchStart={() => setPressed(true)}
+        onTouchEnd={() => setPressed(false)}
+        className={cn(
+          "flex min-h-[52px] w-full cursor-pointer items-center justify-center rounded-xl border px-[18px] py-3.5 transition-opacity disabled:cursor-not-allowed",
+        )}
+        style={{
+          backgroundColor: isDark ? "rgba(255,255,255,0.08)" : "#FFFFFF",
+          borderColor: isDark ? "rgba(255,255,255,0.18)" : theme.border || "#E5E7EB",
+          opacity: disabled ? 0.5 : pressed ? 0.85 : 1,
+        }}
+      >
+        {loading ? (
+          <span
+            className="h-5 w-5 animate-spin rounded-full border-2 border-current opacity-70"
+            style={{ color: theme.text, borderTopColor: "transparent" }}
+          />
+        ) : (
+          <div className="flex w-full flex-row items-center gap-3">
+            <div className="flex h-[26px] w-[26px] items-center justify-center rounded-full bg-white">
+              <img
+                src={googleIconLogo}
+                alt=""
+                className="h-[18px] w-[18px] object-contain"
+              />
+            </div>
+            <span
+              className="text-[15px] font-semibold"
+              style={{ color: theme.text }}
+            >
+              {label}
+            </span>
+            <ChevronRight
+              size={16}
+              color={theme.secondaryText}
+              className="ml-auto"
             />
           </div>
-          <span
-            className="text-[15px] font-semibold"
-            style={{ color: theme.text }}
-          >
-            {label}
-          </span>
-          <ChevronRight
-            size={16}
-            color={theme.secondaryText}
-            className="ml-auto"
-          />
-        </div>
-      )}
-    </button>
+        )}
+      </button>
+    </div>
   );
 };
+
+export default GoogleSignInButton;

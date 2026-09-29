@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import type { LucideIcon } from "lucide-react";
-import { ArrowRight, CircleX, Expand, Palette, ShoppingBag, X, Zap } from "lucide-react";
+import { ArrowRight, CircleX, Expand, Palette, ShoppingBag, Zap } from "lucide-react";
+import { AppSheet } from "@/src/components/common/AppSheet";
 import { Theme } from "@/src/theme/Provider/ThemeProvider";
 import { IProduct } from "../../types/product.types";
 import { useCartStore } from "@/src/features/common/cart/store/cartStore";
@@ -145,8 +146,6 @@ export const VariantSelectorBottomSheet = ({
     return false;
   }, [product.totalStock, selectedSize, selectedVariant]);
 
-  if (!visible) return null;
-
   const handleConfirm = async () => {
     if (isInCart) {
       onClose();
@@ -206,21 +205,40 @@ export const VariantSelectorBottomSheet = ({
     }
   }
 
+  const footer = (
+    <button
+      type="button"
+      onClick={handleConfirm}
+      disabled={buttonDisabled}
+      className="flex h-12 w-full cursor-pointer flex-row items-center justify-center gap-2 rounded-lg"
+      style={{
+        backgroundColor: isInCart
+          ? theme.primary
+          : buttonDisabled
+            ? theme.secondaryText || "#9ca3af"
+            : theme.primary,
+        opacity: isAddingToCart ? 0.7 : 1,
+      }}
+    >
+      {isAddingToCart ? (
+        <span className="block h-5 w-5 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+      ) : (
+        <>
+          <ButtonIcon size={20} color="#fff" />
+          <span className="text-[15px] font-extrabold tracking-wide text-white">{buttonText}</span>
+        </>
+      )}
+    </button>
+  );
+
   return (
     <>
-      <div
-        className="fixed inset-0 z-[100] flex items-end justify-center bg-black/50 sm:items-center"
-        role="dialog"
-        aria-modal="true"
-        aria-label="Select variant"
-        onClick={(e) => {
-          if (e.target === e.currentTarget) onClose();
-        }}
+      <AppSheet
+        visible={visible}
+        onClose={onClose}
+        label="Select variant"
+        footer={footer}
       >
-        <div
-          className="flex max-h-[85vh] w-full max-w-lg flex-col overflow-hidden rounded-t-3xl sm:rounded-3xl"
-          style={{ backgroundColor: theme.background }}
-        >
           {/* Product Header (custom header — has image + price) */}
           <div
             className="flex flex-row items-center border-b px-5 pt-1 pb-4"
@@ -256,18 +274,9 @@ export const VariantSelectorBottomSheet = ({
                   )}
               </div>
             </div>
-            <button
-              type="button"
-              onClick={onClose}
-              aria-label="Close variant selector"
-              className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full"
-              style={{ backgroundColor: (theme.border ?? "#000") + "40" }}
-            >
-              <X size={20} color={theme.text} />
-            </button>
           </div>
 
-          <div className="min-h-0 flex-1 overflow-y-auto p-5">
+          <div className="px-5 pt-4 pb-5">
             {/* Color Selection */}
             {uniqueColors.length > 0 && (
               <div className="mb-5">
@@ -386,35 +395,7 @@ export const VariantSelectorBottomSheet = ({
               </div>
             )}
           </div>
-
-          {/* Action footer */}
-          <div className="border-t px-4 py-3" style={{ borderTopColor: theme.border }}>
-            <button
-              type="button"
-              onClick={handleConfirm}
-              disabled={buttonDisabled}
-              className="flex h-12 w-full cursor-pointer flex-row items-center justify-center gap-2 rounded-lg"
-              style={{
-                backgroundColor: isInCart
-                  ? theme.primary
-                  : buttonDisabled
-                    ? theme.secondaryText || "#9ca3af"
-                    : theme.primary,
-                opacity: isAddingToCart ? 0.7 : 1,
-              }}
-            >
-              {isAddingToCart ? (
-                <span className="block h-5 w-5 animate-spin rounded-full border-2 border-white/40 border-t-white" />
-              ) : (
-                <>
-                  <ButtonIcon size={20} color="#fff" />
-                  <span className="text-[15px] font-extrabold tracking-wide text-white">{buttonText}</span>
-                </>
-              )}
-            </button>
-          </div>
-        </div>
-      </div>
+      </AppSheet>
 
       <SizeChartModal
         visible={showSizeChart}

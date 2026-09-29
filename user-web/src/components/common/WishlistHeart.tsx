@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { TouchableOpacity, Platform, View, ViewStyle } from "@/components/primitives";
 import { Heart } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
@@ -11,8 +10,11 @@ interface WishlistHeartProps {
   size?: number;
   activeColor?: string;
   inactiveColor?: string;
-  style?: ViewStyle | ViewStyle[];
+  style?: React.CSSProperties | React.CSSProperties[];
 }
+
+const flatten = (s: React.CSSProperties | React.CSSProperties[] | undefined): React.CSSProperties =>
+  Array.isArray(s) ? Object.assign({}, ...s) : (s ?? {});
 
 const WishlistHeart: React.FC<WishlistHeartProps> = ({
   isWishlisted,
@@ -37,9 +39,7 @@ const WishlistHeart: React.FC<WishlistHeartProps> = ({
     }
 
     // 1. Trigger haptics
-    if (Platform.OS !== "web") {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    }
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
 
     // 2. Pop animation (CSS transition replaces the reanimated spring)
     setPopping(true);
@@ -50,18 +50,21 @@ const WishlistHeart: React.FC<WishlistHeartProps> = ({
   };
 
   return (
-    <TouchableOpacity activeOpacity={0.7}
-      onPress={handlePress}
-      style={style}
+    <div
+      onClick={handlePress}
+      className="cursor-pointer"
+      style={flatten(style)}
     >
-      <View style={{ transform: [{ scale: popping ? 1.4 : 1 }], transition: "transform 0.2s ease-out" }}>
+      <div
+        style={{ transform: popping ? "scale(1.4)" : undefined, transition: "transform 0.2s ease-out" }}
+      >
         <Heart
           size={size}
           color={isWishlisted ? activeColor : inactiveColor}
           fill={isWishlisted ? activeColor : "none"}
         />
-      </View>
-    </TouchableOpacity>
+      </div>
+    </div>
   );
 };
 

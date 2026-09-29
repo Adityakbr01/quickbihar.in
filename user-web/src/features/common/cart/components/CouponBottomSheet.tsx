@@ -1,10 +1,11 @@
 import React, { useMemo, useState } from "react";
-import { Check, CheckCheck, CircleCheck, Lock, Sparkles, Tag, Ticket, X } from "lucide-react";
+import { Check, CheckCheck, CircleCheck, Lock, Sparkles, Tag, Ticket } from "lucide-react";
 import * as Haptics from "@/lib/haptics";
 import { ICoupon } from "@/src/features/common/coupon/types/coupon.types";
 import { CartItem } from "../store/cartStore";
 import { TextInput } from "@/src/theme/components/TextInput";
 import { cn } from "@/src/lib/utils";
+import { AppSheet } from "@/src/components/common/AppSheet";
 
 /** A short summary of a cart line that a coupon applies to. */
 export interface MatchingItem {
@@ -211,8 +212,6 @@ export const CouponBottomSheet: React.FC<CouponBottomSheetProps> = ({
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     onRemoveCoupon(codeToRemove);
   };
-
-  if (!visible) return null;
 
   const renderCouponItem = (item: CouponApplicability) => {
     const {
@@ -433,47 +432,31 @@ export const CouponBottomSheet: React.FC<CouponBottomSheetProps> = ({
     );
   };
 
-  return (
-    <div
-      className="fixed inset-0 z-[100] flex items-end justify-center bg-black/50"
-      role="dialog"
-      aria-modal="true"
-      aria-label="Coupons & Offers"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-    >
-      <div
-        className="flex max-h-[85vh] w-full max-w-lg flex-col overflow-hidden rounded-t-3xl"
-        style={{ backgroundColor: theme.background }}
-      >
-        {/* Header */}
-        <div className="flex flex-row items-center justify-between px-4 py-3">
-          <h3 className="text-base font-bold" style={{ color: theme.text }}>
-            Coupons & Offers
-          </h3>
-          <div className="flex flex-row items-center gap-2">
-            {coupons.length > 0 ? (
-              <div
-                className="rounded-xl border px-2 py-0.5"
-                style={{ backgroundColor: theme.tertiaryBackground, borderColor: theme.border }}
-              >
-                <span className="text-xs font-bold" style={{ color: theme.primary }}>
-                  {coupons.length}
-                </span>
-              </div>
-            ) : null}
-            <button
-              type="button"
-              onClick={onClose}
-              aria-label="Close coupons"
-              className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full"
-              style={{ backgroundColor: theme.secondaryBackground }}
-            >
-              <X size={18} color={theme.text} />
-            </button>
-          </div>
+  const titleNode = (
+    <div className="flex flex-row items-center gap-2">
+      <span className="text-base font-bold" style={{ color: theme.text }}>
+        Coupons & Offers
+      </span>
+      {coupons.length > 0 ? (
+        <div
+          className="rounded-xl border px-2 py-0.5"
+          style={{ backgroundColor: theme.tertiaryBackground, borderColor: theme.border }}
+        >
+          <span className="text-xs font-bold" style={{ color: theme.primary }}>
+            {coupons.length}
+          </span>
         </div>
+      ) : null}
+    </div>
+  );
+
+  return (
+    <AppSheet
+      visible={visible}
+      onClose={onClose}
+      title={titleNode}
+      label="Coupons & Offers"
+    >
 
         {/* Manual Coupon Input inside Sheet */}
         <TextInput
@@ -513,7 +496,7 @@ export const CouponBottomSheet: React.FC<CouponBottomSheetProps> = ({
         />
 
         {/* Coupon List */}
-        <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-6">
+        <div className="px-6 pb-4">
           {coupons.length === 0 ? (
             <div className="flex flex-col items-center justify-center gap-2 py-10">
               <Ticket size={48} color={theme.secondaryText} />
@@ -581,7 +564,6 @@ export const CouponBottomSheet: React.FC<CouponBottomSheetProps> = ({
             </>
           )}
         </div>
-      </div>
-    </div>
+    </AppSheet>
   );
 };

@@ -30,7 +30,6 @@
       "@/*": ["./src/*"],
       "@/src/*": ["./src/*"],
       "@/src/features/common/order/lib/openRazorpayCheckout": ["./src/features/common/order/lib/openRazorpayCheckout.web.ts"],
-      "expo-notifications": ["./src/shims/expo-notifications.web.ts"],
     }
   },
   "include": ["src"],

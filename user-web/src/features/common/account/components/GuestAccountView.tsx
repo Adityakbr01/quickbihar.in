@@ -2,166 +2,242 @@ import React from "react";
 import * as Haptics from "@/lib/haptics";
 import { useNavigate } from "react-router-dom";
 import { goTo } from "@/src/utils/navigation";
+import {
+  ChevronRight,
+  Heart,
+  MapPin,
+  Moon,
+  Package,
+  Sun,
+  User,
+} from "lucide-react";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
-import { AppIcon } from "@/src/components/common/AppIcon";
-import { Box, CircleUser, Folder, MapPin, Moon, Sun } from "lucide-react";
-import { ThemeToggle } from "@/src/components/common/ThemeToggle";
 
 /**
- * Logged-out account tab (clothing) — mirrors the jewelry guest tab:
- * guests see store info, member perks and the appearance toggle, plus
- * sign-in entry points. The full account (orders, wishlist, profile,
- * addresses, security, logout) is never rendered without a session.
+ * Web-only logged-out account tab (Tailwind) in the CLOTHING module theme
+ * (app theme tokens — background/text/primary). Jewelry keeps its own
+ * emerald/gold guest tab; never mix the two palettes.
+ * Mobile keeps GuestAccountView.tsx (React Native primitives).
  */
-const GuestAccountView = () => {
+export default function GuestAccountView() {
   const theme = useTheme() as any;
   const navigate = useNavigate();
+  const isDark = !!theme.isDark;
 
   const goAuth = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    try {
+      (Haptics as any)?.impactAsync?.(
+        (Haptics as any)?.ImpactFeedbackStyle?.Medium,
+      );
+    } catch {}
     goTo(navigate, "/auth" as any);
   };
 
   const perks = [
-    { icon: Box, title: "Track your orders", sub: "Live status from packed to delivered" },
-    { icon: Folder, title: "Wishlist sync", sub: "Save pieces across all your devices" },
-    { icon: MapPin, title: "Faster checkout", sub: "Saved addresses and quick reorder" },
+    { icon: Package, text: "Track orders from packed to delivered" },
+    { icon: Heart, text: "Wishlist synced across your devices" },
+    { icon: MapPin, text: "Faster checkout with saved addresses" },
+  ];
+
+  const menu = [
+    { icon: Package, label: "Help & Support", sub: "Sizing guide, returns, care" },
+    { icon: User, label: "About QuickBihar", sub: "Our story and craft" },
   ];
 
   return (
     <div
-      className="flex min-h-screen w-full justify-center"
+      className="min-h-screen w-full"
       style={{ backgroundColor: theme.background }}
     >
-      <div className="w-full max-w-[800px]">
-        <div className="overflow-y-auto pb-10">
-          {/* Guest hero */}
+      <div className="mx-auto w-full max-w-md px-4 pb-28 pt-4">
+        <h1
+          className="px-1 text-[20px] font-extrabold tracking-[-0.5px]"
+          style={{ color: theme.text }}
+        >
+          Account
+        </h1>
+
+        {/* Guest hero — clothing theme */}
+        <div
+          className="mt-3 flex flex-col items-center gap-3 rounded-[20px] border p-6 text-center"
+          style={{
+            backgroundColor: theme.secondaryBackground,
+            borderColor: theme.border,
+          }}
+        >
           <div
-            className="mb-2 flex flex-col items-center rounded-[20px] border p-6"
-            style={{ backgroundColor: theme.secondaryBackground, borderColor: theme.border }}
+            className="flex h-16 w-16 items-center justify-center rounded-full"
+            style={{ backgroundColor: theme.primary }}
           >
-            <div
-              className="mb-3 flex h-16 w-16 items-center justify-center rounded-full"
-              style={{ backgroundColor: theme.primary }}
-            >
-              <AppIcon icon={CircleUser} size={34} color="#ffffff" />
-            </div>
-            <p
-              className="text-center text-xl font-extrabold tracking-[-0.3px]"
-              style={{ color: theme.text }}
-            >
-              Welcome to QuickBihar
-            </p>
-            <p
-              className="mt-1.5 text-center text-[13px] leading-[19px]"
-              style={{ color: theme.secondaryText }}
-            >
-              Sign in for orders, wishlist and faster checkout.
-            </p>
+            <User size={30} color="#ffffff" />
+          </div>
+          <p
+            className="text-[20px] font-extrabold leading-[26px]"
+            style={{ color: theme.text }}
+          >
+            Welcome to QuickBihar
+          </p>
+          <p
+            className="text-[13px] leading-[19px]"
+            style={{ color: theme.secondaryText }}
+          >
+            Sign in for orders, wishlist and faster checkout.
+          </p>
+          <div className="mt-1 flex w-full flex-col gap-2.5">
             <button
-              type="button"
               onClick={goAuth}
-              className="mt-4 w-full rounded-xl py-3.5 text-[15px] font-extrabold text-white transition active:opacity-90"
-              style={{ backgroundColor: theme.primary }}
+              className="w-full rounded-xl py-[14px] text-[15px] font-extrabold transition active:opacity-80"
+              style={{ backgroundColor: theme.primary, color: "#ffffff" }}
             >
               Sign In
             </button>
             <button
-              type="button"
               onClick={goAuth}
-              className="mt-2.5 w-full rounded-xl border-[1.5px] py-3 text-sm font-extrabold transition active:opacity-90"
+              className="w-full rounded-xl border-[1.5px] py-[13px] text-sm font-extrabold transition active:opacity-80"
               style={{ borderColor: theme.primary, color: theme.primary }}
             >
               Create Account
             </button>
           </div>
+        </div>
 
-          {/* Member perks */}
-          <div className="mt-6">
-            <p
-              className="mb-3 ml-6 text-[13px] font-bold uppercase tracking-[1px]"
-              style={{ color: theme.tertiaryText }}
-            >
-              Member Perks
-            </p>
-            {perks.map((perk, index) => (
-              <div key={perk.title}>
-                <div
-                  className="flex flex-row items-center px-6 py-3.5"
-                  style={{
-                    backgroundColor: theme.background,
-                    borderBottom:
-                      index === perks.length - 1
-                        ? "none"
-                        : `1px solid ${theme.border}`,
-                  }}
-                >
-                  <div
-                    className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-xl"
-                    style={{ backgroundColor: theme.tertiaryBackground }}
-                  >
-                    <AppIcon icon={perk.icon} size={22} color={theme.primary} />
-                  </div>
-                  <div className="ml-4 flex-1">
-                    <p
-                      className="text-base font-semibold"
-                      style={{ color: theme.text }}
-                    >
-                      {perk.title}
-                    </p>
-                    <p
-                      className="mt-0.5 text-xs"
-                      style={{ color: theme.secondaryText }}
-                    >
-                      {perk.sub}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Appearance Section (same as signed-in account) */}
-          <div className="mt-6">
-            <p
-              className="mb-3 ml-6 text-[13px] font-bold uppercase tracking-[1px]"
-              style={{ color: theme.tertiaryText }}
-            >
-              Appearance
-            </p>
+        {/* Perks */}
+        <p
+          className="mt-5 px-1 text-[13px] font-bold uppercase tracking-wide"
+          style={{ color: theme.secondaryText }}
+        >
+          Member Perks
+        </p>
+        <div className="mt-2 flex flex-col">
+          {perks.map((p, i) => (
             <div
-              className="flex flex-row items-center px-6 py-3.5"
-              style={{ backgroundColor: theme.background }}
+              key={p.text}
+              className="flex items-center gap-3 px-1 py-3"
+              style={{
+                borderBottom:
+                  i === perks.length - 1
+                    ? "none"
+                    : `1px solid ${theme.border}`,
+              }}
             >
               <div
-                className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-xl"
-                style={{ backgroundColor: theme.tertiaryBackground }}
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
+                style={{ backgroundColor: `${theme.primary}18` }}
               >
-                <AppIcon
-                  icon={theme.isDark ? Moon : Sun}
-                  size={22}
-                  color={theme.primary}
-                />
+                <p.icon size={20} color={theme.primary} />
               </div>
-              <span
-                className="ml-4 flex-1 text-base font-semibold"
+              <p
+                className="flex-1 text-sm font-medium"
                 style={{ color: theme.text }}
               >
-                {theme.isDark ? "Dark Mode" : "Light Mode"}
-              </span>
-              <ThemeToggle
-                value={theme.isDark}
-                onToggle={() => {
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                  theme.toggleMode();
-                }}
-              />
+                {p.text}
+              </p>
             </div>
-          </div>
+          ))}
+        </div>
+
+        {/* Menu */}
+        <div className="mt-2">
+          {menu.map((item, i) => (
+            <button
+              key={item.label}
+              onClick={() => {
+                try {
+                  (Haptics as any)?.impactAsync?.(
+                    (Haptics as any)?.ImpactFeedbackStyle?.Light,
+                  );
+                } catch {}
+              }}
+              className="flex w-full items-center gap-3 px-1 py-3 text-left transition active:opacity-70"
+              style={{
+                borderBottom:
+                  i === menu.length - 1
+                    ? "none"
+                    : `1px solid ${theme.border}`,
+              }}
+            >
+              <item.icon size={20} color={theme.primary} />
+              <span className="flex flex-1 flex-col">
+                <span
+                  className="text-sm font-semibold"
+                  style={{ color: theme.text }}
+                >
+                  {item.label}
+                </span>
+                <span
+                  className="mt-0.5 text-xs"
+                  style={{ color: theme.secondaryText }}
+                >
+                  {item.sub}
+                </span>
+              </span>
+              <ChevronRight size={16} style={{ color: theme.tertiaryText }} />
+            </button>
+          ))}
+        </div>
+
+        {/* Appearance */}
+        <p
+          className="mt-5 px-1 text-[13px] font-bold uppercase tracking-wide"
+          style={{ color: theme.secondaryText }}
+        >
+          Appearance
+        </p>
+        <div className="mt-2 flex items-center gap-3 px-1 py-3">
+          {isDark ? (
+            <Moon size={20} color={theme.primary} />
+          ) : (
+            <Sun size={20} color={theme.primary} />
+          )}
+          <span
+            className="flex-1 text-sm font-semibold"
+            style={{ color: theme.text }}
+          >
+            {isDark ? "Dark Mode" : "Light Mode"}
+          </span>
+          <button
+            role="switch"
+            aria-checked={isDark}
+            aria-label="Toggle theme"
+            onClick={() => {
+              try {
+                (Haptics as any)?.impactAsync?.(
+                  (Haptics as any)?.ImpactFeedbackStyle?.Medium,
+                );
+              } catch {}
+              theme.toggleMode?.();
+            }}
+            className="relative h-[31px] w-[51px] shrink-0 rounded-full p-[2px] transition-colors"
+            style={{
+              backgroundColor: isDark ? "#34C759" : "#E9E9EA",
+            }}
+          >
+            <span
+              className="block h-[27px] w-[27px] rounded-full bg-white shadow transition-all"
+              style={{ marginLeft: isDark ? "20px" : "0px" }}
+            />
+          </button>
+        </div>
+
+        {/* Footer brand */}
+        <div className="flex flex-col items-center gap-1.5 py-8">
+          <p
+            className="text-[19px] font-black tracking-[-0.4px]"
+            style={{ color: theme.text }}
+          >
+            Quick Bihar
+          </p>
+          <p
+            className="text-[10px] font-bold uppercase tracking-[1.6px]"
+            style={{ color: theme.primary }}
+          >
+            Fashion · Bihar
+          </p>
+          <p className="mt-1 text-[10px]" style={{ color: theme.tertiaryText }}>
+            v1.0.0
+          </p>
         </div>
       </div>
     </div>
   );
-};
-
-export default GuestAccountView;
+}
