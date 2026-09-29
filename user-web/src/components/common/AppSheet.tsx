@@ -62,6 +62,11 @@ export const AppSheet: React.FC<AppSheetProps> = ({
 
   const handleBackdropClick = (e: React.MouseEvent) => {
     // Only real backdrop taps close — never propagated content clicks.
+    // Stop here regardless: the sheet often lives INSIDE a clickable
+    // card/row fiber, and React events bubble through the FIBER tree
+    // (portals don't isolate them), so an unstopped click would also
+    // fire the parent's onClick (e.g. open product detail underneath).
+    e.stopPropagation();
     if (e.target === e.currentTarget) onClose();
   };
 
@@ -86,6 +91,18 @@ export const AppSheet: React.FC<AppSheetProps> = ({
           // Backdrop CLICK (above) and Escape still close.
           onPointerDownOutside={(e) => e.preventDefault()}
           onFocusOutside={(e) => e.preventDefault()}
+          // CENTRAL propagation guard (the actual everywhere-bug fix):
+          // sheets are frequently rendered INSIDE clickable cards/rows, and
+          // React synthetic events bubble through the FIBER tree — portals
+          // do NOT isolate them. Without this stop, every tap inside the
+          // sheet (X, options, sizes…) also fires the parent's onClick and
+          // e.g. opens the product detail page underneath. Stopping here
+          // covers all present + future call sites in one place.
+          // (Escape is intentionally NOT stopped — radix closes on it.)
+          onClick={(e) => e.stopPropagation()}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") e.stopPropagation();
+          }}
           className={cn(
             "fixed flex flex-col gap-4 bg-background shadow-lg transition ease-in-out data-[state=closed]:animate-out data-[state=closed]:duration-300 data-[state=open]:animate-in data-[state=open]:duration-500",
             "inset-x-0 bottom-0 h-auto border-t data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom",
