@@ -17,10 +17,12 @@ import {
 import { CollectionCard } from "@/src/features/Jewelery/components/CollectionCard";
 import { HeroCarousel } from "@/src/features/Jewelery/components/HeroCarousel";
 import { ProductCard } from "@/src/features/Jewelery/components/ProductCard";
+import { occasions } from "@/src/features/Jewelery/data/collections";
 import {
-  occasions,
-} from "@/src/features/Jewelery/data/collections";
-import { useJeweleryBestsellers, useJeweleryCategories, useJeweleryNewArrivals } from "@/src/features/Jewelery/hooks/useJeweleryCatalog";
+  useJeweleryBestsellers,
+  useJeweleryCategories,
+  useJeweleryNewArrivals,
+} from "@/src/features/Jewelery/hooks/useJeweleryCatalog";
 import type { Collection } from "@/src/features/Jewelery/data/collections";
 import { useColors } from "@/src/features/Jewelery/hooks/useColors";
 import { TextInput } from "@/src/theme/components/TextInput";
@@ -103,7 +105,7 @@ function Header() {
 
   return (
     <div
-      className="flex flex-row items-center justify-between border-b px-4 py-5"
+      className="flex flex-row items-center justify-between border-b px-4 py-2"
       style={{
         backgroundColor: colors.ivory,
         borderBottomColor: colors.midGray,
@@ -112,7 +114,10 @@ function Header() {
     >
       <span
         className="text-[18px] tracking-[4px]"
-        style={{ color: colors.ink, fontFamily: "CormorantGaramond_600SemiBold" }}
+        style={{
+          color: colors.ink,
+          fontFamily: "CormorantGaramond_600SemiBold",
+        }}
       >
         {APP_NAME}
       </span>
@@ -149,7 +154,10 @@ function BrandPillars() {
       }}
     >
       {pillars.map((p) => (
-        <div key={p.label} className="flex flex-1 flex-col items-center gap-1.5">
+        <div
+          key={p.label}
+          className="flex flex-1 flex-col items-center gap-1.5"
+        >
           <p.icon size={16} color={colors.gold} />
           <span
             className="whitespace-pre-line text-center text-[9px] leading-[13px] tracking-[0.5px]"
@@ -195,11 +203,7 @@ function SectionHeader({
         </h2>
       </div>
       {onSeeAll && (
-        <button
-          type="button"
-          onClick={onSeeAll}
-          className="cursor-pointer"
-        >
+        <button type="button" onClick={onSeeAll} className="cursor-pointer">
           <span
             className="text-[11px] tracking-[0.5px]"
             style={{ color: colors.gold, fontFamily: "DMSans_400Regular" }}
@@ -213,21 +217,42 @@ function SectionHeader({
 }
 
 const JEWELERY_COLLECTION_IMAGES: Record<string, string> = {
-  jewellery: "https://ik.imagekit.io/k2n57ywshu/categories/jewelry/jewelry_collection_showcase_1789811067982_KRVoN6-Ls6.jpg",
-  necklace: "https://ik.imagekit.io/k2n57ywshu/products/jewelry/jewelry_pear_ruby_pendant_1789811050387_6l5vvgrn4r.jpg",
+  jewellery:
+    "https://ik.imagekit.io/k2n57ywshu/categories/jewelry/jewelry_collection_showcase_1789811067982_KRVoN6-Ls6.jpg",
+  necklace:
+    "https://ik.imagekit.io/k2n57ywshu/products/jewelry/jewelry_pear_ruby_pendant_1789811050387_6l5vvgrn4r.jpg",
   ring: "https://ik.imagekit.io/k2n57ywshu/products/jewelry/jewelry_solitaire_diamond_ring_1789811055760_0Iahnr6TDz.jpg",
-  earrings: "https://ik.imagekit.io/k2n57ywshu/products/jewelry/jewelry_peacock_temple_jhumkas_1789811057899_dLFgtSO4C.jpg",
-  bangle: "https://ik.imagekit.io/k2n57ywshu/products/jewelry/jewelry_royal_gold_bangles_1789811053311_o1ORm92lY.jpg",
-  pendant: "https://ik.imagekit.io/k2n57ywshu/products/jewelry/jewelry_laxmi_temple_coin_pendant_1789811062952_VSOBuVmmqn.jpg",
-  "bridal-set": "https://ik.imagekit.io/k2n57ywshu/products/jewelry/jewelry_royal_kundan_bridal_set_1789811060450_aFO15AgH_J.jpg",
-  chain: "https://ik.imagekit.io/k2n57ywshu/products/jewelry/jewelry_solid_gold_curb_chain_1789811065544_yPAVEqRfy.jpg",
+  earrings:
+    "https://ik.imagekit.io/k2n57ywshu/products/jewelry/jewelry_peacock_temple_jhumkas_1789811057899_dLFgtSO4C.jpg",
+  bangle:
+    "https://ik.imagekit.io/k2n57ywshu/products/jewelry/jewelry_royal_gold_bangles_1789811053311_o1ORm92lY.jpg",
+  pendant:
+    "https://ik.imagekit.io/k2n57ywshu/products/jewelry/jewelry_laxmi_temple_coin_pendant_1789811062952_VSOBuVmmqn.jpg",
+  "bridal-set":
+    "https://ik.imagekit.io/k2n57ywshu/products/jewelry/jewelry_royal_kundan_bridal_set_1789811060450_aFO15AgH_J.jpg",
+  chain:
+    "https://ik.imagekit.io/k2n57ywshu/products/jewelry/jewelry_solid_gold_curb_chain_1789811065544_yPAVEqRfy.jpg",
 };
 
 export function resolveJeweleryCollectionImage(c: any): string {
-  const slug = (c?.slug || c?.title?.toLowerCase()?.replace(/\s+/g, "-") || "").trim();
+  const slug = (
+    c?.slug ||
+    c?.title?.toLowerCase()?.replace(/\s+/g, "-") ||
+    ""
+  ).trim();
   const raw = c?.image || "";
-  if (!raw || raw.includes("ethnic") || raw.includes("shirts") || raw.includes("kurtis") || raw.includes("jeans") || raw.includes("kids") || raw.includes("sarees")) {
-    return JEWELERY_COLLECTION_IMAGES[slug] || JEWELERY_COLLECTION_IMAGES.jewellery;
+  if (
+    !raw ||
+    raw.includes("ethnic") ||
+    raw.includes("shirts") ||
+    raw.includes("kurtis") ||
+    raw.includes("jeans") ||
+    raw.includes("kids") ||
+    raw.includes("sarees")
+  ) {
+    return (
+      JEWELERY_COLLECTION_IMAGES[slug] || JEWELERY_COLLECTION_IMAGES.jewellery
+    );
   }
   return raw;
 }
@@ -250,7 +275,8 @@ function FeaturedCollections() {
   if (!top.length) return null;
   return (
     <div className="p-5" style={{ backgroundColor: colors.ivory }}>
-      <SectionHeader label="CURATED FOR YOU"
+      <SectionHeader
+        label="CURATED FOR YOU"
         title="Our Collections"
         onSeeAll={() => goTo(navigate, "/jewelery/collections" as any)}
       />
@@ -279,7 +305,8 @@ function NewArrivals() {
       className="p-5"
       style={{ backgroundColor: isDark ? colors.card : colors.champagne }}
     >
-      <SectionHeader label="JUST IN"
+      <SectionHeader
+        label="JUST IN"
         title="New Arrivals"
         onSeeAll={() => goTo(navigate, "/jewelery/collections" as any)}
       />
@@ -291,7 +318,10 @@ function NewArrivals() {
         <div className="mt-4 flex flex-row gap-3 overflow-x-auto pb-1 pr-5">
           {newItems.map((i) => (
             <div key={i.id} className="w-[164px] shrink-0">
-              <ProductCard product={i} style={{ width: 164, marginRight: 12 }} />
+              <ProductCard
+                product={i}
+                style={{ width: 164, marginRight: 12 }}
+              />
             </div>
           ))}
         </div>
@@ -368,7 +398,11 @@ function HeritageSection() {
           <br />
           Our jewellery is not manufactured. It is made.
         </p>
-        <button type="button" className="cursor-pointer self-start" onClick={() => {}}>
+        <button
+          type="button"
+          className="cursor-pointer self-start"
+          onClick={() => {}}
+        >
           <span
             className="text-xs tracking-[1px]"
             style={{ color: colors.gold, fontFamily: "DMSans_400Regular" }}
@@ -388,7 +422,8 @@ function BestsellerSection() {
   if (!isLoading && bestsellers.length === 0) return null;
   return (
     <div className="p-5" style={{ backgroundColor: colors.ivory }}>
-      <SectionHeader label="MOST LOVED"
+      <SectionHeader
+        label="MOST LOVED"
         title="Bestsellers"
         onSeeAll={() => goTo(navigate, "/jewelery/collections" as any)}
       />
@@ -433,7 +468,10 @@ function FestiveCampaign() {
       </h2>
       <p
         className="text-center text-[13px] leading-5"
-        style={{ color: "rgba(247,243,236,0.7)", fontFamily: "DMSans_300Light" }}
+        style={{
+          color: "rgba(247,243,236,0.7)",
+          fontFamily: "DMSans_300Light",
+        }}
       >
         Curated festive edits in gold, kundan, and polki. New drops every
         fortnight. Gifting boxes available.
@@ -483,7 +521,10 @@ function TestimonialsSection() {
             </p>
             <span
               className="text-[11px] tracking-[0.3px]"
-              style={{ color: colors.warmGray, fontFamily: "DMSans_400Regular" }}
+              style={{
+                color: colors.warmGray,
+                fontFamily: "DMSans_400Regular",
+              }}
             >
               — {t.name}, {t.city} · Verified Purchase
             </span>
@@ -546,7 +587,9 @@ function GiftingSection() {
 function NewsletterSection() {
   const colors = useColors();
   const [email, setEmail] = React.useState("");
-  const [status, setStatus] = React.useState<"idle" | "loading" | "done" | "error">("idle");
+  const [status, setStatus] = React.useState<
+    "idle" | "loading" | "done" | "error"
+  >("idle");
   const [message, setMessage] = React.useState("");
   const [focused, setFocused] = React.useState(false);
 
@@ -633,7 +676,8 @@ function NewsletterSection() {
               borderWidth: 1,
             }}
           >
-            <TextInput value={email}
+            <TextInput
+              value={email}
               bare
               onChangeText={(t) => {
                 setEmail(t);
@@ -680,7 +724,10 @@ function NewsletterSection() {
               ) : (
                 <span
                   className="text-[11px] tracking-[0.5px]"
-                  style={{ color: colors.onBrand, fontFamily: "DMSans_500Medium" }}
+                  style={{
+                    color: colors.onBrand,
+                    fontFamily: "DMSans_500Medium",
+                  }}
                 >
                   Join the Circle
                 </span>
