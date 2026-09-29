@@ -36,13 +36,19 @@ import {
   breadcrumbSchema,
   collectionSchema,
   createCompositeGraph,
+  faqPageSchema,
+  jewelryStoreSchema,
   mallSchema,
   organizationSchema,
   productSchema,
+  restaurantSchema,
   webPageSchema,
   websiteSchema,
 } from './schemas';
 import { STATIC_ROUTES } from './routes';
+import { FAQS } from '../features/Jewelery/data/faqs';
+
+const JEWEL_FAQS = FAQS.map((f) => ({ question: f.q, answer: f.a }));
 
 /* ── static catalog (fs, cached) ───────────────────────────────── */
 
@@ -77,12 +83,12 @@ let mallCache: StaticMall[] | null = null;
 function loadCatalog(): void {
   if (productCache && mallCache) return;
   try {
-    productCache = Object.values(productsCatalog as Record<string, StaticProduct>);
+    productCache = Object.values(productsCatalog);
   } catch {
     productCache = [];
   }
   try {
-    mallCache = Object.values(mallsCatalog as Record<string, StaticMall>);
+    mallCache = Object.values(mallsCatalog);
   } catch {
     mallCache = [];
   }
@@ -114,7 +120,7 @@ function buildHeadElements(meta: PageMeta, schemas: Thing[]): Set<HeadElement> {
     { type: 'meta', props: { name: 'description', content: meta.description, 'data-rh': rh } },
     { type: 'meta', props: { name: 'robots', content: meta.robots, 'data-rh': rh } },
     ...(meta.keywords
-      ? [{ type: 'meta', props: { name: 'keywords', content: meta.keywords, 'data-rh': rh } } as HeadElement]
+      ? [{ type: 'meta', props: { name: 'keywords', content: meta.keywords, 'data-rh': rh } }]
       : []),
     { type: 'link', props: { rel: 'canonical', href: meta.canonical, 'data-rh': rh } },
     { type: 'meta', props: { property: 'og:type', content: meta.type === 'product' ? 'product' : 'website', 'data-rh': rh } },
@@ -123,7 +129,7 @@ function buildHeadElements(meta: PageMeta, schemas: Thing[]): Set<HeadElement> {
     { type: 'meta', props: { property: 'og:description', content: meta.description, 'data-rh': rh } },
     { type: 'meta', props: { property: 'og:url', content: meta.canonical, 'data-rh': rh } },
     ...(meta.image
-      ? [{ type: 'meta', props: { property: 'og:image', content: meta.image, 'data-rh': rh } } as HeadElement]
+      ? [{ type: 'meta', props: { property: 'og:image', content: meta.image, 'data-rh': rh } }]
       : []),
     { type: 'meta', props: { name: 'twitter:card', content: meta.image ? 'summary_large_image' : 'summary', 'data-rh': rh } },
     { type: 'meta', props: { name: 'twitter:title', content: meta.title, 'data-rh': rh } },
@@ -285,12 +291,30 @@ export async function prerender(data: { url: string }) {
       case '/food':
         meta = foodMeta();
         heading = 'Order Food Online in Bihar';
-        schemas.push(webPageSchema('/food', meta.title, meta.description));
+        schemas.push(
+          restaurantSchema(meta.canonical),
+          webPageSchema('/food', meta.title, meta.description),
+          breadcrumbSchema([
+            { name: 'Home', path: '/' },
+            { name: 'Food', path: '/food' },
+          ]),
+        );
         break;
       case '/jewelery':
         meta = jeweleryMeta();
         heading = 'Buy Jewellery Online in Bihar';
-        schemas.push(webPageSchema('/jewelery', meta.title, meta.description));
+        {
+          const faq = faqPageSchema(JEWEL_FAQS);
+          schemas.push(jewelryStoreSchema(meta.canonical));
+          if (faq) schemas.push(faq);
+          schemas.push(
+            webPageSchema('/jewelery', meta.title, meta.description),
+            breadcrumbSchema([
+              { name: 'Home', path: '/' },
+              { name: 'Jewellery', path: '/jewelery' },
+            ]),
+          );
+        }
         break;
       default:
         meta = staticMeta({ title: meta.title, description: meta.description, path: cleanPath });
@@ -319,7 +343,7 @@ export async function prerender(data: { url: string }) {
   try {
     html = renderToString(<Shell meta={meta} heading={heading} intro={intro} links={shellLinks} />);
   } catch (err) {
-    console.warn(`[SSG] render failed for ${url}:`, (err as Error)?.message ?? err);
+    console.warn(`[SSG] render failed for ${url}:`, err instanceof Error ? err.message : err);
   }
 
   const links = new Set<string>([

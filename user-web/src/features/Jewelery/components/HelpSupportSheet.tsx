@@ -10,48 +10,11 @@ import {
   SUPPORT_WHATSAPP_DISPLAY,
   SUPPORT_WHATSAPP_INTL,
 } from "@/src/constants";
+import { FAQS, type Faq } from "@/src/features/Jewelery/data/faqs";
 import { useColors } from "@/src/features/Jewelery/hooks/useColors";
 import { AppSheet } from "@/src/components/common/AppSheet";
 
 type Channel = "whatsapp" | "email";
-
-interface Faq {
-  q: string;
-  a: string;
-}
-
-// Mock help topics shown in the sheet. Tapping one redirects to the
-// channel the user picked, with the question pre-filled.
-const FAQS: Faq[] = [
-  {
-    q: "Is your gold BIS hallmarked?",
-    a: "Yes — every gold piece is BIS hallmarked. The HUID number is on the invoice and the product tag.",
-  },
-  {
-    q: "How do I find my ring/bangle size?",
-    a: "Use our size guide on any product page, or message us and we'll help you measure at home.",
-  },
-  {
-    q: "What is your return policy?",
-    a: `Easy ${JEWELERY_MODULE_CONFIG.returnPolicyDays}-day returns on unworn pieces with tags and invoice intact.`,
-  },
-  {
-    q: "How long does delivery take?",
-    a: "Made-to-order pieces ship in 3–5 days. You'll get live tracking on your order.",
-  },
-  {
-    q: "Can I exchange for a different size?",
-    a: "Yes, size exchanges are free within the return window. Start one from My Orders.",
-  },
-  {
-    q: "How is the gold rate applied?",
-    a: "Prices follow the day's live gold rate at checkout — the invoice locks your rate.",
-  },
-  {
-    q: "Where is my order?",
-    a: "Open My Orders → Track for live rider location and delivery OTP.",
-  },
-];
 
 interface HelpSupportSheetProps {
   visible: boolean;

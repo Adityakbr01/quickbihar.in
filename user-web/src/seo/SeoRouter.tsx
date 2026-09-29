@@ -7,7 +7,8 @@
  * the correct <SeoHead> with meta + JSON-LD — so individual screens
  * never need to import anything from seo/.
  *
- * Static routes  → meta builders from `./meta`
+ * Static routes  → meta builders from `./meta` + vertical entities
+ *                  (JewelryStore, Restaurant, FAQPage, CollectionPage)
  * Dynamic routes → hooks (React Query deduplicates with screens,
  *                  so NO extra API calls are made)
  * Private routes → <NoIndexHead /> (auth / cart / checkout / account)
@@ -16,6 +17,7 @@
 import { useLocation } from 'react-router-dom';
 import { SeoHead, NoIndexHead } from './SeoHead';
 import { isNoIndexPath } from './routes';
+import { getCanonicalUrl } from './site';
 import {
   categoryMeta,
   foodMeta,
@@ -33,17 +35,47 @@ import {
 import {
   breadcrumbSchema,
   collectionSchema,
+  faqPageSchema,
+  jewelryStoreSchema,
   mallSchema,
   organizationSchema,
   productSchema,
+  restaurantSchema,
   webPageSchema,
   websiteSchema,
 } from './schemas';
+import { FAQS } from '@/src/features/Jewelery/data/faqs';
 
 // Feature hooks — React Query deduplicates with the screens, so NO extra API calls.
 import { useProductById } from '@/src/features/clothing/product/hooks/useProducts';
 import { useMallDetail } from '@/src/features/clothing/home/hooks/useMalls';
 import { useCategoryBySlug } from '@/src/features/common/category/hooks/useCategories';
+import { useJeweleryCategories, useJeweleryProduct } from '@/src/features/Jewelery/hooks/useJeweleryCatalog';
+
+const JEWEL_FAQS = FAQS.map((f) => ({ question: f.q, answer: f.a }));
+
+/** Resolve a jewellery image (string | {url} | {uri}) to a URL string. */
+function jewelImageUrl(img: string | { url?: unknown; uri?: unknown } | null | undefined): string {
+  if (typeof img === 'string') return img;
+  if (img && typeof img.url === 'string' && img.url) return img.url;
+  if (img && typeof img.uri === 'string' && img.uri) return img.uri;
+  return '';
+}
+
+interface SellerCarrier {
+  storeId?: string | { name?: string };
+  sellerId?: string | { businessName?: string; fullName?: string };
+}
+
+/** Local seller storefront name from a product's embedded store/seller. */
+function sellerNameOf(product: SellerCarrier | null | undefined): string | undefined {
+  if (!product) return undefined;
+  const store = product.storeId;
+  if (store && typeof store === 'object' && store.name) return store.name;
+  const seller = product.sellerId;
+  if (seller && typeof seller === 'object') return seller.businessName || seller.fullName || undefined;
+  return undefined;
+}
 
 /* ── dynamic entity components (live data, same cache as screens) ─ */
 
@@ -51,13 +83,58 @@ function ProductSeo({ id }: { id: string }) {
   const { data: product } = useProductById(id);
   if (!product) return null;
 
-  const meta = productMeta(product as never);
+  const meta = productMeta(product);
   const jsonLd = [
-    productSchema(product as never, meta.canonical),
+    productSchema({ ...product, sellerName: sellerNameOf(product) }, meta.canonical),
     breadcrumbSchema([
       { name: 'Home', path: '/' },
-      { name: (product as { category?: string })?.category || 'Fashion', path: '/clothing/home' },
-      { name: (product as { title?: string })?.title || 'Product' },
+      { name: product.category || 'Fashion', path: '/clothing/home' },
+      { name: product.title || 'Product' },
+    ]),
+  ];
+  return <SeoHead meta={meta} jsonLd={jsonLd} />;
+}
+
+function JeweleryProductSeo({ id }: { id: string }) {
+  const { data: piece } = useJeweleryProduct(id);
+  if (!piece) return null;
+
+  const raw: { slug?: string; brand?: string } | undefined = piece._raw;
+  const images = (Array.isArray(piece.images) ? piece.images : []).map(jewelImageUrl).filter(Boolean);
+  const slug = raw?.slug || piece.id;
+  const name = String(piece.name || 'Jewellery');
+  const meta = staticMeta({
+    title: `${name} | QuickBihar Jewellery`,
+    description:
+      String(piece.description || piece.subtitle || '') ||
+      `${name} from trusted Bihar jewellers on QuickBihar. BIS-hallmarked, certified delivery.`,
+    keywords: [name, String(piece.metal || ''), String(piece.collection || ''), 'buy jewellery Bihar', 'QuickBihar Jewellery']
+      .filter(Boolean)
+      .join(', '),
+    path: `/jewelery/product/${slug}`,
+    image: images[0],
+    indexable: Number(piece.price) > 0 && images.length > 0,
+  });
+  const jsonLd = [
+    productSchema(
+      {
+        title: name,
+        brand: raw?.brand || String(piece.metal || '') || undefined,
+        description: String(piece.description || ''),
+        images: images.map((url) => ({ url })),
+        price: Number(piece.price),
+        currency: 'INR',
+        totalStock: Number(piece.inStock ?? 1),
+        isActive: true,
+        ratings: { average: Number(piece.rating), count: Number(piece.reviewCount) },
+      },
+      meta.canonical,
+    ),
+    faqPageSchema(JEWEL_FAQS),
+    breadcrumbSchema([
+      { name: 'Home', path: '/' },
+      { name: 'Jewellery', path: '/jewelery' },
+      { name },
     ]),
   ];
   return <SeoHead meta={meta} jsonLd={jsonLd} />;
@@ -65,12 +142,20 @@ function ProductSeo({ id }: { id: string }) {
 
 function MallSeo({ slug }: { slug: string }) {
   const { data } = useMallDetail(slug);
-  const mall = data?.mall as { name?: string } | undefined;
+  const mall = data?.mall;
   if (!mall) return null;
 
-  const meta = mallMeta(mall as never);
+  const reviews = Array.isArray(data?.reviews) ? data.reviews : [];
+  const products = Array.isArray(data?.products) ? data.products : [];
+  const meta = mallMeta(mall);
+  const items = products.slice(0, 10).map((p: { name?: string; title?: string; slug?: string; id?: string; image?: string | { url?: string } }) => ({
+    name: String(p.name || p.title || 'Product'),
+    url: getCanonicalUrl(`/product/${p.slug || p.id || ''}`),
+    image: typeof p.image === 'string' ? p.image : p.image?.url,
+  }));
   const jsonLd = [
-    mallSchema(mall as never, meta.canonical),
+    mallSchema({ ...mall, rating: mall.rating, reviewCount: reviews.length }, meta.canonical),
+    collectionSchema({ name: `${mall.name} — products`, description: meta.description, canonical: meta.canonical, items }),
     breadcrumbSchema([
       { name: 'Home', path: '/' },
       { name: 'Malls', path: '/clothing/home' },
@@ -84,12 +169,13 @@ function CategorySeo({ slug }: { slug: string }) {
   const { data: category } = useCategoryBySlug(slug);
   if (!category) return null;
 
-  const indexable = isIndexableCategory(category as never, 1);
-  const meta = categoryMeta({ ...((category as unknown) as Record<string, string>), slug } as never, 1);
+  const indexable = isIndexableCategory(category, 1);
+  const meta = categoryMeta({ ...category, slug }, 1);
   if (!indexable) meta.robots = 'noindex, nofollow';
 
-  const title = String((category as { title?: string })?.title || slug);
-  const description = String((category as { description?: string })?.description || '');
+  const title = String(category.title || slug);
+  const rawDescription: unknown = 'description' in category ? category.description : undefined;
+  const description = typeof rawDescription === 'string' ? rawDescription : '';
   const jsonLd = indexable
     ? [
         collectionSchema({ name: title, description, canonical: meta.canonical, items: [] }),
@@ -97,6 +183,23 @@ function CategorySeo({ slug }: { slug: string }) {
       ]
     : [];
 
+  return <SeoHead meta={meta} jsonLd={jsonLd} />;
+}
+
+function CollectionsSeo() {
+  const { data: cats } = useJeweleryCategories();
+  const meta = jeweleryCollectionsMeta();
+  const items = (cats || []).map((c: { title?: string }) => ({ name: String(c?.title || 'Collection') }));
+  const jsonLd = [
+    webPageSchema('/jewelery/collections', meta.title, meta.description),
+    collectionSchema({ name: 'Jewellery Collections', description: meta.description, canonical: meta.canonical, items }),
+    faqPageSchema(JEWEL_FAQS),
+    breadcrumbSchema([
+      { name: 'Home', path: '/' },
+      { name: 'Jewellery', path: '/jewelery' },
+      { name: 'Collections' },
+    ]),
+  ];
   return <SeoHead meta={meta} jsonLd={jsonLd} />;
 }
 
@@ -121,40 +224,87 @@ export default function SeoRouter() {
   if (categoryMatch) return <CategorySeo slug={decodeURIComponent(categoryMatch[1])} />;
 
   const jewProductMatch = pathname.match(/^\/jewelery\/product\/([^/]+)$/);
-  if (jewProductMatch) return <ProductSeo id={decodeURIComponent(jewProductMatch[1])} />;
+  if (jewProductMatch) return <JeweleryProductSeo id={decodeURIComponent(jewProductMatch[1])} />;
 
   // 3. Static routes
   const hasQueryParams = search.length > 1;
 
   switch (pathname) {
     case '/':
-    case '/clothing/home':
+    case '/clothing/home': {
+      const home = homeMeta();
       return (
         <SeoHead
-          meta={homeMeta()}
+          meta={home}
           jsonLd={[
             organizationSchema(),
             websiteSchema(),
-            webPageSchema('/clothing/home', homeMeta().title, homeMeta().description),
+            webPageSchema('/clothing/home', home.title, home.description),
             breadcrumbSchema([{ name: 'Home', path: '/' }]),
           ]}
         />
       );
+    }
 
     case '/clothing/search':
       return <SeoHead meta={searchMeta(hasQueryParams)} />;
 
-    case '/top-selling':
-      return <SeoHead meta={topSellingMeta()} />;
+    case '/top-selling': {
+      const top = topSellingMeta();
+      return (
+        <SeoHead
+          meta={top}
+          jsonLd={[
+            organizationSchema(),
+            webPageSchema('/top-selling', top.title, top.description),
+            breadcrumbSchema([
+              { name: 'Home', path: '/' },
+              { name: 'Top Selling', path: '/top-selling' },
+            ]),
+          ]}
+        />
+      );
+    }
 
-    case '/food':
-      return <SeoHead meta={foodMeta()} />;
+    case '/food': {
+      const food = foodMeta();
+      return (
+        <SeoHead
+          meta={food}
+          jsonLd={[
+            organizationSchema(),
+            restaurantSchema(food.canonical),
+            webPageSchema('/food', food.title, food.description),
+            breadcrumbSchema([
+              { name: 'Home', path: '/' },
+              { name: 'Food', path: '/food' },
+            ]),
+          ]}
+        />
+      );
+    }
 
-    case '/jewelery':
-      return <SeoHead meta={jeweleryMeta()} />;
+    case '/jewelery': {
+      const jewel = jeweleryMeta();
+      return (
+        <SeoHead
+          meta={jewel}
+          jsonLd={[
+            organizationSchema(),
+            jewelryStoreSchema(jewel.canonical),
+            faqPageSchema(JEWEL_FAQS),
+            webPageSchema('/jewelery', jewel.title, jewel.description),
+            breadcrumbSchema([
+              { name: 'Home', path: '/' },
+              { name: 'Jewellery', path: '/jewelery' },
+            ]),
+          ]}
+        />
+      );
+    }
 
     case '/jewelery/collections':
-      return <SeoHead meta={jeweleryCollectionsMeta()} />;
+      return <CollectionsSeo />;
 
     case '/jewelery/search':
       return <SeoHead meta={jewelerySearchMeta(hasQueryParams)} />;

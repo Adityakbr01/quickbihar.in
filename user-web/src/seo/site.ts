@@ -28,11 +28,11 @@ export const WEBSITE_ID = `${SITE_ORIGIN}/#website`;
 /** Resolve the public site base (env override → production fallback). */
 export function getSiteOrigin(): string {
   try {
-    const env =
-      (typeof process !== 'undefined' ? (process.env as Record<string, string | undefined>) : {}) ?? {};
-    const fromNode =
-      env.VITE_SITE_ORIGIN || env.EXPO_PUBLIC_API_ORIGIN || env.VITE_API_ORIGIN;
-    if (fromNode && fromNode.trim()) return fromNode.trim().replace(/\/+$/, '');
+    if (typeof process !== 'undefined' && process.env) {
+      const fromNode =
+        process.env.VITE_SITE_ORIGIN || process.env.EXPO_PUBLIC_API_ORIGIN || process.env.VITE_API_ORIGIN;
+      if (fromNode && fromNode.trim()) return fromNode.trim().replace(/\/+$/, '');
+    }
   } catch {
     /* non-node runtime — fall through */
   }

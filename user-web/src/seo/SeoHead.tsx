@@ -11,18 +11,19 @@
  */
 
 import { Helmet } from 'react-helmet-async';
+import type { Thing } from 'schema-dts';
 import { DEFAULT_KEYWORDS, type PageMeta } from './meta';
 import { createCompositeGraph } from './schemas';
 import { SITE_LOCALE, SITE_NAME, SITE_REGION, getSiteOrigin } from './site';
 
 interface SeoHeadProps {
   meta: PageMeta;
-  /** JSON-LD nodes (schema-dts Things, nulls skipped). Rendered only on indexable pages. */
-  jsonLd?: Array<unknown>;
+  /** schema-dts nodes (nulls skipped). Rendered only on indexable pages. */
+  jsonLd?: Array<Thing | null | undefined>;
 }
 
 export function SeoHead({ meta, jsonLd }: SeoHeadProps) {
-  const nodes = (jsonLd || []).filter(Boolean) as Array<Record<string, unknown>>;
+  const nodes = (jsonLd || []).filter((n): n is Thing => Boolean(n));
   const showJsonLd = meta.robots.startsWith('index') && nodes.length > 0;
   const ogType = meta.type === 'product' ? 'product' : meta.type === 'article' ? 'article' : 'website';
 
@@ -55,7 +56,7 @@ export function SeoHead({ meta, jsonLd }: SeoHeadProps) {
       {/* Structured data — single composite graph, indexable pages only */}
       {showJsonLd ? (
         <script data-rh="true" id="qb-rich-results" type="application/ld+json">
-          {JSON.stringify(createCompositeGraph(nodes as never[]))}
+          {JSON.stringify(createCompositeGraph(nodes))}
         </script>
       ) : null}
     </Helmet>
