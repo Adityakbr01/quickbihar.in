@@ -14,6 +14,8 @@ import { useAuthStore } from "@/src/features/common/auth/store/authStore";
 import { useModuleStore } from "@/src/store/useModuleStore";
 import { APP_MODULES } from "@/src/constants/modules";
 import { ErrorBoundary } from "@/src/components/common/ErrorBoundary";
+import { HelmetProvider } from "react-helmet-async";
+import SeoRouter from "@/src/seo/SeoRouter";
 import { normalizeExpoPathForWeb } from "@/src/utils/navigation";
 import DesktopNavbar from "@/src/features/clothing/home/components/DesktopNavbar";
 import JeweleryDesktopNavbar from "@/src/features/Jewelery/components/JeweleryDesktopNavbar";
@@ -125,6 +127,7 @@ function MainLayout() {
       style={{ flex: 1, backgroundColor: theme.background, minHeight: "100vh" }}
     >
       <ThemedChrome />
+      <SeoRouter />
       <SocketListenerProvider>
         {isAuthRoute ? null : isJeweleryRoute ? (
           <JeweleryDesktopNavbar />
@@ -261,13 +264,15 @@ export default function App() {
 
   return (
     <ErrorBoundary>
-      <BrowserRouter>
-        <QueryProvider>
-          <ThemeProvider>
-            <MainLayout />
-          </ThemeProvider>
-        </QueryProvider>
-      </BrowserRouter>
+      <HelmetProvider>
+        <BrowserRouter>
+          <QueryProvider>
+            <ThemeProvider>
+              <MainLayout />
+            </ThemeProvider>
+          </QueryProvider>
+        </BrowserRouter>
+      </HelmetProvider>
     </ErrorBoundary>
   );
 }

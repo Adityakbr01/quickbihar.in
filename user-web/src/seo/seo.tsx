@@ -1,202 +1,104 @@
 /**
  * @file src/seo/seo.tsx
- * Client-side on-page SEO manager and React head updater for VV Studio.
+ * Client-side facade for QuickBihar SEO.
  *
- * Provides:
- * - `SEO_CONFIG` — Central route metadata catalog (title, description, keywords, path).
- * - `useSEO(key)` — React hook called by page components to sync head metadata with route state.
- * - `<SeoHost />` — Head synchronization host component mounted once inside `<HelmetProvider>`.
- * - `injectLocalBusinessSchema()` — Idempotent client-side JSON-LD fallback for direct SPA visits.
- */
-
-import React, { useEffect, useState } from 'react';
-import { Helmet } from 'react-helmet-async';
-import {
-  SITE_NAME,
-  SITE_ORIGIN,
-  getCanonicalUrl,
-  organizationSchema,
-  createCompositeGraph,
-} from './schemas';
-
-export { SITE_NAME, SITE_ORIGIN, getCanonicalUrl };
-
-/** Server base URL for web images. */
-export const IMAGE_BASE_URL = 'https://agsdemo.in/vvsapi/public/assets/images/web_images';
-
-/** Public images prefix / server base URL (mirrors the preloads in `index.html`). */
-export const LOCAL_IMAGE_BASE = IMAGE_BASE_URL;
-
-/**
- * Route metadata configuration specification.
- */
-export interface SeoRouteConfig {
-  title: string;
-  description: string;
-  keywords: string;
-  path: string;
-}
-
-/**
- * Single source of truth for static page SEO metadata.
+ * This is the ONLY import screens need:
+ *   import { SeoHead, NoIndexHead, SEO_CONFIG, usePageSeo } from '@/src/seo/seo';
  *
- * Each entry specifies the exact title tag, meta description, targeted keywords,
- * and canonical route path for that section of the website.
+ * - SEO_CONFIG: static page catalog (title/desc/keywords/path).
+ * - usePageSeo(key): tiny hook that documents which static config a screen uses
+ *   (head itself is rendered by <SeoHead>, no global listeners).
+ * - injectOrganizationSchema(): idempotent JSON-LD fallback for direct SPA visits
+ *   when the prerendered script tag is missing (dev mode / client nav).
  */
+
+import { foodMeta, homeMeta, jeweleryMeta, searchMeta, staticMeta, topSellingMeta } from './meta';
+import { SITE_NAME, SITE_ORIGIN, getCanonicalUrl, getSiteOrigin } from './site';
+import { createCompositeGraph, organizationSchema } from './schemas';
+
+export { SITE_NAME, SITE_ORIGIN, getCanonicalUrl, getSiteOrigin };
+export { SeoHead, NoIndexHead } from './SeoHead';
+export * from './site';
+export * from './meta';
+export * from './schemas';
+export * from './routes';
+
+/** Static page catalog — one entry per indexable static route. */
 export const SEO_CONFIG = {
   home: {
-    title: 'VV Studio | Luxury Salon & Spa in JP Nagar, Bangalore',
+    title: 'QuickBihar — Online Shopping in Bihar | Local Stores, Fast Delivery',
     description:
-      "VV Studio is Bangalore's premier luxury beauty salon offering personalized skin treatments, expert hair care, bridal makeup, and rejuvenating spa therapies.",
+      'Shop clothes, ethnic wear, groceries & more from verified local Bihar stores on QuickBihar. 60–120 min hyperlocal delivery in Buxar & Patna.',
     keywords:
-      'luxury salon in JP Nagar, salon in JP Nagar Bangalore, spa in JP Nagar, beauty salon Bangalore, bridal makeup Bangalore, hair salon JP Nagar',
-    path: '/',
+      'QuickBihar, online shopping Bihar, buy clothes Buxar, buy online Patna, local store delivery Bihar',
+    path: '/clothing/home',
+    build: homeMeta,
   },
-  about: {
-    title: 'About VV Studio Luxury Salon & Spa',
+  search: {
+    title: 'Search Fashion Online in Bihar | QuickBihar',
+    description: 'Search clothes, ethnic wear and accessories from local Bihar stores on QuickBihar.',
+    keywords: 'search clothing Bihar, search products QuickBihar, buy online Patna, buy online Buxar',
+    path: '/clothing/search',
+    build: () => searchMeta(false),
+  },
+  topSelling: {
+    title: 'Top Selling Products in Bihar | QuickBihar',
     description:
-      'Discover the story behind VV Studio — JP Nagar’s luxury salon & spa for skin, hair, bridal and wellness, crafted around you.',
-    keywords: 'about VV Studio, luxury salon JP Nagar, beauty studio Bangalore',
-    path: '/about',
+      'Trending fashion & bestsellers from local Bihar stores. Shop top-rated products with fast doorstep delivery.',
+    keywords: 'top selling Bihar, trending fashion Bihar, bestsellers Patna, QuickBihar',
+    path: '/top-selling',
+    build: topSellingMeta,
   },
-  services: {
-    title: 'VV Studio Beauty & Spa Services',
+  food: {
+    title: 'Order Food Online in Bihar | QuickBihar Food',
+    description: 'Order from local restaurants & kitchens in Bihar. Hot, fast hyperlocal delivery.',
+    keywords: 'order food Bihar, food delivery Buxar, food delivery Patna, QuickBihar Food',
+    path: '/food',
+    build: foodMeta,
+  },
+  jewelery: {
+    title: 'Buy Jewellery Online in Bihar | QuickBihar Jewellery',
     description:
-      'Explore skin & facials, hair care, waxing & threading, bridal makeup, hand & feet care and spa rituals at VV Studio, JP Nagar Bangalore.',
-    keywords: 'salon services JP Nagar, facials Bangalore, hair spa, bridal makeup, manicure pedicure',
-    path: '/services',
+      'Shop BIS-hallmarked gold, diamond & fashion jewellery from trusted Bihar jewellers. Certified, secure delivery.',
+    keywords: 'buy jewellery Bihar, gold jewellery Patna, jewellery Buxar, QuickBihar Jewellery',
+    path: '/jewelery',
+    build: jeweleryMeta,
   },
-  gallery: {
-    title: 'VV Studio Salon & Beauty Gallery',
-    description:
-      'Browse real bridal, hair, skin and nail transformations at VV Studio luxury salon & spa, JP Nagar Bangalore.',
-    keywords: 'salon gallery, bridal looks, hair transformations, VV Studio work',
-    path: '/gallery',
+  jeweleryCollections: {
+    title: 'Jewellery Collections | QuickBihar Jewellery',
+    description: 'Explore curated gold, diamond & festive jewellery collections from Bihar jewellers.',
+    keywords: 'jewellery collections Bihar, gold collections Patna, bridal jewellery Bihar',
+    path: '/jewelery/collections',
+    build: () =>
+      staticMeta({
+        title: 'Jewellery Collections | QuickBihar Jewellery',
+        description: 'Explore curated gold, diamond & festive jewellery collections from Bihar jewellers.',
+        path: '/jewelery/collections',
+      }),
   },
-  blog: {
-    title: 'VV Studio Beauty & Wellness Blog',
-    description:
-      'Beauty tips, trends & wellness stories from VV Studio experts — skincare, haircare, bridal beauty and self-care rituals.',
-    keywords: 'beauty blog, skincare tips, haircare guides, bridal beauty, VV Studio journal',
-    path: '/blog',
-  },
-  contact: {
-    title: 'VV Studio Contact Information',
-    description:
-      'Visit VV Studio at JP Nagar, Bangalore or call 080-48531999. Open Tue–Sun, 10 AM–8 PM for salon, spa & bridal bookings.',
-    keywords: 'VV Studio contact, salon JP Nagar address, book appointment, spa booking Bangalore',
-    path: '/contact',
-  },
-} satisfies Record<string, SeoRouteConfig>;
+} as const;
 
 export type SeoKey = keyof typeof SEO_CONFIG;
 
-interface HeadState {
-  title: string;
-  description: string;
-  keywords: string;
-  canonical: string;
+/**
+ * Documents which static SEO config a screen uses.
+ * Head rendering stays in <SeoHead> — this hook is only for readability
+ * and future analytics (no side effects, no listeners).
+ */
+export function usePageSeo(_key: SeoKey): void {
+  return undefined;
 }
 
 /**
- * Resolves full HeadState values for a given route key.
- *
- * @summary Route head state resolver.
- * @param key - The route key registered in `SEO_CONFIG`.
- * @returns Complete HeadState with fully qualified canonical URL.
- *
- * @why Centralizes canonical path calculation and metadata retrieval.
- * @when Called whenever a page route changes or mounts.
+ * Idempotent Organization JSON-LD fallback for client-only visits.
+ * Does nothing when the prerendered #qb-rich-results tag already exists.
  */
-function headOf(key: SeoKey): HeadState {
-  const cfg = SEO_CONFIG[key];
-  return {
-    title: cfg.title,
-    description: cfg.description,
-    keywords: cfg.keywords,
-    canonical: getCanonicalUrl(cfg.path),
-  };
-}
-
-let currentHead: HeadState = headOf('home');
-const headListeners = new Set<(head: HeadState) => void>();
-
-/**
- * React hook that binds the active route's SEO metadata to the document head.
- *
- * @summary React hook for page-level SEO synchronization.
- * @param seoKey - Key identifying the current route in `SEO_CONFIG`.
- *
- * @why When users navigate client-side in a Single Page Application, the document `<title>`,
- *      canonical tag, and `<meta name="description">` must dynamically update to match the route.
- * @when Invoked at the top of each page component (`HomePage`, `AboutPage`, `ServicesPage`, etc.).
- */
-export function useSEO(seoKey: SeoKey): void {
-  useEffect(() => {
-    currentHead = headOf(seoKey);
-    headListeners.forEach((listener) => listener(currentHead));
-  }, [seoKey]);
-}
-
-/**
- * Host component mounted near the React root (inside `<HelmetProvider>`).
- *
- * Subscribes to route metadata changes and passes them to `<Helmet>` so that
- * `react-helmet-async` can reconcile the client head tags with the prerendered HTML.
- *
- * @summary Root head tag synchronization component.
- * @returns React element rendering `<Helmet>` tags.
- *
- * @why Prevents duplicate or conflicting meta tags during SPA client routing.
- * @when Mounted permanently in the root application layout.
- */
-export const SeoHost: React.FC = () => {
-  const [head, setHead] = useState<HeadState>(currentHead);
-
-  useEffect(() => {
-    headListeners.add(setHead);
-    return () => {
-      headListeners.delete(setHead);
-    };
-  }, []);
-
-  return (
-    <Helmet>
-      <title>{head.title}</title>
-      <meta name="description" content={head.description} />
-      <meta name="keywords" content={head.keywords} />
-      <link rel="canonical" href={head.canonical} />
-      <meta name="robots" content="index, follow" />
-      <meta property="og:type" content="website" />
-      <meta property="og:site_name" content={SITE_NAME} />
-      <meta property="og:title" content={head.title} />
-      <meta property="og:description" content={head.description} />
-      <meta property="og:url" content={head.canonical} />
-      <meta name="twitter:card" content="summary_large_image" />
-      <meta name="twitter:title" content={head.title} />
-      <meta name="twitter:description" content={head.description} />
-    </Helmet>
-  );
-};
-
-/**
- * Injects the baseline `BeautySalon` JSON-LD schema into the document `<head>`.
- *
- * Safe and idempotent: will strictly do nothing if running on the server or if the
- * prerendered `#vv-rich-results` script tag is already present in the HTML DOM.
- *
- * @summary Fallback JSON-LD injector for client-only execution.
- *
- * @why Guarantees that even if prerendering was bypassed or pages were loaded in dynamic dev mode,
- *      valid structured data is still present for browser extensions and test tools.
- * @when Executed in `main.tsx` during initial client-side bootstrap.
- */
-export function injectLocalBusinessSchema(): void {
+export function injectOrganizationSchema(): void {
   if (typeof document === 'undefined') return;
-  if (document.getElementById('vv-rich-results')) return;
+  if (document.getElementById('qb-rich-results')) return;
   const script = document.createElement('script');
   script.type = 'application/ld+json';
-  script.id = 'vv-rich-results';
+  script.id = 'qb-rich-results';
   script.text = JSON.stringify(createCompositeGraph([organizationSchema()]));
   document.head.appendChild(script);
 }
