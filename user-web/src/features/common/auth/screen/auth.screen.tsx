@@ -19,7 +19,7 @@ import { useGoogleAuth } from "../hooks/useAuth";
 import { GoogleSignInButton } from "../components/GoogleSignInButton";
 import { APP_NAME } from "@/src/constants/app.constants";
 import { useIsDesktop } from "@/src/utils/responsive";
-import splashIcon from "@/assets/images/icons/splash-icon.png";
+import splashIcon from "@/assets/images/icons/splash-icon.webp";
 
 /**
  * Auth screen (native) — Google one-tap only. Web uses auth.screen.web.tsx.

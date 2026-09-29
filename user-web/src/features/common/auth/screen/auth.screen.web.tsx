@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useGoogleAuth } from "../hooks/useAuth";
 import { APP_NAME } from "@/src/constants/app.constants";
-import splashIcon from "@/assets/images/icons/splash-icon.png";
+import splashIcon from "@/assets/images/icons/splash-icon.webp";
 import googleIcon from "@/assets/svg/google-icon-logo.svg";
 
 /**

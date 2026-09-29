@@ -5,7 +5,12 @@
  * from prerendered static routes, API mappers, and the sitemap service alike.
  *
  * Rendering lives in `src/components/seo/SeoHead.tsx` (react-helmet-async `Helmet` wrapper).
+ *
+ * Default OG images are bundler imports (single copy in src/assets).
  */
+
+import splashFallbackUrl from "@/assets/images/icons/splash-icon.webp";
+import defaultOgUrl from "@/assets/images/icons/ios-icon-default.webp";
 
 const trimTrailingSlash = (value: string) => (value || "").replace(/\/+$/, "");
 
@@ -240,7 +245,7 @@ export function categoryMeta(category: any): PageMeta {
     author: "QuickBihar",
     publisher: "QuickBihar",
     // Category hero when present (unique OG per category); site fallback otherwise.
-    image: category?.image || category?.banner || `${getSiteBase()}/assets/images/icons/splash-icon.png`,
+    image: category?.image || category?.banner || `${getSiteBase()}${splashFallbackUrl}`,
     robots: robotsFor(indexable),
   };
 }
@@ -421,7 +426,7 @@ export function locationMeta(loc: {
     path: loc.path,
     // Per-location banner when provided; otherwise a location-specific default
     // distinct from the homepage splash so OG URLs differ by page type.
-    image: loc.image || `${getSiteBase()}/assets/images/icons/ios-icon-default.png`,
+    image: loc.image || `${getSiteBase()}${defaultOgUrl}`,
     indexable: true,
   });
 }
@@ -440,7 +445,7 @@ export function locationJsonLd(loc: {
     name: `QuickBihar — ${loc.name}`,
     url: loc.canonical,
     description: loc.description,
-    image: loc.image || `${getSiteBase()}/assets/images/icons/ios-icon-default.png`,
+    image: loc.image || `${getSiteBase()}${defaultOgUrl}`,
     priceRange: "₹₹",
     paymentAccepted: ["Cash", "Credit Card", "Debit Card", "UPI"],
     currenciesAccepted: "INR",

@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo } from "react";
 import { Platform, View, ScrollView, TouchableOpacity, Text, ActivityIndicator, useWindowDimensions } from "react-native";
-import { BREAKPOINTS, DESKTOP } from "@/src/utils/responsive";
+import { BREAKPOINTS, DESKTOP, BOTTOM_TAB_BAR_HEIGHT } from "@/src/utils/responsive";
+import { useSafeAreaInsets } from "@/src/hooks/useSafeAreaInsets";
 import { ArrowRight } from "lucide-react";
 import * as Haptics from "@/lib/haptics";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
@@ -66,6 +67,10 @@ const CartContent = () => {
   // Desktop web (clothing catalog): wider centered column + footer docks
   // to the viewport bottom since bottom tabs are hidden there.
   const isDesktop = Platform.OS === "web" && winW >= BREAKPOINTS.desktopMin;
+  const insets = useSafeAreaInsets();
+  // Footer must clear the fixed tab bar + home-indicator safe area on
+  // notched phones (hardcoded 70 buried the CTA behind the tab bar there).
+  const footerBottom = isDesktop ? 0 : BOTTOM_TAB_BAR_HEIGHT + 12 + (insets?.bottom ?? 0);
 
   const handleCheckout = () => {
     if (!isAuthenticated) {
@@ -160,8 +165,8 @@ const CartContent = () => {
         {/* Sticky Bottom Checkout CTA */}
         <View style={[
             styles.footer,
+            { bottom: footerBottom },
             isDesktop && {
-              bottom: 0,
               maxWidth: DESKTOP.narrowMaxWidth - DESKTOP.gutter * 2,
             },
           ]}

@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import { Helmet } from "react-helmet-async";
 import { Platform } from "react-native";
 import { getSiteBase, DEFAULT_SITE_KEYWORDS, type PageMeta } from "@/src/lib/seo";
+import defaultOgUrl from "@/assets/images/icons/ios-icon-default.webp";
 
 interface SeoHeadProps {
   meta: PageMeta;
@@ -97,7 +98,7 @@ export function SeoHead({ meta, jsonLd }: SeoHeadProps) {
 
 /** Absolute OG fallback (site root) for pages without their own image. */
 export function siteOgImage(): string {
-  return `${getSiteBase()}/assets/images/icons/ios-icon-default.png`;
+  return `${getSiteBase()}${defaultOgUrl}`;
 }
 
 const NOINDEX_META: PageMeta = {
