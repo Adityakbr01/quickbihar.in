@@ -18,6 +18,7 @@ export const STATIC_ROUTES: StaticRoute[] = [
   { path: '/clothing/home', label: 'Home' },
   { path: '/clothing/search', label: 'Search' },
   { path: '/top-selling', label: 'Top Selling' },
+  { path: '/malls', label: 'Malls' },
   { path: '/food', label: 'Food' },
   { path: '/jewelery', label: 'Jewellery' },
   { path: '/jewelery/collections', label: 'Jewellery Collections' },

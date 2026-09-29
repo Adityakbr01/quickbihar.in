@@ -63,7 +63,6 @@ export function organizationSchema(): Organization {
     description: `${SITE_NAME} — hyperlocal marketplace. Shop from verified local Bihar stores with 60–120 min delivery.`,
     email: SITE_CONTACT_EMAIL,
     telephone: SITE_CONTACT_PHONE,
-    image: SITE_LOGO,
     address,
   };
 }

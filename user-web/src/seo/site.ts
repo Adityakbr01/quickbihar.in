@@ -15,8 +15,8 @@ export const SITE_REGION = 'IN-BR';
 /** Canonical production origin. Same origin as the API in prod. */
 export const SITE_ORIGIN = 'https://quickbihar.in';
 
-export const SITE_LOGO = `${SITE_ORIGIN}/favicon.svg`;
-export const DEFAULT_OG_IMAGE = `${SITE_ORIGIN}/favicon.svg`;
+export const SITE_LOGO = `${SITE_ORIGIN}/icon-512.png`;
+export const DEFAULT_OG_IMAGE = `${SITE_ORIGIN}/og-image.png`;
 
 export const SITE_CONTACT_EMAIL = 'support@quickbihar.com';
 export const SITE_CONTACT_PHONE = '+91 93049 22632';
@@ -25,17 +25,17 @@ export const SITE_CONTACT_PHONE = '+91 93049 22632';
 export const ORG_ID = `${SITE_ORIGIN}/#organization`;
 export const WEBSITE_ID = `${SITE_ORIGIN}/#website`;
 
-/** Resolve the public site base (env override → production fallback). */
+/**
+ * Resolve the public site base.
+ *
+ * ALWAYS the production apex — never a dev/LAN env URL. Canonical URLs
+ * and JSON-LD @ids must be identical across prerender (build-time env)
+ * and client (browser env, which often carries a LAN API origin).
+ * Mixed origins produce duplicate/conflicting `url` fields that Google
+ * flags in Rich Results. Dev API endpoints stay in vite.config `define`
+ * where they belong — not in public SEO output.
+ */
 export function getSiteOrigin(): string {
-  try {
-    if (typeof process !== 'undefined' && process.env) {
-      const fromNode =
-        process.env.VITE_SITE_ORIGIN || process.env.EXPO_PUBLIC_API_ORIGIN || process.env.VITE_API_ORIGIN;
-      if (fromNode && fromNode.trim()) return fromNode.trim().replace(/\/+$/, '');
-    }
-  } catch {
-    /* non-node runtime — fall through */
-  }
   return SITE_ORIGIN;
 }
 

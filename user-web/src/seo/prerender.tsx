@@ -26,6 +26,7 @@ import {
   homeMeta,
   jeweleryMeta,
   mallMeta,
+  mallsMeta,
   productMeta,
   searchMeta,
   staticMeta,
@@ -288,6 +289,25 @@ export async function prerender(data: { url: string }) {
         heading = 'Top Selling Products in Bihar';
         schemas.push(webPageSchema('/top-selling', meta.title, meta.description));
         break;
+      case '/malls': {
+        const mallsMetaData = mallsMeta();
+        meta = mallsMetaData;
+        heading = 'Shopping Malls in Bihar';
+        const mallItems = malls.map((m) => ({
+          name: String(m.name),
+          url: getCanonicalUrl(`/mall/${m.slug}`),
+        }));
+        schemas.push(
+          webPageSchema('/malls', meta.title, meta.description),
+          breadcrumbSchema([
+            { name: 'Home', path: '/' },
+            { name: 'Malls', path: '/malls' },
+          ]),
+        );
+        const mallList = collectionSchema({ name: heading, description: meta.description, canonical: meta.canonical, items: mallItems });
+        if (mallList) schemas.push(mallList);
+        break;
+      }
       case '/food':
         meta = foodMeta();
         heading = 'Order Food Online in Bihar';
