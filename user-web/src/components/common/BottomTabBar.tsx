@@ -1,11 +1,27 @@
 import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { goTo } from "@/src/utils/navigation";
-import { Bike, House, LayoutGrid, Search, ShoppingBag, ShoppingCart, User } from "lucide-react";
+import {
+  Bike,
+  House,
+  LayoutGrid,
+  Search,
+  ShoppingBag,
+  ShoppingCart,
+  User,
+} from "lucide-react";
 import * as Haptics from "@/lib/haptics";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
-import { filterItemsByModule, useCartStore } from "@/src/features/common/cart/store/cartStore";
-import { getRoleName, RIDER_ROLE_ALIAS, RoleEnum, useAuthStore } from "@/src/features/common/auth/store/authStore";
+import {
+  filterItemsByModule,
+  useCartStore,
+} from "@/src/features/common/cart/store/cartStore";
+import {
+  getRoleName,
+  RIDER_ROLE_ALIAS,
+  RoleEnum,
+  useAuthStore,
+} from "@/src/features/common/auth/store/authStore";
 import { useModuleStore } from "@/src/store/useModuleStore";
 import { useColors as useJeweleryColors } from "@/src/features/Jewelery/hooks/useColors";
 import { BREAKPOINTS, useWindowWidth } from "@/src/utils/responsive";
@@ -22,15 +38,38 @@ const JeweleryTabBar: React.FC<{
   onPress: (route: string) => void;
 }> = ({ pathname, onPress }) => {
   const colors = useJeweleryColors();
-  const jeweleryCount = useCartStore((s) => filterItemsByModule(s.items, "jewelery").length);
+  const jeweleryCount = useCartStore(
+    (s) => filterItemsByModule(s.items, "jewelery").length,
+  );
   const [pressedTab, setPressedTab] = useState<string | null>(null);
 
   const tabs = [
     { name: "home", label: "Home", icon: House, route: "/jewelery" },
-    { name: "collections", label: "Collections", icon: LayoutGrid, route: "/jewelery/collections" },
-    { name: "search", label: "Search", icon: Search, route: "/jewelery/search" },
-    { name: "bag", label: "Bag", icon: ShoppingBag, route: "/jewelery/cart", badge: jeweleryCount },
-    { name: "account", label: "Account", icon: User, route: "/jewelery/account" },
+    {
+      name: "collections",
+      label: "Collections",
+      icon: LayoutGrid,
+      route: "/jewelery/collections",
+    },
+    {
+      name: "search",
+      label: "Search",
+      icon: Search,
+      route: "/jewelery/search",
+    },
+    {
+      name: "bag",
+      label: "Bag",
+      icon: ShoppingBag,
+      route: "/jewelery/cart",
+      badge: jeweleryCount,
+    },
+    {
+      name: "account",
+      label: "Account",
+      icon: User,
+      route: "/jewelery/account",
+    },
   ];
 
   const isActive = (route: string) =>
@@ -72,7 +111,10 @@ const JeweleryTabBar: React.FC<{
                 </span>
               ) : null}
             </span>
-            <span className="mt-0.5 truncate text-[9px] tracking-[0.8px]" style={{ color }}>
+            <span
+              className="mt-0.5 truncate text-[9px] tracking-[0.8px]"
+              style={{ color }}
+            >
               {tab.label}
             </span>
           </button>
@@ -95,7 +137,8 @@ export const BottomTabBar: React.FC = () => {
   const cartCount = useCartStore((s) => s.items.length);
 
   const roleName = getRoleName(user?.role);
-  const isRider = roleName === RoleEnum.DELIVERY || roleName === RIDER_ROLE_ALIAS;
+  const isRider =
+    roleName === RoleEnum.DELIVERY || roleName === RIDER_ROLE_ALIAS;
 
   // Bottom tab bar only renders on mobile screen sizes (< 1024px)
   if (isDesktop) return null;
@@ -119,12 +162,18 @@ export const BottomTabBar: React.FC = () => {
   const isClothingPath =
     pathname.startsWith("/clothing") || pathname.startsWith("/(tabs)/clothing");
 
-  const isJewelery = isJeweleryPath || (!isClothingPath && !isFoodPath && currentModule.id === "jewelery");
-  const isFood = isFoodPath || (!isClothingPath && !isJeweleryPath && currentModule.id === "food");
+  const isJewelery =
+    isJeweleryPath ||
+    (!isClothingPath && !isFoodPath && currentModule.id === "jewelery");
+  const isFood =
+    isFoodPath ||
+    (!isClothingPath && !isJeweleryPath && currentModule.id === "food");
 
   const pressTab = (route: string) => {
     try {
-      (Haptics as any)?.impactAsync?.((Haptics as any)?.ImpactFeedbackStyle?.Heavy);
+      (Haptics as any)?.impactAsync?.(
+        (Haptics as any)?.ImpactFeedbackStyle?.Heavy,
+      );
     } catch {}
     goTo(navigate, route as any);
   };
@@ -181,9 +230,11 @@ export const BottomTabBar: React.FC = () => {
     });
   }
 
-  const handlePress = (tab: typeof tabs[0]) => {
+  const handlePress = (tab: (typeof tabs)[0]) => {
     try {
-      (Haptics as any)?.impactAsync?.((Haptics as any)?.ImpactFeedbackStyle?.Heavy);
+      (Haptics as any)?.impactAsync?.(
+        (Haptics as any)?.ImpactFeedbackStyle?.Heavy,
+      );
     } catch {}
 
     if (tab.name === "account" && !isAuthenticated) {
@@ -195,7 +246,11 @@ export const BottomTabBar: React.FC = () => {
 
   const isTabActive = (tabRoute: string) => {
     if (pathname === tabRoute) return true;
-    if (tabRoute === "/clothing/home" && (pathname === "/" || pathname === "/clothing/home")) return true;
+    if (
+      tabRoute === "/clothing/home" &&
+      (pathname === "/" || pathname === "/clothing/home")
+    )
+      return true;
     if (tabRoute === "/jewelery" && pathname === "/jewelery") return true;
     if (tabRoute === "/food" && pathname === "/food") return true;
     return false;
@@ -213,7 +268,9 @@ export const BottomTabBar: React.FC = () => {
       {tabs.map((tab) => {
         const active = isTabActive(tab.route);
         const TabIcon = active ? tab.activeIcon : tab.icon;
-        const color = active ? (theme.primary || theme.iconColor || "#4F46E5") : (theme.tertiaryText || "#8E8E93");
+        const color = active
+          ? theme.primary || theme.iconColor || "#4F46E5"
+          : theme.tertiaryText || "#8E8E93";
 
         return (
           <button
@@ -226,7 +283,9 @@ export const BottomTabBar: React.FC = () => {
             role="tab"
             aria-selected={active}
             aria-label={tab.label}
-            className={cn("flex flex-1 cursor-pointer flex-col items-center justify-center py-1 transition-opacity")}
+            className={cn(
+              "flex flex-1 cursor-pointer flex-col items-center justify-center py-1 transition-opacity",
+            )}
             style={{ opacity: pressedTab === tab.name ? 0.7 : 1 }}
           >
             <span className="relative flex h-[26px] w-7 items-center justify-center">

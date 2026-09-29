@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { X } from "lucide-react";
 import { Dialog as SheetPrimitive } from "radix-ui";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
@@ -60,6 +60,17 @@ export const AppSheet: React.FC<AppSheetProps> = ({
   const theme = useTheme() as any;
   const fallbackLabel = typeof label === "string" && label ? label : "Sheet";
 
+  // Tell LazyLottie instances to freeze while a sheet is open so feed
+  // animations don't fight the slide transition for main-thread frames.
+  // Cleanup runs on close/unmount (nested sheets stack correctly).
+  useEffect(() => {
+    if (!visible) return;
+    window.dispatchEvent(new CustomEvent("qb-sheet-open"));
+    return () => {
+      window.dispatchEvent(new CustomEvent("qb-sheet-close"));
+    };
+  }, [visible]);
+
   const handleBackdropClick = (e: React.MouseEvent) => {
     // Only real backdrop taps close — never propagated content clicks.
     // Stop here regardless: the sheet often lives INSIDE a clickable
@@ -80,7 +91,7 @@ export const AppSheet: React.FC<AppSheetProps> = ({
       <SheetPortal>
         <SheetOverlay
           onClick={handleBackdropClick}
-          className="data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0"
+          className="will-change-opacity data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0"
           style={{ zIndex: SHEET_OVERLAY_Z, backgroundColor: "rgba(0, 0, 0, 0.5)" }}
         />
         <SheetPrimitive.Content
@@ -106,7 +117,7 @@ export const AppSheet: React.FC<AppSheetProps> = ({
           className={cn(
             "fixed flex flex-col gap-4 bg-background shadow-lg transition ease-in-out data-[state=closed]:animate-out data-[state=closed]:duration-300 data-[state=open]:animate-in data-[state=open]:duration-500",
             "inset-x-0 bottom-0 h-auto border-t data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom",
-            "mx-auto w-full max-w-[512px] gap-0 rounded-t-3xl p-0 max-h-[92dvh]",
+            "mx-auto w-full max-w-[512px] gap-0 rounded-t-3xl p-0 max-h-[92dvh] will-change-transform",
           )}
           style={{
             zIndex: SHEET_CONTENT_Z,
