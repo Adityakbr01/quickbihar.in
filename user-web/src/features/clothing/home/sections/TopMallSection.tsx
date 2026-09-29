@@ -88,7 +88,7 @@ const TopMallSection = () => {
           type="button"
           aria-label="Explore all malls"
           title="Explore top shopping malls and stores in Bihar"
-          onClick={() => goTo(navigate, "/mall" as any)}
+          onClick={() => goTo(navigate, "/malls" as any)}
           className="cursor-pointer p-1 text-sm font-semibold"
           style={{ color: theme.iconColor }}
         >

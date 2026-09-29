@@ -1,6 +1,31 @@
 import React, { useState, useMemo, useCallback, useEffect } from "react";
 import type { LucideIcon } from "lucide-react";
-import { ArrowLeft, ArrowRight, Banknote, Box, Calendar, Check, CircleAlert, CircleCheck, CircleX, CreditCard, Expand, Heart, Images, MessageCircle, Palette, RefreshCw, Share2, ShieldCheck, ShoppingBag, Star, StarHalf, Store, ThumbsUp, Zap } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Banknote,
+  Box,
+  Calendar,
+  Check,
+  CircleAlert,
+  CircleCheck,
+  CircleX,
+  CreditCard,
+  Expand,
+  Heart,
+  Images,
+  MessageCircle,
+  Palette,
+  RefreshCw,
+  Share2,
+  ShieldCheck,
+  ShoppingBag,
+  Star,
+  StarHalf,
+  Store,
+  ThumbsUp,
+  Zap,
+} from "lucide-react";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import {
   useProductById,
@@ -31,14 +56,24 @@ import * as Haptics from "@/lib/haptics";
 import WishlistHeart from "@/src/components/common/WishlistHeart";
 import { goBack, goTo, replaceTo } from "@/src/utils/navigation";
 
-import { useSizeChart, useSizeCharts } from "@/src/features/clothing/sizeChart/hooks/useSizeCharts";
+import {
+  useSizeChart,
+  useSizeCharts,
+} from "@/src/features/clothing/sizeChart/hooks/useSizeCharts";
 import { useStickyBarBottomOffset } from "@/src/utils/responsive";
 
 interface ProductDetailProps {
   id: string;
 }
 
-const AVATAR_COLORS = ["#3B82F6", "#10B981", "#8B5CF6", "#F59E0B", "#EC4899", "#6366F1"];
+const AVATAR_COLORS = [
+  "#3B82F6",
+  "#10B981",
+  "#8B5CF6",
+  "#F59E0B",
+  "#EC4899",
+  "#6366F1",
+];
 
 const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
   const navigate = useNavigate();
@@ -79,8 +114,8 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [carouselIndex, setCarouselIndex] = useState(0);
 
-  const wishlistItems = useWishlistStore(state => state.items);
-  const toggleWishlist = useWishlistStore(state => state.toggleItem);
+  const wishlistItems = useWishlistStore((state) => state.items);
+  const toggleWishlist = useWishlistStore((state) => state.toggleItem);
   // Store keys are product _ids while the route carries the slug —
   // always compare/toggle by _id once the product has loaded.
   const wishlistId = (product as any)?._id || id;
@@ -95,13 +130,18 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
   const dp: Partial<IProduct> = product || {};
 
   // ── Backend Size Chart Resolution ──
-  const sizeChartIdString = typeof dp.sizeChartId === "string" ? dp.sizeChartId : undefined;
+  const sizeChartIdString =
+    typeof dp.sizeChartId === "string" ? dp.sizeChartId : undefined;
   const { data: fetchedSizeChart } = useSizeChart(sizeChartIdString || "");
   const { data: allBackendSizeCharts } = useSizeCharts();
 
   const activeSizeChart = useMemo(() => {
     // 1. Populated size chart object on product directly from backend
-    if (dp.sizeChartId && typeof dp.sizeChartId === "object" && (dp.sizeChartId as any).data) {
+    if (
+      dp.sizeChartId &&
+      typeof dp.sizeChartId === "object" &&
+      (dp.sizeChartId as any).data
+    ) {
       return dp.sizeChartId as any;
     }
     // 2. Fetched by ID from backend /api/v1/size-charts/:id
@@ -110,38 +150,50 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
     }
     // 3. Matched from backend charts by category / subCategory
     if (allBackendSizeCharts && allBackendSizeCharts.length > 0) {
-      const categoryMatch = allBackendSizeCharts.find((c: any) =>
-        c.category?.toLowerCase() === dp.subCategory?.toLowerCase() ||
-        c.category?.toLowerCase() === dp.category?.toLowerCase() ||
-        c.name?.toLowerCase().includes(dp.category?.toLowerCase() || "")
+      const categoryMatch = allBackendSizeCharts.find(
+        (c: any) =>
+          c.category?.toLowerCase() === dp.subCategory?.toLowerCase() ||
+          c.category?.toLowerCase() === dp.category?.toLowerCase() ||
+          c.name?.toLowerCase().includes(dp.category?.toLowerCase() || ""),
       );
       if (categoryMatch) return categoryMatch;
-      const globalChart = allBackendSizeCharts.find((c: any) => c.category?.toLowerCase() === "clothing" || c.scope === "GLOBAL");
+      const globalChart = allBackendSizeCharts.find(
+        (c: any) =>
+          c.category?.toLowerCase() === "clothing" || c.scope === "GLOBAL",
+      );
       if (globalChart) return globalChart;
     }
     return null;
-  }, [dp.sizeChartId, fetchedSizeChart, allBackendSizeCharts, dp.category, dp.subCategory]);
+  }, [
+    dp.sizeChartId,
+    fetchedSizeChart,
+    allBackendSizeCharts,
+    dp.category,
+    dp.subCategory,
+  ]);
 
   useEffect(() => {
     // Listen for stock updates for this specific product
     socketClient.on(SocketEvents.STOCK_UPDATE, (data) => {
       if (data.productId === id) {
-        console.log(`[ProductDetail] Real-time stock update for SKU ${data.sku}: ${data.newStock}`);
+        console.log(
+          `[ProductDetail] Real-time stock update for SKU ${data.sku}: ${data.newStock}`,
+        );
 
         // Optimistically update the React Query cache
         queryClient.setQueryData(["product", id], (oldData: any) => {
           if (!oldData || !oldData.data) return oldData;
 
           const updatedVariants = oldData.data.variants.map((v: any) =>
-            v.sku === data.sku ? { ...v, stock: data.newStock } : v
+            v.sku === data.sku ? { ...v, stock: data.newStock } : v,
           );
 
           return {
             ...oldData,
             data: {
               ...oldData.data,
-              variants: updatedVariants
-            }
+              variants: updatedVariants,
+            },
           };
         });
       }
@@ -155,7 +207,13 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
   // ── Derived State ──
   const uniqueColors = useMemo(() => {
     if (!dp.variants) return [];
-    return Array.from(new Set(dp.variants.map((v) => (v?.color ? String(v.color).trim() : "")).filter(Boolean)));
+    return Array.from(
+      new Set(
+        dp.variants
+          .map((v) => (v?.color ? String(v.color).trim() : ""))
+          .filter(Boolean),
+      ),
+    );
   }, [dp.variants]);
 
   // Default to the first color once variants load (intentional prop→state sync).
@@ -168,16 +226,17 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
 
   const sizesForColor = useMemo(() => {
     if (!dp.variants || !selectedColor) return [];
-    return dp.variants.filter((v) => (v?.color ? String(v.color).trim() : "") === selectedColor);
+    return dp.variants.filter(
+      (v) => (v?.color ? String(v.color).trim() : "") === selectedColor,
+    );
   }, [dp.variants, selectedColor]);
 
   const images = dp.images || [];
-  const discount =
-    dp.discountPercentage
-      ? Math.round(Number(dp.discountPercentage))
-      : (dp.originalPrice && dp.price
-        ? Math.round((1 - dp.price / dp.originalPrice) * 100)
-        : 0);
+  const discount = dp.discountPercentage
+    ? Math.round(Number(dp.discountPercentage))
+    : dp.originalPrice && dp.price
+      ? Math.round((1 - dp.price / dp.originalPrice) * 100)
+      : 0;
 
   // Responsive gallery: fills screen width, caps height on tablets/desktop.
   const [windowWidth, setWindowWidth] = useState(() =>
@@ -210,7 +269,7 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
       } else if (navigator.clipboard) {
         await navigator.clipboard.writeText(text);
       }
-    } catch { }
+    } catch {}
   }, [dp.title, dp.price]);
 
   const addItem = useCartStore((state) => state.addItem);
@@ -220,19 +279,25 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
   const selectedVariant = useMemo(() => {
     return dp.variants?.find(
       (v) =>
-        (!selectedColor || (v?.color ? String(v.color).trim() : "") === selectedColor) &&
-        (!selectedSize || String(v?.size || "") === String(selectedSize))
+        (!selectedColor ||
+          (v?.color ? String(v.color).trim() : "") === selectedColor) &&
+        (!selectedSize || String(v?.size || "") === String(selectedSize)),
     );
   }, [dp.variants, selectedColor, selectedSize]);
 
   const hasSizes = sizesForColor.length > 0;
   const hasColors = uniqueColors.length > 0;
   const isSelectionComplete =
-    (!hasSizes || selectedSize !== null) && (!hasColors || selectedColor !== null);
+    (!hasSizes || selectedSize !== null) &&
+    (!hasColors || selectedColor !== null);
 
   const isInCart = useMemo(() => {
     if (!isSelectionComplete || !selectedVariant) return false;
-    return cartItems.some((item) => item.sku === selectedVariant.sku && (item.module ?? "clothing") === "clothing");
+    return cartItems.some(
+      (item) =>
+        item.sku === selectedVariant.sku &&
+        (item.module ?? "clothing") === "clothing",
+    );
   }, [isSelectionComplete, selectedVariant, cartItems]);
 
   const handleAddToBag = async () => {
@@ -283,8 +348,10 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
   };
 
   // ── Ratings & Reviews Derived State ──
-  const totalReviews = reviewsData?.stats?.totalReviews ?? (dp.ratings?.count || 0);
-  const averageRating = reviewsData?.stats?.averageRating ?? (dp.ratings?.average || 0);
+  const totalReviews =
+    reviewsData?.stats?.totalReviews ?? (dp.ratings?.count || 0);
+  const averageRating =
+    reviewsData?.stats?.averageRating ?? (dp.ratings?.average || 0);
   const distribution = reviewsData?.stats?.distribution || {
     5: 0,
     4: 0,
@@ -304,14 +371,21 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
   const reviewsList = reviewsData?.reviews || [];
 
   // ── Return Policy Derived State ──
-  const refundPolicyObj = (dp.policyRefs?.returnPolicy || dp.refundPolicy) as any;
-  const isReturnable = typeof refundPolicyObj === "object"
-    ? (refundPolicyObj?.isReturnable ?? true)
-    : !dp.deliveryInfo?.returnPolicy?.toLowerCase()?.includes("non-returnable");
+  const refundPolicyObj = (dp.policyRefs?.returnPolicy ||
+    dp.refundPolicy) as any;
+  const isReturnable =
+    typeof refundPolicyObj === "object"
+      ? (refundPolicyObj?.isReturnable ?? true)
+      : !dp.deliveryInfo?.returnPolicy
+          ?.toLowerCase()
+          ?.includes("non-returnable");
 
-  const returnDays = typeof refundPolicyObj === "object" && refundPolicyObj?.returnWindowDays
-    ? refundPolicyObj.returnWindowDays
-    : (dp.deliveryInfo?.returnPolicy?.includes("10") ? 10 : 7);
+  const returnDays =
+    typeof refundPolicyObj === "object" && refundPolicyObj?.returnWindowDays
+      ? refundPolicyObj.returnWindowDays
+      : dp.deliveryInfo?.returnPolicy?.includes("10")
+        ? 10
+        : 7;
 
   // ── Store / Seller Info ──
   const storeObj = typeof dp.storeId === "object" ? dp.storeId : null;
@@ -356,8 +430,12 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
               aria-label="Go back"
               className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border"
               style={{
-                backgroundColor: isDark ? "rgba(30, 30, 32, 0.85)" : "rgba(255, 255, 255, 0.9)",
-                borderColor: isDark ? "rgba(255, 255, 255, 0.15)" : "rgba(0, 0, 0, 0.08)",
+                backgroundColor: isDark
+                  ? "rgba(30, 30, 32, 0.85)"
+                  : "rgba(255, 255, 255, 0.9)",
+                borderColor: isDark
+                  ? "rgba(255, 255, 255, 0.15)"
+                  : "rgba(0, 0, 0, 0.08)",
               }}
             >
               <ArrowLeft size={20} color={isDark ? "#ffffff" : "#111827"} />
@@ -376,8 +454,12 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
                   borderWidth: 1,
                   justifyContent: "center",
                   alignItems: "center",
-                  backgroundColor: isDark ? "rgba(30, 30, 32, 0.85)" : "rgba(255, 255, 255, 0.9)",
-                  borderColor: isDark ? "rgba(255, 255, 255, 0.15)" : "rgba(0, 0, 0, 0.08)",
+                  backgroundColor: isDark
+                    ? "rgba(30, 30, 32, 0.85)"
+                    : "rgba(255, 255, 255, 0.9)",
+                  borderColor: isDark
+                    ? "rgba(255, 255, 255, 0.15)"
+                    : "rgba(0, 0, 0, 0.08)",
                 }}
               />
               <button
@@ -386,8 +468,12 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
                 aria-label="Share product"
                 className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border"
                 style={{
-                  backgroundColor: isDark ? "rgba(30, 30, 32, 0.85)" : "rgba(255, 255, 255, 0.9)",
-                  borderColor: isDark ? "rgba(255, 255, 255, 0.15)" : "rgba(0, 0, 0, 0.08)",
+                  backgroundColor: isDark
+                    ? "rgba(30, 30, 32, 0.85)"
+                    : "rgba(255, 255, 255, 0.9)",
+                  borderColor: isDark
+                    ? "rgba(255, 255, 255, 0.15)"
+                    : "rgba(0, 0, 0, 0.08)",
                 }}
               >
                 <Share2 size={19} color={isDark ? "#ffffff" : "#111827"} />
@@ -400,12 +486,23 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
             <div
               className="absolute right-4 bottom-[60px] flex flex-row items-center rounded-[14px] border px-2.5 py-1.5"
               style={{
-                backgroundColor: isDark ? "rgba(30, 30, 32, 0.85)" : "rgba(255, 255, 255, 0.9)",
-                borderColor: isDark ? "rgba(255, 255, 255, 0.15)" : "rgba(0, 0, 0, 0.08)",
+                backgroundColor: isDark
+                  ? "rgba(30, 30, 32, 0.85)"
+                  : "rgba(255, 255, 255, 0.9)",
+                borderColor: isDark
+                  ? "rgba(255, 255, 255, 0.15)"
+                  : "rgba(0, 0, 0, 0.08)",
               }}
             >
-              <Images size={12} color={isDark ? "#fff" : "#111827"} className="mr-1" />
-              <span className="text-[11px] font-bold" style={{ color: isDark ? "#fff" : "#111827" }}>
+              <Images
+                size={12}
+                color={isDark ? "#fff" : "#111827"}
+                className="mr-1"
+              />
+              <span
+                className="text-[11px] font-bold"
+                style={{ color: isDark ? "#fff" : "#111827" }}
+              >
                 {carouselIndex + 1}/{images.length}
               </span>
             </div>
@@ -414,7 +511,10 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
           {/* Thumbnail Strip */}
           {images.length > 1 && (
             <div className="absolute right-0 bottom-2.5 left-0">
-              <div className="flex flex-row gap-2 overflow-x-auto px-4" style={{ scrollbarWidth: "none" }}>
+              <div
+                className="flex flex-row gap-2 overflow-x-auto px-4"
+                style={{ scrollbarWidth: "none" }}
+              >
                 {images.map((img, i) => (
                   <img
                     key={i}
@@ -422,7 +522,8 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
                     alt={`${dp.title} thumbnail ${i + 1}`}
                     className="h-10 w-10 rounded-md object-cover"
                     style={{
-                      borderColor: i === carouselIndex ? theme.primary : theme.border,
+                      borderColor:
+                        i === carouselIndex ? theme.primary : theme.border,
                       borderWidth: i === carouselIndex ? 2 : 1,
                       borderStyle: "solid",
                       opacity: i === carouselIndex ? 1 : 0.6,
@@ -437,24 +538,45 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
         {/* ═══════════════════════════════════════════
             PRODUCT INFO
         ═══════════════════════════════════════════ */}
-        <div className="px-4 pt-4 pb-3" style={{ backgroundColor: theme.background }}>
+        <div
+          className="px-4 pt-4 pb-3"
+          style={{ backgroundColor: theme.background }}
+        >
           {/* Breadcrumb trail (visible match for BreadcrumbList JSON-LD) */}
-          <nav className="mb-2 flex flex-row items-center" aria-label="Breadcrumb">
-            <Link to="/" className="text-xs" style={{ color: theme.secondaryText }}>
+          <nav
+            className="mb-2 flex flex-row items-center"
+            aria-label="Breadcrumb"
+          >
+            <Link
+              to="/"
+              className="text-xs"
+              style={{ color: theme.secondaryText }}
+            >
               Home
             </Link>
-            <span className="text-xs" style={{ color: theme.secondaryText }}>{"  ›  "}</span>
-            <span className="flex-1 truncate text-xs" style={{ color: theme.secondaryText }}>
+            <span className="text-xs" style={{ color: theme.secondaryText }}>
+              {"  ›  "}
+            </span>
+            <span
+              className="flex-1 truncate text-xs"
+              style={{ color: theme.secondaryText }}
+            >
               {dp.title}
             </span>
           </nav>
           {/* Brand */}
-          <p className="mb-1 text-[15px] font-extrabold tracking-wide" style={{ color: theme.text }}>
+          <p
+            className="mb-1 text-[15px] font-extrabold tracking-wide"
+            style={{ color: theme.text }}
+          >
             {dp.brand || "Brand"}
           </p>
 
           {/* Title */}
-          <h1 className="mb-2.5 text-sm leading-5 font-normal" style={{ color: theme.secondaryText }}>
+          <h1
+            className="mb-2.5 text-sm leading-5 font-normal"
+            style={{ color: theme.secondaryText }}
+          >
             {dp.title}
           </h1>
 
@@ -462,11 +584,16 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
           {totalReviews > 0 && (
             <div className="mb-3.5 flex flex-row items-center">
               <span className="flex flex-row items-center gap-1 rounded bg-[#34C759] px-1.5 py-0.5">
-                <span className="text-xs font-extrabold text-white">{averageRating}</span>
+                <span className="text-xs font-extrabold text-white">
+                  {averageRating}
+                </span>
                 <Star size={11} color="#fff" fill="#fff" />
               </span>
               <span className="mx-2 h-3.5 w-px bg-gray-300" />
-              <span className="text-[13px] font-medium" style={{ color: theme.secondaryText }}>
+              <span
+                className="text-[13px] font-medium"
+                style={{ color: theme.secondaryText }}
+              >
                 {totalReviews} Ratings
               </span>
             </div>
@@ -474,12 +601,22 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
 
           {/* Pricing Block */}
           <div className="flex flex-row items-baseline gap-2">
-            <span className="text-[22px] font-extrabold" style={{ color: theme.text }}>
-              ₹{(dp.isGstApplicable ? dp.price! * (1 + dp.gstPercentage! / 100) : dp.price!)?.toLocaleString()}
+            <span
+              className="text-[22px] font-extrabold"
+              style={{ color: theme.text }}
+            >
+              ₹
+              {(dp.isGstApplicable
+                ? dp.price! * (1 + dp.gstPercentage! / 100)
+                : dp.price!
+              )?.toLocaleString()}
             </span>
             {dp.originalPrice && dp.originalPrice > dp.price! && (
               <>
-                <span className="text-[13px] font-medium" style={{ color: theme.tertiaryText }}>
+                <span
+                  className="text-[13px] font-medium"
+                  style={{ color: theme.tertiaryText }}
+                >
                   MRP{" "}
                   <span className="line-through">
                     ₹{dp.originalPrice.toLocaleString()}
@@ -491,8 +628,13 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
               </>
             )}
           </div>
-          <p className="mt-1 text-xs font-medium" style={{ color: theme.success || "#34C759" }}>
-            {dp.isGstApplicable ? `Price inclusive of ${dp.gstPercentage}% GST` : "inclusive of all taxes"}
+          <p
+            className="mt-1 text-xs font-medium"
+            style={{ color: theme.success || "#34C759" }}
+          >
+            {dp.isGstApplicable
+              ? `Price inclusive of ${dp.gstPercentage}% GST`
+              : "inclusive of all taxes"}
           </p>
         </div>
 
@@ -500,8 +642,14 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
             COLOR SELECTION
         ═══════════════════════════════════════════ */}
         {uniqueColors.length > 0 && (
-          <div className="px-4 py-4" style={{ backgroundColor: theme.background }}>
-            <p className="mb-3.5 text-[13px] font-bold tracking-[0.8px]" style={{ color: theme.text }}>
+          <div
+            className="px-4 py-4"
+            style={{ backgroundColor: theme.background }}
+          >
+            <p
+              className="mb-3.5 text-[13px] font-bold tracking-[0.8px]"
+              style={{ color: theme.text }}
+            >
               COLOR:{" "}
               <span style={{ fontWeight: "400", color: theme.secondaryText }}>
                 {selectedColor}
@@ -521,7 +669,9 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
                     className="cursor-pointer rounded-full border-[1.5px] px-5 py-2"
                     style={{
                       borderColor: active ? theme.primary : theme.border,
-                      backgroundColor: active ? theme.primary + "0D" : theme.background,
+                      backgroundColor: active
+                        ? theme.primary + "0D"
+                        : theme.background,
                     }}
                   >
                     <span
@@ -541,9 +691,15 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
             SIZE SELECTION
         ═══════════════════════════════════════════ */}
         {sizesForColor.length > 0 && (
-          <div className="px-4 py-4" style={{ backgroundColor: theme.background }}>
+          <div
+            className="px-4 py-4"
+            style={{ backgroundColor: theme.background }}
+          >
             <div className="mb-3.5 flex flex-row items-center justify-between">
-              <p className="text-[13px] font-bold tracking-[0.8px]" style={{ color: theme.text }}>
+              <p
+                className="text-[13px] font-bold tracking-[0.8px]"
+                style={{ color: theme.text }}
+              >
                 SELECT SIZE
               </p>
               <button
@@ -555,7 +711,10 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
                 className="flex cursor-pointer flex-row items-center gap-1"
               >
                 <Expand size={14} color={theme.primary} />
-                <span className="text-xs font-bold tracking-wide" style={{ color: theme.primary }}>
+                <span
+                  className="text-xs font-bold tracking-wide"
+                  style={{ color: theme.primary }}
+                >
                   SIZE GUIDE
                 </span>
               </button>
@@ -573,14 +732,20 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
                     className="relative flex h-12 min-w-12 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-3xl border-[1.5px] px-3.5"
                     style={{
                       borderColor: theme.border,
-                      backgroundColor: active ? theme.primary : theme.background,
+                      backgroundColor: active
+                        ? theme.primary
+                        : theme.background,
                       borderStyle: oos ? "dashed" : "solid",
                     }}
                   >
                     <span
                       className="block truncate text-center text-[13px] font-bold"
                       style={{
-                        color: active ? "#fff" : oos ? theme.tertiaryText : theme.text,
+                        color: active
+                          ? "#fff"
+                          : oos
+                            ? theme.tertiaryText
+                            : theme.text,
                         textDecoration: oos ? "line-through" : undefined,
                       }}
                     >
@@ -598,15 +763,15 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
             </div>
             {selectedSize &&
               sizesForColor.find((v) => v.size === selectedSize)?.stock! <=
-              5 && (
+                5 && (
                 <div className="mt-3 flex flex-row items-center gap-1.5">
                   <Zap size={14} color={theme.warning} />
-                  <span className="text-xs font-semibold" style={{ color: theme.warning }}>
+                  <span
+                    className="text-xs font-semibold"
+                    style={{ color: theme.warning }}
+                  >
                     Only{" "}
-                    {
-                      sizesForColor.find((v) => v.size === selectedSize)
-                        ?.stock
-                    }{" "}
+                    {sizesForColor.find((v) => v.size === selectedSize)?.stock}{" "}
                     left! Order soon
                   </span>
                 </div>
@@ -617,18 +782,30 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
         {/* ═══════════════════════════════════════════
             DELIVERY INFO
         ═══════════════════════════════════════════ */}
-        <div className="px-4 py-4" style={{ backgroundColor: theme.background }}>
-          <p className="mb-3.5 text-[13px] font-bold tracking-[0.8px]" style={{ color: theme.text }}>
+        <div
+          className="px-4 py-4"
+          style={{ backgroundColor: theme.background }}
+        >
+          <p
+            className="mb-3.5 text-[13px] font-bold tracking-[0.8px]"
+            style={{ color: theme.text }}
+          >
             DELIVERY OPTIONS
           </p>
           <div className="mb-5 flex flex-col gap-2.5">
             <div
               className="flex flex-row items-center gap-3 rounded-xl border p-3.5"
-              style={{ backgroundColor: theme.tertiaryBackground, borderColor: theme.border }}
+              style={{
+                backgroundColor: theme.tertiaryBackground,
+                borderColor: theme.border,
+              }}
             >
               <Box size={22} color={theme.primary} />
               <div className="flex-1">
-                <p className="mb-0.5 text-[13px] font-bold" style={{ color: theme.text }}>
+                <p
+                  className="mb-0.5 text-[13px] font-bold"
+                  style={{ color: theme.text }}
+                >
                   Get it by {deliveryDateLabel}
                 </p>
                 <p className="text-xs" style={{ color: theme.secondaryText }}>
@@ -639,11 +816,17 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
             {dp.deliveryInfo?.isExpressAvailable && (
               <div
                 className="flex flex-row items-center gap-3 rounded-xl border p-3.5"
-                style={{ backgroundColor: theme.tertiaryBackground, borderColor: theme.border }}
+                style={{
+                  backgroundColor: theme.tertiaryBackground,
+                  borderColor: theme.border,
+                }}
               >
                 <Zap size={22} color="#F59E0B" />
                 <div className="flex-1">
-                  <p className="mb-0.5 text-[13px] font-bold" style={{ color: theme.text }}>
+                  <p
+                    className="mb-0.5 text-[13px] font-bold"
+                    style={{ color: theme.text }}
+                  >
                     Express Fast-Track Dispatch
                   </p>
                   <p className="text-xs" style={{ color: theme.secondaryText }}>
@@ -658,29 +841,39 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
             {[
               {
                 icon: RefreshCw,
-                label: isReturnable ? `${returnDays} Day\nReturns` : "Non\nReturnable",
+                label: isReturnable
+                  ? `${returnDays} Day\nReturns`
+                  : "Non\nReturnable",
               },
               {
                 icon: dp.deliveryInfo?.isCodAvailable ? Banknote : CreditCard,
-                label: dp.deliveryInfo?.isCodAvailable ? "Pay On\nDelivery" : "Secure\nPayment"
+                label: dp.deliveryInfo?.isCodAvailable
+                  ? "Pay On\nDelivery"
+                  : "Secure\nPayment",
               },
               {
                 icon: ShieldCheck,
-                label: "100% Genuine\nProduct"
+                label: "100% Genuine\nProduct",
               },
               {
                 icon: Store,
-                label: "Verified\nLocal Store"
+                label: "Verified\nLocal Store",
               },
             ].map((p, i) => (
-              <div key={i} className="flex flex-1 flex-col items-center gap-1.5">
+              <div
+                key={i}
+                className="flex flex-1 flex-col items-center gap-1.5"
+              >
                 <span
                   className="flex h-[42px] w-[42px] items-center justify-center rounded-full"
                   style={{ backgroundColor: theme.tertiaryBackground }}
                 >
                   <p.icon size={20} color={theme.primary} />
                 </span>
-                <span className="text-center text-[10px] leading-[14px] font-semibold whitespace-pre-line" style={{ color: theme.secondaryText }}>
+                <span
+                  className="text-center text-[10px] leading-[14px] font-semibold whitespace-pre-line"
+                  style={{ color: theme.secondaryText }}
+                >
                   {p.label}
                 </span>
               </div>
@@ -698,7 +891,10 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
             defaultOpen={true}
           >
             {dp.description ? (
-              <p className="mb-4 text-[13px] leading-5" style={{ color: theme.secondaryText }}>
+              <p
+                className="mb-4 text-[13px] leading-5"
+                style={{ color: theme.secondaryText }}
+              >
                 {dp.description}
               </p>
             ) : null}
@@ -718,7 +914,13 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
                 { k: "Wash & Care", v: dp.details?.washCare },
                 { k: "Occasion", v: dp.details?.occasion },
                 { k: "Fabric Care", v: dp.details?.fabricCare },
-                { k: "Style / SKU Code", v: selectedVariant?.sku || dp.details?.sku || dp.variants?.[0]?.sku },
+                {
+                  k: "Style / SKU Code",
+                  v:
+                    selectedVariant?.sku ||
+                    dp.details?.sku ||
+                    dp.variants?.[0]?.sku,
+                },
                 { k: "Tags", v: dp.tags?.join(", ") },
               ]
                 .filter((x) => Boolean(x.v))
@@ -728,10 +930,16 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
                     className="flex flex-row border-b py-2.5"
                     style={{ borderBottomColor: theme.border }}
                   >
-                    <span className="flex-[0.4] text-[13px] font-medium" style={{ color: theme.secondaryText }}>
+                    <span
+                      className="flex-[0.4] text-[13px] font-medium"
+                      style={{ color: theme.secondaryText }}
+                    >
                       {spec.k}
                     </span>
-                    <span className="flex-[0.6] text-[13px] font-semibold" style={{ color: theme.text }}>
+                    <span
+                      className="flex-[0.6] text-[13px] font-semibold"
+                      style={{ color: theme.text }}
+                    >
                       {spec.v}
                     </span>
                   </div>
@@ -745,14 +953,36 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
                   { k: "Food Type", v: dp.foodDetails.vegNonVeg },
                   { k: "Shelf Life", v: dp.foodDetails.shelfLife },
                   { k: "Serving Size", v: dp.foodDetails.servingSize },
-                  { k: "Calories", v: dp.foodDetails.calories ? `${dp.foodDetails.calories} kcal` : undefined },
-                  { k: "Ingredients", v: dp.foodDetails.ingredients?.join(", ") },
+                  {
+                    k: "Calories",
+                    v: dp.foodDetails.calories
+                      ? `${dp.foodDetails.calories} kcal`
+                      : undefined,
+                  },
+                  {
+                    k: "Ingredients",
+                    v: dp.foodDetails.ingredients?.join(", "),
+                  },
                 ]
                   .filter((x) => Boolean(x.v))
                   .map((spec, i) => (
-                    <div key={i} className="flex flex-row border-b py-2.5" style={{ borderBottomColor: theme.border }}>
-                      <span className="flex-[0.4] text-[13px] font-medium" style={{ color: theme.secondaryText }}>{spec.k}</span>
-                      <span className="flex-[0.6] text-[13px] font-semibold" style={{ color: theme.text }}>{spec.v}</span>
+                    <div
+                      key={i}
+                      className="flex flex-row border-b py-2.5"
+                      style={{ borderBottomColor: theme.border }}
+                    >
+                      <span
+                        className="flex-[0.4] text-[13px] font-medium"
+                        style={{ color: theme.secondaryText }}
+                      >
+                        {spec.k}
+                      </span>
+                      <span
+                        className="flex-[0.6] text-[13px] font-semibold"
+                        style={{ color: theme.text }}
+                      >
+                        {spec.v}
+                      </span>
                     </div>
                   ))}
               </div>
@@ -764,15 +994,39 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
                 {[
                   { k: "Metal Type", v: dp.jeweleryDetails.metalType },
                   { k: "Purity", v: dp.jeweleryDetails.purity },
-                  { k: "BIS Hallmark", v: dp.jeweleryDetails.hallmark ? "Certified Hallmark" : undefined },
+                  {
+                    k: "BIS Hallmark",
+                    v: dp.jeweleryDetails.hallmark
+                      ? "Certified Hallmark"
+                      : undefined,
+                  },
                   { k: "Gemstone", v: dp.jeweleryDetails.gemstone },
-                  { k: "Weight", v: dp.jeweleryDetails.weightGrams ? `${dp.jeweleryDetails.weightGrams} gm` : undefined },
+                  {
+                    k: "Weight",
+                    v: dp.jeweleryDetails.weightGrams
+                      ? `${dp.jeweleryDetails.weightGrams} gm`
+                      : undefined,
+                  },
                 ]
                   .filter((x) => Boolean(x.v))
                   .map((spec, i) => (
-                    <div key={i} className="flex flex-row border-b py-2.5" style={{ borderBottomColor: theme.border }}>
-                      <span className="flex-[0.4] text-[13px] font-medium" style={{ color: theme.secondaryText }}>{spec.k}</span>
-                      <span className="flex-[0.6] text-[13px] font-semibold" style={{ color: theme.text }}>{spec.v}</span>
+                    <div
+                      key={i}
+                      className="flex flex-row border-b py-2.5"
+                      style={{ borderBottomColor: theme.border }}
+                    >
+                      <span
+                        className="flex-[0.4] text-[13px] font-medium"
+                        style={{ color: theme.secondaryText }}
+                      >
+                        {spec.k}
+                      </span>
+                      <span
+                        className="flex-[0.6] text-[13px] font-semibold"
+                        style={{ color: theme.text }}
+                      >
+                        {spec.v}
+                      </span>
                     </div>
                   ))}
               </div>
@@ -781,21 +1035,37 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
             {/* Verified Seller & Store Source */}
             <div
               className="mt-4 flex flex-col gap-1.5 rounded-[10px] border p-3.5"
-              style={{ backgroundColor: theme.tertiaryBackground, borderColor: theme.border }}
+              style={{
+                backgroundColor: theme.tertiaryBackground,
+                borderColor: theme.border,
+              }}
             >
               <div className="flex flex-row items-center justify-between">
                 <div className="flex-1">
-                  <p className="text-sm font-bold" style={{ color: theme.text }}>
-                    {storeObj?.name || (typeof sellerObj === "object" && sellerObj?.businessName) || "QuickBihar Verified Partner Store"}
+                  <p
+                    className="text-sm font-bold"
+                    style={{ color: theme.text }}
+                  >
+                    {storeObj?.name ||
+                      (typeof sellerObj === "object" &&
+                        sellerObj?.businessName) ||
+                      "QuickBihar Verified Partner Store"}
                   </p>
                   <p className="text-xs" style={{ color: theme.secondaryText }}>
-                    {storeObj?.city ? `${storeObj.city}, ${storeObj.state || 'Bihar'}` : "Bihar, India"}
+                    {storeObj?.city
+                      ? `${storeObj.city}, ${storeObj.state || "Bihar"}`
+                      : "Bihar, India"}
                   </p>
                 </div>
                 <span className="flex flex-row items-center gap-1 rounded bg-[#E8F5E9] px-1.5 py-0.5">
                   <CircleCheck size={14} color="#2E7D32" />
-                  <span className="text-[10px] font-bold" style={{ color: "#2E7D32" }}>
-                    {storeObj?.rating ? `${storeObj.rating} ★ Verified` : "Verified Partner"}
+                  <span
+                    className="text-[10px] font-bold"
+                    style={{ color: "#2E7D32" }}
+                  >
+                    {storeObj?.rating
+                      ? `${storeObj.rating} ★ Verified`
+                      : "Verified Partner"}
                   </span>
                 </span>
               </div>
@@ -805,41 +1075,65 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
           {/* ═══════════════════════════════════════════
               2. RETURN & EXCHANGE POLICY
           ═══════════════════════════════════════════ */}
-          <ExpandableSection title="Return & Exchange Policy" theme={theme} defaultOpen={false}>
+          <ExpandableSection
+            title="Return & Exchange Policy"
+            theme={theme}
+            defaultOpen={false}
+          >
             <div className="flex flex-col gap-2.5">
               {!isReturnable ? (
                 <div className="mb-2.5 flex flex-row items-center gap-2.5 rounded-lg bg-[#FFEBEE] p-3">
                   <CircleAlert size={20} color="#D32F2F" />
-                  <p className="flex-1 text-xs leading-[17px] font-semibold" style={{ color: "#C62828" }}>
-                    Non-Returnable: Due to hygiene, safety, or perishable standards, this item cannot be returned once delivered.
+                  <p
+                    className="flex-1 text-xs leading-[17px] font-semibold"
+                    style={{ color: "#C62828" }}
+                  >
+                    Non-Returnable: Due to hygiene, safety, or perishable
+                    standards, this item cannot be returned once delivered.
                   </p>
                 </div>
               ) : (
                 <>
                   <div className="flex flex-row items-center gap-2.5">
                     <Calendar size={20} color={theme.primary} />
-                    <span className="text-[13px] font-bold" style={{ color: theme.text }}>
+                    <span
+                      className="text-[13px] font-bold"
+                      style={{ color: theme.text }}
+                    >
                       {returnDays} Days Easy Return & Exchange
                     </span>
                   </div>
 
                   <div className="flex flex-row items-center gap-2.5">
                     <Box size={20} color={theme.success || "#34C759"} />
-                    <span className="text-[13px]" style={{ color: theme.secondaryText }}>
+                    <span
+                      className="text-[13px]"
+                      style={{ color: theme.secondaryText }}
+                    >
                       Free doorstep return pickup by QuickBihar rider
                     </span>
                   </div>
 
                   <div className="flex flex-row items-center gap-2.5">
                     <CreditCard size={20} color={theme.primary} />
-                    <span className="text-[13px]" style={{ color: theme.secondaryText }}>
-                      100% instant refund directly credited to your original payment source (UPI / Bank / Card) upon return pickup
+                    <span
+                      className="text-[13px]"
+                      style={{ color: theme.secondaryText }}
+                    >
+                      100% instant refund directly credited to your original
+                      payment source (UPI / Bank / Card) upon return pickup
                     </span>
                   </div>
 
                   {/* Conditions Checklist */}
-                  <div className="mt-2 rounded-lg p-3" style={{ backgroundColor: theme.tertiaryBackground }}>
-                    <p className="mb-2 text-xs font-bold" style={{ color: theme.text }}>
+                  <div
+                    className="mt-2 rounded-lg p-3"
+                    style={{ backgroundColor: theme.tertiaryBackground }}
+                  >
+                    <p
+                      className="mb-2 text-xs font-bold"
+                      style={{ color: theme.text }}
+                    >
                       RETURN & EXCHANGE CONDITIONS:
                     </p>
                     {[
@@ -849,8 +1143,14 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
                       "Doorstep quality check (QC) is verified instantly by the delivery partner",
                     ].map((condition, idx) => (
                       <div key={idx} className="mb-1.5 flex flex-row gap-2">
-                        <CircleCheck size={15} color={theme.success || "#34C759"} />
-                        <span className="flex-1 text-xs leading-4" style={{ color: theme.secondaryText }}>
+                        <CircleCheck
+                          size={15}
+                          color={theme.success || "#34C759"}
+                        />
+                        <span
+                          className="flex-1 text-xs leading-4"
+                          style={{ color: theme.secondaryText }}
+                        >
                           {condition}
                         </span>
                       </div>
@@ -864,56 +1164,170 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
           {/* ═══════════════════════════════════════════
               3. COMPLIANCE AND MANUFACTURING
           ═══════════════════════════════════════════ */}
-          <ExpandableSection title="Compliance & Manufacturing" theme={theme} defaultOpen={false}>
+          <ExpandableSection
+            title="Compliance & Manufacturing"
+            theme={theme}
+            defaultOpen={false}
+          >
             <div className="mt-1">
-              <div className="flex flex-row border-b py-2.5" style={{ borderBottomColor: theme.border }}>
-                <span className="flex-[0.4] text-[13px] font-medium" style={{ color: theme.secondaryText }}>Country of Origin</span>
-                <span className="flex-[0.6] text-[13px] font-semibold" style={{ color: theme.text }}>{dp.compliance?.countryOfOrigin || "India 🇮🇳"}</span>
-              </div>
-              <div className="flex flex-row border-b py-2.5" style={{ borderBottomColor: theme.border }}>
-                <span className="flex-[0.4] text-[13px] font-medium" style={{ color: theme.secondaryText }}>Manufacturer</span>
-                <span className="flex-[0.6] text-[13px] font-semibold" style={{ color: theme.text }}>
-                  {dp.compliance?.manufacturerDetail || (storeObj?.name ? `${storeObj.name}, ${storeObj.city || ''} ${storeObj.state || 'Bihar'}` : "QuickBihar Verified Partner, Bihar")}
+              <div
+                className="flex flex-row border-b py-2.5"
+                style={{ borderBottomColor: theme.border }}
+              >
+                <span
+                  className="flex-[0.4] text-[13px] font-medium"
+                  style={{ color: theme.secondaryText }}
+                >
+                  Country of Origin
+                </span>
+                <span
+                  className="flex-[0.6] text-[13px] font-semibold"
+                  style={{ color: theme.text }}
+                >
+                  {dp.compliance?.countryOfOrigin || "India 🇮🇳"}
                 </span>
               </div>
-              <div className="flex flex-row border-b py-2.5" style={{ borderBottomColor: theme.border }}>
-                <span className="flex-[0.4] text-[13px] font-medium" style={{ color: theme.secondaryText }}>Packer</span>
-                <span className="flex-[0.6] text-[13px] font-semibold" style={{ color: theme.text }}>
-                  {dp.compliance?.packerDetail || dp.compliance?.manufacturerDetail || "QuickBihar Logistics Hub, Bihar"}
+              <div
+                className="flex flex-row border-b py-2.5"
+                style={{ borderBottomColor: theme.border }}
+              >
+                <span
+                  className="flex-[0.4] text-[13px] font-medium"
+                  style={{ color: theme.secondaryText }}
+                >
+                  Manufacturer
+                </span>
+                <span
+                  className="flex-[0.6] text-[13px] font-semibold"
+                  style={{ color: theme.text }}
+                >
+                  {dp.compliance?.manufacturerDetail ||
+                    (storeObj?.name
+                      ? `${storeObj.name}, ${storeObj.city || ""} ${storeObj.state || "Bihar"}`
+                      : "QuickBihar Verified Partner, Bihar")}
+                </span>
+              </div>
+              <div
+                className="flex flex-row border-b py-2.5"
+                style={{ borderBottomColor: theme.border }}
+              >
+                <span
+                  className="flex-[0.4] text-[13px] font-medium"
+                  style={{ color: theme.secondaryText }}
+                >
+                  Packer
+                </span>
+                <span
+                  className="flex-[0.6] text-[13px] font-semibold"
+                  style={{ color: theme.text }}
+                >
+                  {dp.compliance?.packerDetail ||
+                    dp.compliance?.manufacturerDetail ||
+                    "QuickBihar Logistics Hub, Bihar"}
                 </span>
               </div>
               {dp.compliance?.importerDetail && (
-                <div className="flex flex-row border-b py-2.5" style={{ borderBottomColor: theme.border }}>
-                  <span className="flex-[0.4] text-[13px] font-medium" style={{ color: theme.secondaryText }}>Importer</span>
-                  <span className="flex-[0.6] text-[13px] font-semibold" style={{ color: theme.text }}>{dp.compliance.importerDetail}</span>
+                <div
+                  className="flex flex-row border-b py-2.5"
+                  style={{ borderBottomColor: theme.border }}
+                >
+                  <span
+                    className="flex-[0.4] text-[13px] font-medium"
+                    style={{ color: theme.secondaryText }}
+                  >
+                    Importer
+                  </span>
+                  <span
+                    className="flex-[0.6] text-[13px] font-semibold"
+                    style={{ color: theme.text }}
+                  >
+                    {dp.compliance.importerDetail}
+                  </span>
                 </div>
               )}
-              <div className="flex flex-row border-b py-2.5" style={{ borderBottomColor: theme.border }}>
-                <span className="flex-[0.4] text-[13px] font-medium" style={{ color: theme.secondaryText }}>Generic / Commodity Name</span>
-                <span className="flex-[0.6] text-[13px] font-semibold" style={{ color: theme.text }}>{dp.compliance?.genericName || dp.subCategory || dp.category || "Apparel / Consumer Goods"}</span>
+              <div
+                className="flex flex-row border-b py-2.5"
+                style={{ borderBottomColor: theme.border }}
+              >
+                <span
+                  className="flex-[0.4] text-[13px] font-medium"
+                  style={{ color: theme.secondaryText }}
+                >
+                  Generic / Commodity Name
+                </span>
+                <span
+                  className="flex-[0.6] text-[13px] font-semibold"
+                  style={{ color: theme.text }}
+                >
+                  {dp.compliance?.genericName ||
+                    dp.subCategory ||
+                    dp.category ||
+                    "Apparel / Consumer Goods"}
+                </span>
               </div>
-              <div className="flex flex-row border-b py-2.5" style={{ borderBottomColor: theme.border }}>
-                <span className="flex-[0.4] text-[13px] font-medium" style={{ color: theme.secondaryText }}>Dispatched From</span>
-                <span className="flex-[0.6] text-[13px] font-semibold" style={{ color: theme.text }}>{dp.logistics?.warehouseName || storeObj?.name || "QuickBihar Express Hub, Bihar"}</span>
+              <div
+                className="flex flex-row border-b py-2.5"
+                style={{ borderBottomColor: theme.border }}
+              >
+                <span
+                  className="flex-[0.4] text-[13px] font-medium"
+                  style={{ color: theme.secondaryText }}
+                >
+                  Dispatched From
+                </span>
+                <span
+                  className="flex-[0.6] text-[13px] font-semibold"
+                  style={{ color: theme.text }}
+                >
+                  {dp.logistics?.warehouseName ||
+                    storeObj?.name ||
+                    "QuickBihar Express Hub, Bihar"}
+                </span>
               </div>
-              <div className="flex flex-row border-b py-2.5" style={{ borderBottomColor: theme.border }}>
-                <span className="flex-[0.4] text-[13px] font-medium" style={{ color: theme.secondaryText }}>Tax Transparency</span>
-                <span className="flex-[0.6] text-[13px] font-semibold" style={{ color: theme.text }}>
-                  {dp.isGstApplicable ? `Includes ${dp.gstPercentage}% GST (Tax invoice included with shipment)` : "Price inclusive of all taxes"}
+              <div
+                className="flex flex-row border-b py-2.5"
+                style={{ borderBottomColor: theme.border }}
+              >
+                <span
+                  className="flex-[0.4] text-[13px] font-medium"
+                  style={{ color: theme.secondaryText }}
+                >
+                  Tax Transparency
+                </span>
+                <span
+                  className="flex-[0.6] text-[13px] font-semibold"
+                  style={{ color: theme.text }}
+                >
+                  {dp.isGstApplicable
+                    ? `Includes ${dp.gstPercentage}% GST (Tax invoice included with shipment)`
+                    : "Price inclusive of all taxes"}
                 </span>
               </div>
             </div>
 
             {/* Consumer Grievance & Customer Care */}
-            <div className="mt-3 flex flex-col gap-1 rounded-lg p-3" style={{ backgroundColor: theme.tertiaryBackground }}>
+            <div
+              className="mt-3 flex flex-col gap-1 rounded-lg p-3"
+              style={{ backgroundColor: theme.tertiaryBackground }}
+            >
               <p className="text-xs font-bold" style={{ color: theme.text }}>
                 CUSTOMER CARE & GRIEVANCE REDRESSAL:
               </p>
               <p className="text-xs" style={{ color: theme.secondaryText }}>
-                Email: <span className="font-semibold" style={{ color: theme.primary }}>support@quickbihar.com</span>
+                Email:{" "}
+                <span
+                  className="font-semibold"
+                  style={{ color: theme.primary }}
+                >
+                  support@quickbihar.com
+                </span>
               </p>
               <p className="text-xs" style={{ color: theme.secondaryText }}>
-                Helpline: <span className="font-semibold" style={{ color: theme.text }}>+91 95077 12255</span> (Mon-Sun, 8 AM - 10 PM)
+                Helpline:{" "}
+                <span className="font-semibold" style={{ color: theme.text }}>
+                  +91 95077 12255
+                </span>{" "}
+                (Mon-Sun, 8 AM - 10 PM)
               </p>
             </div>
           </ExpandableSection>
@@ -922,7 +1336,10 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
         {/* ═══════════════════════════════════════════
             4. RATINGS & REVIEWS (Expandable & Interactive)
         ═══════════════════════════════════════════ */}
-        <div className="px-4 py-4" style={{ backgroundColor: theme.background }}>
+        <div
+          className="px-4 py-4"
+          style={{ backgroundColor: theme.background }}
+        >
           <ExpandableSection
             title={`Ratings & Reviews (${totalReviews})`}
             theme={theme}
@@ -930,22 +1347,36 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
           >
             {/* Rating Overview */}
             <div className="mb-6 flex flex-row">
-              <div className="flex flex-col items-center border-r pr-5" style={{ borderRightColor: "#E5E7EB" }}>
-                <p className="text-[38px] leading-[44px] font-extrabold" style={{ color: theme.text }}>
+              <div
+                className="flex flex-col items-center border-r pr-5"
+                style={{ borderRightColor: "#E5E7EB" }}
+              >
+                <p
+                  className="text-[38px] leading-[44px] font-extrabold"
+                  style={{ color: theme.text }}
+                >
                   {averageRating > 0 ? averageRating : "0.0"}
                 </p>
                 <div className="mt-1 mb-1 flex flex-row gap-0.5">
-                  {[1, 2, 3, 4, 5].map((star) => (
+                  {[1, 2, 3, 4, 5].map((star) =>
                     star <= Math.floor(averageRating) ? (
-                      <Star key={star} size={14} color="#F59E0B" fill="#F59E0B" />
+                      <Star
+                        key={star}
+                        size={14}
+                        color="#F59E0B"
+                        fill="#F59E0B"
+                      />
                     ) : star - 0.5 <= averageRating ? (
                       <StarHalf key={star} size={14} color="#F59E0B" />
                     ) : (
                       <Star key={star} size={14} color="#F59E0B" />
-                    )
-                  ))}
+                    ),
+                  )}
                 </div>
-                <p className="text-[11px] font-medium" style={{ color: theme.tertiaryText }}>
+                <p
+                  className="text-[11px] font-medium"
+                  style={{ color: theme.tertiaryText }}
+                >
                   {totalReviews} verified ratings
                 </p>
               </div>
@@ -967,17 +1398,26 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
               className="mt-2 mb-3 flex flex-row items-center justify-between border-t py-3"
               style={{ borderTopColor: theme.border }}
             >
-              <span className="text-[13px] font-semibold" style={{ color: theme.text }}>
+              <span
+                className="text-[13px] font-semibold"
+                style={{ color: theme.text }}
+              >
                 Have you used this product?
               </span>
               <button
                 type="button"
                 onClick={handleRateAndReview}
                 className="flex cursor-pointer flex-row items-center gap-1.5 rounded-md border px-3.5 py-2"
-                style={{ borderColor: theme.primary, backgroundColor: theme.primary + "10" }}
+                style={{
+                  borderColor: theme.primary,
+                  backgroundColor: theme.primary + "10",
+                }}
               >
                 <Star size={14} color={theme.primary} fill={theme.primary} />
-                <span className="text-xs font-bold" style={{ color: theme.primary }}>
+                <span
+                  className="text-xs font-bold"
+                  style={{ color: theme.primary }}
+                >
                   Rate & Review
                 </span>
               </button>
@@ -987,23 +1427,33 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
             {reviewsList.length === 0 ? (
               <div className="flex flex-col items-center gap-2 py-6">
                 <MessageCircle size={38} color={theme.tertiaryText} />
-                <p className="text-[15px] font-bold" style={{ color: theme.text }}>No Reviews Yet</p>
-                <p className="px-5 text-center text-xs leading-[18px]" style={{ color: theme.secondaryText }}>
-                  Be the first to share your thoughts and help other shoppers make the right choice!
+                <p
+                  className="text-[15px] font-bold"
+                  style={{ color: theme.text }}
+                >
+                  No Reviews Yet
+                </p>
+                <p
+                  className="px-5 text-center text-xs leading-[18px]"
+                  style={{ color: theme.secondaryText }}
+                >
+                  Be the first to share your thoughts and help other shoppers
+                  make the right choice!
                 </p>
               </div>
             ) : (
               <div>
                 {reviewsList.map((review: any, idx: number) => {
-                  const userName = review.user?.fullName || review.user || "Customer";
+                  const userName =
+                    review.user?.fullName || review.user || "Customer";
                   const initial = userName.charAt(0).toUpperCase();
                   const avatarColor = AVATAR_COLORS[idx % AVATAR_COLORS.length];
                   const formattedDate = review.createdAt
                     ? new Date(review.createdAt).toLocaleDateString("en-IN", {
-                      day: "numeric",
-                      month: "short",
-                      year: "numeric",
-                    })
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                      })
                     : review.date || "Verified Purchase";
 
                   return (
@@ -1025,24 +1475,36 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
                                   : "#FF3B30",
                           }}
                         >
-                          <span className="text-[11px] font-extrabold text-white">{review.rating}</span>
+                          <span className="text-[11px] font-extrabold text-white">
+                            {review.rating}
+                          </span>
                           <Star size={10} color="#fff" fill="#fff" />
                         </span>
-                        <span className="block flex-1 truncate text-sm font-semibold" style={{ color: theme.text }}>
+                        <span
+                          className="block flex-1 truncate text-sm font-semibold"
+                          style={{ color: theme.text }}
+                        >
                           {review.title || "Customer Review"}
                         </span>
                       </div>
 
                       {/* Comment */}
-                      <p className="mb-2 text-[13px] leading-[19px]" style={{ color: theme.secondaryText }}>
+                      <p
+                        className="mb-2 text-[13px] leading-[19px]"
+                        style={{ color: theme.secondaryText }}
+                      >
                         {review.comment}
                       </p>
 
                       {/* Review Images */}
                       {review.images && review.images.length > 0 && (
-                        <div className="mb-2.5 flex flex-row gap-2 overflow-x-auto" style={{ scrollbarWidth: "none" }}>
+                        <div
+                          className="mb-2.5 flex flex-row gap-2 overflow-x-auto"
+                          style={{ scrollbarWidth: "none" }}
+                        >
                           {review.images.map((img: any, i: number) => {
-                            const imgUrl = typeof img === "string" ? img : img.url;
+                            const imgUrl =
+                              typeof img === "string" ? img : img.url;
                             return (
                               <img
                                 key={i}
@@ -1064,29 +1526,49 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
                         >
                           {initial}
                         </span>
-                        <span className="text-[13px] font-semibold" style={{ color: theme.text }}>
+                        <span
+                          className="text-[13px] font-semibold"
+                          style={{ color: theme.text }}
+                        >
                           {userName}
                         </span>
-                        {(review.isVerifiedBuyer) && (
+                        {review.isVerifiedBuyer && (
                           <span className="flex flex-row items-center gap-1 rounded bg-[#E8F5E9] px-1.5 py-0.5">
                             <Check size={11} color="#2E7D32" />
-                            <span className="text-[10px] font-bold" style={{ color: "#2E7D32" }}>Verified</span>
+                            <span
+                              className="text-[10px] font-bold"
+                              style={{ color: "#2E7D32" }}
+                            >
+                              Verified
+                            </span>
                           </span>
                         )}
-                        <span className="text-[8px]" style={{ color: theme.tertiaryText }}>
+                        <span
+                          className="text-[8px]"
+                          style={{ color: theme.tertiaryText }}
+                        >
                           •
                         </span>
-                        <span className="text-[11px]" style={{ color: theme.tertiaryText }}>
+                        <span
+                          className="text-[11px]"
+                          style={{ color: theme.tertiaryText }}
+                        >
                           {formattedDate}
                         </span>
                         <span className="flex-1" />
                         <button
                           type="button"
-                          onClick={() => review._id && handleHelpfulVote(review._id)}
+                          onClick={() =>
+                            review._id && handleHelpfulVote(review._id)
+                          }
                           className="flex cursor-pointer flex-row items-center gap-1 rounded border px-2 py-1"
                           style={{
-                            borderColor: review.hasVotedHelpful ? theme.primary : theme.border,
-                            backgroundColor: review.hasVotedHelpful ? theme.primary + "15" : "transparent",
+                            borderColor: review.hasVotedHelpful
+                              ? theme.primary
+                              : theme.border,
+                            backgroundColor: review.hasVotedHelpful
+                              ? theme.primary + "15"
+                              : "transparent",
                           }}
                         >
                           {review.hasVotedHelpful ? (
@@ -1096,7 +1578,11 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
                           )}
                           <span
                             className="text-xs font-semibold"
-                            style={{ color: review.hasVotedHelpful ? theme.primary : theme.secondaryText }}
+                            style={{
+                              color: review.hasVotedHelpful
+                                ? theme.primary
+                                : theme.secondaryText,
+                            }}
                           >
                             {review.helpfulCount ?? review.helpful ?? 0}
                           </span>
@@ -1127,11 +1613,11 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
           on mobile web.
       ═══════════════════════════════════════════ */}
       <div
-        className="fixed right-0 left-0 z-[60] flex flex-row gap-3 border-t px-4 pt-3 pb-3"
+        className="fixed right-0 left-0 z-[60] shadow-none flex flex-row gap-3 border-t px-4 pt-3 pb-3"
         style={{
           backgroundColor: theme.background,
           borderTopColor: theme.border,
-          bottom: stickyBarOffset,
+          bottom: stickyBarOffset + 10,
           width: "100%",
         }}
       >
@@ -1147,8 +1633,16 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
           }}
           className="flex h-12 min-w-0 flex-1 cursor-pointer flex-row items-center justify-center gap-2 rounded-md border"
           style={{
-            borderColor: isWishlisted ? (isDark ? "rgba(255, 59, 48, 0.4)" : "#FFD2D0") : theme.border,
-            backgroundColor: isWishlisted ? (isDark ? "rgba(255, 59, 48, 0.12)" : "#FFF5F5") : "transparent",
+            borderColor: isWishlisted
+              ? isDark
+                ? "rgba(255, 59, 48, 0.4)"
+                : "#FFD2D0"
+              : theme.border,
+            backgroundColor: isWishlisted
+              ? isDark
+                ? "rgba(255, 59, 48, 0.12)"
+                : "#FFF5F5"
+              : "transparent",
           }}
         >
           {isWishlisted ? (
@@ -1165,8 +1659,14 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
         </button>
         {/* Add to Bag Button */}
         {(() => {
-          const isOutOfStock = !!((dp.totalStock ?? 0) <= 0 || (selectedSize && (selectedVariant?.stock ?? 0) <= 0));
-          const buttonDisabled = isAddingToCart || (!isSelectionComplete) || (isOutOfStock && !isInCart);
+          const isOutOfStock = !!(
+            (dp.totalStock ?? 0) <= 0 ||
+            (selectedSize && (selectedVariant?.stock ?? 0) <= 0)
+          );
+          const buttonDisabled =
+            isAddingToCart ||
+            !isSelectionComplete ||
+            (isOutOfStock && !isInCart);
 
           // Determine button text and icon
           let buttonText = "ADD TO BAG";
@@ -1200,7 +1700,7 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
                   : buttonDisabled
                     ? theme.secondaryText || "#9ca3af"
                     : theme.primary,
-                opacity: isAddingToCart ? 0.7 : 1
+                opacity: isAddingToCart ? 0.7 : 1,
               }}
             >
               {isAddingToCart ? (

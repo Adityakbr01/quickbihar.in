@@ -26,6 +26,7 @@ import {
   jeweleryMeta,
   jewelerySearchMeta,
   mallMeta,
+  mallsMeta,
   productMeta,
   searchMeta,
   staticMeta,
@@ -48,7 +49,7 @@ import { FAQS } from '@/src/features/Jewelery/data/faqs';
 
 // Feature hooks — React Query deduplicates with the screens, so NO extra API calls.
 import { useProductById } from '@/src/features/clothing/product/hooks/useProducts';
-import { useMallDetail } from '@/src/features/clothing/home/hooks/useMalls';
+import { useMallDetail, usePublicMalls } from '@/src/features/clothing/home/hooks/useMalls';
 import { useCategoryBySlug } from '@/src/features/common/category/hooks/useCategories';
 import { useJeweleryCategories, useJeweleryProduct } from '@/src/features/Jewelery/hooks/useJeweleryCatalog';
 
@@ -186,8 +187,27 @@ function CategorySeo({ slug }: { slug: string }) {
   return <SeoHead meta={meta} jsonLd={jsonLd} />;
 }
 
-function CollectionsSeo() {
-  const { data: cats } = useJeweleryCategories();
+function MallsSeo() {
+  // Same queryKey (["publicMalls"]) as MallsListScreen — zero extra API calls.
+  const { data: malls } = usePublicMalls();
+  const meta = mallsMeta();
+  const items = (malls || []).map((m: { name?: string; slug?: string; _id?: string; id?: string }) => ({
+    name: String(m?.name || 'Mall'),
+    url: getCanonicalUrl(`/mall/${m?.slug || m?._id || m?.id || ''}`),
+  }));
+  const jsonLd = [
+    organizationSchema(),
+    webPageSchema('/malls', meta.title, meta.description),
+    collectionSchema({ name: 'Shopping Malls in Bihar', description: meta.description, canonical: meta.canonical, items }),
+    breadcrumbSchema([
+      { name: 'Home', path: '/' },
+      { name: 'Malls', path: '/malls' },
+    ]),
+  ];
+  return <SeoHead meta={meta} jsonLd={jsonLd} />;
+}
+
+function CollectionsSeo() {  const { data: cats } = useJeweleryCategories();
   const meta = jeweleryCollectionsMeta();
   const items = (cats || []).map((c: { title?: string }) => ({ name: String(c?.title || 'Collection') }));
   const jsonLd = [
@@ -266,8 +286,10 @@ export default function SeoRouter() {
       );
     }
 
-    case '/food': {
-      const food = foodMeta();
+    case '/malls':
+      return <MallsSeo />;
+
+    case '/food': {      const food = foodMeta();
       return (
         <SeoHead
           meta={food}

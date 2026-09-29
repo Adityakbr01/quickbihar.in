@@ -165,6 +165,19 @@ export function topSellingMeta(): PageMeta {
   };
 }
 
+export function mallsMeta(): PageMeta {
+  return {
+    title: seoTitle('Shopping Malls in Bihar | Stores, Offers & Reviews | QuickBihar'),
+    description: seoDescription(
+      'Explore top shopping malls in Bihar on QuickBihar — stores, collections, offers and reviews with fast hyperlocal delivery.',
+    ),
+    canonical: getCanonicalUrl('/malls'),
+    keywords: `shopping malls Bihar, malls in Patna, malls in Buxar, stores in mall, ${DEFAULT_KEYWORDS}`,
+    image: DEFAULT_OG_IMAGE,
+    robots: 'index, follow',
+  };
+}
+
 export function foodMeta(): PageMeta {
   return {
     title: seoTitle('Order Food Online in Bihar | QuickBihar Food'),

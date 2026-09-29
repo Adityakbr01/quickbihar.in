@@ -40,6 +40,9 @@ const TopSellingScreen = lazy(
 const MallDetailScreen = lazy(
   () => import("@/src/features/clothing/home/screens/MallDetailScreen"),
 );
+const MallsListScreen = lazy(
+  () => import("@/src/features/clothing/home/screens/MallsListScreen"),
+);
 const ProductDetailScreen = lazy(
   () => import("@/src/features/clothing/product/screen/ProductDetailScreen"),
 );
@@ -254,6 +257,7 @@ function MainLayout() {
             <Route path="/clothing/rider" element={<RiderWorkspaceScreen />} />
 
             <Route path="/top-selling" element={<TopSellingScreen />} />
+            <Route path="/malls" element={<MallsListScreen />} />
             <Route path="/mall/:slug" element={<MallDetailRoute />} />
             <Route path="/product/:id" element={<ProductDetailRoute />} />
             <Route path="/category/:slug" element={<CategoryDetailRoute />} />
