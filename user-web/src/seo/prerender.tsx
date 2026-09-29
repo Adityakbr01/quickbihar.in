@@ -13,10 +13,12 @@
  */
 
 import { renderToString } from 'react-dom/server';
-/* NOTE: `node:fs` / `node:path` are intentionally NOT statically imported —
-   vite-prerender-plugin guidance says server-only code must be dynamically
-   imported so it never leaks into the client bundle. */
+/* NOTE: catalog JSON is statically imported (tiny files: ~6 KB total).
+   Static imports work in BOTH the client bundle and the prerender worker,
+   unlike `node:fs` which the plugin externalizes for browser compatibility. */
 import type { Thing } from 'schema-dts';
+import productsCatalog from '../data/products-static.json';
+import mallsCatalog from '../data/malls-static.json';
 import { SITE_LANGUAGE, SITE_NAME, getCanonicalUrl } from './site';
 import {
   categoryMeta,
@@ -70,35 +72,18 @@ interface StaticMall {
 
 let productCache: StaticProduct[] | null = null;
 let mallCache: StaticMall[] | null = null;
-let catalogLoaded = false;
 
-/** Load static catalog JSON via dynamic Node imports (server-only, build time). */
-async function loadCatalog(): Promise<void> {
-  if (catalogLoaded) return;
-  catalogLoaded = true;
+/** Load static catalog (static JSON imports — no fs, works everywhere). */
+function loadCatalog(): void {
+  if (productCache && mallCache) return;
   try {
-    const [{ readFileSync }, { join }] = await Promise.all([
-      import('node:fs'),
-      import('node:path'),
-    ]);
-    try {
-      const raw = JSON.parse(
-        readFileSync(join(process.cwd(), 'src/data/products-static.json'), 'utf8'),
-      ) as Record<string, StaticProduct>;
-      productCache = Object.values(raw);
-    } catch {
-      productCache = [];
-    }
-    try {
-      const raw = JSON.parse(
-        readFileSync(join(process.cwd(), 'src/data/malls-static.json'), 'utf8'),
-      ) as Record<string, StaticMall>;
-      mallCache = Object.values(raw);
-    } catch {
-      mallCache = [];
-    }
+    productCache = Object.values(productsCatalog as Record<string, StaticProduct>);
   } catch {
     productCache = [];
+  }
+  try {
+    mallCache = Object.values(mallsCatalog as Record<string, StaticMall>);
+  } catch {
     mallCache = [];
   }
 }
@@ -195,7 +180,7 @@ export async function prerender(data: { url: string }) {
   const url = data.url || '/';
   const cleanPath = url.split('?')[0].split('#')[0].replace(/\/$/, '') || '/';
 
-  await loadCatalog();
+  loadCatalog();
   const products = allProducts();
   const malls = allMalls();
 

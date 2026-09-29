@@ -130,11 +130,11 @@ export default defineConfig(({ mode }) => {
       'process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID': JSON.stringify(googleAndroidClientId),
     },
     build: {
-      minify: 'esbuild',
+      minify: 'oxc',
       cssMinify: true,
       assetsInlineLimit: 4096,
       chunkSizeWarningLimit: 500,
-      reportCompressedSize: false,
+      reportCompressedSize: true,
       rollupOptions: {
         output: {
           manualChunks(id) {
