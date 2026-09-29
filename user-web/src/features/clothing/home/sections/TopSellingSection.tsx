@@ -179,7 +179,7 @@ const TopSellingSection = ({ category }: { category?: string } = {}) => {
       ) : (
         <div
           ref={scrollRef}
-          className="flex flex-row overflow-x-auto px-4 pb-2"
+          className="flex flex-row overflow-x-auto scroll-px-4 px-4 pb-2"
           style={{ scrollbarWidth: "none", scrollSnapType: "x mandatory" }}
         >
           {products.map((item: any, index: number) => (

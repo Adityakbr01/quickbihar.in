@@ -72,7 +72,7 @@ const TopMallSection = () => {
           >
             {heading}{" "}
           </h2>
-          <div className="flex h-8 w-8 items-center justify-center overflow-hidden">
+          <div className="flex h-8 w-8 mb-2 ml-1.5 items-center justify-center overflow-hidden">
             <LazyLottie
               source={fireLottie}
               autoPlay
@@ -114,7 +114,7 @@ const TopMallSection = () => {
       ) : (
         <div
           ref={scrollRef}
-          className="flex flex-row overflow-x-auto px-4 pb-2"
+          className="flex flex-row overflow-x-auto scroll-px-4 px-4 pb-2"
           style={{ scrollbarWidth: "none", scrollSnapType: "x mandatory" }}
         >
           {malls.map((item: any, index: number) => (
