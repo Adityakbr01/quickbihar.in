@@ -1,12 +1,4 @@
 import React from "react";
-import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  Pressable,
-  Platform,
-  View,
-} from "@/components/primitives";
 import * as Haptics from "@/lib/haptics";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 
@@ -51,115 +43,67 @@ const FilterBar = ({ selectedSort, onSortChange, filters, onFilterChange }: Filt
   const theme = useTheme();
 
   const renderChip = (label: string, isActive: boolean, onPress: () => void) => (
-    <Pressable
+    <button
       key={label}
-      onPress={() => {
+      type="button"
+      onClick={() => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         onPress();
       }}
-      style={[
-        styles.chip,
-        {
-          backgroundColor: isActive ? theme.primary : theme.tertiaryBackground,
-          borderColor: isActive ? theme.primary : theme.border,
-        },
-      ]}
+      className="flex h-8 cursor-pointer items-center justify-center rounded-2xl border px-4"
+      style={{
+        backgroundColor: isActive ? theme.primary : theme.tertiaryBackground,
+        borderColor: isActive ? theme.primary : theme.border,
+      }}
     >
-      <Text
-        style={[
-          styles.chipText,
-          { color: isActive ? "#ffffff" : theme.text },
-        ]}
+      <span
+        className="text-xs font-semibold"
+        style={{ color: isActive ? "#ffffff" : theme.text }}
       >
         {label}
-      </Text>
-    </Pressable>
+      </span>
+    </button>
   );
 
   return (
-    <View style={styles.root}>
+    <div className="pb-2">
       {/* Sort Options */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.container}
-        contentContainerStyle={styles.contentContainer}
-      >
-        {SORT_OPTIONS.map((option) =>
-          renderChip(option.label, selectedSort === option.value, () => onSortChange(option.value))
-        )}
-      </ScrollView>
+      <div className="my-1.5 max-h-10 overflow-x-auto" style={{ scrollbarWidth: "none" }}>
+        <div className="flex flex-row items-center gap-2 px-4">
+          {SORT_OPTIONS.map((option) =>
+            renderChip(option.label, selectedSort === option.value, () => onSortChange(option.value))
+          )}
+        </div>
+      </div>
 
       {/* Gender (Client side constants) */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.container}
-        contentContainerStyle={styles.contentContainer}
-      >
-        <Text style={[styles.rowLabel, { color: theme.secondaryText }]}>Gender:</Text>
-        {GENDERS.map((g) =>
-          renderChip(g, filters.gender === g, () => onFilterChange({ ...filters, gender: filters.gender === g ? undefined : g }))
-        )}
-      </ScrollView>
+      <div className="my-1.5 max-h-10 overflow-x-auto" style={{ scrollbarWidth: "none" }}>
+        <div className="flex flex-row items-center gap-2 px-4">
+          <span className="mr-1 text-xs font-bold tracking-wide uppercase" style={{ color: theme.secondaryText }}>Gender:</span>
+          {GENDERS.map((g) =>
+            renderChip(g, filters.gender === g, () => onFilterChange({ ...filters, gender: filters.gender === g ? undefined : g }))
+          )}
+        </div>
+      </div>
 
       {/* Price Ranges */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.container}
-        contentContainerStyle={styles.contentContainer}
-      >
-        <Text style={[styles.rowLabel, { color: theme.secondaryText }]}>Price:</Text>
-        {PRICE_RANGES.map((range) => {
-          const isActive = filters.minPrice === range.min && filters.maxPrice === range.max;
-          return renderChip(range.label, isActive, () => {
-            if (isActive) {
-              onFilterChange({ ...filters, minPrice: undefined, maxPrice: undefined });
-            } else {
-              onFilterChange({ ...filters, minPrice: range.min, maxPrice: range.max });
-            }
-          });
-        })}
-      </ScrollView>
-    </View>
+      <div className="my-1.5 max-h-10 overflow-x-auto" style={{ scrollbarWidth: "none" }}>
+        <div className="flex flex-row items-center gap-2 px-4">
+          <span className="mr-1 text-xs font-bold tracking-wide uppercase" style={{ color: theme.secondaryText }}>Price:</span>
+          {PRICE_RANGES.map((range) => {
+            const isActive = filters.minPrice === range.min && filters.maxPrice === range.max;
+            return renderChip(range.label, isActive, () => {
+              if (isActive) {
+                onFilterChange({ ...filters, minPrice: undefined, maxPrice: undefined });
+              } else {
+                onFilterChange({ ...filters, minPrice: range.min, maxPrice: range.max });
+              }
+            });
+          })}
+        </div>
+      </div>
+    </div>
   );
 };
-
-const styles = StyleSheet.create({
-  root: {
-    paddingBottom: 8,
-  },
-  container: {
-    marginVertical: 6,
-    maxHeight: 40,
-  },
-  contentContainer: {
-    paddingHorizontal: 16,
-    gap: 8,
-    alignItems: "center",
-  },
-  rowLabel: {
-    fontSize: 12,
-    fontWeight: "700",
-    textTransform: "uppercase",
-    marginRight: 4,
-  },
-  chip: {
-    paddingHorizontal: 16,
-    height: 32,
-    justifyContent: "center",
-    alignItems: "center",
-    borderRadius: 16,
-    borderWidth: 1,
-    ...Platform.select({
-      web: { cursor: "pointer" } as any,
-    }),
-  },
-  chipText: {
-    fontSize: 12,
-    fontWeight: "600",
-  },
-});
 
 export default FilterBar;

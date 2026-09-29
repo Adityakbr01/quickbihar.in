@@ -1,21 +1,8 @@
-import React, { useEffect, useState } from "react";
-import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "@/components/primitives";
-import { CircleCheck, PersonStanding } from "lucide-react";
+import React, { useState } from "react";
+import { CircleCheck, PersonStanding, X } from "lucide-react";
 import { Theme } from "@/src/theme/Provider/ThemeProvider";
 import { ISizeChart } from "../../types/product.types";
 import * as Haptics from "@/lib/haptics";
-import {
-  Sheet,
-  SheetHeader,
-  useSheet,
-} from "@/src/components/common/BottomSheet";
-import { spacing } from "@/src/theme/spacing";
 
 interface SizeChartModalProps {
   visible: boolean;
@@ -57,8 +44,9 @@ const SizeChartModal = ({
   category,
   theme,
 }: SizeChartModalProps) => {
-  const sheet = useSheet();
   const [activeUnit, setActiveUnit] = useState<"inches" | "cm">("inches");
+
+  if (!visible) return null;
 
   const effectiveChart =
     sizeChart && sizeChart.data && sizeChart.data.length > 0
@@ -66,15 +54,6 @@ const SizeChartModal = ({
       : DEFAULT_CHART;
 
   const { fields, data, name, howToMeasure } = effectiveChart;
-
-  // Imperative present/dismiss from the parent `visible` prop.
-  useEffect(() => {
-    if (visible) {
-      sheet.current?.present();
-    } else {
-      sheet.current?.dismiss();
-    }
-  }, [visible, sheet]);
 
   const handleUnitToggle = (unit: "inches" | "cm") => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -94,288 +73,160 @@ const SizeChartModal = ({
   };
 
   return (
-    <Sheet ref={sheet} onDidDismiss={onClose} backgroundColor={theme.background}>
-      <SheetHeader title={name || "Size & Fit Guide"}
-        subtitle={`Find your perfect fit (${category || "Apparel"})`}
-        onClose={onClose}
-      />
-
-      <ScrollView showsVerticalScrollIndicator={false}
-        contentContainerStyle={s.content}
+    <div
+      className="fixed inset-0 z-[100] flex items-end justify-center bg-black/50 sm:items-center"
+      role="dialog"
+      aria-modal="true"
+      aria-label={name || "Size & Fit Guide"}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div
+        className="flex max-h-[85vh] w-full max-w-lg flex-col overflow-hidden rounded-t-3xl sm:rounded-3xl"
+        style={{ backgroundColor: theme.background }}
       >
-        {/* Unit Toggle Buttons */}
-        <View style={[
-            s.unitToggleRow,
-            {
-              backgroundColor: theme.tertiaryBackground,
-              borderColor: theme.border,
-            },
-          ]}
-        >
-          <TouchableOpacity style={[
-              s.unitBtn,
-              activeUnit === "inches" && [
-                s.unitBtnActive,
-                { backgroundColor: theme.primary },
-              ],
-            ]}
-            onPress={() => handleUnitToggle("inches")}
-            activeOpacity={0.8}
+        {/* Header */}
+        <div className="flex flex-row items-center justify-between px-4 py-3">
+          <div className="flex-1">
+            <h3 className="text-base font-bold" style={{ color: theme.text }}>
+              {name || "Size & Fit Guide"}
+            </h3>
+            <p className="mt-0.5 text-xs" style={{ color: theme.secondaryText }}>
+              Find your perfect fit ({category || "Apparel"})
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close size guide"
+            className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full"
+            style={{ backgroundColor: theme.secondaryBackground }}
           >
-            <Text style={[
-                s.unitBtnText,
-                {
-                  color: activeUnit === "inches" ? "#fff" : theme.secondaryText,
-                },
-              ]}
-            >
-              INCHES
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={[
-              s.unitBtn,
-              activeUnit === "cm" && [
-                s.unitBtnActive,
-                { backgroundColor: theme.primary },
-              ],
-            ]}
-            onPress={() => handleUnitToggle("cm")}
-            activeOpacity={0.8}
-          >
-            <Text style={[
-                s.unitBtnText,
-                {
-                  color: activeUnit === "cm" ? "#fff" : theme.secondaryText,
-                },
-              ]}
-            >
-              CM
-            </Text>
-          </TouchableOpacity>
-        </View>
+            <X size={18} color={theme.text} />
+          </button>
+        </div>
 
-        {/* Table Container */}
-        <View style={[s.tableContainer, { borderColor: theme.border }]}>
-          {/* Table Header */}
-          <View style={[
-              s.row,
-              s.headerRow,
-              { backgroundColor: theme.tertiaryBackground },
-            ]}
-          >
-            <View style={[s.cell, s.firstCell]}>
-              <Text style={[s.headerCellText, { color: theme.text }]}>
-                SIZE
-              </Text>
-            </View>
-            {fields.map((field) => (
-              <View key={field} style={s.cell}>
-                <Text style={[s.headerCellText, { color: theme.text }]}>
-                  {String(field || "").toUpperCase()}
-                </Text>
-              </View>
-            ))}
-          </View>
+        <div className="min-h-0 flex-1 overflow-y-auto p-6">
+          {/* Unit Toggle Buttons */}
+          <div className="mb-4 flex justify-center">
+            <div
+              className="flex flex-row items-center self-center rounded-lg border p-0.5"
+              style={{ backgroundColor: theme.tertiaryBackground, borderColor: theme.border }}
+            >
+              {(["inches", "cm"] as const).map((unit) => (
+                <button
+                  key={unit}
+                  type="button"
+                  onClick={() => handleUnitToggle(unit)}
+                  className="cursor-pointer rounded-md px-4.5 py-1.5 text-xs font-bold"
+                  style={activeUnit === unit ? { backgroundColor: theme.primary, color: "#fff", boxShadow: "0 1px 2px rgba(0,0,0,0.2)" } : { color: theme.secondaryText }}
+                >
+                  {unit.toUpperCase()}
+                </button>
+              ))}
+            </div>
+          </div>
 
-          {/* Table Rows */}
-          {data.map((row, index) => {
-            const rowSizeStr = String(
-              row?.size ??
-                row?.Size ??
-                row?.["Size (UK)"] ??
-                row?.["Size (Age)"] ??
-                Object.values(row || {})[0] ??
-                "",
-            );
-            const isSelected = Boolean(
-              selectedSize &&
-                rowSizeStr &&
-                rowSizeStr.toUpperCase() ===
-                  String(selectedSize).toUpperCase(),
-            );
-            return (
-              <View key={index}
-                style={[
-                  s.row,
-                  { borderTopColor: theme.border },
-                  isSelected
-                    ? { backgroundColor: theme.primary + "1A" }
-                    : index % 2 === 1
-                      ? { backgroundColor: theme.tertiaryBackground + "40" }
-                      : undefined,
-                ]}
-              >
-                <View style={[s.cell, s.firstCell]}>
-                  <View style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      gap: 4,
-                    }}
-                  >
-                    <Text style={[
-                        s.sizeText,
-                        {
-                          color: isSelected ? theme.primary : theme.text,
-                          fontWeight: isSelected ? "800" : "700",
-                        },
-                      ]}
-                    >
+          {/* Table Container */}
+          <div className="overflow-hidden rounded-xl border" style={{ borderColor: theme.border }}>
+            {/* Table Header */}
+            <div className="flex flex-row py-3" style={{ backgroundColor: theme.tertiaryBackground }}>
+              <div className="flex flex-[0.9] items-center justify-center border-r border-black/10 px-1.5 py-2.5">
+                <span className="text-[11px] font-extrabold tracking-wide" style={{ color: theme.text }}>
+                  SIZE
+                </span>
+              </div>
+              {fields.map((field) => (
+                <div key={field} className="flex flex-1 items-center justify-center px-1.5 py-2.5">
+                  <span className="text-[11px] font-extrabold tracking-wide" style={{ color: theme.text }}>
+                    {String(field || "").toUpperCase()}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            {/* Table Rows */}
+            {data.map((row, index) => {
+              const rowSizeStr = String(
+                row?.size ??
+                  row?.Size ??
+                  row?.["Size (UK)"] ??
+                  row?.["Size (Age)"] ??
+                  Object.values(row || {})[0] ??
+                  "",
+              );
+              const isSelected = Boolean(
+                selectedSize &&
+                  rowSizeStr &&
+                  rowSizeStr.toUpperCase() ===
+                    String(selectedSize).toUpperCase(),
+              );
+              return (
+                <div
+                  key={index}
+                  className="flex flex-row border-t"
+                  style={{
+                    borderTopColor: theme.border,
+                    backgroundColor: isSelected
+                      ? theme.primary + "1A"
+                      : index % 2 === 1
+                        ? theme.tertiaryBackground + "40"
+                        : undefined,
+                  }}
+                >
+                  <div className="flex flex-[0.9] items-center justify-center border-r border-black/10 px-1.5 py-2.5">
+                    <span className="flex flex-row items-center gap-1 text-[13px]" style={{ color: isSelected ? theme.primary : theme.text, fontWeight: isSelected ? 800 : 700 }}>
                       {rowSizeStr || "-"}
-                    </Text>
-                    {isSelected && (
-                      <CircleCheck size={13} color={theme.primary} />
-                    )}
-                  </View>
-                </View>
-                {fields.map((field) => (
-                  <View key={field} style={s.cell}>
-                    <Text style={[
-                        s.cellText,
-                        {
-                          color: isSelected
-                            ? theme.primary
-                            : theme.secondaryText,
-                          fontWeight: isSelected ? "700" : "500",
-                        },
-                      ]}
-                    >
-                      {formatCellValue(row[field])}
-                    </Text>
-                  </View>
-                ))}
-              </View>
-            );
-          })}
-        </View>
+                      {isSelected && <CircleCheck size={13} color={theme.primary} />}
+                    </span>
+                  </div>
+                  {fields.map((field) => (
+                    <div key={field} className="flex flex-1 items-center justify-center px-1.5 py-2.5">
+                      <span
+                        className="text-[13px]"
+                        style={{
+                          color: isSelected ? theme.primary : theme.secondaryText,
+                          fontWeight: isSelected ? 700 : 500,
+                        }}
+                      >
+                        {formatCellValue(row[field])}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              );
+            })}
+          </div>
 
-        {/* How to Measure Section */}
-        {howToMeasure && howToMeasure.length > 0 && (
-          <View style={[
-              s.measureSection,
-              {
-                backgroundColor: theme.tertiaryBackground,
-                borderColor: theme.border,
-              },
-            ]}
-          >
-            <View style={s.measureTitleRow}>
-              <PersonStanding size={18} color={theme.primary} />
-              <Text style={[s.sectionTitle, { color: theme.text }]}>
-                How to Measure Correctly
-              </Text>
-            </View>
-            {howToMeasure.map((step, i) => (
-              <View key={i} style={s.stepRow}>
-                <View style={[s.stepDot, { backgroundColor: theme.primary }]}
-                />
-                <Text style={[s.stepText, { color: theme.secondaryText }]}>
-                  {step}
-                </Text>
-              </View>
-            ))}
-          </View>
-        )}
+          {/* How to Measure Section */}
+          {howToMeasure && howToMeasure.length > 0 && (
+            <div
+              className="mt-5 flex flex-col gap-2 rounded-xl border p-4"
+              style={{ backgroundColor: theme.tertiaryBackground, borderColor: theme.border }}
+            >
+              <div className="mb-1 flex flex-row items-center gap-2">
+                <PersonStanding size={18} color={theme.primary} />
+                <h4 className="text-sm font-bold" style={{ color: theme.text }}>
+                  How to Measure Correctly
+                </h4>
+              </div>
+              {howToMeasure.map((step, i) => (
+                <div key={i} className="mb-1 flex flex-row items-start gap-2.5">
+                  <span className="mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full" style={{ backgroundColor: theme.primary }} />
+                  <p className="flex-1 text-xs leading-[18px]" style={{ color: theme.secondaryText }}>
+                    {step}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
 
-        <View style={{ height: 40 }} />
-      </ScrollView>
-    </Sheet>
+          <div style={{ height: 40 }} />
+        </div>
+      </div>
+    </div>
   );
 };
-
-const s = StyleSheet.create({
-  content: {
-    padding: spacing.lg,
-  },
-  unitToggleRow: {
-    flexDirection: "row",
-    alignSelf: "center",
-    padding: 3,
-    borderRadius: 8,
-    borderWidth: 1,
-    marginBottom: 16,
-  },
-  unitBtn: {
-    paddingHorizontal: 18,
-    paddingVertical: 6,
-    borderRadius: 6,
-  },
-  unitBtnActive: {
-    elevation: 1,
-  },
-  unitBtnText: {
-    fontSize: 12,
-    fontWeight: "700",
-  },
-  tableContainer: {
-    borderWidth: 1,
-    borderRadius: 12,
-    overflow: "hidden",
-  },
-  row: {
-    flexDirection: "row",
-    borderTopWidth: StyleSheet.hairlineWidth,
-  },
-  headerRow: {
-    paddingVertical: 12,
-    borderTopWidth: 0,
-  },
-  cell: {
-    flex: 1,
-    paddingHorizontal: 6,
-    paddingVertical: 11,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  firstCell: {
-    flex: 0.9,
-    borderRightWidth: StyleSheet.hairlineWidth,
-    borderRightColor: "rgba(0,0,0,0.1)",
-  },
-  headerCellText: {
-    fontSize: 11,
-    fontWeight: "800",
-    letterSpacing: 0.5,
-  },
-  sizeText: {
-    fontSize: 13,
-  },
-  cellText: {
-    fontSize: 13,
-  },
-  measureSection: {
-    marginTop: 20,
-    padding: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    gap: 8,
-  },
-  measureTitleRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    marginBottom: 4,
-  },
-  sectionTitle: {
-    fontSize: 14,
-    fontWeight: "700",
-  },
-  stepRow: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    marginBottom: 4,
-    gap: 10,
-  },
-  stepDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    marginTop: 7,
-  },
-  stepText: {
-    fontSize: 12,
-    lineHeight: 18,
-    flex: 1,
-  },
-});
 
 export default SizeChartModal;

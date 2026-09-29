@@ -1,10 +1,8 @@
 import React from "react";
-import { View, Text, ScrollView, TouchableOpacity, Image } from "@/components/primitives";
 import { Star } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { goTo } from "@/src/utils/navigation";
 import { IProduct } from "../../../types/product.types";
-import { styles as s } from "../styles";
 
 interface SimilarProductsProps {
   products: IProduct[];
@@ -17,74 +15,63 @@ export const SimilarProducts = ({ products, theme }: SimilarProductsProps) => {
   if (!products || products.length === 0) return null;
 
   return (
-    <View style={[s.similarSection, { backgroundColor: theme.background }]}>
-      <Text style={[s.selectionLabel, { color: theme.text, paddingHorizontal: 16 }]}>
+    <section className="py-4" style={{ backgroundColor: theme.background }}>
+      <h2 className="px-4 text-[13px] font-bold tracking-[0.8px]" style={{ color: theme.text }}>
         SIMILAR PRODUCTS
-      </Text>
-      <ScrollView horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={s.similarScroll}
-      >
+      </h2>
+      <div className="mt-3 flex flex-row gap-3 overflow-x-auto px-4" style={{ scrollbarWidth: "none" }}>
         {products.map((item) => (
-          <TouchableOpacity key={item._id}
-            style={[
-              s.similarCard,
-              { backgroundColor: theme.background, borderColor: theme.border },
-            ]}
-            activeOpacity={0.7}
-            onPress={() =>
+          <button
+            key={item._id}
+            type="button"
+            onClick={() =>
               goTo(navigate, {
                 pathname: "/product/[id]",
                 params: { id: (item as any).slug || item._id },
               })
             }
+            className="w-[150px] shrink-0 cursor-pointer overflow-hidden rounded-[10px] border text-left"
+            style={{ backgroundColor: theme.background, borderColor: theme.border }}
           >
-            <Image source={{ uri: item.images?.[0]?.url }}
-              style={s.similarImage}
-              resizeMode="cover"
+            <img
+              src={item.images?.[0]?.url}
+              alt={item.title}
+              className="h-[180px] w-full object-cover"
             />
-            <View style={s.similarInfo}>
-              <Text style={[s.similarBrand, { color: theme.secondaryText }]}
-                numberOfLines={1}
-              >
+            <span className="block gap-1 p-2.5">
+              <span className="block truncate text-[11px] font-bold tracking-wide uppercase" style={{ color: theme.secondaryText }}>
                 {item.brand}
-              </Text>
-              <Text style={[s.similarTitle, { color: theme.text }]}
-                numberOfLines={2}
-              >
+              </span>
+              <span className="line-clamp-2 block text-xs leading-4" style={{ color: theme.text }}>
                 {item.title}
-              </Text>
-              <View style={s.similarPriceRow}>
-                <Text style={[s.similarPrice, { color: theme.text }]}>
+              </span>
+              <span className="mt-1 flex flex-row items-baseline gap-1">
+                <span className="text-[13px] font-extrabold" style={{ color: theme.text }}>
                   ₹{item.price?.toLocaleString()}
-                </Text>
+                </span>
                 {item.originalPrice && item.originalPrice > item.price && (
-                  <Text style={[s.similarMrp, { color: theme.tertiaryText }]}>
+                  <span className="text-[11px] line-through" style={{ color: theme.tertiaryText }}>
                     ₹{item.originalPrice.toLocaleString()}
-                  </Text>
+                  </span>
                 )}
-              </View>
+              </span>
               {item.ratings && item.ratings.count > 0 && (
-                <View style={s.similarRating}>
-                  <View style={s.similarRatingPill}>
-                    <Text style={s.similarRatingText}>
+                <span className="mt-1 flex flex-row items-center gap-1">
+                  <span className="flex flex-row items-center gap-0.5 rounded bg-[#34C759] px-1 py-px">
+                    <span className="text-[10px] font-extrabold text-white">
                       {item.ratings.average}
-                    </Text>
+                    </span>
                     <Star size={9} color="#fff" fill="#fff" />
-                  </View>
-                  <Text style={[
-                      s.similarRatingCount,
-                      { color: theme.tertiaryText },
-                    ]}
-                  >
+                  </span>
+                  <span className="text-[10px]" style={{ color: theme.tertiaryText }}>
                     ({item.ratings.count})
-                  </Text>
-                </View>
+                  </span>
+                </span>
               )}
-            </View>
-          </TouchableOpacity>
+            </span>
+          </button>
         ))}
-      </ScrollView>
-    </View>
+      </div>
+    </section>
   );
 };

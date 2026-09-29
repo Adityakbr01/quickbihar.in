@@ -1,15 +1,4 @@
 import React, { useState, useMemo, useCallback, useEffect } from "react";
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  ActivityIndicator,
-  Image,
-  Share,
-  Platform,
-  useWindowDimensions,
-} from "@/components/primitives";
 import type { LucideIcon } from "lucide-react";
 import { ArrowLeft, ArrowRight, Banknote, Box, Calendar, Check, CircleAlert, CircleCheck, CircleX, CreditCard, Expand, Heart, Images, MessageCircle, Palette, RefreshCw, Share2, ShieldCheck, ShoppingBag, Star, StarHalf, Store, ThumbsUp, Zap } from "lucide-react";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
@@ -29,7 +18,6 @@ import { IProduct } from "../types/product.types";
 import Carousel from "@/src/components/common/EmblaCarousel";
 
 // --- Imports from modular structure ---
-import { styles as s } from "./ProductDetail/styles";
 import { ExpandableSection } from "./ProductDetail/components/ExpandableSection";
 import { RatingBar } from "./ProductDetail/components/RatingBar";
 import { SimilarProducts } from "./ProductDetail/components/SimilarProducts";
@@ -107,7 +95,7 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
   const isWishlisted = wishlistItems.includes(wishlistId);
   const { isAuthenticated } = useAuthStore();
   // Mobile web tab bar is fixed-position and overlays the viewport bottom —
-  // lift the sticky action bar above it (0 on desktop/native, no visual diff).
+  // lift the sticky action bar above it (0 on desktop, no visual diff).
   const stickyBarOffset = useStickyBarBottomOffset();
 
   const queryClient = useQueryClient();
@@ -200,7 +188,14 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
         : 0);
 
   // Responsive gallery: fills screen width, caps height on tablets/desktop.
-  const { width: windowWidth } = useWindowDimensions();
+  const [windowWidth, setWindowWidth] = useState(() =>
+    typeof window !== "undefined" ? window.innerWidth : 1200,
+  );
+  useEffect(() => {
+    const onResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
   const galleryWidth = windowWidth;
   const galleryHeight = Math.min(windowWidth * 1.2, 560);
 
@@ -216,10 +211,13 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
   }, [dp.deliveryInfo?.estimatedDays]);
 
   const handleShare = useCallback(async () => {
+    const text = `Check out ${dp.title} at ₹${dp.price} on QuickBihar! 🛍️`;
     try {
-      await Share.share({
-        message: `Check out ${dp.title} at ₹${dp.price} on QuickBihar! 🛍️`,
-      });
+      if (typeof navigator !== "undefined" && (navigator as any).share) {
+        await (navigator as any).share({ text });
+      } else if (navigator.clipboard) {
+        await navigator.clipboard.writeText(text);
+      }
     } catch { }
   }, [dp.title, dp.price]);
 
@@ -327,7 +325,7 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
   const storeObj = typeof dp.storeId === "object" ? dp.storeId : null;
   const sellerObj = typeof dp.sellerId === "object" ? dp.sellerId : null;
 
-  // ── SEO (web head tags; null-render on native) ──
+  // ── SEO (web head tags) ──
   // Computed ABOVE the loading guard so SeoHead renders at SSG time even when
   // product is undefined (initialProduct is the manifest seed at that point).
   const seoMeta = seoProduct ? productMeta(seoProduct) : null;
@@ -349,388 +347,335 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
   return (
     <>
       {seoMeta && <SeoHead meta={seoMeta} jsonLd={seoJsonLd} />}
-      <ScrollView style={s.scrollView}
-        showsVerticalScrollIndicator={false}
-        bounces={true}
-      >
+      <div className="flex-1">
         {/* ═══════════════════════════════════════════
             IMAGE GALLERY
         ═══════════════════════════════════════════ */}
-        <View style={s.galleryContainer}>
-          <Carousel loop={false}
+        <div className="relative">
+          <Carousel
+            loop={false}
             width={galleryWidth}
             height={galleryHeight}
             data={images}
             scrollAnimationDuration={300}
             onSnapToItem={setCarouselIndex}
             renderItem={({ item, index }) => (
-              <img src={item.url} alt={dp.title || "Product image"} style={Object.assign({}, s.galleryImage, { objectFit: "cover" as const })} />
+              <img
+                key={index}
+                src={item.url}
+                alt={dp.title || "Product image"}
+                className="h-full w-full object-cover"
+              />
             )}
           />
 
           {/* Floating Navigation */}
-          <View style={s.galleryNav}>
-            <TouchableOpacity onPress={() => goBack(navigate)}
-              style={[
-                s.navBtn,
-                {
-                  backgroundColor: isDark
-                    ? "rgba(30, 30, 32, 0.85)"
-                    : "rgba(255, 255, 255, 0.9)",
-                  borderColor: isDark
-                    ? "rgba(255, 255, 255, 0.15)"
-                    : "rgba(0, 0, 0, 0.08)",
-                },
-              ]}
-              activeOpacity={0.7}
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          <div className="absolute top-3.5 right-4 left-4 z-10 flex flex-row items-center justify-between">
+            <button
+              type="button"
+              onClick={() => goBack(navigate)}
+              aria-label="Go back"
+              className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border"
+              style={{
+                backgroundColor: isDark ? "rgba(30, 30, 32, 0.85)" : "rgba(255, 255, 255, 0.9)",
+                borderColor: isDark ? "rgba(255, 255, 255, 0.15)" : "rgba(0, 0, 0, 0.08)",
+              }}
             >
               <ArrowLeft size={20} color={isDark ? "#ffffff" : "#111827"} />
-            </TouchableOpacity>
-            <View style={s.navRight}>
-              <WishlistHeart isWishlisted={isWishlisted}
+            </button>
+            <div className="flex flex-row items-center gap-2.5">
+              <WishlistHeart
+                isWishlisted={isWishlisted}
                 onToggle={() => toggleWishlist(wishlistId, product)}
                 size={20}
                 activeColor="#FF3B30"
                 inactiveColor={isDark ? "#ffffff" : "#111827"}
-                style={[
-                  s.navBtn,
-                  {
-                    backgroundColor: isDark
-                      ? "rgba(30, 30, 32, 0.85)"
-                      : "rgba(255, 255, 255, 0.9)",
-                    borderColor: isDark
-                      ? "rgba(255, 255, 255, 0.15)"
-                      : "rgba(0, 0, 0, 0.08)",
-                  },
-                ]}
+                style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: 20,
+                  borderWidth: 1,
+                  justifyContent: "center",
+                  alignItems: "center",
+                  backgroundColor: isDark ? "rgba(30, 30, 32, 0.85)" : "rgba(255, 255, 255, 0.9)",
+                  borderColor: isDark ? "rgba(255, 255, 255, 0.15)" : "rgba(0, 0, 0, 0.08)",
+                }}
               />
-              <TouchableOpacity onPress={handleShare}
-                style={[
-                  s.navBtn,
-                  {
-                    backgroundColor: isDark
-                      ? "rgba(30, 30, 32, 0.85)"
-                      : "rgba(255, 255, 255, 0.9)",
-                    borderColor: isDark
-                      ? "rgba(255, 255, 255, 0.15)"
-                      : "rgba(0, 0, 0, 0.08)",
-                  },
-                ]}
-                activeOpacity={0.7}
-                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              <button
+                type="button"
+                onClick={handleShare}
+                aria-label="Share product"
+                className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border"
+                style={{
+                  backgroundColor: isDark ? "rgba(30, 30, 32, 0.85)" : "rgba(255, 255, 255, 0.9)",
+                  borderColor: isDark ? "rgba(255, 255, 255, 0.15)" : "rgba(0, 0, 0, 0.08)",
+                }}
               >
                 <Share2 size={19} color={isDark ? "#ffffff" : "#111827"} />
-              </TouchableOpacity>
-            </View>
-          </View>
+              </button>
+            </div>
+          </div>
 
           {/* Image Counter Pill */}
           {images.length > 1 && (
-            <View style={[
-                s.counterPill,
-                {
-                  backgroundColor: isDark
-                    ? "rgba(30, 30, 32, 0.85)"
-                    : "rgba(255, 255, 255, 0.9)",
-                  borderColor: isDark
-                    ? "rgba(255, 255, 255, 0.15)"
-                    : "rgba(0, 0, 0, 0.08)",
-                },
-              ]}
+            <div
+              className="absolute right-4 bottom-[60px] flex flex-row items-center rounded-[14px] border px-2.5 py-1.5"
+              style={{
+                backgroundColor: isDark ? "rgba(30, 30, 32, 0.85)" : "rgba(255, 255, 255, 0.9)",
+                borderColor: isDark ? "rgba(255, 255, 255, 0.15)" : "rgba(0, 0, 0, 0.08)",
+              }}
             >
-              <Images size={12} color={isDark ? "#fff" : "#111827"} style={{ marginRight: 4 }} />
-              <Text style={[
-                  s.counterText,
-                  { color: isDark ? "#fff" : "#111827" },
-                ]}
-              >
+              <Images size={12} color={isDark ? "#fff" : "#111827"} className="mr-1" />
+              <span className="text-[11px] font-bold" style={{ color: isDark ? "#fff" : "#111827" }}>
                 {carouselIndex + 1}/{images.length}
-              </Text>
-            </View>
+              </span>
+            </div>
           )}
 
           {/* Thumbnail Strip */}
           {images.length > 1 && (
-            <ScrollView horizontal
-              showsHorizontalScrollIndicator={false}
-              style={s.thumbStrip}
-              contentContainerStyle={s.thumbStripContent}
-            >
-              {images.map((img, i) => (
-                <TouchableOpacity key={i} activeOpacity={0.8}>
-                  <Image source={{ uri: img.url }}
-                    style={[
-                      s.thumbImage,
-                      {
-                        borderColor:
-                          i === carouselIndex ? theme.primary : theme.border,
-                        borderWidth: i === carouselIndex ? 2 : 1,
-                        opacity: i === carouselIndex ? 1 : 0.6,
-                      },
-                    ]}
+            <div className="absolute right-0 bottom-2.5 left-0">
+              <div className="flex flex-row gap-2 overflow-x-auto px-4" style={{ scrollbarWidth: "none" }}>
+                {images.map((img, i) => (
+                  <img
+                    key={i}
+                    src={img.url}
+                    alt={`${dp.title} thumbnail ${i + 1}`}
+                    className="h-10 w-10 rounded-md object-cover"
+                    style={{
+                      borderColor: i === carouselIndex ? theme.primary : theme.border,
+                      borderWidth: i === carouselIndex ? 2 : 1,
+                      borderStyle: "solid",
+                      opacity: i === carouselIndex ? 1 : 0.6,
+                    }}
                   />
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
+                ))}
+              </div>
+            </div>
           )}
-        </View>
+        </div>
 
         {/* ═══════════════════════════════════════════
             PRODUCT INFO
         ═══════════════════════════════════════════ */}
-        <View style={[s.infoSection, { backgroundColor: theme.background }]}>
+        <div className="px-4 pt-4 pb-3" style={{ backgroundColor: theme.background }}>
           {/* Breadcrumb trail (visible match for BreadcrumbList JSON-LD) */}
-          <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 8 }}
-            accessibilityRole="list"
-          >
-            <Link to="/" style={{ color: theme.secondaryText, fontSize: 12 }}>
+          <nav className="mb-2 flex flex-row items-center" aria-label="Breadcrumb">
+            <Link to="/" className="text-xs" style={{ color: theme.secondaryText }}>
               Home
             </Link>
-            <Text style={{ color: theme.secondaryText, fontSize: 12 }}>{"  ›  "}</Text>
-            <Text numberOfLines={1} style={{ color: theme.secondaryText, fontSize: 12, flex: 1 }}>
+            <span className="text-xs" style={{ color: theme.secondaryText }}>{"  ›  "}</span>
+            <span className="flex-1 truncate text-xs" style={{ color: theme.secondaryText }}>
               {dp.title}
-            </Text>
-          </View>
+            </span>
+          </nav>
           {/* Brand */}
-          <Text
-            style={[s.brandName, { color: theme.text }]}
-          >
+          <p className="mb-1 text-[15px] font-extrabold tracking-wide" style={{ color: theme.text }}>
             {dp.brand || "Brand"}
-          </Text>
+          </p>
 
           {/* Title */}
-          <Text
-            style={[s.productTitle, { color: theme.secondaryText }]}
-          >
+          <h1 className="mb-2.5 text-sm leading-5 font-normal" style={{ color: theme.secondaryText }}>
             {dp.title}
-          </Text>
+          </h1>
 
           {/* Rating Chip */}
           {totalReviews > 0 && (
-            <View style={s.ratingChip}>
-              <View style={s.ratingChipInner}>
-                <Text style={s.ratingChipScore}>{averageRating}</Text>
+            <div className="mb-3.5 flex flex-row items-center">
+              <span className="flex flex-row items-center gap-1 rounded bg-[#34C759] px-1.5 py-0.5">
+                <span className="text-xs font-extrabold text-white">{averageRating}</span>
                 <Star size={11} color="#fff" fill="#fff" />
-              </View>
-              <View style={s.ratingDividerLine} />
-              <Text style={[s.ratingChipCount, { color: theme.secondaryText }]}>
+              </span>
+              <span className="mx-2 h-3.5 w-px bg-gray-300" />
+              <span className="text-[13px] font-medium" style={{ color: theme.secondaryText }}>
                 {totalReviews} Ratings
-              </Text>
-            </View>
+              </span>
+            </div>
           )}
 
           {/* Pricing Block */}
-          <View style={s.priceBlock}>
-            <Text style={[s.currentPrice, { color: theme.text }]}>
+          <div className="flex flex-row items-baseline gap-2">
+            <span className="text-[22px] font-extrabold" style={{ color: theme.text }}>
               ₹{(dp.isGstApplicable ? dp.price! * (1 + dp.gstPercentage! / 100) : dp.price!)?.toLocaleString()}
-            </Text>
+            </span>
             {dp.originalPrice && dp.originalPrice > dp.price! && (
               <>
-                <Text style={[s.mrp, { color: theme.tertiaryText }]}>
+                <span className="text-[13px] font-medium" style={{ color: theme.tertiaryText }}>
                   MRP{" "}
-                  <Text style={s.mrpStrike}>
+                  <span className="line-through">
                     ₹{dp.originalPrice.toLocaleString()}
-                  </Text>
-                </Text>
-                <View style={s.discountChip}>
-                  <Text style={s.discountChipText}>{Math.round(discount)}% OFF</Text>
-                </View>
+                  </span>
+                </span>
+                <span className="rounded bg-[#FF6B35] px-2 py-0.5 text-[11px] font-extrabold text-white">
+                  {Math.round(discount)}% OFF
+                </span>
               </>
             )}
-          </View>
-          <Text style={[s.taxInfo, { color: theme.success || "#34C759" }]}>
+          </div>
+          <p className="mt-1 text-xs font-medium" style={{ color: theme.success || "#34C759" }}>
             {dp.isGstApplicable ? `Price inclusive of ${dp.gstPercentage}% GST` : "inclusive of all taxes"}
-          </Text>
-        </View>
+          </p>
+        </div>
 
         {/* ═══════════════════════════════════════════
             COLOR SELECTION
         ═══════════════════════════════════════════ */}
         {uniqueColors.length > 0 && (
-          <View style={[s.selectionSection, { backgroundColor: theme.background }]}
-          >
-            <Text style={[s.selectionLabel, { color: theme.text }]}>
+          <div className="px-4 py-4" style={{ backgroundColor: theme.background }}>
+            <p className="mb-3.5 text-[13px] font-bold tracking-[0.8px]" style={{ color: theme.text }}>
               COLOR:{" "}
-              <Text style={{ fontWeight: "400", color: theme.secondaryText }}>
+              <span style={{ fontWeight: "400", color: theme.secondaryText }}>
                 {selectedColor}
-              </Text>
-            </Text>
-            <View style={s.colorRow}>
+              </span>
+            </p>
+            <div className="flex flex-row flex-wrap gap-2.5">
               {uniqueColors.map((color) => {
                 const active = selectedColor === color;
                 return (
-                  <TouchableOpacity key={color}
-                    onPress={() => {
+                  <button
+                    key={color}
+                    type="button"
+                    onClick={() => {
                       setSelectedColor(color);
                       setSelectedSize(null);
                     }}
-                    style={[
-                      s.colorOption,
-                      {
-                        borderColor: active ? theme.primary : theme.border,
-                        backgroundColor: active
-                          ? theme.primary + "0D"
-                          : theme.background,
-                      },
-                    ]}
-                    activeOpacity={0.7}
+                    className="cursor-pointer rounded-full border-[1.5px] px-5 py-2"
+                    style={{
+                      borderColor: active ? theme.primary : theme.border,
+                      backgroundColor: active ? theme.primary + "0D" : theme.background,
+                    }}
                   >
-                    <Text style={[
-                        s.colorOptionText,
-                        { color: active ? theme.primary : theme.text },
-                      ]}
+                    <span
+                      className="text-[13px] font-semibold"
+                      style={{ color: active ? theme.primary : theme.text }}
                     >
                       {color}
-                    </Text>
-                  </TouchableOpacity>
+                    </span>
+                  </button>
                 );
               })}
-            </View>
-          </View>
+            </div>
+          </div>
         )}
 
         {/* ═══════════════════════════════════════════
             SIZE SELECTION
         ═══════════════════════════════════════════ */}
         {sizesForColor.length > 0 && (
-          <View style={[s.selectionSection, { backgroundColor: theme.background }]}
-          >
-            <View style={s.sizeHeader}>
-              <Text style={[s.selectionLabel, { color: theme.text }]}>
+          <div className="px-4 py-4" style={{ backgroundColor: theme.background }}>
+            <div className="mb-3.5 flex flex-row items-center justify-between">
+              <p className="text-[13px] font-bold tracking-[0.8px]" style={{ color: theme.text }}>
                 SELECT SIZE
-              </Text>
-              <TouchableOpacity style={s.sizeGuideBtn}
-                onPress={() => {
+              </p>
+              <button
+                type="button"
+                onClick={() => {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                   setShowSizeChart(true);
                 }}
-                activeOpacity={0.7}
+                className="flex cursor-pointer flex-row items-center gap-1"
               >
                 <Expand size={14} color={theme.primary} />
-                <Text style={[s.sizeGuideText, { color: theme.primary }]}>
+                <span className="text-xs font-bold tracking-wide" style={{ color: theme.primary }}>
                   SIZE GUIDE
-                </Text>
-              </TouchableOpacity>
-            </View>
-            <View style={s.sizeRow}>
+                </span>
+              </button>
+            </div>
+            <div className="flex flex-row flex-wrap gap-3">
               {sizesForColor.map((v) => {
                 const active = selectedSize === v.size;
                 const oos = v.stock === 0;
                 return (
-                  <TouchableOpacity key={v.sku}
+                  <button
+                    key={v.sku}
+                    type="button"
                     disabled={oos}
-                    onPress={() => setSelectedSize(v.size)}
-                    style={[
-                      s.sizeCircle,
-                      {
-                        borderColor: active
-                          ? theme.primary
-                          : oos
-                            ? theme.border
-                            : theme.border,
-                        backgroundColor: active
-                          ? theme.primary
-                          : theme.background,
-                      },
-                      oos && s.sizeCircleOOS,
-                    ]}
-                    activeOpacity={0.7}
+                    onClick={() => setSelectedSize(v.size)}
+                    className="relative flex h-12 min-w-12 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-3xl border-[1.5px] px-3.5"
+                    style={{
+                      borderColor: theme.border,
+                      backgroundColor: active ? theme.primary : theme.background,
+                      borderStyle: oos ? "dashed" : "solid",
+                    }}
                   >
-                    <Text style={[
-                        s.sizeText,
-                        {
-                          color: active
-                            ? "#fff"
-                            : oos
-                              ? theme.tertiaryText
-                              : theme.text,
-                        },
-                        oos && s.sizeTextOOS,
-                      ]}
-                      numberOfLines={1}
+                    <span
+                      className="block truncate text-center text-[13px] font-bold"
+                      style={{
+                        color: active ? "#fff" : oos ? theme.tertiaryText : theme.text,
+                        textDecoration: oos ? "line-through" : undefined,
+                      }}
                     >
                       {v.size}
-                    </Text>
+                    </span>
                     {oos && (
-                      <View style={[
-                          s.oosLine,
-                          { backgroundColor: theme.tertiaryText },
-                        ]}
+                      <span
+                        className="absolute h-px w-[140%] -rotate-45"
+                        style={{ backgroundColor: theme.tertiaryText }}
                       />
                     )}
-                  </TouchableOpacity>
+                  </button>
                 );
               })}
-            </View>
+            </div>
             {selectedSize &&
               sizesForColor.find((v) => v.size === selectedSize)?.stock! <=
               5 && (
-                <View style={s.lowStockRow}>
+                <div className="mt-3 flex flex-row items-center gap-1.5">
                   <Zap size={14} color={theme.warning} />
-                  <Text style={[s.lowStockText, { color: theme.warning }]}>
+                  <span className="text-xs font-semibold" style={{ color: theme.warning }}>
                     Only{" "}
                     {
                       sizesForColor.find((v) => v.size === selectedSize)
                         ?.stock
                     }{" "}
                     left! Order soon
-                  </Text>
-                </View>
+                  </span>
+                </div>
               )}
-          </View>
+          </div>
         )}
 
         {/* ═══════════════════════════════════════════
             DELIVERY INFO
         ═══════════════════════════════════════════ */}
-        <View style={[s.deliverySection, { backgroundColor: theme.background }]}
-        >
-          <Text style={[s.selectionLabel, { color: theme.text }]}>
+        <div className="px-4 py-4" style={{ backgroundColor: theme.background }}>
+          <p className="mb-3.5 text-[13px] font-bold tracking-[0.8px]" style={{ color: theme.text }}>
             DELIVERY OPTIONS
-          </Text>
-          <View style={s.deliveryCards}>
-            <View style={[
-                s.deliveryCard,
-                {
-                  backgroundColor: theme.tertiaryBackground,
-                  borderColor: theme.border,
-                },
-              ]}
+          </p>
+          <div className="mb-5 flex flex-col gap-2.5">
+            <div
+              className="flex flex-row items-center gap-3 rounded-xl border p-3.5"
+              style={{ backgroundColor: theme.tertiaryBackground, borderColor: theme.border }}
             >
               <Box size={22} color={theme.primary} />
-              <View style={s.deliveryCardText}>
-                <Text style={[s.deliveryCardTitle, { color: theme.text }]}>
+              <div className="flex-1">
+                <p className="mb-0.5 text-[13px] font-bold" style={{ color: theme.text }}>
                   Get it by {deliveryDateLabel}
-                </Text>
-                <Text style={[s.deliveryCardSub, { color: theme.secondaryText }]}>
+                </p>
+                <p className="text-xs" style={{ color: theme.secondaryText }}>
                   Express hyperlocal delivery by QuickBihar
-                </Text>
-              </View>
-            </View>
+                </p>
+              </div>
+            </div>
             {dp.deliveryInfo?.isExpressAvailable && (
-              <View style={[
-                  s.deliveryCard,
-                  {
-                    backgroundColor: theme.tertiaryBackground,
-                    borderColor: theme.border,
-                  },
-                ]}
+              <div
+                className="flex flex-row items-center gap-3 rounded-xl border p-3.5"
+                style={{ backgroundColor: theme.tertiaryBackground, borderColor: theme.border }}
               >
                 <Zap size={22} color="#F59E0B" />
-                <View style={s.deliveryCardText}>
-                  <Text style={[s.deliveryCardTitle, { color: theme.text }]}>
+                <div className="flex-1">
+                  <p className="mb-0.5 text-[13px] font-bold" style={{ color: theme.text }}>
                     Express Fast-Track Dispatch
-                  </Text>
-                  <Text style={[s.deliveryCardSub, { color: theme.secondaryText }]}>
+                  </p>
+                  <p className="text-xs" style={{ color: theme.secondaryText }}>
                     Get it within 24–48 hours
-                  </Text>
-                </View>
-              </View>
+                  </p>
+                </div>
+              </div>
             )}
-          </View>
+          </div>
           {/* Policies Icons Row */}
-          <View style={s.policiesRow}>
+          <div className="flex flex-row justify-around pt-2">
             {[
               {
                 icon: RefreshCw,
@@ -749,42 +694,38 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
                 label: "Verified\nLocal Store"
               },
             ].map((p, i) => (
-              <View key={i} style={s.policyItem}>
-                <View style={[
-                    s.policyIcon,
-                    { backgroundColor: theme.tertiaryBackground },
-                  ]}
+              <div key={i} className="flex flex-1 flex-col items-center gap-1.5">
+                <span
+                  className="flex h-[42px] w-[42px] items-center justify-center rounded-full"
+                  style={{ backgroundColor: theme.tertiaryBackground }}
                 >
                   <p.icon size={20} color={theme.primary} />
-                </View>
-                <Text style={[s.policyLabel, { color: theme.secondaryText }]}>
+                </span>
+                <span className="text-center text-[10px] leading-[14px] font-semibold whitespace-pre-line" style={{ color: theme.secondaryText }}>
                   {p.label}
-                </Text>
-              </View>
+                </span>
+              </div>
             ))}
-          </View>
-        </View>
+          </div>
+        </div>
 
         {/* ═══════════════════════════════════════════
             1. PRODUCT DETAILS (Expandable Section)
         ═══════════════════════════════════════════ */}
-        <View style={[
-            s.expandableSectionWrap,
-            { backgroundColor: theme.background },
-          ]}
-        >
-          <ExpandableSection title="Product Details & Specifications"
+        <div className="px-4" style={{ backgroundColor: theme.background }}>
+          <ExpandableSection
+            title="Product Details & Specifications"
             theme={theme}
             defaultOpen={true}
           >
             {dp.description ? (
-              <Text style={[s.descriptionText, { color: theme.secondaryText }]}>
+              <p className="mb-4 text-[13px] leading-5" style={{ color: theme.secondaryText }}>
                 {dp.description}
-              </Text>
+              </p>
             ) : null}
 
             {/* Complete Dynamic Specifications Table */}
-            <View style={s.specsTable}>
+            <div className="mt-1">
               {[
                 { k: "Brand", v: dp.brand },
                 { k: "Category", v: dp.category },
@@ -803,25 +744,24 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
               ]
                 .filter((x) => Boolean(x.v))
                 .map((spec, i) => (
-                  <View key={i}
-                    style={[
-                      s.specTableRow,
-                      { borderBottomColor: theme.border },
-                    ]}
+                  <div
+                    key={i}
+                    className="flex flex-row border-b py-2.5"
+                    style={{ borderBottomColor: theme.border }}
                   >
-                    <Text style={[s.specKey, { color: theme.secondaryText }]}>
+                    <span className="flex-[0.4] text-[13px] font-medium" style={{ color: theme.secondaryText }}>
                       {spec.k}
-                    </Text>
-                    <Text style={[s.specVal, { color: theme.text }]}>
+                    </span>
+                    <span className="flex-[0.6] text-[13px] font-semibold" style={{ color: theme.text }}>
                       {spec.v}
-                    </Text>
-                  </View>
+                    </span>
+                  </div>
                 ))}
-            </View>
+            </div>
 
             {/* Food Specifications if present */}
             {dp.foodDetails && (
-              <View style={[s.specsTable, { marginTop: 10 }]}>
+              <div className="mt-2.5">
                 {[
                   { k: "Food Type", v: dp.foodDetails.vegNonVeg },
                   { k: "Shelf Life", v: dp.foodDetails.shelfLife },
@@ -831,17 +771,17 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
                 ]
                   .filter((x) => Boolean(x.v))
                   .map((spec, i) => (
-                    <View key={i} style={[s.specTableRow, { borderBottomColor: theme.border }]}>
-                      <Text style={[s.specKey, { color: theme.secondaryText }]}>{spec.k}</Text>
-                      <Text style={[s.specVal, { color: theme.text }]}>{spec.v}</Text>
-                    </View>
+                    <div key={i} className="flex flex-row border-b py-2.5" style={{ borderBottomColor: theme.border }}>
+                      <span className="flex-[0.4] text-[13px] font-medium" style={{ color: theme.secondaryText }}>{spec.k}</span>
+                      <span className="flex-[0.6] text-[13px] font-semibold" style={{ color: theme.text }}>{spec.v}</span>
+                    </div>
                   ))}
-              </View>
+              </div>
             )}
 
             {/* Jewelry Specifications if present */}
             {dp.jeweleryDetails && (
-              <View style={[s.specsTable, { marginTop: 10 }]}>
+              <div className="mt-2.5">
                 {[
                   { k: "Metal Type", v: dp.jeweleryDetails.metalType },
                   { k: "Purity", v: dp.jeweleryDetails.purity },
@@ -851,171 +791,171 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
                 ]
                   .filter((x) => Boolean(x.v))
                   .map((spec, i) => (
-                    <View key={i} style={[s.specTableRow, { borderBottomColor: theme.border }]}>
-                      <Text style={[s.specKey, { color: theme.secondaryText }]}>{spec.k}</Text>
-                      <Text style={[s.specVal, { color: theme.text }]}>{spec.v}</Text>
-                    </View>
+                    <div key={i} className="flex flex-row border-b py-2.5" style={{ borderBottomColor: theme.border }}>
+                      <span className="flex-[0.4] text-[13px] font-medium" style={{ color: theme.secondaryText }}>{spec.k}</span>
+                      <span className="flex-[0.6] text-[13px] font-semibold" style={{ color: theme.text }}>{spec.v}</span>
+                    </div>
                   ))}
-              </View>
+              </div>
             )}
 
             {/* Verified Seller & Store Source */}
-            <View style={[s.storeCard, { backgroundColor: theme.tertiaryBackground, borderColor: theme.border }]}>
-              <View style={s.storeCardHeader}>
-                <View style={{ flex: 1 }}>
-                  <Text style={[s.storeName, { color: theme.text }]}>
+            <div
+              className="mt-4 flex flex-col gap-1.5 rounded-[10px] border p-3.5"
+              style={{ backgroundColor: theme.tertiaryBackground, borderColor: theme.border }}
+            >
+              <div className="flex flex-row items-center justify-between">
+                <div className="flex-1">
+                  <p className="text-sm font-bold" style={{ color: theme.text }}>
                     {storeObj?.name || (typeof sellerObj === "object" && sellerObj?.businessName) || "QuickBihar Verified Partner Store"}
-                  </Text>
-                  <Text style={[s.storeLocation, { color: theme.secondaryText }]}>
+                  </p>
+                  <p className="text-xs" style={{ color: theme.secondaryText }}>
                     {storeObj?.city ? `${storeObj.city}, ${storeObj.state || 'Bihar'}` : "Bihar, India"}
-                  </Text>
-                </View>
-                <View style={[s.storeBadge, { backgroundColor: "#E8F5E9" }]}>
+                  </p>
+                </div>
+                <span className="flex flex-row items-center gap-1 rounded bg-[#E8F5E9] px-1.5 py-0.5">
                   <CircleCheck size={14} color="#2E7D32" />
-                  <Text style={[s.storeBadgeText, { color: "#2E7D32" }]}>
+                  <span className="text-[10px] font-bold" style={{ color: "#2E7D32" }}>
                     {storeObj?.rating ? `${storeObj.rating} ★ Verified` : "Verified Partner"}
-                  </Text>
-                </View>
-              </View>
-            </View>
+                  </span>
+                </span>
+              </div>
+            </div>
           </ExpandableSection>
 
           {/* ═══════════════════════════════════════════
               2. RETURN & EXCHANGE POLICY
           ═══════════════════════════════════════════ */}
           <ExpandableSection title="Return & Exchange Policy" theme={theme} defaultOpen={false}>
-            <View style={s.returnPolicyContent}>
+            <div className="flex flex-col gap-2.5">
               {!isReturnable ? (
-                <View style={[s.nonReturnableBanner, { backgroundColor: "#FFEBEE" }]}>
+                <div className="mb-2.5 flex flex-row items-center gap-2.5 rounded-lg bg-[#FFEBEE] p-3">
                   <CircleAlert size={20} color="#D32F2F" />
-                  <Text style={[s.nonReturnableText, { color: "#C62828" }]}>
+                  <p className="flex-1 text-xs leading-[17px] font-semibold" style={{ color: "#C62828" }}>
                     Non-Returnable: Due to hygiene, safety, or perishable standards, this item cannot be returned once delivered.
-                  </Text>
-                </View>
+                  </p>
+                </div>
               ) : (
                 <>
-                  <View style={s.returnRow}>
+                  <div className="flex flex-row items-center gap-2.5">
                     <Calendar size={20} color={theme.primary} />
-                    <Text style={[s.returnText, { color: theme.text, fontWeight: "700" }]}>
+                    <span className="text-[13px] font-bold" style={{ color: theme.text }}>
                       {returnDays} Days Easy Return & Exchange
-                    </Text>
-                  </View>
+                    </span>
+                  </div>
 
-                  <View style={s.returnRow}>
+                  <div className="flex flex-row items-center gap-2.5">
                     <Box size={20} color={theme.success || "#34C759"} />
-                    <Text style={[s.returnText, { color: theme.secondaryText }]}>
+                    <span className="text-[13px]" style={{ color: theme.secondaryText }}>
                       Free doorstep return pickup by QuickBihar rider
-                    </Text>
-                  </View>
+                    </span>
+                  </div>
 
-                  <View style={s.returnRow}>
+                  <div className="flex flex-row items-center gap-2.5">
                     <CreditCard size={20} color={theme.primary} />
-                    <Text style={[s.returnText, { color: theme.secondaryText }]}>
+                    <span className="text-[13px]" style={{ color: theme.secondaryText }}>
                       100% instant refund directly credited to your original payment source (UPI / Bank / Card) upon return pickup
-                    </Text>
-                  </View>
+                    </span>
+                  </div>
 
                   {/* Conditions Checklist */}
-                  <View style={{ marginTop: 8, padding: 12, borderRadius: 8, backgroundColor: theme.tertiaryBackground }}>
-                    <Text style={{ fontSize: 12, fontWeight: "700", color: theme.text, marginBottom: 8 }}>
+                  <div className="mt-2 rounded-lg p-3" style={{ backgroundColor: theme.tertiaryBackground }}>
+                    <p className="mb-2 text-xs font-bold" style={{ color: theme.text }}>
                       RETURN & EXCHANGE CONDITIONS:
-                    </Text>
+                    </p>
                     {[
                       "Item must be unused, unwashed, and in its original undamaged condition",
                       "All brand tags, price tags, and barcodes must be attached and intact",
                       "Item must be returned in its original brand box/packaging",
                       "Doorstep quality check (QC) is verified instantly by the delivery partner",
                     ].map((condition, idx) => (
-                      <View key={idx} style={{ flexDirection: "row", marginBottom: 6, gap: 8 }}>
+                      <div key={idx} className="mb-1.5 flex flex-row gap-2">
                         <CircleCheck size={15} color={theme.success || "#34C759"} />
-                        <Text style={{ fontSize: 12, color: theme.secondaryText, flex: 1, lineHeight: 16 }}>
+                        <span className="flex-1 text-xs leading-4" style={{ color: theme.secondaryText }}>
                           {condition}
-                        </Text>
-                      </View>
+                        </span>
+                      </div>
                     ))}
-                  </View>
+                  </div>
                 </>
               )}
-            </View>
+            </div>
           </ExpandableSection>
 
           {/* ═══════════════════════════════════════════
               3. COMPLIANCE AND MANUFACTURING
           ═══════════════════════════════════════════ */}
           <ExpandableSection title="Compliance & Manufacturing" theme={theme} defaultOpen={false}>
-            <View style={s.specsTable}>
-              <View style={[s.specTableRow, { borderBottomColor: theme.border }]}>
-                <Text style={[s.specKey, { color: theme.secondaryText }]}>Country of Origin</Text>
-                <Text style={[s.specVal, { color: theme.text }]}>{dp.compliance?.countryOfOrigin || "India 🇮🇳"}</Text>
-              </View>
-              <View style={[s.specTableRow, { borderBottomColor: theme.border }]}>
-                <Text style={[s.specKey, { color: theme.secondaryText }]}>Manufacturer</Text>
-                <Text style={[s.specVal, { color: theme.text }]}>
+            <div className="mt-1">
+              <div className="flex flex-row border-b py-2.5" style={{ borderBottomColor: theme.border }}>
+                <span className="flex-[0.4] text-[13px] font-medium" style={{ color: theme.secondaryText }}>Country of Origin</span>
+                <span className="flex-[0.6] text-[13px] font-semibold" style={{ color: theme.text }}>{dp.compliance?.countryOfOrigin || "India 🇮🇳"}</span>
+              </div>
+              <div className="flex flex-row border-b py-2.5" style={{ borderBottomColor: theme.border }}>
+                <span className="flex-[0.4] text-[13px] font-medium" style={{ color: theme.secondaryText }}>Manufacturer</span>
+                <span className="flex-[0.6] text-[13px] font-semibold" style={{ color: theme.text }}>
                   {dp.compliance?.manufacturerDetail || (storeObj?.name ? `${storeObj.name}, ${storeObj.city || ''} ${storeObj.state || 'Bihar'}` : "QuickBihar Verified Partner, Bihar")}
-                </Text>
-              </View>
-              <View style={[s.specTableRow, { borderBottomColor: theme.border }]}>
-                <Text style={[s.specKey, { color: theme.secondaryText }]}>Packer</Text>
-                <Text style={[s.specVal, { color: theme.text }]}>
+                </span>
+              </div>
+              <div className="flex flex-row border-b py-2.5" style={{ borderBottomColor: theme.border }}>
+                <span className="flex-[0.4] text-[13px] font-medium" style={{ color: theme.secondaryText }}>Packer</span>
+                <span className="flex-[0.6] text-[13px] font-semibold" style={{ color: theme.text }}>
                   {dp.compliance?.packerDetail || dp.compliance?.manufacturerDetail || "QuickBihar Logistics Hub, Bihar"}
-                </Text>
-              </View>
+                </span>
+              </div>
               {dp.compliance?.importerDetail && (
-                <View style={[s.specTableRow, { borderBottomColor: theme.border }]}>
-                  <Text style={[s.specKey, { color: theme.secondaryText }]}>Importer</Text>
-                  <Text style={[s.specVal, { color: theme.text }]}>{dp.compliance.importerDetail}</Text>
-                </View>
+                <div className="flex flex-row border-b py-2.5" style={{ borderBottomColor: theme.border }}>
+                  <span className="flex-[0.4] text-[13px] font-medium" style={{ color: theme.secondaryText }}>Importer</span>
+                  <span className="flex-[0.6] text-[13px] font-semibold" style={{ color: theme.text }}>{dp.compliance.importerDetail}</span>
+                </div>
               )}
-              <View style={[s.specTableRow, { borderBottomColor: theme.border }]}>
-                <Text style={[s.specKey, { color: theme.secondaryText }]}>Generic / Commodity Name</Text>
-                <Text style={[s.specVal, { color: theme.text }]}>{dp.compliance?.genericName || dp.subCategory || dp.category || "Apparel / Consumer Goods"}</Text>
-              </View>
-              <View style={[s.specTableRow, { borderBottomColor: theme.border }]}>
-                <Text style={[s.specKey, { color: theme.secondaryText }]}>Dispatched From</Text>
-                <Text style={[s.specVal, { color: theme.text }]}>{dp.logistics?.warehouseName || storeObj?.name || "QuickBihar Express Hub, Bihar"}</Text>
-              </View>
-              <View style={[s.specTableRow, { borderBottomColor: theme.border }]}>
-                <Text style={[s.specKey, { color: theme.secondaryText }]}>Tax Transparency</Text>
-                <Text style={[s.specVal, { color: theme.text }]}>
+              <div className="flex flex-row border-b py-2.5" style={{ borderBottomColor: theme.border }}>
+                <span className="flex-[0.4] text-[13px] font-medium" style={{ color: theme.secondaryText }}>Generic / Commodity Name</span>
+                <span className="flex-[0.6] text-[13px] font-semibold" style={{ color: theme.text }}>{dp.compliance?.genericName || dp.subCategory || dp.category || "Apparel / Consumer Goods"}</span>
+              </div>
+              <div className="flex flex-row border-b py-2.5" style={{ borderBottomColor: theme.border }}>
+                <span className="flex-[0.4] text-[13px] font-medium" style={{ color: theme.secondaryText }}>Dispatched From</span>
+                <span className="flex-[0.6] text-[13px] font-semibold" style={{ color: theme.text }}>{dp.logistics?.warehouseName || storeObj?.name || "QuickBihar Express Hub, Bihar"}</span>
+              </div>
+              <div className="flex flex-row border-b py-2.5" style={{ borderBottomColor: theme.border }}>
+                <span className="flex-[0.4] text-[13px] font-medium" style={{ color: theme.secondaryText }}>Tax Transparency</span>
+                <span className="flex-[0.6] text-[13px] font-semibold" style={{ color: theme.text }}>
                   {dp.isGstApplicable ? `Includes ${dp.gstPercentage}% GST (Tax invoice included with shipment)` : "Price inclusive of all taxes"}
-                </Text>
-              </View>
-            </View>
+                </span>
+              </div>
+            </div>
 
             {/* Consumer Grievance & Customer Care */}
-            <View style={{ marginTop: 12, padding: 12, borderRadius: 8, backgroundColor: theme.tertiaryBackground, gap: 4 }}>
-              <Text style={{ fontSize: 12, fontWeight: "700", color: theme.text }}>
+            <div className="mt-3 flex flex-col gap-1 rounded-lg p-3" style={{ backgroundColor: theme.tertiaryBackground }}>
+              <p className="text-xs font-bold" style={{ color: theme.text }}>
                 CUSTOMER CARE & GRIEVANCE REDRESSAL:
-              </Text>
-              <Text style={{ fontSize: 12, color: theme.secondaryText }}>
-                Email: <Text style={{ color: theme.primary, fontWeight: "600" }}>support@quickbihar.com</Text>
-              </Text>
-              <Text style={{ fontSize: 12, color: theme.secondaryText }}>
-                Helpline: <Text style={{ color: theme.text, fontWeight: "600" }}>+91 95077 12255</Text> (Mon-Sun, 8 AM - 10 PM)
-              </Text>
-            </View>
+              </p>
+              <p className="text-xs" style={{ color: theme.secondaryText }}>
+                Email: <span className="font-semibold" style={{ color: theme.primary }}>support@quickbihar.com</span>
+              </p>
+              <p className="text-xs" style={{ color: theme.secondaryText }}>
+                Helpline: <span className="font-semibold" style={{ color: theme.text }}>+91 95077 12255</span> (Mon-Sun, 8 AM - 10 PM)
+              </p>
+            </div>
           </ExpandableSection>
-        </View>
+        </div>
 
         {/* ═══════════════════════════════════════════
             4. RATINGS & REVIEWS (Expandable & Interactive)
         ═══════════════════════════════════════════ */}
-        <View style={[
-            s.expandableSectionWrap,
-            { backgroundColor: theme.background },
-          ]}
-        >
-          <ExpandableSection title={`Ratings & Reviews (${totalReviews})`}
+        <div className="px-4 py-4" style={{ backgroundColor: theme.background }}>
+          <ExpandableSection
+            title={`Ratings & Reviews (${totalReviews})`}
             theme={theme}
             defaultOpen={true}
           >
             {/* Rating Overview */}
-            <View style={s.ratingOverview}>
-              <View style={s.ratingLeft}>
-                <Text style={[s.bigRating, { color: theme.text }]}>
+            <div className="mb-6 flex flex-row">
+              <div className="flex flex-col items-center border-r pr-5" style={{ borderRightColor: "#E5E7EB" }}>
+                <p className="text-[38px] leading-[44px] font-extrabold" style={{ color: theme.text }}>
                   {averageRating > 0 ? averageRating : "0.0"}
-                </Text>
-                <View style={s.starsRow}>
+                </p>
+                <div className="mt-1 mb-1 flex flex-row gap-0.5">
                   {[1, 2, 3, 4, 5].map((star) => (
                     star <= Math.floor(averageRating) ? (
                       <Star key={star} size={14} color="#F59E0B" fill="#F59E0B" />
@@ -1025,50 +965,56 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
                       <Star key={star} size={14} color="#F59E0B" />
                     )
                   ))}
-                </View>
-                <Text style={[s.totalRatings, { color: theme.tertiaryText }]}>
+                </div>
+                <p className="text-[11px] font-medium" style={{ color: theme.tertiaryText }}>
                   {totalReviews} verified ratings
-                </Text>
-              </View>
-              <View style={s.ratingRight}>
+                </p>
+              </div>
+              <div className="flex flex-1 flex-col justify-center gap-1 pl-4">
                 {starDist.map((d) => (
-                  <RatingBar key={d.stars}
+                  <RatingBar
+                    key={d.stars}
                     stars={d.stars}
                     count={d.count}
                     total={totalReviews || 1}
                     theme={theme}
                   />
                 ))}
-              </View>
-            </View>
+              </div>
+            </div>
 
             {/* Write Review Action Row */}
-            <View style={[s.writeReviewRow, { borderTopColor: theme.border }]}>
-              <Text style={{ fontSize: 13, fontWeight: "600", color: theme.text }}>
+            <div
+              className="mt-2 mb-3 flex flex-row items-center justify-between border-t py-3"
+              style={{ borderTopColor: theme.border }}
+            >
+              <span className="text-[13px] font-semibold" style={{ color: theme.text }}>
                 Have you used this product?
-              </Text>
-              <TouchableOpacity style={[s.writeReviewBtn, { borderColor: theme.primary, backgroundColor: theme.primary + "10" }]}
-                onPress={handleRateAndReview}
-                activeOpacity={0.7}
+              </span>
+              <button
+                type="button"
+                onClick={handleRateAndReview}
+                className="flex cursor-pointer flex-row items-center gap-1.5 rounded-md border px-3.5 py-2"
+                style={{ borderColor: theme.primary, backgroundColor: theme.primary + "10" }}
               >
                 <Star size={14} color={theme.primary} fill={theme.primary} />
-                <Text style={[s.writeReviewBtnText, { color: theme.primary }]}>
+                <span className="text-xs font-bold" style={{ color: theme.primary }}>
                   Rate & Review
-                </Text>
-              </TouchableOpacity>
-            </View>
+                </span>
+              </button>
+            </div>
 
             {/* Review Cards List */}
             {reviewsList.length === 0 ? (
-              <View style={s.emptyReviewsWrap}>
+              <div className="flex flex-col items-center gap-2 py-6">
                 <MessageCircle size={38} color={theme.tertiaryText} />
-                <Text style={[s.emptyReviewsTitle, { color: theme.text }]}>No Reviews Yet</Text>
-                <Text style={[s.emptyReviewsSub, { color: theme.secondaryText }]}>
+                <p className="text-[15px] font-bold" style={{ color: theme.text }}>No Reviews Yet</p>
+                <p className="px-5 text-center text-xs leading-[18px]" style={{ color: theme.secondaryText }}>
                   Be the first to share your thoughts and help other shoppers make the right choice!
-                </Text>
-              </View>
+                </p>
+              </div>
             ) : (
-              <View style={s.reviewsList}>
+              <div>
                 {reviewsList.map((review: any, idx: number) => {
                   const userName = review.user?.fullName || review.user || "Customer";
                   const initial = userName.charAt(0).toUpperCase();
@@ -1082,110 +1028,108 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
                     : review.date || "Verified Purchase";
 
                   return (
-                    <View key={review._id || review.id || idx}
-                      style={[s.reviewCard, { borderBottomColor: theme.border }]}
+                    <div
+                      key={review._id || review.id || idx}
+                      className="border-b py-4"
+                      style={{ borderBottomColor: theme.border }}
                     >
                       {/* Star + Title row */}
-                      <View style={s.reviewTopRow}>
-                        <View style={[
-                            s.miniRatingPill,
-                            {
-                              backgroundColor:
-                                review.rating >= 4
-                                  ? "#34C759"
-                                  : review.rating >= 3
-                                    ? "#F59E0B"
-                                    : "#FF3B30",
-                            },
-                          ]}
+                      <div className="mb-2 flex flex-row items-center gap-2.5">
+                        <span
+                          className="flex flex-row items-center gap-1 rounded px-1.5 py-0.5"
+                          style={{
+                            backgroundColor:
+                              review.rating >= 4
+                                ? "#34C759"
+                                : review.rating >= 3
+                                  ? "#F59E0B"
+                                  : "#FF3B30",
+                          }}
                         >
-                          <Text style={s.miniRatingText}>{review.rating}</Text>
+                          <span className="text-[11px] font-extrabold text-white">{review.rating}</span>
                           <Star size={10} color="#fff" fill="#fff" />
-                        </View>
-                        <Text style={[s.reviewTitle, { color: theme.text }]}
-                          numberOfLines={1}
-                        >
+                        </span>
+                        <span className="block flex-1 truncate text-sm font-semibold" style={{ color: theme.text }}>
                           {review.title || "Customer Review"}
-                        </Text>
-                      </View>
+                        </span>
+                      </div>
 
                       {/* Comment */}
-                      <Text style={[s.reviewBody, { color: theme.secondaryText }]}>
+                      <p className="mb-2 text-[13px] leading-[19px]" style={{ color: theme.secondaryText }}>
                         {review.comment}
-                      </Text>
+                      </p>
 
                       {/* Review Images */}
                       {review.images && review.images.length > 0 && (
-                        <ScrollView horizontal
-                          showsHorizontalScrollIndicator={false}
-                          style={s.reviewImagesRow}
-                        >
+                        <div className="mb-2.5 flex flex-row gap-2 overflow-x-auto" style={{ scrollbarWidth: "none" }}>
                           {review.images.map((img: any, i: number) => {
                             const imgUrl = typeof img === "string" ? img : img.url;
                             return (
-                              <Image key={i}
-                                source={{ uri: imgUrl }}
-                                style={[s.reviewThumb, { borderColor: theme.border }]}
+                              <img
+                                key={i}
+                                src={imgUrl}
+                                alt={`Review photo ${i + 1}`}
+                                className="mr-2 h-16 w-16 rounded-lg border object-cover"
+                                style={{ borderColor: theme.border }}
                               />
                             );
                           })}
-                        </ScrollView>
+                        </div>
                       )}
 
                       {/* Reviewer Info */}
-                      <View style={s.reviewerRow}>
-                        <View style={[s.avatarFallback, { backgroundColor: avatarColor }]}>
-                          <Text style={s.avatarFallbackText}>{initial}</Text>
-                        </View>
-                        <Text style={[s.reviewerName, { color: theme.text }]}
+                      <div className="flex flex-row items-center gap-1.5">
+                        <span
+                          className="flex h-[26px] w-[26px] items-center justify-center rounded-full text-[11px] font-extrabold text-white"
+                          style={{ backgroundColor: avatarColor }}
                         >
+                          {initial}
+                        </span>
+                        <span className="text-[13px] font-semibold" style={{ color: theme.text }}>
                           {userName}
-                        </Text>
+                        </span>
                         {(review.isVerifiedBuyer) && (
-                          <View style={s.verifiedBadge}>
+                          <span className="flex flex-row items-center gap-1 rounded bg-[#E8F5E9] px-1.5 py-0.5">
                             <Check size={11} color="#2E7D32" />
-                            <Text style={s.verifiedBadgeText}>Verified</Text>
-                          </View>
+                            <span className="text-[10px] font-bold" style={{ color: "#2E7D32" }}>Verified</span>
+                          </span>
                         )}
-                        <Text style={[s.reviewDot, { color: theme.tertiaryText }]}>
+                        <span className="text-[8px]" style={{ color: theme.tertiaryText }}>
                           •
-                        </Text>
-                        <Text style={[s.reviewerDate, { color: theme.tertiaryText }]}
-                        >
+                        </span>
+                        <span className="text-[11px]" style={{ color: theme.tertiaryText }}>
                           {formattedDate}
-                        </Text>
-                        <View style={{ flex: 1 }} />
-                        <TouchableOpacity style={[
-                            s.helpfulBtn,
-                            {
-                              borderColor: review.hasVotedHelpful ? theme.primary : theme.border,
-                              backgroundColor: review.hasVotedHelpful ? theme.primary + "15" : "transparent",
-                            },
-                          ]}
-                          onPress={() => review._id && handleHelpfulVote(review._id)}
-                          activeOpacity={0.7}
+                        </span>
+                        <span className="flex-1" />
+                        <button
+                          type="button"
+                          onClick={() => review._id && handleHelpfulVote(review._id)}
+                          className="flex cursor-pointer flex-row items-center gap-1 rounded border px-2 py-1"
+                          style={{
+                            borderColor: review.hasVotedHelpful ? theme.primary : theme.border,
+                            backgroundColor: review.hasVotedHelpful ? theme.primary + "15" : "transparent",
+                          }}
                         >
                           {review.hasVotedHelpful ? (
                             <ThumbsUp size={13} color={theme.primary} />
                           ) : (
                             <ThumbsUp size={13} color={theme.secondaryText} />
                           )}
-                          <Text style={[
-                              s.helpfulText,
-                              { color: review.hasVotedHelpful ? theme.primary : theme.secondaryText },
-                            ]}
+                          <span
+                            className="text-xs font-semibold"
+                            style={{ color: review.hasVotedHelpful ? theme.primary : theme.secondaryText }}
                           >
                             {review.helpfulCount ?? review.helpful ?? 0}
-                          </Text>
-                        </TouchableOpacity>
-                      </View>
-                    </View>
+                          </span>
+                        </button>
+                      </div>
+                    </div>
                   );
                 })}
-              </View>
+              </div>
             )}
           </ExpandableSection>
-        </View>
+        </div>
 
         {/* ═══════════════════════════════════════════
             SIMILAR PRODUCTS
@@ -1195,35 +1139,26 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
         )}
 
         {/* Bottom spacer — clears the fixed action bar + tab bar */}
-        <View style={{ height: 100 + stickyBarOffset }} />
-      </ScrollView>
+        <div style={{ height: 100 + stickyBarOffset }} />
+      </div>
 
       {/* ═══════════════════════════════════════════
           BOTTOM ACTION BAR — viewport-fixed on web so it is always
-          visible (the page scrolls at document level, so `absolute`
-          would park it at the end of the content). Native keeps
-          `absolute` inside its bounded screen. Bottom offset lifts it
-          above the fixed tab bar on mobile web.
+          visible. Bottom offset lifts it above the fixed tab bar
+          on mobile web.
       ═══════════════════════════════════════════ */}
-      <View
-        style={[
-          s.bottomBar,
-          {
-            backgroundColor: theme.background,
-            borderTopColor: theme.border,
-            ...(Platform.OS === "web"
-              ? ({
-                  position: "fixed",
-                  bottom: stickyBarOffset,
-                  left: 0,
-                  right: 0,
-                  zIndex: 60,
-                } as any)
-              : { bottom: stickyBarOffset }),
-          },
-        ]}
+      <div
+        className="fixed right-0 left-0 z-[60] flex flex-row gap-3 border-t px-4 pt-3 pb-3"
+        style={{
+          backgroundColor: theme.background,
+          borderTopColor: theme.border,
+          bottom: stickyBarOffset,
+          width: "100%",
+        }}
       >
-        <TouchableOpacity onPress={() => {
+        <button
+          type="button"
+          onClick={() => {
             if (!isAuthenticated) {
               navigate("/auth");
               return;
@@ -1231,30 +1166,24 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
             toggleWishlist(wishlistId, product);
           }}
-          style={[
-            s.wishlistBtn,
-            {
-              borderColor: isWishlisted ? (isDark ? "rgba(255, 59, 48, 0.4)" : "#FFD2D0") : theme.border,
-              backgroundColor: isWishlisted ? (isDark ? "rgba(255, 59, 48, 0.12)" : "#FFF5F5") : "transparent",
-            },
-          ]}
-          activeOpacity={0.7}
+          className="flex h-12 min-w-0 flex-1 cursor-pointer flex-row items-center justify-center gap-2 rounded-md border"
+          style={{
+            borderColor: isWishlisted ? (isDark ? "rgba(255, 59, 48, 0.4)" : "#FFD2D0") : theme.border,
+            backgroundColor: isWishlisted ? (isDark ? "rgba(255, 59, 48, 0.12)" : "#FFF5F5") : "transparent",
+          }}
         >
           {isWishlisted ? (
             <Heart size={22} color="#FF3B30" fill="#FF3B30" />
           ) : (
             <Heart size={22} color={theme.text} />
           )}
-          <Text style={[
-              s.wishlistBtnText,
-              {
-                color: isWishlisted ? "#FF3B30" : theme.text,
-              },
-            ]}
+          <span
+            className="text-[13px] font-bold tracking-wide"
+            style={{ color: isWishlisted ? "#FF3B30" : theme.text }}
           >
             {isWishlisted ? "WISHLISTED" : "WISHLIST"}
-          </Text>
-        </TouchableOpacity>
+          </span>
+        </button>
         {/* Add to Bag Button */}
         {(() => {
           const isOutOfStock = !!((dp.totalStock ?? 0) <= 0 || (selectedSize && (selectedVariant?.stock ?? 0) <= 0));
@@ -1281,38 +1210,38 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
           }
 
           return (
-            <TouchableOpacity onPress={handleAddToBag}
+            <button
+              type="button"
+              onClick={handleAddToBag}
               disabled={buttonDisabled}
-              style={[
-                s.addToBagBtn,
-                {
-                  backgroundColor: isInCart
-                    ? theme.primary
-                    : buttonDisabled
-                      ? theme.secondaryText || "#9ca3af"
-                      : theme.primary,
-                  opacity: isAddingToCart ? 0.7 : 1
-                }
-              ]}
-              activeOpacity={0.8}
+              className="flex h-12 min-w-0 flex-[1.5] cursor-pointer flex-row items-center justify-center gap-2 rounded-md"
+              style={{
+                backgroundColor: isInCart
+                  ? theme.primary
+                  : buttonDisabled
+                    ? theme.secondaryText || "#9ca3af"
+                    : theme.primary,
+                opacity: isAddingToCart ? 0.7 : 1
+              }}
             >
               {isAddingToCart ? (
-                <ActivityIndicator color="#fff" size="small" />
+                <span className="block h-5 w-5 animate-spin rounded-full border-2 border-white/40 border-t-white" />
               ) : (
                 <>
                   <ButtonIcon size={20} color="#fff" />
-                  <Text style={s.addToBagText}>
+                  <span className="text-sm font-extrabold tracking-wide text-white">
                     {buttonText}
-                  </Text>
+                  </span>
                 </>
               )}
-            </TouchableOpacity>
+            </button>
           );
         })()}
-      </View>
+      </div>
 
       {/* Modals */}
-      <SizeChartModal visible={showSizeChart}
+      <SizeChartModal
+        visible={showSizeChart}
         onClose={() => setShowSizeChart(false)}
         sizeChart={activeSizeChart}
         selectedSize={selectedSize}
@@ -1320,7 +1249,8 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
         theme={theme}
       />
 
-      <WriteReviewModal visible={showReviewModal}
+      <WriteReviewModal
+        visible={showReviewModal}
         onClose={() => setShowReviewModal(false)}
         onSubmit={async (reviewData) => {
           await createReviewMutation.mutateAsync(reviewData);

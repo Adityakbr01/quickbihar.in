@@ -1,6 +1,5 @@
 import React, { useState, useCallback, useEffect } from "react";
-import { StyleSheet, View, ScrollView, Platform, useWindowDimensions } from "@/components/primitives";
-import { BREAKPOINTS, DESKTOP } from "@/src/utils/responsive";
+import { BREAKPOINTS, useWindowWidth } from "@/src/utils/responsive";
 import { useNavigate } from "react-router-dom";
 import { goTo, useRouteParams } from "@/src/utils/navigation";
 import * as Haptics from "@/lib/haptics";
@@ -20,6 +19,7 @@ import TrendingSection from "@/src/features/clothing/search/components/TrendingS
 import SearchResults from "@/src/features/clothing/search/components/SearchResults";
 import { SeoHead } from "@/src/components/seo/SeoHead";
 import { staticPageMeta } from "@/src/lib/seo";
+import { cn } from "@/src/lib/utils";
 
 const TRENDING_ITEMS = categoriesData.map((c) => c.title);
 
@@ -111,8 +111,8 @@ const ClothingSearchScreen = () => {
     setFilters(newFilters);
   };
 
-  const { width: winW } = useWindowDimensions();
-  const isDesktop = Platform.OS === "web" && winW >= BREAKPOINTS.desktopMin;
+  const winW = useWindowWidth();
+  const isDesktop = winW >= BREAKPOINTS.desktopMin;
 
   const onClearHistory = () => {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
@@ -151,90 +151,62 @@ const ClothingSearchScreen = () => {
           return base;
         })()}
       />
-      <View style={[styles.container, { backgroundColor: theme.background }]}>
+      <div className="flex-1" style={{ backgroundColor: theme.background }}>
         {/* Desktop: centered 1280px column; mobile renders edge-to-edge. */}
-        <View style={isDesktop ? styles.desktopColumn : styles.mobileFill}>
-        <SearchHeader
-          query={query}
-          setQuery={setQuery}
-          onClear={() => {
-            setQuery("");
-          }}
-          onSubmit={() => {
-            setDebouncedQuery(query);
-            onSearchTrigger(query);
-          }}
-        />
-
-        {query.length > 0 && (
-          <FilterBar
-            selectedSort={selectedSort}
-            onSortChange={handleSortChange}
-            filters={filters}
-            onFilterChange={handleFilterChange}
+        <div className={cn("flex-1", isDesktop && "mx-auto w-full max-w-[1280px] px-6")}>
+          <SearchHeader
+            query={query}
+            setQuery={setQuery}
+            onClear={() => {
+              setQuery("");
+            }}
+            onSubmit={() => {
+              setDebouncedQuery(query);
+              onSearchTrigger(query);
+            }}
           />
-        )}
 
-        <View style={styles.content}>
-          {query.length === 0 ? (
-            <ScrollView
-              contentContainerStyle={styles.contentContainer}
-              keyboardShouldPersistTaps="handled"
-            >
-              <RecentSearches
-                history={history}
-                onSelect={onSelectItem}
-                onRemove={onRemoveItem}
-                onClearAll={onClearHistory}
-              />
-              <TrendingSection
-                trendingItems={TRENDING_ITEMS}
-                onSelect={onSelectItem}
-              />
-            </ScrollView>
-          ) : (
-            <SearchResults
-              results={flatResults}
-              loading={isLoading}
-              onItemPress={handleItemPress}
-              onEndReached={() => {
-                if (hasNextPage && !isFetchingNextPage) {
-                  fetchNextPage();
-                }
-              }}
-              isFetchingNextPage={isFetchingNextPage}
+          {query.length > 0 && (
+            <FilterBar
+              selectedSort={selectedSort}
+              onSortChange={handleSortChange}
+              filters={filters}
+              onFilterChange={handleFilterChange}
             />
           )}
-        </View>
-        </View>
-      </View>
+
+          <div className="flex-1">
+            {query.length === 0 ? (
+              <div className="pb-5">
+                <RecentSearches
+                  history={history}
+                  onSelect={onSelectItem}
+                  onRemove={onRemoveItem}
+                  onClearAll={onClearHistory}
+                />
+                <TrendingSection
+                  trendingItems={TRENDING_ITEMS}
+                  onSelect={onSelectItem}
+                />
+              </div>
+            ) : (
+              <SearchResults
+                results={flatResults}
+                loading={isLoading}
+                onItemPress={handleItemPress}
+                onEndReached={() => {
+                  if (hasNextPage && !isFetchingNextPage) {
+                    fetchNextPage();
+                  }
+                }}
+                isFetchingNextPage={isFetchingNextPage}
+              />
+            )}
+          </div>
+        </div>
+      </div>
     </>
   );
 };
 
 export default ClothingSearchScreen;
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  content: {
-    flex: 1,
-  },
-  contentContainer: {
-    paddingBottom: 20,
-  },
-  // Mobile passthrough keeps legacy layout identical.
-  mobileFill: {
-    flex: 1,
-  },
-  // Desktop-only: centered 1280px column. Never applied on mobile.
-  desktopColumn: {
-    width: "100%",
-    maxWidth: DESKTOP.maxWidth,
-    alignSelf: "center",
-    marginHorizontal: "auto" as any,
-    paddingHorizontal: DESKTOP.gutter,
-    flex: 1,
-  },
-});

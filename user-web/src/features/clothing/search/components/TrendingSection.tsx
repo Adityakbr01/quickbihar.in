@@ -1,12 +1,4 @@
 import React from "react";
-import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-  Pressable,
-  Platform,
-} from "@/components/primitives";
 import LazyLottie from "@/src/components/common/LazyLottie";
 import * as Haptics from "@/lib/haptics";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
@@ -22,92 +14,42 @@ const TrendingSection = ({ trendingItems, onSelect }: TrendingSectionProps) => {
   const theme = useTheme();
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <View style={styles.lottieContainer}>
+    <div className="py-4">
+      <div className="mb-3 flex flex-row items-center px-5">
+        <span className="mr-1.5 flex h-6 w-6 items-center justify-center overflow-hidden">
           <LazyLottie
             key={theme.text}
             source={fireLottie}
             autoPlay
             loop
-            style={styles.fireLottie}
+            style={{ width: "100%", height: "100%" }}
             resizeMode="contain"
           />
-        </View>
-        <Text style={[styles.title, { color: theme.text }]}>Trending Now</Text>
-      </View>
+        </span>
+        <h2 className="text-lg font-semibold" style={{ color: theme.text }}>Trending Now</h2>
+      </div>
 
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-      >
-        {trendingItems.map((item, index) => (
-          <Pressable
+      <div className="flex flex-row gap-2.5 overflow-x-auto px-5" style={{ scrollbarWidth: "none" }}>
+        {trendingItems.map((item) => (
+          <button
             key={item}
-            style={[
-              styles.chip,
-              {
-                backgroundColor: theme.tertiaryBackground,
-                borderColor: theme.border,
-              },
-            ]}
-            onPress={() => {
+            type="button"
+            onClick={() => {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
               onSelect(item);
             }}
+            className="shrink-0 cursor-pointer rounded-full border px-4 py-2"
+            style={{
+              backgroundColor: theme.tertiaryBackground,
+              borderColor: theme.border,
+            }}
           >
-            <Text style={[styles.chipText, { color: theme.text }]}>{item}</Text>
-          </Pressable>
+            <span className="text-sm font-medium" style={{ color: theme.text }}>{item}</span>
+          </button>
         ))}
-      </ScrollView>
-    </View>
+      </div>
+    </div>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    paddingVertical: 16,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    marginBottom: 12,
-  },
-  lottieContainer: {
-    width: 24,
-    height: 24,
-    marginRight: 6,
-    overflow: "hidden",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  fireLottie: {
-    width: "100%",
-    height: "100%",
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: "600",
-  },
-  scrollContent: {
-    paddingHorizontal: 20,
-    gap: 10,
-  },
-  chip: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 1,
-    ...Platform.select({
-      web: { cursor: "pointer" } as any,
-    }),
-  },
-  chipText: {
-    fontSize: 14,
-    fontWeight: "500",
-  },
-});
 
 export default TrendingSection;

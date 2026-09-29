@@ -1,13 +1,6 @@
 import { Clock, X } from "lucide-react";
 import * as Haptics from "@/lib/haptics";
 import React from "react";
-import {
-  FlatList,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from "@/components/primitives";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 
 interface RecentSearchesProps {
@@ -28,77 +21,54 @@ const RecentSearches = ({
   if (history.length === 0) return null;
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={[styles.title, { color: theme.text }]}>Recent Searches</Text>
-        <Pressable onPress={onClearAll}>
-          <Text style={[styles.clearAll, { color: theme.primary }]}>Clear all</Text>
-        </Pressable>
-      </View>
+    <div className="pt-4">
+      <div className="mb-3 flex flex-row items-center justify-between px-5">
+        <h2 className="text-lg font-semibold" style={{ color: theme.text }}>Recent Searches</h2>
+        <button type="button" onClick={onClearAll} className="cursor-pointer text-sm font-medium" style={{ color: theme.primary }}>
+          Clear all
+        </button>
+      </div>
 
-      <FlatList data={history}
-        keyExtractor={(item) => item}
-        renderItem={({ item }) => (
-          <Pressable style={styles.item}
-            onPress={() => {
-              Haptics.selectionAsync();
-              onSelect(item);
-            }}
-          >
-            <View style={styles.itemLeft}>
-              <Clock size={20} color={theme.tertiaryText} />
-              <Text style={[styles.itemText, { color: theme.text }]}>{item}</Text>
-            </View>
-            <Pressable onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                onRemove(item);
+      <ul>
+        {history.map((item) => (
+          <li key={item}>
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={() => {
+                Haptics.selectionAsync();
+                onSelect(item);
               }}
-              hitSlop={10}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  Haptics.selectionAsync();
+                  onSelect(item);
+                }
+              }}
+              className="flex cursor-pointer flex-row items-center justify-between px-5 py-3"
             >
-              <X size={18} color={theme.tertiaryText} />
-            </Pressable>
-          </Pressable>
-        )}
-        scrollEnabled={false} // Since it's likely part of a larger scroll view
-      />
-    </View>
+              <span className="flex flex-row items-center">
+                <Clock size={20} color={theme.tertiaryText} />
+                <span className="ml-3 text-base" style={{ color: theme.text }}>{item}</span>
+              </span>
+              <button
+                type="button"
+                aria-label={`Remove ${item}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  onRemove(item);
+                }}
+                className="cursor-pointer p-1"
+              >
+                <X size={18} color={theme.tertiaryText} />
+              </button>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    paddingTop: 16,
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    marginBottom: 12,
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: "600",
-  },
-  clearAll: {
-    fontSize: 14,
-    fontWeight: "500",
-  },
-  item: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-  },
-  itemLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  itemText: {
-    fontSize: 16,
-    marginLeft: 12,
-  },
-});
 
 export default RecentSearches;

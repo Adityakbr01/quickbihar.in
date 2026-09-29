@@ -1,7 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity, LayoutAnimation } from "@/components/primitives";
 import { ChevronDown, ChevronUp } from "lucide-react";
-import { styles as s } from "../styles";
 
 interface ExpandableSectionProps {
   title: string;
@@ -18,22 +16,21 @@ export const ExpandableSection = ({
 }: ExpandableSectionProps) => {
   const [open, setOpen] = useState(defaultOpen);
   return (
-    <View style={s.expandableContainer}>
-      <TouchableOpacity style={s.expandableHeader}
-        onPress={() => {
-          LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-          setOpen(!open);
-        }}
-        activeOpacity={0.6}
+    <div>
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        aria-expanded={open}
+        className="flex w-full cursor-pointer flex-row items-center justify-between py-4"
       >
-        <Text style={[s.expandableTitle, { color: theme.text }]}>{title}</Text>
+        <span className="text-sm font-bold tracking-wide" style={{ color: theme.text }}>{title}</span>
         {open ? (
           <ChevronUp size={18} color={theme.secondaryText} />
         ) : (
           <ChevronDown size={18} color={theme.secondaryText} />
         )}
-      </TouchableOpacity>
-      {open && <View style={s.expandableBody}>{children}</View>}
-    </View>
+      </button>
+      {open && <div className="pb-4">{children}</div>}
+    </div>
   );
 };

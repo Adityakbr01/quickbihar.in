@@ -1,13 +1,4 @@
 import React, { useEffect, useMemo, useState } from "react";
-import {
-  ActivityIndicator,
-  Image,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "@/components/primitives";
 import type { LucideIcon } from "lucide-react";
 import { ArrowRight, CircleX, Expand, Palette, ShoppingBag, X, Zap } from "lucide-react";
 import { Theme } from "@/src/theme/Provider/ThemeProvider";
@@ -19,11 +10,6 @@ import { goTo } from "@/src/utils/navigation";
 
 import SizeChartModal from "./SizeChartModal";
 import { useSizeChart, useSizeCharts } from "@/src/features/clothing/sizeChart/hooks/useSizeCharts";
-import {
-  Sheet,
-  SheetFooter,
-  useSheet,
-} from "@/src/components/common/BottomSheet";
 
 interface VariantSelectorBottomSheetProps {
   visible: boolean;
@@ -40,7 +26,6 @@ export const VariantSelectorBottomSheet = ({
 }: VariantSelectorBottomSheetProps) => {
   const navigate = useNavigate();
   const { addItem, isLoading: isAddingToCart, items: cartItems } = useCartStore();
-  const sheet = useSheet();
 
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
@@ -160,14 +145,7 @@ export const VariantSelectorBottomSheet = ({
     return false;
   }, [product.totalStock, selectedSize, selectedVariant]);
 
-  // Imperative present/dismiss from the parent `visible` prop.
-  useEffect(() => {
-    if (visible) {
-      sheet.current?.present();
-    } else {
-      sheet.current?.dismiss();
-    }
-  }, [visible, sheet]);
+  if (!visible) return null;
 
   const handleConfirm = async () => {
     if (isInCart) {
@@ -204,278 +182,242 @@ export const VariantSelectorBottomSheet = ({
     ? product.price * (1 + product.gstPercentage / 100)
     : product.price;
 
+  const buttonDisabled =
+    isAddingToCart ||
+    !isSelectionComplete ||
+    (isOutOfStock && !isInCart);
+
+  let buttonText = "ADD TO BAG";
+  let ButtonIcon: LucideIcon = ShoppingBag;
+
+  if (isInCart) {
+    buttonText = "GO TO CART";
+    ButtonIcon = ArrowRight;
+  } else if (isOutOfStock) {
+    buttonText = "OUT OF STOCK";
+    ButtonIcon = CircleX;
+  } else if (!isSelectionComplete) {
+    if (hasColors && !selectedColor) {
+      buttonText = "SELECT COLOR";
+      ButtonIcon = Palette;
+    } else if (hasSizes && !selectedSize) {
+      buttonText = "SELECT SIZE";
+      ButtonIcon = Expand;
+    }
+  }
+
   return (
     <>
-      <Sheet ref={sheet}
-        
-        onDidDismiss={onClose}
-        backgroundColor={theme.background}
+      <div
+        className="fixed inset-0 z-[100] flex items-end justify-center bg-black/50 sm:items-center"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Select variant"
+        onClick={(e) => {
+          if (e.target === e.currentTarget) onClose();
+        }}
       >
-        {/* Product Header (custom header — has image + price) */}
-        <View style={[
-            s.header,
-            { borderBottomColor: theme.border },
-          ]}
+        <div
+          className="flex max-h-[85vh] w-full max-w-lg flex-col overflow-hidden rounded-t-3xl sm:rounded-3xl"
+          style={{ backgroundColor: theme.background }}
         >
-          <Image source={{
-              uri: product.images?.[0]?.url || product.image,
-            }}
-            style={[s.productImage, { borderColor: theme.border }]}
-          />
-          <View style={s.headerInfo}>
-            <Text style={[s.brand, { color: theme.secondaryText }]}
-              numberOfLines={1}
-            >
-              {product.brand || "Brand"}
-            </Text>
-            <Text style={[s.title, { color: theme.text }]} numberOfLines={2}>
-              {product.title}
-            </Text>
-            <View style={s.priceRow}>
-              <Text style={[s.price, { color: theme.text }]}>
-                ₹{productPrice?.toLocaleString()}
-              </Text>
-              {product.originalPrice &&
-                product.originalPrice > product.price && (
-                  <>
-                    <Text style={[s.mrp, { color: theme.tertiaryText }]}>
-                      ₹{product.originalPrice.toLocaleString()}
-                    </Text>
-                    <Text style={s.discountText}>
-                      {Math.round(discount)}% OFF
-                    </Text>
-                  </>
-                )}
-            </View>
-          </View>
-          <TouchableOpacity onPress={onClose}
-            style={[
-              s.closeBtn,
-              { backgroundColor: (theme.border ?? "#000") + "40" },
-            ]}
+          {/* Product Header (custom header — has image + price) */}
+          <div
+            className="flex flex-row items-center border-b px-5 pt-1 pb-4"
+            style={{ borderBottomColor: theme.border }}
           >
-            <X size={20} color={theme.text} />
-          </TouchableOpacity>
-        </View>
+            <img
+              src={product.images?.[0]?.url || product.image}
+              alt={product.title}
+              className="h-[85px] w-[70px] rounded-lg border object-cover"
+              style={{ borderColor: theme.border }}
+            />
+            <div className="mr-2 ml-4 flex flex-1 flex-col justify-center">
+              <p className="truncate text-xs font-bold tracking-wide uppercase" style={{ color: theme.secondaryText }}>
+                {product.brand || "Brand"}
+              </p>
+              <p className="mt-0.5 line-clamp-2 text-sm leading-[18px] font-semibold" style={{ color: theme.text }}>
+                {product.title}
+              </p>
+              <div className="mt-1.5 flex flex-row items-baseline gap-2">
+                <span className="text-base font-extrabold" style={{ color: theme.text }}>
+                  ₹{productPrice?.toLocaleString()}
+                </span>
+                {product.originalPrice &&
+                  product.originalPrice > product.price && (
+                    <>
+                      <span className="text-xs line-through" style={{ color: theme.tertiaryText }}>
+                        ₹{product.originalPrice.toLocaleString()}
+                      </span>
+                      <span className="text-xs font-bold text-[#FF3B30]">
+                        {Math.round(discount)}% OFF
+                      </span>
+                    </>
+                  )}
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Close variant selector"
+              className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full"
+              style={{ backgroundColor: (theme.border ?? "#000") + "40" }}
+            >
+              <X size={20} color={theme.text} />
+            </button>
+          </div>
 
-        <ScrollView showsVerticalScrollIndicator={false}
-          contentContainerStyle={s.content}
-        >
-          {/* Color Selection */}
-          {uniqueColors.length > 0 && (
-            <View style={s.section}>
-              <Text style={[s.sectionLabel, { color: theme.text }]}>
-                COLOR:{" "}
-                <Text style={{
-                    color: theme.secondaryText,
-                    fontWeight: "normal",
-                  }}
-                >
-                  {selectedColor}
-                </Text>
-              </Text>
-              <View style={s.colorRow}>
-                {uniqueColors.map((color) => {
-                  const active = selectedColor === color;
-                  return (
-                    <TouchableOpacity key={color}
-                      onPress={() => {
-                        setSelectedColor(color);
-                        setSelectedSize(null);
-                      }}
-                      style={[
-                        s.colorOption,
-                        {
+          <div className="min-h-0 flex-1 overflow-y-auto p-5">
+            {/* Color Selection */}
+            {uniqueColors.length > 0 && (
+              <div className="mb-5">
+                <p className="mb-3 text-[13px] font-bold" style={{ color: theme.text }}>
+                  COLOR:{" "}
+                  <span style={{ color: theme.secondaryText, fontWeight: "normal" }}>
+                    {selectedColor}
+                  </span>
+                </p>
+                <div className="flex flex-row flex-wrap gap-2.5">
+                  {uniqueColors.map((color) => {
+                    const active = selectedColor === color;
+                    return (
+                      <button
+                        key={color}
+                        type="button"
+                        onClick={() => {
+                          setSelectedColor(color);
+                          setSelectedSize(null);
+                        }}
+                        className="cursor-pointer rounded-lg border px-4 py-2.5"
+                        style={{
                           borderColor: active ? theme.primary : theme.border,
-                          backgroundColor: active
-                            ? theme.primary + "1A"
-                            : theme.background,
-                        },
-                      ]}
-                      activeOpacity={0.7}
-                    >
-                      <Text style={[
-                          s.colorText,
-                          {
-                            color: active ? theme.primary : theme.text,
-                          },
-                        ]}
+                          backgroundColor: active ? theme.primary + "1A" : theme.background,
+                        }}
                       >
-                        {color}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-            </View>
-          )}
+                        <span
+                          className="text-[13px] font-semibold"
+                          style={{ color: active ? theme.primary : theme.text }}
+                        >
+                          {color}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
-          {/* Size Selection */}
-          {sizesForColor.length > 0 && (
-            <View style={s.section}>
-              <View style={{
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  marginBottom: 12,
-                }}
-              >
-                <Text style={[s.sectionLabel, { color: theme.text, marginBottom: 0 }]}
-                >
-                  SELECT SIZE
-                </Text>
-                <TouchableOpacity onPress={() => {
-                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                    setShowSizeChart(true);
-                  }}
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    gap: 4,
-                  }}
-                >
-                  <Expand size={14} color={theme.primary} />
-                  <Text style={{
-                      fontSize: 12,
-                      fontWeight: "700",
-                      color: theme.primary,
+            {/* Size Selection */}
+            {sizesForColor.length > 0 && (
+              <div className="mb-5">
+                <div className="mb-3 flex flex-row items-center justify-between">
+                  <p className="text-[13px] font-bold" style={{ color: theme.text }}>
+                    SELECT SIZE
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                      setShowSizeChart(true);
                     }}
+                    className="flex cursor-pointer flex-row items-center gap-1"
                   >
-                    SIZE GUIDE
-                  </Text>
-                </TouchableOpacity>
-              </View>
-              <View style={s.sizeRow}>
-                {sizesForColor.map((v: any) => {
-                  const active = selectedSize === v.size;
-                  const oos = v.stock === 0;
-                  return (
-                    <TouchableOpacity key={v.sku}
-                      disabled={oos}
-                      onPress={() => setSelectedSize(v.size)}
-                      style={[
-                        s.sizeCircle,
-                        {
-                          borderColor: active
-                            ? theme.primary
-                            : oos
-                              ? theme.border
-                              : theme.border,
-                          backgroundColor: active
-                            ? theme.primary
-                            : theme.background,
-                        },
-                        oos && s.sizeCircleOOS,
-                      ]}
-                      activeOpacity={0.7}
-                    >
-                      <Text style={[
-                          s.sizeText,
-                          {
-                            color: active
-                              ? "#fff"
-                              : oos
-                                ? theme.tertiaryText
-                                : theme.text,
-                          },
-                        ]}
-                        numberOfLines={1}
+                    <Expand size={14} color={theme.primary} />
+                    <span className="text-xs font-bold" style={{ color: theme.primary }}>
+                      SIZE GUIDE
+                    </span>
+                  </button>
+                </div>
+                <div className="flex flex-row flex-wrap gap-3">
+                  {sizesForColor.map((v: any) => {
+                    const active = selectedSize === v.size;
+                    const oos = v.stock === 0;
+                    return (
+                      <button
+                        key={v.sku}
+                        type="button"
+                        disabled={oos}
+                        onClick={() => setSelectedSize(v.size)}
+                        className="relative flex h-12 min-w-12 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-3xl border px-3.5"
+                        style={{
+                          borderColor: active ? theme.primary : theme.border,
+                          backgroundColor: active ? theme.primary : theme.background,
+                          opacity: oos ? 0.6 : 1,
+                          borderStyle: oos ? "dashed" : "solid",
+                        }}
                       >
-                        {v.size}
-                      </Text>
-                      {oos && (
-                        <View style={[
-                            s.oosLine,
-                            { backgroundColor: theme.tertiaryText },
-                          ]}
-                        />
-                      )}
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
+                        <span
+                          className="block truncate text-center text-[13px] font-bold"
+                          style={{
+                            color: active ? "#fff" : oos ? theme.tertiaryText : theme.text,
+                            textDecoration: oos ? "line-through" : undefined,
+                          }}
+                        >
+                          {v.size}
+                        </span>
+                        {oos && (
+                          <span
+                            className="absolute h-px w-[140%] -rotate-45"
+                            style={{ backgroundColor: theme.tertiaryText }}
+                          />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
 
-              {/* Low Stock Warning */}
-              {selectedSize &&
-                sizesForColor.find((v: any) => v.size === selectedSize)
-                  ?.stock! <= 5 && (
-                  <View style={s.lowStockRow}>
-                    <Zap size={14} color={theme.warning} />
-                    <Text style={[s.lowStockText, { color: theme.warning }]}
-                    >
-                      Only{" "}
-                      {
-                        sizesForColor.find(
-                          (v: any) => v.size === selectedSize,
-                        )?.stock
-                      }{" "}
-                      items left!
-                    </Text>
-                  </View>
-                )}
-            </View>
-          )}
-        </ScrollView>
+                {/* Low Stock Warning */}
+                {selectedSize &&
+                  sizesForColor.find((v: any) => v.size === selectedSize)
+                    ?.stock! <= 5 && (
+                    <div className="mt-2.5 flex flex-row items-center gap-1.5">
+                      <Zap size={14} color={theme.warning} />
+                      <span className="text-xs font-semibold" style={{ color: theme.warning }}>
+                        Only{" "}
+                        {
+                          sizesForColor.find(
+                            (v: any) => v.size === selectedSize,
+                          )?.stock
+                        }{" "}
+                        items left!
+                      </span>
+                    </div>
+                  )}
+              </div>
+            )}
+          </div>
 
-        {/* Action footer */}
-        <SheetFooter>
-          {(() => {
-            const buttonDisabled =
-              isAddingToCart ||
-              !isSelectionComplete ||
-              (isOutOfStock && !isInCart);
+          {/* Action footer */}
+          <div className="border-t px-4 py-3" style={{ borderTopColor: theme.border }}>
+            <button
+              type="button"
+              onClick={handleConfirm}
+              disabled={buttonDisabled}
+              className="flex h-12 w-full cursor-pointer flex-row items-center justify-center gap-2 rounded-lg"
+              style={{
+                backgroundColor: isInCart
+                  ? theme.primary
+                  : buttonDisabled
+                    ? theme.secondaryText || "#9ca3af"
+                    : theme.primary,
+                opacity: isAddingToCart ? 0.7 : 1,
+              }}
+            >
+              {isAddingToCart ? (
+                <span className="block h-5 w-5 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+              ) : (
+                <>
+                  <ButtonIcon size={20} color="#fff" />
+                  <span className="text-[15px] font-extrabold tracking-wide text-white">{buttonText}</span>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
 
-            let buttonText = "ADD TO BAG";
-            let ButtonIcon: LucideIcon = ShoppingBag;
-
-            if (isInCart) {
-              buttonText = "GO TO CART";
-              ButtonIcon = ArrowRight;
-            } else if (isOutOfStock) {
-              buttonText = "OUT OF STOCK";
-              ButtonIcon = CircleX;
-            } else if (!isSelectionComplete) {
-              if (hasColors && !selectedColor) {
-                buttonText = "SELECT COLOR";
-                ButtonIcon = Palette;
-              } else if (hasSizes && !selectedSize) {
-                buttonText = "SELECT SIZE";
-                ButtonIcon = Expand;
-              }
-            }
-
-            return (
-              <TouchableOpacity onPress={handleConfirm}
-                disabled={buttonDisabled}
-                style={[
-                  s.actionBtn,
-                  {
-                    backgroundColor: isInCart
-                      ? theme.primary
-                      : buttonDisabled
-                        ? theme.secondaryText || "#9ca3af"
-                        : theme.primary,
-                    opacity: isAddingToCart ? 0.7 : 1,
-                    width: "100%",
-                  },
-                ]}
-                activeOpacity={0.8}
-              >
-                {isAddingToCart ? (
-                  <ActivityIndicator color="#fff" size="small" />
-                ) : (
-                  <>
-                    <ButtonIcon size={20} color="#fff" />
-                    <Text style={s.actionBtnText}>{buttonText}</Text>
-                  </>
-                )}
-              </TouchableOpacity>
-            );
-          })()}
-        </SheetFooter>
-      </Sheet>
-
-      <SizeChartModal visible={showSizeChart}
+      <SizeChartModal
+        visible={showSizeChart}
         onClose={() => setShowSizeChart(false)}
         sizeChart={activeSizeChart}
         selectedSize={selectedSize}
@@ -485,145 +427,3 @@ export const VariantSelectorBottomSheet = ({
     </>
   );
 };
-
-const s = StyleSheet.create({
-  header: {
-    flexDirection: "row",
-    paddingHorizontal: 20,
-    paddingBottom: 16,
-    paddingTop: 4,
-    borderBottomWidth: 1,
-    alignItems: "center",
-  },
-  productImage: {
-    width: 70,
-    height: 85,
-    borderRadius: 8,
-    borderWidth: 1,
-  },
-  headerInfo: {
-    flex: 1,
-    marginLeft: 16,
-    marginRight: 8,
-    justifyContent: "center",
-  },
-  brand: {
-    fontSize: 12,
-    fontWeight: "700",
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
-  },
-  title: {
-    fontSize: 14,
-    fontWeight: "600",
-    marginTop: 2,
-    lineHeight: 18,
-  },
-  priceRow: {
-    flexDirection: "row",
-    alignItems: "baseline",
-    marginTop: 6,
-    gap: 8,
-  },
-  price: {
-    fontSize: 16,
-    fontWeight: "800",
-  },
-  mrp: {
-    fontSize: 12,
-    textDecorationLine: "line-through",
-  },
-  discountText: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: "#FF3B30",
-  },
-  closeBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  content: {
-    padding: 20,
-  },
-  section: {
-    marginBottom: 20,
-  },
-  sectionLabel: {
-    fontSize: 13,
-    fontWeight: "700",
-    marginBottom: 12,
-  },
-  colorRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 10,
-  },
-  colorOption: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 8,
-    borderWidth: 1,
-  },
-  colorText: {
-    fontSize: 13,
-    fontWeight: "600",
-  },
-  sizeRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 12,
-  },
-  sizeCircle: {
-    minWidth: 48,
-    height: 48,
-    paddingHorizontal: 14,
-    borderRadius: 24,
-    borderWidth: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    position: "relative",
-    overflow: "hidden",
-    flexShrink: 0,
-  },
-  sizeCircleOOS: {
-    opacity: 0.6,
-  },
-  sizeText: {
-    fontSize: 13,
-    fontWeight: "700",
-    textAlign: "center",
-  },
-  oosLine: {
-    position: "absolute",
-    width: "140%",
-    height: 1.5,
-    transform: [{ rotate: "45deg" }],
-  },
-  lowStockRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 10,
-    gap: 6,
-  },
-  lowStockText: {
-    fontSize: 12,
-    fontWeight: "600",
-  },
-  actionBtn: {
-    height: 48,
-    borderRadius: 8,
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    gap: 8,
-  },
-  actionBtnText: {
-    color: "#fff",
-    fontSize: 15,
-    fontWeight: "800",
-    letterSpacing: 0.5,
-  },
-});
