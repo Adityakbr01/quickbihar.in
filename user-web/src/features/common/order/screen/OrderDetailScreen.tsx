@@ -1,15 +1,4 @@
 import React, { useEffect, useState, useMemo } from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  ScrollView,
-  ActivityIndicator,
-  RefreshControl,
-  Share,
-  Linking,
-  Platform,
-} from "@/components/primitives";
 
 import { useNavigate } from "react-router-dom";
 import { goTo, replaceTo, useRouteParams } from "@/src/utils/navigation";
@@ -23,8 +12,8 @@ import { goBack } from "@/src/utils/navigation";
 import { getOrderByIdRequest } from "../api/order.api";
 import { useSocketStore } from "@/src/store/useSocketStore";
 import { SocketEvents } from "@/src/constants/socketEvents";
-import { createOrderDetailStyles } from "../style/OrderDetailScreen.style";
 import { filterOrderItemsByModule } from "../lib/orderModule";
+import { cn } from "@/src/lib/utils";
 
 const ORDER_STEP_STAGES = [
   { key: "CONFIRMED", label: "Order Placed", shortLabel: "Confirmed" },
@@ -79,8 +68,7 @@ const extractProductImageUrl = (item: any): string | null => {
 };
 
 export default function OrderDetailScreen() {
-  const theme = useTheme();
-  const styles = createOrderDetailStyles(theme);
+  const theme = useTheme() as any;
   const navigate = useNavigate();
   const params = useRouteParams();
   const orderId = String(params.id || params.orderId || "");
@@ -88,7 +76,6 @@ export default function OrderDetailScreen() {
   const [order, setOrder] = useState<any>(null);
   const [selectedSubOrderIndex, setSelectedSubOrderIndex] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
 
   // Accordion UI State toggles (Collapsed by default as requested)
   const [isTimelineExpanded, setIsTimelineExpanded] = useState<boolean>(false);
@@ -213,12 +200,6 @@ export default function OrderDetailScreen() {
     }
   }, [order, navigate]);
 
-  const handleRefresh = async () => {
-    setIsRefreshing(true);
-    await fetchOrderDetails(false);
-    setIsRefreshing(false);
-  };
-
   const subOrders = useMemo(() => {
     return (order?.subOrders && order.subOrders.length > 0)
       ? order.subOrders
@@ -289,6 +270,9 @@ export default function OrderDetailScreen() {
 
   const handleCopyOrderId = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    if (order?.orderId && typeof navigator !== "undefined" && navigator.clipboard) {
+      navigator.clipboard.writeText(String(order.orderId)).catch(() => {});
+    }
   };
 
   const handleShare = async () => {
@@ -299,17 +283,21 @@ export default function OrderDetailScreen() {
         .map((i: any) => `• ${i.title} (x${i.quantity}) - ₹${i.price * i.quantity}`)
         .join("\n");
 
-      await Share.share({
-        title: `Order Details - #${order.orderId}`,
-        message:
-          `📦 *Quick Bihar Order Details*\n\n` +
-          `*Order ID:* #${order.orderId}\n` +
-          `*Status:* ${currentStatus.replace(/_/g, " ")}\n` +
-          `${deliveryOtp ? `*Delivery OTP:* ${deliveryOtp}\n` : ""}` +
-          `*Total Amount:* ₹${order.payableAmount || order.totalAmount}\n\n` +
-          `*Items:*\n${itemsText}\n\n` +
-          `_Track and manage your order on Quick Bihar!_`,
-      });
+      const title = `Order Details - #${order.orderId}`;
+      const message =
+        `📦 *Quick Bihar Order Details*\n\n` +
+        `*Order ID:* #${order.orderId}\n` +
+        `*Status:* ${currentStatus.replace(/_/g, " ")}\n` +
+        `${deliveryOtp ? `*Delivery OTP:* ${deliveryOtp}\n` : ""}` +
+        `*Total Amount:* ₹${order.payableAmount || order.totalAmount}\n\n` +
+        `*Items:*\n${itemsText}\n\n` +
+        `_Track and manage your order on Quick Bihar!_`;
+
+      if (typeof navigator !== "undefined" && (navigator as any).share) {
+        await (navigator as any).share({ title, text: message });
+      } else if (typeof navigator !== "undefined" && navigator.clipboard) {
+        await navigator.clipboard.writeText(message);
+      }
     } catch (e) {
       console.error(e);
     }
@@ -317,16 +305,18 @@ export default function OrderDetailScreen() {
 
   const handleHelp = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    Linking.openURL(`tel:${SUPPORT_CALL_NUMBER}`).catch(() => {
+    try {
+      window.open(`tel:${SUPPORT_CALL_NUMBER}`, "_self");
+    } catch {
       // Haptic-only fallback — dialer failures are rare and the Help
       // button itself already signals the tap.
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-    });
+    }
   };
 
   const handleCallRider = (phone?: string) => {
     if (!phone) return;
-    Linking.openURL(`tel:${phone}`);
+    window.open(`tel:${phone}`, "_self");
   };
 
   const handleNavigateToProduct = (item: any) => {
@@ -376,49 +366,89 @@ export default function OrderDetailScreen() {
 
   if (isLoading && !order) {
     return (
-      <>
-        <View style={styles.header}>
-          <TouchableOpacity style={styles.backButton}
-            onPress={() => goBack(navigate, "/account/orders")}
+      <div className="flex min-h-screen flex-col" style={{ backgroundColor: theme.background }}>
+        <div
+          className="flex flex-row items-center justify-between border-b px-4 py-4"
+          style={{ backgroundColor: theme.background, borderBottomColor: theme.border }}
+        >
+          <button
+            type="button"
+            onClick={() => goBack(navigate, "/account/orders")}
+            className="flex h-10 w-10 items-center justify-center rounded-xl border"
+            style={{
+              backgroundColor: theme.tertiaryBackground,
+              borderColor: theme.border,
+            }}
+            aria-label="Go back"
           >
             <ArrowLeft size={22} color={theme.text} />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Order Details</Text>
-          <View style={{ width: 40 }} />
-        </View>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={theme.primary} />
-          <Text style={styles.loadingText}>Fetching order details...</Text>
-        </View>
-      </>
+          </button>
+          <h2 className="text-xl font-extrabold tracking-[-0.3px]" style={{ color: theme.text }}>
+            Order Details
+          </h2>
+          <div className="w-10" />
+        </div>
+        <div
+          className="flex flex-1 flex-col items-center justify-center"
+          style={{ backgroundColor: theme.background }}
+        >
+          <span
+            className="h-8 w-8 animate-spin rounded-full border-[3px] border-t-transparent"
+            style={{ borderColor: `${theme.primary}44`, borderTopColor: theme.primary }}
+          />
+          <p className="mt-3 text-sm" style={{ color: theme.secondaryText }}>
+            Fetching order details...
+          </p>
+        </div>
+      </div>
     );
   }
 
   if (!order) {
     return (
-      <>
-        <View style={styles.header}>
-          <TouchableOpacity style={styles.backButton}
-            onPress={() => goBack(navigate, "/account/orders")}
+      <div className="flex min-h-screen flex-col" style={{ backgroundColor: theme.background }}>
+        <div
+          className="flex flex-row items-center justify-between border-b px-4 py-4"
+          style={{ backgroundColor: theme.background, borderBottomColor: theme.border }}
+        >
+          <button
+            type="button"
+            onClick={() => goBack(navigate, "/account/orders")}
+            className="flex h-10 w-10 items-center justify-center rounded-xl border"
+            style={{
+              backgroundColor: theme.tertiaryBackground,
+              borderColor: theme.border,
+            }}
+            aria-label="Go back"
           >
             <ArrowLeft size={22} color={theme.text} />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Order Details</Text>
-          <View style={{ width: 40 }} />
-        </View>
-        <View style={styles.errorContainer}>
+          </button>
+          <h2 className="text-xl font-extrabold tracking-[-0.3px]" style={{ color: theme.text }}>
+            Order Details
+          </h2>
+          <div className="w-10" />
+        </div>
+        <div
+          className="flex flex-1 flex-col items-center justify-center p-8"
+          style={{ backgroundColor: theme.background }}
+        >
           <PackageMinus size={56} color={theme.secondaryText} />
-          <Text style={styles.errorTitle}>Order not found</Text>
-          <Text style={styles.errorSubtitle}>
-            We couldn't retrieve details for order #{orderId}.
-          </Text>
-          <TouchableOpacity style={styles.retryButton}
-            onPress={() => fetchOrderDetails(true)}
+          <p className="mt-3 text-lg font-bold" style={{ color: theme.text }}>
+            Order not found
+          </p>
+          <p className="mt-1.5 mb-5 text-center text-sm" style={{ color: theme.secondaryText }}>
+            We couldn&apos;t retrieve details for order #{orderId}.
+          </p>
+          <button
+            type="button"
+            onClick={() => fetchOrderDetails(true)}
+            className="rounded-xl px-6 py-3"
+            style={{ backgroundColor: theme.primary }}
           >
-            <Text style={styles.retryButtonText}>Try Again</Text>
-          </TouchableOpacity>
-        </View>
-      </>
+            <span className="text-sm font-bold text-white">Try Again</span>
+          </button>
+        </div>
+      </div>
     );
   }
 
@@ -475,108 +505,130 @@ export default function OrderDetailScreen() {
   };
 
   return (
-    <>
+    <div className="flex min-h-screen flex-col" style={{ backgroundColor: theme.background }}>
       {/* Top Header */}
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <TouchableOpacity style={styles.backButton}
-            onPress={() => goBack(navigate, "/account/orders")}
-            activeOpacity={0.7}
+      <div
+        className="flex flex-row items-center justify-between border-b px-4 py-4"
+        style={{ backgroundColor: theme.background, borderBottomColor: theme.border }}
+      >
+        <div className="flex flex-row items-center gap-3">
+          <button
+            type="button"
+            onClick={() => goBack(navigate, "/account/orders")}
+            className="flex h-10 w-10 items-center justify-center rounded-xl border"
+            style={{
+              backgroundColor: theme.tertiaryBackground,
+              borderColor: theme.border,
+            }}
+            aria-label="Go back"
           >
             <ArrowLeft size={22} color={theme.text} />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Order Details</Text>
-        </View>
+          </button>
+          <h2 className="text-xl font-extrabold tracking-[-0.3px]" style={{ color: theme.text }}>
+            Order Details
+          </h2>
+        </div>
 
-        <View style={styles.headerRight}>
-          <TouchableOpacity style={styles.helpButton}
-            onPress={handleHelp}
-            activeOpacity={0.7}
+        <div className="flex flex-row items-center gap-2">
+          <button
+            type="button"
+            onClick={handleHelp}
+            className="rounded-full border px-3.5 py-[7px]"
+            style={{
+              backgroundColor: theme.tertiaryBackground,
+              borderColor: theme.border,
+            }}
           >
-            <Text style={styles.helpButtonText}>Help</Text>
-          </TouchableOpacity>
+            <span className="text-[13px] font-bold" style={{ color: theme.text }}>Help</span>
+          </button>
 
-          <TouchableOpacity style={styles.iconButton}
-            onPress={handleShare}
-            activeOpacity={0.7}
+          <button
+            type="button"
+            onClick={handleShare}
+            className="flex h-[38px] w-[38px] items-center justify-center rounded-full border"
+            style={{
+              backgroundColor: theme.tertiaryBackground,
+              borderColor: theme.border,
+            }}
+            aria-label="Share order"
           >
             <Send size={17} color={theme.text} />
-          </TouchableOpacity>
-        </View>
-      </View>
+          </button>
+        </div>
+      </div>
 
-      <ScrollView showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-        refreshControl={
-          <RefreshControl
-            refreshing={isRefreshing}
-            onRefresh={handleRefresh}
-            tintColor={theme.primary}
-          />
-        }
-      >
+      <div className="overflow-auto p-4" style={{ paddingBottom: 60 }}>
         {/* Order Meta & ID Row */}
-        <View style={styles.orderIdRow}>
-          <TouchableOpacity style={styles.orderIdContainer}
-            onPress={handleCopyOrderId}
-            activeOpacity={0.7}
+        <div className="mb-3 flex flex-row items-center justify-between px-0.5">
+          <button
+            type="button"
+            onClick={handleCopyOrderId}
+            className="flex flex-row items-center gap-1.5"
           >
-            <Text style={styles.orderIdText}>Order #{order.orderId}</Text>
+            <span className="text-sm font-semibold" style={{ color: theme.secondaryText }}>
+              Order #{order.orderId}
+            </span>
             <Copy size={15} color={theme.primary} />
-          </TouchableOpacity>
-          <Text style={styles.orderDateText}>
+          </button>
+          <span className="text-xs" style={{ color: theme.tertiaryText }}>
             {dayjs(order.createdAt).format("DD MMM YYYY, hh:mm A")}
-          </Text>
-        </View>
+          </span>
+        </div>
 
         {/* Multi-SubOrder / Multi-Store Package Tabs */}
         {subOrders.length > 1 && (
-          <View style={{ marginBottom: 12 }}>
-            <ScrollView horizontal
-              showsHorizontalScrollIndicator={false}
-              style={styles.subOrderTabsContainer}
-            >
+          <div className="mb-3">
+            <div className="mb-3.5 flex flex-row gap-2 overflow-x-auto">
               {subOrders.map((sub: any, idx: number) => {
                 const isSelected = idx === selectedSubOrderIndex;
                 const pkgItemCount = (sub.items || []).reduce((acc: number, it: any) => acc + (it.quantity || 1), 0);
-                const storeName = sub.storeId?.name || `Store ${idx + 1}`;
 
                 return (
-                  <TouchableOpacity key={sub.subOrderId || idx}
-                    style={[
-                      styles.subOrderTab,
-                      isSelected && styles.subOrderTabActive,
-                    ]}
-                    onPress={() => setSelectedSubOrderIndex(idx)}
-                    activeOpacity={0.7}
+                  <button
+                    key={sub.subOrderId || idx}
+                    type="button"
+                    onClick={() => setSelectedSubOrderIndex(idx)}
+                    className="mr-2 shrink-0 rounded-xl border px-3.5 py-2"
+                    style={{
+                      backgroundColor: isSelected ? theme.primary + "15" : theme.tertiaryBackground,
+                      borderColor: isSelected ? theme.primary : theme.border,
+                    }}
                   >
-                    <Text style={[
-                        styles.subOrderTabText,
-                        isSelected && styles.subOrderTabTextActive,
-                      ]}
+                    <span
+                      className="text-[13px] font-semibold"
+                      style={{
+                        color: isSelected ? theme.primary : theme.secondaryText,
+                        fontWeight: isSelected ? 700 : 600,
+                      }}
                     >
                       📦 Package {idx + 1} ({pkgItemCount} {pkgItemCount === 1 ? "item" : "items"})
-                    </Text>
-                  </TouchableOpacity>
+                    </span>
+                  </button>
                 );
               })}
-            </ScrollView>
-          </View>
+            </div>
+          </div>
         )}
 
         {/* Items Section Header */}
-        <View style={styles.itemsSectionHeader}>
-          <Text style={styles.itemsSectionTitle}>
+        <div className="mt-1 mb-2.5 flex flex-row items-center justify-between">
+          <h3 className="text-base font-extrabold tracking-[-0.2px]" style={{ color: theme.text }}>
             {subOrders.length > 1
               ? `Package ${selectedSubOrderIndex + 1} Items (${itemsToDisplay.length})`
               : `Ordered Items (${itemsToDisplay.length})`}
-          </Text>
-          <View style={styles.itemsCountBadge}>
-            <Text style={styles.itemsCountText}>
+          </h3>
+          <div
+            className="rounded-full border px-2 py-[3px]"
+            style={{
+              backgroundColor: theme.tertiaryBackground,
+              borderColor: theme.border,
+            }}
+          >
+            <span className="text-xs font-bold" style={{ color: theme.primary }}>
               Total Qty: {totalItemCount}
-            </Text>
-          </View>
-        </View>
+            </span>
+          </div>
+        </div>
 
         {/* Product Items List (Handles multiple products with rich UX) */}
         {itemsToDisplay.map((item: any, idx: number) => {
@@ -584,79 +636,121 @@ export default function OrderDetailScreen() {
           const storeName = item.storeId?.name || currentSubOrder?.storeId?.name;
 
           return (
-            <View key={item.sku || idx} style={styles.productCard}>
-              <View style={styles.productCardTop}>
+            <div
+              key={item.sku || idx}
+              className="mb-3 rounded-3xl border p-3.5"
+              style={{
+                backgroundColor: theme.background,
+                borderColor: theme.border,
+              }}
+            >
+              <div className="flex flex-row items-start gap-3.5">
                 {/* Product Image Thumbnail */}
-                <TouchableOpacity style={styles.productImageContainer}
-                  activeOpacity={0.8}
-                  onPress={() => handleNavigateToProduct(item)}
+                <button
+                  type="button"
+                  onClick={() => handleNavigateToProduct(item)}
+                  className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-xl border"
+                  style={{
+                    backgroundColor: theme.tertiaryBackground,
+                    borderColor: theme.border,
+                  }}
+                  aria-label="View product"
                 >
                   {imageUrl ? (
-                    <img src={imageUrl} style={Object.assign({}, styles.productImage, { objectFit: "cover" as const })} />
+                    <img src={imageUrl} alt={item.title || "Product"} className="h-full w-full object-cover" />
                   ) : (
                     <ShoppingBag size={32} color={theme.primary} />
                   )}
-                </TouchableOpacity>
+                </button>
 
                 {/* Product Details */}
-                <View style={styles.productInfo}>
-                  <TouchableOpacity activeOpacity={0.7}
-                    onPress={() => handleNavigateToProduct(item)}
-                  >
-                    <Text style={styles.productTitle} numberOfLines={2}>
+                <div className="flex-1">
+                  <button type="button" onClick={() => handleNavigateToProduct(item)} className="text-left">
+                    <p
+                      className={cn("line-clamp-2 text-[15px] leading-5 font-bold")}
+                      style={{ color: theme.text }}
+                    >
                       {item.title}
-                    </Text>
-                  </TouchableOpacity>
+                    </p>
+                  </button>
 
                   {/* Visual Chips Row for Size, Color, SKU */}
-                  <View style={styles.chipsRow}>
+                  <div className="mt-1.5 flex flex-row flex-wrap items-center gap-1.5">
                     {item.color && (
-                      <View style={styles.chip}>
-                        <Text style={styles.chipText}>Color: {item.color}</Text>
-                      </View>
+                      <div
+                        className="rounded-lg border px-[7px] py-[2.5px]"
+                        style={{
+                          backgroundColor: theme.tertiaryBackground,
+                          borderColor: theme.border,
+                        }}
+                      >
+                        <span className="text-[11px] font-semibold" style={{ color: theme.secondaryText }}>
+                          Color: {item.color}
+                        </span>
+                      </div>
                     )}
                     {item.size && (
-                      <View style={styles.chip}>
-                        <Text style={styles.chipText}>Size: {item.size}</Text>
-                      </View>
+                      <div
+                        className="rounded-lg border px-[7px] py-[2.5px]"
+                        style={{
+                          backgroundColor: theme.tertiaryBackground,
+                          borderColor: theme.border,
+                        }}
+                      >
+                        <span className="text-[11px] font-semibold" style={{ color: theme.secondaryText }}>
+                          Size: {item.size}
+                        </span>
+                      </div>
                     )}
-                    <View style={styles.chip}>
-                      <Text style={styles.chipText}>Qty: {item.quantity || 1}</Text>
-                    </View>
-                  </View>
+                    <div
+                      className="rounded-lg border px-[7px] py-[2.5px]"
+                      style={{
+                        backgroundColor: theme.tertiaryBackground,
+                        borderColor: theme.border,
+                      }}
+                    >
+                      <span className="text-[11px] font-semibold" style={{ color: theme.secondaryText }}>
+                        Qty: {item.quantity || 1}
+                      </span>
+                    </div>
+                  </div>
 
                   {/* Price & Unit Breakdown */}
-                  <View style={styles.productPriceRow}>
-                    <Text style={styles.productPrice}>
+                  <div className="mt-2 flex flex-row items-center justify-between">
+                    <span className="text-[15px] font-black" style={{ color: theme.text }}>
                       ₹{item.price * (item.quantity || 1)}
-                    </Text>
+                    </span>
                     {(item.quantity || 1) > 1 && (
-                      <Text style={styles.productUnitPrice}>
+                      <span className="text-xs font-medium" style={{ color: theme.secondaryText }}>
                         (₹{item.price} each)
-                      </Text>
+                      </span>
                     )}
-                  </View>
-                </View>
-              </View>
+                  </div>
+                </div>
+              </div>
 
               {/* Product Card Footer (Store & View Product link) */}
-              <View style={styles.productCardFooter}>
-                <View style={styles.storeBadge}>
+              <div
+                className="mt-2.5 flex flex-row items-center justify-between border-t pt-2"
+                style={{ borderTopColor: theme.border }}
+              >
+                <div className="flex flex-row items-center gap-1">
                   <Store size={13} color={theme.tertiaryText} />
-                  <Text style={styles.storeBadgeText}>
+                  <span className="text-[11px]" style={{ color: theme.tertiaryText }}>
                     {storeName ? `Sold by: ${storeName}` : "Quick Bihar Fulfilled"}
-                  </Text>
-                </View>
+                  </span>
+                </div>
 
-                <TouchableOpacity style={styles.viewProductLink}
-                  onPress={() => handleNavigateToProduct(item)}
-                  activeOpacity={0.7}
+                <button
+                  type="button"
+                  onClick={() => handleNavigateToProduct(item)}
+                  className="flex flex-row items-center gap-0.5"
                 >
-                  <Text style={styles.viewProductText}>View Item</Text>
+                  <span className="text-xs font-bold" style={{ color: theme.primary }}>View Item</span>
                   <ChevronRight size={14} color={theme.primary} />
-                </TouchableOpacity>
-              </View>
-            </View>
+                </button>
+              </div>
+            </div>
           );
         })}
 
@@ -666,193 +760,219 @@ export default function OrderDetailScreen() {
         {(deliveryOtp || pickupOtp) &&
           currentStatus !== "DELIVERED" &&
           currentStatus !== "CANCELLED" && (
-            <View style={styles.otpCard}>
-              <View style={styles.otpHeader}>
-                <View style={styles.otpTitleContainer}>
+            <div
+              className="mb-4 rounded-3xl border-[1.5px] p-4"
+              style={{
+                backgroundColor: "#f0fdf4",
+                borderColor: "#86efac",
+              }}
+            >
+              <div className="mb-2.5 flex flex-row items-center justify-between">
+                <div className="flex flex-row items-center gap-1.5">
                   <ShieldCheck size={18} color="#15803d" />
-                  <Text style={styles.otpTitle}>Verification OTPs</Text>
-                </View>
-                <View style={styles.otpBadge}>
-                  <Text style={styles.otpBadgeText}>Show to delivery person</Text>
-                </View>
-              </View>
+                  <span className="text-[15px] font-extrabold" style={{ color: "#15803d" }}>
+                    Verification OTPs
+                  </span>
+                </div>
+                <div className="rounded-full bg-[#bbf7d0] px-2 py-[3px]">
+                  <span className="text-[11px] font-bold" style={{ color: "#166534" }}>
+                    Show to delivery person
+                  </span>
+                </div>
+              </div>
 
               {deliveryOtp && (
-                <View style={{ marginBottom: 12 }}>
-                  <Text style={[
-                      styles.otpSubtitle,
-                      { marginTop: 0, marginBottom: 6, fontWeight: "700", color: "#0f172a" },
-                    ]}
-                  >
+                <div className="mb-3">
+                  <p className="mb-1.5 text-xs font-bold" style={{ color: "#0f172a", marginTop: 0 }}>
                     Delivery OTP (for delivery at your door)
-                  </Text>
-                  <View style={styles.otpCodeRow}>
+                  </p>
+                  <div className="my-1.5 flex flex-row items-center justify-center gap-2">
                     {deliveryOtp.split("").map((digit: string, i: number) => (
-                      <View key={i} style={styles.otpDigitBox}>
-                        <Text style={styles.otpDigitText}>{digit}</Text>
-                      </View>
+                      <div
+                        key={i}
+                        className="flex h-12 w-[42px] items-center justify-center rounded-xl border-[1.5px] bg-white"
+                        style={{ borderColor: "#4ade80" }}
+                      >
+                        <span className="text-[22px] font-black" style={{ color: "#15803d" }}>
+                          {digit}
+                        </span>
+                      </div>
                     ))}
-                  </View>
-                </View>
+                  </div>
+                </div>
               )}
 
               {pickupOtp && (
-                <View>
-                  <Text style={[
-                      styles.otpSubtitle,
-                      { marginTop: 0, marginBottom: 6, fontWeight: "700", color: "#0f172a" },
-                    ]}
-                  >
+                <div>
+                  <p className="mb-1.5 text-xs font-bold" style={{ color: "#0f172a", marginTop: 0 }}>
                     Pickup OTP (rider uses at the store)
-                  </Text>
-                  <View style={styles.otpCodeRow}>
+                  </p>
+                  <div className="my-1.5 flex flex-row items-center justify-center gap-2">
                     {pickupOtp.split("").map((digit: string, i: number) => (
-                      <View key={i} style={styles.otpDigitBox}>
-                        <Text style={styles.otpDigitText}>{digit}</Text>
-                      </View>
+                      <div
+                        key={i}
+                        className="flex h-12 w-[42px] items-center justify-center rounded-xl border-[1.5px] bg-white"
+                        style={{ borderColor: "#4ade80" }}
+                      >
+                        <span className="text-[22px] font-black" style={{ color: "#15803d" }}>
+                          {digit}
+                        </span>
+                      </div>
                     ))}
-                  </View>
-                </View>
+                  </div>
+                </div>
               )}
 
-              <Text style={[
-                  styles.otpSubtitle,
-                  { marginTop: 12, color: "#64748b" },
-                ]}
-              >
+              <p className="mt-3 text-center text-xs leading-4" style={{ color: "#64748b" }}>
                 {deliveryOtp
                   ? "Share the delivery OTP only when the rider arrives at your door with your package."
                   : "The seller will share the delivery OTP with you on their confirmation call."}
-              </Text>
-            </View>
+              </p>
+            </div>
           )}
 
         {/* Order Status & Progress Card */}
-        <View style={styles.statusCard}>
-          <TouchableOpacity style={styles.statusCardHeader}
-            activeOpacity={0.8}
-            onPress={() => setIsTimelineExpanded(!isTimelineExpanded)}
+        <div
+          className="mb-4 rounded-3xl border p-4"
+          style={{
+            backgroundColor: theme.background,
+            borderColor: theme.border,
+          }}
+        >
+          <button
+            type="button"
+            onClick={() => setIsTimelineExpanded(!isTimelineExpanded)}
+            className="flex w-full flex-row items-center justify-between text-left"
           >
-            <View style={{ flex: 1 }}>
-              <Text style={styles.statusCardTitle}>
+            <div className="flex-1">
+              <p className="text-lg font-extrabold tracking-[-0.3px]" style={{ color: theme.text }}>
                 {currentStatus.replace(/_/g, " ")}
-              </Text>
-              <Text style={styles.statusCardSubtitle}>
+              </p>
+              <p className="mt-1.5 text-sm leading-5" style={{ color: theme.secondaryText }}>
                 {getStatusSubtitle()}
-              </Text>
-            </View>
+              </p>
+            </div>
             {isTimelineExpanded ? (
-              <ChevronUp size={20} color={theme.secondaryText} />
+              <ChevronUp size={20} color={theme.secondaryText} className="ml-2 shrink-0" />
             ) : (
-              <ChevronDown size={20} color={theme.secondaryText} />
+              <ChevronDown size={20} color={theme.secondaryText} className="ml-2 shrink-0" />
             )}
-          </TouchableOpacity>
+          </button>
 
           {/* Horizontal Stepper (Compact Mode) */}
           {!isTimelineExpanded && activeStepIndex >= 0 && (
-            <View style={styles.stepperContainer}>
-              <View style={styles.stepperTrack}>
+            <div className="my-[18px]">
+              <div className="relative flex flex-row items-center justify-between">
                 {ORDER_STEP_STAGES.map((stage, idx) => {
                   const isCompleted = idx <= activeStepIndex;
                   const isCurrent = idx === activeStepIndex;
 
                   return (
                     <React.Fragment key={stage.key}>
-                      <View style={styles.stepperStep}>
-                        <View style={[
-                            styles.stepperCircle,
-                            isCompleted && styles.stepperCircleActive,
-                            isCurrent && styles.stepperCircleCurrent,
-                          ]}
+                      <div className="z-[2] flex items-center">
+                        <div
+                          className="flex h-7 w-7 items-center justify-center rounded-full border-2"
+                          style={{
+                            backgroundColor: isCompleted ? "#10b981" : theme.tertiaryBackground,
+                            borderColor: isCurrent ? "#a7f3d0" : isCompleted ? "#10b981" : theme.border,
+                            borderWidth: isCurrent ? 4 : 2,
+                          }}
                         >
                           {isCompleted ? (
                             <Check size={14} color="#ffffff" />
                           ) : null}
-                        </View>
-                      </View>
+                        </div>
+                      </div>
                       {idx < ORDER_STEP_STAGES.length - 1 && (
-                        <View style={[
-                            styles.stepperLine,
-                            idx < activeStepIndex && styles.stepperLineActive,
-                          ]}
+                        <div
+                          className="z-[1] -mx-1 h-[3px] flex-1"
+                          style={{
+                            backgroundColor: idx < activeStepIndex ? "#10b981" : theme.border,
+                          }}
                         />
                       )}
                     </React.Fragment>
                   );
                 })}
-              </View>
+              </div>
 
-              <View style={styles.stepperLabelsRow}>
+              <div className="mt-2.5 flex flex-row justify-between">
                 {ORDER_STEP_STAGES.map((stage, idx) => (
-                  <View key={stage.key} style={{ alignItems: "center" }}>
-                    <Text style={[
-                        styles.stepperLabel,
-                        idx <= activeStepIndex && styles.stepperLabelActive,
-                      ]}
-                      numberOfLines={1}
+                  <div key={stage.key} className="flex flex-col items-center">
+                    <span
+                      className={cn("line-clamp-1 w-20 text-center text-xs font-semibold")}
+                      style={{
+                        color: idx <= activeStepIndex ? theme.text : theme.secondaryText,
+                        fontWeight: idx <= activeStepIndex ? 700 : 600,
+                      }}
                     >
                       {stage.shortLabel}
-                    </Text>
-                    <Text style={styles.stepperSubLabel}>
+                    </span>
+                    <span className="mt-0.5 text-center text-[11px]" style={{ color: theme.tertiaryText }}>
                       {idx === 0
                         ? "Today"
                         : idx === activeStepIndex
                         ? "Active"
                         : ""}
-                    </Text>
-                  </View>
+                    </span>
+                  </div>
                 ))}
-              </View>
-            </View>
+              </div>
+            </div>
           )}
 
           {/* Vertical Detailed Timeline (Expanded Mode) */}
           {isTimelineExpanded && (
-            <View style={styles.verticalTimeline}>
+            <div className="mt-4 pl-1">
               {ORDER_STEP_STAGES.map((stage, idx) => {
                 const isPassed = idx <= activeStepIndex;
                 const isCurrent = idx === activeStepIndex;
                 const isLast = idx === ORDER_STEP_STAGES.length - 1;
 
                 return (
-                  <View key={stage.key}
-                    style={[styles.timelineItem, isLast && styles.timelineItemLast]}
+                  <div
+                    key={stage.key}
+                    className="relative flex flex-row"
+                    style={{ paddingBottom: isLast ? 0 : 22 }}
                   >
                     {!isLast && (
-                      <View style={[
-                          styles.timelineLine,
-                          idx < activeStepIndex && styles.timelineLineActive,
-                        ]}
+                      <div
+                        className="absolute bottom-0 top-6 w-0.5"
+                        style={{
+                          left: 11,
+                          backgroundColor: idx < activeStepIndex ? "#10b981" : theme.border,
+                        }}
                       />
                     )}
 
-                    <View style={[
-                        styles.timelineDot,
-                        isPassed && styles.timelineDotActive,
-                        isCurrent && styles.timelineDotCurrent,
-                      ]}
+                    <div
+                      className="z-[2] mr-3.5 flex h-6 w-6 items-center justify-center rounded-full border-2"
+                      style={{
+                        backgroundColor: isPassed ? "#10b981" : theme.tertiaryBackground,
+                        borderColor: isCurrent ? "#bbf7d0" : isPassed ? "#10b981" : theme.border,
+                        borderWidth: isCurrent ? 3 : 2,
+                      }}
                     >
                       {isPassed && (
                         <Check size={12} color="#ffffff" />
                       )}
-                    </View>
+                    </div>
 
-                    <View style={styles.timelineContent}>
-                      <View style={styles.timelineTitleRow}>
-                        <Text style={[
-                            styles.timelineTitle,
-                            isPassed && { color: theme.text },
-                          ]}
+                    <div className="flex-1">
+                      <div className="flex flex-row items-center justify-between">
+                        <span
+                          className="text-sm font-bold"
+                          style={{ color: theme.text }}
                         >
                           {stage.label}
-                        </Text>
+                        </span>
                         {isCurrent && (
-                          <Text style={styles.timelineDate}>
+                          <span className="text-xs" style={{ color: theme.tertiaryText }}>
                             {dayjs(order.updatedAt || order.createdAt).format("hh:mm A")}
-                          </Text>
+                          </span>
                         )}
-                      </View>
-                      <Text style={styles.timelineDesc}>
+                      </div>
+                      <p className="mt-[3px] text-[13px] leading-[18px]" style={{ color: theme.secondaryText }}>
                         {idx === 0
                           ? `Order payment verified and order created.`
                           : idx === 1
@@ -860,67 +980,90 @@ export default function OrderDetailScreen() {
                           : idx === 2
                           ? `Rider is on the way to delivery address.`
                           : `Package handed over with OTP verification.`}
-                      </Text>
-                    </View>
-                  </View>
+                      </p>
+                    </div>
+                  </div>
                 );
               })}
-            </View>
+            </div>
           )}
 
           {/* Rider / Delivery Partner Card (ONLY shown when actively out for delivery, and hidden when completed/delivered) */}
           {isActivelyDelivering && assignedRider ? (
-            <View style={styles.riderBox}>
-              <View style={styles.riderLeft}>
-                <View style={styles.riderAvatar}>
+            <div
+              className="mt-3 flex flex-row items-center justify-between rounded-xl border p-3"
+              style={{
+                backgroundColor: theme.tertiaryBackground,
+                borderColor: theme.border,
+              }}
+            >
+              <div className="flex flex-1 flex-row items-center gap-2.5">
+                <div
+                  className="flex h-10 w-10 items-center justify-center rounded-full"
+                  style={{ backgroundColor: theme.primary + "20" }}
+                >
                   <Bike size={22} color={theme.primary} />
-                </View>
-                <View>
-                  <Text style={styles.riderName}>
+                </div>
+                <div>
+                  <p className="text-sm font-bold" style={{ color: theme.text }}>
                     {assignedRider.fullName || "Delivery Partner"}
-                  </Text>
-                  <Text style={styles.riderRole}>
+                  </p>
+                  <p className="text-xs" style={{ color: theme.secondaryText }}>
                     {currentSubOrder?.delivery?.status?.replace(/_/g, " ") || "Out for Delivery"}
-                  </Text>
-                </View>
-              </View>
+                  </p>
+                </div>
+              </div>
 
               {canShowRiderContact && (
-                <TouchableOpacity style={styles.riderCallButton}
-                  onPress={() => handleCallRider(assignedRider.phone)}
-                  activeOpacity={0.7}
+                <button
+                  type="button"
+                  onClick={() => handleCallRider(assignedRider.phone)}
+                  className="flex h-9 w-9 items-center justify-center rounded-full"
+                  style={{ backgroundColor: "#10b981" }}
+                  aria-label="Call rider"
                 >
                   <Phone size={16} color="#ffffff" />
-                </TouchableOpacity>
+                </button>
               )}
-            </View>
+            </div>
           ) : isOrderFinished ? null : (
-            <View style={styles.infoCallout}>
-              <Info size={18} color={theme.secondaryText} />
-              <Text style={styles.infoCalloutText}>
+            <div
+              className="mt-3 flex flex-row items-center gap-2.5 rounded-xl p-3"
+              style={{ backgroundColor: theme.tertiaryBackground }}
+            >
+              <Info size={18} color={theme.secondaryText} className="shrink-0" />
+              <p className="flex-1 text-[13px] leading-[18px]" style={{ color: theme.secondaryText }}>
                 Delivery partner details will be available once the order is out for delivery.
-              </Text>
-            </View>
+              </p>
+            </div>
           )}
-        </View>
+        </div>
 
         {/* Shipping Address Card */}
         {order.shippingAddress && (
-          <View style={styles.sectionCard}>
-            <View style={styles.sectionCardHeader}>
-              <Text style={styles.sectionTitle}>Delivery Address</Text>
+          <div
+            className="mb-4 rounded-3xl border p-4"
+            style={{
+              backgroundColor: theme.background,
+              borderColor: theme.border,
+            }}
+          >
+            <div className="flex flex-row items-center justify-between">
+              <h3 className="text-[17px] font-extrabold tracking-[-0.2px]" style={{ color: theme.text }}>
+                Delivery Address
+              </h3>
               <MapPin size={20} color={theme.primary} />
-            </View>
+            </div>
 
-            <Text style={styles.addressName}>
+            <p className="mt-2.5 text-[15px] font-bold" style={{ color: theme.text }}>
               {order.shippingAddress.fullName}
-            </Text>
+            </p>
             {order.shippingAddress.phone && (
-              <Text style={styles.addressPhone}>
+              <p className="mt-0.5 text-[13px]" style={{ color: theme.secondaryText }}>
                 +91 {order.shippingAddress.phone}
-              </Text>
+              </p>
             )}
-            <Text style={styles.addressText}>
+            <p className="mt-1.5 text-[13px] leading-[19px]" style={{ color: theme.secondaryText }}>
               {[
                 order.shippingAddress.street,
                 order.shippingAddress.landmark,
@@ -930,85 +1073,101 @@ export default function OrderDetailScreen() {
               ]
                 .filter(Boolean)
                 .join(", ")}
-            </Text>
-          </View>
+            </p>
+          </div>
         )}
 
         {/* Price Details Card (Collapsed by default, tap to expand) */}
-        <View style={styles.sectionCard}>
-          <TouchableOpacity style={styles.sectionCardHeader}
-            activeOpacity={0.8}
-            onPress={() => setIsPriceDetailsExpanded(!isPriceDetailsExpanded)}
+        <div
+          className="mb-4 rounded-3xl border p-4"
+          style={{
+            backgroundColor: theme.background,
+            borderColor: theme.border,
+          }}
+        >
+          <button
+            type="button"
+            onClick={() => setIsPriceDetailsExpanded(!isPriceDetailsExpanded)}
+            className="flex w-full flex-row items-center justify-between"
           >
-            <Text style={styles.sectionTitle}>Price details</Text>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+            <h3 className="text-[17px] font-extrabold tracking-[-0.2px]" style={{ color: theme.text }}>
+              Price details
+            </h3>
+            <div className="flex flex-row items-center gap-2">
               {!isPriceDetailsExpanded && (
-                <Text style={{ fontSize: 16, fontWeight: "800", color: theme.text }}>
+                <span className="text-base font-extrabold" style={{ color: theme.text }}>
                   ₹{order.payableAmount || order.totalAmount}
-                </Text>
+                </span>
               )}
               {isPriceDetailsExpanded ? (
                 <ChevronUp size={20} color={theme.secondaryText} />
               ) : (
                 <ChevronDown size={20} color={theme.secondaryText} />
               )}
-            </View>
-          </TouchableOpacity>
+            </div>
+          </button>
 
           {isPriceDetailsExpanded && (
-            <View style={{ marginTop: 12 }}>
+            <div className="mt-3">
               {/* Listing price (MRP) */}
-              <View style={styles.priceRow}>
-                <Text style={styles.priceLabel}>Listing price</Text>
-                <Text style={styles.priceValue}>
+              <div className="flex flex-row items-center justify-between py-2">
+                <span className="text-sm" style={{ color: theme.secondaryText }}>Listing price</span>
+                <span className="text-sm font-semibold" style={{ color: theme.text }}>
                   ₹{order.mrpTotal || order.totalAmount}
-                </Text>
-              </View>
+                </span>
+              </div>
 
               {/* Selling price */}
-              <View style={styles.priceRow}>
-                <Text style={styles.priceLabel}>Selling price</Text>
-                <Text style={styles.priceValue}>₹{order.totalAmount}</Text>
-              </View>
+              <div className="flex flex-row items-center justify-between py-2">
+                <span className="text-sm" style={{ color: theme.secondaryText }}>Selling price</span>
+                <span className="text-sm font-semibold" style={{ color: theme.text }}>₹{order.totalAmount}</span>
+              </div>
 
               {/* Total fees accordion */}
-              <TouchableOpacity style={styles.priceRow}
-                activeOpacity={0.7}
-                onPress={() => setIsFeesExpanded(!isFeesExpanded)}
+              <button
+                type="button"
+                onClick={() => setIsFeesExpanded(!isFeesExpanded)}
+                className="flex w-full flex-row items-center justify-between py-2"
               >
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
-                  <Text style={styles.priceLabel}>Total fees</Text>
+                <div className="flex flex-row items-center gap-1">
+                  <span className="text-sm" style={{ color: theme.secondaryText }}>Total fees</span>
                   {isFeesExpanded ? (
                     <ChevronUp size={14} color={theme.secondaryText} />
                   ) : (
                     <ChevronDown size={14} color={theme.secondaryText} />
                   )}
-                </View>
-                <Text style={styles.priceValue}>
+                </div>
+                <span className="text-sm font-semibold" style={{ color: theme.text }}>
                   ₹{(order.shippingFee || 0) + (order.dynamicDeliverySurcharge || 0)}
-                </Text>
-              </TouchableOpacity>
+                </span>
+              </button>
 
               {isFeesExpanded && (
                 <>
-                  <View style={styles.priceSubRow}>
-                    <Text style={styles.priceSubLabel}>Delivery Fee</Text>
-                    <Text style={[
-                        styles.priceSubValue,
-                        order.shippingFee === 0 && styles.freeValue,
-                      ]}
+                  <div className="flex flex-row items-center justify-between py-[5px] pl-3">
+                    <span className="text-[13px] underline decoration-dotted" style={{ color: theme.tertiaryText }}>
+                      Delivery Fee
+                    </span>
+                    <span
+                      className="text-[13px] font-medium"
+                      style={{
+                        color: order.shippingFee === 0 ? "#10b981" : theme.secondaryText,
+                        fontWeight: order.shippingFee === 0 ? 700 : 500,
+                      }}
                     >
                       {order.shippingFee === 0 ? "FREE" : `₹${order.shippingFee}`}
-                    </Text>
-                  </View>
+                    </span>
+                  </div>
 
                   {order.dynamicDeliverySurcharge > 0 && (
-                    <View style={styles.priceSubRow}>
-                      <Text style={styles.priceSubLabel}>Dynamic Delivery Surcharge</Text>
-                      <Text style={styles.priceSubValue}>
+                    <div className="flex flex-row items-center justify-between py-[5px] pl-3">
+                      <span className="text-[13px] underline decoration-dotted" style={{ color: theme.tertiaryText }}>
+                        Dynamic Delivery Surcharge
+                      </span>
+                      <span className="text-[13px] font-medium" style={{ color: theme.secondaryText }}>
                         ₹{order.dynamicDeliverySurcharge}
-                      </Text>
-                    </View>
+                      </span>
+                    </div>
                   )}
                 </>
               )}
@@ -1016,114 +1175,140 @@ export default function OrderDetailScreen() {
               {/* Discounts accordion */}
               {(order.productDiscount > 0 || order.discountAmount > 0) && (
                 <>
-                  <TouchableOpacity style={styles.priceRow}
-                    activeOpacity={0.7}
-                    onPress={() => setIsDiscountExpanded(!isDiscountExpanded)}
+                  <button
+                    type="button"
+                    onClick={() => setIsDiscountExpanded(!isDiscountExpanded)}
+                    className="flex w-full flex-row items-center justify-between py-2"
                   >
-                    <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
-                      <Text style={styles.priceLabel}>Other discount</Text>
+                    <div className="flex flex-row items-center gap-1">
+                      <span className="text-sm" style={{ color: theme.secondaryText }}>Other discount</span>
                       {isDiscountExpanded ? (
                         <ChevronUp size={14} color={theme.secondaryText} />
                       ) : (
                         <ChevronDown size={14} color={theme.secondaryText} />
                       )}
-                    </View>
-                    <Text style={[styles.priceValue, styles.discountValue]}>
+                    </div>
+                    <span className="text-sm font-bold" style={{ color: "#10b981" }}>
                       -₹{(order.productDiscount || 0) + (order.discountAmount || 0)}
-                    </Text>
-                  </TouchableOpacity>
+                    </span>
+                  </button>
 
                   {isDiscountExpanded && (
                     <>
                       {order.productDiscount > 0 && (
-                        <View style={styles.priceSubRow}>
-                          <Text style={styles.priceSubLabel}>Product Discount</Text>
-                          <Text style={[styles.priceSubValue, styles.discountValue]}>
+                        <div className="flex flex-row items-center justify-between py-[5px] pl-3">
+                          <span className="text-[13px] underline decoration-dotted" style={{ color: theme.tertiaryText }}>
+                            Product Discount
+                          </span>
+                          <span className="text-[13px] font-bold" style={{ color: "#10b981" }}>
                             -₹{order.productDiscount}
-                          </Text>
-                        </View>
+                          </span>
+                        </div>
                       )}
 
                       {order.discountAmount > 0 && (
-                        <View style={styles.priceSubRow}>
-                          <Text style={styles.priceSubLabel}>
+                        <div className="flex flex-row items-center justify-between py-[5px] pl-3">
+                          <span className="text-[13px] underline decoration-dotted" style={{ color: theme.tertiaryText }}>
                             Coupon ({order.couponCode || "Discount"})
-                          </Text>
-                          <Text style={[styles.priceSubValue, styles.discountValue]}>
+                          </span>
+                          <span className="text-[13px] font-bold" style={{ color: "#10b981" }}>
                             -₹{order.discountAmount}
-                          </Text>
-                        </View>
+                          </span>
+                        </div>
                       )}
                     </>
                   )}
                 </>
               )}
 
-              <View style={styles.priceDivider} />
+              <div className="my-2.5 h-px border-t border-dashed" style={{ borderColor: theme.border }} />
 
               {/* Total Amount */}
-              <View style={styles.totalRow}>
-                <Text style={styles.totalLabel}>Total amount</Text>
-                <Text style={styles.totalValue}>
+              <div className="flex flex-row items-center justify-between py-1.5">
+                <span className="text-base font-extrabold" style={{ color: theme.text }}>Total amount</span>
+                <span className="text-lg font-black" style={{ color: theme.text }}>
                   ₹{order.payableAmount || order.totalAmount}
-                </Text>
-              </View>
+                </span>
+              </div>
 
               {/* Paid By Box */}
-              <View style={styles.paidByBox}>
-                <View style={styles.paidByLeft}>
+              <div
+                className="mt-3.5 flex flex-row items-center justify-between rounded-xl border p-3"
+                style={{
+                  backgroundColor: theme.tertiaryBackground,
+                  borderColor: theme.border,
+                }}
+              >
+                <div className="flex flex-row items-center gap-2.5">
                   {isCod ? (
                     <Banknote size={20} color={theme.text} />
                   ) : (
                     <CreditCard size={20} color={theme.text} />
                   )}
-                  <Text style={styles.paidByText}>
+                  <span className="text-sm font-semibold" style={{ color: theme.text }}>
                     Paid By: {isCod ? "Cash on Delivery" : "Online (Razorpay)"}
-                  </Text>
-                </View>
+                  </span>
+                </div>
 
-                <View style={styles.paidStatusBadge}>
-                  <Text style={styles.paidStatusText}>
+                <div className="rounded-lg bg-[#10b98115] px-2 py-[3px]">
+                  <span className="text-[11px] font-bold" style={{ color: "#10b981" }}>
                     {isCod ? "COD" : "PAID"}
-                  </Text>
-                </View>
-              </View>
-            </View>
+                  </span>
+                </div>
+              </div>
+            </div>
           )}
-        </View>
+        </div>
 
         {/* Offers Earned Box */}
         {order.discountAmount > 0 && (
-          <View style={styles.offersCard}>
-            <View style={styles.offersLeft}>
+          <div
+            className="mb-4 flex flex-row items-center justify-between rounded-3xl border p-3.5"
+            style={{
+              backgroundColor: theme.tertiaryBackground,
+              borderColor: theme.border,
+            }}
+          >
+            <div className="flex flex-row items-center gap-2.5">
               <Trophy size={20} color="#eab308" />
-              <Text style={styles.offersText}>Offers applied on this order</Text>
-            </View>
-            <Text style={[styles.offersText, { color: "#10b981" }]}>
+              <span className="text-sm font-bold" style={{ color: theme.text }}>
+                Offers applied on this order
+              </span>
+            </div>
+            <span className="text-sm font-bold" style={{ color: "#10b981" }}>
               Saved ₹{order.discountAmount}
-            </Text>
-          </View>
+            </span>
+          </div>
         )}
 
         {/* Action Buttons (Shop more, Support) */}
-        <View style={styles.actionsContainer}>
-          <TouchableOpacity style={styles.primaryBtn}
-            onPress={() => replaceTo(navigate, "/(tabs)/clothing/home")}
-            activeOpacity={0.8}
+        <div className="mt-2 flex flex-col gap-3">
+          <button
+            type="button"
+            onClick={() => replaceTo(navigate, "/(tabs)/clothing/home")}
+            className="flex w-full flex-row items-center justify-center gap-2 rounded-xl py-3.5"
+            style={{ backgroundColor: theme.primary }}
           >
             <ShoppingBag size={18} color="#ffffff" />
-            <Text style={styles.primaryBtnText}>Continue Shopping</Text>
-          </TouchableOpacity>
+            <span className="text-[15px] font-bold text-white">Continue Shopping</span>
+          </button>
 
-          <TouchableOpacity style={styles.secondaryBtn}
-            onPress={handleHelp}
-            activeOpacity={0.8}
+          <button
+            type="button"
+            onClick={handleHelp}
+            className="flex w-full flex-row items-center justify-center gap-2 rounded-xl border py-3.5"
+            style={{
+              backgroundColor: theme.tertiaryBackground,
+              borderColor: theme.border,
+            }}
           >
             <CircleHelp size={18} color={theme.text} />
-            <Text style={styles.secondaryBtnText}>Need Help with this Order?</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </>
+            <span className="text-[15px] font-bold" style={{ color: theme.text }}>
+              Need Help with this Order?
+            </span>
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }

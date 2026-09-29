@@ -1,15 +1,8 @@
 import React, { useState, useMemo } from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  ActivityIndicator,
-} from "@/components/primitives";
 import { Check, ChevronRight, Tags } from "lucide-react";
 import * as Haptics from "@/lib/haptics";
 import { useQuery } from "@tanstack/react-query";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
-import { createCartStyles } from "../styles/cartStyles";
 import { useCartStore } from "../store/cartStore";
 import { getApplicableCouponsRequest } from "@/src/features/common/coupon/api/coupon.api";
 import { ICoupon } from "@/src/features/common/coupon/types/coupon.types";
@@ -17,7 +10,6 @@ import { CouponBottomSheet, calculateCouponApplicability } from "./CouponBottomS
 
 const CouponInput = ({ module = "clothing" }: { module?: "clothing" | "jewelery" } = {}) => {
   const theme = useTheme() as any;
-  const styles = createCartStyles(theme);
   const [code, setCode] = useState("");
   const [isBottomSheetVisible, setIsBottomSheetVisible] = useState(false);
   const {
@@ -93,81 +85,100 @@ const CouponInput = ({ module = "clothing" }: { module?: "clothing" | "jewelery"
   }
 
   return (
-    <View style={styles.couponContainer}>
+    <div
+      className="mx-4 mt-5 mb-2 rounded-[18px] border p-4"
+      style={{ backgroundColor: theme.tertiaryBackground, borderColor: theme.border }}
+    >
       {/* Header: title always visible; "View offers" only when no coupon is applied */}
-      <View style={styles.couponHeaderRow}>
-        <View style={styles.couponHeaderLeft}>
-          <View style={styles.couponTitleIconWrap}>
-            <Tags size={16} color={theme.primary} />
-          </View>
-          <Text style={styles.couponTitle}>Offers & Benefits</Text>
-        </View>
-        {appliedCoupons.length === 0 && availableCoupons.length > 0 && (
-          <TouchableOpacity style={styles.viewOffersBtn}
-            onPress={() => setIsBottomSheetVisible(true)}
-            activeOpacity={0.7}
+      <div className="flex flex-row items-center justify-between">
+        <div className="flex flex-row items-center gap-2">
+          <div
+            className="flex h-8 w-8 items-center justify-center rounded-[10px]"
+            style={{ backgroundColor: theme.primary + "15" }}
           >
-            <Text style={styles.viewOffersText}>
+            <Tags size={16} color={theme.primary} />
+          </div>
+          <span className="text-base font-extrabold" style={{ color: theme.text }}>
+            Offers & Benefits
+          </span>
+        </div>
+        {appliedCoupons.length === 0 && availableCoupons.length > 0 && (
+          <button
+            type="button"
+            onClick={() => setIsBottomSheetVisible(true)}
+            className="flex cursor-pointer flex-row items-center gap-1 rounded-full px-3 py-1.5"
+            style={{ backgroundColor: theme.primary }}
+          >
+            <span className="text-xs font-extrabold text-white">
               View {availableCoupons.length} offer
               {availableCoupons.length === 1 ? "" : "s"}
-            </Text>
+            </span>
             <ChevronRight size={12} color="#fff" />
-          </TouchableOpacity>
+          </button>
         )}
-      </View>
+      </div>
 
       {/* Render list of applied coupons */}
       {appliedCoupons.map((coupon) => (
-        <View key={coupon.code}
-          style={[styles.appliedCouponContainer, { marginBottom: 12 }]}
+        <div
+          key={coupon.code}
+          className="mb-3 flex flex-row items-center justify-between gap-2 rounded-[18px] border border-dashed p-3"
+          style={{
+            backgroundColor: theme.primary + "0F",
+            borderColor: theme.primary + "35",
+          }}
         >
-          <View style={styles.appliedCouponInfo}>
-            <View style={styles.appliedCouponIconWrap}>
+          <div className="flex min-w-0 flex-1 flex-row items-center gap-2.5">
+            <div
+              className="flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-full"
+              style={{ backgroundColor: theme.primary }}
+            >
               <Check size={16} color="#fff" />
-            </View>
-            <View style={{ flex: 1, minWidth: 0 }}>
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}
-              >
-                <Text style={[
-                    styles.appliedCouponText,
-                    { fontWeight: "800", color: theme.text },
-                  ]}
-                  numberOfLines={1}
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-row items-center gap-1.5">
+                <span
+                  className="line-clamp-1 text-[13px] font-extrabold"
+                  style={{ color: theme.text }}
                 >
                   {coupon.code}
-                </Text>
-              </View>
-              <Text style={[
-                  styles.couponStatusText,
-                  {
-                    color: theme.primary,
-                    marginTop: 2,
-                    marginLeft: 0,
-                    fontWeight: "700",
-                  },
-                ]}
-                numberOfLines={1}
+                </span>
+              </div>
+              <p
+                className="line-clamp-1 mt-0.5 text-xs font-bold"
+                style={{ color: theme.primary }}
               >
                 You saved ₹{(coupon.appliedDiscount || 0).toLocaleString()}
-              </Text>
-            </View>
-          </View>
-          <TouchableOpacity onPress={() => handleRemove(coupon.code)}
-            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-            style={{ padding: 4 }}
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => handleRemove(coupon.code)}
+            aria-label={`Remove coupon ${coupon.code}`}
+            className="cursor-pointer p-1"
           >
-            <Text style={styles.removeCouponText}>Remove</Text>
-          </TouchableOpacity>
-        </View>
+            <span
+              className="px-1 py-1 text-[13px] font-bold"
+              style={{ color: theme.error || "#ef4444" }}
+            >
+              Remove
+            </span>
+          </button>
+        </div>
       ))}
       {error && (
-        <Text style={[styles.couponStatusText, { color: theme.error || "#ff4444" }]}>
+        <p
+          className="mt-1.5 ml-1 text-xs font-semibold"
+          style={{ color: theme.error || "#ff4444" }}
+        >
           {error}
-        </Text>
+        </p>
       )}
 
       {/* Bottom Sheet containing full list with dynamic validation */}
-      <CouponBottomSheet visible={isBottomSheetVisible}
+      <CouponBottomSheet
+        visible={isBottomSheetVisible}
         onClose={() => setIsBottomSheetVisible(false)}
         coupons={availableCoupons}
         cartItems={items}
@@ -177,7 +188,7 @@ const CouponInput = ({ module = "clothing" }: { module?: "clothing" | "jewelery"
         isLoading={isLoading}
         theme={theme}
       />
-    </View>
+    </div>
   );
 };
 

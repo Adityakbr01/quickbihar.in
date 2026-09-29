@@ -1,5 +1,4 @@
 import React, { useRef, useEffect, useState, useCallback } from "react";
-import { StyleSheet, View, ActivityIndicator, TouchableOpacity } from "@/components/primitives";
 import { LocateFixed } from "lucide-react";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 
@@ -134,12 +133,12 @@ export const LeafletMapComponent: React.FC<LeafletMapComponentProps> = ({
           var destCoords = [${destination.latitude}, ${destination.longitude}];
           var originCoords = ${origin ? `[${origin.latitude}, ${origin.longitude}]` : "null"};
           var currentRiderCoords = ${riderLocation ? `[${riderLocation.latitude}, ${riderLocation.longitude}]` : "null"};
-          
-          var map = L.map('map', { 
+
+          var map = L.map('map', {
             zoomControl: false,
             attributionControl: false
           }).setView(currentRiderCoords || destCoords, 15);
-          
+
           // Free tiles: OSM standard (light) / CARTO dark_matter (dark).
           // Both require © OpenStreetMap credit; CARTO additionally © CARTO.
           L.tileLayer('${tileUrl}', {
@@ -180,8 +179,8 @@ export const LeafletMapComponent: React.FC<LeafletMapComponentProps> = ({
             isFetchingRoute = true;
             lastRouteFetchTime = now;
 
-            var url = 'https://router.project-osrm.org/route/v1/driving/' + 
-                      startLng + ',' + startLat + ';' + endLng + ',' + endLat + 
+            var url = 'https://router.project-osrm.org/route/v1/driving/' +
+                      startLng + ',' + startLat + ';' + endLng + ',' + endLat +
                       '?overview=full&geometries=geojson';
 
             fetch(url)
@@ -316,7 +315,7 @@ export const LeafletMapComponent: React.FC<LeafletMapComponentProps> = ({
   }, [riderLocation, heading, sendUpdate]);
 
   return (
-    <View style={styles.container}>
+    <div className="relative h-full w-full flex-1" style={{ backgroundColor: "#e5e3df" }}>
       <iframe ref={iframeRef}
         srcDoc={bridgedHTML}
         title="Delivery tracking map"
@@ -329,51 +328,31 @@ export const LeafletMapComponent: React.FC<LeafletMapComponentProps> = ({
 
       {/* Recenter Button */}
       {isWebViewLoaded && (
-        <TouchableOpacity style={styles.recenterBtn}
-          activeOpacity={0.8}
-          onPress={handleRecenter}
+        <button
+          type="button"
+          onClick={handleRecenter}
+          aria-label="Recenter map"
+          className="absolute right-4 bottom-6 z-[999] flex h-11 w-11 items-center justify-center rounded-full bg-white shadow-xl"
         >
           <LocateFixed size={20} color="#FF6B00" />
-        </TouchableOpacity>
+        </button>
       )}
 
       {!isWebViewLoaded && (
-        <View style={styles.loading}>
-          <ActivityIndicator size="large" color="#FF6B00" />
-        </View>
+        <div className="absolute inset-0 flex items-center justify-center" style={{ backgroundColor: "#f5f5f5" }}>
+          <span
+            className="animate-spin rounded-full"
+            style={{
+              width: 36,
+              height: 36,
+              borderWidth: 3,
+              borderStyle: "solid",
+              borderColor: "#FF6B00",
+              borderTopColor: "transparent",
+            }}
+          />
+        </div>
       )}
-    </View>
+    </div>
   );
 };
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#e5e3df", position: "relative" },
-  webview: { flex: 1, backgroundColor: "#e5e3df" },
-  recenterBtn: {
-    position: "absolute",
-    right: 16,
-    bottom: 24,
-    backgroundColor: "#ffffff",
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.25,
-    shadowRadius: 5,
-    elevation: 6,
-    zIndex: 999,
-  },
-  loading: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: "#f5f5f5",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-});

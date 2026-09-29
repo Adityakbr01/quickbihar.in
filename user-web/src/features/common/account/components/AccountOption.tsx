@@ -3,7 +3,6 @@ import { AppIcon } from "@/src/components/common/AppIcon";
 import { ChevronRight } from "lucide-react";
 import * as Haptics from "@/lib/haptics";
 import React, { useState } from "react";
-import { Text, TouchableOpacity, View } from "@/components/primitives";
 
 
 interface SubItem {
@@ -14,7 +13,7 @@ interface SubItem {
 
 interface AccountOptionProps {
   theme: Theme;
-  styles: any;
+  styles?: any;
   icon: any;
   label: string;
   onPress?: () => void;
@@ -26,7 +25,6 @@ interface AccountOptionProps {
 
 const AccountOption = ({
   theme,
-  styles,
   icon,
   label,
   onPress,
@@ -52,77 +50,101 @@ const AccountOption = ({
     }
   };
 
-  const contentAnimatedStyle = {
-    height: expanded ? subItems.length * 56 : 0, // Approx 56px per row
-    opacity: expanded ? 1 : 0,
-    overflow: "hidden" as const,
-    transition: "height 0.3s ease-out, opacity 0.3s ease-out",
-  };
-
-  const chevronAnimatedStyle = {
-    transform: [{ rotate: expanded ? "90deg" : "0deg" }],
-    transition: "transform 0.3s ease-out",
-  };
-
   return (
-    <View>
-      <TouchableOpacity
-        style={styles.optionRow}
-        onPress={handlePress}
-        activeOpacity={0.7}
+    <div>
+      <button
+        type="button"
+        onClick={handlePress}
+        className="flex w-full flex-row items-center px-6 py-3.5 text-left transition active:opacity-70"
+        style={{ backgroundColor: (theme as any).background }}
       >
-        <View style={styles.iconContainer}>
+        <div
+          className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-xl"
+          style={{ backgroundColor: (theme as any).tertiaryBackground }}
+        >
           <AppIcon
             icon={icon}
             size={22}
-            color={danger ? "#FF3B30" : theme.primary}
+            color={danger ? "#FF3B30" : (theme as any).primary}
           />
-        </View>
+        </div>
 
-        <Text style={[styles.optionLabel, danger && styles.logoutText]}>
+        <span
+          className="ml-4 flex-1 text-base font-semibold"
+          style={{ color: danger ? "#FF3B30" : (theme as any).text }}
+        >
           {label}
-        </Text>
+        </span>
 
         {showArrow && (
-          <View style={chevronAnimatedStyle}>
+          <span
+            className="inline-flex transition-transform duration-300 ease-out"
+            style={{ transform: expanded ? "rotate(90deg)" : "rotate(0deg)" }}
+          >
             <AppIcon
               icon={ChevronRight}
               size={20}
-              color={theme.tertiaryText}
-              style={styles.chevron}
+              color={(theme as any).tertiaryText}
+              style={{ opacity: 0.3 }}
             />
-          </View>
+          </span>
         )}
-      </TouchableOpacity>
+      </button>
 
       {hasSubItems && (
-        <View style={[styles.subItemsContainer, contentAnimatedStyle]}>
+        <div
+          className="overflow-hidden transition-all duration-300 ease-out"
+          style={{
+            height: expanded ? subItems.length * 56 : 0,
+            opacity: expanded ? 1 : 0,
+            backgroundColor: (theme as any).tertiaryBackground,
+          }}
+        >
           {subItems.map((item, index) => (
-            <TouchableOpacity
-              key={item.label}
-              style={styles.subOptionRow}
-              onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                item.onPress();
-              }}
-              activeOpacity={0.7}
-            >
-              <View style={styles.subIconContainer}>
-                <AppIcon
-                  icon={item.icon}
-                  size={18}
-                  color={theme.primary}
+            <React.Fragment key={item.label}>
+              <button
+                type="button"
+                onClick={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  item.onPress();
+                }}
+                className="flex w-full flex-row items-center py-3 pl-11 pr-6 text-left transition active:opacity-70"
+              >
+                <div
+                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
+                  style={{ backgroundColor: (theme as any).background }}
+                >
+                  <AppIcon
+                    icon={item.icon}
+                    size={18}
+                    color={(theme as any).primary}
+                  />
+                </div>
+                <span
+                  className="ml-3 flex-1 text-sm font-medium"
+                  style={{ color: (theme as any).secondaryText }}
+                >
+                  {item.label}
+                </span>
+              </button>
+              {index !== subItems.length - 1 && (
+                <div
+                  className="h-px opacity-30"
+                  style={{ backgroundColor: (theme as any).border, marginLeft: 88 }}
                 />
-              </View>
-              <Text style={styles.subOptionLabel}>{item.label}</Text>
-              {index !== subItems.length - 1 && <View style={styles.subDivider} />}
-            </TouchableOpacity>
+              )}
+            </React.Fragment>
           ))}
-        </View>
+        </div>
       )}
 
-      {!isLast && !expanded && <View style={styles.divider} />}
-    </View>
+      {!isLast && !expanded && (
+        <div
+          className="h-px opacity-50"
+          style={{ backgroundColor: (theme as any).border, marginLeft: 82 }}
+        />
+      )}
+    </div>
   );
 };
 

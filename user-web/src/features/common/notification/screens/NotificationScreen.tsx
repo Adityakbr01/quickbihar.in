@@ -1,21 +1,10 @@
 import React, { useMemo, useState } from "react";
-import {
-  ActivityIndicator,
-  FlatList,
-  Image,
-  Linking,
-  Pressable,
-  RefreshControl,
-  Text,
-  TouchableOpacity,
-  View,
-} from "@/components/primitives";
 import type { LucideIcon } from "lucide-react";
 import { ArrowRight, Bell, BellOff, CheckCheck, ChevronLeft, Circle, CircleAlert, Inbox, Layers, MessageCircle, ShoppingBag, Tag } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { goBack, goTo } from "@/src/utils/navigation";
 import { useModuleTheme, type ModuleVariant } from "@/src/theme/useModuleTheme";
-import { createNotificationStyles } from "../styles/notificationStyles";
+import { cn } from "@/src/lib/utils";
 import {
   useNotifications,
   useMarkAsRead,
@@ -100,10 +89,9 @@ const NotificationScreen = ({ variant = "default" }: { variant?: ModuleVariant }
   // In the jewelery catalogue the same screen renders in the jewellery
   // palette via the module theme — data, tabs, and actions stay identical.
   const theme = useModuleTheme(variant);
-  const styles = createNotificationStyles(theme);
   const navigate = useNavigate();
 
-  const { data: notifications = [], isLoading, refetch } = useNotifications();
+  const { data: notifications = [], isLoading } = useNotifications();
   const { mutate: markAsRead } = useMarkAsRead();
   const { mutate: markAllAsRead, isPending: isMarkingAll } = useMarkAllAsRead();
 
@@ -165,9 +153,11 @@ const NotificationScreen = ({ variant = "default" }: { variant?: ModuleVariant }
     } else if (item.redirectType === "mall" && item.redirectId) {
       goTo(navigate, { pathname: "/mall/[id]" as any, params: { id: item.redirectId } });
     } else if (item.redirectType === "external" && item.externalUrl) {
-      Linking.openURL(item.externalUrl).catch((err) =>
-        console.error("Failed to open redirection URL:", err),
-      );
+      try {
+        window.open(item.externalUrl, "_blank");
+      } catch (err) {
+        console.error("Failed to open redirection URL:", err);
+      }
     }
   };
 
@@ -185,153 +175,170 @@ const NotificationScreen = ({ variant = "default" }: { variant?: ModuleVariant }
     const fullTime = dayjs(item.createdAt).format("MMM D, h:mm A");
 
     return (
-      <TouchableOpacity style={[styles.card, !item.isRead && styles.cardUnread]}
-        onPress={() => handleNotificationPress(item)}
-        activeOpacity={0.75}
+      <div
+        onClick={() => handleNotificationPress(item)}
+        className="relative mb-2.5 flex cursor-pointer flex-row overflow-hidden rounded-2xl border p-3.5"
+        style={{
+          backgroundColor: !item.isRead ? theme.secondaryBackground : theme.tertiaryBackground,
+          borderColor: !item.isRead ? theme.primary + "40" : theme.border,
+        }}
       >
         {/* Unread accent strip */}
-        {!item.isRead && <View style={styles.unreadAccent} />}
+        {!item.isRead && (
+          <div className="absolute top-0 bottom-0 left-0 w-[3px] rounded-l-2xl" style={{ backgroundColor: theme.primary }} />
+        )}
 
         {/* Channel icon */}
-        <View style={[
-            styles.iconWrap,
-            { backgroundColor: !item.isRead ? meta.bg : theme.secondaryBackground },
-          ]}
+        <div
+          className="mr-3 flex h-11 w-11 items-center justify-center rounded-[14px]"
+          style={{ backgroundColor: !item.isRead ? meta.bg : theme.secondaryBackground }}
         >
           {!(item.imageUrl && !isRich) && (
             <meta.icon size={22} color={!item.isRead ? meta.color : theme.secondaryText} />
           )}
-        </View>
+        </div>
 
-        <View style={styles.content}>
+        <div className="min-w-0 flex-1">
           {/* Title row */}
-          <View style={styles.titleRow}>
-            <Text style={[styles.title, !item.isRead && styles.titleUnread]}
-              numberOfLines={1}
+          <div className="mb-1 flex flex-row items-center gap-1.5">
+            <p
+              className={cn("line-clamp-1 flex-1 text-sm font-bold tracking-wide leading-[19px]", !item.isRead && "font-extrabold")}
+              style={{ color: theme.text }}
             >
               {item.title}
-            </Text>
-            {!item.isRead && <View style={styles.unreadDot} />}
-          </View>
+            </p>
+            {!item.isRead && (
+              <div className="absolute top-3.5 right-3.5 h-2 w-2 rounded-full" style={{ backgroundColor: theme.primary }} />
+            )}
+          </div>
 
           {/* Channel tag + time */}
-          <View style={styles.metaRow}>
-            <View style={styles.channelTag}>
-              <Text style={styles.channelTagText}>{meta.label}</Text>
-            </View>
+          <div className="mt-0.5 mb-1.5 flex flex-row items-center gap-1.5">
+            <div
+              className="rounded-md border px-[7px] py-0.5"
+              style={{ backgroundColor: theme.background, borderColor: theme.border }}
+            >
+              <span className="text-[10px] font-extrabold tracking-wide uppercase" style={{ color: theme.secondaryText }}>
+                {meta.label}
+              </span>
+            </div>
             <Circle size={3} color={theme.tertiaryText} style={{ marginInline: 2 }} />
-            <Text style={styles.timeText}>{fullTime}</Text>
-            <Text style={[styles.timeText, { opacity: 0.6 }]}>· {time}</Text>
-          </View>
+            <span className="text-[11px] font-semibold" style={{ color: theme.tertiaryText }}>{fullTime}</span>
+            <span className="text-[11px] font-semibold opacity-60" style={{ color: theme.tertiaryText }}>· {time}</span>
+          </div>
 
           {/* Description */}
-          <Text style={[
-              styles.description,
-              !item.isRead && styles.descriptionUnread,
-            ]}
-            numberOfLines={isRich ? 2 : 3}
+          <p
+            className={cn("text-[13px] leading-[19px]", isRich ? "line-clamp-2" : "line-clamp-3")}
+            style={{ color: !item.isRead ? theme.text : theme.secondaryText }}
           >
             {item.description}
-          </Text>
+          </p>
 
           {/* Rich card image */}
           {isRich && (
-            <Image source={{ uri: item.imageUrl }}
-              style={styles.richBanner}
-              resizeMode="cover"
+            <img
+              src={item.imageUrl}
+              alt={item.title}
+              className="mt-3 mb-2.5 h-[150px] w-full rounded-xl object-cover"
+              style={{ backgroundColor: theme.secondaryBackground }}
             />
           )}
 
           {/* Rich card action */}
           {isRich && item.redirectType !== "none" && (
-            <View style={styles.richActionRow}>
-              <TouchableOpacity style={styles.richActionBtn}
-                onPress={() => handleNotificationPress(item)}
-                activeOpacity={0.85}
+            <div className="mt-1 flex flex-row items-center justify-between">
+              <button
+                type="button"
+                onClick={() => handleNotificationPress(item)}
+                className="flex h-9 flex-row items-center gap-1.5 rounded-full px-3.5"
+                style={{ backgroundColor: theme.primary }}
               >
-                <Text style={styles.richActionBtnText}>
+                <span className="text-xs font-extrabold tracking-wide text-white">
                   {item.actionButtonText ||
                     (item.redirectType === "product" ? "Buy Now" : "View Details")}
-                </Text>
+                </span>
                 <ArrowRight size={14} color="#fff" />
-              </TouchableOpacity>
-            </View>
+              </button>
+            </div>
           )}
-        </View>
-      </TouchableOpacity>
+        </div>
+      </div>
     );
   };
 
   const renderSectionHeader = (label: string, count: number) => (
-    <View style={styles.sectionHeader}>
-      <Text style={styles.sectionTitle}>{label}</Text>
-      <Text style={styles.sectionCount}>· {count}</Text>
-      <View style={styles.sectionLine} />
-    </View>
+    <div className="flex flex-row items-center gap-2 px-1 pt-[18px] pb-2">
+      <span className="text-xs font-extrabold tracking-widest uppercase" style={{ color: theme.secondaryText }}>
+        {label}
+      </span>
+      <span className="text-[11px] font-bold" style={{ color: theme.tertiaryText }}>· {count}</span>
+      <div className="ml-1 h-[1px] flex-1" style={{ backgroundColor: theme.border }} />
+    </div>
   );
 
   const renderTabs = () => (
-    <View style={styles.tabsWrapper}>
-      <View style={styles.tabsContainer}>
+    <div className="px-4 pb-3">
+      <div className="flex flex-row gap-0.5 rounded-[14px] p-1" style={{ backgroundColor: theme.secondaryBackground }}>
         {TABS.map((tab) => {
           const isActive = activeTab === tab.id;
           const count = tabCounts[tab.id];
           return (
-            <Pressable key={tab.id}
-              style={[styles.tabButton, isActive && styles.activeTabButton]}
-              onPress={() => {
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(
                   () => null,
                 );
                 setActiveTab(tab.id);
               }}
-              android_ripple={{ color: theme.primary + "20", borderless: false }}
+              className={cn("flex flex-1 flex-row items-center justify-center gap-1.5 rounded-[11px] px-2.5 py-2")}
+              style={isActive ? { backgroundColor: theme.background, boxShadow: "0 1px 3px rgba(0,0,0,0.08)" } : undefined}
             >
               <tab.icon size={14} color={isActive ? theme.text : theme.secondaryText} />
-              <Text style={[styles.tabLabel, isActive && styles.activeTabLabel]}
-                numberOfLines={1}
+              <span
+                className="line-clamp-1 text-xs font-bold tracking-wide"
+                style={{ color: isActive ? theme.text : theme.secondaryText }}
               >
                 {tab.label}
-              </Text>
+              </span>
               {count > 0 && (
-                <View style={[
-                    styles.tabCountPill,
-                    !isActive && { backgroundColor: theme.tertiaryBackground },
-                  ]}
+                <div
+                  className="flex h-4 min-w-[18px] items-center justify-center rounded-lg px-[5px]"
+                  style={{ backgroundColor: !isActive ? theme.tertiaryBackground : theme.primary }}
                 >
-                  <Text style={[
-                      styles.tabCountText,
-                      !isActive && { color: theme.secondaryText },
-                    ]}
+                  <span
+                    className="text-[10px] font-extrabold"
+                    style={{ color: !isActive ? theme.secondaryText : "#fff" }}
                   >
                     {count > 99 ? "99+" : count}
-                  </Text>
-                </View>
+                  </span>
+                </div>
               )}
-            </Pressable>
+            </button>
           );
         })}
-      </View>
-    </View>
+      </div>
+    </div>
   );
 
   const renderEmptyState = () => (
-    <View style={styles.emptyContainer}>
-      <View style={[
-          styles.emptyIconWrap,
-          { backgroundColor: theme.primary + "15" },
-        ]}
+    <div className="flex flex-1 flex-col items-center justify-center px-8 pb-10">
+      <div
+        className="mb-[18px] flex h-[110px] w-[110px] items-center justify-center rounded-full"
+        style={{ backgroundColor: theme.primary + "15" }}
       >
         {activeTab === "all" ? (
           <BellOff size={52} color={theme.primary} />
         ) : (
           <Inbox size={52} color={theme.primary} />
         )}
-      </View>
-      <Text style={styles.emptyTitle}>
+      </div>
+      <p className="text-center text-xl font-extrabold tracking-tight" style={{ color: theme.text }}>
         {activeTab === "all" ? "No notifications yet" : "Nothing here yet"}
-      </Text>
-      <Text style={styles.emptySubtitle}>
+      </p>
+      <p className="mt-2 max-w-[320px] text-center text-sm leading-5" style={{ color: theme.secondaryText }}>
         {activeTab === "all"
           ? "We'll let you know about order updates, exclusive offers, and important account changes right here."
           : activeTab === "orders"
@@ -339,15 +346,25 @@ const NotificationScreen = ({ variant = "default" }: { variant?: ModuleVariant }
           : activeTab === "promotions"
           ? "Personalised offers and deals will show up here. Stay tuned!"
           : "System messages and general updates from QuickBihar will land here."}
-      </Text>
-    </View>
+      </p>
+    </div>
   );
 
   if (isLoading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={theme.primary} />
-      </View>
+      <div className="flex min-h-screen items-center justify-center" style={{ backgroundColor: theme.background }}>
+        <span
+          className="animate-spin rounded-full"
+          style={{
+            width: 36,
+            height: 36,
+            borderWidth: 3,
+            borderStyle: "solid",
+            borderColor: theme.primary,
+            borderTopColor: "transparent",
+          }}
+        />
+      </div>
     );
   }
 
@@ -372,79 +389,93 @@ const NotificationScreen = ({ variant = "default" }: { variant?: ModuleVariant }
   }
 
   return (
-    <>
-      <View style={styles.container}>
-        {/* Top app bar */}
-        <View style={styles.appBar}>
-          <TouchableOpacity onPress={() => {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(
-                () => null,
-              );
-              goBack(navigate, variant === "jewelery" ? "/jewelery/account" : "/account/profile-info");
-            }}
-            style={styles.backButton}
-            activeOpacity={0.7}
+    <div className="flex min-h-screen flex-col" style={{ backgroundColor: theme.background }}>
+      {/* Top app bar */}
+      <div className="flex flex-row items-center gap-2 px-3 pt-2 pb-3">
+        <button
+          type="button"
+          onClick={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(
+              () => null,
+            );
+            goBack(navigate, variant === "jewelery" ? "/jewelery/account" : "/account/profile-info");
+          }}
+          aria-label="Go back"
+          className="flex h-10 w-10 items-center justify-center rounded-full"
+          style={{ backgroundColor: theme.secondaryBackground }}
+        >
+          <ChevronLeft size={22} color={theme.text} />
+        </button>
+
+        <div className="flex-1 px-1">
+          <h2 className="text-[22px] font-extrabold tracking-tight" style={{ color: theme.text }}>
+            Notifications
+          </h2>
+          <p className="mt-0.5 text-xs font-medium" style={{ color: theme.secondaryText }}>
+            {unreadCount > 0
+              ? `${unreadCount} unread · ${notifications.length} total`
+              : `${notifications.length} notification${notifications.length === 1 ? "" : "s"}`}
+          </p>
+        </div>
+
+        {unreadCount > 0 ? (
+          <button
+            type="button"
+            onClick={handleMarkAll}
+            disabled={isMarkingAll}
+            className={cn("flex h-9 flex-row items-center gap-1.5 rounded-full px-3", isMarkingAll && "opacity-60")}
+            style={{ backgroundColor: theme.primary + "18" }}
           >
-            <ChevronLeft size={22} color={theme.text} />
-          </TouchableOpacity>
-
-          <View style={styles.appBarTitleWrap}>
-            <Text style={styles.appBarTitle}>Notifications</Text>
-            <Text style={styles.appBarSubtitle}>
-              {unreadCount > 0
-                ? `${unreadCount} unread · ${notifications.length} total`
-                : `${notifications.length} notification${notifications.length === 1 ? "" : "s"}`}
-            </Text>
-          </View>
-
-          {unreadCount > 0 ? (
-            <TouchableOpacity onPress={handleMarkAll}
-              disabled={isMarkingAll}
-              style={[styles.markAllBtn, isMarkingAll && styles.markAllBtnDisabled]}
-              activeOpacity={0.7}
-            >
-              {isMarkingAll ? (
-                <ActivityIndicator size="small" color={theme.primary} />
-              ) : (
-                <>
-                  <CheckCheck size={14} color={theme.primary} />
-                  <Text style={styles.markAllText}>Mark all</Text>
-                </>
-              )}
-            </TouchableOpacity>
-          ) : (
-            <View style={{ width: 40 }} />
-          )}
-        </View>
-
-        {/* Filter tabs */}
-        {renderTabs()}
-
-        {/* Notification list */}
-        <FlatList data={rows}
-          renderItem={({ item: row }) =>
-            row.type === "header" ? (
-              renderSectionHeader(row.label, row.count)
+            {isMarkingAll ? (
+              <span
+                className="animate-spin rounded-full"
+                style={{
+                  width: 14,
+                  height: 14,
+                  borderWidth: 2,
+                  borderStyle: "solid",
+                  borderColor: theme.primary,
+                  borderTopColor: "transparent",
+                }}
+              />
             ) : (
-              <>{renderItem({ item: row.item })}</>
+              <>
+                <CheckCheck size={14} color={theme.primary} />
+                <span className="text-xs font-extrabold tracking-wide" style={{ color: theme.primary }}>
+                  Mark all
+                </span>
+              </>
+            )}
+          </button>
+        ) : (
+          <div className="w-10" />
+        )}
+      </div>
+
+      {/* Filter tabs */}
+      {renderTabs()}
+
+      {/* Notification list */}
+      <div className="overflow-auto">
+        <div className={cn("px-4 pt-2 pb-8", rows.length === 0 && "flex-1")}>
+          {rows.length === 0 ? (
+            renderEmptyState()
+          ) : (
+            rows.map((row) =>
+              row.type === "header" ? (
+                <React.Fragment key={row.key}>
+                  {renderSectionHeader(row.label, row.count)}
+                </React.Fragment>
+              ) : (
+                <React.Fragment key={row.key}>
+                  {renderItem({ item: row.item })}
+                </React.Fragment>
+              ),
             )
-          }
-          keyExtractor={(row) => row.key}
-          contentContainerStyle={[
-            styles.listContent,
-            rows.length === 0 && { flex: 1 },
-          ]}
-          ListEmptyComponent={renderEmptyState}
-          refreshControl={
-            <RefreshControl refreshing={isLoading}
-              onRefresh={refetch}
-              tintColor={theme.primary}
-            />
-          }
-          showsVerticalScrollIndicator={false}
-        />
-      </View>
-    </>
+          )}
+        </div>
+      </div>
+    </div>
   );
 };
 

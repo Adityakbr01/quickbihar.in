@@ -1,7 +1,5 @@
 import React from "react";
-import { View, StyleSheet } from "@/components/primitives";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
-import Skeleton from "@/src/components/common/Skeleton";
 
 // Pulsing placeholder mirroring the address card layout
 // (type badge row, name / phone / address lines, actions row).
@@ -9,48 +7,54 @@ export const AddressCardSkeleton = () => {
   const theme = useTheme() as any;
 
   return (
-    <View
-      style={[
-        styles.card,
-        { borderColor: theme.border, backgroundColor: theme.tertiaryBackground },
-      ]}
+    <div
+      className="mb-3 animate-pulse rounded-2xl border p-4"
+      style={{
+        borderColor: theme.border,
+        backgroundColor: theme.tertiaryBackground,
+      }}
     >
-      <View style={styles.header}>
-        <Skeleton width={84} height={24} borderRadius={8} />
-        <Skeleton width={70} height={22} borderRadius={6} />
-      </View>
+      <div className="mb-3 flex flex-row items-center justify-between">
+        <div
+          className="h-6 w-[84px] rounded-lg"
+          style={{ backgroundColor: theme.border }}
+        />
+        <div
+          className="h-[22px] w-[70px] rounded-md"
+          style={{ backgroundColor: theme.border }}
+        />
+      </div>
 
-      <Skeleton width="55%" height={18} borderRadius={4} />
-      <Skeleton width="40%" height={14} borderRadius={4} style={{ marginTop: 8 }} />
-      <Skeleton width="100%" height={14} borderRadius={4} style={{ marginTop: 12 }} />
-      <Skeleton width="75%" height={14} borderRadius={4} style={{ marginTop: 6 }} />
+      <div
+        className="h-[18px] w-[55%] rounded"
+        style={{ backgroundColor: theme.border }}
+      />
+      <div
+        className="mt-2 h-3.5 w-[40%] rounded"
+        style={{ backgroundColor: theme.border }}
+      />
+      <div
+        className="mt-3 h-3.5 w-full rounded"
+        style={{ backgroundColor: theme.border }}
+      />
+      <div
+        className="mt-1.5 h-3.5 w-[75%] rounded"
+        style={{ backgroundColor: theme.border }}
+      />
 
-      <View style={[styles.actions, { borderTopColor: theme.border }]}>
-        <Skeleton width={110} height={36} borderRadius={10} />
-        <Skeleton width={110} height={36} borderRadius={10} />
-      </View>
-    </View>
+      <div
+        className="mt-3.5 flex flex-row gap-3 border-t pt-3.5"
+        style={{ borderTopColor: theme.border }}
+      >
+        <div
+          className="h-9 w-[110px] rounded-[10px]"
+          style={{ backgroundColor: theme.border }}
+        />
+        <div
+          className="h-9 w-[110px] rounded-[10px]"
+          style={{ backgroundColor: theme.border }}
+        />
+      </div>
+    </div>
   );
 };
-
-const styles = StyleSheet.create({
-  card: {
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
-    borderWidth: 1,
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  actions: {
-    flexDirection: "row",
-    borderTopWidth: 1,
-    paddingTop: 14,
-    marginTop: 14,
-    gap: 12,
-  },
-});

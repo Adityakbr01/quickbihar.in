@@ -1,19 +1,16 @@
 import React from "react";
-import { View, Text, TouchableOpacity } from "@/components/primitives";
 import { useNavigate } from "react-router-dom";
 import { goTo } from "@/src/utils/navigation";
 import * as Haptics from "@/lib/haptics";
 import LazyLottie from "@/src/components/common/LazyLottie";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
-import { createCartStyles } from "../styles/cartStyles";
 
 import { ShoppingBag } from "lucide-react";
 
 import cartLottie from "@/assets/lottie/shoppingCart.json";
 
 const EmptyCart = () => {
-  const theme = useTheme();
-  const styles = createCartStyles(theme);
+  const theme = useTheme() as any;
   const navigate = useNavigate();
 
   const handleShopNow = () => {
@@ -22,26 +19,34 @@ const EmptyCart = () => {
   };
 
   return (
-    <View style={styles.emptyContainer}>
-      <LazyLottie source={cartLottie}
+    <div className="mx-auto mt-10 flex w-full max-w-[600px] flex-1 flex-col items-center justify-center p-8 pb-[100px]">
+      <LazyLottie
+        source={cartLottie}
         autoPlay
         loop
         style={{ width: 200, height: 200 }}
         resizeMode="contain"
       />
-      <Text style={styles.emptyTitle}>Your cart is empty</Text>
-      <Text style={styles.emptySubtitle}>
-        Looks like you haven't added anything to your cart yet. Discover trending styles and exclusive offers!
-      </Text>
+      <h2 className="mt-5 text-[22px] font-extrabold" style={{ color: theme.text }}>
+        Your cart is empty
+      </h2>
+      <p
+        className="mt-2.5 max-w-[300px] text-center text-sm leading-[22px]"
+        style={{ color: theme.secondaryText }}
+      >
+        Looks like you haven&apos;t added anything to your cart yet. Discover trending styles and exclusive offers!
+      </p>
 
-      <TouchableOpacity style={[styles.shopNowButton, { backgroundColor: theme.primary }]}
-        onPress={handleShopNow}
-        activeOpacity={0.85}
+      <button
+        type="button"
+        onClick={handleShopNow}
+        className="mt-7 flex cursor-pointer flex-row items-center gap-2 rounded-[14px] px-7 py-3.5"
+        style={{ backgroundColor: theme.primary }}
       >
         <ShoppingBag size={18} color="#fff" />
-        <Text style={styles.shopNowText}>Continue Shopping</Text>
-      </TouchableOpacity>
-    </View>
+        <span className="text-[15px] font-extrabold text-white">Continue Shopping</span>
+      </button>
+    </div>
   );
 };
 

@@ -1,5 +1,4 @@
 import React from "react";
-import { View, Text } from "@/components/primitives";
 import { Controller } from "react-hook-form";
 import { AppIcon } from "@/src/components/common/AppIcon";
 import type { LucideIcon } from "lucide-react";
@@ -14,7 +13,7 @@ interface AddressInputProps {
   placeholder: string;
   errors: any;
   theme: Theme;
-  styles: any;
+  styles?: any;
   options?: any;
 }
 
@@ -26,15 +25,19 @@ const AddressInput: React.FC<AddressInputProps> = ({
   placeholder,
   errors,
   theme,
-  styles,
   options = {},
 }) => {
   return (
-    <View style={styles.inputGroup}>
-      <View style={styles.labelRow}>
-        <AppIcon icon={icon} size={18} color={theme.secondaryText} />
-        <Text style={styles.inputLabel}>{label}</Text>
-      </View>
+    <div className="mb-5">
+      <div className="mb-2 flex flex-row items-center">
+        <AppIcon icon={icon} size={18} color={(theme as any).secondaryText} />
+        <label
+          className="ml-2 text-sm font-semibold"
+          style={{ color: (theme as any).secondaryText }}
+        >
+          {label}
+        </label>
+      </div>
       <Controller
         control={control}
         name={name}
@@ -45,24 +48,24 @@ const AddressInput: React.FC<AddressInputProps> = ({
           return (
             <TextInput
               onBlur={onBlur}
-              onChangeText={(v) => {
+              onChangeText={(v: string) => {
                 onChange(v);
                 callerOnChangeText?.(v);
               }}
               value={value?.toString()}
               placeholder={placeholder}
-              placeholderTextColor={theme.tertiaryText}
+              placeholderTextColor={(theme as any).tertiaryText}
               error={errors[name]?.message as string | undefined}
               containerStyle={{ marginBottom: 0 }}
               inputContainerStyle={{
-                backgroundColor: theme.tertiaryBackground,
+                backgroundColor: (theme as any).tertiaryBackground,
                 borderRadius: 16,
                 paddingHorizontal: 16,
                 height: multiline ? 100 : 56,
               }}
               style={{
                 fontSize: 16,
-                color: theme.text,
+                color: (theme as any).text,
                 ...(multiline ? { paddingTop: 16, textAlignVertical: "top" as const } : {}),
               }}
               {...restOptions}
@@ -70,7 +73,7 @@ const AddressInput: React.FC<AddressInputProps> = ({
           );
         }}
       />
-    </View>
+    </div>
   );
 };
 

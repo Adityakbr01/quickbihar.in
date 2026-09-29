@@ -1,17 +1,6 @@
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
-import { spacing } from "@/src/theme/spacing";
-import { BREAKPOINTS } from "@/src/utils/responsive";
+import { BREAKPOINTS, useWindowWidth } from "@/src/utils/responsive";
 import React from "react";
-import {
-  FlatList,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  useWindowDimensions,
-  View,
-} from "@/components/primitives";
 
 import { useCategories } from "../hooks/useCategories";
 import { Category } from "../types/category.types";
@@ -23,29 +12,25 @@ import * as Haptics from "@/lib/haptics";
 const HomeCategories = ({ rootSlug = "clothing" }: { rootSlug?: string }) => {
   const theme = useTheme() as any;
   const navigate = useNavigate();
-  const { width } = useWindowDimensions();
-  const isDesktop = Platform.OS === "web" && width >= BREAKPOINTS.desktopMin;
+  const width = useWindowWidth();
+  const isDesktop = width >= BREAKPOINTS.desktopMin;
   const [showAll, setShowAll] = React.useState(false);
   const { data: rawCategories, isLoading, error } = useCategories({ vertical: "CLOTHING" });
   // Desktop rail scroll position + arrow stepping (3 tiles per click).
-  const railRef = React.useRef<ScrollView>(null);
+  const railRef = React.useRef<HTMLDivElement>(null);
   const railOffset = React.useRef(0);
   const scrollRail = (dir: 1 | -1) => {
     railRef.current?.scrollTo({
       // 112px tile + 18px gap per step × 3 tiles.
-      x: Math.max(0, railOffset.current + dir * 390),
-      animated: true,
+      left: Math.max(0, railOffset.current + dir * 390),
+      behavior: "smooth",
     });
   };
 
   const renderItem = ({ item }: { item: Category }) => (
-    <TouchableOpacity
-      style={styles.categoryItem}
-      activeOpacity={0.7}
-      accessibilityRole="link"
-      accessibilityLabel={`Shop ${item.title}`}
-      {...({ title: `Shop ${item.title} on QuickBihar` } as any)}
-      onPress={() => {
+    <button
+      type="button"
+      onClick={() => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
         goTo(navigate, {
           pathname: "/(tabs)/clothing/search" as any,
@@ -57,14 +42,26 @@ const HomeCategories = ({ rootSlug = "clothing" }: { rootSlug?: string }) => {
           },
         });
       }}
+      aria-label={`Shop ${item.title}`}
+      title={`Shop ${item.title} on QuickBihar`}
+      className="flex w-[70px] shrink-0 flex-col items-center bg-transparent"
     >
-      <View style={[styles.imageContainer, { borderColor: theme.border }]}>
-        <img src={item.image} alt={`${item.title} - Clothing Category in Bihar`} aria-label={`${item.title} Category`} style={Object.assign({}, styles.image, { objectFit: "cover" as const })} {...({ title: `${item.title} | QuickBihar Online Shopping` } as any)} />
-      </View>
-      <Text style={[styles.title, { color: theme.text }]} numberOfLines={1}>
+      <div
+        className="mb-1 flex h-16 w-16 items-center justify-center overflow-hidden rounded-full border"
+        style={{ borderColor: theme.border, backgroundColor: "#f0f0f0" }}
+      >
+        <img
+          src={item.image}
+          alt={`${item.title} - Clothing Category in Bihar`}
+          aria-label={`${item.title} Category`}
+          title={`${item.title} | QuickBihar Online Shopping`}
+          className="h-full w-full object-cover"
+        />
+      </div>
+      <span className="line-clamp-1 text-center text-[11px] font-medium" style={{ color: theme.text }}>
         {item.title}
-      </Text>
-    </TouchableOpacity>
+      </span>
+    </button>
   );
 
   const { visibleCategories, totalCount } = React.useMemo(() => {
@@ -125,16 +122,13 @@ const HomeCategories = ({ rootSlug = "clothing" }: { rootSlug?: string }) => {
 
   if (isLoading) {
     return (
-      <View style={styles.container}>
-        <FlatList
-          data={[1, 2, 3, 4, 5]}
-          renderItem={() => <CategorySkeleton />}
-          keyExtractor={(item) => item.toString()}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.listContent}
-        />
-      </View>
+      <div className="my-4">
+        <div className="flex flex-row gap-4 overflow-x-auto px-3">
+          {[1, 2, 3, 4, 5].map((item) => (
+            <CategorySkeleton key={item.toString()} />
+          ))}
+        </div>
+      </div>
     );
   }
 
@@ -163,34 +157,28 @@ const HomeCategories = ({ rootSlug = "clothing" }: { rootSlug?: string }) => {
           })
           .slice(0, 10);
     return (
-      <View style={[styles.container, desktopStyles.wrap]}>
+      <div className="my-7 flex flex-col items-center px-6">
         {/* Left-aligned heading like mobile section headers. */}
-        <View style={desktopStyles.headingWrap}>
-          <Text style={[desktopStyles.heading, { color: theme.text }]}>
+        <div className="flex w-full max-w-[1080px] justify-start px-6">
+          <h2 className="mb-5 text-left text-2xl font-black tracking-tight" style={{ color: theme.text }}>
             Shop by category
-          </Text>
-        </View>
+          </h2>
+        </div>
         {/* Single scrollable rail — all tiles in one line, never wrapping. */}
-        <View style={desktopStyles.railWrap}>
-          <ScrollView
+        <div className="relative flex w-full max-w-[1080px] flex-col items-center">
+          <div
             ref={railRef}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            scrollEventThrottle={16}
             onScroll={(e) => {
-              railOffset.current = e.nativeEvent.contentOffset.x;
+              railOffset.current = e.currentTarget.scrollLeft;
             }}
-            style={desktopStyles.rail}
-            contentContainerStyle={desktopStyles.railContent}
+            className="flex w-full items-start gap-[18px] overflow-x-auto px-6 pb-2.5"
+            style={{ scrollbarWidth: "none" }}
           >
           {desktopList.map((item: any) => (
-            <TouchableOpacity
+            <button
               key={item._id}
-              style={desktopStyles.tile}
-              activeOpacity={0.8}
-              accessibilityRole="link"
-              accessibilityLabel={`Shop ${item.title}`}
-              onPress={() => {
+              type="button"
+              onClick={() => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
                 goTo(navigate, {
                   pathname: "/(tabs)/clothing/search" as any,
@@ -202,200 +190,58 @@ const HomeCategories = ({ rootSlug = "clothing" }: { rootSlug?: string }) => {
                   },
                 });
               }}
+              aria-label={`Shop ${item.title}`}
+              className="flex w-[112px] shrink-0 flex-col items-center bg-transparent"
             >
-              <View
-                style={[
-                  desktopStyles.thumb,
-                  {
-                    borderColor: theme.border,
-                    backgroundColor: theme.secondaryBackground,
-                  },
-                ]}
+              <div
+                className="flex h-[104px] w-[104px] items-center justify-center overflow-hidden rounded-full border shadow-lg"
+                style={{
+                  borderColor: theme.border,
+                  backgroundColor: theme.secondaryBackground,
+                }}
               >
-                <img src={item.image} style={Object.assign({}, desktopStyles.img, { objectFit: "cover" as const })} />
-              </View>
-              <Text style={[desktopStyles.label, { color: theme.text }]} numberOfLines={1}>
+                <img src={item.image} alt={item.title} className="h-full w-full object-cover" />
+              </div>
+              <span className="mt-2.5 line-clamp-1 text-center text-[13px] font-bold" style={{ color: theme.text }}>
                 {item.title}
-              </Text>
-            </TouchableOpacity>
+              </span>
+            </button>
           ))}
-          </ScrollView>
-          <TouchableOpacity
-            onPress={() => scrollRail(-1)}
-            accessibilityRole="button"
-            accessibilityLabel="Scroll categories left"
-            activeOpacity={0.8}
-            style={[
-              desktopStyles.railArrow,
-              desktopStyles.railArrowLeft,
-              { backgroundColor: theme.background, borderColor: theme.border },
-            ]}
+          </div>
+          <button
+            type="button"
+            onClick={() => scrollRail(-1)}
+            aria-label="Scroll categories left"
+            className="absolute top-8 left-7 z-[5] flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border shadow-lg"
+            style={{ backgroundColor: theme.background, borderColor: theme.border }}
           >
-            <Text style={[desktopStyles.railArrowText, { color: theme.text }]}>‹</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => scrollRail(1)}
-            accessibilityRole="button"
-            accessibilityLabel="Scroll categories right"
-            activeOpacity={0.8}
-            style={[
-              desktopStyles.railArrow,
-              desktopStyles.railArrowRight,
-              { backgroundColor: theme.background, borderColor: theme.border },
-            ]}
+            <span className="-mt-[3px] text-[26px] font-extrabold leading-[30px]" style={{ color: theme.text }}>‹</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => scrollRail(1)}
+            aria-label="Scroll categories right"
+            className="absolute top-8 right-7 z-[5] flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border shadow-lg"
+            style={{ backgroundColor: theme.background, borderColor: theme.border }}
           >
-            <Text style={[desktopStyles.railArrowText, { color: theme.text }]}>›</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
+            <span className="-mt-[3px] text-[26px] font-extrabold leading-[30px]" style={{ color: theme.text }}>›</span>
+          </button>
+        </div>
+      </div>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <FlatList
-        className="gap-28"
-        data={visibleCategories}
-        renderItem={renderItem}
-        keyExtractor={(item) => item._id}
-        horizontal
-        ItemSeparatorComponent={() => <View style={{ width: 8 }} />}
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.listContent}
-      />
-    </View>
+    <div className="my-4">
+      <div className="flex flex-row gap-2 overflow-x-auto px-3">
+        {visibleCategories.map((item) => (
+          <React.Fragment key={item._id}>
+            {renderItem({ item })}
+          </React.Fragment>
+        ))}
+      </div>
+    </div>
   );
 };
 
 export default HomeCategories;
-
-const styles = StyleSheet.create({
-  container: {
-    marginVertical: spacing.md,
-  },
-  headerRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: spacing.m,
-    marginBottom: spacing.xs,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: "700",
-    letterSpacing: -0.3,
-  },
-  toggleBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 2,
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    borderRadius: 12,
-  },
-  toggleText: {
-    fontSize: 12,
-    fontWeight: "600",
-  },
-  listContent: {
-    paddingHorizontal: spacing.m,
-  },
-  categoryItem: {
-    alignItems: "center",
-    width: 70,
-  },
-  imageContainer: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    borderWidth: 1,
-    overflow: "hidden",
-    marginBottom: spacing.xs,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#f0f0f0",
-  },
-  image: {
-    width: "100%",
-    height: "100%",
-  },
-  title: {
-    fontSize: 11,
-    fontWeight: "500",
-    textAlign: "center",
-  },
-});
-
-// Desktop-only styles — never applied on native / mobile web.
-const desktopStyles = StyleSheet.create({
-  wrap: { marginVertical: 28, paddingHorizontal: 24, alignItems: "center" },
-  headingWrap: {
-    width: "100%",
-    maxWidth: 1080,
-    alignItems: "flex-start",
-    paddingHorizontal: 24,
-  },
-  heading: { fontSize: 24, fontWeight: "900", letterSpacing: -0.5, marginBottom: 20, textAlign: "left" },
-  // Single-line scrollable rail (replaces the old wrapping grid).
-  railWrap: {
-    position: "relative",
-    width: "100%",
-    maxWidth: 1080,
-    alignItems: "center",
-  },
-  rail: {
-    width: "100%",
-  },
-  railContent: {
-    gap: 18,
-    // Generous end padding so the last tile scrolls fully into view.
-    paddingHorizontal: 24,
-    paddingBottom: 10,
-    alignItems: "flex-start",
-  },
-  railArrow: {
-    position: "absolute",
-    top: 32,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    borderWidth: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    zIndex: 5,
-    ...Platform.select({
-      web: { cursor: "pointer", boxShadow: "0 4px 14px rgba(0,0,0,0.18)" } as any,
-    }),
-  },
-  railArrowLeft: {
-    left: 28,
-  },
-  railArrowRight: {
-    right: 28,
-  },
-  railArrowText: {
-    fontSize: 26,
-    fontWeight: "800",
-    lineHeight: 30,
-    marginTop: -3,
-  },
-  // 112px tiles: all 8 fit the 1080 rail (8×112 + 7×18 + 48 = 1070)
-  // with no clipping at rest; narrower windows scroll + arrows.
-  tile: { alignItems: "center", width: 112 },
-  thumb: {
-    width: 104,
-    height: 104,
-    borderRadius: 52,
-    borderWidth: 1,
-    overflow: "hidden",
-    justifyContent: "center",
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.12,
-    shadowRadius: 14,
-    elevation: 4,
-  },
-  img: { width: "100%", height: "100%" },
-  label: { fontSize: 13, fontWeight: "700", textAlign: "center", marginTop: 10 },
-});

@@ -1,5 +1,4 @@
 import React from "react";
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "@/components/primitives";
 import * as Haptics from "@/lib/haptics";
 import { useNavigate } from "react-router-dom";
 import { goTo } from "@/src/utils/navigation";
@@ -7,7 +6,6 @@ import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { AppIcon } from "@/src/components/common/AppIcon";
 import { Box, CircleUser, Folder, MapPin, Moon, Sun } from "lucide-react";
 import { ThemeToggle } from "@/src/components/common/ThemeToggle";
-import { createAccountStyles } from "../styles/accountStyles";
 
 /**
  * Logged-out account tab (clothing) — mirrors the jewelry guest tab:
@@ -16,8 +14,7 @@ import { createAccountStyles } from "../styles/accountStyles";
  * addresses, security, logout) is never rendered without a session.
  */
 const GuestAccountView = () => {
-  const theme = useTheme();
-  const styles = createAccountStyles(theme);
+  const theme = useTheme() as any;
   const navigate = useNavigate();
 
   const goAuth = () => {
@@ -32,79 +29,126 @@ const GuestAccountView = () => {
   ];
 
   return (
-    <View style={styles.container}>
-      <View style={styles.mainWrapper}>
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-        >
+    <div
+      className="flex min-h-screen w-full justify-center"
+      style={{ backgroundColor: theme.background }}
+    >
+      <div className="w-full max-w-[800px]">
+        <div className="overflow-y-auto pb-10">
           {/* Guest hero */}
-          <View style={[localStyles.hero, { backgroundColor: theme.secondaryBackground, borderColor: theme.border }]}>
-            <View style={[localStyles.avatar, { backgroundColor: theme.primary }]}>
+          <div
+            className="mb-2 flex flex-col items-center rounded-[20px] border p-6"
+            style={{ backgroundColor: theme.secondaryBackground, borderColor: theme.border }}
+          >
+            <div
+              className="mb-3 flex h-16 w-16 items-center justify-center rounded-full"
+              style={{ backgroundColor: theme.primary }}
+            >
               <AppIcon icon={CircleUser} size={34} color="#ffffff" />
-            </View>
-            <Text style={[localStyles.heroTitle, { color: theme.text }]}>
+            </div>
+            <p
+              className="text-center text-xl font-extrabold tracking-[-0.3px]"
+              style={{ color: theme.text }}
+            >
               Welcome to QuickBihar
-            </Text>
-            <Text style={[localStyles.heroSub, { color: theme.secondaryText }]}>
+            </p>
+            <p
+              className="mt-1.5 text-center text-[13px] leading-[19px]"
+              style={{ color: theme.secondaryText }}
+            >
               Sign in for orders, wishlist and faster checkout.
-            </Text>
-            <TouchableOpacity
-              style={[localStyles.primaryBtn, { backgroundColor: theme.primary }]}
-              onPress={goAuth}
-              activeOpacity={0.88}
+            </p>
+            <button
+              type="button"
+              onClick={goAuth}
+              className="mt-4 w-full rounded-xl py-3.5 text-[15px] font-extrabold text-white transition active:opacity-90"
+              style={{ backgroundColor: theme.primary }}
             >
-              <Text style={localStyles.primaryBtnText}>Sign In</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[localStyles.ghostBtn, { borderColor: theme.primary }]}
-              onPress={goAuth}
-              activeOpacity={0.88}
+              Sign In
+            </button>
+            <button
+              type="button"
+              onClick={goAuth}
+              className="mt-2.5 w-full rounded-xl border-[1.5px] py-3 text-sm font-extrabold transition active:opacity-90"
+              style={{ borderColor: theme.primary, color: theme.primary }}
             >
-              <Text style={[localStyles.ghostBtnText, { color: theme.primary }]}>
-                Create Account
-              </Text>
-            </TouchableOpacity>
-          </View>
+              Create Account
+            </button>
+          </div>
 
           {/* Member perks */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Member Perks</Text>
+          <div className="mt-6">
+            <p
+              className="mb-3 ml-6 text-[13px] font-bold uppercase tracking-[1px]"
+              style={{ color: theme.tertiaryText }}
+            >
+              Member Perks
+            </p>
             {perks.map((perk, index) => (
-              <View
-                key={perk.title}
-                style={[
-                  styles.optionRow,
-                  index === perks.length - 1 && { borderBottomWidth: 0 },
-                ]}
-              >
-                <View style={styles.iconContainer}>
-                  <AppIcon icon={perk.icon} size={22} color={theme.primary} />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.optionLabel}>{perk.title}</Text>
-                  <Text style={[localStyles.perkSub, { color: theme.secondaryText }]}>
-                    {perk.sub}
-                  </Text>
-                </View>
-              </View>
+              <div key={perk.title}>
+                <div
+                  className="flex flex-row items-center px-6 py-3.5"
+                  style={{
+                    backgroundColor: theme.background,
+                    borderBottom:
+                      index === perks.length - 1
+                        ? "none"
+                        : `1px solid ${theme.border}`,
+                  }}
+                >
+                  <div
+                    className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-xl"
+                    style={{ backgroundColor: theme.tertiaryBackground }}
+                  >
+                    <AppIcon icon={perk.icon} size={22} color={theme.primary} />
+                  </div>
+                  <div className="ml-4 flex-1">
+                    <p
+                      className="text-base font-semibold"
+                      style={{ color: theme.text }}
+                    >
+                      {perk.title}
+                    </p>
+                    <p
+                      className="mt-0.5 text-xs"
+                      style={{ color: theme.secondaryText }}
+                    >
+                      {perk.sub}
+                    </p>
+                  </div>
+                </div>
+              </div>
             ))}
-          </View>
+          </div>
 
           {/* Appearance Section (same as signed-in account) */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Appearance</Text>
-            <View style={styles.optionRow}>
-              <View style={styles.iconContainer}>
+          <div className="mt-6">
+            <p
+              className="mb-3 ml-6 text-[13px] font-bold uppercase tracking-[1px]"
+              style={{ color: theme.tertiaryText }}
+            >
+              Appearance
+            </p>
+            <div
+              className="flex flex-row items-center px-6 py-3.5"
+              style={{ backgroundColor: theme.background }}
+            >
+              <div
+                className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-xl"
+                style={{ backgroundColor: theme.tertiaryBackground }}
+              >
                 <AppIcon
                   icon={theme.isDark ? Moon : Sun}
                   size={22}
                   color={theme.primary}
                 />
-              </View>
-              <Text style={styles.optionLabel}>
+              </div>
+              <span
+                className="ml-4 flex-1 text-base font-semibold"
+                style={{ color: theme.text }}
+              >
                 {theme.isDark ? "Dark Mode" : "Light Mode"}
-              </Text>
+              </span>
               <ThemeToggle
                 value={theme.isDark}
                 onToggle={() => {
@@ -112,70 +156,12 @@ const GuestAccountView = () => {
                   theme.toggleMode();
                 }}
               />
-            </View>
-          </View>
-        </ScrollView>
-      </View>
-    </View>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
 
 export default GuestAccountView;
-
-const localStyles = StyleSheet.create({
-  hero: {
-    borderRadius: 20,
-    borderWidth: 1,
-    padding: 24,
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  avatar: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 12,
-  },
-  heroTitle: {
-    fontSize: 20,
-    fontWeight: "800",
-    letterSpacing: -0.3,
-    textAlign: "center",
-  },
-  heroSub: {
-    fontSize: 13,
-    marginTop: 6,
-    textAlign: "center",
-    lineHeight: 19,
-  },
-  primaryBtn: {
-    marginTop: 16,
-    width: "100%",
-    paddingVertical: 14,
-    borderRadius: 12,
-    alignItems: "center",
-  },
-  primaryBtnText: {
-    color: "#ffffff",
-    fontSize: 15,
-    fontWeight: "800",
-  },
-  ghostBtn: {
-    marginTop: 10,
-    width: "100%",
-    paddingVertical: 13,
-    borderRadius: 12,
-    borderWidth: 1.5,
-    alignItems: "center",
-  },
-  ghostBtnText: {
-    fontSize: 14,
-    fontWeight: "800",
-  },
-  perkSub: {
-    fontSize: 12,
-    marginTop: 2,
-  },
-});

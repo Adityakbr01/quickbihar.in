@@ -53,13 +53,16 @@ const HomeScreen = ({ rootSlug }: { rootSlug?: string }) => {
 
         {/* Filter tabs (sticky on mobile; on desktop the top
               DesktopNavbar is the persistent chrome) */}
-        <div
-          className={cn(
-            "w-full",
-            !isDesktop && "sticky top-0 z-10",
-            isWide && "mx-auto max-w-[1280px] px-6",
-          )}
-        >
+          <div
+            className={cn(
+              "w-full",
+              // z-30: card overlays (discount badge z-10, rating pill)
+              // paint over the bar at equal z-index since they come
+              // later in the DOM — keep the stuck bar strictly above.
+              !isDesktop && "sticky top-0 z-30",
+              isWide && "mx-auto max-w-[1280px] px-6",
+            )}
+          >
           <MoreDealsFilters {...moreDealsState} />
         </div>
 

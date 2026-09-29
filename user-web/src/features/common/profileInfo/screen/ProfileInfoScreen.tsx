@@ -4,18 +4,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as Haptics from "@/lib/haptics";
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import {
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  Text,
-  View
-} from "@/components/primitives";
+import { cn } from "@/src/lib/utils";
 
 import { useProfile } from "../hooks/useProfile";
 import { ProfileFormValues, profileSchema } from "../schema/profile.schema";
-import { createProfileStyles } from "../styles/profileStyles";
 
 import ProfileAvatar from "../components/ProfileAvatar";
 import ProfileDetailsView from "../components/ProfileDetailsView";
@@ -25,7 +17,6 @@ import PhoneOtpSheet from "@/src/features/common/address/components/PhoneOtpShee
 
 const ProfileInfoScreen = () => {
   const theme = useTheme();
-  const styles = createProfileStyles(theme);
   const { profile, isLoading, updateProfile, updateAvatar, isUpdating } = useProfile();
   const userFromStore = useAuthStore((state) => state.user);
   const [isEditing, setIsEditing] = useState(false);
@@ -127,40 +118,63 @@ const ProfileInfoScreen = () => {
 
   if (isLoading && !userFromStore) {
     return (
-      <View style={[styles.container, { justifyContent: "center" }]}>
-        <ActivityIndicator size="large" color={theme.primary} />
-      </View>
+      <div
+        className={cn("flex min-h-[40vh] flex-1 items-center justify-center")}
+        style={{ backgroundColor: theme.background }}
+      >
+        <span
+          className="h-8 w-8 animate-spin rounded-full border-[3px] border-black/10"
+          style={{ borderTopColor: theme.primary }}
+        />
+      </div>
     );
   }
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      style={styles.container}
+    <div
+      className={cn("min-h-full flex-1")}
+      style={{ backgroundColor: theme.background }}
     >
-      <ScrollView showsVerticalScrollIndicator={false}>
-        <View style={styles.headerGradient}>
-          <View style={styles.headerContent}>
+      <div className="overflow-auto">
+        <div className="overflow-hidden rounded-b-[30px] pb-10">
+          <div className="flex flex-col items-center pt-2.5">
             <ProfileAvatar
               avatarUrl={displayUser?.avatar?.url}
               onUpdateAvatar={handleUpdateAvatar}
               isUpdating={updateAvatar.isPending}
               showAlert={showAlert}
               theme={theme}
-              styles={styles}
             />
 
-            <View style={styles.nameContainer}>
-              <Text style={styles.fullName}>{displayUser?.fullName}</Text>
-              <Text style={styles.username}>@{displayUser?.username}</Text>
-              <View style={styles.roleBadge}>
-                <Text style={styles.roleText}>{roleLabel}</Text>
-              </View>
-            </View>
-          </View>
-        </View>
+            <div className="mt-[15px] flex flex-col items-center">
+              <span
+                className="text-2xl font-extrabold"
+                style={{ color: theme.text }}
+              >
+                {displayUser?.fullName}
+              </span>
+              <span
+                className="mt-1 text-base"
+                style={{ color: theme.secondaryText }}
+              >
+                @{displayUser?.username}
+              </span>
+              <div
+                className="mt-2.5 rounded-full px-3 py-1"
+                style={{ backgroundColor: theme.primary + "20" }}
+              >
+                <span
+                  className="text-xs font-bold uppercase"
+                  style={{ color: theme.primary }}
+                >
+                  {roleLabel}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
 
-        <View style={styles.content}>
+        <div className="mt-[-30px] flex-1 p-5">
           {isEditing ? (
             <ProfileEditForm
               control={control}
@@ -169,7 +183,6 @@ const ProfileInfoScreen = () => {
               onCancel={() => setIsEditing(false)}
               isLoading={isUpdating}
               theme={theme}
-              styles={styles}
               // Phone OTP props passed down
               currentPhone={currentPhone}
               isPhoneVerified={isPhoneVerified}
@@ -187,15 +200,17 @@ const ProfileInfoScreen = () => {
                 setIsEditing(true);
               }}
               theme={theme}
-              styles={styles}
             />
           )}
 
-          <Text style={styles.memberSince}>
+          <p
+            className="mt-[30px] text-center text-xs"
+            style={{ color: theme.tertiaryText }}
+          >
             QuickBihar ID: {displayUser?._id}
-          </Text>
-        </View>
-      </ScrollView>
+          </p>
+        </div>
+      </div>
 
       <IOSAlertDialog
         visible={alertConfig.visible}
@@ -217,7 +232,7 @@ const ProfileInfoScreen = () => {
         }}
         onClose={() => setOtpSheetVisible(false)}
       />
-    </KeyboardAvoidingView>
+    </div>
   );
 };
 

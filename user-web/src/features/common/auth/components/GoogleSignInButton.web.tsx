@@ -1,15 +1,9 @@
 import { ChevronRight } from "lucide-react";
 
 import React, { useEffect, useRef, useState } from "react";
-import {
-  ActivityIndicator,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from "@/components/primitives";
 import googleIconLogo from "@/assets/svg/google-icon-logo.svg";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
+import { cn } from "@/src/lib/utils";
 
 interface GoogleSignInButtonProps {
   onSuccess: (idToken: string) => void | Promise<void>;
@@ -35,6 +29,7 @@ export const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({
   const isDark = theme.isDark ?? theme.text === "#ffffff";
   const [loading, setLoading] = useState(false);
   const [gisReady, setGisReady] = useState(false);
+  const [pressed, setPressed] = useState(false);
   const gisMountRef = useRef<any>(null);
 
   // Web build has no app.json extra block — client ID comes from env.
@@ -151,91 +146,63 @@ export const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({
     mode === "link" ? "Link Google Account" : "Continue with Google";
 
   return (
-    <View style={styles.wrapper}>
+    <div className="relative w-full">
       {/* Real GIS Button Container (Transparent overlay for direct touch interaction) */}
-      <View ref={gisMountRef}
-        style={styles.hiddenGisMount}
+      <div
+        ref={gisMountRef}
+        className="absolute inset-0 z-10 flex items-center justify-center overflow-hidden"
+        style={{ opacity: 0.001 }}
       />
 
-      <Pressable accessibilityRole="button"
-        accessibilityLabel={label}
-        onPress={handlePress}
+      <button
+        type="button"
+        aria-label={label}
+        onClick={handlePress}
         disabled={loading || disabled}
-        style={({ pressed }) => [
-          styles.container,
-          {
-            backgroundColor: isDark ? "rgba(255,255,255,0.08)" : "#FFFFFF",
-            borderColor: isDark ? "rgba(255,255,255,0.18)" : theme.border || "#E5E7EB",
-            opacity: disabled ? 0.5 : pressed ? 0.85 : 1,
-          },
-        ]}
+        onMouseDown={() => setPressed(true)}
+        onMouseUp={() => setPressed(false)}
+        onMouseLeave={() => setPressed(false)}
+        onTouchStart={() => setPressed(true)}
+        onTouchEnd={() => setPressed(false)}
+        className={cn(
+          "flex min-h-[52px] w-full cursor-pointer items-center justify-center rounded-xl border px-[18px] py-3.5 transition-opacity disabled:cursor-not-allowed",
+        )}
+        style={{
+          backgroundColor: isDark ? "rgba(255,255,255,0.08)" : "#FFFFFF",
+          borderColor: isDark ? "rgba(255,255,255,0.18)" : theme.border || "#E5E7EB",
+          opacity: disabled ? 0.5 : pressed ? 0.85 : 1,
+        }}
       >
         {loading ? (
-          <ActivityIndicator color={theme.text} size="small" />
+          <span
+            className="h-5 w-5 animate-spin rounded-full border-2 border-current opacity-70"
+            style={{ color: theme.text, borderTopColor: "transparent" }}
+          />
         ) : (
-          <View style={styles.row}>
-            <View style={styles.gBadge}>
-              <img src={googleIconLogo} style={Object.assign({}, { width: 18, height: 18 }, { objectFit: "contain" as const })} />
-            </View>
-            <Text style={[styles.label, { color: theme.text }]}>{label}</Text>
-            <ChevronRight size={16} color={theme.secondaryText} style={{ marginLeft: "auto" }} />
-          </View>
+          <div className="flex w-full flex-row items-center gap-3">
+            <div className="flex h-[26px] w-[26px] items-center justify-center rounded-full bg-white">
+              <img
+                src={googleIconLogo}
+                alt=""
+                className="h-[18px] w-[18px] object-contain"
+              />
+            </div>
+            <span
+              className="text-[15px] font-semibold"
+              style={{ color: theme.text }}
+            >
+              {label}
+            </span>
+            <ChevronRight
+              size={16}
+              color={theme.secondaryText}
+              className="ml-auto"
+            />
+          </div>
         )}
-      </Pressable>
-    </View>
+      </button>
+    </div>
   );
 };
-
-const styles = StyleSheet.create({
-  wrapper: {
-    width: "100%",
-    position: "relative",
-  },
-  hiddenGisMount: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    opacity: 0.001,
-    zIndex: 10,
-    overflow: "hidden",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  container: {
-    width: "100%",
-    paddingVertical: 14,
-    paddingHorizontal: 18,
-    borderRadius: 12,
-    borderWidth: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    minHeight: 52,
-  },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    width: "100%",
-  },
-  gBadge: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
-    backgroundColor: "#ffffff",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  gBadgeText: {
-    fontSize: 16,
-    fontWeight: "800",
-    color: "#4285F4",
-  },
-  label: {
-    fontSize: 15,
-    fontWeight: "600",
-  },
-});
 
 export default GoogleSignInButton;

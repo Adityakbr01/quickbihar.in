@@ -10,16 +10,6 @@ import { useNavigate } from "react-router-dom";
 import { goBack, useRouteParams } from "@/src/utils/navigation";
 import React, { useEffect, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
-import {
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Linking,
-  Platform,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View
-} from "@/components/primitives";
 import AddressInput from "../components/AddressInput";
 import AddressTypeSelector from "../components/AddressTypeSelector";
 import LocationFetchButton from "../components/LocationFetchButton";
@@ -27,13 +17,11 @@ import PhoneOtpSheet from "../components/PhoneOtpSheet";
 import { useAddressActions } from "../hooks/useAddress";
 import { reverseGeocodeRequest } from "../api/address.api";
 import { AddressFormValues, addressSchema, AddressType } from "../schema/address.schema";
-import { createAddressStyles } from "../style/addressStyles";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
 
 const AddressFormScreen = () => {
-  const theme = useTheme();
+  const theme = useTheme() as any;
   const [isLocating, setIsLocating] = useState(false);
-  const styles = createAddressStyles(theme);
   const navigate = useNavigate();
   const storeUser = useAuthStore((s) => s.user);
 
@@ -106,7 +94,7 @@ const AddressFormScreen = () => {
           "Location services are turned off. Please enable them in your device settings.",
           [
             { text: "Cancel", style: "cancel" },
-            { text: "Open Settings", style: "default", onPress: () => Linking.openSettings() },
+            { text: "Open Settings", style: "default", onPress: () => window.open(window.location.href, "_blank") },
           ]
         );
         return;
@@ -119,7 +107,7 @@ const AddressFormScreen = () => {
           "QuickBihar needs location access to auto-fill your address. Please allow location in app settings.",
           [
             { text: "Cancel", style: "cancel" },
-            { text: "Open Settings", style: "default", onPress: () => Linking.openSettings() },
+            { text: "Open Settings", style: "default", onPress: () => window.open(window.location.href, "_blank") },
           ]
         );
         return;
@@ -148,41 +136,17 @@ const AddressFormScreen = () => {
       let state: string | undefined;
       let pincode: string | undefined;
 
-      // On native mobile (iOS/Android), attempt native reverse geocoding first
-      if (Platform.OS !== "web") {
-        try {
-          const [address] = await Location.reverseGeocodeAsync({
-            latitude,
-            longitude,
-          });
-
-          if (address) {
-            const streetParts = [address.name, address.street].filter(Boolean);
-            street = streetParts.length > 0
-              ? Array.from(new Set(streetParts)).join(", ")
-              : (address.subregion || address.district || undefined);
-            city = address.city || address.district || address.subregion || undefined;
-            state = address.region || undefined;
-            pincode = address.postalCode || undefined;
-          }
-        } catch (nativeGeocodeErr: unknown) {
-          console.log("Native reverse geocoding failed, trying API fallback...", nativeGeocodeErr);
+      // Web: expo-location reverse geocoding is unsupported — use the API directly.
+      try {
+        const apiAddress = await reverseGeocodeRequest(latitude, longitude);
+        if (apiAddress) {
+          if (!street && apiAddress.street) street = apiAddress.street;
+          if (!city && apiAddress.city) city = apiAddress.city;
+          if (!state && apiAddress.state) state = apiAddress.state;
+          if (!pincode && apiAddress.pincode) pincode = apiAddress.pincode;
         }
-      }
-
-      // On web (where expo-location reverse geocoding is unsupported) or if native geocoding is incomplete:
-      if (!city || !state || !street || !pincode) {
-        try {
-          const apiAddress = await reverseGeocodeRequest(latitude, longitude);
-          if (apiAddress) {
-            if (!street && apiAddress.street) street = apiAddress.street;
-            if (!city && apiAddress.city) city = apiAddress.city;
-            if (!state && apiAddress.state) state = apiAddress.state;
-            if (!pincode && apiAddress.pincode) pincode = apiAddress.pincode;
-          }
-        } catch (apiErr: unknown) {
-          console.log("API reverse geocode failed:", apiErr);
-        }
+      } catch (apiErr: unknown) {
+        console.log("API reverse geocode failed:", apiErr);
       }
 
       if (street) {
@@ -312,58 +276,67 @@ const AddressFormScreen = () => {
     goBack(navigate, "/account/addresses");
   };
 
+  const isSaving = createAddress.isPending || updateAddress.isPending;
+
   return (
-    <View style={styles.container}>
+    <div
+      className="flex min-h-screen w-full flex-col items-center pb-[30px]"
+      style={{ backgroundColor: theme.background }}
+    >
       {/* Top app bar (same style as Notifications & Saved Addresses) */}
-      <View style={styles.appBar}>
-        <TouchableOpacity onPress={handleBack}
-          style={styles.backButton}
-          activeOpacity={0.7}
+      <div className="flex w-full max-w-[800px] flex-row items-center gap-2 px-3 pt-2 pb-3">
+        <button
+          type="button"
+          onClick={handleBack}
+          aria-label="Go back"
+          className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full"
+          style={{ backgroundColor: theme.secondaryBackground }}
         >
           <ChevronLeft size={22} color={theme.text} />
-        </TouchableOpacity>
+        </button>
 
-        <View style={styles.appBarTitleWrap}>
-          <Text style={styles.appBarTitle}>
+        <div className="flex-1 px-1">
+          <p
+            className="text-[22px] font-extrabold tracking-[-0.4px]"
+            style={{ color: theme.text }}
+          >
             {isEditing ? "Edit Address" : "Add Address"}
-          </Text>
-          <Text style={styles.appBarSubtitle}>
+          </p>
+          <p
+            className="mt-0.5 text-xs font-medium"
+            style={{ color: theme.secondaryText }}
+          >
             {isEditing
               ? "Update your delivery location details"
               : "Add a new pin & delivery location"}
-          </Text>
-        </View>
+          </p>
+        </div>
 
-        <View style={{ width: 40 }} />
-      </View>
+        <div className="w-10" />
+      </div>
 
-      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined}
-        style={styles.mainWrapper}
-      >
-        <ScrollView contentContainerStyle={styles.formContainer}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-        >
+      <div className="flex w-full max-w-[800px] flex-1 flex-col">
+        <div className="overflow-auto px-4 pt-2 pb-10">
 
-        <AddressInput control={control}
+        <AddressInput
+          control={control}
           name="fullName"
           label="Full Name"
           icon={User}
           placeholder="e.g. Aditya Kumar"
           errors={errors}
           theme={theme}
-          styles={styles}
         />
 
         {/* ── Phone Number field with OTP verification ─────────────── */}
-        <AddressInput control={control}
+        <AddressInput
+          control={control}
           name="phone"
           label="Phone Number"
           icon={Phone}
           placeholder="e.g. 9876543210"
           errors={errors}
           theme={theme}
-          styles={styles}
           options={{
             keyboardType: "phone-pad",
             // Always editable — typing a new number clears verification
@@ -376,128 +349,162 @@ const AddressFormScreen = () => {
           }}
         />
         {isPhoneVerified ? (
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 10, marginTop: 6 }}>
-            <View style={styles.verifiedBadge}>
+          <div className="mt-1.5 flex flex-row items-center gap-2.5">
+            <div
+              className="flex flex-row items-center gap-[5px] self-start rounded-md border px-2 py-1"
+              style={{
+                backgroundColor: "rgba(22, 163, 74, 0.1)",
+                borderColor: "rgba(22, 163, 74, 0.25)",
+              }}
+            >
               <ShieldCheck size={14} color="#16a34a" />
-              <Text style={styles.verifiedBadgeText}>Number Verified</Text>
-            </View>
-            <TouchableOpacity onPress={() => {
+              <span className="text-xs font-bold text-[#16a34a]">
+                Number Verified
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
                 setIsPhoneVerified(false);
                 setOtpSheetVisible(true);
               }}
+              className="cursor-pointer"
             >
-              <Text style={{ fontSize: 12, color: theme.primary, fontWeight: "600" }}>Change</Text>
-            </TouchableOpacity>
-          </View>
+              <span
+                className="text-xs font-semibold"
+                style={{ color: theme.primary }}
+              >
+                Change
+              </span>
+            </button>
+          </div>
         ) : (
-          <TouchableOpacity style={styles.verifyButton}
-            onPress={() => setOtpSheetVisible(true)}
+          <button
+            type="button"
+            onClick={() => setOtpSheetVisible(true)}
+            className="mt-1.5 flex cursor-pointer flex-row items-center gap-1.5 self-start rounded-[10px] border px-3 py-2"
+            style={{
+              backgroundColor: "rgba(0, 122, 255, 0.08)",
+              borderColor: "rgba(0, 122, 255, 0.25)",
+            }}
           >
             <WhatsappIcon size={15} color={theme.primary} />
-            <Text style={styles.verifyButtonText}>Verify via WhatsApp</Text>
-          </TouchableOpacity>
+            <span
+              className="text-[13px] font-semibold"
+              style={{ color: theme.primary }}
+            >
+              Verify via WhatsApp
+            </span>
+          </button>
         )}
 
-        <LocationFetchButton isLocating={isLocating}
-          onFetch={handleFetchLocation}
-          latitude={latitude}
-          longitude={longitude}
-          theme={theme}
-          styles={styles}
-        />
+        <div className="mt-5">
+          <LocationFetchButton
+            isLocating={isLocating}
+            onFetch={handleFetchLocation}
+            latitude={latitude}
+            longitude={longitude}
+            theme={theme}
+          />
+        </div>
 
-        <AddressTypeSelector selectedType={addressType}
+        <AddressTypeSelector
+          selectedType={addressType}
           onSelect={(type) => setValue("addressType", type)}
           theme={theme}
-          styles={styles}
         />
 
-        <AddressInput control={control}
+        <AddressInput
+          control={control}
           name="street"
           label="Street Address"
           icon={MapPin}
           placeholder="House No, Street name..."
           errors={errors}
           theme={theme}
-          styles={styles}
           options={{ multiline: true, numberOfLines: 3 }}
         />
 
-        <View style={styles.row}>
-          <View style={styles.half}>
-            <AddressInput control={control}
+        <div className="flex flex-row gap-4">
+          <div className="min-w-0 flex-1">
+            <AddressInput
+              control={control}
               name="city"
               label="City"
               icon={MapPin}
               placeholder="e.g. Patna"
               errors={errors}
               theme={theme}
-              styles={styles}
             />
-          </View>
-          <View style={styles.half}>
-            <AddressInput control={control}
+          </div>
+          <div className="min-w-0 flex-1">
+            <AddressInput
+              control={control}
               name="state"
               label="State"
               icon={Bookmark}
               placeholder="e.g. Bihar"
               errors={errors}
               theme={theme}
-              styles={styles}
             />
-          </View>
-        </View>
+          </div>
+        </div>
 
-        <View style={styles.row}>
-          <View style={styles.half}>
-            <AddressInput control={control}
+        <div className="flex flex-row gap-4">
+          <div className="min-w-0 flex-1">
+            <AddressInput
+              control={control}
               name="pincode"
               label="Pincode"
               icon={Bookmark}
               placeholder="6 digits"
               errors={errors}
               theme={theme}
-              styles={styles}
               options={{ keyboardType: "numeric", maxLength: 6 }}
             />
-          </View>
-          <View style={styles.half}>
-            <AddressInput control={control}
+          </div>
+          <div className="min-w-0 flex-1">
+            <AddressInput
+              control={control}
               name="landmark"
               label="Landmark (Opt)"
               icon={Navigation}
               placeholder="Near..."
               errors={errors}
               theme={theme}
-              styles={styles}
             />
-          </View>
-        </View>
+          </div>
+        </div>
 
-        <TouchableOpacity style={styles.submitButton}
-          onPress={handleSubmit(onSubmit, onInvalidSubmit)}
-          disabled={createAddress.isPending || updateAddress.isPending}
+        <button
+          type="button"
+          onClick={handleSubmit(onSubmit, onInvalidSubmit)}
+          disabled={isSaving}
+          className="mt-2.5 mb-5 flex h-[58px] w-full cursor-pointer items-center justify-center rounded-[18px] shadow-lg disabled:opacity-70"
+          style={{ backgroundColor: theme.primary }}
         >
-          {createAddress.isPending || updateAddress.isPending ? (
-            <ActivityIndicator color="#fff" />
+          {isSaving ? (
+            <span className="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white" />
           ) : (
-            <Text style={styles.submitButtonText}>
+            <span className="text-[17px] font-bold text-white">
               {isEditing ? "Update Address" : "Save Address"}
-            </Text>
+            </span>
           )}
-        </TouchableOpacity>
-      </ScrollView>
-    </KeyboardAvoidingView>
+        </button>
+        </div>
+      </div>
 
-    <IOSAlertDialog visible={alertConfig.visible}
+    <IOSAlertDialog
+      visible={alertConfig.visible}
       title={alertConfig.title}
       message={alertConfig.message}
       buttons={alertConfig.buttons}
-      onClose={() => setAlertConfig(prev => ({ ...prev, visible: false }))}
+      onClose={() => setAlertConfig((prev) => ({ ...prev, visible: false }))}
     />
 
     {/* Phone OTP verification sheet */}
-    <PhoneOtpSheet visible={otpSheetVisible}
+    <PhoneOtpSheet
+      visible={otpSheetVisible}
       initialPhone={phoneValue || storeUser?.phone || ""}
       onVerified={(verifiedPhone) => {
         setValue("phone", verifiedPhone);
@@ -507,7 +514,7 @@ const AddressFormScreen = () => {
       }}
       onClose={() => setOtpSheetVisible(false)}
     />
-  </View>
+  </div>
   );
 };
 

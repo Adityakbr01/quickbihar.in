@@ -1,98 +1,24 @@
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
-import { spacing } from "@/src/theme/spacing";
-import React, { useEffect, useRef } from "react";
-import {
-    Animated,
-    StyleSheet,
-    View
-} from "@/components/primitives";
-
-
+import React from "react";
 
 const CategorySkeleton = () => {
-    const theme = useTheme();
-    const opacity = useRef(new Animated.Value(0.3)).current;
-
-    useEffect(() => {
-        Animated.loop(
-            Animated.sequence([
-                Animated.timing(opacity, {
-                    toValue: 0.7,
-                    duration: 800,
-                    useNativeDriver: true,
-                }),
-                Animated.timing(opacity, {
-                    toValue: 0.3,
-                    duration: 800,
-                    useNativeDriver: true,
-                }),
-            ])
-        ).start();
-    }, [opacity]);
+    const theme = useTheme() as any;
 
     return (
-        <View style={styles.categoryItem}>
-            <Animated.View
-                style={[
-                    styles.imageContainer,
-                    {
-                        backgroundColor: theme.tertiaryBackground,
-                        borderColor: theme.border,
-                        opacity
-                    }
-                ]}
+        <div className="flex w-[70px] shrink-0 flex-col items-center">
+            <div
+                className="mb-1 flex h-16 w-16 animate-pulse items-center justify-center overflow-hidden rounded-full border"
+                style={{
+                    backgroundColor: theme.tertiaryBackground,
+                    borderColor: theme.border,
+                }}
             />
-            <Animated.View
-                style={[
-                    styles.skeletonTitle,
-                    {
-                        backgroundColor: theme.tertiaryBackground,
-                        opacity
-                    }
-                ]}
+            <div
+                className="mt-1 h-2.5 w-[80%] animate-pulse rounded-[5px]"
+                style={{ backgroundColor: theme.tertiaryBackground }}
             />
-        </View>
+        </div>
     );
 };
 
 export default CategorySkeleton;
-
-const styles = StyleSheet.create({
-    container: {
-        marginVertical: spacing.m,
-    },
-    listContent: {
-        paddingHorizontal: spacing.m,
-        gap: spacing.m,
-    },
-    categoryItem: {
-        alignItems: "center",
-        width: 70,
-    },
-    imageContainer: {
-        width: 64,
-        height: 64,
-        borderRadius: 32,
-        borderWidth: 1,
-        overflow: "hidden",
-        marginBottom: spacing.xs,
-        justifyContent: "center",
-        alignItems: "center",
-        backgroundColor: '#f0f0f0',
-    },
-    image: {
-        width: "100%",
-        height: "100%",
-    },
-    title: {
-        fontSize: 11,
-        fontWeight: "500",
-        textAlign: "center",
-    },
-    skeletonTitle: {
-        height: 10,
-        width: "80%",
-        borderRadius: 5,
-        marginTop: 4,
-    }
-});

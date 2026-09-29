@@ -1,8 +1,8 @@
 import React, { useState, useRef } from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "@/components/primitives";
 import { useSocketStore } from "@/src/store/useSocketStore";
 import { SocketEvents } from "@/src/constants/socketEvents";
 import { Play, Square } from "lucide-react";
+import { cn } from "@/src/lib/utils";
 
 interface DeliverySimulationProps {
   orderId: string;
@@ -24,7 +24,7 @@ export const DeliverySimulation: React.FC<DeliverySimulationProps> = ({
       await useSocketStore.getState().connect();
       const currentState = useSocketStore.getState();
       if (!currentState.isConnected || !currentState.socket) {
-        alert("Socket not connected! Please check your internet.");
+        window.alert("Socket not connected! Please check your internet.");
         return;
       }
     }
@@ -40,9 +40,9 @@ export const DeliverySimulation: React.FC<DeliverySimulationProps> = ({
         // Linear interpolation with a curve offset
         const midLat = startLocation.latitude + (endLocation.latitude - startLocation.latitude) * t;
         const midLng = startLocation.longitude + (endLocation.longitude - startLocation.longitude) * t;
-        
+
         // Add a "street-like" curve offset (S-Curve)
-        const offset = 0.0005 * Math.sin(t * Math.PI * 2); 
+        const offset = 0.0005 * Math.sin(t * Math.PI * 2);
         waypoints.push({
             lat: midLat + offset,
             lng: midLng + (i % 2 === 0 ? offset : -offset)
@@ -57,7 +57,7 @@ export const DeliverySimulation: React.FC<DeliverySimulationProps> = ({
 
       const currentPos = waypoints[step];
       const nextPos = waypoints[step + 1] || currentPos;
-      
+
       // Calculate Heading based on next point
       const heading = (Math.atan2(nextPos.lng - currentPos.lng, nextPos.lat - currentPos.lat) * 180) / Math.PI;
 
@@ -82,74 +82,32 @@ export const DeliverySimulation: React.FC<DeliverySimulationProps> = ({
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Live Delivery Simulation</Text>
-      <TouchableOpacity style={[styles.button, isSimulating ? styles.stopButton : styles.startButton]}
-        onPress={isSimulating ? stopSimulation : startSimulation}
+    <div className="m-[15px] rounded-[15px] border border-dashed border-[#FF6B00] bg-white/90 p-[15px] shadow">
+      <p className="mb-2.5 text-center text-xs font-bold tracking-widest text-[#FF6B00] uppercase">
+        Live Delivery Simulation
+      </p>
+      <button
+        type="button"
+        onClick={isSimulating ? stopSimulation : startSimulation}
+        className={cn(
+          "flex w-full flex-row items-center justify-center rounded-[10px] py-3",
+          isSimulating ? "bg-[#E74C3C]" : "bg-[#FF6B00]",
+        )}
       >
         {isSimulating ? (
         <Square size={18} color="white" fill="white" />
       ) : (
         <Play size={18} color="white" fill="white" />
       )}
-        <Text style={styles.buttonText}>
+        <span className="ml-2 font-bold text-white">
           {isSimulating ? "Stop Simulation" : "Simulate Rider Movement"}
-        </Text>
-      </TouchableOpacity>
+        </span>
+      </button>
       {isSimulating && (
-        <Text style={styles.hint}>Emitting mock route coordinates to Server...</Text>
+        <p className="mt-2 text-center text-[11px] text-[#666] italic">
+          Emitting mock route coordinates to Server...
+        </p>
       )}
-    </View>
+    </div>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    padding: 15,
-    backgroundColor: "rgba(255,255,255,0.9)",
-    borderRadius: 15,
-    margin: 15,
-    borderWidth: 1,
-    borderColor: "#FF6B00",
-    borderStyle: "dashed",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  title: {
-    fontSize: 12,
-    fontWeight: "bold",
-    color: "#FF6B00",
-    marginBottom: 10,
-    textAlign: "center",
-    textTransform: "uppercase",
-    letterSpacing: 1,
-  },
-  button: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 12,
-    borderRadius: 10,
-  },
-  startButton: {
-    backgroundColor: "#FF6B00",
-  },
-  stopButton: {
-    backgroundColor: "#E74C3C",
-  },
-  buttonText: {
-    color: "white",
-    fontWeight: "bold",
-    marginLeft: 8,
-  },
-  hint: {
-    marginTop: 8,
-    fontSize: 11,
-    color: "#666",
-    textAlign: "center",
-    fontStyle: "italic",
-  },
-});

@@ -2,14 +2,6 @@ import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { ArrowLeft, Banknote, Circle, CircleAlert, CircleDot, CreditCard, Info, MapPin, ShieldCheck } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import React, { useEffect, useMemo, useState } from "react";
-import {
-  ActivityIndicator,
-  Image,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
-} from "@/components/primitives";
 import { getAddressesRequest, updateAddressRequest } from "../../address/api/address.api";
 import PhoneOtpSheet from "../../address/components/PhoneOtpSheet";
 import { useCartStore } from "../../cart/store/cartStore";
@@ -21,7 +13,6 @@ import {
 import type { OrderQuoteData } from "../api/order.api";
 import { RAZORPAY_CONFIG } from "../config/razorpay.config";
 import { openRazorpayCheckout } from "../lib/openRazorpayCheckout";
-import { createOrderStyles } from "../style/orderStyles";
 import IOSAlertDialog, {
   AlertButton,
 } from "@/src/components/ui/IOSAlertDialog";
@@ -29,11 +20,15 @@ import * as Haptics from "@/lib/haptics";
 import { goBack, goTo, replaceTo } from "@/src/utils/navigation";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
 import { PhoneMissingBanner } from "../components/PhoneMissingBanner";
+import { cn } from "@/src/lib/utils";
+import { BOTTOM_TAB_BAR_HEIGHT } from "@/src/utils/responsive";
+import { useSafeAreaInsets } from "@/src/hooks/useSafeAreaInsets";
 
 const CheckoutScreen = () => {
-  const theme = useTheme();
-  const styles = createOrderStyles(theme);
+  const theme = useTheme() as any;
   const navigate = useNavigate();
+  const insets = useSafeAreaInsets();
+  const footerBottom = BOTTOM_TAB_BAR_HEIGHT + 12 + (insets?.bottom ?? 0);
 
   const {
     items: allItems,
@@ -360,123 +355,186 @@ const CheckoutScreen = () => {
 
   if (!isAuthenticated) {
     return (
-      <View style={[
-          styles.container,
-          { justifyContent: "center", alignItems: "center" },
-        ]}
+      <div
+        className="flex min-h-screen flex-1 flex-col items-center justify-center"
+        style={{ backgroundColor: theme.background }}
       >
-        <ActivityIndicator size="small" color={theme.primary} />
-      </View>
+        <span
+          className="h-5 w-5 animate-spin rounded-full border-2 border-t-transparent"
+          style={{ borderColor: `${theme.primary}55`, borderTopColor: theme.primary }}
+        />
+      </div>
     );
   }
 
   if (isLoading) {
     return (
-      <View style={[
-          styles.container,
-          { justifyContent: "center", alignItems: "center" },
-        ]}
+      <div
+        className="flex min-h-screen flex-1 flex-col items-center justify-center"
+        style={{ backgroundColor: theme.background }}
       >
-        <ActivityIndicator size="large" color={theme.primary} />
-      </View>
+        <span
+          className="h-8 w-8 animate-spin rounded-full border-[3px] border-t-transparent"
+          style={{ borderColor: `${theme.primary}44`, borderTopColor: theme.primary }}
+        />
+      </div>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <div
+      className="flex min-h-screen flex-1 flex-col"
+      style={{ backgroundColor: theme.background }}
+    >
       {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton}
-          onPress={() => goBack(navigate, "/clothing/cart")}
+      <div
+        className="flex flex-row items-center justify-between px-5 py-4"
+        style={{ backgroundColor: theme.background }}
+      >
+        <button
+          type="button"
+          onClick={() => goBack(navigate, "/clothing/cart")}
+          className="flex h-11 w-11 items-center justify-center rounded-[14px] border"
+          style={{
+            backgroundColor: theme.tertiaryBackground,
+            borderColor: theme.border,
+          }}
+          aria-label="Go back"
         >
           <ArrowLeft size={24} color={theme.text} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Checkout</Text>
-        <View style={{ width: 44 }} />
-      </View>
+        </button>
+        <h2
+          className="text-xl font-black tracking-[-0.5px]"
+          style={{ color: theme.text }}
+        >
+          Checkout
+        </h2>
+        <div className="w-11" />
+      </div>
 
-      <ScrollView contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
+      <div className="overflow-auto" style={{ paddingBottom: 160 }}>
         {/* Phone capture banner — sellers call to confirm orders, so
             users without a phone on file are nudged to add one before
             they can complete checkout. */}
-        {Boolean(isAuthenticated && !user?.phone) && <PhoneMissingBanner />}
+        <div className="mx-5">
+          {Boolean(isAuthenticated && !user?.phone) && <PhoneMissingBanner />}
+        </div>
 
         {/* Delivery Address */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Delivery Address</Text>
-            <TouchableOpacity onPress={() => goTo(navigate, "/account/addresses")}>
-              <Text style={styles.changeButtonText}>
+        <div
+          className="mx-5 my-2.5 rounded-3xl border p-6"
+          style={{
+            backgroundColor: theme.tertiaryBackground,
+            borderColor: theme.border,
+          }}
+        >
+          <div className="mb-5 flex flex-row items-center justify-between">
+            <h3
+              className="text-[17px] font-extrabold tracking-[-0.3px]"
+              style={{ color: theme.text }}
+            >
+              Delivery Address
+            </h3>
+            <button type="button" onClick={() => goTo(navigate, "/account/addresses")}>
+              <span
+                className="text-sm font-bold"
+                style={{ color: theme.primary }}
+              >
                 {selectedAddress ? "Change" : "Add Address"}
-              </Text>
-            </TouchableOpacity>
-          </View>
+              </span>
+            </button>
+          </div>
 
           {selectedAddress ? (
-            <View style={styles.addressContent}>
-              <View style={styles.iconWrapper}>
+            <div className="flex flex-row items-center gap-4">
+              <div
+                className="flex h-12 w-12 items-center justify-center rounded-2xl"
+                style={{ backgroundColor: theme.primary + "10" }}
+              >
                 <MapPin size={24} color={theme.primary} />
-              </View>
-              <View style={styles.addressDetails}>
-                <Text style={styles.addressName}>
+              </div>
+              <div className="flex-1">
+                <p
+                  className="mb-1 text-base font-bold"
+                  style={{ color: theme.text }}
+                >
                   {selectedAddress.fullName}
-                </Text>
-                <Text style={styles.addressText}>
+                </p>
+                <p
+                  className="text-sm leading-5"
+                  style={{ color: theme.secondaryText }}
+                >
                   {selectedAddress.street}, {selectedAddress.city},{" "}
                   {selectedAddress.state} - {selectedAddress.pincode}
-                </Text>
-                <Text style={styles.addressPhone}>{selectedAddress.phone}</Text>
+                </p>
+                <p
+                  className="mt-1.5 text-sm font-semibold"
+                  style={{ color: theme.text }}
+                >
+                  {selectedAddress.phone}
+                </p>
                 {selectedAddress.isPhoneVerified ? (
-                  <View style={{ flexDirection: "row", alignItems: "center", gap: 5, marginTop: 5 }}>
+                  <div className="mt-[5px] flex flex-row items-center gap-[5px]">
                     <ShieldCheck size={13} color="#16a34a" />
-                    <Text style={{ fontSize: 11, color: "#16a34a", fontWeight: "700" }}>
+                    <span className="text-[11px] font-bold" style={{ color: "#16a34a" }}>
                       Verified Number
-                    </Text>
-                  </View>
+                    </span>
+                  </div>
                 ) : (
-                  <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginTop: 5 }}>
-                    <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+                  <div className="mt-[5px] flex flex-row items-center gap-2">
+                    <div className="flex flex-row items-center gap-1">
                       <CircleAlert size={13} color="#ea580c" />
-                      <Text style={{ fontSize: 11, color: "#ea580c", fontWeight: "600" }}>
+                      <span className="text-[11px] font-semibold" style={{ color: "#ea580c" }}>
                         Phone not verified
-                      </Text>
-                    </View>
-                    <TouchableOpacity onPress={() => setOtpSheetVisible(true)}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setOtpSheetVisible(true)}
+                      className="rounded-md border px-2 py-[2.5px]"
                       style={{
-                        paddingHorizontal: 8,
-                        paddingVertical: 2.5,
-                        borderRadius: 6,
                         backgroundColor: theme.primary + "18",
-                        borderWidth: 1,
                         borderColor: theme.primary + "44",
                       }}
                     >
-                      <Text style={{ fontSize: 11, color: theme.primary, fontWeight: "700" }}>
+                      <span
+                        className="text-[11px] font-bold"
+                        style={{ color: theme.primary }}
+                      >
                         Verify Now
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
+                      </span>
+                    </button>
+                  </div>
                 )}
-              </View>
-            </View>
+              </div>
+            </div>
           ) : (
-            <TouchableOpacity style={{ alignItems: "center", paddingVertical: 10 }}
-              onPress={() => goTo(navigate, "/account/addresses")}
+            <button
+              type="button"
+              onClick={() => goTo(navigate, "/account/addresses")}
+              className="flex w-full items-center justify-center py-2.5"
             >
-              <Text style={{ color: theme.secondaryText }}>
+              <span style={{ color: theme.secondaryText }}>
                 No address selected
-              </Text>
-            </TouchableOpacity>
+              </span>
+            </button>
           )}
-        </View>
+        </div>
 
         {/* Order Summary */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { marginBottom: 20 }]}>
+        <div
+          className="mx-5 my-2.5 rounded-3xl border p-6"
+          style={{
+            backgroundColor: theme.tertiaryBackground,
+            borderColor: theme.border,
+          }}
+        >
+          <h3
+            className="mb-5 text-[17px] font-extrabold tracking-[-0.3px]"
+            style={{ color: theme.text }}
+          >
             Order Summary
-          </Text>
+          </h3>
           {(() => {
             const groupedItems = items.reduce((acc, item) => {
               const sellerId = item.sellerId || "unknown";
@@ -501,79 +559,112 @@ const CheckoutScreen = () => {
                 : "Seller Section";
 
               return (
-                <View key={sellerId} style={{ marginBottom: 20, borderBottomWidth: 1, borderBottomColor: theme.border, paddingBottom: 16 }}>
-                  <Text style={{ fontSize: 15, fontWeight: "700", color: theme.text, marginBottom: 12 }}>
+                <div
+                  key={sellerId}
+                  className="mb-5 border-b pb-4"
+                  style={{ borderBottomColor: theme.border }}
+                >
+                  <p
+                    className="mb-3 text-[15px] font-bold"
+                    style={{ color: theme.text }}
+                  >
                     {sellerDisplayName}
-                  </Text>
-                  
+                  </p>
+
                   {sellerItems.map((item) => (
-                    <View key={item.sku} style={styles.itemRow}>
-                      <Image source={{ uri: item.image }} style={styles.itemImage} />
-                      <View style={styles.itemInfo}>
-                        <Text style={styles.itemTitle} numberOfLines={1}>
+                    <div key={item.sku} className="mb-5 flex flex-row items-center gap-4">
+                      <img
+                        src={item.image}
+                        alt={item.productTitle}
+                        className="h-16 w-16 rounded-xl border object-cover"
+                        style={{
+                          backgroundColor: theme.tertiaryBackground,
+                          borderColor: theme.border,
+                        }}
+                      />
+                      <div className="flex flex-1 flex-col justify-center">
+                        <p
+                          className={cn("mb-1 line-clamp-1 text-[15px] font-bold")}
+                          style={{ color: theme.text }}
+                        >
                           {item.productTitle}
-                        </Text>
-                        <Text style={styles.itemVariant}>
+                        </p>
+                        <p
+                          className="text-xs font-semibold"
+                          style={{ color: theme.secondaryText }}
+                        >
                           {item.selectedSize} / {item.selectedColor} • Qty{" "}
                           {item.quantity}
-                        </Text>
-                      </View>
-                      <Text style={styles.itemPrice}>
+                        </p>
+                      </div>
+                      <span
+                        className="text-right text-[15px] font-black"
+                        style={{ color: theme.text }}
+                      >
                         ₹{((item.price || 0) * item.quantity).toLocaleString()}
-                      </Text>
-                    </View>
+                      </span>
+                    </div>
                   ))}
 
-                  <View style={{ marginTop: 12, gap: 6, paddingLeft: 8 }}>
-                    <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-                      <Text style={{ fontSize: 13, color: theme.secondaryText }}>Subtotal</Text>
-                      <Text style={{ fontSize: 13, fontWeight: "600", color: theme.text }}>
+                  <div className="mt-3 flex flex-col gap-1.5 pl-2">
+                    <div className="flex flex-row justify-between">
+                      <span className="text-[13px]" style={{ color: theme.secondaryText }}>Subtotal</span>
+                      <span className="text-[13px] font-semibold" style={{ color: theme.text }}>
                         ₹{sellerSubtotal.toLocaleString()}
-                      </Text>
-                    </View>
+                      </span>
+                    </div>
                     {couponDiscount > 0 && (
-                      <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-                        <Text style={{ fontSize: 13, color: theme.primary }}>
+                      <div className="flex flex-row justify-between">
+                        <span className="text-[13px]" style={{ color: theme.primary }}>
                           Coupon ({sellerCoupon?.code})
-                        </Text>
-                        <Text style={{ fontSize: 13, fontWeight: "600", color: theme.primary }}>
+                        </span>
+                        <span className="text-[13px] font-semibold" style={{ color: theme.primary }}>
                           -₹{couponDiscount.toLocaleString()}
-                        </Text>
-                      </View>
+                        </span>
+                      </div>
                     )}
-                    <View style={{ flexDirection: "row", justifyContent: "space-between", borderTopWidth: 0.5, borderTopColor: theme.border, paddingTop: 6 }}>
-                      <Text style={{ fontSize: 13, fontWeight: "700", color: theme.text }}>Net Seller Total</Text>
-                      <Text style={{ fontSize: 13, fontWeight: "700", color: theme.primary }}>
+                    <div
+                      className="flex flex-row justify-between border-t pt-1.5"
+                      style={{ borderTopColor: theme.border }}
+                    >
+                      <span className="text-[13px] font-bold" style={{ color: theme.text }}>Net Seller Total</span>
+                      <span className="text-[13px] font-bold" style={{ color: theme.primary }}>
                         ₹{finalSellerSubtotal.toLocaleString()}
-                      </Text>
-                    </View>
-                  </View>
-                </View>
+                      </span>
+                    </div>
+                  </div>
+                </div>
               );
             });
           })()}
-        </View>
+        </div>
 
         {/* Payment Method */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { marginBottom: 16 }]}>
+        <div
+          className="mx-5 my-2.5 rounded-3xl border p-6"
+          style={{
+            backgroundColor: theme.tertiaryBackground,
+            borderColor: theme.border,
+          }}
+        >
+          <h3
+            className="mb-4 text-[17px] font-extrabold tracking-[-0.3px]"
+            style={{ color: theme.text }}
+          >
             Payment Method
-          </Text>
+          </h3>
           {([
             { key: "ONLINE", label: "Pay Online", desc: "UPI, Cards, Netbanking & Wallets", icon: CreditCard },
             { key: "COD", label: "Cash on Delivery", desc: "Pay in cash when your order arrives", icon: Banknote },
           ] as const).map((option) => {
             const isSelected = paymentMethod === option.key;
             return (
-              <TouchableOpacity key={option.key}
-                onPress={() => setPaymentMethod(option.key)}
+              <button
+                key={option.key}
+                type="button"
+                onClick={() => setPaymentMethod(option.key)}
+                className="mb-2.5 flex w-full flex-row items-center rounded-xl border-[1.5px] p-3.5"
                 style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  padding: 14,
-                  marginBottom: 10,
-                  borderRadius: 12,
-                  borderWidth: 1.5,
                   borderColor: isSelected ? theme.primary : theme.border,
                   backgroundColor: isSelected ? `${theme.primary}12` : "transparent",
                 }}
@@ -582,29 +673,38 @@ const CheckoutScreen = () => {
                   size={24}
                   color={isSelected ? theme.primary : theme.secondaryText}
                 />
-                <View style={{ flex: 1, marginLeft: 12 }}>
-                  <Text style={{ fontSize: 15, fontWeight: "700", color: theme.text }}>
+                <div className="ml-3 flex-1 text-left">
+                  <p className="text-[15px] font-bold" style={{ color: theme.text }}>
                     {option.label}
-                  </Text>
-                  <Text style={{ fontSize: 12, color: theme.secondaryText, marginTop: 2 }}>
+                  </p>
+                  <p className="mt-0.5 text-xs" style={{ color: theme.secondaryText }}>
                     {option.desc}
-                  </Text>
-                </View>
+                  </p>
+                </div>
                 {isSelected ? (
                   <CircleDot size={22} color={theme.primary} />
                 ) : (
                   <Circle size={22} color={theme.secondaryText} />
                 )}
-              </TouchableOpacity>
+              </button>
             );
           })}
-        </View>
+        </div>
 
         {/* Bill Details */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { marginBottom: 16 }]}>
+        <div
+          className="mx-5 my-2.5 rounded-3xl border p-6"
+          style={{
+            backgroundColor: theme.tertiaryBackground,
+            borderColor: theme.border,
+          }}
+        >
+          <h3
+            className="mb-4 text-[17px] font-extrabold tracking-[-0.3px]"
+            style={{ color: theme.text }}
+          >
             Bill Details
-          </Text>
+          </h3>
 
           {/* Calculate MRP Total for transparency */}
           {(() => {
@@ -617,163 +717,183 @@ const CheckoutScreen = () => {
 
             return (
               <>
-                <View style={styles.summaryRow}>
-                  <Text style={styles.summaryLabel}>Item Total (MRP)</Text>
-                  <Text style={styles.summaryValue}>
+                <div className="mb-3.5 flex flex-row justify-between">
+                  <span className="text-[15px]" style={{ color: theme.secondaryText }}>Item Total (MRP)</span>
+                  <span className="text-[15px] font-bold" style={{ color: theme.text }}>
                     ₹{totalMRP.toLocaleString()}
-                  </Text>
-                </View>
+                  </span>
+                </div>
 
                 {productDiscount > 0 && (
-                  <View style={styles.summaryRow}>
-                    <Text style={styles.summaryLabel}>Product Discount</Text>
-                    <Text style={[styles.summaryValue, styles.discountText]}>
+                  <div className="mb-3.5 flex flex-row justify-between">
+                    <span className="text-[15px]" style={{ color: theme.secondaryText }}>Product Discount</span>
+                    <span className="text-[15px] font-bold" style={{ color: "#059669" }}>
                       -₹{productDiscount.toLocaleString()}
-                    </Text>
-                  </View>
+                    </span>
+                  </div>
                 )}
               </>
             );
           })()}
 
-          <View style={styles.divider} />
+          <div className="my-[18px] h-px" style={{ backgroundColor: theme.border }} />
 
-          <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Subtotal (Excl. Tax)</Text>
-            <Text style={styles.summaryValue}>
+          <div className="mb-3.5 flex flex-row justify-between">
+            <span className="text-[15px]" style={{ color: theme.secondaryText }}>Subtotal (Excl. Tax)</span>
+            <span className="text-[15px] font-bold" style={{ color: theme.text }}>
               ₹{(subtotal - totalTax).toLocaleString()}
-            </Text>
-          </View>
+            </span>
+          </div>
 
           {totalTax > 0 && (
-            <View style={styles.summaryRow}>
-              <Text style={[styles.summaryLabel, { color: theme.secondaryText }]}
+            <div className="mb-3.5 flex flex-row justify-between">
+              <span
+                className="text-[15px]"
+                style={{ color: theme.secondaryText }}
               >
                 GST / Fixed Taxes (Incl.)
-              </Text>
-              <Text style={[styles.summaryValue, { color: theme.secondaryText }]}
+              </span>
+              <span
+                className="text-[15px] font-bold"
+                style={{ color: theme.secondaryText }}
               >
                 ₹{totalTax.toLocaleString()}
-              </Text>
-            </View>
+              </span>
+            </div>
           )}
 
-          <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Shipping Fee</Text>
-            <Text style={styles.summaryValue}>
+          <div className="mb-3.5 flex flex-row justify-between">
+            <span className="text-[15px]" style={{ color: theme.secondaryText }}>Shipping Fee</span>
+            <span className="text-[15px] font-bold" style={{ color: theme.text }}>
               {displayShipping === 0 ? "FREE" : `Rs. ${displayShipping.toLocaleString()}`}
-            </Text>
-          </View>
+            </span>
+          </div>
 
           {dynamicDeliverySurcharge > 0 && (
             <>
-              <View style={styles.summaryRow}>
-                <Text style={styles.summaryLabel}>Dynamic Delivery Surcharge</Text>
-                <Text style={styles.summaryValue}>
+              <div className="mb-3.5 flex flex-row justify-between">
+                <span className="text-[15px]" style={{ color: theme.secondaryText }}>Dynamic Delivery Surcharge</span>
+                <span className="text-[15px] font-bold" style={{ color: theme.text }}>
                   Rs. {dynamicDeliverySurcharge.toLocaleString()}
-                </Text>
-              </View>
+                </span>
+              </div>
               {activeBonusLabels.length > 0 && (
-                <Text style={{ marginTop: -8, marginBottom: 12, color: theme.secondaryText, fontSize: 12 }}>
+                <p className="-mt-2 mb-3 text-xs" style={{ color: theme.secondaryText }}>
                   {Array.from(new Set(activeBonusLabels)).join(" | ")}
-                </Text>
+                </p>
               )}
             </>
           )}
 
           {isQuoteLoading && (
-            <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 12, gap: 6 }}>
-              <ActivityIndicator size="small" color={theme.secondaryText} />
-              <Text style={{ color: theme.secondaryText, fontSize: 12 }}>
+            <div className="mb-3 flex flex-row items-center gap-1.5">
+              <span
+                className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-t-transparent"
+                style={{ borderColor: `${theme.secondaryText}44`, borderTopColor: theme.secondaryText }}
+              />
+              <span className="text-xs" style={{ color: theme.secondaryText }}>
                 Checking delivery availability...
-              </Text>
-            </View>
+              </span>
+            </div>
           )}
           {quoteError ? (
-            <View style={{
-                marginBottom: 12,
-                padding: 12,
-                borderRadius: 10,
-                borderWidth: 1.5,
+            <div
+              className="mb-3 flex flex-col gap-1.5 rounded-[10px] border-[1.5px] p-3"
+              style={{
                 borderColor: "#dc2626",
                 backgroundColor: "#fef2f2",
-                gap: 6,
               }}
             >
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+              <div className="flex flex-row items-center gap-1.5">
                 <CircleAlert size={16} color="#dc2626" />
-                <Text style={{ fontSize: 13, fontWeight: "700", color: "#dc2626" }}>
+                <span className="text-[13px] font-bold" style={{ color: "#dc2626" }}>
                   Cannot Deliver to This Address
-                </Text>
-              </View>
-              <Text style={{ fontSize: 12, color: "#7f1d1d", lineHeight: 18 }}>
+                </span>
+              </div>
+              <p className="text-xs leading-[18px]" style={{ color: "#7f1d1d" }}>
                 {quoteError}
-              </Text>
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 2 }}>
+              </p>
+              <div className="mt-0.5 flex flex-row items-center gap-1">
                 <Info size={13} color="#991b1b" />
-                <Text style={{ fontSize: 11, color: "#991b1b" }}>
+                <span className="text-[11px]" style={{ color: "#991b1b" }}>
                   Try changing your delivery address or contact the seller.
-                </Text>
-              </View>
-            </View>
+                </span>
+              </div>
+            </div>
           ) : null}
 
           {appliedCoupons.map((coupon) => (
-            <View key={coupon.code} style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>
+            <div key={coupon.code} className="mb-3.5 flex flex-row justify-between">
+              <span className="text-[15px]" style={{ color: theme.secondaryText }}>
                 Coupon ({coupon.code})
-              </Text>
-              <Text style={[styles.summaryValue, styles.discountText]}>
+              </span>
+              <span className="text-[15px] font-bold" style={{ color: "#059669" }}>
                 -₹{(coupon.appliedDiscount || 0).toLocaleString()}
-              </Text>
-            </View>
+              </span>
+            </div>
           ))}
-          
+
           {appliedCoupons.length === 0 && discountAmount > 0 && (
-            <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>
+            <div className="mb-3.5 flex flex-row justify-between">
+              <span className="text-[15px]" style={{ color: theme.secondaryText }}>
                 Coupon ({appliedCoupon?.code || ""})
-              </Text>
-              <Text style={[styles.summaryValue, styles.discountText]}>
+              </span>
+              <span className="text-[15px] font-bold" style={{ color: "#059669" }}>
                 -₹{discountAmount.toLocaleString()}
-              </Text>
-            </View>
+              </span>
+            </div>
           )}
 
-          <View style={styles.divider} />
+          <div className="my-[18px] h-px" style={{ backgroundColor: theme.border }} />
 
-          <View style={styles.totalRow}>
-            <Text style={styles.totalLabel}>Total Payable</Text>
-            <Text style={styles.totalValue}>
+          <div className="flex flex-row items-center justify-between">
+            <span className="text-lg font-extrabold" style={{ color: theme.text }}>Total Payable</span>
+            <span className="text-[22px] font-black" style={{ color: theme.primary }}>
               ₹{totalPayable.toLocaleString()}
-            </Text>
-          </View>
-        </View>
-      </ScrollView>
+            </span>
+          </div>
+        </div>
+      </div>
 
-      {/* Footer */}
-      <View style={styles.footer}>
-        <TouchableOpacity style={[styles.payButton, { opacity: isProcessingPayment || isQuoteLoading || Boolean(quoteError) ? 0.5 : 1 }]}
-          onPress={handlePlaceOrder}
+      {/* Footer — viewport-fixed so the tab bar never covers the CTA */}
+      <div
+        className="fixed right-0 left-0 z-40 p-6"
+        style={{
+          bottom: footerBottom,
+          backgroundColor: theme.background + "D0",
+        }}
+      >
+        <button
+          type="button"
+          onClick={handlePlaceOrder}
           disabled={isProcessingPayment || isQuoteLoading || Boolean(quoteError)}
+          className="h-16 w-full overflow-hidden rounded-[20px]"
+          style={{
+            backgroundColor: theme.primary,
+            opacity: isProcessingPayment || isQuoteLoading || Boolean(quoteError) ? 0.5 : 1,
+            cursor:
+              isProcessingPayment || isQuoteLoading || Boolean(quoteError)
+                ? "not-allowed"
+                : "pointer",
+          }}
         >
           {isProcessingPayment ? (
-            <View style={styles.payButtonContent}>
-              <ActivityIndicator color="#fff" />
-            </View>
+            <div className="flex h-full flex-1 flex-row items-center justify-center px-6">
+              <span className="h-5 w-5 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+            </div>
           ) : (
-            <View style={styles.payButtonContent}>
-              <Text style={styles.payButtonAmount}>
+            <div className="flex h-full flex-1 flex-row items-center justify-center px-6">
+              <span className="text-lg font-black text-white">
                 ₹{totalPayable.toLocaleString()}
-              </Text>
-              <View style={styles.payButtonDivider} />
-              <Text style={styles.payButtonText}>
+              </span>
+              <div className="mx-4 h-6 w-px bg-white/30" />
+              <span className="text-lg font-extrabold tracking-[0.5px] text-white">
                 {paymentMethod === "COD" ? "Place COD Order" : "Pay & Place Order"}
-              </Text>
-            </View>
+              </span>
+            </div>
           )}
-        </TouchableOpacity>
-      </View>
+        </button>
+      </div>
 
       {/* Custom Alert Dialog */}
       <IOSAlertDialog visible={alertConfig.visible}
@@ -803,7 +923,7 @@ const CheckoutScreen = () => {
           onClose={() => setOtpSheetVisible(false)}
         />
       )}
-    </View>
+    </div>
   );
 };
 

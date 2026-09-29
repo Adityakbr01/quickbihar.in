@@ -1,23 +1,10 @@
-import React, { useEffect, useMemo, useState } from "react";
-import {
-  ActivityIndicator,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "@/components/primitives";
-import { Check, CheckCheck, CircleCheck, Lock, Sparkles, Tag, Ticket } from "lucide-react";
+import React, { useMemo, useState } from "react";
+import { Check, CheckCheck, CircleCheck, Lock, Sparkles, Tag, Ticket, X } from "lucide-react";
 import * as Haptics from "@/lib/haptics";
 import { ICoupon } from "@/src/features/common/coupon/types/coupon.types";
 import { CartItem } from "../store/cartStore";
-import {
-  Sheet,
-  SheetHeader,
-  useSheet,
-} from "@/src/components/common/BottomSheet";
-import { spacing } from "@/src/theme/spacing";
 import { TextInput } from "@/src/theme/components/TextInput";
+import { cn } from "@/src/lib/utils";
 
 /** A short summary of a cart line that a coupon applies to. */
 export interface MatchingItem {
@@ -180,7 +167,6 @@ export const CouponBottomSheet: React.FC<CouponBottomSheetProps> = ({
   isLoading,
   theme,
 }) => {
-  const sheet = useSheet();
   const [manualCode, setManualCode] = useState("");
   const [applyingCode, setApplyingCode] = useState<string | null>(null);
 
@@ -200,15 +186,6 @@ export const CouponBottomSheet: React.FC<CouponBottomSheetProps> = ({
     () => evaluatedCoupons.filter((ec) => !ec.isApplicable),
     [evaluatedCoupons],
   );
-
-  // Imperative present/dismiss from the parent `visible` prop.
-  useEffect(() => {
-    if (visible) {
-      sheet.current?.present();
-    } else {
-      sheet.current?.dismiss();
-    }
-  }, [visible, sheet]);
 
   const handleApply = async (codeToApply: string, couponObj?: ICoupon) => {
     if (!codeToApply.trim()) return;
@@ -235,7 +212,7 @@ export const CouponBottomSheet: React.FC<CouponBottomSheetProps> = ({
     onRemoveCoupon(codeToRemove);
   };
 
-  const styles = useMemo(() => createStyles(theme), [theme]);
+  if (!visible) return null;
 
   const renderCouponItem = (item: CouponApplicability) => {
     const {
@@ -262,533 +239,349 @@ export const CouponBottomSheet: React.FC<CouponBottomSheetProps> = ({
 
     const visibleItemNames = matchingItems.slice(0, 2);
     const moreCount = matchingItems.length - visibleItemNames.length;
+    const isDisabled = !isApplicable && !isApplied;
 
     return (
-      <View key={coupon._id || coupon.code}
-        style={[
-          styles.couponCard,
-          isApplied && styles.couponCardApplied,
-          !isApplicable && !isApplied && styles.couponCardDisabled,
-        ]}
+      <div
+        key={coupon._id || coupon.code}
+        className={cn("mb-2.5 rounded-[14px] border p-3.5", isDisabled && "opacity-75")}
+        style={{
+          backgroundColor: isApplied
+            ? theme.primary + "0A"
+            : isDisabled
+              ? theme.background
+              : theme.tertiaryBackground,
+          borderColor: isApplied ? theme.primary + "80" : theme.border,
+        }}
       >
-        <View style={styles.couponCardHeader}>
+        <div className="mb-2 flex flex-row items-center justify-between gap-2.5">
           {/* Code pill + discount badge — flex row that gracefully
               truncates instead of overflowing the action button. */}
-          <View style={styles.codePillRow}>
-            <View style={[
-                styles.codePill,
-                !isApplicable && !isApplied && styles.codePillDisabled,
-              ]}
+          <div className="flex min-w-0 flex-1 flex-row items-center gap-2">
+            <div
+              className="min-w-0 shrink rounded-md border border-dashed px-2 py-1"
+              style={{
+                borderColor: isDisabled ? theme.border : theme.primary,
+                backgroundColor: isDisabled ? theme.tertiaryBackground : theme.primary + "15",
+              }}
             >
-              <Text style={[
-                  styles.codeText,
-                  !isApplicable && !isApplied && styles.codeTextDisabled,
-                ]}
-                numberOfLines={1}
-                ellipsizeMode="tail"
+              <span
+                className="line-clamp-1 text-[13px] font-extrabold tracking-[0.5px]"
+                style={{ color: isDisabled ? theme.secondaryText : theme.primary }}
               >
                 {coupon.code}
-              </Text>
-            </View>
+              </span>
+            </div>
             {/* Show the discount badge only when there's space — hide it
                 once the coupon is applied because the "Saving ₹X" line
                 already conveys the amount. */}
             {!isApplied ? (
-              <View style={styles.discountBadge}>
-                <Text style={styles.discountBadgeText}
-                  numberOfLines={1}
-                  ellipsizeMode="tail"
+              <div
+                className="shrink-0 rounded-md px-2 py-[3px]"
+                style={{ backgroundColor: theme.primary + "15" }}
+              >
+                <span
+                  className="line-clamp-1 text-xs font-extrabold"
+                  style={{ color: theme.primary }}
                 >
                   {discountLabel}
-                </Text>
-              </View>
+                </span>
+              </div>
             ) : null}
-          </View>
+          </div>
 
           {/* Action Button — compact chip when applied so it never
               collides with the code pill / discount badge. */}
           {isApplied ? (
-            <View style={styles.appliedChipWrap}>
-              <View style={styles.appliedChip}>
-                <CircleCheck size={15} color={theme.primary} />
-                <Text style={styles.appliedChipText}>Applied</Text>
-              </View>
-              <TouchableOpacity onPress={() => handleRemove(coupon.code)}
-                hitSlop={{ top: 10, bottom: 10, left: 8, right: 8 }}
-                style={styles.removeLinkWrap}
-                activeOpacity={0.6}
+            <div className="flex shrink-0 flex-col items-end gap-0.5">
+              <div
+                className="flex flex-row items-center gap-1 rounded-full border px-2.5 py-[5px]"
+                style={{
+                  backgroundColor: theme.primary + "15",
+                  borderColor: theme.primary + "40",
+                }}
               >
-                <Text style={styles.removeLink}>Remove</Text>
-              </TouchableOpacity>
-            </View>
+                <CircleCheck size={15} color={theme.primary} />
+                <span className="text-xs font-extrabold" style={{ color: theme.primary }}>
+                  Applied
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => handleRemove(coupon.code)}
+                aria-label={`Remove coupon ${coupon.code}`}
+                className="cursor-pointer px-1.5 py-0.5"
+              >
+                <span
+                  className="text-[11px] font-bold underline"
+                  style={{ color: theme.error || "#ef4444" }}
+                >
+                  Remove
+                </span>
+              </button>
+            </div>
           ) : (
-            <TouchableOpacity style={[
-                styles.applyBtn,
-                !isApplicable && styles.applyBtnDisabled,
-              ]}
-              onPress={() => handleApply(coupon.code, coupon)}
+            <button
+              type="button"
+              onClick={() => handleApply(coupon.code, coupon)}
               disabled={!isApplicable || isLoading || isCurrentlyApplying}
-              activeOpacity={0.8}
+              className="flex min-w-[70px] cursor-pointer items-center justify-center rounded-lg px-4 py-[7px] disabled:cursor-not-allowed"
+              style={{ backgroundColor: isApplicable ? theme.primary : theme.border }}
             >
               {isCurrentlyApplying ? (
-                <ActivityIndicator size="small" color="#fff" />
+                <span className="block h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
               ) : (
-                <Text style={[
-                    styles.applyBtnText,
-                    !isApplicable && styles.applyBtnTextDisabled,
-                  ]}
+                <span
+                  className="text-[13px] font-bold text-white"
+                  style={isApplicable ? undefined : { color: theme.secondaryText }}
                 >
                   {isApplicable ? "Apply" : "Locked"}
-                </Text>
+                </span>
               )}
-            </TouchableOpacity>
+            </button>
           )}
-        </View>
+        </div>
 
         {/* Description */}
         {coupon.description ? (
-          <Text style={[
-              styles.couponDesc,
-              !isApplicable && !isApplied && styles.couponDescMuted,
-            ]}
-            numberOfLines={2}
+          <p
+            className="line-clamp-2 mb-2 text-xs leading-4"
+            style={{ color: isDisabled ? (theme.tertiaryText || theme.secondaryText) : theme.secondaryText }}
           >
             {coupon.description}
-          </Text>
+          </p>
         ) : null}
 
         {/* Per-item coverage — drives the SPECIFIC-product UX. */}
         {showCoverage ? (
-          <View style={styles.coverageRow}>
+          <div
+            className="mb-2 flex flex-row items-start gap-1.5 rounded-lg border px-2 py-1.5"
+            style={{
+              backgroundColor: theme.primary + "0A",
+              borderColor: theme.primary + "20",
+            }}
+          >
             <CircleCheck size={13} color={theme.primary} />
-            <Text style={styles.coverageText} numberOfLines={2}>
+            <p
+              className="line-clamp-2 flex-1 text-[11px] leading-[15px]"
+              style={{ color: theme.secondaryText }}
+            >
               Applies on {matchingItems.length} of {totalCartItems} item
               {totalCartItems === 1 ? "" : "s"}:{" "}
-              <Text style={styles.coverageTextBold}>
+              <span className="font-bold" style={{ color: theme.text }}>
                 {visibleItemNames.map((m) => m.name).join(", ")}
                 {moreCount > 0 ? ` +${moreCount} more` : ""}
-              </Text>
-            </Text>
-          </View>
+              </span>
+            </p>
+          </div>
         ) : null}
 
         {/* Dynamic Status / Savings Tag */}
-        <View style={styles.statusRow}>
+        <div
+          className="flex flex-row flex-wrap items-center justify-between gap-1.5 border-t pt-1"
+          style={{ borderTopColor: theme.border + "60" }}
+        >
           {isApplicable && !isApplied && (
-            <View style={styles.savingsTag}>
+            <div
+              className="flex flex-row items-center gap-1 rounded px-1.5 py-0.5"
+              style={{ backgroundColor: theme.primary + "12" }}
+            >
               <Sparkles size={13} color={theme.primary} />
-              <Text style={styles.savingsTagText}>{reason}</Text>
-            </View>
+              <span className="text-[11px] font-bold" style={{ color: theme.primary }}>
+                {reason}
+              </span>
+            </div>
           )}
 
           {!isApplicable && !isApplied && (
-            <View style={styles.lockedTag}>
+            <div
+              className="flex flex-row items-center gap-1 rounded border px-1.5 py-0.5"
+              style={{ backgroundColor: theme.tertiaryBackground, borderColor: theme.border }}
+            >
               <Lock size={13} color={theme.secondaryText} />
-              <Text style={styles.lockedTagText}>{reason}</Text>
-            </View>
+              <span
+                className="text-[11px] font-semibold"
+                style={{ color: theme.secondaryText }}
+              >
+                {reason}
+              </span>
+            </div>
           )}
 
           {isApplied && (
-            <View style={styles.savingsTag}>
+            <div
+              className="flex flex-row items-center gap-1 rounded px-1.5 py-0.5"
+              style={{ backgroundColor: theme.primary + "12" }}
+            >
               <Check size={13} color={theme.primary} />
-              <Text style={styles.savingsTagText}>
+              <span className="text-[11px] font-bold" style={{ color: theme.primary }}>
                 Saving ₹{discountAmount.toLocaleString()} with this code
-              </Text>
-            </View>
+              </span>
+            </div>
           )}
 
           {coupon.minOrderValue > 0 ? (
-            <Text style={styles.minOrderText}>
+            <span
+              className="text-[11px] font-medium"
+              style={{ color: theme.secondaryText }}
+            >
               Min order ₹{coupon.minOrderValue}
-            </Text>
+            </span>
           ) : null}
-        </View>
-      </View>
+        </div>
+      </div>
     );
   };
 
   return (
-    <Sheet ref={sheet}
-      onDidDismiss={onClose}
-      backgroundColor={theme.background}
+    <div
+      className="fixed inset-0 z-[100] flex items-end justify-center bg-black/50"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Coupons & Offers"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
     >
-      <SheetHeader title="Coupons & Offers"
-        onClose={onClose}
-        right={
-          coupons.length > 0 ? (
-            <View style={styles.countBadge}>
-              <Text style={styles.countBadgeText}>{coupons.length}</Text>
-            </View>
-          ) : undefined
-        }
-      />
-
-      {/* Manual Coupon Input inside Sheet */}
-      <TextInput placeholder="Enter coupon code"
-        placeholderTextColor={theme.secondaryText}
-        value={manualCode}
-        onChangeText={setManualCode}
-        autoCapitalize="characters"
-        autoCorrect={false}
-        icon={
-          <Tag size={18} color={theme.secondaryText} />
-        }
-        rightIcon={
-          <TouchableOpacity style={[
-              styles.manualApplyBtn,
-              {
-                backgroundColor: manualCode.trim()
-                  ? theme.primary
-                  : theme.border,
-              },
-            ]}
-            onPress={() => handleApply(manualCode)}
-            disabled={!manualCode.trim() || isLoading}
-          >
-            {applyingCode === manualCode.trim().toUpperCase() ? (
-              <ActivityIndicator size="small" color="#fff" />
-            ) : (
-              <Text style={styles.manualApplyBtnText}>Apply</Text>
-            )}
-          </TouchableOpacity>
-        }
-        containerStyle={{ marginBottom: 16, marginHorizontal: spacing.lg }}
-        inputContainerStyle={{
-          backgroundColor: theme.tertiaryBackground,
-          borderRadius: 12,
-          paddingHorizontal: 12,
-          height: 48,
-          borderWidth: 1,
-        }}
-        style={{ fontSize: 14, fontWeight: "600", color: theme.text }}
-      />
-
-      {/* Coupon List */}
-      <ScrollView showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
+      <div
+        className="flex max-h-[85vh] w-full max-w-lg flex-col overflow-hidden rounded-t-3xl"
+        style={{ backgroundColor: theme.background }}
       >
-        {coupons.length === 0 ? (
-          <View style={styles.emptyState}>
-            <Ticket size={48} color={theme.secondaryText} />
-            <Text style={styles.emptyTitle}>No Coupons Available</Text>
-            <Text style={styles.emptySubtitle}>
-              Check back later or enter a promo code above if you have one.
-            </Text>
-          </View>
-        ) : (
-          <>
-            {/* Applicable Coupons Section */}
-            {applicableCoupons.length > 0 && (
-              <View style={styles.sectionContainer}>
-                <View style={styles.sectionHeader}>
-                  <CheckCheck size={16} color={theme.primary} />
-                  <Text style={styles.sectionTitle}>
-                    {(() => {
-                      // For each applicable coupon, the union of items it
-                      // covers gives a friendly "X items have offers" line.
-                      const coveredSkus = new Set<string>();
-                      applicableCoupons.forEach((c) =>
-                        c.matchingItems.forEach((m) => coveredSkus.add(m.sku)),
-                      );
-                      const totalItems =
-                        applicableCoupons[0]?.totalCartItems ?? 0;
-                      if (
-                        totalItems > 0 &&
-                        coveredSkus.size > 0 &&
-                        coveredSkus.size < totalItems
-                      ) {
-                        return `Applies on ${coveredSkus.size} of ${totalItems} items (${applicableCoupons.length} offer${applicableCoupons.length === 1 ? "" : "s"})`;
-                      }
-                      return `${applicableCoupons.length} offer${applicableCoupons.length === 1 ? "" : "s"} available on your cart`;
-                    })()}
-                  </Text>
-                </View>
-                {applicableCoupons.map(renderCouponItem)}
-              </View>
-            )}
+        {/* Header */}
+        <div className="flex flex-row items-center justify-between px-4 py-3">
+          <h3 className="text-base font-bold" style={{ color: theme.text }}>
+            Coupons & Offers
+          </h3>
+          <div className="flex flex-row items-center gap-2">
+            {coupons.length > 0 ? (
+              <div
+                className="rounded-xl border px-2 py-0.5"
+                style={{ backgroundColor: theme.tertiaryBackground, borderColor: theme.border }}
+              >
+                <span className="text-xs font-bold" style={{ color: theme.primary }}>
+                  {coupons.length}
+                </span>
+              </div>
+            ) : null}
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Close coupons"
+              className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full"
+              style={{ backgroundColor: theme.secondaryBackground }}
+            >
+              <X size={18} color={theme.text} />
+            </button>
+          </div>
+        </div>
 
-            {/* Locked / Other Offers Section */}
-            {lockedCoupons.length > 0 && (
-              <View style={styles.sectionContainer}>
-                <View style={styles.sectionHeader}>
-                  <Lock size={16} color={theme.secondaryText} />
-                  <Text style={[
-                      styles.sectionTitle,
-                      { color: theme.secondaryText },
-                    ]}
-                  >
-                    {lockedCoupons.length} locked offer
-                    {lockedCoupons.length === 1 ? "" : "s"}
-                  </Text>
-                </View>
-                {lockedCoupons.map(renderCouponItem)}
-              </View>
-            )}
-          </>
-        )}
-      </ScrollView>
-    </Sheet>
+        {/* Manual Coupon Input inside Sheet */}
+        <TextInput
+          placeholder="Enter coupon code"
+          placeholderTextColor={theme.secondaryText}
+          value={manualCode}
+          onChangeText={setManualCode}
+          autoCapitalize="characters"
+          autoCorrect={false}
+          icon={<Tag size={18} color={theme.secondaryText} />}
+          rightIcon={
+            <button
+              type="button"
+              onClick={() => handleApply(manualCode)}
+              disabled={!manualCode.trim() || isLoading}
+              className="flex cursor-pointer items-center justify-center rounded-lg px-3.5 py-1.5 disabled:cursor-not-allowed"
+              style={{
+                backgroundColor: manualCode.trim() ? theme.primary : theme.border,
+              }}
+            >
+              {applyingCode === manualCode.trim().toUpperCase() ? (
+                <span className="block h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+              ) : (
+                <span className="text-[13px] font-bold text-white">Apply</span>
+              )}
+            </button>
+          }
+          containerStyle={{ marginBottom: 16, marginHorizontal: 24 }}
+          inputContainerStyle={{
+            backgroundColor: theme.tertiaryBackground,
+            borderRadius: 12,
+            paddingHorizontal: 12,
+            height: 48,
+            borderWidth: 1,
+          }}
+          style={{ fontSize: 14, fontWeight: "600", color: theme.text }}
+        />
+
+        {/* Coupon List */}
+        <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-6">
+          {coupons.length === 0 ? (
+            <div className="flex flex-col items-center justify-center gap-2 py-10">
+              <Ticket size={48} color={theme.secondaryText} />
+              <p className="mt-2 text-base font-bold" style={{ color: theme.text }}>
+                No Coupons Available
+              </p>
+              <p
+                className="max-w-[260px] text-center text-[13px]"
+                style={{ color: theme.secondaryText }}
+              >
+                Check back later or enter a promo code above if you have one.
+              </p>
+            </div>
+          ) : (
+            <>
+              {/* Applicable Coupons Section */}
+              {applicableCoupons.length > 0 && (
+                <div className="mb-4">
+                  <div className="mb-2.5 flex flex-row items-center gap-1.5">
+                    <CheckCheck size={16} color={theme.primary} />
+                    <span
+                      className="text-[13px] font-bold tracking-[0.5px] uppercase"
+                      style={{ color: theme.text }}
+                    >
+                      {(() => {
+                        // For each applicable coupon, the union of items it
+                        // covers gives a friendly "X items have offers" line.
+                        const coveredSkus = new Set<string>();
+                        applicableCoupons.forEach((c) =>
+                          c.matchingItems.forEach((m) => coveredSkus.add(m.sku)),
+                        );
+                        const totalItems =
+                          applicableCoupons[0]?.totalCartItems ?? 0;
+                        if (
+                          totalItems > 0 &&
+                          coveredSkus.size > 0 &&
+                          coveredSkus.size < totalItems
+                        ) {
+                          return `Applies on ${coveredSkus.size} of ${totalItems} items (${applicableCoupons.length} offer${applicableCoupons.length === 1 ? "" : "s"})`;
+                        }
+                        return `${applicableCoupons.length} offer${applicableCoupons.length === 1 ? "" : "s"} available on your cart`;
+                      })()}
+                    </span>
+                  </div>
+                  {applicableCoupons.map(renderCouponItem)}
+                </div>
+              )}
+
+              {/* Locked / Other Offers Section */}
+              {lockedCoupons.length > 0 && (
+                <div className="mb-4">
+                  <div className="mb-2.5 flex flex-row items-center gap-1.5">
+                    <Lock size={16} color={theme.secondaryText} />
+                    <span
+                      className="text-[13px] font-bold tracking-[0.5px] uppercase"
+                      style={{ color: theme.secondaryText }}
+                    >
+                      {lockedCoupons.length} locked offer
+                      {lockedCoupons.length === 1 ? "" : "s"}
+                    </span>
+                  </div>
+                  {lockedCoupons.map(renderCouponItem)}
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+    </div>
   );
 };
-
-const createStyles = (theme: any) =>
-  StyleSheet.create({
-    manualApplyBtn: {
-      paddingHorizontal: 14,
-      paddingVertical: 6,
-      borderRadius: 8,
-      justifyContent: "center",
-      alignItems: "center",
-    },
-    manualApplyBtnText: {
-      color: "#fff",
-      fontSize: 13,
-      fontWeight: "700",
-    },
-    scrollContent: {
-      paddingBottom: 24,
-      paddingHorizontal: spacing.lg,
-    },
-    sectionContainer: {
-      marginBottom: 16,
-    },
-    sectionHeader: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 6,
-      marginBottom: 10,
-    },
-    sectionTitle: {
-      fontSize: 13,
-      fontWeight: "700",
-      color: theme.text,
-      textTransform: "uppercase",
-      letterSpacing: 0.5,
-    },
-    couponCard: {
-      backgroundColor: theme.tertiaryBackground,
-      borderRadius: 14,
-      borderWidth: 1,
-      borderColor: theme.border,
-      padding: 14,
-      marginBottom: 10,
-    },
-    couponCardApplied: {
-      borderColor: theme.primary + "80",
-      backgroundColor: theme.primary + "0A",
-    },
-    couponCardDisabled: {
-      opacity: 0.75,
-      backgroundColor: theme.background,
-    },
-    couponCardHeader: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      marginBottom: 8,
-      gap: 10,
-    },
-    codePillRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 8,
-      flex: 1,
-      minWidth: 0, // lets the inner pill shrink instead of overflowing
-    },
-    codePill: {
-      borderWidth: 1,
-      borderStyle: "dashed",
-      borderColor: theme.primary,
-      backgroundColor: theme.primary + "15",
-      paddingHorizontal: 8,
-      paddingVertical: 4,
-      borderRadius: 6,
-      flexShrink: 1,
-      minWidth: 0,
-    },
-    codePillDisabled: {
-      borderColor: theme.border,
-      backgroundColor: theme.tertiaryBackground,
-    },
-    codeText: {
-      fontSize: 13,
-      fontWeight: "800",
-      color: theme.primary,
-      letterSpacing: 0.5,
-    },
-    codeTextDisabled: {
-      color: theme.secondaryText,
-    },
-    discountBadge: {
-      backgroundColor: theme.primary + "15",
-      paddingHorizontal: 8,
-      paddingVertical: 3,
-      borderRadius: 6,
-      flexShrink: 0,
-    },
-    discountBadgeText: {
-      fontSize: 12,
-      fontWeight: "800",
-      color: theme.primary,
-    },
-    applyBtn: {
-      backgroundColor: theme.primary,
-      paddingHorizontal: 16,
-      paddingVertical: 7,
-      borderRadius: 8,
-      justifyContent: "center",
-      alignItems: "center",
-      minWidth: 70,
-    },
-    applyBtnDisabled: {
-      backgroundColor: theme.border,
-    },
-    applyBtnText: {
-      color: "#fff",
-      fontSize: 13,
-      fontWeight: "700",
-    },
-    applyBtnTextDisabled: {
-      color: theme.secondaryText,
-    },
-    // Applied state — compact chip + "Remove" stacked vertically so the
-    // row never overflows the code pill / discount badge.
-    appliedChipWrap: {
-      alignItems: "flex-end",
-      gap: 2,
-      flexShrink: 0,
-    },
-    appliedChip: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 4,
-      backgroundColor: theme.primary + "15",
-      paddingHorizontal: 10,
-      paddingVertical: 5,
-      borderRadius: 999,
-      borderWidth: 1,
-      borderColor: theme.primary + "40",
-    },
-    appliedChipText: {
-      fontSize: 12,
-      fontWeight: "800",
-      color: theme.primary,
-    },
-    removeLinkWrap: {
-      paddingHorizontal: 6,
-      paddingVertical: 2,
-    },
-    removeLink: {
-      fontSize: 11,
-      color: theme.error || "#ef4444",
-      fontWeight: "700",
-      textDecorationLine: "underline",
-    },
-    couponDesc: {
-      fontSize: 12,
-      color: theme.secondaryText,
-      lineHeight: 16,
-      marginBottom: 8,
-    },
-    couponDescMuted: {
-      color: theme.tertiaryText || theme.secondaryText,
-    },
-    coverageRow: {
-      flexDirection: "row",
-      alignItems: "flex-start",
-      gap: 6,
-      backgroundColor: theme.primary + "0A",
-      borderRadius: 8,
-      paddingHorizontal: 8,
-      paddingVertical: 6,
-      marginBottom: 8,
-      borderWidth: 1,
-      borderColor: theme.primary + "20",
-    },
-    coverageText: {
-      flex: 1,
-      fontSize: 11,
-      color: theme.secondaryText,
-      lineHeight: 15,
-    },
-    coverageTextBold: {
-      fontWeight: "700",
-      color: theme.text,
-    },
-    statusRow: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      flexWrap: "wrap",
-      gap: 6,
-      paddingTop: 4,
-      borderTopWidth: 1,
-      borderTopColor: theme.border + "60",
-    },
-    savingsTag: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 4,
-      backgroundColor: theme.primary + "12",
-      paddingHorizontal: 6,
-      paddingVertical: 2,
-      borderRadius: 4,
-    },
-    savingsTagText: {
-      fontSize: 11,
-      fontWeight: "700",
-      color: theme.primary,
-    },
-    lockedTag: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 4,
-      backgroundColor: theme.tertiaryBackground,
-      paddingHorizontal: 6,
-      paddingVertical: 2,
-      borderRadius: 4,
-      borderWidth: 1,
-      borderColor: theme.border,
-    },
-    lockedTagText: {
-      fontSize: 11,
-      fontWeight: "600",
-      color: theme.secondaryText,
-    },
-    minOrderText: {
-      fontSize: 11,
-      color: theme.secondaryText,
-      fontWeight: "500",
-    },
-    emptyState: {
-      alignItems: "center",
-      justifyContent: "center",
-      paddingVertical: 40,
-      gap: 8,
-    },
-    emptyTitle: {
-      fontSize: 16,
-      fontWeight: "700",
-      color: theme.text,
-      marginTop: 8,
-    },
-    emptySubtitle: {
-      fontSize: 13,
-      color: theme.secondaryText,
-      textAlign: "center",
-      maxWidth: 260,
-    },
-    countBadge: {
-      backgroundColor: theme.tertiaryBackground,
-      paddingHorizontal: 8,
-      paddingVertical: 2,
-      borderRadius: 12,
-      borderWidth: 1,
-      borderColor: theme.border,
-    },
-    countBadgeText: {
-      fontSize: 12,
-      fontWeight: "700",
-      color: theme.primary,
-    },
-  });

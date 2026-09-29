@@ -1,16 +1,13 @@
 import React, { useMemo } from "react";
-import { View, ScrollView, Text, Linking } from "@/components/primitives";
 import * as Haptics from "@/lib/haptics";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { AppIcon } from "@/src/components/common/AppIcon";
 import { Moon, Sun } from "lucide-react";
 import { ThemeToggle } from "@/src/components/common/ThemeToggle";
-import { createAccountStyles } from "../styles/accountStyles";
 import AccountHeader from "../components/AccountHeader";
 import AccountOption from "../components/AccountOption";
 import GuestAccountView from "../components/GuestAccountView";
 import { ACCOUNT_SECTIONS, LOGOUT_OPTION } from "../lib/accountData";
-import { ActivityIndicator } from "@/components/primitives";
 import EditProfileModal from "../components/EditProfileModal";
 
 import { useNavigate } from "react-router-dom";
@@ -28,7 +25,6 @@ import { WEB_ADMIN_LOGIN_URL } from "@/src/constants/app.constants";
 
 const AccountMain = () => {
   const theme = useTheme();
-  const styles = createAccountStyles(theme);
   const user = useAuthStore((state) => state.user);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const { mutate: logout, isPending: isLoggingOut } = useLogout();
@@ -82,9 +78,11 @@ const AccountMain = () => {
       // Open the web admin in the system browser. Admin re-authenticates
       // there — no JWT handoff.
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      Linking.openURL(WEB_ADMIN_LOGIN_URL).catch((err) =>
-        console.error("Failed to open web admin:", err),
-      );
+      try {
+        window.open(WEB_ADMIN_LOGIN_URL, "_blank", "noopener,noreferrer");
+      } catch (err) {
+        console.error("Failed to open web admin:", err);
+      }
     } else {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
@@ -112,15 +110,14 @@ const AccountMain = () => {
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.mainWrapper}>
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-        >
+    <div
+      className="flex min-h-screen w-full justify-center"
+      style={{ backgroundColor: (theme as any).background }}
+    >
+      <div className="w-full max-w-[800px]">
+        <div className="overflow-y-auto pb-10">
           <AccountHeader
             theme={theme}
-            styles={styles}
             name={user?.fullName || "Guest"}
             email={user?.email || "guest@quickbihar.in"}
             avatarUrl={avatarUrl}
@@ -133,14 +130,18 @@ const AccountMain = () => {
               imperatively via the account store) */}
           <PasswordEmailSetupSheet />
 
-          {visibleSections.map((section, sectionIndex) => (
-            <View key={section.title} style={styles.section}>
-              <Text style={styles.sectionTitle}>{section.title}</Text>
+          {visibleSections.map((section) => (
+            <div key={section.title} className="mt-6">
+              <p
+                className="mb-3 ml-6 text-[13px] font-bold uppercase tracking-[1px]"
+                style={{ color: (theme as any).tertiaryText }}
+              >
+                {section.title}
+              </p>
               {section.options.map((option, optionIndex) => (
                 <AccountOption
                   key={option.label}
                   theme={theme}
-                  styles={styles}
                   icon={option.icon}
                   label={option.label}
                   onPress={option.onPressLabel ? () => handleOptionPress(option.onPressLabel!) : undefined}
@@ -151,37 +152,54 @@ const AccountMain = () => {
                   isLast={optionIndex === section.options.length - 1}
                 />
               ))}
-            </View>
+            </div>
           ))}
 
           {/* Appearance Section */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Appearance</Text>
-            <View style={styles.optionRow}>
-              <View style={styles.iconContainer}>
+          <div className="mt-6">
+            <p
+              className="mb-3 ml-6 text-[13px] font-bold uppercase tracking-[1px]"
+              style={{ color: (theme as any).tertiaryText }}
+            >
+              Appearance
+            </p>
+            <div
+              className="flex flex-row items-center px-6 py-3.5"
+              style={{ backgroundColor: (theme as any).background }}
+            >
+              <div
+                className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-xl"
+                style={{ backgroundColor: (theme as any).tertiaryBackground }}
+              >
                 <AppIcon
-                  icon={theme.isDark ? Moon : Sun}
+                  icon={(theme as any).isDark ? Moon : Sun}
                   size={22}
-                  color={theme.primary}
+                  color={(theme as any).primary}
                 />
-              </View>
-              <Text style={styles.optionLabel}>
-                {theme.isDark ? "Dark Mode" : "Light Mode"}
-              </Text>
+              </div>
+              <span
+                className="ml-4 flex-1 text-base font-semibold"
+                style={{ color: (theme as any).text }}
+              >
+                {(theme as any).isDark ? "Dark Mode" : "Light Mode"}
+              </span>
               <ThemeToggle
-                value={theme.isDark}
+                value={(theme as any).isDark}
                 onToggle={() => {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                  theme.toggleMode();
+                  (theme as any).toggleMode();
                 }}
               />
-            </View>
-          </View>
+            </div>
+          </div>
 
-          {/* Logout Section */}          <View style={[styles.logoutRow, isLoggingOut && { opacity: 0.7 }]}>
+          {/* Logout Section */}
+          <div
+            className="relative mb-[60px] mt-8"
+            style={isLoggingOut ? { opacity: 0.7 } : undefined}
+          >
             <AccountOption
               theme={theme}
-              styles={styles}
               icon={LOGOUT_OPTION.icon}
               label={LOGOUT_OPTION.label}
               onPress={isLoggingOut ? undefined : () => handleOptionPress(LOGOUT_OPTION.onPressLabel!)}
@@ -190,15 +208,20 @@ const AccountMain = () => {
               isLast
             />
             {isLoggingOut && (
-              <ActivityIndicator
-                style={{ position: "absolute", right: 20, top: 15 }}
-                color={theme.error}
+              <span
+                role="status"
+                aria-label="Logging out"
+                className="absolute right-5 top-[15px] h-5 w-5 animate-spin rounded-full border-2"
+                style={{
+                  borderColor: `${(theme as any).error}33`,
+                  borderTopColor: (theme as any).error,
+                }}
               />
             )}
-          </View>
-        </ScrollView>
-      </View>
-    </View>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
 

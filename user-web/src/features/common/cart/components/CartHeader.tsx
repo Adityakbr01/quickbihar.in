@@ -1,11 +1,6 @@
 import React from "react";
-import { Platform, View, Text } from "@/components/primitives";
 import { Wallet } from "lucide-react";
-import LazyLottie from "@/src/components/common/LazyLottie";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
-import { createCartStyles } from "../styles/cartStyles";
-
-import walletLottie from "@/assets/lottie/Wallet.json";
 
 interface CartHeaderProps {
   productsCount: number;
@@ -13,43 +8,30 @@ interface CartHeaderProps {
 }
 
 const CartHeader = ({ productsCount, totalUnits }: CartHeaderProps) => {
-  const theme = useTheme();
-  const styles = createCartStyles(theme);
+  const theme = useTheme() as any;
 
   const productLabel = productsCount === 1 ? "product" : "products";
   const itemLabel = totalUnits === 1 ? "item" : "items";
 
   return (
-    <View style={styles.header}>
-      <View>
-        <Text style={styles.headerTitle}>My Cart</Text>
-        <Text style={styles.itemCount}>
+    <div className="flex flex-row items-center justify-between px-5 py-4">
+      <div>
+        <h2 className="text-2xl font-extrabold" style={{ color: theme.text }}>
+          My Cart
+        </h2>
+        <p className="mt-0.5 text-sm" style={{ color: theme.secondaryText }}>
           {productsCount} {productLabel} · {totalUnits} {itemLabel}
-        </Text>
-      </View>
-      {Platform.OS === "web" ? (
-        // Static icon on web: lottie-react-native ignores fixed sizes there
-        // and renders the composition at full size, breaking the header.
-        <View style={[
-            styles.walletLottie,
-            {
-              backgroundColor: theme.tertiaryBackground,
-              alignItems: "center",
-              justifyContent: "center",
-              borderRadius: 30,
-            },
-          ]}
-        >
-          <Wallet size={28} color={theme.primary} />
-        </View>
-      ) : (
-        <LazyLottie source={walletLottie}
-          autoPlay
-          loop
-          style={styles.walletLottie}
-        />
-      )}
-    </View>
+        </p>
+      </div>
+      {/* Static icon on web: lottie-react-native ignores fixed sizes there
+          and renders the composition at full size, breaking the header. */}
+      <div
+        className="flex h-[60px] w-[60px] items-center justify-center rounded-full"
+        style={{ backgroundColor: theme.tertiaryBackground }}
+      >
+        <Wallet size={28} color={theme.primary} />
+      </div>
+    </div>
   );
 };
 

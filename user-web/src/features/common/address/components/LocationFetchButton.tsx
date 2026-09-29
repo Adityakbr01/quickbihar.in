@@ -1,5 +1,4 @@
 import React from "react";
-import { View, Text, TouchableOpacity, ActivityIndicator } from "@/components/primitives";
 import { AppIcon } from "@/src/components/common/AppIcon";
 import { Navigation as NavigationIcon } from "lucide-react";
 import { Theme } from "@/src/theme/Provider/ThemeProvider";
@@ -10,7 +9,7 @@ interface LocationFetchButtonProps {
   latitude?: number;
   longitude?: number;
   theme: Theme;
-  styles: any;
+  styles?: any;
 }
 
 const LocationFetchButton: React.FC<LocationFetchButtonProps> = ({
@@ -19,35 +18,51 @@ const LocationFetchButton: React.FC<LocationFetchButtonProps> = ({
   latitude,
   longitude,
   theme,
-  styles,
 }) => {
+  const t = theme as any;
   return (
-    <View>
-      <TouchableOpacity
-        style={[styles.locationButton, isLocating && { opacity: 0.7 }]}
-        onPress={onFetch}
+    <div>
+      <button
+        type="button"
+        onClick={onFetch}
         disabled={isLocating}
+        className="mb-6 flex w-full cursor-pointer flex-row items-center justify-center gap-2.5 rounded-[14px] border-[1.5px] border-dashed py-3 disabled:opacity-70"
+        style={{
+          backgroundColor: "rgba(0, 122, 255, 0.1)",
+          borderColor: "rgba(0, 122, 255, 0.3)",
+          opacity: isLocating ? 0.7 : 1,
+        }}
       >
         {isLocating ? (
-          <ActivityIndicator color={theme.primary} size="small" />
+          <span
+            className="h-4 w-4 animate-spin rounded-full border-2"
+            style={{
+              borderColor: `${t.primary}33`,
+              borderTopColor: t.primary,
+            }}
+          />
         ) : (
           <>
-            <AppIcon
-              icon={NavigationIcon}
-              size={20}
-              color={theme.primary}
-            />
-            <Text style={styles.locationButtonText}>Use My Current Location</Text>
+            <AppIcon icon={NavigationIcon} size={20} color={t.primary} />
+            <span
+              className="text-[15px] font-bold"
+              style={{ color: t.primary }}
+            >
+              Use My Current Location
+            </span>
           </>
         )}
-      </TouchableOpacity>
+      </button>
 
       {latitude !== 0 && longitude !== 0 && (
-        <Text style={styles.coordinateText}>
+        <p
+          className="-mt-4 mb-5 text-center font-mono text-xs"
+          style={{ color: t.tertiaryText }}
+        >
           GPS: {latitude?.toFixed(6)}, {longitude?.toFixed(6)}
-        </Text>
+        </p>
       )}
-    </View>
+    </div>
   );
 };
 

@@ -1,19 +1,9 @@
 import React, { useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Linking,
-  Dimensions,
-  ScrollView,
-  ActivityIndicator,
-} from "@/components/primitives";
 import { ChevronDown, ChevronUp, Clock, MapPin, Phone, ShieldCheck, Star, User } from "lucide-react";
 import { formatDistance } from "../utils/geoUtils";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
-
-const { width } = Dimensions.get("window");
+import { useWindowWidth } from "@/src/utils/responsive";
+import { cn } from "@/src/lib/utils";
 
 interface TrackingInfoCardProps {
   status: string;
@@ -42,17 +32,26 @@ export const TrackingInfoCard: React.FC<TrackingInfoCardProps> = ({
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const theme = useTheme() as any;
+  const windowWidth = useWindowWidth();
   const isDark = theme.isDark ?? theme.text === "#ffffff";
-  const styles = getStyles(isDark, theme);
+
+  // Brand accents (orange/green/red) read fine on both modes — only
+  // surfaces and text adapt. Light branch keeps the original hex values.
+  const ink = isDark ? theme.text : "#333";
+  const subInk = isDark ? theme.secondaryText : "#666";
+  const faintInk = isDark ? theme.tertiaryText : "#999";
+  const surface = isDark ? theme.secondaryBackground : "white";
+  const chip = isDark ? theme.tertiaryBackground : "#F5F5F5";
+  const line = isDark ? theme.border : "#F0F0F0";
 
   const handleCall = () => {
     if (riderPhone) {
-      Linking.openURL(`tel:${riderPhone}`);
+      window.open(`tel:${riderPhone}`);
     }
   };
 
   const isCancellationRequested = timeline && timeline.length > 0 &&
-    (timeline[timeline.length - 1]?.metadata?.message?.includes("requested cancellation") || 
+    (timeline[timeline.length - 1]?.metadata?.message?.includes("requested cancellation") ||
      timeline[timeline.length - 1]?.metadata?.message?.includes("Requested cancellation") || false);
 
   const formattedStatus = (status || "").replace(/_/g, " ");
@@ -70,93 +69,130 @@ export const TrackingInfoCard: React.FC<TrackingInfoCardProps> = ({
   const canShowRiderPhone = isActivelyDelivering && !isFinished && Boolean(riderPhone);
 
   return (
-    <View style={styles.cardContainer}>
+    <div
+      className="rounded-t-[30px] p-5 pt-2.5 shadow-2xl"
+      style={{ backgroundColor: surface, width: windowWidth }}
+    >
       {/* Grabber for bottom sheet feel */}
-      <View style={styles.grabber} />
+      <div
+        className="mx-auto mb-[15px] h-1 w-10 rounded"
+        style={{ backgroundColor: isDark ? theme.border : "#EEE" }}
+      />
 
-      <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
-        <View style={styles.header}>
-          <View style={styles.statusBox}>
-            <Text style={styles.statusLabel}>{formattedStatus}</Text>
-            <Text style={styles.etaLabel}>
-              {isFinished 
-                ? "Order Completed" 
-                : eta > 0 
-                  ? `Arriving in ${eta} mins` 
+      <div className="overflow-y-auto" style={{ maxHeight: 450 }}>
+        <div className="mb-[15px] flex flex-row items-start justify-between">
+          <div className="flex-1">
+            <p className="mb-1 text-xs font-bold uppercase text-[#FF6B00]">{formattedStatus}</p>
+            <p className="text-xl font-bold" style={{ color: ink }}>
+              {isFinished
+                ? "Order Completed"
+                : eta > 0
+                  ? `Arriving in ${eta} mins`
                   : "Arriving soon"}
-            </Text>
-          </View>
-          <View style={styles.distanceBox}>
+            </p>
+          </div>
+          <div
+            className="flex flex-row items-center rounded-xl px-2.5 py-[5px]"
+            style={{ backgroundColor: chip }}
+          >
             <MapPin size={14} color={isDark ? theme.secondaryText : "#666"} />
-            <Text style={styles.distanceText}>{formatDistance(distance)}</Text>
-          </View>
-        </View>
+            <span className="ml-1 text-xs font-bold" style={{ color: subInk }}>{formatDistance(distance)}</span>
+          </div>
+        </div>
 
-        <View style={styles.divider} />
+        <div className="mt-[5px] mb-[15px] h-[1px]" style={{ backgroundColor: line }} />
 
         {/* Rider Row: Only shown if active or shows general delivery badge when completed */}
         {!isFinished && (
-          <View style={styles.riderRow}>
-            <View style={styles.avatar}>
+          <div className="mb-[15px] flex flex-row items-center">
+            <div
+              className="flex h-12 w-12 items-center justify-center rounded-full"
+              style={{ backgroundColor: chip }}
+            >
               <User size={24} color={isDark ? theme.secondaryText : "#666"} />
-            </View>
-            <View style={styles.riderInfo}>
-              <Text style={styles.riderName}>
+            </div>
+            <div className="ml-[15px] flex-1">
+              <p className="text-base font-bold" style={{ color: ink }}>
                 {isActivelyDelivering ? (riderName || "Delivery Partner") : "Assigning Rider..."}
-              </Text>
-              <View style={styles.ratingRow}>
+              </p>
+              <div className="mt-0.5 flex flex-row items-center">
                 <Star size={12} color="#FFD700" fill="#FFD700" />
-                <Text style={styles.ratingText}>
+                <span className="ml-1 text-xs" style={{ color: faintInk }}>
                   {isActivelyDelivering ? "4.8 | Verified Partner" : "Securing nearest partner"}
-                </Text>
-              </View>
-            </View>
+                </span>
+              </div>
+            </div>
             {canShowRiderPhone ? (
-              <TouchableOpacity style={styles.callButton} onPress={handleCall}>
+              <button
+                type="button"
+                onClick={handleCall}
+                className="flex flex-row items-center rounded-xl bg-[#00C853] px-[15px] py-2"
+              >
                 <Phone size={20} color="white" />
-                <Text style={styles.callText}>Call</Text>
-              </TouchableOpacity>
+                <span className="ml-1.5 font-bold text-white">Call</span>
+              </button>
             ) : null}
-          </View>
+          </div>
         )}
 
         {/* Toggle details button */}
-        <TouchableOpacity style={styles.toggleDetailsButton}
-          onPress={() => setIsExpanded(!isExpanded)}
+        <button
+          type="button"
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="mb-[15px] flex w-full flex-row items-center justify-center rounded-xl py-2"
+          style={{ backgroundColor: isDark ? "rgba(255,107,0,0.16)" : "#FFF0E6" }}
         >
-          <Text style={styles.toggleDetailsText}>
+          <span className="mr-1.5 text-[13px] font-bold text-[#FF6B00]">
             {isExpanded ? "Hide Details" : "View Timeline & OTP"}
-          </Text>
+          </span>
           {isExpanded ? (
             <ChevronUp size={16} color="#FF6B00" />
           ) : (
             <ChevronDown size={16} color="#FF6B00" />
           )}
-        </TouchableOpacity>
+        </button>
 
         {isExpanded && (
-          <View style={styles.expandedContent}>
+          <div className="py-[5px]">
             {/* OTP Section */}
             {deliveryOtp && !["DELIVERED", "CANCELLED", "COMPLETED"].includes(status) && (
-              <View style={styles.otpSection}>
-                <Text style={styles.otpTitle}>Delivery OTP</Text>
-                <View style={styles.otpContainer}>
+              <div
+                className="mb-[15px] flex flex-col items-center rounded-[15px] border p-[15px]"
+                style={{
+                  backgroundColor: isDark ? theme.tertiaryBackground : "#FDF9F4",
+                  borderColor: isDark ? "rgba(255,107,0,0.35)" : "#FFEEDD",
+                }}
+              >
+                <p
+                  className="mb-2.5 text-xs font-bold uppercase"
+                  style={{ color: isDark ? "#E8B86D" : "#996633" }}
+                >
+                  Delivery OTP
+                </p>
+                <div className="mb-2.5 flex flex-row items-center justify-center">
                   {deliveryOtp.split("").map((digit, index) => (
-                    <View key={index} style={styles.otpDigitBox}>
-                      <Text style={styles.otpDigitText}>{digit}</Text>
-                    </View>
+                    <div
+                      key={index}
+                      className="mx-1 flex h-11 w-[38px] items-center justify-center rounded-lg border-[1.5px] border-[#FF6B00]"
+                      style={{ backgroundColor: surface }}
+                    >
+                      <span className="text-[22px] font-bold" style={{ color: ink }}>{digit}</span>
+                    </div>
                   ))}
-                </View>
-                <Text style={styles.otpSubtext}>
+                </div>
+                <p
+                  className="text-center text-[11px] leading-[15px]"
+                  style={{ color: isDark ? "#E8B86D" : "#996633" }}
+                >
                   Share this OTP with the delivery rider to verify and confirm your delivery.
-                </Text>
-              </View>
+                </p>
+              </div>
             )}
 
             {/* Timeline Section */}
             {timeline && timeline.length > 0 && (
-              <View style={styles.timelineSection}>
-                <Text style={styles.sectionTitle}>Delivery Timeline</Text>
+              <div className="mb-[15px] px-[5px]">
+                <p className="mb-3 text-sm font-bold" style={{ color: ink }}>Delivery Timeline</p>
                 {timeline.map((event, index) => {
                   const isLast = index === timeline.length - 1;
                   const dateStr = event.timestamp
@@ -165,373 +201,107 @@ export const TrackingInfoCard: React.FC<TrackingInfoCardProps> = ({
                   const dateDay = event.timestamp
                     ? new Date(event.timestamp).toLocaleDateString([], { month: "short", day: "numeric" })
                     : "";
-                  
+
                   return (
-                    <View key={index} style={styles.timelineItem}>
-                      <View style={styles.timelineLineContainer}>
-                        <View style={[styles.timelineNode, isLast && styles.timelineNodeActive]} />
-                        {!isLast && <View style={styles.timelineVerticalLine} />}
-                      </View>
-                      <View style={styles.timelineContent}>
-                        <View style={styles.timelineHeaderRow}>
-                          <Text style={[styles.timelineStatus, isLast && styles.timelineStatusActive]}>
-                            {event.status.replace(/_/g, " ")}
-                          </Text>
-                          <Text style={styles.timelineTime}>
-                            {dateDay}, {dateStr}
-                          </Text>
-                        </View>
-                        <Text style={styles.timelineDesc}>
-                          {event.metadata?.message || `Order status updated to ${event.status.replace(/_/g, " ")}`}
-                        </Text>
-                        {event.metadata?.reason && (
-                          <Text style={styles.timelineReason}>
-                            Reason: {event.metadata.reason}
-                          </Text>
+                    <div key={index} className="flex min-h-[50px] flex-row">
+                      <div className="flex w-5 flex-col items-center">
+                        <div
+                          className={cn("mt-1 rounded-full", isLast ? "h-3 w-3 border-2 border-[#FFE0CC] bg-[#FF6B00]" : "h-2.5 w-2.5")}
+                          style={isLast ? undefined : { backgroundColor: isDark ? theme.border : "#CCC" }}
+                        />
+                        {!isLast && (
+                          <div
+                            className="my-1 w-0.5 flex-1"
+                            style={{ backgroundColor: isDark ? theme.border : "#E0E0E0" }}
+                          />
                         )}
-                      </View>
-                    </View>
+                      </div>
+                      <div className="flex-1 pb-[15px] pl-2.5">
+                        <div className="mb-0.5 flex flex-row items-center justify-between">
+                          <span
+                            className="text-xs font-bold capitalize"
+                            style={{ color: isLast ? "#FF6B00" : subInk }}
+                          >
+                            {event.status.replace(/_/g, " ")}
+                          </span>
+                          <span className="text-[10px]" style={{ color: faintInk }}>
+                            {dateDay}, {dateStr}
+                          </span>
+                        </div>
+                        <p className="text-xs leading-4" style={{ color: subInk }}>
+                          {event.metadata?.message || `Order status updated to ${event.status.replace(/_/g, " ")}`}
+                        </p>
+                        {event.metadata?.reason && (
+                          <p className="mt-0.5 text-[11px] text-[#DD3333] italic">
+                            Reason: {event.metadata.reason}
+                          </p>
+                        )}
+                      </div>
+                    </div>
                   );
                 })}
-              </View>
+              </div>
             )}
 
             {/* Cancellation Requested Badge */}
             {isCancellationRequested && (
-              <View style={styles.cancellationRequestedBadge}>
+              <div
+                className="mb-[15px] flex flex-row items-center rounded-[10px] border p-2.5"
+                style={{
+                  backgroundColor: isDark ? "rgba(255,159,0,0.14)" : "#FFF9E6",
+                  borderColor: isDark ? "rgba(255,159,0,0.35)" : "#FFEBAA",
+                }}
+              >
                 <Clock size={16} color="#FF9F00" />
-                <Text style={styles.cancellationRequestedText}>
+                <span
+                  className="ml-2 text-xs font-semibold"
+                  style={{ color: isDark ? "#F5C044" : "#B27D00" }}
+                >
                   Cancellation requested. Pending store approval.
-                </Text>
-              </View>
+                </span>
+              </div>
             )}
 
             {/* Cancel Button */}
             {showCancelButton && !isCancellationRequested && (
-              <TouchableOpacity style={styles.cancelOrderButton}
-                onPress={onCancelRequest}
+              <button
+                type="button"
+                onClick={onCancelRequest}
                 disabled={cancelButtonLoading}
+                className="mb-2.5 flex w-full items-center justify-center rounded-xl bg-[#E53935] py-3 disabled:opacity-60"
               >
                 {cancelButtonLoading ? (
-                  <ActivityIndicator color="white" size="small" />
+                  <span
+                    className="animate-spin rounded-full"
+                    style={{
+                      width: 20,
+                      height: 20,
+                      borderWidth: 2,
+                      borderStyle: "solid",
+                      borderColor: "white",
+                      borderTopColor: "transparent",
+                    }}
+                  />
                 ) : (
-                  <Text style={styles.cancelOrderText}>Request Cancel Shipment</Text>
+                  <span className="text-sm font-bold text-white">Request Cancel Shipment</span>
                 )}
-              </TouchableOpacity>
+              </button>
             )}
-          </View>
+          </div>
         )}
 
-        <View style={styles.divider} />
+        <div className="mt-[5px] mb-[15px] h-[1px]" style={{ backgroundColor: line }} />
 
-        <View style={styles.footer}>
+        <div
+          className="flex flex-row items-center rounded-xl p-2.5"
+          style={{ backgroundColor: isDark ? "rgba(0,200,83,0.12)" : "#F0FFF4" }}
+        >
           <ShieldCheck size={16} color="#00C853" />
-          <Text style={styles.safetyText}>
+          <span className="ml-2 flex-1 text-[10px] text-[#00C853]">
             Your order is being delivered with contactless safety standards.
-          </Text>
-        </View>
-      </ScrollView>
-    </View>
+          </span>
+        </div>
+      </div>
+    </div>
   );
-};
-
-const getStyles = (isDark: boolean, theme: any) => {
-  // Brand accents (orange/green/red) read fine on both modes — only
-  // surfaces and text adapt. Light branch keeps the original hex values.
-  const ink = isDark ? theme.text : "#333";
-  const subInk = isDark ? theme.secondaryText : "#666";
-  const faintInk = isDark ? theme.tertiaryText : "#999";
-  const surface = isDark ? theme.secondaryBackground : "white";
-  const chip = isDark ? theme.tertiaryBackground : "#F5F5F5";
-  const line = isDark ? theme.border : "#F0F0F0";
-  return StyleSheet.create({
-  cardContainer: {
-    backgroundColor: surface,
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
-    padding: 20,
-    paddingTop: 10,
-    width: width,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 20,
-  },
-  scrollContainer: {
-    maxHeight: 450,
-  },
-  grabber: {
-    width: 40,
-    height: 4,
-    backgroundColor: isDark ? theme.border : "#EEE",
-    borderRadius: 2,
-    alignSelf: "center",
-    marginBottom: 15,
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    marginBottom: 15,
-  },
-  statusBox: {
-    flex: 1,
-  },
-  statusLabel: {
-    fontSize: 12,
-    color: "#FF6B00",
-    fontWeight: "bold",
-    textTransform: "uppercase",
-    marginBottom: 4,
-  },
-  etaLabel: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: ink,
-  },
-  distanceBox: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: chip,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 12,
-  },
-  distanceText: {
-    fontSize: 12,
-    fontWeight: "bold",
-    color: subInk,
-    marginLeft: 4,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: line,
-    marginBottom: 15,
-    marginTop: 5,
-  },
-  riderRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 15,
-  },
-  avatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: chip,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  riderInfo: {
-    flex: 1,
-    marginLeft: 15,
-  },
-  riderName: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: ink,
-  },
-  ratingRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 2,
-  },
-  ratingText: {
-    fontSize: 12,
-    color: faintInk,
-    marginLeft: 4,
-  },
-  callButton: {
-    backgroundColor: "#00C853",
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 15,
-    paddingVertical: 8,
-    borderRadius: 12,
-  },
-  callText: {
-    color: "white",
-    fontWeight: "bold",
-    marginLeft: 6,
-  },
-  toggleDetailsButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 8,
-    backgroundColor: isDark ? "rgba(255,107,0,0.16)" : "#FFF0E6",
-    borderRadius: 12,
-    marginBottom: 15,
-  },
-  toggleDetailsText: {
-    color: "#FF6B00",
-    fontWeight: "bold",
-    marginRight: 6,
-    fontSize: 13,
-  },
-  expandedContent: {
-    paddingVertical: 5,
-  },
-  otpSection: {
-    alignItems: "center",
-    backgroundColor: isDark ? theme.tertiaryBackground : "#FDF9F4",
-    padding: 15,
-    borderRadius: 15,
-    borderWidth: 1,
-    borderColor: isDark ? "rgba(255,107,0,0.35)" : "#FFEEDD",
-    marginBottom: 15,
-  },
-  otpTitle: {
-    fontSize: 12,
-    fontWeight: "bold",
-    color: isDark ? "#E8B86D" : "#996633",
-    textTransform: "uppercase",
-    marginBottom: 10,
-  },
-  otpContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 10,
-  },
-  otpDigitBox: {
-    width: 38,
-    height: 44,
-    borderWidth: 1.5,
-    borderColor: "#FF6B00",
-    borderRadius: 8,
-    backgroundColor: surface,
-    justifyContent: "center",
-    alignItems: "center",
-    marginHorizontal: 4,
-  },
-  otpDigitText: {
-    fontSize: 22,
-    fontWeight: "bold",
-    color: ink,
-  },
-  otpSubtext: {
-    fontSize: 11,
-    color: isDark ? "#E8B86D" : "#996633",
-    textAlign: "center",
-    lineHeight: 15,
-  },
-  timelineSection: {
-    marginBottom: 15,
-    paddingHorizontal: 5,
-  },
-  sectionTitle: {
-    fontSize: 14,
-    fontWeight: "bold",
-    color: ink,
-    marginBottom: 12,
-  },
-  timelineItem: {
-    flexDirection: "row",
-    minHeight: 50,
-  },
-  timelineLineContainer: {
-    width: 20,
-    alignItems: "center",
-  },
-  timelineNode: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: isDark ? theme.border : "#CCC",
-    marginTop: 4,
-  },
-  timelineNodeActive: {
-    backgroundColor: "#FF6B00",
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    borderWidth: 2,
-    borderColor: "#FFE0CC",
-  },
-  timelineVerticalLine: {
-    width: 2,
-    flex: 1,
-    backgroundColor: isDark ? theme.border : "#E0E0E0",
-    marginVertical: 4,
-  },
-  timelineContent: {
-    flex: 1,
-    paddingLeft: 10,
-    paddingBottom: 15,
-  },
-  timelineHeaderRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 2,
-  },
-  timelineStatus: {
-    fontSize: 12,
-    fontWeight: "bold",
-    color: subInk,
-    textTransform: "capitalize",
-  },
-  timelineStatusActive: {
-    color: "#FF6B00",
-  },
-  timelineTime: {
-    fontSize: 10,
-    color: faintInk,
-  },
-  timelineDesc: {
-    fontSize: 12,
-    color: subInk,
-    lineHeight: 16,
-  },
-  timelineReason: {
-    fontSize: 11,
-    color: "#DD3333",
-    fontStyle: "italic",
-    marginTop: 2,
-  },
-  cancellationRequestedBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: isDark ? "rgba(255,159,0,0.14)" : "#FFF9E6",
-    padding: 10,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: isDark ? "rgba(255,159,0,0.35)" : "#FFEBAA",
-    marginBottom: 15,
-  },
-  cancellationRequestedText: {
-    fontSize: 12,
-    color: isDark ? "#F5C044" : "#B27D00",
-    marginLeft: 8,
-    fontWeight: "600",
-  },
-  cancelOrderButton: {
-    backgroundColor: "#E53935",
-    paddingVertical: 12,
-    borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 10,
-  },
-  cancelOrderText: {
-    color: "white",
-    fontWeight: "bold",
-    fontSize: 14,
-  },
-  footer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: isDark ? "rgba(0,200,83,0.12)" : "#F0FFF4",
-    padding: 10,
-    borderRadius: 12,
-  },
-  safetyText: {
-    flex: 1,
-    fontSize: 10,
-    color: "#00C853",
-    marginLeft: 8,
-  },
-  });
 };

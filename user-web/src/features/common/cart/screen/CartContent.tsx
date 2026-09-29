@@ -1,11 +1,9 @@
 import React, { useEffect, useMemo } from "react";
-import { Platform, View, ScrollView, TouchableOpacity, Text, ActivityIndicator, useWindowDimensions } from "@/components/primitives";
-import { BREAKPOINTS, DESKTOP, BOTTOM_TAB_BAR_HEIGHT } from "@/src/utils/responsive";
+import { BREAKPOINTS, DESKTOP, BOTTOM_TAB_BAR_HEIGHT, useWindowWidth } from "@/src/utils/responsive";
 import { useSafeAreaInsets } from "@/src/hooks/useSafeAreaInsets";
 import { ArrowRight } from "lucide-react";
 import * as Haptics from "@/lib/haptics";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
-import { createCartStyles } from "../styles/cartStyles";
 import { useCartStore, filterItemsByModule, totalsForItems } from "../store/cartStore";
 import CartHeader from "../components/CartHeader";
 import CartItem from "../components/CartItem";
@@ -14,13 +12,11 @@ import EmptyCart from "../components/EmptyCart";
 import CouponInput from "../components/CouponInput";
 import { useNavigate } from "react-router-dom";
 import { goTo } from "@/src/utils/navigation";
-import { Alert } from "@/components/primitives";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
 import { AnimatedPrice } from "@/src/components/common/AnimatedPrice";
 
 const CartContent = () => {
-  const theme = useTheme();
-  const styles = createCartStyles(theme);
+  const theme = useTheme() as any;
   const {
     items: allItems,
     updateQuantity,
@@ -63,10 +59,10 @@ const CartContent = () => {
 
   const navigate = useNavigate();
   const { isAuthenticated } = useAuthStore();
-  const { width: winW } = useWindowDimensions();
+  const winW = useWindowWidth();
   // Desktop web (clothing catalog): wider centered column + footer docks
   // to the viewport bottom since bottom tabs are hidden there.
-  const isDesktop = Platform.OS === "web" && winW >= BREAKPOINTS.desktopMin;
+  const isDesktop = winW >= BREAKPOINTS.desktopMin;
   const insets = useSafeAreaInsets();
   // Footer must clear the fixed tab bar + home-indicator safe area on
   // notched phones (hardcoded 70 buried the CTA behind the tab bar there).
@@ -74,14 +70,7 @@ const CartContent = () => {
 
   const handleCheckout = () => {
     if (!isAuthenticated) {
-      if (Platform.OS === "web") {
-        goTo(navigate, "/auth" as any);
-        return;
-      }
-      Alert.alert("Login Required", "Please login to place an order", [
-        { text: "Cancel", style: "cancel" },
-        { text: "Login", onPress: () => goTo(navigate, "/auth" as any) },
-      ]);
+      goTo(navigate, "/auth" as any);
       return;
     }
     goTo(navigate, "/checkout" as any);
@@ -89,17 +78,25 @@ const CartContent = () => {
 
   if (isLoading && items.length === 0) {
     return (
-      <View style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
-        <ActivityIndicator size="large" color={theme.primary} />
-      </View>
+      <div
+        className="flex flex-1 items-center justify-center"
+        style={{ backgroundColor: theme.background }}
+      >
+        <span
+          className="block h-8 w-8 animate-spin rounded-full border-2 border-t-transparent"
+          style={{ borderColor: `${theme.primary}40`, borderTopColor: theme.primary }}
+          role="status"
+          aria-label="Loading cart"
+        />
+      </div>
     );
   }
 
   if (items.length === 0) {
     return (
-      <View style={styles.container}>
+      <div className="flex flex-1" style={{ backgroundColor: theme.background }}>
         <EmptyCart />
-      </View>
+      </div>
     );
   }
 
@@ -118,20 +115,25 @@ const CartContent = () => {
   const totalAmount = Math.max(0, subtotal + shipping - totalDiscount);
 
   return (
-    <View style={styles.container}>
-      <View style={[
-          styles.mainWrapper,
-          isDesktop && {
-            maxWidth: DESKTOP.narrowMaxWidth,
-            paddingHorizontal: DESKTOP.gutter,
-          },
-        ]}
+    <div
+      className="flex w-full flex-1 flex-col items-center"
+      style={{ backgroundColor: theme.background }}
+    >
+      <div
+        className="flex w-full max-w-[800px] flex-1 flex-col"
+        style={
+          isDesktop
+            ? {
+                maxWidth: DESKTOP.narrowMaxWidth,
+                paddingLeft: DESKTOP.gutter,
+                paddingRight: DESKTOP.gutter,
+              }
+            : undefined
+        }
       >
         <CartHeader productsCount={productsCount} totalUnits={totalUnits} />
 
-        <ScrollView contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-        >
+        <div className="flex-1 overflow-y-auto pb-[220px]">
           {items.map(item => (
             <CartItem key={item.sku}
               item={{
@@ -160,49 +162,57 @@ const CartContent = () => {
             appliedCoupon={appliedCoupon}
             discountAmount={discountAmount}
           />
-        </ScrollView>
+        </div>
 
-        {/* Sticky Bottom Checkout CTA */}
-        <View style={[
-            styles.footer,
-            { bottom: footerBottom },
-            isDesktop && {
-              maxWidth: DESKTOP.narrowMaxWidth - DESKTOP.gutter * 2,
-            },
-          ]}
+        {/* Sticky Bottom Checkout CTA — viewport-fixed so it never slides
+            behind the fixed tab bar. */}
+        <div
+          className="fixed right-0 left-0 z-[1000] mx-auto w-full border-t px-4 pt-3 pb-3"
+          style={{
+            backgroundColor: theme.background,
+            borderTopColor: theme.border,
+            bottom: footerBottom,
+            maxWidth: isDesktop
+              ? DESKTOP.narrowMaxWidth - DESKTOP.gutter * 2
+              : 600,
+          }}
         >
-          <TouchableOpacity style={[styles.checkoutButton, { backgroundColor: theme.primary }]}
-            onPress={handleCheckout}
-            activeOpacity={0.88}
+          <button
+            type="button"
+            onClick={handleCheckout}
+            className="flex h-[54px] w-full cursor-pointer flex-row items-center justify-between rounded-2xl px-[18px]"
+            style={{ backgroundColor: theme.primary }}
           >
-            <View style={styles.checkoutTotalInfo}>
-              <Text style={styles.checkoutTotalLabel}>
+            <span className="flex flex-col justify-center">
+              <span className="text-[11px] font-semibold tracking-[0.3px] text-white/80 uppercase">
                 {totalDiscount > 0
                   ? "Total · You save"
                   : "Total Amount"}
-              </Text>
-              <View style={styles.checkoutTotalRow}>
-                <AnimatedPrice value={totalAmount}
+              </span>
+              <span className="mt-0.5 flex flex-row items-baseline gap-2.5">
+                <AnimatedPrice
+                  value={totalAmount}
                   duration={700}
-                  style={styles.checkoutTotalAmount}
+                  style={{ color: "#fff", fontSize: 17, fontWeight: 900 }}
                 />
                 {totalDiscount > 0 ? (
-                  <AnimatedPrice value={totalDiscount}
+                  <AnimatedPrice
+                    value={totalDiscount}
                     duration={700}
                     noPulse
-                    style={styles.checkoutSavingsAmount}
+                    style={{ color: "rgba(255,255,255,0.85)", fontSize: 12, fontWeight: 700, textDecorationLine: "line-through" }}
                   />
                 ) : null}
-              </View>
-            </View>
-            <View style={styles.checkoutActionRow}>
-              <Text style={styles.checkoutText}>Place Order</Text>
+              </span>
+            </span>
+            <span className="flex flex-row items-center gap-1.5">
+              <span className="text-base font-extrabold text-white">Place Order</span>
               <ArrowRight size={18} color="#fff" />
-            </View>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </View>
+            </span>
+          </button>
+        </div>
+      </div>
+    </div>
   );
 };
 

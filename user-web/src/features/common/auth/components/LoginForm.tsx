@@ -1,11 +1,4 @@
 import React, { useRef, useState } from "react";
-import {
-  View,
-  TouchableOpacity,
-  Text,
-  TextInput as RNTextInput,
-  ActivityIndicator,
-} from "@/components/primitives";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff, Lock, Mail } from "lucide-react";
@@ -16,8 +9,8 @@ import { goTo } from "@/src/utils/navigation";
 import { TextInput } from "@/src/theme/components/TextInput";
 import { loginSchema, LoginFormData } from "../validation/auth.schema";
 import { AuthFormProps } from "./auth.types";
-import { createAuthStyles } from "../styles/auth.style";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
+import { cn } from "@/src/lib/utils";
 
 /**
  * Email + password sign-in. Google is the primary path; this is the
@@ -30,10 +23,9 @@ export const LoginForm: React.FC<AuthFormProps & { login: any }> = ({
   login,
 }) => {
   const theme = useTheme() as any;
-  const styles = createAuthStyles(theme);
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
-  const passwordRef = useRef<RNTextInput>(null);
+  const passwordRef = useRef<any>(null);
 
   const {
     control,
@@ -61,11 +53,16 @@ export const LoginForm: React.FC<AuthFormProps & { login: any }> = ({
   };
 
   return (
-    <View style={[styles.form, loading && { opacity: 0.7 }]}>
-      <Controller control={control}
+    <div
+      className="mb-10 flex flex-col gap-5"
+      style={loading ? { opacity: 0.7 } : undefined}
+    >
+      <Controller
+        control={control}
         name="email"
         render={({ field: { onChange, onBlur, value } }) => (
-          <TextInput label="Email Address"
+          <TextInput
+            label="Email Address"
             variant="glass"
             placeholder="name@example.com"
             keyboardType="email-address"
@@ -78,18 +75,18 @@ export const LoginForm: React.FC<AuthFormProps & { login: any }> = ({
             value={value}
             editable={!loading}
             error={errors.email?.message}
-            icon={
-              <Mail size={20} color={theme.secondaryText} />
-            }
+            icon={<Mail size={20} color={theme.secondaryText} />}
           />
         )}
       />
 
-      <View style={{ marginTop: 12 }}>
-        <Controller control={control}
+      <div className="mt-3">
+        <Controller
+          control={control}
           name="password"
           render={({ field: { onChange, onBlur, value } }) => (
-            <TextInput ref={passwordRef}
+            <TextInput
+              ref={passwordRef}
               label="Password"
               variant="glass"
               placeholder="••••••••"
@@ -102,58 +99,71 @@ export const LoginForm: React.FC<AuthFormProps & { login: any }> = ({
               value={value}
               editable={!loading}
               error={errors.password?.message}
-              icon={
-                <Lock size={20} color={theme.secondaryText} />
-              }
+              icon={<Lock size={20} color={theme.secondaryText} />}
               rightIcon={
-                <TouchableOpacity onPress={() => {
+                <button
+                  type="button"
+                  onClick={() => {
                     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                     setShowPassword(!showPassword);
                   }}
-                  style={{ padding: 4 }}
-                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                  className="cursor-pointer p-1"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
                 >
                   {showPassword ? (
                     <EyeOff size={20} color={theme.secondaryText} />
                   ) : (
                     <Eye size={20} color={theme.secondaryText} />
                   )}
-                </TouchableOpacity>
+                </button>
               }
             />
           )}
         />
-      </View>
+      </div>
 
-      <TouchableOpacity style={{ alignSelf: "flex-end", marginTop: 8 }}
-        activeOpacity={0.7}
-        onPress={() => {
-          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-          goTo(navigate, "/auth/forgot-password" as any);
-        }}
-      >
-        <Text style={{
-            color: theme.secondaryText,
-            fontSize: 13,
-            fontWeight: "600",
-            textDecorationLine: "underline",
+      <div className="mt-2 flex justify-end">
+        <button
+          type="button"
+          onClick={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            goTo(navigate, "/auth/forgot-password" as any);
           }}
+          className="cursor-pointer text-[13px] font-semibold underline"
+          style={{ color: theme.secondaryText }}
         >
           Forgot password?
-        </Text>
-      </TouchableOpacity>
+        </button>
+      </div>
 
-      <TouchableOpacity style={[styles.continueBtn, { marginTop: 20 }]}
-        activeOpacity={0.85}
-        onPress={handleSubmit(handleLogin)}
+      <button
+        type="button"
+        className={cn(
+          "flex h-[60px] cursor-pointer items-center justify-center rounded-[30px] text-lg font-bold transition-opacity disabled:cursor-not-allowed",
+        )}
+        style={{
+          marginTop: 20,
+          backgroundColor: theme.text,
+          color: theme.background,
+          opacity: loading ? 0.7 : 1,
+        }}
+        onClick={handleSubmit(handleLogin)}
         disabled={loading}
       >
         {loading ? (
-          <ActivityIndicator color="#0f172a" size="small" />
+          <span
+            className="h-5 w-5 animate-spin rounded-full border-2"
+            style={{ borderColor: "#0f172a", borderTopColor: "transparent" }}
+          />
         ) : (
-          <Text style={styles.continueBtnText}>Sign In</Text>
+          <span
+            className="text-center text-lg font-bold"
+            style={{ color: theme.background }}
+          >
+            Sign In
+          </span>
         )}
-      </TouchableOpacity>
-    </View>
+      </button>
+    </div>
   );
 };

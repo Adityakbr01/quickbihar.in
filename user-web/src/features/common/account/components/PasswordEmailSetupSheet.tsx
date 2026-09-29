@@ -1,22 +1,10 @@
 import React, { useEffect, useRef, useState } from "react";
-import {
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "@/components/primitives";
 import { CircleAlert, CircleCheck, Eye, EyeOff, Lock, Mail, ShieldCheck } from "lucide-react";
 import * as Haptics from "@/lib/haptics";
 
 import { useModuleTheme, type ModuleVariant } from "@/src/theme/useModuleTheme";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
 import axiosInstance from "@/src/api/axiosInstance";
-import { Sheet, SheetHeader, useSheet } from "@/src/components/common/BottomSheet";
 import { useAccountStore } from "../store/accountStore";
 import { TextInput } from "@/src/theme/components/TextInput";
 
@@ -25,14 +13,14 @@ import { TextInput } from "@/src/theme/components/TextInput";
  *
  * Opened from the account screen via `useAccountStore().setPasswordSheetVisible(true)`.
  * Mounted once at the top level of the account screen so the sheet's
- * ref is stable across open/close cycles.
+ * visibility flag is stable across open/close cycles.
  *
  * Design notes (per UX review):
  *  • No field-card backgrounds — keep the sheet airy and minimal.
  *  • Inputs use the theme's `secondaryBackground` so they read as a
  *    subtle surface in BOTH light and dark mode (no hard-coded white).
  *  • The close button is intentionally omitted from the header — users
- *    can still dismiss via drag, the native grabber, or system back.
+ *    can still dismiss via the backdrop tap or system back.
  *  • The primary CTA uses WHITE text on the brand primary colour. The
  *    brand primary is a bright lime-green; dark text on it fails
  *    contrast and looks like an inverted button.
@@ -49,7 +37,6 @@ const PasswordEmailSetupSheet = ({ variant = "default" }: { variant?: ModuleVari
   const { user, token, refreshToken, setAuth } = useAuthStore();
   const isVisible = useAccountStore((state) => state.isPasswordSheetVisible);
   const setVisible = useAccountStore((state) => state.setPasswordSheetVisible);
-  const sheet = useSheet();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -79,15 +66,6 @@ const PasswordEmailSetupSheet = ({ variant = "default" }: { variant?: ModuleVari
       setSuccess(false);
     }
   }, [isVisible, user?.email]);
-
-  // Imperative present/dismiss driven by the store flag.
-  useEffect(() => {
-    if (isVisible) {
-      sheet.current?.present();
-    } else {
-      sheet.current?.dismiss();
-    }
-  }, [isVisible, sheet]);
 
   const validate = () => {
     if (!email.trim() || !email.includes("@")) {
@@ -183,77 +161,103 @@ const PasswordEmailSetupSheet = ({ variant = "default" }: { variant?: ModuleVari
   const inputText = theme.text;
   const inputPlaceholder = theme.tertiaryText; // muted so it never competes with real text
 
+  if (!isVisible) return null;
+
   return (
-    <Sheet ref={sheet}
-      detents={["auto", 0.65]}
-      backgroundColor={theme.background}
-      cornerRadius={theme.radius ?? 24}
-      onDidDismiss={() => {
-        if (isVisible) setVisible(false);
+    <div
+      className="fixed inset-0 z-[100] flex items-end justify-center bg-black/50"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Password and Email Setup"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) setVisible(false);
       }}
     >
-      {/*
-        Header WITHOUT a close button — the native grabber + drag-to-dismiss
-        is the only way to close. Keeps the chrome minimal.
-      */}
-      <SheetHeader title="Password & Email Setup"
-        subtitle="Link your email and set a secure password for password login."
-        hideCloseButton
-        themeOverride={theme}
-      />
-
-      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined}
-        style={{ flexShrink: 1 }}
+      <div
+        className="flex max-h-[85vh] w-full max-w-lg flex-col overflow-hidden rounded-t-3xl"
+        style={{ backgroundColor: theme.background }}
       >
-        <ScrollView contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
+        {/*
+          Header WITHOUT a close button — the backdrop tap or system back
+          dismisses. Keeps the chrome minimal.
+        */}
+        <div className="px-5 pb-1 pt-3 text-center">
+          <div
+            className="mx-auto mb-2 h-[5px] w-10 rounded-full"
+            style={{ backgroundColor: theme.border }}
+          />
+          <h3
+            className="text-base font-bold"
+            style={{ color: theme.text }}
+          >
+            Password &amp; Email Setup
+          </h3>
+          <p
+            className="mt-1 text-[13px] leading-[18px]"
+            style={{ color: theme.secondaryText }}
+          >
+            Link your email and set a secure password for password login.
+          </p>
+        </div>
+
+        <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-8 pt-1">
           {success ? (
-            <View
-                style={[
-                  styles.successCard,
-                  {
-                    backgroundColor: theme.tertiaryBackground,
-                    borderColor: theme.border,
-                    borderRadius: theme.radius ?? 20,
-                  },
-                ]}
+            <div
+              className="mt-2 flex flex-col items-center rounded-[20px] border p-7 text-center"
+              style={{
+                backgroundColor: theme.tertiaryBackground,
+                borderColor: theme.border,
+              }}
             >
-              <View style={styles.successIconCircle}>
+              <div
+                className="flex h-[72px] w-[72px] items-center justify-center rounded-full"
+                style={{ backgroundColor: "rgba(34, 197, 94, 0.15)" }}
+              >
                 <CircleCheck size={48} color="#22c55e" />
-              </View>
-              <Text style={[styles.successTitle, { color: theme.text }]}>
+              </div>
+              <p
+                className="mt-4 text-center text-lg font-extrabold"
+                style={{ color: theme.text }}
+              >
                 Security Updated!
-              </Text>
-              <Text style={[styles.successSubtitle, { color: theme.secondaryText }]}
+              </p>
+              <p
+                className="mt-2 text-center text-[13px] leading-[18px]"
+                style={{ color: theme.secondaryText }}
               >
                 Your email and password are saved. Closing…
-              </Text>
-            </View>
+              </p>
+            </div>
           ) : (
             <>
               {/* Error banner */}
               {error ? (
-                <View
-                  style={[
-                    styles.errorBanner,
-                    {
-                      backgroundColor: "rgba(239, 68, 68, 0.12)",
-                      borderRadius: theme.radius ?? 12,
-                    },
-                  ]}
+                <div
+                  className="mb-3.5 flex flex-row items-center gap-2 rounded-xl border p-3"
+                  style={{
+                    backgroundColor: "rgba(239, 68, 68, 0.12)",
+                    borderColor: "rgba(239, 68, 68, 0.4)",
+                    borderRadius: theme.radius ?? 12,
+                  }}
                 >
                   <CircleAlert size={18} color="#fca5a5" />
-                  <Text style={styles.errorBannerText}>{error}</Text>
-                </View>
+                  <p
+                    className="flex-1 text-[13px] font-semibold leading-[18px]"
+                    style={{ color: "#fca5a5" }}
+                  >
+                    {error}
+                  </p>
+                </div>
               ) : null}
 
               {/* ── Field: Email ─────────────────────────────────────── */}
-              <View style={styles.field}>
-                <Text style={[styles.label, { color: theme.text }]}>
+              <div className="mb-[18px]">
+                <p
+                  className="mb-2 text-[13px] font-bold tracking-[0.3px]"
+                  style={{ color: theme.text }}
+                >
                   Email Address
-                </Text>
+                </p>
                 <TextInput placeholder="Please add your email"
                   placeholderTextColor={inputPlaceholder}
                   keyboardType="email-address"
@@ -284,23 +288,24 @@ const PasswordEmailSetupSheet = ({ variant = "default" }: { variant?: ModuleVari
                   style={{ fontSize: 15, fontWeight: "600", color: inputText }}
                 />
                 {isEmailLocked ? (
-                  <Text style={{
-                      color: theme.tertiaryText,
-                      fontSize: 12,
-                      marginTop: 6,
-                    }}
+                  <p
+                    className="mt-1.5 text-xs"
+                    style={{ color: theme.tertiaryText }}
                   >
                     Email is linked to your account and can&apos;t be changed
                     here.
-                  </Text>
+                  </p>
                 ) : null}
-              </View>
+              </div>
 
               {/* ── Field: New Password ──────────────────────────────── */}
-              <View style={styles.field}>
-                <Text style={[styles.label, { color: theme.text }]}>
+              <div className="mb-[18px]">
+                <p
+                  className="mb-2 text-[13px] font-bold tracking-[0.3px]"
+                  style={{ color: theme.text }}
+                >
                   New Password
-                </Text>
+                </p>
                 <TextInput placeholder="At least 6 characters"
                   placeholderTextColor={inputPlaceholder}
                   secureTextEntry={!showPassword}
@@ -312,19 +317,21 @@ const PasswordEmailSetupSheet = ({ variant = "default" }: { variant?: ModuleVari
                     <Lock size={18} color={theme.secondaryText} />
                   }
                   rightIcon={
-                    <Pressable onPress={() => {
+                    <button
+                      type="button"
+                      onClick={() => {
                         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                         setShowPassword(!showPassword);
                       }}
-                      hitSlop={10}
-                      style={styles.eyeBtn}
+                      aria-label={showPassword ? "Hide password" : "Show password"}
+                      className="flex h-8 w-8 cursor-pointer items-center justify-center"
                     >
                       {showPassword ? (
                       <EyeOff size={20} color={theme.secondaryText} />
                     ) : (
                       <Eye size={20} color={theme.secondaryText} />
                     )}
-                    </Pressable>
+                    </button>
                   }
                   containerStyle={{ marginBottom: 0 }}
                   inputContainerStyle={{
@@ -337,43 +344,38 @@ const PasswordEmailSetupSheet = ({ variant = "default" }: { variant?: ModuleVari
                   style={{ fontSize: 15, fontWeight: "600", color: inputText }}
                 />
                 {password.length > 0 && (
-                  <View
-                    style={{ marginTop: 10 }}
-                  >
-                    <View style={styles.strengthTrack}>
+                  <div className="mt-2.5">
+                    <div className="flex h-1 flex-row gap-1.5">
                       {[1, 2, 3, 4, 5].map((idx) => (
-                        <View key={idx}
-                          style={[
-                            styles.strengthSegment,
-                            {
-                              backgroundColor:
-                                idx <= strength
-                                  ? strengthColor[strength]
-                                  : theme.border,
-                            },
-                          ]}
+                        <div key={idx}
+                          className="flex-1 rounded-sm"
+                          style={{
+                            backgroundColor:
+                              idx <= strength
+                                ? strengthColor[strength]
+                                : theme.border,
+                          }}
                         />
                       ))}
-                    </View>
-                    <Text style={{
-                        color: strengthColor[strength],
-                        fontSize: 12,
-                        marginTop: 6,
-                        fontWeight: "700",
-                        letterSpacing: 0.2,
-                      }}
+                    </div>
+                    <p
+                      className="mt-1.5 text-xs font-bold tracking-[0.2px]"
+                      style={{ color: strengthColor[strength] }}
                     >
                       {strengthLabel[strength]}
-                    </Text>
-                  </View>
+                    </p>
+                  </div>
                 )}
-              </View>
+              </div>
 
               {/* ── Field: Confirm Password ──────────────────────────── */}
-              <View style={styles.field}>
-                <Text style={[styles.label, { color: theme.text }]}>
+              <div className="mb-[18px]">
+                <p
+                  className="mb-2 text-[13px] font-bold tracking-[0.3px]"
+                  style={{ color: theme.text }}
+                >
                   Confirm Password
-                </Text>
+                </p>
                 <TextInput ref={confirmRef}
                   placeholder="Re-enter password"
                   placeholderTextColor={inputPlaceholder}
@@ -386,19 +388,21 @@ const PasswordEmailSetupSheet = ({ variant = "default" }: { variant?: ModuleVari
                     <ShieldCheck size={18} color={theme.secondaryText} />
                   }
                   rightIcon={
-                    <Pressable onPress={() => {
+                    <button
+                      type="button"
+                      onClick={() => {
                         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                         setShowConfirm(!showConfirm);
                       }}
-                      hitSlop={10}
-                      style={styles.eyeBtn}
+                      aria-label={showConfirm ? "Hide password" : "Show password"}
+                      className="flex h-8 w-8 cursor-pointer items-center justify-center"
                     >
                       {showConfirm ? (
                       <EyeOff size={20} color={theme.secondaryText} />
                     ) : (
                       <Eye size={20} color={theme.secondaryText} />
                     )}
-                    </Pressable>
+                    </button>
                   }
                   containerStyle={{ marginBottom: 0 }}
                   inputContainerStyle={{
@@ -410,152 +414,40 @@ const PasswordEmailSetupSheet = ({ variant = "default" }: { variant?: ModuleVari
                   }}
                   style={{ fontSize: 15, fontWeight: "600", color: inputText }}
                 />
-              </View>
+              </div>
 
               {/* Primary CTA — WHITE text on brand primary */}
-              <TouchableOpacity style={[
-                  styles.primaryBtn,
-                  {
-                    backgroundColor: theme.primary,
-                    borderRadius: theme.radius ?? 16,
-                    opacity: loading ? 0.7 : 1,
-                  },
-                ]}
-                onPress={handleSubmit}
+              <button
+                type="button"
+                onClick={handleSubmit}
                 disabled={loading}
-                activeOpacity={0.85}
+                className="mt-1 flex w-full flex-row items-center justify-center gap-2 rounded-2xl py-4 text-[15px] font-extrabold tracking-[0.4px] text-white transition active:opacity-85 disabled:opacity-70"
+                style={{
+                  backgroundColor: theme.primary,
+                  borderRadius: theme.radius ?? 16,
+                  opacity: loading ? 0.7 : 1,
+                  boxShadow: "0 4px 10px rgba(0,0,0,0.18)",
+                }}
               >
                 {loading ? (
-                  <ActivityIndicator color="#fff" size="small" />
+                  <span
+                    role="status"
+                    aria-label="Saving"
+                    className="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white"
+                  />
                 ) : (
                   <>
                     <ShieldCheck size={18} color="#fff" />
-                    <Text style={styles.primaryBtnText}>
-                      Save Password &amp; Email
-                    </Text>
+                    <span>Save Password &amp; Email</span>
                   </>
                 )}
-              </TouchableOpacity>
+              </button>
             </>
           )}
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </Sheet>
+        </div>
+      </div>
+    </div>
   );
 };
-
-const styles = StyleSheet.create({
-  scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 4,
-    paddingBottom: 32,
-  },
-
-  // Error banner — uses rgba so it works in light + dark mode alike
-  errorBanner: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 12,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "rgba(239, 68, 68, 0.4)",
-    marginBottom: 14,
-    gap: 8,
-  },
-  errorBannerText: {
-    color: "#fca5a5",
-    fontSize: 13,
-    fontWeight: "600",
-    flex: 1,
-    lineHeight: 18,
-  },
-
-  // Field group — no card bg, just spacing
-  field: {
-    marginBottom: 18,
-  },
-  label: {
-    fontSize: 13,
-    fontWeight: "700",
-    letterSpacing: 0.3,
-    marginBottom: 8,
-  },
-
-  // Eye toggle inside the shared TextInput's rightIcon slot
-  eyeBtn: {
-    width: 32,
-    height: 32,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  // Strength meter
-  strengthTrack: {
-    flexDirection: "row",
-    height: 4,
-    gap: 6,
-  },
-  strengthSegment: {
-    flex: 1,
-    borderRadius: 2,
-  },
-
-  // Primary CTA — white text on theme primary
-  primaryBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    paddingVertical: 16,
-    borderRadius: 16,
-    marginTop: 4,
-    ...Platform.select({
-      ios: {
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.18,
-        shadowRadius: 10,
-      },
-      android: {
-        elevation: 3,
-      },
-    }),
-  },
-  primaryBtnText: {
-    color: "#ffffff",
-    fontSize: 15,
-    fontWeight: "800",
-    letterSpacing: 0.4,
-  },
-
-  // Success card
-  successCard: {
-    padding: 28,
-    borderRadius: 20,
-    borderWidth: 1,
-    alignItems: "center",
-    marginTop: 8,
-  },
-  successIconCircle: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    backgroundColor: "rgba(34, 197, 94, 0.15)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  successTitle: {
-    fontSize: 18,
-    fontWeight: "800",
-    marginTop: 16,
-    textAlign: "center",
-  },
-  successSubtitle: {
-    fontSize: 13,
-    marginTop: 8,
-    textAlign: "center",
-    lineHeight: 18,
-  },
-});
 
 export default PasswordEmailSetupSheet;

@@ -1,19 +1,19 @@
 import React from "react";
-import { View, TouchableOpacity, Image, ActivityIndicator } from "@/components/primitives";
 import * as ImagePicker from "@/src/lib/photoPicker";
 import * as Haptics from "@/lib/haptics";
 import { AppIcon } from "@/src/components/common/AppIcon";
 import { Camera } from "lucide-react";
 import defaultAvatar from "@/assets/images/default-avatar.svg";
-import { Theme } from "@/src/theme/Provider/ThemeProvider";
+import { useTheme, type Theme } from "@/src/theme/Provider/ThemeProvider";
+import { cn } from "@/src/lib/utils";
 
 interface ProfileAvatarProps {
   avatarUrl?: string;
   onUpdateAvatar: (formData: FormData) => Promise<void>;
   isUpdating: boolean;
   showAlert: (title: string, message?: string) => void;
-  theme: Theme;
-  styles: any;
+  theme?: Theme;
+  styles?: any;
 }
 
 const ProfileAvatar: React.FC<ProfileAvatarProps> = ({
@@ -21,9 +21,11 @@ const ProfileAvatar: React.FC<ProfileAvatarProps> = ({
   onUpdateAvatar,
   isUpdating,
   showAlert,
-  theme,
-  styles,
+  theme: themeProp,
 }) => {
+  const hookTheme = useTheme();
+  const theme = (themeProp ?? hookTheme) as Theme;
+
   const handlePickImage = async () => {
     try {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -68,28 +70,45 @@ const ProfileAvatar: React.FC<ProfileAvatarProps> = ({
   };
 
   return (
-    <View style={styles.avatarContainer}>
-      <Image
-        source={
-          avatarUrl
-            ? { uri: avatarUrl }
-            : defaultAvatar
-        }
-        style={[styles.avatar, isUpdating && { opacity: 0.6 }]}
+    <div className="relative">
+      <img
+        src={avatarUrl || defaultAvatar}
+        alt="Profile avatar"
+        className={cn("h-[120px] w-[120px] rounded-full object-cover")}
+        style={{
+          borderWidth: 4,
+          borderStyle: "solid",
+          borderColor: theme.background,
+          ...(isUpdating ? { opacity: 0.6 } : null),
+        }}
       />
       {isUpdating && (
-        <View style={[styles.avatar, { position: "absolute", justifyContent: "center", alignItems: "center", backgroundColor: "rgba(0,0,0,0.2)" }]}>
-          <ActivityIndicator color={theme.primary} />
-        </View>
+        <div
+          className="absolute inset-0 flex h-[120px] w-[120px] items-center justify-center rounded-full bg-black/20"
+          aria-hidden
+        >
+          <span
+            className="h-6 w-6 animate-spin rounded-full border-2 border-white/30"
+            style={{ borderTopColor: theme.primary }}
+          />
+        </div>
       )}
-      <TouchableOpacity
-        style={styles.editAvatarButton}
-        onPress={handlePickImage}
+      <button
+        type="button"
+        onClick={handlePickImage}
         disabled={isUpdating}
+        aria-label="Change profile picture"
+        className="absolute right-0 bottom-0 flex h-9 w-9 items-center justify-center rounded-full disabled:opacity-50"
+        style={{
+          backgroundColor: theme.primary,
+          borderWidth: 3,
+          borderStyle: "solid",
+          borderColor: theme.background,
+        }}
       >
         <AppIcon icon={Camera} size={16} color="#fff" />
-      </TouchableOpacity>
-    </View>
+      </button>
+    </div>
   );
 };
 

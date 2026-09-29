@@ -1,24 +1,15 @@
 import { Lock, ShieldCheck, Store, TriangleAlert, Zap } from "lucide-react";
 
-import React, { useState } from "react";
-import {
-  Platform,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  View,
-  useWindowDimensions,
-} from "@/components/primitives";
+import React, { useEffect, useState } from "react";
 import { Gradient } from "@/src/components/common/Gradient";
 import * as Haptics from "@/lib/haptics";
 import { useSafeAreaInsets } from "@/src/hooks/useSafeAreaInsets";
-import { createAuthStyles } from "../styles/auth.style";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { useGoogleAuth } from "../hooks/useAuth";
 import { GoogleSignInButton } from "../components/GoogleSignInButton";
 import { APP_NAME } from "@/src/constants/app.constants";
 import { useIsDesktop } from "@/src/utils/responsive";
+import { cn } from "@/src/lib/utils";
 import splashIcon from "@/assets/images/icons/splash-icon.webp";
 
 /**
@@ -40,9 +31,15 @@ const ASSURANCES = [
 export default function AuthScreen() {
   const insets = useSafeAreaInsets();
   const theme = useTheme() as any;
-  const styles = createAuthStyles(theme);
   const isDesktop = useIsDesktop();
-  const { height: windowHeight } = useWindowDimensions();
+  const [windowHeight, setWindowHeight] = useState(() =>
+    typeof window !== "undefined" ? window.innerHeight : 800,
+  );
+  useEffect(() => {
+    const onResize = () => setWindowHeight(window.innerHeight);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
   const compact = windowHeight < 740;
   const [apiError, setApiError] = useState<string | null>(null);
 
@@ -70,121 +67,150 @@ export default function AuthScreen() {
   };
 
   return (
-    <View style={[styles.screen, { backgroundColor: theme.background }]}>
-      <StatusBar barStyle="light-content"
-        translucent
-        backgroundColor="transparent"
-      />
-
-      <ScrollView style={{ flex: 1 }}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ flexGrow: 1 }}
-      >
-        <View style={[
-            localStyles.hero,
-            { height: isDesktop ? 340 : compact ? 232 : 260 },
-          ]}
+    <div
+      className="flex min-h-dvh w-full flex-col"
+      style={{ backgroundColor: theme.background }}
+    >
+      <div className="flex flex-1 flex-col overflow-auto">
+        <section
+          className="relative w-full overflow-hidden"
+          style={{ height: isDesktop ? 340 : compact ? 232 : 260 }}
         >
-          <Gradient colors={["#211913", "#14110D", "#0E0C09"]}
+          <Gradient
+            colors={["#211913", "#14110D", "#0E0C09"]}
             locations={[0, 0.55, 1]}
-            style={StyleSheet.absoluteFill}
+            style={{ position: "absolute", inset: 0 }}
           />
-          <Gradient colors={[`${GOLD}24`, `${GOLD}0A`, "transparent"]}
+          <Gradient
+            colors={[`${GOLD}24`, `${GOLD}0A`, "transparent"]}
             locations={[0, 0.55, 1]}
-            style={StyleSheet.absoluteFill}
+            style={{ position: "absolute", inset: 0 }}
           />
 
-          <View
-            style={[
-              localStyles.heroMarkBlock,
-              { paddingTop: compact ? 56 : 70 },
-            ]}
+          <div
+            className="relative flex flex-1 flex-col items-center justify-start"
+            style={{ paddingTop: compact ? 56 : 70 }}
           >
-            <View style={localStyles.glowWrap}>
-              <View style={[localStyles.glow, { backgroundColor: `${GOLD}14` }]}
+            <div className="relative flex items-center justify-center">
+              <div
+                className="absolute h-[148px] w-[148px] rounded-full"
+                style={{ backgroundColor: `${GOLD}14` }}
               />
-              <View style={localStyles.logoRing}>
-                <img src={splashIcon} alt="QuickBihar logo" aria-label="QuickBihar logo" style={Object.assign({}, localStyles.logoImage, { objectFit: "contain" as const })} />
-              </View>
-            </View>
-            <Text style={localStyles.heroEyebrow}>
+              <div
+                className="flex h-[72px] w-[72px] items-center justify-center rounded-full"
+                style={{
+                  border: `1.5px solid ${GOLD}`,
+                  backgroundColor: "#0E0C09",
+                }}
+              >
+                <img
+                  src={splashIcon}
+                  alt="QuickBihar logo"
+                  aria-label="QuickBihar logo"
+                  className="h-[56px] w-[52px] rounded-xl object-contain"
+                />
+              </div>
+            </div>
+            <p
+              className="mt-3 text-[11px] font-extrabold"
+              style={{ color: GOLD, letterSpacing: 2.6 }}
+            >
               BIHAR'S OWN MARKETPLACE
-            </Text>
-          </View>
-        </View>
+            </p>
+          </div>
+        </section>
 
-        <View style={[
-            localStyles.sheet,
-            {
-              backgroundColor: theme.background,
-              paddingBottom: insets.bottom + 20,
-              paddingTop: compact ? 20 : 28,
-            },
-            isDesktop && [
-              localStyles.sheetDesktop,
-              { borderColor: theme.border },
-            ],
-          ]}
+        <main
+          className={cn(
+            "mx-auto flex w-full max-w-[520px] flex-1 flex-col rounded-t-[28px] px-6",
+            isDesktop && "rounded-3xl border shadow-2xl",
+          )}
+          style={{
+            backgroundColor: theme.background,
+            borderColor: theme.border,
+            marginTop: isDesktop ? -48 : -28,
+            paddingBottom: isDesktop ? 32 : insets.bottom + 20,
+            paddingTop: compact ? 20 : 28,
+          }}
         >
-          <View style={localStyles.titleBlock}>
-            <Text style={[
-                localStyles.title,
-                { color: theme.text, fontSize: compact ? 27 : 30 },
-              ]}
+          <div className="flex flex-col items-center">
+            <h1
+              className="text-center font-black tracking-tight"
+              style={{
+                color: theme.text,
+                fontSize: compact ? 27 : 30,
+                letterSpacing: -0.6,
+              }}
             >
               Welcome to {APP_NAME}
-            </Text>
-            <Text style={[
-                localStyles.subtitle,
-                { color: theme.secondaryText, marginTop: compact ? 6 : 8 },
-              ]}
+            </h1>
+            <p
+              className="px-2 text-center text-sm leading-[21px]"
+              style={{
+                color: theme.secondaryText,
+                marginTop: compact ? 6 : 8,
+              }}
             >
               One-tap sign in to shop faster, track orders and share reviews.
-            </Text>
-          </View>
+            </p>
+          </div>
 
-          <View
-            style={[
-              localStyles.assuranceRow,
-              {
-                backgroundColor: theme.secondaryBackground,
-                borderColor: theme.border,
-                marginTop: compact ? 16 : 24,
-              },
-            ]}
+          <div
+            className="grid grid-cols-3 overflow-hidden rounded-2xl border"
+            style={{
+              backgroundColor: theme.secondaryBackground,
+              borderColor: theme.border,
+              marginTop: compact ? 16 : 24,
+            }}
           >
             {ASSURANCES.map((item, i) => (
-              <View key={item.label}
-                style={[
-                  localStyles.assuranceCell,
-                  compact && { paddingVertical: 12 },
-                  i > 0 && {
-                    borderLeftWidth: StyleSheet.hairlineWidth,
-                    borderLeftColor: theme.border,
-                  },
-                ]}
+              <div
+                key={item.label}
+                className="flex flex-1 flex-col items-center gap-2 px-1.5"
+                style={{
+                  paddingTop: compact ? 12 : 16,
+                  paddingBottom: compact ? 12 : 16,
+                  ...(i > 0
+                    ? { borderLeft: `1px solid ${theme.border}` }
+                    : null),
+                }}
               >
                 <item.icon size={20} color={theme.primary} />
-                <Text style={[localStyles.assuranceLabel, { color: theme.text }]}>
+                <span
+                  className="text-center text-[11.5px] leading-[15px] font-bold"
+                  style={{ color: theme.text }}
+                >
                   {item.label}
-                </Text>
-              </View>
+                </span>
+              </div>
             ))}
-          </View>
+          </div>
 
-          <View
-            style={[localStyles.ctaBlock, compact && { marginTop: 16 }]}
+          <div
+            className="w-full"
+            style={{ marginTop: compact ? 16 : 24 }}
           >
             {apiError && (
-              <View style={styles.errorBanner}
-                accessibilityRole="alert"
-                accessibilityLiveRegion="assertive"
+              <div
+                role="alert"
+                aria-live="assertive"
+                className="mb-5 flex flex-row items-center gap-2.5 rounded-xl border p-3.5"
+                style={{
+                  backgroundColor: "rgba(239, 68, 68, 0.15)",
+                  borderColor: "rgba(239, 68, 68, 0.5)",
+                }}
               >
                 <TriangleAlert size={20} color="#fca5a5" />
-                <Text style={styles.errorBannerText}>{apiError}</Text>
-              </View>
+                <span
+                  className="flex-1 text-sm font-medium"
+                  style={{ color: theme.error }}
+                >
+                  {apiError}
+                </span>
+              </div>
             )}
-            <GoogleSignInButton mode="signin"
+            <GoogleSignInButton
+              mode="signin"
               disabled={googlePending}
               onSuccess={(idToken) => {
                 handleGoogleSuccess(idToken).catch(() => {
@@ -193,152 +219,35 @@ export default function AuthScreen() {
               }}
               onError={(msg) => setApiError(msg)}
             />
-            <View style={[localStyles.secureRow, compact && { marginTop: 10 }]}>
+            <div
+              className="flex flex-row items-start justify-center gap-1.5 px-4"
+              style={{ marginTop: compact ? 10 : 14 }}
+            >
               <Lock size={12} color={theme.secondaryText} />
-              <Text style={[localStyles.secureText, { color: theme.secondaryText }]}
+              <p
+                className="flex-1 text-center text-xs leading-[17px]"
+                style={{ color: theme.secondaryText }}
               >
                 Secured by Google — we never see your password. New here? Your
                 account is created automatically.
-              </Text>
-            </View>
-          </View>
+              </p>
+            </div>
+          </div>
 
-          <View
-            style={[localStyles.termsBlock, compact && { marginTop: 16 }]}
+          <div
+            className="flex items-center justify-center"
+            style={{ marginTop: compact ? 16 : 24 }}
           >
-            <Text style={[localStyles.termsText, { color: theme.secondaryText }]}>
+            <p
+              className="px-6 text-center text-[11.5px] leading-[17px]"
+              style={{ color: theme.secondaryText }}
+            >
               By continuing, you agree to our Terms of Service and Privacy
               Policy.
-            </Text>
-          </View>
-        </View>
-      </ScrollView>
-    </View>
+            </p>
+          </div>
+        </main>
+      </div>
+    </div>
   );
 }
-
-const localStyles = StyleSheet.create({
-  hero: {
-    overflow: "hidden",
-  },
-  heroMarkBlock: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "flex-start",
-  },
-  glowWrap: {
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  glow: {
-    position: "absolute",
-    width: 148,
-    height: 148,
-    borderRadius: 74,
-  },
-  logoRing: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    borderWidth: 1.5,
-    borderColor: GOLD,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#0E0C09",
-  },
-  logoImage: {
-    width: 52,
-    height: 56,
-    borderRadius: 12,
-  },
-  heroEyebrow: {
-    marginTop: 12,
-    fontSize: 11,
-    fontWeight: "800",
-    letterSpacing: 2.6,
-    color: GOLD,
-  },
-  sheet: {
-    flex: 1,
-    marginTop: -28,
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    paddingHorizontal: 24,
-    ...Platform.select({
-      web: { maxWidth: 520, width: "100%", alignSelf: "center" } as any,
-      default: {},
-    }),
-  },
-  sheetDesktop: {
-    marginTop: -48,
-    borderRadius: 24,
-    borderWidth: 1,
-    paddingBottom: 32,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.18,
-    shadowRadius: 32,
-    elevation: 8,
-  },
-  titleBlock: {
-    alignItems: "center",
-  },
-  title: {
-    fontWeight: "900",
-    letterSpacing: -0.6,
-    textAlign: "center",
-  },
-  subtitle: {
-    fontSize: 14,
-    lineHeight: 21,
-    textAlign: "center",
-    paddingHorizontal: 8,
-  },
-  assuranceRow: {
-    flexDirection: "row",
-    borderWidth: 1,
-    borderRadius: 16,
-    overflow: "hidden",
-  },
-  assuranceCell: {
-    flex: 1,
-    alignItems: "center",
-    gap: 8,
-    paddingVertical: 16,
-    paddingHorizontal: 6,
-  },
-  assuranceLabel: {
-    fontSize: 11.5,
-    fontWeight: "700",
-    textAlign: "center",
-    lineHeight: 15,
-  },
-  ctaBlock: {
-    marginTop: 24,
-    width: "100%",
-  },
-  secureRow: {
-    marginTop: 14,
-    flexDirection: "row",
-    alignItems: "flex-start",
-    justifyContent: "center",
-    gap: 6,
-    paddingHorizontal: 16,
-  },
-  secureText: {
-    flex: 1,
-    fontSize: 12,
-    lineHeight: 17,
-    textAlign: "center",
-  },
-  termsBlock: {
-    alignItems: "center",
-    marginTop: 24,
-  },
-  termsText: {
-    fontSize: 11.5,
-    lineHeight: 17,
-    textAlign: "center",
-    paddingHorizontal: 24,
-  },
-});

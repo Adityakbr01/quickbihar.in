@@ -1,15 +1,7 @@
 import React, { useEffect, useState } from "react";
-import {
-  FlatList,
-  RefreshControl,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
-} from "@/components/primitives";
 import { useNavigate } from "react-router-dom";
 import { goBack, goTo, replaceTo } from "@/src/utils/navigation";
-import { ChevronLeft, ChevronRight, MapPin, Package, ShoppingBag } from "lucide-react";
+import { ChevronLeft, ChevronRight, Package, ShoppingBag } from "lucide-react";
 import * as Haptics from "@/lib/haptics";
 import { OrderCardSkeleton } from "../components/OrderCardSkeleton";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
@@ -18,16 +10,14 @@ import { orderHasModule } from "../lib/orderModule";
 import { socketClient } from "@/src/lib/socket";
 import { SocketEvents } from "@/src/constants/socketEvents";
 import dayjs from "dayjs";
-import { createStyles } from "../style/OrderListScreen.style";
+import { cn } from "@/src/lib/utils";
 
 const OrderListScreen = () => {
-  const theme = useTheme();
-  const styles = createStyles(theme);
+  const theme = useTheme() as any;
   const navigate = useNavigate();
 
   const [orders, setOrders] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
     fetchOrders();
@@ -62,12 +52,6 @@ const OrderListScreen = () => {
     }
   };
 
-  const handleRefresh = async () => {
-    setIsRefreshing(true);
-    await fetchOrders();
-    setIsRefreshing(false);
-  };
-
   const getStatusColor = (status: string) => {
     switch (status.toUpperCase()) {
       case "PENDING":
@@ -88,7 +72,7 @@ const OrderListScreen = () => {
     }
   };
 
-  const renderOrderItem = ({ item }: { item: any }) => {
+  const renderOrderItem = (item: any) => {
     // Shared module check (vertical/module/jeweleryDetails aware).
     // The list itself is clothing-filtered; jewellery rows route to the
     // jewellery detail screen if they ever appear (e.g. deep links).
@@ -96,9 +80,10 @@ const OrderListScreen = () => {
       orderHasModule(item, "jewelery") && !orderHasModule(item, "clothing");
 
     return (
-      <TouchableOpacity style={styles.orderCard}
-        activeOpacity={0.8}
-        onPress={() => {
+      <button
+        key={item._id}
+        type="button"
+        onClick={() => {
           if (isJeweleryOrder) {
             goTo(navigate, {
               pathname: "/jewelery/orders/[id]" as any,
@@ -111,146 +96,209 @@ const OrderListScreen = () => {
             });
           }
         }}
+        className="mb-2.5 block w-full rounded-2xl border p-3.5 text-left"
+        style={{
+          backgroundColor: theme.tertiaryBackground,
+          borderColor: theme.border,
+        }}
       >
-      <View style={styles.orderHeader}>
-        <View>
-          <Text style={styles.orderId}>Order #{item.orderId}</Text>
-          <Text style={styles.orderDate}>
-            {dayjs(item.createdAt).format("DD MMM, YYYY")}
-          </Text>
-        </View>
-        <View style={[
-            styles.statusBadge,
-            { backgroundColor: getStatusColor(item.status) + "15" },
-          ]}
-        >
-          <Text style={[styles.statusText, { color: getStatusColor(item.status) }]}
-          >
-            {item.status.replace("_", " ")}
-          </Text>
-        </View>
-      </View>
-
-      <View style={styles.itemsPreview}>
-        <View style={styles.itemThumb}>
-          <Package size={24} color={theme.primary} />
-        </View>
-        <Text style={styles.itemsText} numberOfLines={1}>
-          {item.items.length} {item.items.length === 1 ? "item" : "items"} in
-          this order
-        </Text>
-        {item.items.length > 1 && (
-          <View style={styles.moreCount}>
-            <Text style={styles.moreText}>+{item.items.length - 1}</Text>
-          </View>
-        )}
-      </View>
-
-      <View style={styles.orderFooter}>
-        <View>
-          <Text style={styles.totalLabel}>Total Amount</Text>
-          <Text style={styles.totalValue}>
-            ₹{item.payableAmount.toLocaleString()}
-          </Text>
-        </View>
-        <View style={{ flexDirection: "row", alignItems: "center" }}>
-          {/* {["CONFIRMED", "PROCESSING", "SHIPPED"].includes(item.status.toUpperCase()) && (
-            <TouchableOpacity style={[styles.detailButton, { backgroundColor: theme.primary + '15', marginRight: 10, paddingHorizontal: 12 }]}
-              onPress={() => goTo(navigate, `/track-order/${item.orderId}`)}
+        <div className="mb-3 flex flex-row items-start justify-between gap-2">
+          <div>
+            <p
+              className="text-[15px] font-extrabold tracking-[-0.3px]"
+              style={{ color: theme.text }}
             >
-              <MapPin size={16} color={theme.primary} />
-              <Text style={[styles.detailButtonText, { color: theme.primary, marginLeft: 4 }]}>Track</Text>
-            </TouchableOpacity>
-          )} */}
-          <View style={styles.detailButton}>
-            <Text style={styles.detailButtonText}>Details</Text>
-            <ChevronRight size={14} color={theme.primary} />
-          </View>
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
+              Order #{item.orderId}
+            </p>
+            <p
+              className="mt-1 text-xs font-medium"
+              style={{ color: theme.secondaryText }}
+            >
+              {dayjs(item.createdAt).format("DD MMM, YYYY")}
+            </p>
+          </div>
+          <div
+            className="rounded-lg px-2.5 py-[5px]"
+            style={{ backgroundColor: getStatusColor(item.status) + "15" }}
+          >
+            <span
+              className="text-[10px] font-extrabold tracking-[0.5px] uppercase"
+              style={{ color: getStatusColor(item.status) }}
+            >
+              {item.status.replace("_", " ")}
+            </span>
+          </div>
+        </div>
+
+        <div
+          className="mb-3 flex flex-row items-center gap-2.5 rounded-xl border p-2.5"
+          style={{
+            backgroundColor: theme.background,
+            borderColor: theme.border,
+          }}
+        >
+          <div
+            className="flex h-11 w-11 items-center justify-center rounded-xl"
+            style={{ backgroundColor: theme.secondaryBackground }}
+          >
+            <Package size={24} color={theme.primary} />
+          </div>
+          <p
+            className={cn("ml-0.5 line-clamp-1 flex-1 text-[13px] font-semibold")}
+            style={{ color: theme.secondaryText }}
+          >
+            {item.items.length} {item.items.length === 1 ? "item" : "items"} in
+            this order
+          </p>
+          {item.items.length > 1 && (
+            <div
+              className="flex h-9 w-9 items-center justify-center rounded-full"
+              style={{ backgroundColor: theme.secondaryBackground }}
+            >
+              <span
+                className="text-xs font-extrabold"
+                style={{ color: theme.primary }}
+              >
+                +{item.items.length - 1}
+              </span>
+            </div>
+          )}
+        </div>
+
+        <div
+          className="flex flex-row items-center justify-between border-t pt-3"
+          style={{ borderTopColor: theme.border }}
+        >
+          <div>
+            <p
+              className="text-[11px] font-bold tracking-[0.5px] uppercase"
+              style={{ color: theme.secondaryText }}
+            >
+              Total Amount
+            </p>
+            <p
+              className="mt-0.5 text-[17px] font-extrabold"
+              style={{ color: theme.text }}
+            >
+              ₹{item.payableAmount.toLocaleString()}
+            </p>
+          </div>
+          <div className="flex flex-row items-center">
+            {/* {["CONFIRMED", "PROCESSING", "SHIPPED"].includes(item.status.toUpperCase()) && (
+              <button ...>Track</button>
+            )} */}
+            <div
+              className="flex h-9 flex-row items-center gap-1 rounded-full px-3.5"
+              style={{ backgroundColor: theme.primary + "18" }}
+            >
+              <span
+                className="text-xs font-extrabold tracking-[0.2px]"
+                style={{ color: theme.primary }}
+              >
+                Details
+              </span>
+              <ChevronRight size={14} color={theme.primary} />
+            </div>
+          </div>
+        </div>
+      </button>
+    );
   };
 
   const renderEmpty = () => (
-    <View style={styles.emptyContainer}>
-      <View style={[
-          styles.emptyIconWrap,
-          { backgroundColor: theme.primary + "15" },
-        ]}
+    <div className="flex flex-1 flex-col items-center justify-center px-8 pb-10">
+      <div
+        className="mb-[18px] flex h-[110px] w-[110px] items-center justify-center rounded-full"
+        style={{ backgroundColor: theme.primary + "15" }}
       >
         <ShoppingBag size={52} color={theme.primary} />
-      </View>
-      <Text style={styles.emptyTitle}>No Orders Yet</Text>
-      <Text style={styles.emptySubtitle}>
-        You haven&apos;t placed any orders yet. Start shopping to see them here!
-      </Text>
-      <TouchableOpacity style={styles.shopButton}
-        onPress={() => replaceTo(navigate, "/(tabs)/clothing/home")}
+      </div>
+      <p
+        className="text-center text-xl font-extrabold tracking-[-0.3px]"
+        style={{ color: theme.text }}
       >
-        <Text style={styles.shopButtonText}>Explore Products</Text>
-      </TouchableOpacity>
-    </View>
+        No Orders Yet
+      </p>
+      <p
+        className="mt-2 max-w-[320px] text-center text-sm leading-5"
+        style={{ color: theme.secondaryText }}
+      >
+        You haven&apos;t placed any orders yet. Start shopping to see them here!
+      </p>
+      <button
+        type="button"
+        onClick={() => replaceTo(navigate, "/(tabs)/clothing/home")}
+        className="mt-5 flex h-12 items-center justify-center rounded-full px-6"
+        style={{ backgroundColor: theme.primary }}
+      >
+        <span className="text-sm font-extrabold tracking-[0.3px] text-white">
+          Explore Products
+        </span>
+      </button>
+    </div>
   );
 
   const renderSkeletons = () => (
-    <ScrollView contentContainerStyle={styles.listContent}
-      showsVerticalScrollIndicator={false}
-    >
+    <div className="overflow-auto px-4 pt-2 pb-8">
       {[0, 1, 2, 3].map((i) => (
         <OrderCardSkeleton key={i} />
       ))}
-    </ScrollView>
+    </div>
   );
 
   return (
     <>
-      <View style={styles.container}>
+      <div
+        className="flex min-h-screen flex-1 flex-col"
+        style={{ backgroundColor: theme.background }}
+      >
         {/* Top app bar (same language as Notifications) */}
-        <View style={styles.appBar}>
-          <TouchableOpacity onPress={() => {
+        <div className="flex flex-row items-center gap-2 px-3 pt-2 pb-3">
+          <button
+            type="button"
+            onClick={() => {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(
                 () => null,
               );
               goBack(navigate, "/(tabs)/clothing/home");
             }}
-            style={styles.backButton}
-            activeOpacity={0.7}
+            className="flex h-10 w-10 items-center justify-center rounded-full"
+            style={{ backgroundColor: theme.secondaryBackground }}
+            aria-label="Go back"
           >
             <ChevronLeft size={22} color={theme.text} />
-          </TouchableOpacity>
+          </button>
 
-          <View style={styles.appBarTitleWrap}>
-            <Text style={styles.appBarTitle}>My Orders</Text>
-            <Text style={styles.appBarSubtitle}>
+          <div className="flex-1 px-1">
+            <h2
+              className="text-[22px] font-extrabold tracking-[-0.4px]"
+              style={{ color: theme.text }}
+            >
+              My Orders
+            </h2>
+            <p
+              className="mt-0.5 text-xs font-medium"
+              style={{ color: theme.secondaryText }}
+            >
               {orders.length > 0
                 ? `${orders.length} order${orders.length === 1 ? "" : "s"}`
                 : "Track and manage your orders"}
-            </Text>
-          </View>
+            </p>
+          </div>
 
-          <View style={{ width: 40 }} />
-        </View>
+          <div className="w-10" />
+        </div>
 
-        {isLoading && !isRefreshing ? (
+        {isLoading ? (
           renderSkeletons()
+        ) : orders.length === 0 ? (
+          renderEmpty()
         ) : (
-          <FlatList data={orders}
-            renderItem={renderOrderItem}
-            keyExtractor={(item) => item._id}
-            contentContainerStyle={styles.listContent}
-            showsVerticalScrollIndicator={false}
-            refreshControl={
-              <RefreshControl refreshing={isRefreshing}
-                onRefresh={handleRefresh}
-                tintColor={theme.primary}
-                colors={[theme.primary]}
-              />
-            }
-            ListEmptyComponent={renderEmpty}
-          />
+          <div className="overflow-auto px-4 pt-2 pb-8">
+            {orders.map((item) => renderOrderItem(item))}
+          </div>
         )}
-      </View>
+      </div>
     </>
   );
 };

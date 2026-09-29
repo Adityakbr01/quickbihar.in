@@ -1,14 +1,5 @@
 import React, { useState } from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  LayoutAnimation,
-  Platform,
-  UIManager,
-} from "@/components/primitives";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
-import { createCartStyles } from "../styles/cartStyles";
 import { useCartStore, type AppliedCoupon } from "../store/cartStore";
 import { AnimatedPrice } from "@/src/components/common/AnimatedPrice";
 
@@ -23,11 +14,6 @@ interface CartSummaryProps {
   discountAmount?: number;
 }
 
-// Enable smooth expand/collapse on Android (iOS has it on by default).
-if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
-  UIManager.setLayoutAnimationEnabledExperimental(true);
-}
-
 const CartSummary = ({
   subtotal,
   totalTax,
@@ -36,8 +22,7 @@ const CartSummary = ({
   appliedCoupon,
   discountAmount = 0,
 }: CartSummaryProps) => {
-  const theme = useTheme();
-  const styles = createCartStyles(theme);
+  const theme = useTheme() as any;
   const { appliedCoupons = [] } = useCartStore();
   // Default closed — the sticky checkout button already surfaces the total.
   const [expanded, setExpanded] = useState(true);
@@ -51,7 +36,6 @@ const CartSummary = ({
   const total = Math.max(0, subtotal + shipping - totalDiscount);
 
   const toggle = () => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setExpanded((p) => !p);
   };
 
@@ -65,125 +49,145 @@ const CartSummary = ({
     const isPartial = coveredNames.length > 0 && coupon.appliesTo === "SPECIFIC";
 
     return (
-      <View key={coupon.code} style={styles.summaryCouponBlock}>
-        <View style={styles.summaryRow}>
-          <Text style={styles.summaryLabel} numberOfLines={1}>
+      <div key={coupon.code} className="mb-1.5">
+        <div className="mb-2.5 flex flex-row items-center justify-between">
+          <span
+            className="line-clamp-1 text-sm font-medium"
+            style={{ color: theme.secondaryText }}
+          >
             Coupon ({coupon.code})
-          </Text>
-          <AnimatedPrice value={-(coupon.appliedDiscount || 0)}
+          </span>
+          <AnimatedPrice
+            value={-(coupon.appliedDiscount || 0)}
             showMinus
             duration={550}
-            style={[styles.summaryValue, { color: theme.primary }]}
+            style={{ fontSize: 14, fontWeight: 700, color: theme.primary }}
           />
-        </View>
+        </div>
         {isPartial ? (
-          <Text style={[
-              styles.summaryHint,
-              { color: theme.secondaryText, marginTop: 2 },
-            ]}
-            numberOfLines={2}
+          <p
+            className="line-clamp-2 mt-0.5 pl-1 text-[11px] italic"
+            style={{ color: theme.secondaryText }}
           >
             Applies on: {coveredNames.slice(0, 2).join(", ")}
             {coveredNames.length > 2 ? ` +${coveredNames.length - 2} more` : ""}
-          </Text>
+          </p>
         ) : null}
-      </View>
+      </div>
     );
   };
 
   return (
-    <View style={styles.summaryContainer}>
-      <TouchableOpacity style={styles.summaryHeaderRow}
-        onPress={toggle}
-        activeOpacity={0.7}
-        accessibilityRole="button"
-        accessibilityState={{ expanded }}
-        accessibilityLabel={
-          expanded ? "Hide bill summary" : "Show bill summary"
-        }
+    <div
+      className="mx-4 mt-4 rounded-2xl border p-4"
+      style={{ backgroundColor: theme.tertiaryBackground, borderColor: theme.border }}
+    >
+      <button
+        type="button"
+        onClick={toggle}
+        aria-expanded={expanded}
+        aria-label={expanded ? "Hide bill summary" : "Show bill summary"}
+        className="flex w-full cursor-pointer flex-row items-center justify-between"
       >
-        <Text style={styles.summaryTitle}>Bill Summary</Text>
-        <View style={styles.summaryHeaderRight}>
-          <AnimatedPrice value={total}
-            style={styles.summaryHeaderTotal}
+        <span className="text-[17px] font-extrabold" style={{ color: theme.text }}>
+          Bill Summary
+        </span>
+        <span className="flex flex-row items-center">
+          <AnimatedPrice
+            value={total}
+            style={{ fontSize: 16, fontWeight: 800, color: theme.primary }}
           />
           {expanded ? (
-            <ChevronUp size={18} color={theme.secondaryText} style={{ marginLeft: 6 }} />
+            <ChevronUp size={18} color={theme.secondaryText} className="ml-1.5" />
           ) : (
-            <ChevronDown size={18} color={theme.secondaryText} style={{ marginLeft: 6 }} />
+            <ChevronDown size={18} color={theme.secondaryText} className="ml-1.5" />
           )}
-        </View>
-      </TouchableOpacity>
+        </span>
+      </button>
 
       {expanded ? (
-        <View style={styles.summaryBody}>
-          <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Subtotal</Text>
-            <AnimatedPrice value={subtotal - totalTax}
-              style={styles.summaryValue}
+        <div className="mt-3.5">
+          <div className="mb-2.5 flex flex-row items-center justify-between">
+            <span className="text-sm font-medium" style={{ color: theme.secondaryText }}>
+              Subtotal
+            </span>
+            <AnimatedPrice
+              value={subtotal - totalTax}
+              style={{ fontSize: 14, fontWeight: 700, color: theme.text }}
             />
-          </View>
+          </div>
 
           {totalTax > 0 ? (
-            <View style={styles.summaryRow}>
-              <Text style={[styles.summaryLabel, { color: theme.secondaryText }]}>
+            <div className="mb-2.5 flex flex-row items-center justify-between">
+              <span className="text-sm font-medium" style={{ color: theme.secondaryText }}>
                 Taxes & GST (Included)
-              </Text>
-              <AnimatedPrice value={totalTax}
-                style={[styles.summaryValue, { color: theme.secondaryText }]}
+              </span>
+              <AnimatedPrice
+                value={totalTax}
+                style={{ fontSize: 14, fontWeight: 700, color: theme.secondaryText }}
               />
-            </View>
+            </div>
           ) : null}
 
-          <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Delivery Fee</Text>
+          <div className="mb-2.5 flex flex-row items-center justify-between">
+            <span className="text-sm font-medium" style={{ color: theme.secondaryText }}>
+              Delivery Fee
+            </span>
             {shipping === 0 ? (
-              <Text style={[styles.summaryValue, { color: theme.primary }]}>FREE</Text>
+              <span className="text-sm font-bold" style={{ color: theme.primary }}>FREE</span>
             ) : (
-              <AnimatedPrice value={shipping}
-                style={styles.summaryValue}
+              <AnimatedPrice
+                value={shipping}
+                style={{ fontSize: 14, fontWeight: 700, color: theme.text }}
               />
             )}
-          </View>
+          </div>
 
           {discount > 0 ? (
-            <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Product Discount</Text>
-              <AnimatedPrice value={-discount}
+            <div className="mb-2.5 flex flex-row items-center justify-between">
+              <span className="text-sm font-medium" style={{ color: theme.secondaryText }}>
+                Product Discount
+              </span>
+              <AnimatedPrice
+                value={-discount}
                 showMinus
                 duration={550}
-                style={[styles.summaryValue, { color: theme.primary }]}
+                style={{ fontSize: 14, fontWeight: 700, color: theme.primary }}
               />
-            </View>
+            </div>
           ) : null}
 
           {appliedCoupons.map(renderCouponRow)}
 
           {appliedCoupons.length === 0 && couponsTotalDiscount > 0 ? (
-            <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>
+            <div className="mb-2.5 flex flex-row items-center justify-between">
+              <span className="text-sm font-medium" style={{ color: theme.secondaryText }}>
                 Coupon {appliedCoupon ? `(${appliedCoupon.code})` : ""}
-              </Text>
-              <AnimatedPrice value={-couponsTotalDiscount}
+              </span>
+              <AnimatedPrice
+                value={-couponsTotalDiscount}
                 showMinus
                 duration={550}
-                style={[styles.summaryValue, { color: theme.primary }]}
+                style={{ fontSize: 14, fontWeight: 700, color: theme.primary }}
               />
-            </View>
+            </div>
           ) : null}
 
-          <View style={styles.divider} />
+          <div className="my-3 h-px" style={{ backgroundColor: theme.border }} />
 
-          <View style={styles.summaryRow}>
-            <Text style={styles.totalLabel}>Total Amount</Text>
-            <AnimatedPrice value={total}
+          <div className="flex flex-row items-center justify-between">
+            <span className="text-base font-extrabold" style={{ color: theme.text }}>
+              Total Amount
+            </span>
+            <AnimatedPrice
+              value={total}
               duration={750}
-              style={styles.totalValue}
+              style={{ fontSize: 19, fontWeight: 900, color: theme.primary }}
             />
-          </View>
-        </View>
+          </div>
+        </div>
       ) : null}
-    </View>
+    </div>
   );
 };
 

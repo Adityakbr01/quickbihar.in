@@ -7,23 +7,12 @@
  * On success: calls onVerified(phone) so parent can pre-fill and badge the field.
  */
 import React, { useEffect, useRef, useState } from "react";
-import {
-  ActivityIndicator,
-  Animated,
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  Text,
-  TextInput as RNTextInput,
-  TouchableOpacity,
-  View,
-} from "@/components/primitives";
 import * as Haptics from "@/lib/haptics";
 import { sendPhoneOtpRequest, verifyPhoneOtpRequest } from "../api/address.api";
-import { createAddressStyles } from "../style/addressStyles";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
 import { TextInput } from "@/src/theme/components/TextInput";
+import { cn } from "@/src/lib/utils";
 
 
 interface PhoneOtpSheetProps {
@@ -40,8 +29,7 @@ const PhoneOtpSheet: React.FC<PhoneOtpSheetProps> = ({
   onVerified,
   onClose,
 }) => {
-  const theme = useTheme();
-  const styles = createAddressStyles(theme);
+  const theme = useTheme() as any;
 
   const [step, setStep] = useState<"phone" | "otp">("phone");
   const [phone, setPhone] = useState(initialPhone);
@@ -50,8 +38,7 @@ const PhoneOtpSheet: React.FC<PhoneOtpSheetProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [countdown, setCountdown] = useState(0);
 
-  const otpInputRef = useRef<RNTextInput>(null);
-  const slideAnim = useRef(new Animated.Value(400)).current;
+  const otpInputRef = useRef<HTMLInputElement>(null);
 
   // Reset state when sheet opens
   useEffect(() => {
@@ -61,19 +48,8 @@ const PhoneOtpSheet: React.FC<PhoneOtpSheetProps> = ({
       setOtp("");
       setError(null);
       setCountdown(0);
-      Animated.spring(slideAnim, {
-        toValue: 0,
-        useNativeDriver: true,
-        tension: 80,
-        friction: 11,
-      }).start();
-    } else {
-      Animated.timing(slideAnim, {
-        toValue: 400,
-        duration: 200,
-        useNativeDriver: true,
-      }).start();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visible]);
 
   // Countdown timer for resend
@@ -147,160 +123,217 @@ const PhoneOtpSheet: React.FC<PhoneOtpSheetProps> = ({
   // Split OTP string into 6 display slots
   const otpDigits = otp.padEnd(6, " ").split("");
 
+  if (!visible) return null;
+
   return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="none"
-      onRequestClose={onClose}
-      statusBarTranslucent
+    <div
+      className="fixed inset-0 z-[100] flex items-end justify-center bg-black/50"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Verify phone number"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
     >
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={styles.otpOverlay}
+      <div
+        className="flex max-h-[85vh] w-full max-w-lg flex-col gap-4 overflow-y-auto rounded-t-3xl p-7"
+        style={{ backgroundColor: theme.background }}
+        onClick={(e) => e.stopPropagation()}
       >
-        {/* Backdrop tap to close */}
-        <TouchableOpacity
-          style={{ flex: 1 }}
-          activeOpacity={1}
-          onPress={onClose}
-        />
+        {step === "phone" ? (
+          <>
+            <p
+              className="text-xl font-extrabold tracking-[-0.4px]"
+              style={{ color: theme.text }}
+            >
+              Verify Your Number
+            </p>
+            <p
+              className="-mt-2 text-sm leading-5"
+              style={{ color: theme.secondaryText }}
+            >
+              We&apos;ll send a 6-digit OTP to your WhatsApp
+            </p>
 
-        <Animated.View
-          style={[styles.otpSheet, { transform: [{ translateY: slideAnim }] }]}
-        >
-          {step === "phone" ? (
-            <>
-              <Text style={styles.otpSheetTitle}>Verify Your Number</Text>
-              <Text style={styles.otpSheetSubtitle}>
-                We'll send a 6-digit OTP to your WhatsApp
-              </Text>
+            {/* Phone input */}
+            <TextInput
+              placeholder="e.g. 9876543210"
+              placeholderTextColor={theme.tertiaryText}
+              keyboardType="phone-pad"
+              maxLength={15}
+              value={phone}
+              onChangeText={(v: string) => {
+                setPhone(v);
+                setError(null);
+              }}
+              autoFocus
+              returnKeyType="send"
+              onSubmitEditing={handleSendOtp}
+              error={error ?? undefined}
+              icon={
+                <span style={{ color: theme.secondaryText, fontWeight: "600" }}>
+                  +91
+                </span>
+              }
+              containerStyle={{ marginBottom: 0 }}
+              style={{ color: theme.text }}
+            />
 
-              {/* Phone input */}
-              <TextInput
-                placeholder="e.g. 9876543210"
-                placeholderTextColor={theme.tertiaryText}
-                keyboardType="phone-pad"
-                maxLength={15}
-                value={phone}
-                onChangeText={(v) => {
-                  setPhone(v);
-                  setError(null);
-                }}
-                autoFocus
-                returnKeyType="send"
-                onSubmitEditing={handleSendOtp}
-                error={error ?? undefined}
-                icon={
-                  <Text style={{ color: theme.secondaryText, fontWeight: "600" }}>
-                    +91
-                  </Text>
-                }
-                containerStyle={{ marginBottom: 0 }}
-                style={{ color: theme.text }}
-              />
-
-              <TouchableOpacity
-                style={styles.otpPrimaryButton}
-                onPress={handleSendOtp}
-                disabled={loading}
-              >
-                {loading ? (
-                  <ActivityIndicator color="#fff" />
-                ) : (
-                  <Text style={styles.otpPrimaryButtonText}>Send OTP on WhatsApp</Text>
-                )}
-              </TouchableOpacity>
-
-              <TouchableOpacity style={styles.otpSecondaryButton} onPress={onClose}>
-                <Text style={styles.otpSecondaryButtonText}>Cancel</Text>
-              </TouchableOpacity>
-            </>
-          ) : (
-            <>
-              <Text style={styles.otpSheetTitle}>Enter OTP</Text>
-              <Text style={styles.otpSheetSubtitle}>
-                Sent to WhatsApp +{phone.replace(/\D/g, "")}
-              </Text>
-
-              {/* 6-slot visual OTP display + hidden real input */}
-              <View>
-                <TouchableOpacity
-                  activeOpacity={1}
-                  onPress={() => otpInputRef.current?.focus()}
-                  style={styles.otpDigitRow}
-                >
-                  {otpDigits.map((d, i) => (
-                    <View
-                      key={i}
-                      style={[
-                        styles.otpDigitBox,
-                        d.trim() ? styles.otpDigitBoxFilled : {},
-                      ]}
-                    >
-                      <Text style={styles.otpDigitText}>
-                        {d.trim() || ""}
-                      </Text>
-                    </View>
-                  ))}
-                </TouchableOpacity>
-
-                {/* Hidden real text input (invisible 6-digit capture) */}
-                <RNTextInput
-                  ref={otpInputRef}
-                  style={styles.otpHiddenInput}
-                  keyboardType="number-pad"
-                  maxLength={6}
-                  value={otp}
-                  onChangeText={(v) => {
-                    setOtp(v.replace(/\D/g, ""));
-                    setError(null);
-                  }}
-                  caretHidden
+            <button
+              type="button"
+              onClick={handleSendOtp}
+              disabled={loading}
+              className="flex h-[54px] w-full cursor-pointer items-center justify-center rounded-2xl shadow-md disabled:opacity-60"
+              style={{ backgroundColor: theme.primary }}
+            >
+              {loading ? (
+                <span
+                  className="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white"
                 />
-              </View>
-
-              {error && (
-                <Text style={[styles.errorText, { textAlign: "center" }]}>{error}</Text>
+              ) : (
+                <span className="text-base font-bold text-white">
+                  Send OTP on WhatsApp
+                </span>
               )}
+            </button>
 
-              {/* Resend countdown */}
-              <View style={styles.resendRow}>
-                <Text style={styles.resendText}>Didn't receive it? </Text>
-                <TouchableOpacity onPress={handleResend} disabled={countdown > 0 || loading}>
-                  <Text style={[styles.resendLink, countdown > 0 ? { opacity: 0.4 } : {}]}>
-                    {countdown > 0 ? `Resend in ${countdown}s` : "Resend OTP"}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-
-              <TouchableOpacity
-                style={styles.otpPrimaryButton}
-                onPress={handleVerifyOtp}
-                disabled={loading || otp.length < 6}
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex h-11 cursor-pointer items-center justify-center"
+            >
+              <span
+                className="text-sm font-medium"
+                style={{ color: theme.secondaryText }}
               >
-                {loading ? (
-                  <ActivityIndicator color="#fff" />
-                ) : (
-                  <Text style={styles.otpPrimaryButtonText}>Verify</Text>
-                )}
-              </TouchableOpacity>
+                Cancel
+              </span>
+            </button>
+          </>
+        ) : (
+          <>
+            <p
+              className="text-xl font-extrabold tracking-[-0.4px]"
+              style={{ color: theme.text }}
+            >
+              Enter OTP
+            </p>
+            <p
+              className="-mt-2 text-sm leading-5"
+              style={{ color: theme.secondaryText }}
+            >
+              Sent to WhatsApp +{phone.replace(/\D/g, "")}
+            </p>
 
-              <TouchableOpacity
-                style={styles.otpSecondaryButton}
-                onPress={() => {
-                  setStep("phone");
-                  setOtp("");
+            {/* 6-slot visual OTP display + hidden real input */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => otpInputRef.current?.focus()}
+                className="flex w-full cursor-text flex-row justify-between gap-2"
+                aria-label="Enter OTP"
+              >
+                {otpDigits.map((d, i) => (
+                  <span
+                    key={i}
+                    className={cn("flex h-14 flex-1 items-center justify-center rounded-[14px] border-[1.5px]")}
+                    style={{
+                      borderColor: d.trim() ? theme.primary : theme.border,
+                      backgroundColor: d.trim()
+                        ? "rgba(0, 122, 255, 0.06)"
+                        : theme.tertiaryBackground,
+                    }}
+                  >
+                    <span
+                      className="text-[22px] font-bold"
+                      style={{ color: theme.text }}
+                    >
+                      {d.trim() || ""}
+                    </span>
+                  </span>
+                ))}
+              </button>
+
+              {/* Hidden real text input (invisible 6-digit capture) */}
+              <input
+                ref={otpInputRef}
+                className="absolute h-px w-px opacity-0"
+                type="text"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                maxLength={6}
+                value={otp}
+                onChange={(e) => {
+                  setOtp(e.target.value.replace(/\D/g, ""));
                   setError(null);
                 }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleVerifyOtp();
+                }}
+                aria-label="6-digit OTP"
+              />
+            </div>
+
+            {error && (
+              <p className="text-center text-xs" style={{ color: theme.error }}>
+                {error}
+              </p>
+            )}
+
+            {/* Resend countdown */}
+            <div className="flex flex-row items-center justify-center gap-1">
+              <span className="text-[13px]" style={{ color: theme.secondaryText }}>
+                Didn&apos;t receive it?{" "}
+              </span>
+              <button
+                type="button"
+                onClick={handleResend}
+                disabled={countdown > 0 || loading}
+                className="cursor-pointer disabled:opacity-40"
               >
-                <Text style={styles.otpSecondaryButtonText}>← Change Number</Text>
-              </TouchableOpacity>
-            </>
-          )}
-        </Animated.View>
-      </KeyboardAvoidingView>
-    </Modal>
+                <span
+                  className="text-[13px] font-bold"
+                  style={{ color: theme.primary, opacity: countdown > 0 ? 0.4 : 1 }}
+                >
+                  {countdown > 0 ? `Resend in ${countdown}s` : "Resend OTP"}
+                </span>
+              </button>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleVerifyOtp}
+              disabled={loading || otp.length < 6}
+              className="flex h-[54px] w-full cursor-pointer items-center justify-center rounded-2xl shadow-md disabled:opacity-60"
+              style={{ backgroundColor: theme.primary }}
+            >
+              {loading ? (
+                <span className="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+              ) : (
+                <span className="text-base font-bold text-white">Verify</span>
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setStep("phone");
+                setOtp("");
+                setError(null);
+              }}
+              className="flex h-11 cursor-pointer items-center justify-center"
+            >
+              <span
+                className="text-sm font-medium"
+                style={{ color: theme.secondaryText }}
+              >
+                ← Change Number
+              </span>
+            </button>
+          </>
+        )}
+      </div>
+    </div>
   );
 };
 

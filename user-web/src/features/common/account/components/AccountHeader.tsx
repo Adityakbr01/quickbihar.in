@@ -1,6 +1,4 @@
 import React from "react";
-import { View, Text, TouchableOpacity, ActivityIndicator } from "@/components/primitives";
-
 import { AppIcon } from "@/src/components/common/AppIcon";
 import { Camera, Pencil } from "lucide-react";
 import * as Haptics from "@/lib/haptics";
@@ -12,13 +10,13 @@ import { useAccountStore } from "../store/accountStore";
 
 interface AccountHeaderProps {
   theme: Theme;
-  styles: any;
+  styles?: any;
   name: string;
   email: string;
   avatarUrl?: string;
 }
 
-const AccountHeader = ({ theme, styles, name, email, avatarUrl }: AccountHeaderProps) => {
+const AccountHeader = ({ theme, name, email, avatarUrl }: AccountHeaderProps) => {
   const { updateAvatar, isUpdating } = useAccount();
   const setEditModalVisible = useAccountStore((state) => state.setEditModalVisible);
 
@@ -43,7 +41,7 @@ const AccountHeader = ({ theme, styles, name, email, avatarUrl }: AccountHeaderP
 
   const handlePickImage = async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    
+
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
@@ -53,7 +51,7 @@ const AccountHeader = ({ theme, styles, name, email, avatarUrl }: AccountHeaderP
 
     if (!result.canceled && result.assets[0]) {
       const selectedImage = result.assets[0];
-      
+
       // Edge Case: Check for large images (optional but good for UX)
       if (selectedImage.fileSize && selectedImage.fileSize > 5 * 1024 * 1024) {
           setAlertConfig({ title: "Image Too Large", message: "Please select an image smaller than 5MB." });
@@ -95,69 +93,92 @@ const AccountHeader = ({ theme, styles, name, email, avatarUrl }: AccountHeaderP
   };
 
   return (
-    <View style={styles.header}>
-      <TouchableOpacity 
-        style={styles.avatarContainer} 
-        onPress={handlePickImage}
+    <div
+      className="flex flex-row items-center px-6 pb-[30px] pt-5"
+    >
+      <button
+        type="button"
+        onClick={handlePickImage}
         disabled={isUpdating}
-        activeOpacity={0.7}
+        aria-label="Change profile picture"
+        className="relative flex h-20 w-20 shrink-0 items-center justify-center rounded-full border-2 transition active:opacity-70 disabled:opacity-70"
+        style={{
+          backgroundColor: (theme as any).tertiaryBackground,
+          borderColor: (theme as any).primary,
+        }}
       >
         {avatarUrl ? (
-          <img src={avatarUrl} style={Object.assign({}, { width: "100%", height: "100%", borderRadius: 40 }, { objectFit: "cover" as const })} />
+          <img
+            src={avatarUrl}
+            alt={safeName}
+            className="h-full w-full rounded-full object-cover"
+          />
         ) : (
           // Initials fallback — works on all platforms, no SVG transformer needed
-          <View
-            style={{
-              width: "100%",
-              height: "100%",
-              borderRadius: 40,
-              backgroundColor: theme.primary,
-              alignItems: "center",
-              justifyContent: "center",
-            }}
+          <div
+            className="flex h-full w-full items-center justify-center rounded-full"
+            style={{ backgroundColor: (theme as any).primary }}
           >
-            <Text
-              style={{
-                color: "#fff",
-                fontSize: 26,
-                fontWeight: "800",
-                letterSpacing: 1,
-              }}
+            <span
+              className="text-[26px] font-extrabold tracking-[1px] text-white"
             >
               {initials}
-            </Text>
-          </View>
-        )}
-        
-        {isUpdating && (
-          <View style={[styles.avatarContainer, { position: "absolute", backgroundColor: "rgba(0,0,0,0.3)", borderWidth: 0 }]}>
-            <ActivityIndicator color="#fff" />
-          </View>
+            </span>
+          </div>
         )}
 
-        <View style={[styles.editBadge, { backgroundColor: theme.secondaryBackground, right: -4, bottom: -4 }]}>
+        {isUpdating && (
+          <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/30">
+            <span
+              role="status"
+              aria-label="Uploading avatar"
+              className="h-6 w-6 animate-spin rounded-full border-2 border-white/30 border-t-white"
+            />
+          </div>
+        )}
+
+        <div
+          className="absolute -bottom-1 -right-1 rounded-xl border-2 p-1.5"
+          style={{
+            backgroundColor: (theme as any).secondaryBackground,
+            borderColor: (theme as any).background,
+          }}
+        >
            <AppIcon
             icon={Camera}
             size={12}
-            color={theme.primary}
+            color={(theme as any).primary}
           />
-        </View>
-      </TouchableOpacity>
+        </div>
+      </button>
 
-      <View style={styles.profileInfo}>
-        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-            <View>
-                <Text style={styles.userName}>{name}</Text>
-                <Text style={styles.userEmail}>{email}</Text>
-            </View>
-            <TouchableOpacity
-                style={{ backgroundColor: theme.tertiaryBackground, padding: 8, borderRadius: 10 }}
-                onPress={handleEditProfile}
+      <div className="ml-4 flex-1">
+        <div className="flex flex-row items-center justify-between">
+            <div className="min-w-0">
+                <p
+                  className="truncate text-2xl font-extrabold"
+                  style={{ color: (theme as any).text }}
+                >
+                  {name}
+                </p>
+                <p
+                  className="mt-1 truncate text-sm"
+                  style={{ color: (theme as any).secondaryText }}
+                >
+                  {email}
+                </p>
+            </div>
+            <button
+                type="button"
+                onClick={handleEditProfile}
+                aria-label="Edit profile"
+                className="ml-3 shrink-0 rounded-[10px] p-2 transition active:opacity-70"
+                style={{ backgroundColor: (theme as any).tertiaryBackground }}
             >
-                <AppIcon icon={Pencil} size={18} color={theme.primary} />
-            </TouchableOpacity>
-        </View>
-      </View>
+                <AppIcon icon={Pencil} size={18} color={(theme as any).primary} />
+            </button>
+        </div>
+      </div>
 
       <IOSAlertDialog
         visible={alertVisible}
@@ -166,7 +187,7 @@ const AccountHeader = ({ theme, styles, name, email, avatarUrl }: AccountHeaderP
         message={alertConfig.message}
         buttons={[{ text: "OK", style: "default" }]}
       />
-    </View>
+    </div>
   );
 };
 

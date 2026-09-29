@@ -1,27 +1,16 @@
 import React, { useEffect, useState } from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  BackHandler,
-  ScrollView,
-  Share,
-  ActivityIndicator,
-  Platform
-} from "@/components/primitives";
 import { useNavigate } from "react-router-dom";
 import { goTo, replaceTo, useRouteParams } from "@/src/utils/navigation";
 import LazyLottie from "@/src/components/common/LazyLottie";
 import { Package, Share2, ShoppingCart } from "lucide-react";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
-import { createOrderStyles } from "../style/orderStyles";
 import * as Haptics from "@/lib/haptics";
 import successConfetti from "@/assets/lottie/successConfetti.json";
 import { getOrderByIdRequest } from "../api/order.api";
+import { cn } from "@/src/lib/utils";
 
 const OrderSuccessScreen = () => {
-  const theme = useTheme();
-  const styles = createOrderStyles(theme);
+  const theme = useTheme() as any;
   const navigate = useNavigate();
   const { orderId } = useRouteParams();
 
@@ -34,14 +23,6 @@ const OrderSuccessScreen = () => {
 
     // Fetch Order Details for the Receipt
     fetchOrderDetails();
-
-    // Prevent back navigation to checkout
-    const backHandler = BackHandler.addEventListener("hardwareBackPress", () => {
-      replaceTo(navigate, "/(tabs)/clothing/home");
-      return true;
-    });
-
-    return () => backHandler.remove();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigate]);
 
@@ -78,10 +59,13 @@ const OrderSuccessScreen = () => {
         `*Total Paid: ₹${order.payableAmount}*\n\n` +
         `_Thank you for shopping with Quick Bihar!_`;
 
-      await Share.share({
-        message,
-        title: `Receipt for Order #${order.orderId}`
-      });
+      const title = `Receipt for Order #${order.orderId}`;
+      if (typeof navigator !== "undefined" && (navigator as any).share) {
+        await (navigator as any).share({ title, text: message });
+      } else if (typeof navigator !== "undefined" && navigator.clipboard) {
+        await navigator.clipboard.writeText(message);
+        window.alert("Receipt copied to clipboard");
+      }
     } catch (error) {
       console.error("Error sharing receipt:", error);
     }
@@ -89,121 +73,190 @@ const OrderSuccessScreen = () => {
 
   if (isLoading) {
     return (
-      <View style={[styles.successContainer, { justifyContent: "center", alignItems: "center" }]}>
-        <ActivityIndicator size="large" color={theme.primary} />
-      </View>
+      <div
+        className="flex min-h-screen flex-1 flex-col items-center justify-center"
+        style={{ backgroundColor: theme.background }}
+      >
+        <span
+          className="h-8 w-8 animate-spin rounded-full border-[3px] border-t-transparent"
+          style={{ borderColor: `${theme.primary}44`, borderTopColor: theme.primary }}
+        />
+      </div>
     );
   }
 
   return (
-    <View style={styles.successContainer}>
-      <TouchableOpacity style={styles.shareIcon} onPress={handleShare}>
-        <Share2 size={22} color={theme.text} />
-      </TouchableOpacity>
-
-      <ScrollView contentContainerStyle={styles.successScroll}
-        showsVerticalScrollIndicator={false}
+    <div
+      className="relative flex min-h-screen flex-1 flex-col"
+      style={{ backgroundColor: theme.background }}
+    >
+      <button
+        type="button"
+        onClick={handleShare}
+        className="absolute top-5 right-5 z-10 flex h-11 w-11 items-center justify-center rounded-[14px] border"
+        style={{
+          backgroundColor: theme.tertiaryBackground,
+          borderColor: theme.border,
+        }}
+        aria-label="Share receipt"
       >
-        <View style={{ alignItems: "center" }}>
+        <Share2 size={22} color={theme.text} />
+      </button>
+
+      <div className="overflow-auto px-5 pt-10 pb-[60px]">
+        <div className="flex flex-col items-center">
           <LazyLottie source={successConfetti}
             autoPlay
             loop={false}
             style={{ width: 200, height: 200 }}
           />
 
-          <Text style={styles.successTitle}>Payment Successful!</Text>
-          <Text style={styles.successSubtitle}>
+          <h2
+            className="mt-5 text-center text-[32px] font-black tracking-[-1px]"
+            style={{ color: theme.text }}
+          >
+            Payment Successful!
+          </h2>
+          <p
+            className="mt-2 mb-8 text-center text-base leading-6"
+            style={{ color: theme.secondaryText }}
+          >
             Your order has been placed and is being processed.
-          </Text>
-        </View>
+          </p>
+        </div>
 
         {/* Digital Receipt Card */}
-        <View style={styles.receiptCard}>
-          <View style={styles.receiptHeader}>
-            <Text style={styles.receiptLabel}>Order ID</Text>
-            <Text style={styles.receiptId}>#{order?.orderId}</Text>
-          </View>
+        <div
+          className="rounded-3xl border p-6"
+          style={{
+            backgroundColor: theme.tertiaryBackground,
+            borderColor: theme.border,
+          }}
+        >
+          <div className="mb-6 flex flex-col items-center">
+            <span
+              className="mb-1 text-xs font-bold tracking-[1.5px] uppercase"
+              style={{ color: theme.secondaryText }}
+            >
+              Order ID
+            </span>
+            <span
+              className="text-lg font-black"
+              style={{ color: theme.primary }}
+            >
+              #{order?.orderId}
+            </span>
+          </div>
 
-          <View style={styles.receiptDivider} />
+          <div
+            className="my-5 h-px border-t border-dashed"
+            style={{ borderColor: theme.border, backgroundColor: "transparent" }}
+          />
 
           {/* Items List */}
           {order?.items.map((item: any, index: number) => (
-            <View key={index} style={styles.receiptItem}>
-              <View style={styles.receiptItemInfo}>
-                <Text style={styles.receiptItemName} numberOfLines={1}>
+            <div key={index} className="mb-4 flex flex-row items-center justify-between">
+              <div className="mr-4 flex-1">
+                <p
+                  className={cn("line-clamp-1 text-[15px] font-semibold")}
+                  style={{ color: theme.text }}
+                >
                   {item.title}
-                </Text>
-                <Text style={styles.receiptItemVariant}>
+                </p>
+                <p
+                  className="mt-0.5 text-[13px]"
+                  style={{ color: theme.secondaryText }}
+                >
                   Qty: {item.quantity} • {item.sku}
-                </Text>
-              </View>
-              <Text style={styles.receiptItemPrice}>₹{item.price * item.quantity}</Text>
-            </View>
+                </p>
+              </div>
+              <span
+                className="text-[15px] font-bold"
+                style={{ color: theme.text }}
+              >
+                ₹{item.price * item.quantity}
+              </span>
+            </div>
           ))}
 
-          <View style={styles.receiptDivider} />
+          <div
+            className="my-5 h-px border-t border-dashed"
+            style={{ borderColor: theme.border, backgroundColor: "transparent" }}
+          />
 
           {/* Summary */}
-          <View style={styles.receiptRow}>
-            <Text style={styles.summaryLabel}>Item Total (MRP)</Text>
-            <Text style={styles.summaryValue}>₹{order?.mrpTotal}</Text>
-          </View>
+          <div className="mb-2.5 flex flex-row justify-between">
+            <span className="text-[15px]" style={{ color: theme.secondaryText }}>Item Total (MRP)</span>
+            <span className="text-[15px] font-bold" style={{ color: theme.text }}>₹{order?.mrpTotal}</span>
+          </div>
 
           {order?.productDiscount > 0 && (
-            <View style={styles.receiptRow}>
-              <Text style={styles.summaryLabel}>Product Discount</Text>
-              <Text style={[styles.summaryValue, { color: "#059669" }]}>-₹{order?.productDiscount}</Text>
-            </View>
+            <div className="mb-2.5 flex flex-row justify-between">
+              <span className="text-[15px]" style={{ color: theme.secondaryText }}>Product Discount</span>
+              <span className="text-[15px] font-bold" style={{ color: "#059669" }}>-₹{order?.productDiscount}</span>
+            </div>
           )}
 
-          <View style={styles.receiptRow}>
-            <Text style={styles.summaryLabel}>Subtotal</Text>
-            <Text style={styles.summaryValue}>₹{order?.totalAmount}</Text>
-          </View>
+          <div className="mb-2.5 flex flex-row justify-between">
+            <span className="text-[15px]" style={{ color: theme.secondaryText }}>Subtotal</span>
+            <span className="text-[15px] font-bold" style={{ color: theme.text }}>₹{order?.totalAmount}</span>
+          </div>
 
-          <View style={styles.receiptRow}>
-            <Text style={styles.summaryLabel}>Shipping Fee</Text>
-            <Text style={styles.summaryValue}>
+          <div className="mb-2.5 flex flex-row justify-between">
+            <span className="text-[15px]" style={{ color: theme.secondaryText }}>Shipping Fee</span>
+            <span className="text-[15px] font-bold" style={{ color: theme.text }}>
               {order?.shippingFee === 0 ? "FREE" : `₹${order?.shippingFee}`}
-            </Text>
-          </View>
+            </span>
+          </div>
 
           {order?.discountAmount > 0 && (
-            <View style={styles.receiptRow}>
-              <Text style={styles.summaryLabel}>Coupon ({order?.couponCode})</Text>
-              <Text style={[styles.summaryValue, { color: "#059669" }]}>-₹{order?.discountAmount}</Text>
-            </View>
+            <div className="mb-2.5 flex flex-row justify-between">
+              <span className="text-[15px]" style={{ color: theme.secondaryText }}>Coupon ({order?.couponCode})</span>
+              <span className="text-[15px] font-bold" style={{ color: "#059669" }}>-₹{order?.discountAmount}</span>
+            </div>
           )}
 
-          <View style={styles.receiptTotalRow}>
-            <Text style={styles.receiptTotalLabel}>Total Paid</Text>
-            <Text style={styles.receiptTotalValue}>₹{order?.payableAmount}</Text>
-          </View>
-        </View>
+          <div
+            className="mt-2.5 flex flex-row justify-between border-t pt-5"
+            style={{ borderTopColor: theme.border }}
+          >
+            <span className="text-lg font-extrabold" style={{ color: theme.text }}>Total Paid</span>
+            <span className="text-xl font-black" style={{ color: theme.primary }}>₹{order?.payableAmount}</span>
+          </div>
+        </div>
 
         {/* Action Buttons */}
-        <View style={styles.buttonGroup}>
-          <TouchableOpacity style={[styles.actionButton, styles.primaryActionButton]}
-            onPress={() =>
+        <div className="mt-10 flex flex-col gap-4">
+          <button
+            type="button"
+            onClick={() =>
               goTo(navigate, {
                 pathname: "/order/[id]" as any,
                 params: { id: order?.orderId || orderId },
               })
             }
+            className="flex h-14 w-full flex-row items-center justify-center gap-3 rounded-[18px]"
+            style={{ backgroundColor: theme.primary }}
           >
             <Package size={20} color="#fff" />
-            <Text style={[styles.actionButtonText, { color: "#fff" }]}>View Order Details & OTP</Text>
-          </TouchableOpacity>
+            <span className="text-base font-bold text-white">View Order Details & OTP</span>
+          </button>
 
-          <TouchableOpacity style={[styles.actionButton, styles.secondaryActionButton]}
-            onPress={() => replaceTo(navigate, "/(tabs)/clothing/home")}
+          <button
+            type="button"
+            onClick={() => replaceTo(navigate, "/(tabs)/clothing/home")}
+            className="flex h-14 w-full flex-row items-center justify-center gap-3 rounded-[18px] border"
+            style={{
+              backgroundColor: theme.tertiaryBackground,
+              borderColor: theme.border,
+            }}
           >
             <ShoppingCart size={20} color={theme.text} />
-            <Text style={[styles.actionButtonText, { color: theme.text }]}>Continue Shopping</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </View>
+            <span className="text-base font-bold" style={{ color: theme.text }}>Continue Shopping</span>
+          </button>
+        </div>
+      </div>
+    </div>
   );
 };
 

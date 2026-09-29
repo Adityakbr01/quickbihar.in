@@ -3,10 +3,10 @@ import * as Haptics from "@/lib/haptics";
 import { useNavigate } from "react-router-dom";
 import { goTo } from "@/src/utils/navigation";
 import React, { useState } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "@/components/primitives";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
 import { TextInput } from "@/src/theme/components/TextInput";
+import { cn } from "@/src/lib/utils";
 
 /**
  * Banner shown at the top of checkout when the user has no phone
@@ -61,79 +61,107 @@ export const PhoneMissingBanner: React.FC = () => {
   };
 
   return (
-    <View style={[
-        styles.container,
-        {
-          backgroundColor: "rgba(245, 158, 11, 0.12)",
-          borderColor: "rgba(245, 158, 11, 0.45)",
-        },
-      ]}
+    <div
+      className="mb-4 flex flex-col gap-3 rounded-xl border p-3.5"
+      style={{
+        backgroundColor: "rgba(245, 158, 11, 0.12)",
+        borderColor: "rgba(245, 158, 11, 0.45)",
+      }}
     >
-      <View style={styles.row}>
-        <Phone size={20} color="#f59e0b" />
-        <View style={{ flex: 1 }}>
-          <Text style={[styles.title, { color: theme.text }]}>
+      <div className="flex flex-row items-start gap-2.5">
+        <Phone size={20} color="#f59e0b" className="mt-0.5 shrink-0" />
+        <div className="flex-1">
+          <p
+            className="text-sm font-bold"
+            style={{ color: theme.text }}
+          >
             Add a phone number
-          </Text>
-          <Text style={[styles.body, { color: theme.secondaryText }]}>
+          </p>
+          <p
+            className="mt-0.5 text-xs leading-[17px]"
+            style={{ color: theme.secondaryText }}
+          >
             Sellers call to confirm orders. Add a 10-digit mobile so they can
             reach you.
-          </Text>
-        </View>
-      </View>
+          </p>
+        </div>
+      </div>
 
       {editing ? (
-        <View style={styles.editRow}>
-          <View style={[
-              styles.inputBox,
-              { borderColor: "rgba(255,255,255,0.18)", backgroundColor: theme.cardBackground || "rgba(255,255,255,0.06)" },
-            ]}
+        <div className="flex flex-row items-center gap-2">
+          <div
+            className="flex h-[42px] flex-1 flex-row items-center rounded-[10px] border px-2.5"
+            style={{
+              borderColor: "rgba(255,255,255,0.18)",
+              backgroundColor:
+                theme.cardBackground || "rgba(255,255,255,0.06)",
+            }}
           >
-            <Phone size={16} color={theme.secondaryText} />
-            <Text style={{ color: theme.text, marginLeft: 6 }}>+91</Text>
+            <Phone size={16} color={theme.secondaryText} className="shrink-0" />
+            <span
+              className="ml-1.5 text-sm"
+              style={{ color: theme.text }}
+            >
+              +91
+            </span>
             {/* Lightweight inline input via a plain TextInput import */}
             <PhoneInputInline value={phone} onChange={setPhone} theme={theme} />
-          </View>
-          <TouchableOpacity onPress={handleSave}
+          </div>
+          <button
+            type="button"
+            onClick={handleSave}
             disabled={saving || phone.trim().length !== 10}
-            style={[
-              styles.saveBtn,
-              {
-                backgroundColor:
-                  phone.trim().length === 10 ? theme.primary : "rgba(255,255,255,0.1)",
-              },
-            ]}
+            className={cn("rounded-lg px-3.5 py-2.5")}
+            style={{
+              backgroundColor:
+                phone.trim().length === 10
+                  ? theme.primary
+                  : "rgba(255,255,255,0.1)",
+              opacity: saving || phone.trim().length !== 10 ? 0.6 : 1,
+              cursor:
+                saving || phone.trim().length !== 10
+                  ? "not-allowed"
+                  : "pointer",
+            }}
           >
-            <Text style={styles.saveBtnText}>{saving ? "…" : "Save"}</Text>
-          </TouchableOpacity>
-        </View>
+            <span className="font-bold" style={{ color: "#0f172a" }}>
+              {saving ? "…" : "Save"}
+            </span>
+          </button>
+        </div>
       ) : (
-        <View style={styles.actions}>
-          <TouchableOpacity onPress={() => {
+        <div className="flex flex-row items-center gap-3.5">
+          <button
+            type="button"
+            onClick={() => {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
               setEditing(true);
             }}
-            style={[styles.primaryBtn, { backgroundColor: theme.primary }]}
+            className="rounded-lg px-3.5 py-2"
+            style={{ backgroundColor: theme.primary }}
           >
-            <Text style={styles.primaryBtnText}>Add Phone</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => {
+            <span className="text-[13px] font-bold" style={{ color: "#0f172a" }}>
+              Add Phone
+            </span>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
               goTo(navigate, "/account/profile-info" as any);
             }}
+            className="bg-transparent"
           >
-            <Text style={{
-                color: theme.secondaryText,
-                fontSize: 12,
-                textDecorationLine: "underline",
-              }}
+            <span
+              className="text-xs underline"
+              style={{ color: theme.secondaryText }}
             >
               Update from profile
-            </Text>
-          </TouchableOpacity>
-        </View>
+            </span>
+          </button>
+        </div>
       )}
-    </View>
+    </div>
   );
 };
 
@@ -145,7 +173,7 @@ const PhoneInputInline: React.FC<{
   theme: any;
 }> = ({ value, onChange, theme }) => {
   return (
-    <View style={{ flex: 1, marginLeft: 6 }}>
+    <div className="ml-1.5 flex-1">
       <TextInput variant="glass"
         placeholder="10-digit mobile"
         keyboardType="phone-pad"
@@ -155,46 +183,6 @@ const PhoneInputInline: React.FC<{
         autoFocus
         editable
       />
-    </View>
+    </div>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    borderWidth: 1,
-    borderRadius: 12,
-    padding: 14,
-    marginBottom: 16,
-    gap: 12,
-  },
-  row: { flexDirection: "row", alignItems: "flex-start", gap: 10 },
-  title: { fontSize: 14, fontWeight: "700" },
-  body: { fontSize: 12, lineHeight: 17, marginTop: 2 },
-  actions: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 14,
-  },
-  primaryBtn: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 8,
-  },
-  primaryBtnText: { color: "#0f172a", fontWeight: "700", fontSize: 13 },
-  editRow: { flexDirection: "row", alignItems: "center", gap: 8 },
-  inputBox: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    borderWidth: 1,
-    borderRadius: 10,
-    paddingHorizontal: 10,
-    height: 42,
-  },
-  saveBtn: {
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 8,
-  },
-  saveBtnText: { color: "#0f172a", fontWeight: "700" },
-});

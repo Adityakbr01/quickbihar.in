@@ -1,39 +1,23 @@
 import React, { useEffect, useState } from "react";
-import {
-  ActivityIndicator,
-  Keyboard,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
-} from "@/components/primitives";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AppIcon } from "@/src/components/common/AppIcon";
 import { CircleAlert, ShieldCheck, X } from "lucide-react";
 import * as Haptics from "@/lib/haptics";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
-import { createAccountStyles } from "../styles/accountStyles";
 import IOSAlertDialog from "@/src/components/ui/IOSAlertDialog";
 import { profileSchema, ProfileFormValues } from "../schema/account.schema";
 import { useAccount } from "../hooks/useAccount";
 import { useAccountStore } from "../store/accountStore";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
-import {
-  Sheet,
-  SheetHeader,
-  useSheet,
-} from "@/src/components/common/BottomSheet";
 import PhoneOtpSheet from "@/src/features/common/address/components/PhoneOtpSheet";
 import { TextInput } from "@/src/theme/components/TextInput";
 
 const EditProfileModal = () => {
-  const theme = useTheme();
-  const styles = createAccountStyles(theme);
+  const theme = useTheme() as any;
   const user = useAuthStore((state) => state.user);
   const isVisible = useAccountStore((state) => state.isEditModalVisible);
   const setVisible = useAccountStore((state) => state.setEditModalVisible);
-  const sheet = useSheet();
 
   // Alert State
   const [alertVisible, setAlertVisible] = useState(false);
@@ -75,15 +59,6 @@ const EditProfileModal = () => {
     }
   }, [isVisible, user, reset]);
 
-  // Imperative present/dismiss from the store `isVisible` flag.
-  useEffect(() => {
-    if (isVisible) {
-      sheet.current?.present();
-    } else {
-      sheet.current?.dismiss();
-    }
-  }, [isVisible, sheet]);
-
   const phoneChanged = currentPhone !== (user?.phone || "");
   const isPhoneVerified = verifiedPhone !== null && verifiedPhone === currentPhone;
 
@@ -103,7 +78,7 @@ const EditProfileModal = () => {
       return;
     }
 
-    Keyboard.dismiss();
+    (document.activeElement as HTMLElement | null)?.blur?.();
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
 
     updateProfile.mutate(data, {
@@ -135,100 +110,136 @@ const EditProfileModal = () => {
 
   return (
     <>
-      <Sheet ref={sheet}
-        onDidDismiss={() => setVisible(false)}
-        backgroundColor={theme.background}
-      >
-        <SheetHeader title="Edit Profile"
-          right={
-            <TouchableOpacity
-              onPress={() => setVisible(false)}
-              style={styles.closeButton}
-            >
-              <AppIcon icon={X} size={24} color={theme.text} />
-            </TouchableOpacity>
-          }
-        />
-
-        <ScrollView keyboardShouldPersistTaps="handled"
-          contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 10 }}
+      {isVisible && (
+        <div
+          className="fixed inset-0 z-[100] flex items-end justify-center bg-black/50"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Edit Profile"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setVisible(false);
+          }}
         >
-          {/* Full Name Field */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>Full Name</Text>
-            <Controller control={control}
-              name="fullName"
-              render={({ field: { onChange, onBlur, value } }) => (
-                <TextInput onBlur={onBlur}
-                  onChangeText={onChange}
-                  value={value}
-                  placeholder="Enter your full name"
-                  placeholderTextColor={theme.tertiaryText}
-                  error={errors.fullName?.message}
-                  containerStyle={{ marginBottom: 0 }}
-                  style={{ color: theme.text }}
-                />
-              )}
-            />
-          </View>
-
-          {/* Phone Field — read-only; user must tap Verify/Change to update via OTP */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>Phone Number</Text>
-            <View style={{ flexDirection: "row", gap: 8, alignItems: "center" }}>
-              <TextInput value={currentPhone}
-                placeholder="Tap 'Verify' to add"
-                placeholderTextColor={theme.tertiaryText}
-                editable={false}
-                keyboardType="phone-pad"
-                error={errors.phone?.message}
-                containerStyle={{ marginBottom: 0, flex: 1 }}
+          <div
+            className="max-h-[85vh] w-full max-w-lg overflow-hidden rounded-t-3xl"
+            style={{ backgroundColor: theme.background }}
+          >
+            {/* Header */}
+            <div className="flex flex-row items-center justify-between px-6 pb-2 pt-4">
+              <h3
+                className="text-xl font-bold"
                 style={{ color: theme.text }}
-              />
-              <TouchableOpacity onPress={() => setOtpSheetVisible(true)}
+              >
+                Edit Profile
+              </h3>
+              <button
+                type="button"
+                onClick={() => setVisible(false)}
+                aria-label="Close edit profile"
+                className="rounded-full p-1 transition active:opacity-70"
+              >
+                <AppIcon icon={X} size={24} color={theme.text} />
+              </button>
+            </div>
+
+            <div className="overflow-y-auto px-6 pb-2.5">
+              {/* Full Name Field */}
+              <div className="mb-5">
+                <p
+                  className="mb-2 text-sm font-semibold"
+                  style={{ color: theme.secondaryText }}
+                >
+                  Full Name
+                </p>
+                <Controller control={control}
+                  name="fullName"
+                  render={({ field: { onChange, onBlur, value } }) => (
+                    <TextInput onBlur={onBlur}
+                      onChangeText={onChange}
+                      value={value}
+                      placeholder="Enter your full name"
+                      placeholderTextColor={theme.tertiaryText}
+                      error={errors.fullName?.message}
+                      containerStyle={{ marginBottom: 0 }}
+                      style={{ color: theme.text }}
+                    />
+                  )}
+                />
+              </div>
+
+              {/* Phone Field — read-only; user must tap Verify/Change to update via OTP */}
+              <div className="mb-5">
+                <p
+                  className="mb-2 text-sm font-semibold"
+                  style={{ color: theme.secondaryText }}
+                >
+                  Phone Number
+                </p>
+                <div className="flex flex-row items-center gap-2">
+                  <TextInput value={currentPhone}
+                    placeholder="Tap 'Verify' to add"
+                    placeholderTextColor={theme.tertiaryText}
+                    editable={false}
+                    keyboardType="phone-pad"
+                    error={errors.phone?.message}
+                    containerStyle={{ marginBottom: 0, flex: 1 }}
+                    style={{ color: theme.text }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setOtpSheetVisible(true)}
+                    className="rounded-[10px] border px-3.5 py-2.5 text-[13px] font-bold transition active:opacity-70"
+                    style={{
+                      backgroundColor: theme.primary + "18",
+                      borderColor: theme.primary + "44",
+                      color: theme.primary,
+                    }}
+                  >
+                    {user?.isPhoneVerified && !phoneChanged ? "Change" : "Verify"}
+                  </button>
+                </div>
+                {isPhoneVerified ? (
+                  <div className="mt-1.5 flex flex-row items-center gap-1.5">
+                    <ShieldCheck size={14} color="#16a34a" />
+                    <span className="text-xs font-bold" style={{ color: "#16a34a" }}>
+                      Verified
+                    </span>
+                  </div>
+                ) : phoneChanged ? (
+                  <div className="mt-1.5 flex flex-row items-center gap-1">
+                    <CircleAlert size={14} color="#ea580c" />
+                    <span className="text-xs font-semibold" style={{ color: "#ea580c" }}>
+                      Please verify this number before saving
+                    </span>
+                  </div>
+                ) : null}
+              </div>
+
+              <button
+                type="button"
+                onClick={handleSubmit(onSubmit)}
+                disabled={isUpdating}
+                className="mt-3 flex h-14 w-full flex-row items-center justify-center rounded-2xl text-base font-bold text-white transition active:opacity-90 disabled:opacity-70"
                 style={{
-                  paddingHorizontal: 14,
-                  paddingVertical: 10,
-                  borderRadius: 10,
-                  backgroundColor: theme.primary + "18",
-                  borderWidth: 1,
-                  borderColor: theme.primary + "44",
+                  backgroundColor: theme.primary,
+                  boxShadow: "0 4px 8px rgba(0,0,0,0.3)",
+                  opacity: isUpdating ? 0.7 : 1,
                 }}
               >
-                <Text style={{ color: theme.primary, fontWeight: "700", fontSize: 13 }}>
-                  {user?.isPhoneVerified && !phoneChanged ? "Change" : "Verify"}
-                </Text>
-              </TouchableOpacity>
-            </View>
-            {isPhoneVerified ? (
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 5, marginTop: 5 }}>
-                <ShieldCheck size={14} color="#16a34a" />
-                <Text style={{ color: "#16a34a", fontSize: 12, fontWeight: "700" }}>
-                  Verified
-                </Text>
-              </View>
-            ) : phoneChanged ? (
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 5 }}>
-                <CircleAlert size={14} color="#ea580c" />
-                <Text style={{ color: "#ea580c", fontSize: 12, fontWeight: "600" }}>
-                  Please verify this number before saving
-                </Text>
-              </View>
-            ) : null}
-          </View>
-
-          <TouchableOpacity style={[styles.saveButton, isUpdating && { opacity: 0.7 }]}
-            onPress={handleSubmit(onSubmit)}
-            disabled={isUpdating}
-          >
-            {isUpdating ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.saveButtonText}>Save Changes</Text>
-            )}
-          </TouchableOpacity>
-        </ScrollView>
-      </Sheet>
+                {isUpdating ? (
+                  <span
+                    role="status"
+                    aria-label="Saving profile"
+                    className="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white"
+                  />
+                ) : (
+                  "Save Changes"
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <IOSAlertDialog visible={alertVisible}
         onClose={handleAlertClose}

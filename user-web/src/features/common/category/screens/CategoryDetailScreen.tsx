@@ -1,6 +1,4 @@
 import React, { useMemo } from "react";
-import { ActivityIndicator, FlatList, Text, TouchableOpacity, View } from "@/components/primitives";
-
 import { ChevronLeft } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -70,11 +68,19 @@ const CategoryDetailScreen: React.FC<CategoryDetailScreenProps> = ({ slug }) => 
 
   if (categoryQuery.isLoading) {
     return (
-      <>
-        <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-          <ActivityIndicator size="large" color={theme.primary} />
-        </View>
-      </>
+      <div className="flex flex-1 items-center justify-center">
+        <span
+          className="animate-spin rounded-full"
+          style={{
+            width: 36,
+            height: 36,
+            borderWidth: 3,
+            borderStyle: "solid",
+            borderColor: theme.primary,
+            borderTopColor: "transparent",
+          }}
+        />
+      </div>
     );
   }
 
@@ -82,12 +88,12 @@ const CategoryDetailScreen: React.FC<CategoryDetailScreenProps> = ({ slug }) => 
     return (
       <>
         <SeoHead meta={{ ...meta, robots: "noindex, nofollow" }} />
-        <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: 24 }}>
-          <Text style={{ fontSize: 18, fontWeight: "700", color: theme.text, marginBottom: 8 }}>
+        <div className="flex flex-1 flex-col items-center justify-center p-6">
+          <p className="mb-2 text-lg font-bold" style={{ color: theme.text }}>
             Category not found
-          </Text>
+          </p>
           <Link to={toWebPath("/(tabs)/clothing/home")}>Back to home</Link>
-        </View>
+        </div>
       </>
     );
   }
@@ -95,73 +101,72 @@ const CategoryDetailScreen: React.FC<CategoryDetailScreenProps> = ({ slug }) => 
   return (
     <>
       <SeoHead meta={meta} jsonLd={jsonLd} />
-      <FlatList data={products}
-        keyExtractor={(item) => item._id}
-        numColumns={2}
-        columnWrapperStyle={{ gap: 12, paddingHorizontal: 16 }}
-        
-        ListHeaderComponent={
-          <View style={{ padding: 16 }}>
-            <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 12 }}>
-              <TouchableOpacity onPress={handleBack}
-                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                activeOpacity={0.7}
-                accessibilityRole="button"
-                accessibilityLabel="Go back"
-              >
-                <ChevronLeft size={24} color={theme.text} />
-              </TouchableOpacity>
-              <View style={{ flexDirection: "row", alignItems: "center", marginLeft: 8 }}>
-                <Link to="/">Home</Link>
-                <Text style={{ color: theme.secondaryText }}>{"  ›  "}</Text>
-                <Text style={{ color: theme.secondaryText }}>{category.title}</Text>
-              </View>
-            </View>
-            <Text accessibilityRole="header" style={{ fontSize: 24, fontWeight: "800", color: theme.text, marginBottom: 4 }}>
-              {category.title}
-            </Text>
-            {!!category.description && (
-              <Text style={{ color: theme.secondaryText, marginBottom: 8 }}>{category.description}</Text>
-            )}
-            <Text style={{ color: theme.secondaryText, marginBottom: 4 }}>
-              {productsQuery.isLoading ? "Loading products…" : `${products.length} product${products.length === 1 ? "" : "s"}`}
-            </Text>
-          </View>
-        }
-        renderItem={({ item }) => (
-          <Link to={toWebPath({ pathname: "/product/[id]", params: { id: item.slug || item._id } })}
-            style={{ flex: 1, marginBottom: 12 }}
-          >
-            <View style={{
-                backgroundColor: theme.background,
-                borderColor: theme.border,
-                borderWidth: 1,
-                borderRadius: 12,
-                overflow: "hidden",
-              }}
+      <div>
+        <div className="p-4">
+          <div className="mb-3 flex flex-row items-center">
+            <button
+              type="button"
+              onClick={handleBack}
+              aria-label="Go back"
+              className="flex items-center justify-center"
             >
-              <img src={item.images?.[0]?.url} alt={`${item.title}`} style={Object.assign({}, { width: "100%", height: 180 }, { objectFit: "cover" as const })} />
-              <View style={{ padding: 8 }}>
-                <Text numberOfLines={1} style={{ fontWeight: "600", color: theme.text }}>
-                  {item.brand || "QuickBihar"}
-                </Text>
-                <Text numberOfLines={2} style={{ color: theme.text }}>
-                  {item.title}
-                </Text>
-                <Text style={{ fontWeight: "700", color: theme.text }}>₹{item.price}</Text>
-              </View>
-            </View>
-          </Link>
-        )}
-        ListEmptyComponent={
-          !productsQuery.isLoading ? (
-            <View style={{ alignItems: "center", padding: 24 }}>
-              <Text style={{ color: theme.secondaryText }}>No products in this category yet.</Text>
-              <Link to={toWebPath("/(tabs)/clothing/home")}>Browse the home feed</Link>
-            </View>
-          ) : null
-        }
-      />
+              <ChevronLeft size={24} color={theme.text} />
+            </button>
+            <div className="ml-2 flex flex-row items-center">
+              <Link to="/">Home</Link>
+              <span style={{ color: theme.secondaryText }}>{"  ›  "}</span>
+              <span style={{ color: theme.secondaryText }}>{category.title}</span>
+            </div>
+          </div>
+          <h1 className="mb-1 text-2xl font-extrabold" style={{ color: theme.text }}>
+            {category.title}
+          </h1>
+          {!!category.description && (
+            <p className="mb-2" style={{ color: theme.secondaryText }}>{category.description}</p>
+          )}
+          <p className="mb-1" style={{ color: theme.secondaryText }}>
+            {productsQuery.isLoading ? "Loading products…" : `${products.length} product${products.length === 1 ? "" : "s"}`}
+          </p>
+        </div>
+        <div className="grid grid-cols-2 gap-3 px-4 pb-8">
+          {products.map((item) => (
+            <Link
+              key={item._id}
+              to={toWebPath({ pathname: "/product/[id]", params: { id: item.slug || item._id } })}
+              className="mb-3 block"
+            >
+              <div
+                className="overflow-hidden rounded-xl border"
+                style={{
+                  backgroundColor: theme.background,
+                  borderColor: theme.border,
+                }}
+              >
+                <img
+                  src={item.images?.[0]?.url}
+                  alt={`${item.title}`}
+                  className="h-[180px] w-full object-cover"
+                />
+                <div className="p-2">
+                  <p className="line-clamp-1 font-semibold" style={{ color: theme.text }}>
+                    {item.brand || "QuickBihar"}
+                  </p>
+                  <p className="line-clamp-2" style={{ color: theme.text }}>
+                    {item.title}
+                  </p>
+                  <p className="font-bold" style={{ color: theme.text }}>₹{item.price}</p>
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+        {!productsQuery.isLoading && products.length === 0 ? (
+          <div className="flex flex-col items-center p-6">
+            <p style={{ color: theme.secondaryText }}>No products in this category yet.</p>
+            <Link to={toWebPath("/(tabs)/clothing/home")}>Browse the home feed</Link>
+          </div>
+        ) : null}
+      </div>
     </>
   );
 };
