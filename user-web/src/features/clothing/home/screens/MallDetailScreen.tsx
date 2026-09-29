@@ -17,8 +17,6 @@ import { Link, useNavigate } from "react-router-dom";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { useMallDetail, useSubmitMallReview } from "../hooks/useMalls";
 import { TextInput } from "@/src/theme/components/TextInput";
-import { SeoHead } from "@/src/components/seo/SeoHead";
-import { breadcrumbJsonLd, mallJsonLd, mallMeta } from "@/src/lib/seo";
 import { Gradient } from "@/src/components/common/Gradient";
 import Carousel from "@/src/components/common/EmblaCarousel";
 import * as Haptics from "@/lib/haptics";
@@ -27,14 +25,10 @@ import { useAuthStore } from "@/src/features/common/auth/store/authStore";
 
 interface MallDetailScreenProps {
   id: string;
-  /** Build-time manifest data for SSG — used for the initial SeoHead render
-   * before useMallDetail resolves. Never affects interactive UI behaviour. */
-  initialMall?: any;
 }
 
 const MallDetailScreen: React.FC<MallDetailScreenProps> = ({
   id,
-  initialMall,
 }) => {
   const navigate = useNavigate();
   const theme = useTheme() as any;
@@ -50,8 +44,6 @@ const MallDetailScreen: React.FC<MallDetailScreenProps> = ({
   const { data, isLoading, isError } = useMallDetail(id);
   const submitReviewMutation = useSubmitMallReview(id);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
-  // Use manifest seed for the initial SSG pass; live query takes over post-hydration.
-  const seoMall = data?.mall || initialMall;
 
   // Review states
   const [showReviewForm, setShowReviewForm] = useState(false);
@@ -59,29 +51,12 @@ const MallDetailScreen: React.FC<MallDetailScreenProps> = ({
   const [comment, setComment] = useState("");
   const [activeImageIndex, setActiveImageIndex] = useState(0);
 
-  // ── SEO (web head tags) ──
-  // seoMall: manifest seed at SSG time, live data?.mall post-hydration.
-  // Computed ABOVE guards so SeoHead renders even during the loading/error state at SSG.
-  const seoMeta = seoMall ? mallMeta(seoMall) : null;
-  const seoJsonLd = seoMeta
-    ? [
-        mallJsonLd(seoMall, seoMeta.canonical),
-        breadcrumbJsonLd(seoMeta.canonical, [
-          { name: "Home", path: "/" },
-          { name: "Malls", path: "/mall" },
-          { name: seoMall?.name || "Mall" },
-        ]),
-      ]
-    : [];
-
   if (isLoading) {
     return (
-      <>
-        {seoMeta && <SeoHead meta={seoMeta} jsonLd={seoJsonLd} />}
-        <div
-          className="flex flex-1 flex-col items-center justify-center"
-          style={{ backgroundColor: theme.background }}
-        >
+      <div
+        className="flex flex-1 flex-col items-center justify-center"
+        style={{ backgroundColor: theme.background }}
+      >
           <span
             className="block h-9 w-9 animate-spin rounded-full border-[5px] border-t-transparent"
             style={{
@@ -96,18 +71,15 @@ const MallDetailScreen: React.FC<MallDetailScreenProps> = ({
             Loading Mall details...
           </p>
         </div>
-      </>
     );
   }
 
   if (isError || !data) {
     return (
-      <>
-        {seoMeta && <SeoHead meta={seoMeta} jsonLd={seoJsonLd} />}
-        <div
-          className="flex flex-1 flex-col items-center justify-center p-6"
-          style={{ backgroundColor: theme.background }}
-        >
+      <div
+        className="flex flex-1 flex-col items-center justify-center p-6"
+        style={{ backgroundColor: theme.background }}
+      >
           <CircleAlert size={60} color={theme.primary} />
           <p
             className="mt-4 text-center text-base font-medium"
@@ -124,7 +96,6 @@ const MallDetailScreen: React.FC<MallDetailScreenProps> = ({
             Go Back
           </button>
         </div>
-      </>
     );
   }
 
@@ -199,12 +170,10 @@ const MallDetailScreen: React.FC<MallDetailScreenProps> = ({
   };
 
   return (
-    <>
-      {seoMeta && <SeoHead meta={seoMeta} jsonLd={seoJsonLd} />}
-      <div
-        className="flex-1 overflow-y-auto"
-        style={{ backgroundColor: theme.background }}
-      >
+    <div
+      className="flex-1 overflow-y-auto"
+      style={{ backgroundColor: theme.background }}
+    >
         {/* Cover Image Slider & Header */}
         <div className="relative h-[300px] w-full">
           <Carousel
@@ -713,7 +682,6 @@ const MallDetailScreen: React.FC<MallDetailScreenProps> = ({
           </div>
         </div>
       </div>
-    </>
   );
 };
 

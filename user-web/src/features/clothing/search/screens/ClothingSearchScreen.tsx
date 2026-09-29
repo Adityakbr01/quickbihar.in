@@ -17,8 +17,6 @@ import SearchHeader from "@/src/features/clothing/search/components/SearchHeader
 import RecentSearches from "@/src/features/clothing/search/components/RecentSearches";
 import TrendingSection from "@/src/features/clothing/search/components/TrendingSection";
 import SearchResults from "@/src/features/clothing/search/components/SearchResults";
-import { SeoHead } from "@/src/components/seo/SeoHead";
-import { staticPageMeta } from "@/src/lib/seo";
 import { cn } from "@/src/lib/utils";
 
 const TRENDING_ITEMS = categoriesData.map((c) => c.title);
@@ -135,23 +133,7 @@ const ClothingSearchScreen = () => {
   };
 
   return (
-    <>
-      <SeoHead
-        meta={(() => {
-          const hasQueryParams = Boolean(initialQuery || categoryId || categoryName || subCategory);
-          const base = staticPageMeta({
-            title: "Search Fashion Online in Bihar | QuickBihar",
-            description:
-              "Search clothes, ethnic wear and accessories from local Bihar stores on QuickBihar.",
-            path: "/clothing/search",
-            keywords:
-              "search clothing Bihar, search products QuickBihar, buy online Patna, buy online Buxar, ethnic wear Bihar, clothes shopping app, local stores delivery",
-          });
-          if (hasQueryParams) base.robots = "noindex, nofollow";
-          return base;
-        })()}
-      />
-      <div className="flex-1" style={{ backgroundColor: theme.background }}>
+    <div className="flex-1" style={{ backgroundColor: theme.background }}>
         {/* Desktop: centered 1280px column; mobile renders edge-to-edge. */}
         <div className={cn("flex-1", isDesktop && "mx-auto w-full max-w-[1280px] px-6")}>
           <SearchHeader
@@ -205,7 +187,6 @@ const ClothingSearchScreen = () => {
           </div>
         </div>
       </div>
-    </>
   );
 };
 

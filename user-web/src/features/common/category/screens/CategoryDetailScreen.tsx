@@ -6,14 +6,6 @@ import * as Haptics from "@/lib/haptics";
 
 import { goBack, toWebPath } from "@/src/utils/navigation";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
-import { SeoHead } from "@/src/components/seo/SeoHead";
-import {
-  breadcrumbJsonLd,
-  categoryMeta,
-  isIndexableCategory,
-  itemListJsonLd,
-  canonicalUrl,
-} from "@/src/lib/seo";
 import { useCategoryBySlug } from "../hooks/useCategories";
 import { getPublicProductsRequest } from "@/src/features/clothing/product/api/product.api";
 import type { IProduct } from "@/src/features/clothing/product/types/product.types";
@@ -45,22 +37,6 @@ const CategoryDetailScreen: React.FC<CategoryDetailScreenProps> = ({ slug }) => 
   });
   const products: IProduct[] = useMemo(() => productsQuery.data?.data ?? [], [productsQuery.data]);
 
-  const indexable = isIndexableCategory(category, products.length);
-  const meta = categoryMeta({ ...(category || {}), slug });
-  if (!indexable) meta.robots = "noindex, nofollow";
-
-  const items = products.map((p) => ({
-    name: p.title,
-    url: canonicalUrl(`/product/${p.slug || p._id}`),
-    image: p.images?.[0]?.url,
-  }));
-  const jsonLd = indexable
-    ? [
-      itemListJsonLd({ name: category?.title || slug, description: category?.description, canonical: meta.canonical, items }),
-      breadcrumbJsonLd(meta.canonical, [{ name: "Home", path: "/" }, { name: category?.title || slug }]),
-    ]
-    : undefined;
-
   const handleBack = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     goBack(navigate);
@@ -86,22 +62,17 @@ const CategoryDetailScreen: React.FC<CategoryDetailScreenProps> = ({ slug }) => 
 
   if (categoryQuery.isError || !category) {
     return (
-      <>
-        <SeoHead meta={{ ...meta, robots: "noindex, nofollow" }} />
-        <div className="flex flex-1 flex-col items-center justify-center p-6">
+      <div className="flex flex-1 flex-col items-center justify-center p-6">
           <p className="mb-2 text-lg font-bold" style={{ color: theme.text }}>
             Category not found
           </p>
           <Link to={toWebPath("/(tabs)/clothing/home")}>Back to home</Link>
         </div>
-      </>
     );
   }
 
   return (
-    <>
-      <SeoHead meta={meta} jsonLd={jsonLd} />
-      <div>
+    <div>
         <div className="p-4">
           <div className="mb-3 flex flex-row items-center">
             <button
@@ -167,7 +138,6 @@ const CategoryDetailScreen: React.FC<CategoryDetailScreenProps> = ({ slug }) => 
           </div>
         ) : null}
       </div>
-    </>
   );
 };
 

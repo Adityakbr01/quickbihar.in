@@ -7,7 +7,6 @@ import {
   useParams,
   useLocation,
 } from "react-router-dom";
-import { HelmetProvider } from "react-helmet-async";
 import { QueryProvider } from "@/src/provider/QueryProvider";
 import { ThemeProvider, useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { SocketListenerProvider } from "@/src/provider/SocketListenerProvider";
@@ -262,15 +261,13 @@ export default function App() {
 
   return (
     <ErrorBoundary>
-      <HelmetProvider>
-        <BrowserRouter>
-          <QueryProvider>
-            <ThemeProvider>
-              <MainLayout />
-            </ThemeProvider>
-          </QueryProvider>
-        </BrowserRouter>
-      </HelmetProvider>
+      <BrowserRouter>
+        <QueryProvider>
+          <ThemeProvider>
+            <MainLayout />
+          </ThemeProvider>
+        </QueryProvider>
+      </BrowserRouter>
     </ErrorBoundary>
   );
 }

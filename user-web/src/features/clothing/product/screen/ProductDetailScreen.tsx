@@ -24,8 +24,6 @@ import { SimilarProducts } from "./ProductDetail/components/SimilarProducts";
 import ProductDetailSkeleton from "./ProductDetail/components/ProductDetailSkeleton";
 import SizeChartModal from "../components/modals/SizeChartModal";
 import { WriteReviewModal } from "../components/modals/WriteReviewModal";
-import { SeoHead } from "@/src/components/seo/SeoHead";
-import { breadcrumbJsonLd, productJsonLd, productMeta } from "@/src/lib/seo";
 import { useWishlistStore } from "@/src/features/common/wishlist/store/wishlistStore";
 import { useCartStore } from "@/src/features/common/cart/store/cartStore";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
@@ -38,21 +36,15 @@ import { useStickyBarBottomOffset } from "@/src/utils/responsive";
 
 interface ProductDetailProps {
   id: string;
-  /** Build-time manifest data for SSG — used for the initial SeoHead render
-   * before useProductById resolves. Never affects interactive UI behaviour. */
-  initialProduct?: Partial<IProduct>;
 }
 
 const AVATAR_COLORS = ["#3B82F6", "#10B981", "#8B5CF6", "#F59E0B", "#EC4899", "#6366F1"];
 
-const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct }) => {
+const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
   const navigate = useNavigate();
   const theme = useTheme() as any;
   const isDark = theme.text === "#ffffff" || theme.background === "#0f0f0f";
   const { data: product, isLoading } = useProductById(id);
-  // Use manifest seed for the initial SSG pass; live query takes over post-hydration.
-  // ponytail: single guard here rather than per-caller; initialProduct is SSG-only.
-  const seoProduct = (product || initialProduct) as IProduct | undefined;
   const { data: similarProducts } = useSimilarProducts(id);
   const { data: reviewsData } = useProductReviews(id);
 
@@ -325,28 +317,15 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
   const storeObj = typeof dp.storeId === "object" ? dp.storeId : null;
   const sellerObj = typeof dp.sellerId === "object" ? dp.sellerId : null;
 
-  // ── SEO (web head tags) ──
-  // Computed ABOVE the loading guard so SeoHead renders at SSG time even when
-  // product is undefined (initialProduct is the manifest seed at that point).
-  const seoMeta = seoProduct ? productMeta(seoProduct) : null;
-  const seoJsonLd = seoMeta ? [
-    productJsonLd(seoProduct, seoMeta.canonical),
-    breadcrumbJsonLd(seoMeta.canonical, [{ name: "Home", path: "/" }, { name: seoProduct?.title || "Product" }]),
-  ] : [];
-
   // ── Loading State ──
   if (isLoading || !product) {
     return (
-      <>
-        {seoMeta && <SeoHead meta={seoMeta} jsonLd={seoJsonLd} />}
-        <ProductDetailSkeleton theme={theme} onBack={() => goBack(navigate)} />
-      </>
+      <ProductDetailSkeleton theme={theme} onBack={() => goBack(navigate)} />
     );
   }
 
   return (
     <>
-      {seoMeta && <SeoHead meta={seoMeta} jsonLd={seoJsonLd} />}
       <div className="flex-1">
         {/* ═══════════════════════════════════════════
             IMAGE GALLERY
