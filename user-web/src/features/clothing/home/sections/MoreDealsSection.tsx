@@ -177,19 +177,21 @@ export const MoreDealsFilters = ({
                 <AppIcon
                   icon={filter.icon}
                   size={14}
-                  color={isActive ? "#fff" : theme.iconColor}
+                  // Active pill bg is lime primary (#80c314): near-black
+                  // icon/text keeps ≥4.5:1 (white on lime is ~2.1:1).
+                  color={isActive ? "#142000" : theme.iconColor}
                 />
               )}
               <span
                 className="text-[13px] font-semibold"
-                style={{ color: isActive ? "#fff" : theme.text }}
+                style={{ color: isActive ? "#142000" : theme.text }}
               >
                 {filter.displayTitle}
               </span>
               {isDropdown && (
                 <ChevronDown
                   size={14}
-                  color={isActive ? "#fff" : theme.iconColor}
+                  color={isActive ? "#142000" : theme.iconColor}
                 />
               )}
             </button>
@@ -272,13 +274,27 @@ export const MoreDealsGrid = ({
           <Search size={48} color={theme.tertiaryText} />
           <p
             className="mt-4 text-base font-semibold"
-            style={{ color: theme.secondaryText }}
+            // Same per-theme contrast rule as the hint below (secondaryText
+            // is ~3.5:1 on the dark bg).
+            style={{
+              color:
+                (theme as any)?.isDark ?? theme?.text === "#ffffff"
+                  ? "#c7c7cc"
+                  : "#3a3a3c",
+            }}
           >
             No products found
           </p>
           <p
             className="mt-2 px-10 text-center text-sm"
-            style={{ color: theme.tertiaryText }}
+            // tertiaryText (#636366) is only 3.2:1 on the dark bg —
+            // dark needs #a1a1a6 (≈5.3:1), light keeps #636366 (≈5.9:1).
+            style={{
+              color:
+                (theme as any)?.isDark ?? theme?.text === "#ffffff"
+                  ? "#a1a1a6"
+                  : "#636366",
+            }}
           >
             {
               "Try adjusting your search or filters to find what you're looking for."

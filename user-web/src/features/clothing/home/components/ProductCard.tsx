@@ -105,7 +105,6 @@ export const ProductCard = ({ item, desktopWidth }: ProductCardProps) => {
     <div
       role="link"
       tabIndex={0}
-      aria-label={productData.title}
       title={`View ${productData.title} on QuickBihar`}
       onClick={() => {
         // Canonical slug URL for navigation (wishlist/cart keys above stay id-based).
@@ -136,7 +135,7 @@ export const ProductCard = ({ item, desktopWidth }: ProductCardProps) => {
         />
 
         {productData.discount ? (
-          <div className="absolute top-2 left-2 z-10 rounded-md bg-red-500 px-1.5 py-0.5">
+          <div className="absolute top-2 left-2 z-10 rounded-md bg-red-600 px-1.5 py-0.5">
             <span className="text-[10px] font-extrabold tracking-wide text-white">{productData.discount}</span>
           </div>
         ) : null}

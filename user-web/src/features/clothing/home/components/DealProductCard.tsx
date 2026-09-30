@@ -111,7 +111,6 @@ export const DealProductCard = ({ product, width }: DealProductCardProps) => {
     <div
       role="link"
       tabIndex={0}
-      aria-label={productData.title}
       title={`Shop ${productData.title} on QuickBihar`}
       onClick={() => {
         const pid = (product as IProduct).slug || (product as IProduct)._id || 'mock';
@@ -144,7 +143,7 @@ export const DealProductCard = ({ product, width }: DealProductCardProps) => {
 
         {/* Top-Left Discount Badge */}
         {productData.discount ? (
-          <div className="absolute top-2 left-2 z-10 rounded-md bg-red-500 px-1.5 py-0.5">
+          <div className="absolute top-2 left-2 z-10 rounded-md bg-red-600 px-1.5 py-0.5">
             <span className="text-[10px] font-extrabold tracking-wide text-white">{productData.discount}</span>
           </div>
         ) : null}

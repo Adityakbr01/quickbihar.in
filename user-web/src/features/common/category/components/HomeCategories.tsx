@@ -218,7 +218,7 @@ const HomeCategories = ({ rootSlug = "clothing" }: { rootSlug?: string }) => {
             className="absolute top-8 left-7 z-[5] flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border shadow-lg"
             style={{ backgroundColor: theme.background, borderColor: theme.border }}
           >
-            <span className="-mt-[3px] text-[26px] font-extrabold leading-[30px]" style={{ color: theme.text }}>‹</span>
+            <span aria-hidden="true" className="-mt-[3px] text-[26px] font-extrabold leading-[30px]" style={{ color: theme.text }}>‹</span>
           </button>
           <button
             type="button"
@@ -227,7 +227,7 @@ const HomeCategories = ({ rootSlug = "clothing" }: { rootSlug?: string }) => {
             className="absolute top-8 right-7 z-[5] flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border shadow-lg"
             style={{ backgroundColor: theme.background, borderColor: theme.border }}
           >
-            <span className="-mt-[3px] text-[26px] font-extrabold leading-[30px]" style={{ color: theme.text }}>›</span>
+            <span aria-hidden="true" className="-mt-[3px] text-[26px] font-extrabold leading-[30px]" style={{ color: theme.text }}>›</span>
           </button>
         </div>
       </div>

@@ -52,7 +52,6 @@ export const MoreDealsHeader = ({
       <button
         key={camp.id}
         type="button"
-        aria-label={`View ${camp.title} Deals`}
         title={`Explore ${camp.title} Deals on QuickBihar`}
         onClick={() => handlePress(camp.id)}
         className="cursor-pointer"

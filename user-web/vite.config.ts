@@ -135,6 +135,11 @@ export default defineConfig(({ mode }) => {
       'process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID': JSON.stringify(googleIosClientId),
       'process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID': JSON.stringify(googleAndroidClientId),
     },
+    // Lab audits (scripts/lab-gateway.mjs) serve dist/ same-origin with
+    // /api proxied, reproducing production topology. No preview tweaks here:
+    // Vite 8 serves its SPA fallback BEFORE plugin middlewares run and its
+    // `preview.proxy` option is silently inert (both verified empirically),
+    // so in-process preview proxying is a dead end — use the gateway.
     build: {
       minify: 'esbuild',
       cssMinify: true,

@@ -82,6 +82,7 @@ const JeweleryTabBar: React.FC<{
       className="fixed right-0 bottom-0 left-0 z-[9999] flex h-[calc(60px+env(safe-area-inset-bottom))] max-h-[calc(60px+env(safe-area-inset-bottom))] min-h-[calc(60px+env(safe-area-inset-bottom))] shrink-0 flex-row items-center justify-around overflow-hidden border-t px-0 py-1 shadow-[0_-3px_6px_rgba(0,0,0,0.1)]"
       style={{ backgroundColor: colors.ivory, borderTopColor: colors.midGray }}
       aria-label="Jewelery tabs"
+      role="tablist"
     >
       {tabs.map((tab) => {
         const active = isActive(tab.route);
@@ -264,13 +265,20 @@ export const BottomTabBar: React.FC = () => {
         borderTopColor: theme.border || "rgba(0,0,0,0.08)",
       }}
       aria-label="Main tabs"
+      role="tablist"
     >
       {tabs.map((tab) => {
         const active = isTabActive(tab.route);
         const TabIcon = active ? tab.activeIcon : tab.icon;
+        // Inactive tabs must keep ≥4.5:1 contrast in BOTH themes: dark needs
+        // the lighter gray (#a1a1a6 on near-black ≈ 5.3:1), light needs the
+        // darker one (#636366 on white ≈ 5.9:1).
+        const isDark = (theme as any).isDark ?? theme.text === "#ffffff";
         const color = active
           ? theme.primary || theme.iconColor || "#4F46E5"
-          : theme.tertiaryText || "#8E8E93";
+          : isDark
+            ? "#a1a1a6"
+            : "#636366";
 
         return (
           <button

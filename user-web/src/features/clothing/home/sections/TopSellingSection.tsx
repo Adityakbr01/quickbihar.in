@@ -164,7 +164,7 @@ const TopSellingSection = ({ category }: { category?: string } = {}) => {
             className="absolute top-[38%] left-7 z-[5] flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border shadow-lg"
             style={{ backgroundColor: theme.background, borderColor: theme.border }}
           >
-            <span className="-mt-1 text-[26px] leading-[30px] font-extrabold" style={{ color: theme.text }}>‹</span>
+            <span aria-hidden="true" className="-mt-1 text-[26px] leading-[30px] font-extrabold" style={{ color: theme.text }}>‹</span>
           </button>
           <button
             type="button"
@@ -173,7 +173,7 @@ const TopSellingSection = ({ category }: { category?: string } = {}) => {
             className="absolute top-[38%] right-7 z-[5] flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border shadow-lg"
             style={{ backgroundColor: theme.background, borderColor: theme.border }}
           >
-            <span className="-mt-1 text-[26px] leading-[30px] font-extrabold" style={{ color: theme.text }}>›</span>
+            <span aria-hidden="true" className="-mt-1 text-[26px] leading-[30px] font-extrabold" style={{ color: theme.text }}>›</span>
           </button>
         </div>
       ) : (

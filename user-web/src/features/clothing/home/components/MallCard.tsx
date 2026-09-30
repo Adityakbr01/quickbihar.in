@@ -22,7 +22,6 @@ export const MallCard = ({ mall }: MallCardProps) => {
     <div
       role="link"
       tabIndex={0}
-      aria-label={`Visit ${mallTitle} in ${mallLoc}`}
       title={`Explore ${mallTitle} stores and offers in ${mallLoc}`}
       onClick={() => goTo(navigate, `/mall/${mall.id || mall._id}` as any)}
       onKeyDown={(e) => {

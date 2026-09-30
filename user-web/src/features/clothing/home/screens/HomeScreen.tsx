@@ -50,7 +50,7 @@ const HomeScreen = ({ rootSlug }: { rootSlug?: string }) => {
   const isWide = width >= BREAKPOINTS.tabletMin;
 
   return (
-    <section className="flex-1">
+    <main className="flex-1">
       <div
         className={cn("flex flex-col", isWide && "items-center")}
         style={{ paddingBottom: isDesktop ? 24 : 100 }}
@@ -112,7 +112,7 @@ const HomeScreen = ({ rootSlug }: { rootSlug?: string }) => {
           </Suspense>
         ) : null}
       </div>
-    </section>
+    </main>
   );
 };
 
