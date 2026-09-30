@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host",
-    "build": "vite build",
+    "generate:manifest": "node ./scripts/generate-manifest.mjs",
+    "build": "npm run generate:manifest && vite build",
     "typecheck": "tsc -b",
     "lint": "oxlint",
     "preview": "vite preview"

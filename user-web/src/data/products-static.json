@@ -6,6 +6,7 @@
     "price": 2199,
     "shortDescription": "Festive Raw Silk Kurta Set with Embroidered Nehru Jacket",
     "description": "Regal festive ensemble featuring a pure raw silk full-sleeve kurta paired with an intricately thread-embroidered Mandarin collar Nehru jacket and churidar pajama.",
+    "brand": "Aditya Heritage",
     "category": "Ethnic Wear",
     "subCategory": "Men's Kurtas & Ethnic",
     "images": [
@@ -24,6 +25,7 @@
     "price": 1099,
     "shortDescription": "Premium 4-Way Stretch Indigo Slim Jeans",
     "description": "Engineered with 98% cotton and 2% elastane for optimum 4-way stretch and retention. Features subtle whiskers, mid-rise contour waistband, and antique brass hardware.",
+    "brand": "Aditya Denim",
     "category": "Jeans",
     "subCategory": "Men's Slim Fit Jeans",
     "images": [
@@ -42,6 +44,7 @@
     "price": 1499,
     "shortDescription": "3-Piece Embroidered Chanderi Kurti & Palazzo Set",
     "description": "Step into effortless grace with this 3-piece festive ethnic set. Features delicate gotta patti hand embroidery on the yoke, flared Anarkali silhouette, matching palazzo, and a gossamer organza dupatta.",
+    "brand": "Aditya Ethnic",
     "category": "Kurtis & Suits",
     "subCategory": "Kurtis & Kurta Sets",
     "images": [
@@ -60,6 +63,7 @@
     "price": 2999,
     "shortDescription": "Authentic Handloom Katan Silk Wedding Saree with Zari",
     "description": "Traditional hand-woven pure Katan Silk saree from the master weavers of Varanasi. Adorned with floral jaal motifs and an opulent golden zari border and pallu. Includes matching unstitched blouse piece.",
+    "brand": "Aditya Handlooms",
     "category": "Sarees",
     "subCategory": "Banarasi Silk Sarees",
     "images": [
@@ -78,6 +82,7 @@
     "price": 599,
     "shortDescription": "240 GSM Heavyweight Oversized Crew Tee",
     "description": "240 GSM pre-shrunk heavyweight Supima cotton tee with double-needle ribbed collar and dropped shoulders. Modern streetwear aesthetic built for all-day comfort.",
+    "brand": "Aditya Urban",
     "category": "Shirts & T-Shirts",
     "subCategory": "Men's T-Shirts",
     "images": [
@@ -96,6 +101,7 @@
     "price": 899,
     "shortDescription": "100% Pure Oxford Cotton Slim Fit Shirt",
     "description": "Crafted from 100% long-staple combed cotton, this Oxford button-down shirt offers unmatched breathability and a sharp silhouette. Perfect for formal meetings and casual evenings.",
+    "brand": "Aditya Classics",
     "category": "Shirts & T-Shirts",
     "subCategory": "Men's Shirts",
     "images": [
@@ -103,6 +109,234 @@
         "url": "https://ik.imagekit.io/k2n57ywshu/products/aditya_mens_oxford_shirt_1789051566913_btQbmlXWC.jpg",
         "fileId": "6aa2c2b1ead997d09a592231",
         "_id": "6aa2c2b0fbb5b8c19b3aaa80"
+      }
+    ],
+    "isActive": true
+  },
+  "stardust-celestial-925-sterling-silver-charm-bracelet": {
+    "_id": "6aae5b932d4e39dc145a844c",
+    "slug": "stardust-celestial-925-sterling-silver-charm-bracelet",
+    "title": "Stardust Celestial 925 Sterling Silver Crescent Moon & Star Charm Bracelet",
+    "price": 3199,
+    "shortDescription": "Solid 925 Sterling Silver Celestial Moon & Star Charm Bracelet",
+    "description": "Ethereal celestial charm bracelet handcrafted in solid 925 sterling silver with rhodium anti-tarnish plating. Features a diamond-dusted crescent moon, twinkling North star, and faceted crystal dewdrop charms along an adjustable beaded link chain. Stamped with 925 hallmark tag.",
+    "brand": "QuickBihar Gen-Z",
+    "category": "Jewellery",
+    "subCategory": "Bangle",
+    "images": [
+      {
+        "url": "https://ik.imagekit.io/k2n57ywshu/products/genz/genz_celestial_star_bracelet_1789811600209_OkjVCVKvr.jpg",
+        "fileId": "6aae5b91ead997d09a8d00eb",
+        "_id": "6aae5b938678304f34572d77"
+      }
+    ],
+    "isActive": true
+  },
+  "croissant-dome-minimalist-chunky-gold-stacking-rings-set": {
+    "_id": "6aae5b932d4e39dc145a844b",
+    "slug": "croissant-dome-minimalist-chunky-gold-stacking-rings-set",
+    "title": "Croissant & Dome Minimalist Chunky Gold Stacking Rings (Set of 3)",
+    "price": 2899,
+    "shortDescription": "Tarnish-Free 18K Gold Chunky Dome & Croissant Ring Stack (3-Piece)",
+    "description": "The ultimate Paris-chic ring stack. A cohesive trio consisting of a ribbed Parisian croissant band, a high-shine chunky dome ring, and a sleek comfort-fit band. Made from heavyweight 18K gold vermeil over 925 sterling silver that won't tarnish or turn green in water.",
+    "brand": "QuickBihar Gen-Z",
+    "category": "Jewellery",
+    "subCategory": "Ring",
+    "images": [
+      {
+        "url": "https://ik.imagekit.io/k2n57ywshu/products/genz/genz_chunky_croissant_rings_1789811598700_1HAEEvxgMt.jpg",
+        "fileId": "6aae5b8fead997d09a8cf4e4",
+        "_id": "6aae5b938678304f34572d75"
+      }
+    ],
+    "isActive": true
+  },
+  "aura-nazar-18k-gold-paperclip-chain-evil-eye-pendant": {
+    "_id": "6aae5b932d4e39dc145a844a",
+    "slug": "aura-nazar-18k-gold-paperclip-chain-evil-eye-pendant",
+    "title": "Aura Nazar 18K Gold Paperclip Chain & Mother-of-Pearl Evil Eye Pendant",
+    "price": 6499,
+    "shortDescription": "18K Gold Paperclip Chain with Mother-of-Pearl Evil Eye Charm",
+    "description": "Viral Pinterest-favorite protection amulet necklace. Features a handcrafted turquoise enamel and iridescent mother-of-pearl evil eye medallion suspended from a contemporary 18K gold paperclip link chain. Designed to ward off negative energy while elevating everyday outfits.",
+    "brand": "QuickBihar Gen-Z",
+    "category": "Jewellery",
+    "subCategory": "Pendant",
+    "images": [
+      {
+        "url": "https://ik.imagekit.io/k2n57ywshu/products/genz/genz_evileye_paperclip_pendant_1789811595731_qe7yKpFQc.jpg",
+        "fileId": "6aae5b8cead997d09a8ce6c2",
+        "_id": "6aae5b928678304f34572d73"
+      }
+    ],
+    "isActive": true
+  },
+  "y2k-dainty-18k-gold-butterfly-pave-huggie-hoops": {
+    "_id": "6aae5b922d4e39dc145a8449",
+    "slug": "y2k-dainty-18k-gold-butterfly-pave-huggie-hoops",
+    "title": "Y2K Dainty 18K Gold Plated Butterfly Pavé Huggie Hoops",
+    "price": 2199,
+    "shortDescription": "Dainty 18K Gold Plated Butterfly Huggie Hoops with Pavé Crystals",
+    "description": "Sweet Korean-inspired Y2K butterfly huggie hoop earrings dipped in 18K yellow gold vermeil. Features dazzling pavé-set Austrian cubic zirconia crystals on the butterfly wings that catch light from every angle. Click-latch closure for comfortable all-day everyday wear.",
+    "brand": "QuickBihar Gen-Z",
+    "category": "Jewellery",
+    "subCategory": "Earrings",
+    "images": [
+      {
+        "url": "https://ik.imagekit.io/k2n57ywshu/products/genz/genz_butterfly_pave_hoops_1789811597176_L4ctSVbX4.jpg",
+        "fileId": "6aae5b8eead997d09a8ceb76",
+        "_id": "6aae5b928678304f34572d71"
+      }
+    ],
+    "isActive": true
+  },
+  "afsana-925-oxidized-silver-mirror-work-boho-jhumkas": {
+    "_id": "6aae5b922d4e39dc145a8448",
+    "slug": "afsana-925-oxidized-silver-mirror-work-boho-jhumkas",
+    "title": "Afsana 925 Oxidized Sterling Silver Mirror-Work Boho Jhumkas",
+    "price": 1499,
+    "shortDescription": "925 Oxidized Silver Tribal Mirror Jhumkas with Ghungroos",
+    "description": "Trendy Gen-Z staple jhumkas crafted in genuine 925 oxidized sterling silver. Detailed with authentic circular mirror inlays, tribal engraving, and delicate acoustic ghungroo bells that jingle softly with movement. Lightweight, hypoallergenic, and ideal for college, kurti styling, and bohemian aesthetic fits.",
+    "brand": "QuickBihar Gen-Z",
+    "category": "Jewellery",
+    "subCategory": "Earrings",
+    "images": [
+      {
+        "url": "https://ik.imagekit.io/k2n57ywshu/products/genz/genz_oxidized_mirror_jhumkas_1789811593371_mj1vq89PmG.jpg",
+        "fileId": "6aae5b8bead997d09a8ce12c",
+        "_id": "6aae5b918678304f34572d6f"
+      }
+    ],
+    "isActive": true
+  },
+  "vajra-22k-solid-yellow-gold-singapore-curb-chain": {
+    "_id": "6aae597e2d4e39dc145a83b5",
+    "slug": "vajra-22k-solid-yellow-gold-singapore-curb-chain",
+    "title": "Vajra 22K Solid Yellow Gold Singapore Curb Chain",
+    "price": 76500,
+    "shortDescription": "22K Solid Gold Diamond-Cut Curb Chain for Men & Women",
+    "description": "Heavy-duty 22K yellow gold curb chain with diamond-cut Singapore beveled links that maximize metallic reflection. Fitted with a reinforced lobster clasp for daily and festive wear. Suitable for both men and women.",
+    "brand": "QuickBihar Jewels",
+    "category": "Jewellery",
+    "subCategory": "Chain",
+    "images": [
+      {
+        "url": "https://ik.imagekit.io/k2n57ywshu/products/jewelry/jewelry_solid_gold_curb_chain_1789811065544_yPAVEqRfy.jpg",
+        "fileId": "6aae597bead997d09a838004",
+        "_id": "6aae597e9c50de6d191d1123"
+      }
+    ],
+    "isActive": true
+  },
+  "devi-laxmi-22k-temple-gold-coin-pendant-floral-filigree": {
+    "_id": "6aae597e2d4e39dc145a83b4",
+    "slug": "devi-laxmi-22k-temple-gold-coin-pendant-floral-filigree",
+    "title": "Devi Laxmi 22K Temple Gold Coin Pendant with Floral Filigree",
+    "price": 44500,
+    "shortDescription": "Auspicious 22K Gold Goddess Lakshmi Lotus Temple Coin Pendant",
+    "description": "Auspicious 22K yellow gold religious temple pendant featuring Goddess Mahalakshmi seated on a blossoming lotus, flanked by divine elephants. Surrounded by an ornate handcrafted floral filigree circular frame and ruby accents. Represents wealth, prosperity, and divine blessings.",
+    "brand": "QuickBihar Jewels",
+    "category": "Jewellery",
+    "subCategory": "Pendant",
+    "images": [
+      {
+        "url": "https://ik.imagekit.io/k2n57ywshu/products/jewelry/jewelry_laxmi_temple_coin_pendant_1789811062952_VSOBuVmmqn.jpg",
+        "fileId": "6aae5978ead997d09a8379c1",
+        "_id": "6aae597e9c50de6d191d1121"
+      }
+    ],
+    "isActive": true
+  },
+  "padmavati-royal-22k-heritage-kundan-polki-bridal-set": {
+    "_id": "6aae597e2d4e39dc145a83b3",
+    "slug": "padmavati-royal-22k-heritage-kundan-polki-bridal-set",
+    "title": "Padmavati Royal 22K Heritage Kundan & Polki Bridal Set",
+    "price": 485000,
+    "shortDescription": "Opulent 22K Gold Handcrafted Kundan Polki Bridal Choker Set",
+    "description": "Imperial Indian wedding bridal heirloom set crafted in 22K gold. Includes a multi-layered choker necklace, long raani haar, matching chandelier earrings, and royal maang tikka, studded with uncut syndicate polki stones and rich green Zambian emerald tumble drops. Complete with adjustable golden dori.",
+    "brand": "QuickBihar Jewels",
+    "category": "Jewellery",
+    "subCategory": "Bridal Set",
+    "images": [
+      {
+        "url": "https://ik.imagekit.io/k2n57ywshu/products/jewelry/jewelry_royal_kundan_bridal_set_1789811060450_aFO15AgH_J.jpg",
+        "fileId": "6aae5976ead997d09a83724a",
+        "_id": "6aae597e9c50de6d191d111f"
+      }
+    ],
+    "isActive": true
+  },
+  "swarna-mahal-22k-heritage-gold-peacock-jhumkas-seed-pearls": {
+    "_id": "6aae597e2d4e39dc145a83b2",
+    "slug": "swarna-mahal-22k-heritage-gold-peacock-jhumkas-seed-pearls",
+    "title": "Swarna Mahal 22K Heritage Gold Peacock Jhumkas with Seed Pearls",
+    "price": 112500,
+    "shortDescription": "Authentic 22K Gold Antique Peacock Jhumkas with Seed Pearls",
+    "description": "Grand royal temple jhumka earrings handcrafted in 22K yellow gold with antique matte patina finish. Features embossed twin peacocks and ruby flower studs with multi-tiered cascading natural freshwater seed pearl droplets. BIS 916 hallmarked.",
+    "brand": "QuickBihar Jewels",
+    "category": "Jewellery",
+    "subCategory": "Earrings",
+    "images": [
+      {
+        "url": "https://ik.imagekit.io/k2n57ywshu/products/jewelry/jewelry_peacock_temple_jhumkas_1789811057899_dLFgtSO4C.jpg",
+        "fileId": "6aae5973ead997d09a835d30",
+        "_id": "6aae597e9c50de6d191d111d"
+      }
+    ],
+    "isActive": true
+  },
+  "aura-18k-rose-gold-solitaire-diamond-engagement-ring": {
+    "_id": "6aae597e2d4e39dc145a83b1",
+    "slug": "aura-18k-rose-gold-solitaire-diamond-engagement-ring",
+    "title": "Aura 18K Rose Gold Solitaire Diamond Engagement Ring",
+    "price": 84999,
+    "shortDescription": "1.00 Ct VVS1 Solitaire Diamond Engagement Ring in 18K Rose Gold",
+    "description": "Breathtaking 18K rose gold engagement ring featuring a certified 1.00 Carat round brilliant cut solitaire diamond (VVS1 clarity, E color) secured in a classic 6-prong setting, accented by micro-pavé diamonds along the shank. Stamped with 18K / AU750 hallmark.",
+    "brand": "QuickBihar Jewels",
+    "category": "Jewellery",
+    "subCategory": "Ring",
+    "images": [
+      {
+        "url": "https://ik.imagekit.io/k2n57ywshu/products/jewelry/jewelry_solitaire_diamond_ring_1789811055760_0Iahnr6TDz.jpg",
+        "fileId": "6aae5971ead997d09a835490",
+        "_id": "6aae597e9c50de6d191d111b"
+      }
+    ],
+    "isActive": true
+  },
+  "kalyani-22k-royal-gold-handcrafted-filigree-bangles-pair": {
+    "_id": "6aae3d6ae863ea797c62271c",
+    "slug": "kalyani-22k-royal-gold-handcrafted-filigree-bangles-pair",
+    "title": "Kalyani 22K Royal Gold Handcrafted Filigree Bangles (Pair)",
+    "price": 168000,
+    "shortDescription": "Handcrafted 22K Yellow Gold Filigree Bridal Bangles Pair",
+    "description": "Opulent pair of 22K yellow gold bridal kangan bangles, masterfully handcrafted with intricate openwork floral filigree patterns and antique lotus embossing. Equipped with a secure screw-pin lock mechanism. BIS hallmarked with laser HUID.",
+    "brand": "QuickBihar Jewels",
+    "category": "Jewellery",
+    "subCategory": "Bangle",
+    "images": [
+      {
+        "url": "https://ik.imagekit.io/k2n57ywshu/products/jewelry/jewelry_royal_gold_bangles_1789811053311_o1ORm92lY.jpg",
+        "fileId": "6aae596fead997d09a834bc3",
+        "_id": "6aae597e9c50de6d191d1119"
+      }
+    ],
+    "isActive": true
+  },
+  "mira-22k-gold-pear-ruby-diamond-pendant-necklace": {
+    "_id": "6aae364ce420ec4277923ff6",
+    "slug": "mira-22k-gold-pear-ruby-diamond-pendant-necklace",
+    "title": "Mira 22K Yellow Gold Pear Ruby & Diamond Pendant Necklace",
+    "price": 34500,
+    "shortDescription": "Certified 22K Gold Pendant with Natural Ruby & Micro Diamonds",
+    "description": "An exquisite hallmarked 22K yellow gold pendant necklace featuring a certified natural pear-shaped crimson ruby enveloped in a halo of sparkling micro-pave diamonds. Suspended from an elegant twisted curb chain. Perfect for celebratory occasions, weddings, and formal evenings.",
+    "brand": "QuickBihar Jewels",
+    "category": "Jewellery",
+    "subCategory": "Necklace",
+    "images": [
+      {
+        "url": "https://ik.imagekit.io/k2n57ywshu/products/jewelry/jewelry_pear_ruby_pendant_1789811050387_6l5vvgrn4r.jpg",
+        "fileId": "6aae596cead997d09a8342aa",
+        "_id": "6aae597e9c50de6d191d1117"
       }
     ],
     "isActive": true

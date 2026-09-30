@@ -31,6 +31,9 @@ ENV VITE_GOOGLE_WEB_CLIENT_ID=$VITE_GOOGLE_WEB_CLIENT_ID
 ENV VITE_GOOGLE_IOS_CLIENT_ID=$VITE_GOOGLE_IOS_CLIENT_ID
 ENV VITE_GOOGLE_ANDROID_CLIENT_ID=$VITE_GOOGLE_ANDROID_CLIENT_ID
 
+# `npm run build` first refreshes src/data/*-static.json from the live API
+# (all CATALOG_VERTICALS) so every active product/mall gets a prerendered page.
+# Builders without API access fall back to the committed JSON (see script).
 RUN npm run build
 
 # 3. Production image — plain nginx:alpine serving dist/ with prerender-aware fallback.
