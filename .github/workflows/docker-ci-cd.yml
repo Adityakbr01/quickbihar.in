@@ -88,6 +88,14 @@ jobs:
           mkdir -p server mobile dash-web user-web
           touch server/.env mobile/.env dash-web/.env
 
+      - name: Ensure host nginx cache dirs
+        run: |
+          # Idempotent one-time setup — required by vps-nginx/quickbihar.conf
+          # (proxy_cache_path). Uses sudo -n so a missing NOPASSWD rule fails
+          # fast with a clear error instead of hanging on a password prompt.
+          sudo -n mkdir -p /var/cache/nginx/qb_static /var/cache/nginx/qb_pages /var/cache/nginx/qb_seo
+          sudo -n chown -R www-data:www-data /var/cache/nginx
+
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
@@ -104,10 +112,48 @@ jobs:
           cd ${{ env.APP_DIR }}
           docker compose -f ${{ env.COMPOSE_FILE }} up -d --remove-orphans
 
+      - name: Sync host nginx config (only when changed)
+        run: |
+          NEW_FILE="${{ env.APP_DIR }}/vps-nginx/quickbihar.conf"
+          LIVE_FILE="/etc/nginx/sites-available/quickbihar.conf"
+          NEW_HASH=$(sha256sum "$NEW_FILE" | cut -d' ' -f1)
+          OLD_HASH=$(sudo -n sha256sum "$LIVE_FILE" 2>/dev/null | cut -d' ' -f1 || echo missing)
+          if [ "$NEW_HASH" = "$OLD_HASH" ]; then
+            echo "host nginx config unchanged — no reload needed"
+            exit 0
+          fi
+          echo "host nginx config changed — deploying with backup"
+          sudo -n cp "$LIVE_FILE" "$LIVE_FILE.bak.prev" || true
+          sudo -n cp "$NEW_FILE" "$LIVE_FILE"
+          if ! sudo -n nginx -t; then
+            echo "nginx -t FAILED — restoring backup"
+            sudo -n cp "$LIVE_FILE.bak.prev" "$LIVE_FILE" || true
+            exit 1
+          fi
+          sudo -n systemctl reload nginx
+          echo "host nginx reloaded"
+
+      - name: Purge page cache (fresh HTML after deploy)
+        run: |
+          # qb_pages holds prerendered HTML referencing hashed /assets/*.
+          # A deploy changes those hashes, so drop the zone every time.
+          # (qb_static is content-hashed — safe to keep across deploys.)
+          sudo -n rm -rf /var/cache/nginx/qb_pages/* || true
+          echo "page cache purged"
+
       - name: Verify running services
         run: |
           cd ${{ env.APP_DIR }}
           docker compose -f ${{ env.COMPOSE_FILE }} ps
+
+      - name: Verify site + cache (MISS then HIT)
+        run: |
+          echo "--- 1st request (expect MISS) ---"
+          curl -s -o /dev/null -D - https://quickbihar.in/ | grep -i "x-cache-status\|HTTP/" || true
+          echo "--- 2nd request (expect HIT) ---"
+          curl -s -o /dev/null -D - https://quickbihar.in/ | grep -i "x-cache-status\|HTTP/" || true
+          echo "--- backend API ---"
+          curl -s -o /dev/null -w "api status: %{http_code}\n" https://quickbihar.in/api/v1/ || true
 
       - name: Cleanup unused Docker images
         run: |
