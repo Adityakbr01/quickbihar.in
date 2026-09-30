@@ -25,10 +25,10 @@ jobs:
             context: ./dash-web
             file: ./dash-web/Dockerfile
             image: quickbihar-web-dash
-          - name: mobile-web
-            context: ./mobile
-            file: ./mobile/Dockerfile
-            image: quickbihar-mobile-web
+          - name: user-web
+            context: ./user-web
+            file: ./user-web/Dockerfile
+            image: quickbihar-user-web
 
     steps:
       - name: Checkout code
@@ -53,7 +53,8 @@ jobs:
             VITE_API_URL=/api/v1
             VITE_SOCKET_URL=/
             VITE_GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID || '183149129805-vf8pkq6h066lcapjanjv1271g36jvij4.apps.googleusercontent.com' }}
-            EXPO_PUBLIC_API_ORIGIN=https://quickbihar.in
+            VITE_API_ORIGIN=https://quickbihar.in
+            VITE_GOOGLE_WEB_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID || '183149129805-vf8pkq6h066lcapjanjv1271g36jvij4.apps.googleusercontent.com' }}
           tags: |
             ${{ secrets.DOCKER_USER }}/${{ matrix.service.image }}:prod
             ${{ secrets.DOCKER_USER }}/${{ matrix.service.image }}:${{ github.sha }}
@@ -84,7 +85,7 @@ jobs:
       - name: Ensure Environment Files Exist
         run: |
           cd ${{ env.APP_DIR }}
-          mkdir -p server mobile dash-web
+          mkdir -p server mobile dash-web user-web
           touch server/.env mobile/.env dash-web/.env
 
       - name: Login to Docker Hub
