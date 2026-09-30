@@ -14,7 +14,10 @@ interface CarouselSlideProps {
   desktop?: boolean;
 }
 
-const CarouselSlide = ({ item, desktop }: CarouselSlideProps) => {
+const CarouselSlide = ({ item, index, desktop }: CarouselSlideProps) => {
+  // Slide 0 is the LCP candidate: eager + high priority. The rest stay out
+  // of the critical path (lazy + low priority + async decode).
+  const isFirst = (index ?? 1) === 0;
   const navigate = useNavigate();
   const trackClick = useTrackClick();
   const [pressed, setPressed] = useState(false);
@@ -82,6 +85,9 @@ const CarouselSlide = ({ item, desktop }: CarouselSlideProps) => {
           title={item.title || "QuickBihar Online Fashion Deals"}
           className="h-full w-full"
           style={{ objectFit: desktop ? "contain" : "cover", borderRadius: desktop ? 22 : 16 }}
+          loading={isFirst ? "eager" : "lazy"}
+          decoding="async"
+          fetchPriority={isFirst ? "high" : "low"}
         />
       </button>
     </div>

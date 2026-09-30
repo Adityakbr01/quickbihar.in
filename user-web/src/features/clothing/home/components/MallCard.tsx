@@ -36,6 +36,9 @@ export const MallCard = ({ mall }: MallCardProps) => {
         alt={`${mallTitle} - Shopping Mall in ${mallLoc}`}
         title={`${mallTitle} | QuickBihar Local Mall`}
         className="h-full w-full object-cover"
+        loading="lazy"
+        decoding="async"
+        fetchPriority="low"
       />
 
       {/* Dynamic Rating Badge */}

@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { X } from "lucide-react";
-import { Dialog as SheetPrimitive } from "radix-ui";
+import * as SheetPrimitive from "@radix-ui/react-dialog";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { cn } from "@/lib/utils";
 import {

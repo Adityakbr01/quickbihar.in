@@ -130,6 +130,9 @@ export const ProductCard = ({ item, desktopWidth }: ProductCardProps) => {
           alt={`${productData.title} - Shop Online in Bihar`}
           title={`${productData.title} | QuickBihar`}
           className="h-full w-full object-cover"
+          loading="lazy"
+          decoding="async"
+          fetchPriority="low"
         />
 
         {productData.discount ? (

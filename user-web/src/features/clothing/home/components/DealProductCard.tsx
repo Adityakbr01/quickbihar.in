@@ -137,6 +137,9 @@ export const DealProductCard = ({ product, width }: DealProductCardProps) => {
           alt={`${productData.title} - Fashion Deal in Bihar`}
           title={`${productData.title} - QuickBihar Deals`}
           className="h-full w-full object-cover"
+          loading="lazy"
+          decoding="async"
+          fetchPriority="low"
         />
 
         {/* Top-Left Discount Badge */}

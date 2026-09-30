@@ -1,18 +1,40 @@
 import HomeCategories from "@/src/features/common/category/components/HomeCategories";
 import { cn } from "@/src/lib/utils";
 import { BREAKPOINTS, useWindowWidth } from "@/src/utils/responsive";
-import { useCallback, useState } from "react";
-import { DesktopFooter } from "../components/DesktopFooter";
+import { Suspense, lazy, useCallback, useState } from "react";
 import HomeHeader from "../components/HomeHeader";
-import { MoreDealsHeader } from "../components/MoreDealsHeader";
 import TopHomeCarousel from "../components/TopHomeCarousel";
-import {
-  MoreDealsFilters,
-  MoreDealsGrid,
-  useMoreDealsLogic,
-} from "../sections/MoreDealsSection";
-import TopMallSection from "../sections/TopMallSection";
-import TopSellingSection from "../sections/TopSellingSection";
+import { useMoreDealsLogic } from "../sections/useMoreDealsLogic";
+
+// Below-fold sections — lazy so the entry chunk stays lean (first paint is
+// hero carousel + categories only). Each fallback reserves vertical space to
+// keep CLS at 0 while the chunk loads.
+const TopMallSection = lazy(() => import("../sections/TopMallSection"));
+const TopSellingSection = lazy(
+  () => import("../sections/TopSellingSection"),
+);
+const MoreDealsHeader = lazy(() => import("../components/MoreDealsHeader"));
+const MoreDealsFilters = lazy(() =>
+  import("../sections/MoreDealsSection").then((m) => ({
+    default: m.MoreDealsFilters,
+  })),
+);
+const MoreDealsGrid = lazy(() =>
+  import("../sections/MoreDealsSection").then((m) => ({
+    default: m.MoreDealsGrid,
+  })),
+);
+const DesktopFooter = lazy(() => import("../components/DesktopFooter"));
+
+function SectionFallback({ minHeight }: { minHeight: number }) {
+  return (
+    <div
+      aria-hidden="true"
+      className="w-full animate-pulse rounded-2xl bg-black/5"
+      style={{ minHeight }}
+    />
+  );
+}
 
 const HomeScreen = ({ rootSlug }: { rootSlug?: string }) => {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -42,12 +64,18 @@ const HomeScreen = ({ rootSlug }: { rootSlug?: string }) => {
               <TopHomeCarousel />
             </div>
             <HomeCategories rootSlug={rootSlug} />
-            <TopMallSection />
-            <TopSellingSection />
+            <Suspense fallback={<SectionFallback minHeight={280} />}>
+              <TopMallSection />
+            </Suspense>
+            <Suspense fallback={<SectionFallback minHeight={320} />}>
+              <TopSellingSection />
+            </Suspense>
             <div className="mt-3 w-full lg:mt-5">
               <TopHomeCarousel placement="home_middle" />
             </div>
-            <MoreDealsHeader {...moreDealsState} />
+            <Suspense fallback={<SectionFallback minHeight={120} />}>
+              <MoreDealsHeader {...moreDealsState} />
+            </Suspense>
           </div>
         </div>
 
@@ -63,7 +91,9 @@ const HomeScreen = ({ rootSlug }: { rootSlug?: string }) => {
               isWide && "mx-auto max-w-[1280px] px-6",
             )}
           >
-          <MoreDealsFilters {...moreDealsState} />
+          <Suspense fallback={<SectionFallback minHeight={52} />}>
+            <MoreDealsFilters {...moreDealsState} />
+          </Suspense>
         </div>
 
         {/* Product Grid */}
@@ -71,10 +101,16 @@ const HomeScreen = ({ rootSlug }: { rootSlug?: string }) => {
           className={cn("w-full", isWide && "mx-auto max-w-[1280px] px-6")}
           style={{ minHeight: "70vh" }}
         >
-          <MoreDealsGrid {...moreDealsState} />
+          <Suspense fallback={null}>
+            <MoreDealsGrid {...moreDealsState} />
+          </Suspense>
         </div>
 
-        {isDesktop ? <DesktopFooter /> : null}
+        {isDesktop ? (
+          <Suspense fallback={null}>
+            <DesktopFooter />
+          </Suspense>
+        ) : null}
       </div>
     </section>
   );

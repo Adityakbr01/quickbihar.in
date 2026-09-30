@@ -8,6 +8,12 @@
     <link rel="manifest" href="/site.webmanifest" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#80C314" />
+    <!-- API + remote-image origin (banners, product/mall images). Preconnect
+         cuts a handshake round-trip off LCP discovery; dns-prefetch covers
+         browsers that ignore preconnect. No Google Fonts in this app (system
+         stack) so there is nothing render-blocking to defer here. -->
+    <link rel="preconnect" href="https://quickbihar.in" crossorigin />
+    <link rel="dns-prefetch" href="https://quickbihar.in" />
     <!-- NOTE: keep this shell minimal (no description/canonical/OG/robots).
          Per-route head tags are injected at build time by src/seo/prerender.tsx
          and at runtime by <SeoRouter /> (react-helmet-async). Duplicating them

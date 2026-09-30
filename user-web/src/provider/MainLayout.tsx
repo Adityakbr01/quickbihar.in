@@ -9,7 +9,7 @@ import {
 } from "react-router-dom";
 import { QueryProvider } from "@/src/provider/QueryProvider";
 import { ThemeProvider, useTheme } from "@/src/theme/Provider/ThemeProvider";
-import { SocketListenerProvider } from "@/src/provider/SocketListenerProvider";
+import SocketListenerMount from "@/src/provider/SocketListenerMount";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
 import { useModuleStore } from "@/src/store/useModuleStore";
 import { APP_MODULES } from "@/src/constants/modules";
@@ -219,7 +219,8 @@ function MainLayout() {
     >
       <ThemedChrome />
       <SeoRouter />
-      <SocketListenerProvider>
+      <SocketListenerMount />
+      <>
         {isAuthRoute ? null : isJeweleryRoute ? (
           <JeweleryDesktopNavbar />
         ) : (
@@ -356,7 +357,7 @@ function MainLayout() {
           </Routes>
         </Suspense>
         <BottomTabBar />
-      </SocketListenerProvider>
+      </>
     </div>
   );
 }

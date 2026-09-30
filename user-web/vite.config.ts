@@ -24,6 +24,7 @@ import { readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { brotliCompressSync, constants } from 'node:zlib'
 
+
 // React 18/19 scheduler keeps a Node MessagePort open → unref it so
 // `vite build` can exit after prerendering finishes.
 if (MessagePort && MessagePort.prototype) {
@@ -44,26 +45,13 @@ if (MessagePort && MessagePort.prototype) {
   }
 }
 
-/** Destroy pooled keep-alive sockets + unref lingering handles after build. */
-function eventLoopCleanup(): Plugin {
-  return {
-    name: 'event-loop-cleanup',
-    apply: 'build',
-    closeBundle() {
-      http.globalAgent.destroy()
-      https.globalAgent.destroy()
-      // @ts-expect-error internal node handle inspector
-      const handles = process._getActiveHandles?.() ?? []
-      for (const h of handles) {
-        if (typeof h?.destroy === 'function') h.destroy()
-        else if (typeof h?.unref === 'function') h.unref()
-      }
-      setTimeout(() => process.exit(0), 100)
-    },
-  }
-}
-
-/** Pre-compress text assets with Brotli level 11 (served directly by Nginx/CF). */
+/**
+ * Pre-compress text assets with Brotli level 11 (served directly by Nginx/CF).
+ * A dedicated pass (not a second vite-plugin-compression instance) because the
+ * plugin keeps a module-level mtime cache — the second instance sees every
+ * file as already compressed and silently emits zero .br files (verified in
+ * dist). Runs after the gzip plugin; skips its .gz outputs via the filter.
+ */
 function brotliStatic(threshold = 1024): Plugin {
   const filter = /\.(js|css|html|svg|json)$/i
   return {
@@ -84,10 +72,28 @@ function brotliStatic(threshold = 1024): Plugin {
             params: { [constants.BROTLI_PARAM_QUALITY]: 11 },
           })
           writeFileSync(`${full}.br`, compressed)
-          console.log(`brotli: ${full} ${(size / 1024).toFixed(1)}kB → ${(compressed.length / 1024).toFixed(1)}kB`)
         }
       }
       walk('dist')
+    },
+  }
+}
+
+/** Destroy pooled keep-alive sockets + unref lingering handles after build. */
+function eventLoopCleanup(): Plugin {
+  return {
+    name: 'event-loop-cleanup',
+    apply: 'build',
+    closeBundle() {
+      http.globalAgent.destroy()
+      https.globalAgent.destroy()
+      // @ts-expect-error internal node handle inspector
+      const handles = process._getActiveHandles?.() ?? []
+      for (const h of handles) {
+        if (typeof h?.destroy === 'function') h.destroy()
+        else if (typeof h?.unref === 'function') h.unref()
+      }
+      setTimeout(() => process.exit(0), 100)
     },
   }
 }
@@ -130,11 +136,11 @@ export default defineConfig(({ mode }) => {
       'process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID': JSON.stringify(googleAndroidClientId),
     },
     build: {
-      minify: 'oxc',
+      minify: 'esbuild',
       cssMinify: true,
       assetsInlineLimit: 4096,
       chunkSizeWarningLimit: 500,
-      reportCompressedSize: true,
+      reportCompressedSize: false,
       rollupOptions: {
         // Silence only warnings we cannot fix in our own code:
         // - EVAL inside lottie-web (third-party, ships direct eval)
@@ -152,11 +158,24 @@ export default defineConfig(({ mode }) => {
             if (!id.includes('node_modules')) return undefined
             const p = id.replace(/\\/g, '/')
             if (/motion|framer-motion/.test(p)) return 'motion'
-            if (/lottie-react|@lottiefiles\/dotlottie-react|lottie-web/.test(p)) return 'lottie'
+            if (/lenis/.test(p)) return 'lenis'
+            if (/react-helmet-async/.test(p)) return 'helmet'
+            // NOTE: no manual chunk for lottie/embla — both are imported by
+            // first-paint code (hero carousel needs embla; LazyLottie is only
+            // ever reached via React.lazy dynamic import). Forcing them into
+            // named chunks made Rolldown park the shared react/jsx-runtime
+            // CJS wrapper inside the lottie chunk, so the entry statically
+            // imported a 323 KB "lazy" chunk (measured in dist). Default
+            // code-splitting keeps shared runtime with the entry and emits
+            // lottie-react as a true async chunk.
             if (/\/leaflet\//.test(p)) return 'leaflet'
-            if (/embla-carousel/.test(p)) return 'embla'
             if (/date-fns|dayjs|react-day-picker/.test(p)) return 'date'
-            if (/react-hook-form|@hookform\/resolvers|zod/.test(p)) return 'forms'
+            // NOTE: no manual chunk for react-hook-form/zod — same mixed
+            // CJS/ESM interop trap as query/axios (see below): forcing them
+            // into their own chunk duplicated the full React CJS runtime
+            // (~130 KB) into it, which the entry then statically imported
+            // for ErrorBoundary. Default chunking keeps a single React copy
+            // and emits the form libs as true async chunks (lazy routes only).
             if (/socket\.io-client|engine\.io/.test(p)) return 'socket'
             if (/@tanstack\//.test(p)) return 'query'
             if (/lucide-react|@radix-ui|radix-ui/.test(p)) return 'ui-vendor'

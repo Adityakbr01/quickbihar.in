@@ -56,6 +56,9 @@ const HomeCategories = ({ rootSlug = "clothing" }: { rootSlug?: string }) => {
           aria-label={`${item.title} Category`}
           title={`${item.title} | QuickBihar Online Shopping`}
           className="h-full w-full object-cover"
+          loading="lazy"
+          decoding="async"
+          fetchPriority="low"
         />
       </div>
       <span className="line-clamp-1 text-center text-[11px] font-medium" style={{ color: theme.text }}>
@@ -200,7 +203,7 @@ const HomeCategories = ({ rootSlug = "clothing" }: { rootSlug?: string }) => {
                   backgroundColor: theme.secondaryBackground,
                 }}
               >
-                <img src={item.image} alt={item.title} className="h-full w-full object-cover" />
+                <img src={item.image} alt={item.title} className="h-full w-full object-cover" loading="lazy" decoding="async" fetchPriority="low" />
               </div>
               <span className="mt-2.5 line-clamp-1 text-center text-[13px] font-bold" style={{ color: theme.text }}>
                 {item.title}
