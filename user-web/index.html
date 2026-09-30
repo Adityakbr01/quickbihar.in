@@ -13,9 +13,21 @@
          and at runtime by <SeoRouter /> (react-helmet-async). Duplicating them
          here would emit TWO canonicals on prerendered pages. -->
     <title>QuickBihar — Online Shopping in Bihar</title>
+    <!-- First-paint boot loader (same as prerender BOOT_CSS): visible until
+         React createRoot commits and replaces #root. Covers non-prerendered
+         routes (account/checkout/...) that fall back to this shell. -->
+    <style id="qb-boot-css">#qb-boot{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:#ffffff;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;z-index:9999}#qb-boot .qb-logo{font-size:22px;font-weight:800;color:#1a2e05;letter-spacing:.2px}#qb-boot .qb-logo span{color:#65a30d}#qb-boot .qb-ring{width:34px;height:34px;border-radius:50%;border:3px solid #e5e7eb;border-top-color:#65a30d;animation:qb-spin .8s linear infinite}#qb-boot .qb-sub{font-size:12px;color:#6b7280}@keyframes qb-spin{to{transform:rotate(360deg)}}</style>
   </head>
   <body>
-    <div id="root"></div>
+    <!-- NOTE: #root children are REPLACED (prepended over) by prerender Shell
+         output on prerendered pages, and every fallback serves dist/index.html
+         (also prerendered) — so the boot loader always comes from Shell.
+         Only <noscript> lives here permanently. -->
+    <div id="root">
+      <noscript>
+        <p style="font-family:system-ui,sans-serif;text-align:center;padding:40px 16px">QuickBihar needs JavaScript to run. Please enable it and reload.</p>
+      </noscript>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
