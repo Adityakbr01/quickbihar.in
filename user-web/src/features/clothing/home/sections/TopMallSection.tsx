@@ -77,6 +77,7 @@ const TopMallSection = () => {
               source={fireLottie}
               autoPlay
               loop
+              renderer="canvas"
               resizeMode="contain"
               // NOTE: fire keeps its original colors in every theme —
               // no invert filter here (it would turn the flame blue).

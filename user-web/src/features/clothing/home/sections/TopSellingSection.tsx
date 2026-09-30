@@ -116,6 +116,7 @@ const TopSellingSection = ({ category }: { category?: string } = {}) => {
               source={arrowLottie}
               autoPlay
               loop
+              renderer="canvas"
               resizeMode="contain"
               // NOTE: dark-theme invert lives on the wrapper above
               style={{ width: "100%", height: "100%" }}

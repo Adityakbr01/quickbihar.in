@@ -4,6 +4,7 @@ import React, {
   useCallback,
   useEffect,
   useRef,
+  useState,
 } from "react";
 
 const LottieInner = React.lazy(() =>
@@ -33,8 +34,37 @@ interface LottieInstance {
  * it for frames. Playback resumes automatically afterwards.
  */
 const LazyLottie = forwardRef<any, any>(function LazyLottie(props: any, ref: any) {
-  const { source, autoPlay, autoplay, loop, resizeMode: _resizeMode, style, ..._rest } = props ?? {};
+  const { source, autoPlay, autoplay, loop, resizeMode: _resizeMode, style, deferOffscreen, renderer, ..._rest } = props ?? {};
   const wantPlay = autoplay ?? autoPlay ?? true;
+  // Viewport-gated loading (opt-in): the lottie-react engine (~323 KB) is
+  // only downloaded once the placeholder scrolls into view. Below-fold
+  // decorative instances use this so first paint never pays for them; the
+  // placeholder keeps identical layout (no CLS). Design is unchanged —
+  // the animation still plays on scroll into view.
+  const [gatedInView, setGatedInView] = useState(!deferOffscreen);
+  const gateIoRef = useRef<IntersectionObserver | null>(null);
+  const gateRef = useCallback((node: HTMLDivElement | null) => {
+    gateIoRef.current?.disconnect();
+    gateIoRef.current = null;
+    if (!deferOffscreen) return;
+    if (!node || gatedInView) return;
+    if (typeof IntersectionObserver === "undefined") {
+      setGatedInView(true);
+      return;
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          setGatedInView(true);
+          io.disconnect();
+        }
+      },
+      { threshold: 0, rootMargin: "200px" },
+    );
+    io.observe(node);
+    gateIoRef.current = io;
+  }, [deferOffscreen, gatedInView]);
+  useEffect(() => () => gateIoRef.current?.disconnect(), []);
   const cssStyle: React.CSSProperties | undefined = Array.isArray(style)
     ? Object.assign({}, ...style.filter(Boolean))
     : style;
@@ -108,6 +138,10 @@ const LazyLottie = forwardRef<any, any>(function LazyLottie(props: any, ref: any
     [syncPlayback],
   );
 
+  if (deferOffscreen && !gatedInView) {
+    return <div ref={gateRef} style={cssStyle} aria-hidden="true" />;
+  }
+
   return (
     <Suspense fallback={<div style={cssStyle} />}>
       <LottieInner
@@ -117,6 +151,7 @@ const LazyLottie = forwardRef<any, any>(function LazyLottie(props: any, ref: any
         style={cssStyle}
         ref={setHost}
         lottieRef={setInstance}
+        renderer={renderer ?? "svg"}
       />
     </Suspense>
   );

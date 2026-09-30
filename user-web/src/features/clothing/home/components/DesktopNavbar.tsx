@@ -53,6 +53,8 @@ export const DesktopNavbar = () => {
 
   const isActive = (seg: string) => pathname?.includes(seg);
 
+  // Active pill is lime primary (#80c314): near-black text/icons keep
+  // ≥4.5:1 (white on lime is ~2.1:1). Badge inverts to stay legible.
   const navItem = (label: string, seg: string, href: string, Icon: LucideIcon, badge?: number) => {
     const active = isActive(seg);
     return (
@@ -67,17 +69,17 @@ export const DesktopNavbar = () => {
           borderColor: active ? theme.primary : theme.border,
         }}
       >
-        <Icon size={17} color={active ? "#fff" : theme.secondaryText} />
+        <Icon size={17} color={active ? "#142000" : theme.secondaryText} />
         <span
           className="text-sm font-bold"
-          style={{ color: active ? "#fff" : theme.text }}
+          style={{ color: active ? "#142000" : theme.text }}
         >
           {label}
         </span>
         {typeof badge === "number" && badge > 0 ? (
           <span
             className="flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[11px] font-extrabold"
-            style={{ backgroundColor: active ? "#fff" : theme.primary, color: active ? theme.primary : "#fff" }}
+            style={{ backgroundColor: active ? "#142000" : theme.primary, color: active ? theme.primary : "#142000" }}
           >
             {badge > 99 ? "99+" : badge}
           </span>
@@ -99,7 +101,6 @@ export const DesktopNavbar = () => {
         <button
           type="button"
           onClick={() => go("/(tabs)/clothing/home")}
-          aria-label="Quick Bihar home"
           className="cursor-pointer"
         >
           <div className="flex min-w-[190px] flex-row items-center gap-2.5">
@@ -138,8 +139,8 @@ export const DesktopNavbar = () => {
               <button
                 type="button"
                 onClick={submitSearch}
-                className="rounded-full px-5 py-2.5 text-sm font-extrabold text-white"
-                style={{ backgroundColor: theme.primary }}
+                className="rounded-full px-5 py-2.5 text-sm font-extrabold"
+                style={{ backgroundColor: theme.primary, color: "#142000" }}
               >
                 Search
               </button>

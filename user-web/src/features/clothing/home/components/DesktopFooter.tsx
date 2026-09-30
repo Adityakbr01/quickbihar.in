@@ -51,7 +51,15 @@ export const DesktopFooter = () => {
         ))}
       </div>
       <div className="border-t py-4 text-center" style={{ borderTopColor: theme.border }}>
-        <span className="text-xs font-medium" style={{ color: theme.tertiaryText }}>
+        <span
+          className="text-xs font-medium"
+          style={{
+            color:
+              (theme as any)?.isDark ?? theme?.text === "#ffffff"
+                ? "#a1a1a6"
+                : "#636366",
+          }}
+        >
           © 2026 QuickBihar • Made for Bihar • Fastest fashion delivery
         </span>
       </div>

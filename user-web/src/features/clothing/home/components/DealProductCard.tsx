@@ -246,6 +246,7 @@ export const DealProductCard = ({ product, width }: DealProductCardProps) => {
                 source={cyclerLottie}
                 autoPlay
                 loop
+                deferOffscreen
                 style={{ width: 22, height: 22, marginLeft: -4, marginRight: -2 }}
                 resizeMode="contain"
               />

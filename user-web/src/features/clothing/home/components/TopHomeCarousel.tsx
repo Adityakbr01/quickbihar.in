@@ -96,7 +96,12 @@ const TopHomeCarousel = ({ placement = "home_top" }: { placement?: string } = {}
             gesture.activeOffsetX([-10, 10]);
           }}
           renderItem={({ item, index }) => (
-            <CarouselSlide item={item} index={index} desktop={isDesktop} />
+            <CarouselSlide
+              item={item}
+              index={index}
+              desktop={isDesktop}
+              width={carouselWidth}
+            />
           )}
         />
 
