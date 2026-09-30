@@ -121,9 +121,12 @@ export function ProofImages({
         <div key={proof.label} className="flex w-[126px] flex-col gap-1.5">
           <img
             src={proof.uri}
-            alt={proof.label}
+            alt={`${proof.label} - delivery proof photo`}
+            title={`${proof.label} | QuickBihar delivery`}
             className="aspect-square w-full rounded-xl border object-cover"
             style={{ borderColor: theme.border, backgroundColor: theme.tertiaryBackground }}
+            loading="lazy"
+            decoding="async"
           />
           <span className="text-[11px] font-extrabold" style={{ color: theme.secondaryText }}>
             {proof.label}

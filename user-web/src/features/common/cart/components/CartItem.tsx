@@ -60,9 +60,12 @@ const CartItem = ({ item, onUpdateQuantity, onRemove }: CartItemProps) => {
     >
       <img
         src={item.image || "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=400&q=80"}
-        alt={item.name}
+        alt={`${item.name} - Shop Online in Bihar`}
+        title={`${item.name} | QuickBihar`}
         className="h-[108px] w-[84px] shrink-0 rounded-xl object-cover"
         style={{ backgroundColor: theme.background }}
+        loading="lazy"
+        decoding="async"
       />
 
       <div className="ml-3 flex min-w-0 flex-1 flex-col justify-between">

@@ -657,7 +657,7 @@ export default function OrderDetailScreen() {
                   aria-label="View product"
                 >
                   {imageUrl ? (
-                    <img src={imageUrl} alt={item.title || "Product"} className="h-full w-full object-cover" />
+                    <img src={imageUrl} alt={`${item.title || "Product"} - Shop Online in Bihar`} title={`${item.title || "Product"} | QuickBihar`} className="h-full w-full object-cover" loading="lazy" decoding="async" />
                   ) : (
                     <ShoppingBag size={32} color={theme.primary} />
                   )}

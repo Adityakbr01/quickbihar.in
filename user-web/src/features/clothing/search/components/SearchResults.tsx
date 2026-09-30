@@ -108,7 +108,7 @@ const SearchResults = ({
             }}
           >
             <span className="relative block aspect-[3/4] w-full overflow-hidden rounded-xl">
-              <img src={item.images?.[0]?.url} alt={item.title} className="h-full w-full object-cover" />
+              <img src={item.images?.[0]?.url} alt={`${item.title} - Shop Online in Bihar`} title={`${item.title} | QuickBihar`} className="h-full w-full object-cover" loading="lazy" decoding="async" />
               {item.discountPercentage > 0 && (
                 <span
                   className="absolute top-2 left-2 rounded px-1.5 py-0.5 text-[10px] font-bold text-white"

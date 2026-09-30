@@ -1,5 +1,4 @@
-import { useNavigate } from "react-router-dom";
-import { goTo } from "@/src/utils/navigation";
+import { Link } from "react-router-dom";
 import React from "react";
 import { cn } from "@/src/lib/utils";
 
@@ -23,18 +22,11 @@ export function CollectionCard({
   large = false,
   style,
 }: CollectionCardProps) {
-  const navigate = useNavigate();
-
-  const handlePress = () => {
-    goTo(navigate, "/jewelery/collections" as any);
-  };
-
   const src = resolveSrc(collection.image);
 
   return (
-    <button
-      type="button"
-      onClick={handlePress}
+    <Link
+      to="/jewelery/collections"
       aria-label={collection.name}
       className={cn(
         "relative cursor-pointer overflow-hidden rounded-[2px] text-left transition-opacity active:opacity-92",
@@ -45,8 +37,11 @@ export function CollectionCard({
       {src ? (
         <img
           src={src}
-          alt={collection.name}
+          alt={`${collection.name} jewellery collection - Shop Online in Bihar`}
+          title={`${collection.name} | QuickBihar Jewellery`}
           className="absolute inset-0 h-full w-full object-cover"
+          loading="lazy"
+          decoding="async"
         />
       ) : null}
       <div className="absolute inset-0" style={{ backgroundColor: "rgba(26,22,20,0.28)" }} />
@@ -78,6 +73,6 @@ export function CollectionCard({
           </span>
         </div>
       </div>
-    </button>
+    </Link>
   );
 }

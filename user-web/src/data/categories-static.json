@@ -1,0 +1,219 @@
+{
+  "chain": {
+    "_id": "6aae34012d4e39dc145a5846",
+    "slug": "chain",
+    "title": "Chain",
+    "description": "Gold chains for men and women",
+    "isActive": true
+  },
+  "bridal-set": {
+    "_id": "6aae34012d4e39dc145a5845",
+    "slug": "bridal-set",
+    "title": "Bridal Set",
+    "description": "Complete bridal jewellery sets",
+    "isActive": true
+  },
+  "pendant": {
+    "_id": "6aae34002d4e39dc145a5844",
+    "slug": "pendant",
+    "title": "Pendant",
+    "description": "Standalone pendants",
+    "isActive": true
+  },
+  "bangle": {
+    "_id": "6aae34002d4e39dc145a5843",
+    "slug": "bangle",
+    "title": "Bangle",
+    "description": "Bangles, bracelets and cuffs",
+    "isActive": true
+  },
+  "earrings": {
+    "_id": "6aae34002d4e39dc145a5842",
+    "slug": "earrings",
+    "title": "Earrings",
+    "description": "Jhumkas, studs, hoops and drops",
+    "isActive": true
+  },
+  "ring": {
+    "_id": "6aae34002d4e39dc145a5841",
+    "slug": "ring",
+    "title": "Ring",
+    "description": "Rings for daily wear, gifting and bridal",
+    "isActive": true
+  },
+  "necklace": {
+    "_id": "6aae34002d4e39dc145a5840",
+    "slug": "necklace",
+    "title": "Necklace",
+    "description": "Pendant necklaces, chains and chokers",
+    "isActive": true
+  },
+  "jewellery": {
+    "_id": "6aae34002d4e39dc145a583f",
+    "slug": "jewellery",
+    "title": "Jewellery",
+    "description": "Hallmarked gold, diamond and polki jewellery",
+    "isActive": true
+  },
+  "western-dresses-tops": {
+    "_id": "6aa0ccbbe23e01d669104371",
+    "slug": "western-dresses-tops",
+    "title": "Western Dresses & Tops",
+    "description": "Casual tops, midi dresses, and western evening wear.",
+    "isActive": true
+  },
+  "baby-infant-wear": {
+    "_id": "6aa0ccbce23e01d669104374",
+    "slug": "baby-infant-wear",
+    "title": "Baby & Infant Wear",
+    "description": "Soft organic cotton onesies, rompers, and infant sets.",
+    "isActive": true
+  },
+  "mens-jeans-trousers": {
+    "_id": "6aa0ccbae23e01d66910436c",
+    "slug": "mens-jeans-trousers",
+    "title": "Men's Jeans & Trousers",
+    "description": "Slim-fit denim, chinos, and formal trousers for men.",
+    "isActive": true
+  },
+  "womens-jeans-bottoms": {
+    "_id": "6aa0ccbbe23e01d669104370",
+    "slug": "womens-jeans-bottoms",
+    "title": "Women's Jeans & Bottoms",
+    "description": "High-waist jeans, leggings, palazzos, and casual pants.",
+    "isActive": true
+  },
+  "cotton-handloom-sarees": {
+    "_id": "6aa0ccbde23e01d669104376",
+    "slug": "cotton-handloom-sarees",
+    "title": "Cotton & Handloom Sarees",
+    "description": "Breathable daily cotton and handloom sarees from Bihar weavers.",
+    "isActive": true
+  },
+  "girls-clothing": {
+    "_id": "6aa0ccbce23e01d669104373",
+    "slug": "girls-clothing",
+    "title": "Girls Clothing",
+    "description": "Frocks, dresses, tops, skirts, and ethnic lehengas for girls.",
+    "isActive": true
+  },
+  "kurtis-kurta-sets": {
+    "_id": "6aa0ccbbe23e01d66910436f",
+    "slug": "kurtis-kurta-sets",
+    "title": "Kurtis & Kurta Sets",
+    "description": "Straight kurtis, Anarkali partywear suits, and palazzo sets.",
+    "isActive": true
+  },
+  "mens-t-shirts": {
+    "_id": "6aa0ccbae23e01d66910436b",
+    "slug": "mens-t-shirts",
+    "title": "Men's T-Shirts",
+    "description": "Trendy round-neck, polo, and graphic t-shirts for men.",
+    "isActive": true
+  },
+  "womens-high-rise-jeans": {
+    "_id": "6aa0ccbde23e01d669104378",
+    "slug": "womens-high-rise-jeans",
+    "title": "Women's High Rise Jeans",
+    "description": "High-waist, mom fit, and wide-leg denim jeans for women.",
+    "isActive": true
+  },
+  "banarasi-silk-sarees": {
+    "_id": "6aa0ccbde23e01d669104375",
+    "slug": "banarasi-silk-sarees",
+    "title": "Banarasi Silk Sarees",
+    "description": "Authentic heavy zari Banarasi sarees for weddings and festivals.",
+    "isActive": true
+  },
+  "boys-clothing": {
+    "_id": "6aa0ccbce23e01d669104372",
+    "slug": "boys-clothing",
+    "title": "Boys Clothing",
+    "description": "T-shirts, shorts, denim jeans, and ethnic sets for boys.",
+    "isActive": true
+  },
+  "mens-shirts": {
+    "_id": "6aa0ccbae23e01d66910436a",
+    "slug": "mens-shirts",
+    "title": "Men's Shirts",
+    "description": "Casual, formal, and linen shirts for men from local Bihar shops.",
+    "isActive": true
+  },
+  "mens-slim-fit-jeans": {
+    "_id": "6aa0ccbde23e01d669104377",
+    "slug": "mens-slim-fit-jeans",
+    "title": "Men's Slim Fit Jeans",
+    "description": "Modern stretchable slim fit denim jeans for men.",
+    "isActive": true
+  },
+  "sarees-drapes": {
+    "_id": "6aa0ccbbe23e01d66910436e",
+    "slug": "sarees-drapes",
+    "title": "Sarees & Drapes",
+    "description": "Banarasi, silk, chiffon, and daily-wear sarees from Bihar boutiques.",
+    "isActive": true
+  },
+  "mens-kurtas-ethnic": {
+    "_id": "6aa0ccbbe23e01d66910436d",
+    "slug": "mens-kurtas-ethnic",
+    "title": "Men's Kurtas & Ethnic",
+    "description": "Festive silk kurtas, pajama sets, and royal sherwanis for men.",
+    "isActive": true
+  },
+  "mens-wear": {
+    "_id": "6aa0c493c72623fd414acb0f",
+    "slug": "mens-wear",
+    "title": "Men's Wear",
+    "description": "Latest styles in men's fashion: shirts, t-shirts, jeans, trousers, ethnic kurtas and formal wear from local Bihar stores.",
+    "isActive": true
+  },
+  "womens-wear": {
+    "_id": "6aa0c493c72623fd414acb10",
+    "slug": "womens-wear",
+    "title": "Women's Wear",
+    "description": "Elegant women's clothing, ethnic wear, sarees, kurtis, western dresses and daily fashion from top Bihar boutiques.",
+    "isActive": true
+  },
+  "kids-wear": {
+    "_id": "6aa0c493c72623fd414acb11",
+    "slug": "kids-wear",
+    "title": "Kids Wear",
+    "description": "Comfortable, colorful, and durable clothing for boys and girls of all ages: tops, sets, ethnic wear and casuals.",
+    "isActive": true
+  },
+  "sarees": {
+    "_id": "6aa0c8bfc72623fd414acb12",
+    "slug": "sarees",
+    "title": "Sarees",
+    "description": "Exquisite handloom, Banarasi, silk, cotton, and designer sarees from master weavers and top boutiques across Bihar.",
+    "isActive": true
+  },
+  "jeans": {
+    "_id": "6aa0c8c1c72623fd414acb13",
+    "slug": "jeans",
+    "title": "Jeans",
+    "description": "Premium denim jeans, slim-fit, straight-cut, wide-leg, and casual denim trousers for men and women.",
+    "isActive": true
+  },
+  "kurtis-suits": {
+    "_id": "6aa0c8c3c72623fd414acb14",
+    "slug": "kurtis-suits",
+    "title": "Kurtis & Suits",
+    "description": "Designer kurtis, Anarkali suits, palazzos, and daily ethnic wear for women from Bihar's best fashion hubs.",
+    "isActive": true
+  },
+  "shirts-t-shirts": {
+    "_id": "6aa0c8c4c72623fd414acb15",
+    "slug": "shirts-t-shirts",
+    "title": "Shirts & T-Shirts",
+    "description": "Trendy cotton t-shirts, casual shirts, formal button-downs, and polo shirts for daily fashion.",
+    "isActive": true
+  },
+  "ethnic-wear": {
+    "_id": "6aa0c8c6c72623fd414acb16",
+    "slug": "ethnic-wear",
+    "title": "Ethnic Wear",
+    "description": "Royal sherwanis, festive kurta pajamas, bandhgalas, and traditional celebration clothing for special occasions.",
+    "isActive": true
+  }
+}

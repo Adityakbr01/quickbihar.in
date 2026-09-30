@@ -21,12 +21,16 @@ import { renderToString } from 'react-dom/server';
 import type { Thing } from 'schema-dts';
 import productsCatalog from '../data/products-static.json';
 import mallsCatalog from '../data/malls-static.json';
+import categoriesCatalog from '../data/categories-static.json';
 import { SITE_LANGUAGE, SITE_NAME, getCanonicalUrl } from './site';
 import {
   categoryMeta,
   foodMeta,
   homeMeta,
+  jeweleryCollectionsMeta,
   jeweleryMeta,
+  jewelerySearchMeta,
+  locationMeta,
   mallMeta,
   mallsMeta,
   productMeta,
@@ -45,17 +49,20 @@ import {
   organizationSchema,
   productSchema,
   restaurantSchema,
+  storeSchema,
   webPageSchema,
   websiteSchema,
 } from './schemas';
 import { STATIC_ROUTES } from './routes';
 import { FAQS } from '../features/Jewelery/data/faqs';
+import { ALL_BUXAR_PAGES } from '../constants/locations/buxar';
 
 const JEWEL_FAQS = FAQS.map((f) => ({ question: f.q, answer: f.a }));
 
 /* ── static catalog (fs, cached) ───────────────────────────────── */
 
 interface StaticProduct {
+  _id?: string;
   slug: string;
   title: string;
   price?: number;
@@ -64,8 +71,15 @@ interface StaticProduct {
   brand?: string;
   category?: string;
   subCategory?: string;
+  vertical?: string;
   images?: Array<{ url?: string }>;
   isActive?: boolean;
+}
+
+interface StaticCategory {
+  slug: string;
+  title: string;
+  description?: string;
 }
 
 interface StaticMall {
@@ -81,10 +95,11 @@ interface StaticMall {
 
 let productCache: StaticProduct[] | null = null;
 let mallCache: StaticMall[] | null = null;
+let categoryCache: StaticCategory[] | null = null;
 
 /** Load static catalog (static JSON imports — no fs, works everywhere). */
 function loadCatalog(): void {
-  if (productCache && mallCache) return;
+  if (productCache && mallCache && categoryCache) return;
   try {
     productCache = Object.values(productsCatalog);
   } catch {
@@ -95,6 +110,11 @@ function loadCatalog(): void {
   } catch {
     mallCache = [];
   }
+  try {
+    categoryCache = Object.values(categoriesCatalog);
+  } catch {
+    categoryCache = [];
+  }
 }
 
 function allProducts(): StaticProduct[] {
@@ -103,6 +123,10 @@ function allProducts(): StaticProduct[] {
 
 function allMalls(): StaticMall[] {
   return mallCache ?? [];
+}
+
+function allCategories(): StaticCategory[] {
+  return categoryCache ?? [];
 }
 
 function titleizeSlug(slug: string): string {
@@ -216,6 +240,7 @@ export async function prerender(data: { url: string }) {
   loadCatalog();
   const products = allProducts();
   const malls = allMalls();
+  const categories = allCategories();
 
   let meta: PageMeta = homeMeta();
   let schemas: Thing[] = [organizationSchema()];
@@ -226,8 +251,127 @@ export async function prerender(data: { url: string }) {
   const productMatch = cleanPath.match(/^\/product\/([^/]+)$/);
   const mallMatch = cleanPath.match(/^\/mall\/([^/]+)$/);
   const categoryMatch = cleanPath.match(/^\/category\/([^/]+)$/);
+  const jewelProductMatch = cleanPath.match(/^\/jewelery\/product\/([^/]+)$/);
+  const locationHubMatch = cleanPath.match(/^\/locations\/bihar\/buxar\/?$/);
+  const locationMatch = cleanPath.match(/^\/locations\/bihar\/buxar\/([^/]+)$/);
 
-  if (productMatch) {
+  const locationBySlug = (slug: string) =>
+    ALL_BUXAR_PAGES.find((l) => l.slug === slug);
+
+  if (jewelProductMatch) {
+    const id = decodeURIComponent(jewelProductMatch[1]).trim();
+    const product =
+      products.find((p) => p._id === id) ||
+      products.find((p) => p.slug === id);
+    // Canonical jewellery PDPs only — clothing must not duplicate here.
+    // products-static.json now carries `vertical`; older JSON falls back to
+    // the Jewellery category label so rebuilds never 404 indexed PDPs.
+    const isJewel =
+      String(product?.vertical || '').toUpperCase() === 'JEWELERY' ||
+      String(product?.category || '').toLowerCase().includes('jewel');
+    if (product && isJewel && product.images?.[0]?.url && Number(product.price) > 0) {
+      const slug = String(product.slug || id);
+      meta = staticMeta({
+        title: `${String(product.title)} | QuickBihar Jewellery`,
+        description:
+          String(product.shortDescription || product.description || '').slice(0, 150) ||
+          `${String(product.title)} from trusted Bihar jewellers on QuickBihar. BIS-hallmarked, certified delivery.`,
+        keywords: [
+          String(product.title),
+          String(product.category || ''),
+          'buy jewellery Bihar',
+          'QuickBihar Jewellery',
+        ]
+          .filter(Boolean)
+          .join(', '),
+        path: `/jewelery/product/${product._id || slug}`,
+        image: product.images?.[0]?.url,
+      });
+      heading = String(product.title);
+      intro = String(product.shortDescription || product.description || meta.description);
+      schemas.push(
+        webPageSchema(`/jewelery/product/${product._id || slug}`, meta.title, meta.description),
+        breadcrumbSchema([
+          { name: 'Home', path: '/' },
+          { name: 'Jewellery', path: '/jewelery' },
+          { name: String(product.title) },
+        ]),
+      );
+      const node = productSchema(product, meta.canonical);
+      if (node) schemas.push(node);
+      const faq = faqPageSchema(JEWEL_FAQS);
+      if (faq) schemas.push(faq);
+      const isJewelRow = (p: StaticProduct) =>
+        String(p.vertical || '').toUpperCase() === 'JEWELERY' ||
+        String(p.category || '').toLowerCase().includes('jewel');
+      shellLinks = products
+        .filter((p) => isJewelRow(p) && p.slug !== slug)
+        .slice(0, 12)
+        .map((p) => ({
+          href: p._id ? `/jewelery/product/${p._id}` : `/product/${p.slug}`,
+          label: String(p.title),
+        }));
+    } else {
+      meta = { ...homeMeta(), robots: 'noindex, nofollow' };
+    }
+  } else if (locationHubMatch || locationMatch) {
+    const slug = locationHubMatch ? 'buxar' : decodeURIComponent(locationMatch![1]).trim();
+    const location = locationBySlug(slug);
+    if (location) {
+      const pagePath =
+        location.slug === 'buxar'
+          ? '/locations/bihar/buxar'
+          : `/locations/bihar/buxar/${location.slug}`;
+      meta = locationMeta({
+        title: location.title,
+        metaDescription: location.metaDescription,
+        keywords: location.keywords,
+        path: pagePath,
+        image: location.image,
+      });
+      heading = `Online Fashion & Clothes Delivery in ${location.name}`;
+      intro = location.metaDescription;
+      schemas.push(
+        storeSchema({
+          name: location.name,
+          canonical: meta.canonical,
+          description: location.metaDescription,
+          image: location.image,
+          pins: location.pins,
+        }),
+        webPageSchema(
+          pagePath,
+          meta.title,
+          meta.description,
+        ),
+        breadcrumbSchema(
+          location.slug === 'buxar'
+            ? [
+                { name: 'Home', path: '/' },
+                { name: 'Buxar', path: pagePath },
+              ]
+            : [
+                { name: 'Home', path: '/' },
+                { name: 'Buxar', path: '/locations/bihar/buxar' },
+                { name: location.name },
+              ],
+        ),
+      );
+      const faq = faqPageSchema(
+        location.faqs.map((f) => ({ question: f.question, answer: f.answer })),
+      );
+      if (faq) schemas.push(faq);
+      shellLinks = [
+        ...ALL_BUXAR_PAGES.filter((l) => l.slug !== location.slug).map((l) => ({
+          href: l.slug === 'buxar' ? '/locations/bihar/buxar' : `/locations/bihar/buxar/${l.slug}`,
+          label: l.name,
+        })),
+        ...products.slice(0, 12).map((p) => ({ href: `/product/${p.slug}`, label: String(p.title) })),
+      ];
+    } else {
+      meta = { ...homeMeta(), robots: 'noindex, nofollow' };
+    }
+  } else if (productMatch) {
     const slug = decodeURIComponent(productMatch[1]).trim();
     const product = products.find((p) => p.slug === slug);
     if (product) {
@@ -275,9 +419,11 @@ export async function prerender(data: { url: string }) {
       meta = { ...homeMeta(), robots: 'noindex, nofollow' };
     }
   } else if (categoryMatch) {
-    const slug = decodeURIComponent(categoryMatch[1]).trim();
-    const title = titleizeSlug(slug);
-    meta = categoryMeta({ slug, title, isActive: true }, Math.max(products.length, 1));
+    const slug = decodeURIComponent(categoryMatch[1]).trim().toLowerCase();
+    const known = categories.find((c) => c.slug.toLowerCase() === slug);
+    const title = String(known?.title || titleizeSlug(slug));
+    const description = String(known?.description || '');
+    meta = categoryMeta({ slug, title, isActive: true, description }, Math.max(products.length, 1));
     heading = `${title} | Shop Online in Bihar`;
     intro = meta.description;
     const items = products.slice(0, 20).map((p) => ({
@@ -362,6 +508,29 @@ export async function prerender(data: { url: string }) {
           );
         }
         break;
+      case '/jewelery/collections': {
+        const collMeta = jeweleryCollectionsMeta();
+        meta = collMeta;
+        heading = 'Jewellery Collections';
+        const faq = faqPageSchema(JEWEL_FAQS);
+        if (faq) schemas.push(faq);
+        schemas.push(
+          webPageSchema('/jewelery/collections', meta.title, meta.description),
+          breadcrumbSchema([
+            { name: 'Home', path: '/' },
+            { name: 'Jewellery', path: '/jewelery' },
+            { name: 'Collections' },
+          ]),
+        );
+        break;
+      }
+      case '/jewelery/search': {
+        const sMeta = jewelerySearchMeta(false);
+        meta = sMeta;
+        heading = 'Search Jewellery Online in Bihar';
+        schemas.push(webPageSchema('/jewelery/search', meta.title, meta.description));
+        break;
+      }
       default:
         meta = staticMeta({ title: meta.title, description: meta.description, path: cleanPath });
         heading = meta.title;
@@ -372,6 +541,11 @@ export async function prerender(data: { url: string }) {
     shellLinks = [
       ...products.slice(0, 20).map((p) => ({ href: `/product/${p.slug}`, label: String(p.title) })),
       ...malls.map((m) => ({ href: `/mall/${m.slug}`, label: String(m.name) })),
+      ...categories.slice(0, 12).map((c) => ({ href: `/category/${c.slug}`, label: String(c.title) })),
+      ...ALL_BUXAR_PAGES.slice(0, 12).map((l) => ({
+        href: l.slug === 'buxar' ? '/locations/bihar/buxar' : `/locations/bihar/buxar/${l.slug}`,
+        label: l.name,
+      })),
     ];
     // Collection graph on listing pages (top-selling / home)
     if (cleanPath === '/top-selling' || cleanPath === '/' || cleanPath === '/clothing/home') {
@@ -395,7 +569,19 @@ export async function prerender(data: { url: string }) {
   const links = new Set<string>([
     ...STATIC_ROUTES.map((r) => r.path),
     ...products.map((p) => `/product/${p.slug}`),
+    ...products
+      .filter(
+        (p) =>
+          String(p.vertical || '').toUpperCase() === 'JEWELERY' ||
+          String(p.category || '').toLowerCase().includes('jewel'),
+      )
+      .filter((p) => p._id)
+      .map((p) => `/jewelery/product/${p._id}`),
     ...malls.map((m) => `/mall/${m.slug}`),
+    ...categories.map((c) => `/category/${c.slug}`),
+    ...ALL_BUXAR_PAGES.map((l) =>
+      l.slug === 'buxar' ? '/locations/bihar/buxar' : `/locations/bihar/buxar/${l.slug}`,
+    ),
   ]);
 
   return {

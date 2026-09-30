@@ -128,7 +128,7 @@ export const JeweleryDesktopNavbar = () => {
           className="cursor-pointer"
         >
           <div className="flex min-w-[190px] flex-row items-center gap-2.5">
-            <img src={splashIcon} alt="Quick Bihar logo" aria-label="Quick Bihar logo" className="h-[46px] w-[42px] rounded-xl object-contain" />
+            <img src={splashIcon} alt="QuickBihar logo - Online Shopping in Bihar" title="QuickBihar - Online Shopping in Bihar" className="h-[46px] w-[42px] rounded-xl object-contain" />
             <div>
               <p className="text-[19px] leading-[22px] font-black tracking-tight" style={{ color: colors.ink }}>
                 Quick Bihar

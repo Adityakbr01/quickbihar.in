@@ -353,3 +353,21 @@ export function noIndexMeta(path = '/'): PageMeta {
     robots: 'noindex, nofollow',
   };
 }
+
+/** Buxar location hub/block meta — static data only, always indexable. */
+export function locationMeta(input: {
+  title: string;
+  metaDescription: string;
+  keywords: string[];
+  path: string;
+  image?: string;
+}): PageMeta {
+  return {
+    title: seoTitle(input.title),
+    description: seoDescription(input.metaDescription),
+    canonical: getCanonicalUrl(input.path),
+    keywords: input.keywords.join(', '),
+    image: input.image || DEFAULT_OG_IMAGE,
+    robots: 'index, follow',
+  };
+}

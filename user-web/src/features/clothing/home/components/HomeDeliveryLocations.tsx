@@ -1,13 +1,11 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
-import { goTo } from "@/src/utils/navigation";
+import { Link } from "react-router-dom";
 import { ArrowRight, MapPin, Zap } from "lucide-react";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { BUXAR_BLOCKS, type BuxarLocation } from "@/src/constants/locations/buxar";
 
 export const HomeDeliveryLocations: React.FC = () => {
   const theme = useTheme();
-  const navigate = useNavigate();
 
   // Priority towns for quick-chips
   const keyLocations = [
@@ -41,16 +39,15 @@ export const HomeDeliveryLocations: React.FC = () => {
           </p>
         </div>
 
-        <button
-          type="button"
+        <Link
+          to="/locations/bihar/buxar"
           aria-label="Explore Buxar District Delivery Hub"
           title="Explore Buxar District Delivery Hub"
-          onClick={() => goTo(navigate, "/locations/bihar/buxar" as any)}
           className="flex cursor-pointer flex-row items-center gap-1 self-start rounded-full bg-indigo-50 px-3 py-1.5"
         >
           <span className="text-xs font-bold text-indigo-600">All Buxar Hubs</span>
           <ArrowRight size={14} color="#4F46E5" />
-        </button>
+        </Link>
       </div>
 
       {/* Town Grid Chips */}
@@ -58,12 +55,11 @@ export const HomeDeliveryLocations: React.FC = () => {
         {keyLocations.map((loc) => {
           const path = `/locations/bihar/buxar/${loc.slug}` as const;
           return (
-            <button
+            <Link
               key={loc.slug}
-              type="button"
+              to={path}
               aria-label={`Shop clothing & fashion in ${loc.name}, Buxar PIN ${loc.pin}`}
               title={`Fashion store in ${loc.name}`}
-              onClick={() => goTo(navigate, path as any)}
               className="w-[48%] cursor-pointer rounded-xl border p-2.5 text-left"
               style={{
                 backgroundColor: theme.secondaryBackground || "#F8FAFC",
@@ -82,7 +78,7 @@ export const HomeDeliveryLocations: React.FC = () => {
                 </span>
                 <span className="rounded bg-green-100 px-1.5 py-px text-[10px] font-bold text-green-700">{loc.timing}</span>
               </span>
-            </button>
+            </Link>
           );
         })}
       </div>
@@ -97,15 +93,14 @@ export const HomeDeliveryLocations: React.FC = () => {
             const blockPath = `/locations/bihar/buxar/${b.slug}` as const;
             return (
               <React.Fragment key={b.slug}>
-                <button
-                  type="button"
+                <Link
+                  to={blockPath}
                   aria-label={`Delivery in ${b.name}`}
                   title={`Delivery in ${b.name}`}
-                  onClick={() => goTo(navigate, blockPath as any)}
-                  className="cursor-pointer py-0.5"
+                  className="cursor-pointer py-0.5 text-[11px] font-semibold text-indigo-600 underline"
                 >
-                  <span className="text-[11px] font-semibold text-indigo-600 underline">{b.name}</span>
-                </button>
+                  {b.name}
+                </Link>
                 {idx < BUXAR_BLOCKS.length - 1 && (
                   <span className="mx-0.5 text-[11px]" style={{ color: theme.secondaryText }}>•</span>
                 )}

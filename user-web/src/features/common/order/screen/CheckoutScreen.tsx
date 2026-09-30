@@ -636,12 +636,15 @@ const CheckoutScreen = () => {
                       >
                         <img
                           src={item.image}
-                          alt={item.productTitle}
+                          alt={`${item.productTitle} - Shop Online in Bihar`}
+                          title={`${item.productTitle} | QuickBihar`}
                           className="h-16 w-16 rounded-xl border object-cover"
                           style={{
                             backgroundColor: theme.tertiaryBackground,
                             borderColor: theme.border,
                           }}
+                          loading="lazy"
+                          decoding="async"
                         />
                         <div className="flex flex-1 flex-col justify-center">
                           <p

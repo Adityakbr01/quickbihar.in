@@ -164,8 +164,11 @@ const WishlistScreen = () => {
                     >
                       <img
                         src={imageUrl}
-                        alt={product.title || product.name || "Fashion Item"}
+                        alt={`${product.title || product.name || "Fashion Item"} - Shop Online in Bihar`}
+                        title={`${product.title || product.name || "Fashion Item"} | QuickBihar`}
                         className="h-full w-full object-cover"
+                        loading="lazy"
+                        decoding="async"
                       />
 
                       {discount > 0 && (

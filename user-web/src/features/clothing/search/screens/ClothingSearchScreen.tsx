@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
 import { BREAKPOINTS, useWindowWidth } from "@/src/utils/responsive";
 import { useNavigate } from "react-router-dom";
 import { goTo, useRouteParams } from "@/src/utils/navigation";
@@ -18,6 +18,7 @@ import RecentSearches from "@/src/features/clothing/search/components/RecentSear
 import TrendingSection from "@/src/features/clothing/search/components/TrendingSection";
 import SearchResults from "@/src/features/clothing/search/components/SearchResults";
 import { cn } from "@/src/lib/utils";
+import { trackSearchResults } from "@/src/analytics/googleAnalytics";
 
 const TRENDING_ITEMS = categoriesData.map((c) => c.title);
 
@@ -71,6 +72,18 @@ const ClothingSearchScreen = () => {
 
   // Flatten pages for SearchResults
   const flatResults = data?.pages.flatMap((page) => page.data) || [];
+
+  // GA4 view_search_results — fires once per distinct debounced term when
+  // its results are known (real query + result count, catalog clothing).
+  // Pagination appends don't refire for the same term.
+  const searchTrackedRef = useRef<string | null>(null);
+  useEffect(() => {
+    const term = debouncedQuery.trim();
+    if (!term || isLoading) return;
+    if (searchTrackedRef.current === term) return;
+    searchTrackedRef.current = term;
+    trackSearchResults(term, flatResults.length, "clothing");
+  }, [debouncedQuery, isLoading, flatResults.length]);
 
   const onSearchTrigger = useCallback(
     (searchTerm: string) => {

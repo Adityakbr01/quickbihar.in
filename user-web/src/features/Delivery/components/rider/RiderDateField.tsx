@@ -57,6 +57,7 @@ export function RiderDateField({
         <input
           ref={inputRef}
           type="date"
+          aria-label="Select delivery date"
           value={value || ""}
           onChange={handleChange}
           className="mt-2 w-full rounded-[14px] border px-3 py-2 text-sm"

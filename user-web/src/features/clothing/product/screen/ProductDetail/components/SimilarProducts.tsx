@@ -35,8 +35,11 @@ export const SimilarProducts = ({ products, theme }: SimilarProductsProps) => {
           >
             <img
               src={item.images?.[0]?.url}
-              alt={item.title}
+              alt={`${item.title} - Shop Online in Bihar`}
+              title={`${item.title} | QuickBihar`}
               className="h-[180px] w-full object-cover"
+              loading="lazy"
+              decoding="async"
             />
             <span className="block gap-1 p-2.5">
               <span className="block truncate text-[11px] font-bold tracking-wide uppercase" style={{ color: theme.secondaryText }}>

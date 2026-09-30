@@ -51,6 +51,10 @@ const HomeScreen = ({ rootSlug }: { rootSlug?: string }) => {
 
   return (
     <main className="flex-1">
+      {/* Single H1 per page (audit: missing-h1) — visually hidden, crawlable. */}
+      <h1 className="sr-only">
+        QuickBihar — Online Clothes Shopping in Buxar, Bihar with 60–120 min Delivery
+      </h1>
       <div
         className={cn("flex flex-col", isWide && "items-center")}
         style={{ paddingBottom: isDesktop ? 24 : 100 }}

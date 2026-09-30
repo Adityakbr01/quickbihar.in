@@ -320,7 +320,8 @@ export default function AuthScreen() {
             >
               <img
                 src={splashIcon}
-                alt="QuickBihar logo"
+                alt="QuickBihar logo - Online Shopping in Bihar"
+                title="QuickBihar - Online Shopping in Bihar"
                 className="h-[56px] w-[52px] rounded-xl"
               />
             </div>
@@ -450,6 +451,7 @@ export default function AuthScreen() {
                     <img
                       src={googleIcon}
                       alt=""
+                      aria-hidden="true"
                       className="h-[18px] w-[18px]"
                     />
                   </span>

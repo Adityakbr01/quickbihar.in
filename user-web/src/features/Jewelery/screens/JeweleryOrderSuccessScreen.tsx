@@ -9,6 +9,10 @@ import { APP_CURRENCY } from "@/src/constants";
 import { getOrderByIdRequest } from "@/src/features/common/order/api/order.api";
 import { useColors } from "@/src/features/Jewelery/hooks/useColors";
 import { useTopPad } from "@/src/hooks/useTopPad";
+import {
+  gaItemFromOrderLine,
+  trackPurchase,
+} from "@/src/analytics/googleAnalytics";
 
 export default function JeweleryOrderSuccessScreen() {
   const colors = useColors();
@@ -31,7 +35,36 @@ export default function JeweleryOrderSuccessScreen() {
     if (orderId) {
       setIsLoading(true);
       getOrderByIdRequest(orderId)
-        .then((res) => setOrder(res.data))
+        .then((res) => {
+          setOrder(res.data);
+          // GA4 purchase — fires ONCE per server-generated order ID
+          // (trackPurchase dedupes via localStorage, so refreshing this
+          // page never emits a duplicate). Uses the authoritative order:
+          // real transaction_id, payableAmount value, INR currency.
+          const placedOrder = res.data;
+          if (
+            placedOrder &&
+            placedOrder.orderId &&
+            Array.isArray(placedOrder.items) &&
+            placedOrder.items.length > 0
+          ) {
+            const couponCodes = Array.isArray(placedOrder.couponCodes)
+              ? placedOrder.couponCodes.filter(Boolean).join(",")
+              : "";
+            trackPurchase({
+              transactionId: placedOrder.orderId,
+              value: placedOrder.payableAmount,
+              items: placedOrder.items.map((item: any) =>
+                gaItemFromOrderLine(item, "jewellery"),
+              ),
+              catalog: "jewellery",
+              coupon:
+                placedOrder.couponCode || couponCodes || undefined,
+              shipping: placedOrder.shippingFee,
+              tax: placedOrder.totalTax,
+            });
+          }
+        })
         .catch(() => {})
         .finally(() => setIsLoading(false));
     }

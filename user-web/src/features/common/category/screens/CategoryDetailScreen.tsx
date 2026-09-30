@@ -115,8 +115,11 @@ const CategoryDetailScreen: React.FC<CategoryDetailScreenProps> = ({ slug }) => 
               >
                 <img
                   src={item.images?.[0]?.url}
-                  alt={`${item.title}`}
+                  alt={`${item.title} - Shop Online in Bihar`}
+                  title={`${item.title} | QuickBihar`}
                   className="h-[180px] w-full object-cover"
+                  loading="lazy"
+                  decoding="async"
                 />
                 <div className="p-2">
                   <p className="line-clamp-1 font-semibold" style={{ color: theme.text }}>

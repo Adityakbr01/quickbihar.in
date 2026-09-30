@@ -25,6 +25,7 @@ import {
   jeweleryCollectionsMeta,
   jeweleryMeta,
   jewelerySearchMeta,
+  locationMeta,
   mallMeta,
   mallsMeta,
   productMeta,
@@ -42,10 +43,15 @@ import {
   organizationSchema,
   productSchema,
   restaurantSchema,
+  storeSchema,
   webPageSchema,
   websiteSchema,
 } from './schemas';
 import { FAQS } from '@/src/features/Jewelery/data/faqs';
+import {
+  ALL_BUXAR_PAGES,
+  BUXAR_DISTRICT_HUB,
+} from '@/src/constants/locations/buxar';
 
 // Feature hooks — React Query deduplicates with the screens, so NO extra API calls.
 import { useProductById } from '@/src/features/clothing/product/hooks/useProducts';
@@ -209,7 +215,10 @@ function MallsSeo() {
 
 function CollectionsSeo() {  const { data: cats } = useJeweleryCategories();
   const meta = jeweleryCollectionsMeta();
-  const items = (cats || []).map((c: { title?: string }) => ({ name: String(c?.title || 'Collection') }));
+  const items = (cats || []).map((c: { title?: string; slug?: string }) => ({
+    name: String(c?.title || 'Collection'),
+    url: getCanonicalUrl('/jewelery/collections'),
+  }));
   const jsonLd = [
     webPageSchema('/jewelery/collections', meta.title, meta.description),
     collectionSchema({ name: 'Jewellery Collections', description: meta.description, canonical: meta.canonical, items }),
@@ -219,6 +228,49 @@ function CollectionsSeo() {  const { data: cats } = useJeweleryCategories();
       { name: 'Jewellery', path: '/jewelery' },
       { name: 'Collections' },
     ]),
+  ];
+  return <SeoHead meta={meta} jsonLd={jsonLd} />;
+}
+
+function LocationSeo({ slug }: { slug: string }) {
+  const location =
+    ALL_BUXAR_PAGES.find((loc) => loc.slug === slug) || BUXAR_DISTRICT_HUB;
+  const pagePath =
+    location.slug === 'buxar'
+      ? '/locations/bihar/buxar'
+      : `/locations/bihar/buxar/${location.slug}`;
+  const meta = locationMeta({
+    title: location.title,
+    metaDescription: location.metaDescription,
+    keywords: location.keywords,
+    path: pagePath,
+    image: location.image,
+  });
+  const jsonLd = [
+    organizationSchema(),
+    storeSchema({
+      name: location.name,
+      canonical: meta.canonical,
+      description: location.metaDescription,
+      image: location.image,
+      pins: location.pins,
+    }),
+    faqPageSchema(
+      location.faqs.map((f) => ({ question: f.question, answer: f.answer })),
+    ),
+    webPageSchema(pagePath, meta.title, meta.description),
+    breadcrumbSchema(
+      location.slug === 'buxar'
+        ? [
+            { name: 'Home', path: '/' },
+            { name: 'Buxar', path: pagePath },
+          ]
+        : [
+            { name: 'Home', path: '/' },
+            { name: 'Buxar', path: '/locations/bihar/buxar' },
+            { name: location.name },
+          ],
+    ),
   ];
   return <SeoHead meta={meta} jsonLd={jsonLd} />;
 }
@@ -245,6 +297,13 @@ export default function SeoRouter() {
 
   const jewProductMatch = pathname.match(/^\/jewelery\/product\/([^/]+)$/);
   if (jewProductMatch) return <JeweleryProductSeo id={decodeURIComponent(jewProductMatch[1])} />;
+
+  const locationHubMatch = pathname.match(/^\/locations\/bihar\/buxar\/?$/);
+  if (locationHubMatch) return <LocationSeo slug="buxar" />;
+
+  const locationMatch = pathname.match(/^\/locations\/bihar\/buxar\/([^/]+)$/);
+  if (locationMatch)
+    return <LocationSeo slug={decodeURIComponent(locationMatch[1])} />;
 
   // 3. Static routes
   const hasQueryParams = search.length > 1;

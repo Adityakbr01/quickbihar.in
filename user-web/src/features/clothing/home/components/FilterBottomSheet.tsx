@@ -173,6 +173,7 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
               placeholder={isCategoryFilter ? "Search category or subcategory..." : `Search ${title.toLowerCase()}...`}
+              aria-label={isCategoryFilter ? "Search categories" : `Search ${title.toLowerCase()}`}
               autoCapitalize="none"
               className="w-full bg-transparent text-sm font-medium outline-none"
               style={{ color: theme.text }}

@@ -191,11 +191,15 @@ const MallDetailScreen: React.FC<MallDetailScreenProps> = ({
                 src={uri}
                 alt={
                   index === 0
-                    ? `${mall.name} — cover photo`
-                    : `${mall.name} — photo ${index + 1}`
+                    ? `${mall.name} cover photo - Shopping Mall in Bihar`
+                    : `${mall.name} photo ${index + 1} - Shopping Mall in Bihar`
                 }
+                title={`${mall.name} | QuickBihar Local Mall`}
                 className="h-full object-cover"
                 style={{ width: windowWidth }}
+                loading={index === 0 ? "eager" : "lazy"}
+                decoding="async"
+                fetchPriority={index === 0 ? "high" : "low"}
               />
             )}
           />
@@ -506,8 +510,11 @@ const MallDetailScreen: React.FC<MallDetailScreenProps> = ({
                 >
                   <img
                     src={item.image}
-                    alt={item.name}
+                    alt={`${item.name} - Shop Online in Bihar`}
+                    title={`${item.name} | QuickBihar`}
                     className="h-40 w-full object-cover"
+                    loading="lazy"
+                    decoding="async"
                   />
                   {item.discount && (
                     <span className="absolute top-2 left-2 rounded bg-green-500 px-1.5 py-0.5 text-[9px] font-bold text-white">
@@ -580,8 +587,10 @@ const MallDetailScreen: React.FC<MallDetailScreenProps> = ({
                     {review.user.avatarUrl ? (
                       <img
                         src={review.user.avatarUrl}
-                        alt={review.user.fullName}
+                        alt={`${review.user.fullName} - QuickBihar reviewer`}
                         className="h-9 w-9 rounded-full object-cover"
+                        loading="lazy"
+                        decoding="async"
                       />
                     ) : (
                       <span
@@ -651,8 +660,11 @@ const MallDetailScreen: React.FC<MallDetailScreenProps> = ({
               >
                 <img
                   src={item.image}
-                  alt={item.name}
+                  alt={`${item.name} - Shop Online in Bihar`}
+                  title={`${item.name} | QuickBihar`}
                   className="h-[110px] w-full object-cover"
+                  loading="lazy"
+                  decoding="async"
                 />
                 <span className="block p-2.5">
                   <span

@@ -1,6 +1,6 @@
 import { Heart, Image as ImageIcon, Star } from "lucide-react";
 import * as Haptics from "@/lib/haptics";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { goTo } from "@/src/utils/navigation";
 import React from "react";
 import { cn } from "@/src/lib/utils";
@@ -80,6 +80,7 @@ export function ProductCard({ product, style }: ProductCardProps) {
   };
 
   const src = resolveSrc(product.image);
+  const productHref = `/jewelery/product/${product.id}`;
 
   return (
     <div
@@ -96,22 +97,33 @@ export function ProductCard({ product, style }: ProductCardProps) {
       className={cn("mb-4 cursor-pointer overflow-hidden rounded-[2px] transition-opacity active:opacity-92")}
       style={{ backgroundColor: colors.pearl, width: cardWidth, ...style }}
     >
+      {/* Crawlable anchors (audit: no-outgoing-links) — outer div keeps UX. */}
       <div className="relative aspect-[3/4]">
-        {src ? (
-          <img
-            src={src}
-            alt={product.name}
-            className="h-full w-full object-cover"
-            draggable={false}
-          />
-        ) : (
-          <div
-            className="flex h-full w-full items-center justify-center"
-            style={{ backgroundColor: colors.champagne }}
-          >
-            <ImageIcon size={28} color={colors.gold} />
-          </div>
-        )}
+        <Link
+          to={productHref}
+          aria-label={product.name}
+          onClick={(e) => e.stopPropagation()}
+          className="absolute inset-0 block"
+        >
+          {src ? (
+            <img
+              src={src}
+              alt={`${product.name} - Shop Online in Bihar`}
+              title={`${product.name} | QuickBihar Jewellery`}
+              className="h-full w-full object-cover"
+              draggable={false}
+              loading="lazy"
+              decoding="async"
+            />
+          ) : (
+            <div
+              className="flex h-full w-full items-center justify-center"
+              style={{ backgroundColor: colors.champagne }}
+            >
+              <ImageIcon size={28} color={colors.gold} />
+            </div>
+          )}
+        </Link>
         {product.badge && (
           <div
             className="absolute top-2 left-2 rounded-[1px] px-[7px] py-[3px]"
@@ -153,12 +165,14 @@ export function ProductCard({ product, style }: ProductCardProps) {
         )}
       </div>
       <div className="flex flex-col gap-[3px] p-2.5">
-        <span
-          className="line-clamp-1 text-[15px] leading-[19px]"
+        <Link
+          to={productHref}
+          onClick={(e) => e.stopPropagation()}
+          className="line-clamp-1 text-[15px] leading-[19px] underline-offset-2 hover:underline"
           style={{ color: colors.ink, fontFamily: "CormorantGaramond_500Medium_Italic" }}
         >
           {product.name}
-        </span>
+        </Link>
         <span
           className="line-clamp-1 text-[11px] tracking-[0.2px]"
           style={{ color: colors.warmGray, fontFamily: "DMSans_400Regular" }}

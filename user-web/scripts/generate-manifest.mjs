@@ -123,6 +123,7 @@ async function main() {
         brand: p.brand,
         category: p.category,
         subCategory: p.subCategory,
+        vertical: p.vertical || vertical,
         images: Array.isArray(p.images) ? p.images.slice(0, 1) : undefined,
         isActive: p.isActive,
       };
@@ -170,6 +171,37 @@ async function main() {
     }
     writeFileSync(mallFilePath, JSON.stringify(mallMap, null, 2), "utf-8");
     console.log(`[manifest] Wrote malls-static.json (${Object.keys(mallMap).length} slugs)`);
+  }
+
+  // ── Categories (all verticals, merged by slug) ──────────────────────
+  // Prerender discovers /category/:slug from this file. Without it, category
+  // pages fall back to client-only shells (audit: thin + orphan).
+  let categories = [];
+  try {
+    categories = unwrapList(await fetchJson(`${ORIGIN}/api/v1/categories/public`));
+  } catch (err) {
+    console.warn(`[manifest] WARN: categories fetch failed: ${err?.message || err}.`);
+  }
+  console.log(`[manifest] Fetched ${categories.length} categories.`);
+
+  const catFilePath = path.join(OUT_DIR, "categories-static.json");
+  if (categories.length === 0) {
+    reuseOrFail(catFilePath, "categories");
+  } else {
+    const catMap = {};
+    for (const c of categories) {
+      const slug = String(c?.slug || "").trim().toLowerCase();
+      if (!slug) continue;
+      catMap[slug] = {
+        _id: c._id,
+        slug,
+        title: c.title,
+        description: c.description,
+        isActive: c.isActive,
+      };
+    }
+    writeFileSync(catFilePath, JSON.stringify(catMap, null, 2), "utf-8");
+    console.log(`[manifest] Wrote categories-static.json (${Object.keys(catMap).length} slugs)`);
   }
 
   console.log("[manifest] Done. Ready for vite build (prerender).");

@@ -122,8 +122,11 @@ export default function JeweleryCollectionsScreen() {
                 {c.image && (
                   <img
                     src={c.image}
-                    alt={c.name}
+                    alt={`${c.name} jewellery collection - Shop Online in Bihar`}
+                    title={`${c.name} | QuickBihar Jewellery`}
                     className="absolute inset-0 h-full w-full object-cover"
+                    loading="lazy"
+                    decoding="async"
                   />
                 )}
                 <div

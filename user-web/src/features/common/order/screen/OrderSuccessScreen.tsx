@@ -8,6 +8,10 @@ import * as Haptics from "@/lib/haptics";
 const successConfetti = "/lottie/successConfetti.json";
 import { getOrderByIdRequest } from "../api/order.api";
 import { cn } from "@/src/lib/utils";
+import {
+  gaItemFromOrderLine,
+  trackPurchase,
+} from "@/src/analytics/googleAnalytics";
 
 const OrderSuccessScreen = () => {
   const theme = useTheme() as any;
@@ -32,6 +36,33 @@ const OrderSuccessScreen = () => {
       if (typeof orderId === "string") {
         const response = await getOrderByIdRequest(orderId);
         setOrder(response.data);
+        // GA4 purchase — fires ONCE per server-generated order ID
+        // (trackPurchase dedupes via localStorage, so refreshing this
+        // page never emits a duplicate). Uses the authoritative order:
+        // real transaction_id, payableAmount value, INR currency.
+        const placedOrder = response.data;
+        if (
+          placedOrder &&
+          placedOrder.orderId &&
+          Array.isArray(placedOrder.items) &&
+          placedOrder.items.length > 0
+        ) {
+          const couponCodes = Array.isArray(placedOrder.couponCodes)
+            ? placedOrder.couponCodes.filter(Boolean).join(",")
+            : "";
+          trackPurchase({
+            transactionId: placedOrder.orderId,
+            value: placedOrder.payableAmount,
+            items: placedOrder.items.map((item: any) =>
+              gaItemFromOrderLine(item, "clothing"),
+            ),
+            catalog: "clothing",
+            coupon:
+              placedOrder.couponCode || couponCodes || undefined,
+            shipping: placedOrder.shippingFee,
+            tax: placedOrder.totalTax,
+          });
+        }
       }
     } catch (error) {
       console.error("Failed to fetch order details:", error);

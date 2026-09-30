@@ -134,6 +134,9 @@ const JeweleryTryOnScreen = lazy(() =>
 const JeweleryWishlistScreen = lazy(
   () => import("@/src/features/Jewelery/screens/JeweleryWishlistScreen"),
 );
+const LocationDetailScreen = lazy(
+  () => import("@/src/features/common/locations/screens/LocationDetailScreen"),
+);
 
 /** Minimal route-loading fallback (lazy chunks). */
 function RouteLoader() {
@@ -262,6 +265,10 @@ function MainLayout() {
             <Route path="/mall/:slug" element={<MallDetailRoute />} />
             <Route path="/product/:id" element={<ProductDetailRoute />} />
             <Route path="/category/:slug" element={<CategoryDetailRoute />} />
+
+            {/* Buxar location hubs — restored hyperlocal SEO pages */}
+            <Route path="/locations/bihar/buxar" element={<LocationDetailScreen />} />
+            <Route path="/locations/bihar/buxar/:slug" element={<LocationDetailScreen />} />
 
             {/* Account Routes */}
             <Route path="/account" element={<AccountMain />} />

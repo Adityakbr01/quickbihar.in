@@ -9,6 +9,7 @@
     "brand": "Aditya Heritage",
     "category": "Ethnic Wear",
     "subCategory": "Men's Kurtas & Ethnic",
+    "vertical": "CLOTHING",
     "images": [
       {
         "url": "https://ik.imagekit.io/k2n57ywshu/products/aditya_mens_silk_kurta_1789051575955_jSoUrFA9A.jpg",
@@ -28,6 +29,7 @@
     "brand": "Aditya Denim",
     "category": "Jeans",
     "subCategory": "Men's Slim Fit Jeans",
+    "vertical": "CLOTHING",
     "images": [
       {
         "url": "https://ik.imagekit.io/k2n57ywshu/products/aditya_mens_indigo_jeans_1789051574271_Hj_9r3sMG.jpg",
@@ -47,6 +49,7 @@
     "brand": "Aditya Ethnic",
     "category": "Kurtis & Suits",
     "subCategory": "Kurtis & Kurta Sets",
+    "vertical": "CLOTHING",
     "images": [
       {
         "url": "https://ik.imagekit.io/k2n57ywshu/products/aditya_anarkali_kurti_set_1789051572472_rgkbiqmjn.jpg",
@@ -66,6 +69,7 @@
     "brand": "Aditya Handlooms",
     "category": "Sarees",
     "subCategory": "Banarasi Silk Sarees",
+    "vertical": "CLOTHING",
     "images": [
       {
         "url": "https://ik.imagekit.io/k2n57ywshu/products/aditya_banarasi_silk_saree_1789051570252_5wxqs2Hf8.jpg",
@@ -85,6 +89,7 @@
     "brand": "Aditya Urban",
     "category": "Shirts & T-Shirts",
     "subCategory": "Men's T-Shirts",
+    "vertical": "CLOTHING",
     "images": [
       {
         "url": "https://ik.imagekit.io/k2n57ywshu/products/aditya_mens_supima_tshirt_1789051568455_AwtHn0FoN.jpg",
@@ -104,6 +109,7 @@
     "brand": "Aditya Classics",
     "category": "Shirts & T-Shirts",
     "subCategory": "Men's Shirts",
+    "vertical": "CLOTHING",
     "images": [
       {
         "url": "https://ik.imagekit.io/k2n57ywshu/products/aditya_mens_oxford_shirt_1789051566913_btQbmlXWC.jpg",
@@ -123,6 +129,7 @@
     "brand": "QuickBihar Gen-Z",
     "category": "Jewellery",
     "subCategory": "Bangle",
+    "vertical": "JEWELERY",
     "images": [
       {
         "url": "https://ik.imagekit.io/k2n57ywshu/products/genz/genz_celestial_star_bracelet_1789811600209_OkjVCVKvr.jpg",
@@ -142,6 +149,7 @@
     "brand": "QuickBihar Gen-Z",
     "category": "Jewellery",
     "subCategory": "Ring",
+    "vertical": "JEWELERY",
     "images": [
       {
         "url": "https://ik.imagekit.io/k2n57ywshu/products/genz/genz_chunky_croissant_rings_1789811598700_1HAEEvxgMt.jpg",
@@ -161,6 +169,7 @@
     "brand": "QuickBihar Gen-Z",
     "category": "Jewellery",
     "subCategory": "Pendant",
+    "vertical": "JEWELERY",
     "images": [
       {
         "url": "https://ik.imagekit.io/k2n57ywshu/products/genz/genz_evileye_paperclip_pendant_1789811595731_qe7yKpFQc.jpg",
@@ -180,6 +189,7 @@
     "brand": "QuickBihar Gen-Z",
     "category": "Jewellery",
     "subCategory": "Earrings",
+    "vertical": "JEWELERY",
     "images": [
       {
         "url": "https://ik.imagekit.io/k2n57ywshu/products/genz/genz_butterfly_pave_hoops_1789811597176_L4ctSVbX4.jpg",
@@ -199,6 +209,7 @@
     "brand": "QuickBihar Gen-Z",
     "category": "Jewellery",
     "subCategory": "Earrings",
+    "vertical": "JEWELERY",
     "images": [
       {
         "url": "https://ik.imagekit.io/k2n57ywshu/products/genz/genz_oxidized_mirror_jhumkas_1789811593371_mj1vq89PmG.jpg",
@@ -218,6 +229,7 @@
     "brand": "QuickBihar Jewels",
     "category": "Jewellery",
     "subCategory": "Chain",
+    "vertical": "JEWELERY",
     "images": [
       {
         "url": "https://ik.imagekit.io/k2n57ywshu/products/jewelry/jewelry_solid_gold_curb_chain_1789811065544_yPAVEqRfy.jpg",
@@ -237,6 +249,7 @@
     "brand": "QuickBihar Jewels",
     "category": "Jewellery",
     "subCategory": "Pendant",
+    "vertical": "JEWELERY",
     "images": [
       {
         "url": "https://ik.imagekit.io/k2n57ywshu/products/jewelry/jewelry_laxmi_temple_coin_pendant_1789811062952_VSOBuVmmqn.jpg",
@@ -256,6 +269,7 @@
     "brand": "QuickBihar Jewels",
     "category": "Jewellery",
     "subCategory": "Bridal Set",
+    "vertical": "JEWELERY",
     "images": [
       {
         "url": "https://ik.imagekit.io/k2n57ywshu/products/jewelry/jewelry_royal_kundan_bridal_set_1789811060450_aFO15AgH_J.jpg",
@@ -275,6 +289,7 @@
     "brand": "QuickBihar Jewels",
     "category": "Jewellery",
     "subCategory": "Earrings",
+    "vertical": "JEWELERY",
     "images": [
       {
         "url": "https://ik.imagekit.io/k2n57ywshu/products/jewelry/jewelry_peacock_temple_jhumkas_1789811057899_dLFgtSO4C.jpg",
@@ -294,6 +309,7 @@
     "brand": "QuickBihar Jewels",
     "category": "Jewellery",
     "subCategory": "Ring",
+    "vertical": "JEWELERY",
     "images": [
       {
         "url": "https://ik.imagekit.io/k2n57ywshu/products/jewelry/jewelry_solitaire_diamond_ring_1789811055760_0Iahnr6TDz.jpg",
@@ -313,6 +329,7 @@
     "brand": "QuickBihar Jewels",
     "category": "Jewellery",
     "subCategory": "Bangle",
+    "vertical": "JEWELERY",
     "images": [
       {
         "url": "https://ik.imagekit.io/k2n57ywshu/products/jewelry/jewelry_royal_gold_bangles_1789811053311_o1ORm92lY.jpg",
@@ -332,6 +349,7 @@
     "brand": "QuickBihar Jewels",
     "category": "Jewellery",
     "subCategory": "Necklace",
+    "vertical": "JEWELERY",
     "images": [
       {
         "url": "https://ik.imagekit.io/k2n57ywshu/products/jewelry/jewelry_pear_ruby_pendant_1789811050387_6l5vvgrn4r.jpg",

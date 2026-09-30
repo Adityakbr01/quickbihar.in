@@ -246,9 +246,12 @@ export const VariantSelectorBottomSheet = ({
           >
             <img
               src={product.images?.[0]?.url || product.image}
-              alt={product.title}
+              alt={`${product.title} - Shop Online in Bihar`}
+              title={`${product.title} | QuickBihar`}
               className="h-[85px] w-[70px] rounded-lg border object-cover"
               style={{ borderColor: theme.border }}
+              loading="lazy"
+              decoding="async"
             />
             <div className="mr-2 ml-4 flex flex-1 flex-col justify-center">
               <p className="truncate text-xs font-bold tracking-wide uppercase" style={{ color: theme.secondaryText }}>

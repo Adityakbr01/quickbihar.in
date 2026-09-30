@@ -239,9 +239,12 @@ const NotificationScreen = ({ variant = "default" }: { variant?: ModuleVariant }
           {isRich && (
             <img
               src={item.imageUrl}
-              alt={item.title}
+              alt={`${item.title} - QuickBihar update`}
+              title={`${item.title} | QuickBihar`}
               className="mt-3 mb-2.5 h-[150px] w-full rounded-xl object-cover"
               style={{ backgroundColor: theme.secondaryBackground }}
+              loading="lazy"
+              decoding="async"
             />
           )}
 

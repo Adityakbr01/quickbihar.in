@@ -14,6 +14,7 @@ import { useTopPad } from "@/src/hooks/useTopPad";
 import { useCart } from "@/src/features/Jewelery/context/CartContext";
 import { useColors } from "@/src/features/Jewelery/hooks/useColors";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
+import { trackBeginCheckout } from "@/src/analytics/googleAnalytics";
 
 function resolveImgSrc(source: any): string {
   if (!source) return "";
@@ -44,6 +45,19 @@ export default function JeweleryCartScreen() {
       return;
     }
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    // The buyer actually begins checkout — report the current jewellery
+    // bag before leaving for /jewelery/checkout. Bridge lines are mapped
+    // to the store-line shape from their real product data.
+    trackBeginCheckout(
+      cartItems.map(({ product, quantity, sku }) => ({
+        productId: product.id,
+        productTitle: product.name,
+        price: product.price,
+        quantity,
+        sku,
+        module: "jewelery",
+      })),
+    );
     goTo(navigate, "/jewelery/checkout" as any);
   };
 
@@ -123,8 +137,11 @@ export default function JeweleryCartScreen() {
               >
                 <img
                   src={resolveImgSrc(product.image)}
-                  alt={product.name}
+                  alt={`${product.name} - Shop Online in Bihar`}
+                  title={`${product.name} | QuickBihar Jewellery`}
                   className="h-[120px] w-[90px] rounded-[2px] object-cover"
+                  loading="lazy"
+                  decoding="async"
                 />
                 <div className="flex flex-1 flex-col gap-1">
                   <span

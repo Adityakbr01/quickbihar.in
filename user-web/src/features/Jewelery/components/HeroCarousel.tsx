@@ -1,5 +1,4 @@
-import { useNavigate } from "react-router-dom";
-import { goTo } from "@/src/utils/navigation";
+import { Link } from "react-router-dom";
 import { useState } from "react";
 import { cn } from "@/src/lib/utils";
 import { useWindowWidth } from "@/src/utils/responsive";
@@ -72,7 +71,6 @@ function resolveSrc(source: any): string | undefined {
  * responsive resizing, and authentic luxury presentation.
  */
 export function HeroCarousel({ items }: { items?: Product[] }) {
-  const navigate = useNavigate();
   const colors = useColors();
   const windowWidth = useWindowWidth();
   const [activeIndex, setActiveIndex] = useState(0);
@@ -116,8 +114,11 @@ export function HeroCarousel({ items }: { items?: Product[] }) {
               {src ? (
                 <img
                   src={src}
-                  alt={item.headline}
+                  alt={`${item.headline} - Shop Online in Bihar`}
+                  title={`${item.headline} | QuickBihar Jewellery`}
                   className="absolute inset-0 h-full w-full object-cover"
+                  loading={activeIndex === 0 ? "eager" : "lazy"}
+                  decoding="async"
                 />
               ) : (
                 <div
@@ -155,9 +156,8 @@ export function HeroCarousel({ items }: { items?: Product[] }) {
                   {item.body}
                 </span>
                 <div className="mt-1 flex flex-col gap-2.5">
-                  <button
-                    type="button"
-                    onClick={() => goTo(navigate, item.ctaRoute as any)}
+                  <Link
+                    to={item.ctaRoute}
                     className="cursor-pointer self-start rounded-[1px] border px-5 py-3 transition-colors hover:bg-[rgba(184,146,74,0.18)] active:bg-[rgba(184,146,74,0.18)]"
                     style={{ borderColor: colors.gold, backgroundColor: "transparent" }}
                   >
@@ -167,11 +167,10 @@ export function HeroCarousel({ items }: { items?: Product[] }) {
                     >
                       {item.ctaLabel}
                     </span>
-                  </button>
+                  </Link>
                   {item.secondaryCta && (
-                    <button
-                      type="button"
-                      onClick={() => goTo(navigate, item.ctaRoute as any)}
+                    <Link
+                      to={item.ctaRoute}
                       className="cursor-pointer self-start"
                     >
                       <span
@@ -183,7 +182,7 @@ export function HeroCarousel({ items }: { items?: Product[] }) {
                       >
                         {item.secondaryCta}
                       </span>
-                    </button>
+                    </Link>
                   )}
                 </div>
               </div>

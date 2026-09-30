@@ -329,8 +329,11 @@ export default function JeweleryOrderDetailScreen() {
                       {imgUri ? (
                         <img
                           src={imgUri}
-                          alt={item.title || item.productTitle || "Fine Jewellery Piece"}
+                          alt={`${item.title || item.productTitle || "Fine Jewellery Piece"} - Shop Online in Bihar`}
+                          title={`${item.title || item.productTitle || "Fine Jewellery Piece"} | QuickBihar Jewellery`}
                           className="h-20 w-16 rounded-[2px] object-cover"
+                          loading="lazy"
+                          decoding="async"
                         />
                       ) : (
                         <div

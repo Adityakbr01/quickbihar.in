@@ -2,7 +2,7 @@ import { ArrowLeft, ArrowRight, Award, Camera, Check, CircleCheck, Gift, Heart, 
 import * as Haptics from "@/lib/haptics";
 import { useNavigate } from "react-router-dom";
 import { goTo, useRouteParams } from "@/src/utils/navigation";
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { goBack } from "@/src/utils/navigation";
 
 import { APP_CURRENCY, JEWELERY_MODULE_CONFIG } from "@/src/constants";
@@ -21,6 +21,7 @@ import {
 } from "@/src/features/clothing/product/hooks/useProducts";
 import { WriteReviewModal } from "@/src/features/clothing/product/components/modals/WriteReviewModal";
 import { useModuleTheme } from "@/src/theme/useModuleTheme";
+import { trackViewItem } from "@/src/analytics/googleAnalytics";
 
 function Stars({ rating, count }: { rating: number; count: number }) {
   const colors = useColors();
@@ -103,6 +104,25 @@ export default function JeweleryProductDetailScreen() {
   const isInCart = Boolean(
     product && cartItems.some((item) => item.product.id === product.id)
   );
+
+  // GA4 view_item — fires once per loaded piece. Uses the real server
+  // product (_raw: id, title, category, price) so catalog resolves to
+  // "jewellery"; falls back to the loaded UI product fields if _raw is
+  // missing (vertical pinned so the catalog still resolves correctly).
+  const viewItemSentRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!product || !product.id || viewItemSentRef.current === product.id) return;
+    viewItemSentRef.current = product.id;
+    trackViewItem(
+      product._raw ?? {
+        _id: product.id,
+        title: product.name,
+        price: product.price,
+        category: product.collection,
+        vertical: "JEWELERY",
+      },
+    );
+  }, [product]);
 
   if (isLoading) {
     return (
@@ -191,7 +211,7 @@ export default function JeweleryProductDetailScreen() {
 
       <div className="overflow-auto">
         {/* Image carousel */}
-        <ImageCarousel images={product.images} />
+        <ImageCarousel images={product.images} productName={product.name} />
 
         {/* Content */}
         <div className="flex flex-col gap-[14px] p-5" style={{ backgroundColor: colors.ivory }}>

@@ -4,6 +4,10 @@ import axiosInstance from "@/src/api/axiosInstance";
 import { ICoupon } from "../../coupon/types/coupon.types";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
 import { secureZustandStorage } from "@/src/lib/secureZustandStorage";
+import {
+  trackAddToCartLine,
+  trackRemoveFromCartLine,
+} from "@/src/analytics/googleAnalytics";
 
 export interface CartItem {
   id?: string; // for compatibility with older mock data if needed
@@ -272,7 +276,14 @@ export const useCartStore = create<CartState>()(
         });
         if (get().appliedCoupons.length > 0) await get().revalidateCoupon();
 
-        if (!isAuthenticated) return; // Guest mode: local update is final.
+        // Guest mode: local update is final — the add succeeded, so report
+        // it now. Authed adds report only after the server confirms (below)
+        // to satisfy success-only semantics.
+        if (!isAuthenticated) {
+          const guestAddedLine = get().items.find((i) => i.sku === sku);
+          if (guestAddedLine) trackAddToCartLine({ ...guestAddedLine, quantity });
+          return;
+        }
 
         try {
           await axiosInstance.post("/cart/add", {
@@ -282,6 +293,10 @@ export const useCartStore = create<CartState>()(
           });
           // No full fetchCart() — the server now matches local state and a
           // full refetch would flicker the price counters.
+          // Success: report the actually-added quantity (not the merged
+          // line total) as GA4 add_to_cart. Never throws.
+          const addedLine = get().items.find((i) => i.sku === sku);
+          if (addedLine) trackAddToCartLine({ ...addedLine, quantity });
         } catch (error: any) {
           // Rollback: restore the previous items + totals.
           set({
@@ -301,6 +316,9 @@ export const useCartStore = create<CartState>()(
         const { items } = get();
         const previousItems = items;
         const previousSubtotal = get().subtotal;
+        // Snapshot the removed line for GA4 remove_from_cart (sent only on
+        // success, below — never on rollback).
+        const removedLine = items.find((item) => item.sku === sku);
         const previousTotalTax = get().totalTax;
         const previousItemCount = get().itemCount;
         const previousAppliedCoupons = get().appliedCoupons;
@@ -359,10 +377,17 @@ export const useCartStore = create<CartState>()(
           error: null,
         });
 
-        if (!isAuthenticated) return;
+        if (!isAuthenticated) {
+          // Guest mode: local removal is final — the removal succeeded.
+          if (removedLine) trackRemoveFromCartLine(removedLine);
+          return;
+        }
 
         try {
           await axiosInstance.delete(`/cart/remove/${sku}`);
+          // Success: the line is really gone — report remove_from_cart.
+          // Never throws; failures roll back below without any event.
+          if (removedLine) trackRemoveFromCartLine(removedLine);
         } catch (error: any) {
           // Rollback to the exact pre-removal snapshot.
           set({

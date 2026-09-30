@@ -23,6 +23,7 @@ import { useNavigate } from "react-router-dom";
 import { goTo } from "@/src/utils/navigation";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
 import { AnimatedPrice } from "@/src/components/common/AnimatedPrice";
+import { trackBeginCheckout } from "@/src/analytics/googleAnalytics";
 
 const CartContent = () => {
   const theme = useTheme() as any;
@@ -87,6 +88,9 @@ const CartContent = () => {
       goTo(navigate, "/auth" as any);
       return;
     }
+    // The buyer actually begins checkout — report the current clothing
+    // bag (items, value, catalog) before leaving for /checkout.
+    trackBeginCheckout(items);
     goTo(navigate, "/checkout" as any);
   };
 

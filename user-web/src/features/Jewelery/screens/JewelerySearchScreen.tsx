@@ -1,13 +1,14 @@
 import { Search, X } from "lucide-react";
 import * as Haptics from "@/lib/haptics";
 import { useNavigate } from "react-router-dom";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 
 import { ProductCard } from "@/src/features/Jewelery/components/ProductCard";
 import { useJewelerySearch } from "@/src/features/Jewelery/hooks/useJeweleryCatalog";
 import { goBack } from "@/src/utils/navigation";
 import { useColors } from "@/src/features/Jewelery/hooks/useColors";
 import { TextInput } from "@/src/theme/components/TextInput";
+import { trackSearchResults } from "@/src/analytics/googleAnalytics";
 
 const popularSearches = [
   "Gold pendant",
@@ -57,6 +58,17 @@ export default function JewelerySearchScreen() {
     [pages]
   );
   const total = pages?.pages?.[0]?.total ?? filtered.length;
+
+  // GA4 view_search_results — fires once per distinct debounced term when
+  // its results are known (real query + result count, catalog jewellery).
+  const searchTrackedRef = useRef<string | null>(null);
+  useEffect(() => {
+    const term = debounced.trim();
+    if (!term || isLoading) return;
+    if (searchTrackedRef.current === term) return;
+    searchTrackedRef.current = term;
+    trackSearchResults(term, total, "jewellery");
+  }, [debounced, isLoading, total]);
 
   return (
     <div

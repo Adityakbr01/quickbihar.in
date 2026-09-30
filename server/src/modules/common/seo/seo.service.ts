@@ -21,7 +21,17 @@ const SITE_BASE = "https://quickbihar.in";
 const SHARD_LIMIT = 5000;
 
 /** Static hub paths included in every sitemap (always indexable, no DB needed). */
-const STATIC_PATHS = ["/", "/clothing/search", "/top-selling", "/mall", "/instant-delivery"];
+const STATIC_PATHS = [
+    "/",
+    "/clothing/home",
+    "/clothing/search",
+    "/top-selling",
+    "/malls",
+    "/food",
+    "/jewelery",
+    "/jewelery/collections",
+    "/jewelery/search",
+];
 
 /* ── Internal helpers ── */
 
@@ -112,16 +122,26 @@ export async function buildProductsSitemap(): Promise<string> {
         isDeleted: false,
         $or: [{ approvalStatus: "APPROVED" }, { approvalStatus: { $exists: false } }],
     })
-        .select("slug title images shortDescription description updatedAt")
+        .select("slug title images shortDescription description updatedAt vertical")
         .sort({ updatedAt: -1 })
         .limit(SHARD_LIMIT)
         .lean();
     const urls = products
         .filter(isSitemapProduct)
-        .map(
-            (product: any) =>
-                `  <url>\n    <loc>${escapeXml(`${SITE_BASE}/product/${product.slug}`)}</loc>\n    <lastmod>${toLastmod(product.updatedAt)}</lastmod>\n    <changefreq>weekly</changefreq>\n  </url>`
-        )
+        .flatMap((product: any) => {
+            const rows = [
+                `  <url>\n    <loc>${escapeXml(`${SITE_BASE}/product/${product.slug}`)}</loc>\n    <lastmod>${toLastmod(product.updatedAt)}</lastmod>\n    <changefreq>weekly</changefreq>\n  </url>`,
+            ];
+            // Jewellery canonical is /jewelery/product/:id (kept per strategy).
+            // Emit both so the prerendered PDP is discovered even though the
+            // UI never links /product/:slug for jewellery.
+            if (product.vertical === "JEWELERY" && product._id) {
+                rows.push(
+                    `  <url>\n    <loc>${escapeXml(`${SITE_BASE}/jewelery/product/${String(product._id)}`)}</loc>\n    <lastmod>${toLastmod(product.updatedAt)}</lastmod>\n    <changefreq>weekly</changefreq>\n  </url>`
+                );
+            }
+            return rows;
+        })
         .join("\n");
     return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>`;
 }

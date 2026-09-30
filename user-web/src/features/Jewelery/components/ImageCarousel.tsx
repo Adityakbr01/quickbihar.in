@@ -7,6 +7,8 @@ import { useColors } from "@/src/features/Jewelery/hooks/useColors";
 
 interface ImageCarouselProps {
   images: any[];
+  /** Product name for SEO alt/title (PDP passes it; falls back gracefully). */
+  productName?: string;
 }
 
 function resolveSrc(source: any): string | undefined {
@@ -16,7 +18,7 @@ function resolveSrc(source: any): string | undefined {
   return source as any;
 }
 
-export function ImageCarousel({ images }: ImageCarouselProps) {
+export function ImageCarousel({ images, productName }: ImageCarouselProps) {
   const colors = useColors();
   // Live viewport width — a module-level Dimensions.get() goes stale on
   // resize/device-emulation/rotation and makes images wider than the
@@ -89,6 +91,12 @@ export function ImageCarousel({ images }: ImageCarouselProps) {
         >
           {safeImages.map((item, i) => {
             const src = resolveSrc(item);
+            const label = productName
+              ? `${productName} photo ${i + 1} - Shop Online in Bihar`
+              : `Jewellery product photo ${i + 1} - Shop Online in Bihar`;
+            const heading = productName
+              ? `${productName} | QuickBihar Jewellery`
+              : "QuickBihar Jewellery";
             return (
               <div
                 key={String(i)}
@@ -98,9 +106,13 @@ export function ImageCarousel({ images }: ImageCarouselProps) {
                 {src ? (
                   <img
                     src={src}
-                    alt={`Product image ${i + 1}`}
+                    alt={label}
+                    title={heading}
                     className="h-full w-full object-cover"
                     draggable={false}
+                    loading={i === 0 ? "eager" : "lazy"}
+                    decoding="async"
+                    fetchPriority={i === 0 ? "high" : "low"}
                   />
                 ) : null}
               </div>
@@ -194,9 +206,15 @@ export function ImageCarousel({ images }: ImageCarouselProps) {
                   {src ? (
                     <img
                       src={src}
-                      alt={`Thumbnail ${index + 1}`}
+                      alt={
+                        productName
+                          ? `${productName} thumbnail ${index + 1}`
+                          : `Jewellery thumbnail ${index + 1}`
+                      }
                       className="h-full w-full object-cover"
                       draggable={false}
+                      loading="lazy"
+                      decoding="async"
                     />
                   ) : null}
                 </button>

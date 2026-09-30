@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback, useEffect } from "react";
+import React, { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import type { LucideIcon } from "lucide-react";
 import {
   ArrowLeft,
@@ -61,6 +61,7 @@ import {
   useSizeCharts,
 } from "@/src/features/clothing/sizeChart/hooks/useSizeCharts";
 import { useStickyBarBottomOffset } from "@/src/utils/responsive";
+import { trackViewItem } from "@/src/analytics/googleAnalytics";
 
 interface ProductDetailProps {
   id: string;
@@ -104,6 +105,17 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
       }
     }
   }, [product, id, navigate]);
+
+  // GA4 view_item — fires once per loaded product (real server IProduct:
+  // id, title, category, GST-aware price). Guarded by product _id so
+  // re-renders, variant selection, and StrictMode replays never duplicate.
+  const viewItemSentRef = useRef<string | null>(null);
+  useEffect(() => {
+    const pid = (product as any)?._id || id;
+    if (!product || !pid || viewItemSentRef.current === pid) return;
+    viewItemSentRef.current = pid;
+    trackViewItem(product);
+  }, [product, id]);
 
   const createReviewMutation = useCreateProductReview(id);
   const voteHelpfulMutation = useVoteHelpfulReview(id);
@@ -519,8 +531,11 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
                   <img
                     key={i}
                     src={img.url}
-                    alt={`${dp.title} thumbnail ${i + 1}`}
+                    alt={`${dp.title} photo ${i + 1} - Shop Online in Bihar`}
+                    title={`${dp.title} | QuickBihar`}
                     className="h-10 w-10 rounded-md object-cover"
+                    loading="lazy"
+                    decoding="async"
                     style={{
                       borderColor:
                         i === carouselIndex ? theme.primary : theme.border,
@@ -1509,9 +1524,12 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
                               <img
                                 key={i}
                                 src={imgUrl}
-                                alt={`Review photo ${i + 1}`}
+                                alt={`${dp.title || "Product"} customer review photo ${i + 1}`}
+                                title={`${dp.title || "Product"} reviews | QuickBihar`}
                                 className="mr-2 h-16 w-16 rounded-lg border object-cover"
                                 style={{ borderColor: theme.border }}
+                                loading="lazy"
+                                decoding="async"
                               />
                             );
                           })}

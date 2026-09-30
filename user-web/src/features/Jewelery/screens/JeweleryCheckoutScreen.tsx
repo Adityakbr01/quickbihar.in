@@ -506,8 +506,11 @@ export default function JeweleryCheckoutScreen() {
               {item.image ? (
                 <img
                   src={item.image}
-                  alt={item.productTitle || "Jewellery"}
+                  alt={`${item.productTitle || "Jewellery"} - Shop Online in Bihar`}
+                  title={`${item.productTitle || "Jewellery"} | QuickBihar Jewellery`}
                   className="h-20 w-[60px] rounded-[2px] object-cover"
+                  loading="lazy"
+                  decoding="async"
                 />
               ) : (
                 <div
