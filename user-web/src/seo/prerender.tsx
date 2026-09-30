@@ -151,22 +151,18 @@ function buildHeadElements(meta: PageMeta, schemas: Thing[]): Set<HeadElement> {
 /* ── lightweight crawlable shell (no App providers — never hangs) ───────
  *
  * Visibility contract:
- * - `#qb-boot` is the ONLY visible thing before JS loads (branded spinner).
+ * - `#qb-boot` is the ONLY visible thing before JS loads (single spinner).
  *   Its CSS lives once in index.html <head> (#qb-boot-css) — the plugin
  *   preserves template head, so every prerendered page already has it.
  * - `#qb-seo-shell` is `display:none` + aria-hidden: crawlers still parse the
  *   h1 + links + head meta/JSON-LD, but users never see the raw text dump.
- * - React createRoot replaces #root on commit, removing both. Shell/client
- *   mismatch is fine (no hydration — full client render).
+ * - React createRoot replaces #root on commit, removing both.
+ *   Shell/client mismatch is fine (no hydration — full client render).
  */
 function BootLoader() {
   return (
     <div id="qb-boot" aria-hidden="true">
-      <div className="qb-logo">
-        Quick<span>Bihar</span>
-      </div>
       <div className="qb-ring" />
-      <div className="qb-sub">Loading…</div>
     </div>
   );
 }
@@ -188,24 +184,24 @@ function Shell({
     <>
       <BootLoader />
       <div id="qb-seo-shell" style={{ display: 'none' }} aria-hidden="true">
-        <main>
-          <h1>{heading}</h1>
-          <p>{intro}</p>
-          <p>
-            <a href="/clothing/home">Home</a> · <a href="/top-selling">Top Selling</a> ·{' '}
-            <a href="/food">Food</a> · <a href="/jewelery">Jewellery</a>
-          </p>
-          {links.length > 0 ? (
-            <ul>
-              {links.slice(0, 40).map((l) => (
-                <li key={l.href}>
-                  <a href={l.href}>{l.label}</a>
-                </li>
-              ))}
-            </ul>
-          ) : null}
-          <p style={{ display: 'none' }}>{meta.description}</p>
-        </main>
+      <main>
+        <h1>{heading}</h1>
+        <p>{intro}</p>
+        <p>
+          <a href="/clothing/home">Home</a> · <a href="/top-selling">Top Selling</a> ·{' '}
+          <a href="/food">Food</a> · <a href="/jewelery">Jewellery</a>
+        </p>
+        {links.length > 0 ? (
+          <ul>
+            {links.slice(0, 40).map((l) => (
+              <li key={l.href}>
+                <a href={l.href}>{l.label}</a>
+              </li>
+            ))}
+          </ul>
+        ) : null}
+        <p style={{ display: 'none' }}>{meta.description}</p>
+      </main>
       </div>
     </>
   );
