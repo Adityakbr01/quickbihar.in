@@ -13,19 +13,116 @@ env:
   ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: "true"
 
 jobs:
-  build-and-push:
-    name: Build & Push (${{ matrix.service.name }})
+  # ── Stage 1: server image ──────────────────────────────────────
+  # user-web's prerender manifest is generated at BUILD time by fetching the
+  # live catalog API, so web images must only build AFTER the new server is
+  # deployed and healthy (see deploy-server → build-web dependency chain).
+  build-server:
+    name: Build & Push (server)
     # Pinned to 24.04: ubuntu-latest migrates to Ubuntu 26 (Oct 2026) and we
     # don't want a surprise base-image change mid-release. Revisit yearly.
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.DOCKER_USER }}
+          password: ${{ secrets.DOCKER_PASS }}
+
+      - name: Build & Push Image (server)
+        uses: docker/build-push-action@v7
+        with:
+          context: ./server
+          file: ./server/Dockerfile
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_USER }}/quickbihar-server:prod
+            ${{ secrets.DOCKER_USER }}/quickbihar-server:${{ github.sha }}
+          cache-from: type=gha,scope=server
+          cache-to: type=gha,mode=max,scope=server
+
+  # ── Stage 2: server deploy + health gate ───────────────────────
+  deploy-server:
+    name: Deploy server to VPS (Self-Hosted Runner)
+    needs: build-server
+    runs-on:
+      - self-hosted
+      - quickbihar
+
+    env:
+      APP_DIR: /home/ubuntu/apps/quickbihar
+      COMPOSE_FILE: docker-compose.yml
+
+    steps:
+      - name: Checkout repo on VPS runner
+        uses: actions/checkout@v4
+
+      - name: Sync codebase to ~/apps/quickbihar
+        run: |
+          mkdir -p ${{ env.APP_DIR }}
+          # Sync files to ~/apps/quickbihar while strictly preserving existing .env files
+          rsync -av --exclude='.git' --exclude='*.env' ./ ${{ env.APP_DIR }}/
+
+      - name: Ensure Environment Files Exist
+        run: |
+          cd ${{ env.APP_DIR }}
+          mkdir -p server mobile dash-web user-web
+          touch server/.env mobile/.env dash-web/.env
+
+      - name: Ensure host nginx cache dirs
+        run: |
+          # Idempotent one-time setup — required by vps-nginx/quickbihar.conf
+          # (proxy_cache_path). Uses sudo -n so a missing NOPASSWD rule fails
+          # fast with a clear error instead of hanging on a password prompt.
+          sudo -n mkdir -p /var/cache/nginx/qb_static /var/cache/nginx/qb_pages /var/cache/nginx/qb_seo
+          sudo -n chown -R www-data:www-data /var/cache/nginx
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USER }}
+          password: ${{ secrets.DOCKER_PASS }}
+
+      - name: Pull + recreate server only
+        run: |
+          cd ${{ env.APP_DIR }}
+          docker compose -f ${{ env.COMPOSE_FILE }} pull server
+          docker compose -f ${{ env.COMPOSE_FILE }} up -d --no-deps server
+          docker compose -f ${{ env.COMPOSE_FILE }} ps server
+
+      - name: Wait for new server + catalog API (manifest gate)
+        run: |
+          # user-web bakes the catalog into static HTML at BUILD time by
+          # calling this same public API. Nothing downstream builds until the
+          # freshly deployed server answers with real catalog data — a stale
+          # or down API here used to bake stale pages into user-web.
+          echo "waiting for https://quickbihar.in/api/v1/ ..."
+          for i in $(seq 1 36); do
+            CODE=$(curl -s -o /dev/null -w "%{http_code}" https://quickbihar.in/api/v1/ || true)
+            if [ "$CODE" = "200" ]; then echo "server live after ${i}x5s"; break; fi
+            sleep 5
+          done
+          [ "$CODE" = "200" ] || { echo "server did not come up"; exit 1; }
+          curl -s "https://quickbihar.in/api/v1/products/public?vertical=CLOTHING&limit=1" \
+            | grep -q '"success":true' || { echo "catalog API unhealthy — refusing to build web images"; exit 1; }
+          echo "catalog API healthy — web builds may start"
+
+  # ── Stage 3: web images (only after the new server is live) ───
+  build-web:
+    name: Build & Push (${{ matrix.service.name }})
+    needs: deploy-server
     runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
         service:
-          - name: server
-            context: ./server
-            file: ./server/Dockerfile
-            image: quickbihar-server
           - name: web-dash
             context: ./dash-web
             file: ./dash-web/Dockerfile
@@ -66,9 +163,10 @@ jobs:
           cache-from: type=gha,scope=${{ matrix.service.name }}
           cache-to: type=gha,mode=max,scope=${{ matrix.service.name }}
 
-  deploy:
-    name: Deploy to VPS (Self-Hosted Runner)
-    needs: build-and-push
+  # ── Stage 4: web deploy ───────────────────────────────────────
+  deploy-web:
+    name: Deploy web to VPS (Self-Hosted Runner)
+    needs: build-web
     runs-on:
       - self-hosted
       - quickbihar
@@ -115,6 +213,8 @@ jobs:
       - name: Deploy containers with zero-downtime recreation
         run: |
           cd ${{ env.APP_DIR }}
+          # Server was already rolled in deploy-server with the same images;
+          # compose recreates only what changed (the fresh web images).
           docker compose -f ${{ env.COMPOSE_FILE }} up -d --remove-orphans
 
       - name: Sync host nginx config (only when changed)
@@ -167,6 +267,8 @@ jobs:
           curl -s -o /dev/null -D - https://quickbihar.in/ | grep -i "x-cache-status\|HTTP/" || true
           echo "--- backend API ---"
           curl -s -o /dev/null -w "api status: %{http_code}\n" https://quickbihar.in/api/v1/ || true
+          echo "--- sitemap product URLs (should match live catalog) ---"
+          curl -s https://quickbihar.in/sitemap-products.xml | grep -c "<loc>" || true
 
       - name: Cleanup unused Docker images
         run: |
