@@ -154,14 +154,14 @@ export const googleAuth = asyncHandler(async (req: Request, res: Response) => {
 
 /**
  * POST /api/v1/auth/set-password  (auth required)
- * Set a password on the currently-authenticated user. Used by Google-only users
- * who want a fallback sign-in method.
+ * Add a password (Google-only users) or change it (password users, who must
+ * also send their currentPassword for verification).
  */
 export const setPassword = asyncHandler(async (req: Request, res: Response) => {
   const userId = (req as any).user?._id?.toString();
   if (!userId) throw new ApiError(401, "Unauthorized");
-  await authService.setPassword(userId, req.body.password);
-  return res.status(200).json(new ApiResponse(200, { ok: true }, "Password set successfully"));
+  await authService.setPassword(userId, req.body.password, req.body.currentPassword);
+  return res.status(200).json(new ApiResponse(200, { ok: true }, "Password updated successfully"));
 });
 
 /**

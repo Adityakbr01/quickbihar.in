@@ -87,6 +87,9 @@ mock.module("../modules/common/user/user.dao", () => ({
                     fullName: "Approved Rider",
                     isVerified: true,
                     roleId: null,
+                    // Real DAO selects the hash by default — login treats its
+                    // presence as a password credential (Google-only mocks omit it).
+                    password: "mock_hashed_password",
                     isPasswordCorrect: mock(() => Promise.resolve(true)),
                     generateAccessToken: () => "valid_access_token",
                     generateRefreshToken: () => "valid_refresh_token",
@@ -100,7 +103,22 @@ mock.module("../modules/common/user/user.dao", () => ({
                     username: "existing",
                     fullName: "Existing User",
                     isVerified: true,
+                    password: "mock_hashed_password",
                     isPasswordCorrect: mock(() => Promise.resolve(true)),
+                    generateAccessToken: () => "valid_access_token",
+                    generateRefreshToken: () => "valid_refresh_token",
+                    save: mock(() => Promise.resolve())
+                });
+            }
+            if (email === "googleonly@test.com") {
+                return Promise.resolve({
+                    _id: VALID_ID,
+                    email,
+                    username: "googleonly",
+                    fullName: "Google Only",
+                    isVerified: true,
+                    identities: [{ provider: "google", providerId: "google-sub-123" }],
+                    isPasswordCorrect: mock(() => Promise.resolve(false)),
                     generateAccessToken: () => "valid_access_token",
                     generateRefreshToken: () => "valid_refresh_token",
                     save: mock(() => Promise.resolve())
@@ -193,6 +211,15 @@ describe("Authentication Routes (post-OTP cutover)", () => {
         expect(res.status).toBe(200);
         expect(res.body.data.user.role.name).toBe("DELIVERY");
         expect(assignUserToRole).toHaveBeenCalledWith(RIDER_ID, VALID_ID);
+    });
+
+    test("POST /api/v1/auth/login Google-only account gets guided 401", async () => {
+        const res = await request(app)
+            .post("/api/v1/auth/login")
+            .send({ email: "googleonly@test.com", password: "password123" });
+
+        expect(res.status).toBe(401);
+        expect(res.body.message).toMatch(/Google sign-in/i);
     });
 
     test("POST /api/v1/auth/google (New user)", async () => {

@@ -48,6 +48,7 @@ export const ensureAuthRole = async (user: any) => {
 
 export const serializeAuthUser = async (user: any) => {
   const role = await ensureAuthRole(user);
+  const identities = (user?.identities ?? []) as Array<{ provider?: string }>;
 
   return {
     _id: user._id,
@@ -56,6 +57,13 @@ export const serializeAuthUser = async (user: any) => {
     fullName: user.fullName,
     phone: user.phone,
     role: serializeRole(role),
+    // Tells clients whether email+password sign-in is available. True when a
+    // "password" identity exists OR a password hash is set (covers accounts
+    // created before identities were backfilled). Google-only users get false
+    // and see "Add password" instead of "Change password" in the UI.
+    hasPassword:
+      identities.some((i) => i?.provider === "password") ||
+      Boolean(user.password),
     // Avatar + createdAt must travel with the user: the mobile store and the
     // profile screens render `user.avatar` / `createdAt` directly, and
     // avatar-update responses go through setAuth (a missing key would wipe it).

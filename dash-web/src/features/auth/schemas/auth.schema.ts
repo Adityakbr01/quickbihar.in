@@ -82,6 +82,28 @@ export const setPasswordSchema = z
 export type SetPasswordValues = z.infer<typeof setPasswordSchema>;
 
 /**
+ * Change the password on an account that already has one.
+ * currentPassword is required — the server verifies it before overwriting.
+ */
+export const changePasswordSchema = z
+  .object({
+    currentPassword: z
+      .string()
+      .min(1, { message: "Please enter your current password." }),
+    password: z
+      .string()
+      .min(8, { message: "Password must be at least 8 characters." }),
+    confirmPassword: z
+      .string()
+      .min(8, { message: "Confirm password is required." }),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match.",
+    path: ["confirmPassword"],
+  });
+export type ChangePasswordValues = z.infer<typeof changePasswordSchema>;
+
+/**
  * Link an existing Google account to the current password account.
  */
 export const linkGoogleSchema = z.object({
@@ -138,6 +160,9 @@ export interface AuthUser {
   email: string;
   phone?: string;
   fullName: string;
+  /** True when email+password sign-in is available. Google-only accounts get
+   * false and see "Add password" instead of "Change password". */
+  hasPassword?: boolean;
   role:
     | "ADMIN"
     | "SUPER_ADMIN"

@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { ArrowLeftRight, Bike, ExternalLink, Home, ShieldCheck, Store } from "lucide-react";
+import { ArrowLeftRight, Bike, ExternalLink, Home, KeyRound, ShieldCheck, Store } from "lucide-react";
 import { useAuthStore } from "@/features/auth/store/authStore";
 import { hasRole } from "@/lib/rbac";
 import { cn } from "@/lib/utils";
@@ -22,7 +22,9 @@ const portals: Array<{
  * Sidebar footer shared by all three dashboards. Ends portal confusion:
  * shows where "home" is, and — when the signed-in user holds more than
  * one portal role — offers one-tap switching to their other portals.
- * Hidden on small screens where sidebars collapse into a top strip.
+ * Also surfaces Password & security (Google-only users add a password here,
+ * password users change it). Hidden on small screens where sidebars collapse
+ * into a top strip.
  */
 export default function SidebarFooter({ current }: { current: PortalId }) {
   const user = useAuthStore((state) => state.user);
@@ -52,6 +54,16 @@ export default function SidebarFooter({ current }: { current: PortalId }) {
           </div>
         </div>
       )}
+      <Link
+        to="/auth/set-password"
+        className={cn(
+          "flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm text-muted-foreground",
+          "transition-colors hover:bg-muted hover:text-foreground",
+        )}
+      >
+        <KeyRound className="h-4 w-4 shrink-0" />
+        <span className="truncate">Password &amp; security</span>
+      </Link>
       <Link
         to="/"
         className={cn(

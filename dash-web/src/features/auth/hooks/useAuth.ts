@@ -294,9 +294,17 @@ export const useRegister = () => {
 };
 
 export const useSetPassword = () => {
+  const setAuth = useAuthStore((state) => state.setAuth);
+  const user = useAuthStore((state) => state.user);
+  const token = useAuthStore((state) => state.token);
   return useMutation({
     mutationFn: setPasswordRequest,
     onSuccess: () => {
+      // The account now has a password — flip the flag locally so the UI
+      // switches from "Add" to "Change" mode without a re-login.
+      if (user && token) {
+        setAuth({ ...user, hasPassword: true }, token);
+      }
       toast.success("Password set. You can now sign in with email + password.");
     },
     onError: (err: Error) => {

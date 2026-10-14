@@ -24,6 +24,8 @@ import {
 import {
   setPasswordSchema,
   SetPasswordValues,
+  changePasswordSchema,
+  ChangePasswordValues,
 } from "@/features/auth/schemas/auth.schema";
 import { useSetPassword } from "@/features/auth/hooks/useAuth";
 import { useAuthStore } from "@/features/auth/store/authStore";
@@ -31,17 +33,25 @@ import { useAuthHydrated } from "@/features/auth/hooks/useAuthHydrated";
 import AuthLayout from "@/features/auth/components/AuthLayout";
 
 /**
- * "Set a password" screen for Google-only accounts. Once they set a
- * password they can also sign in with email + password.
+ * "Password & security" screen, reachable from every dashboard sidebar.
+ * Two modes driven by the account:
+ *   • Google-only accounts (hasPassword false) → "Add a password" (no
+ *     current password exists, so none is asked).
+ *   • Password accounts → "Change password" (current password required and
+ *     verified server-side before overwriting).
  */
 export default function SetPasswordPage() {
-  useEffect(() => { document.title = "Set Password | QuickBihar Dashboard"; }, []);
+  useEffect(() => { document.title = "Password & Security | QuickBihar Dashboard"; }, []);
 
   const navigate = useNavigate();
   const { isAuthenticated, user } = useAuthStore();
   const hasHydrated = useAuthHydrated();
   const { mutate, isPending } = useSetPassword();
   const [done, setDone] = useState(false);
+  // Known password accounts → Change mode (current required). Everyone else
+  // (Google-only, or legacy sessions without the flag) → Add mode where the
+  // current-password field stays optional and the server decides.
+  const hasPassword = user?.hasPassword === true;
 
   useEffect(() => {
     if (hasHydrated && !isAuthenticated) {
@@ -49,13 +59,13 @@ export default function SetPasswordPage() {
     }
   }, [hasHydrated, isAuthenticated, navigate]);
 
-  const form = useForm<SetPasswordValues>({
-    resolver: zodResolver(setPasswordSchema),
+  const form = useForm<SetPasswordValues | ChangePasswordValues>({
+    resolver: zodResolver(hasPassword ? changePasswordSchema : setPasswordSchema),
     defaultValues: { password: "", confirmPassword: "", currentPassword: "" },
   });
 
-  const onSubmit = (values: SetPasswordValues) => {
-    mutate(values, { onSuccess: () => setDone(true) });
+  const onSubmit = (values: SetPasswordValues | ChangePasswordValues) => {
+    mutate(values as SetPasswordValues, { onSuccess: () => setDone(true) });
   };
 
   if (!hasHydrated) {
@@ -70,20 +80,23 @@ export default function SetPasswordPage() {
             {done ? <CheckCircle2 className="h-6 w-6" /> : <ShieldCheck className="h-6 w-6" />}
           </span>
           <CardTitle className="text-2xl font-bold tracking-tight text-foreground">
-            Add a password
+            {hasPassword ? "Change password" : "Add a password"}
           </CardTitle>
           <CardDescription className="text-muted-foreground">
-            {user?.email
-              ? `Set a password for ${user.email} so you can sign in without Google.`
-              : "Set a password as a backup sign-in method."}
+            {hasPassword
+              ? "Enter your current password, then choose a new one."
+              : user?.email
+                ? `Set a password for ${user.email} so you can sign in without Google.`
+                : "Set a password as a backup sign-in method."}
           </CardDescription>
         </CardHeader>
         <CardContent>
           {done ? (
             <div className="grid gap-4 text-center">
               <p className="text-sm leading-relaxed text-muted-foreground">
-                Password set. You can now sign in with either Google or your
-                email and password.
+                {hasPassword
+                  ? "Password changed. Use your new password next time you sign in."
+                  : "Password set. You can now sign in with either Google or your email and password."}
               </p>
               <Button
                 onClick={() => navigate(-1)}
@@ -99,6 +112,35 @@ export default function SetPasswordPage() {
                 onSubmit={form.handleSubmit(onSubmit)}
                 className="space-y-4"
               >
+                <FormField
+                  control={form.control}
+                  name="currentPassword"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-muted-foreground">
+                        Current password
+                        {!hasPassword && (
+                          <span className="ml-1 font-normal opacity-70">
+                            (only if you already have one)
+                          </span>
+                        )}
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          type="password"
+                          autoComplete="current-password"
+                          placeholder={
+                            hasPassword
+                              ? "Enter current password"
+                              : "Leave blank for Google-only accounts"
+                          }
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
                 <FormField
                   control={form.control}
                   name="password"
@@ -148,6 +190,8 @@ export default function SetPasswordPage() {
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Saving…
                     </>
+                  ) : hasPassword ? (
+                    "Change password"
                   ) : (
                     "Save password"
                   )}

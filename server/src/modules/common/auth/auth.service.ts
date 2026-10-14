@@ -77,7 +77,10 @@ export async function register(registerData: any) {
 
     // 3. Create or Update user details (e.g. post-OTP password setting)
     if (user) {
-      if (password) user.password = password;
+      if (password) {
+        user.password = password;
+        ensurePasswordIdentity(user);
+      }
       if (fullName) user.fullName = fullName;
       // Only overwrite phone if the user doesn't already have one set —
       // protects users who originally supplied a phone via another channel
@@ -98,6 +101,9 @@ export async function register(registerData: any) {
         isVerified: true,
         roleId: userRole._id,
       });
+      // Tag the password identity so hasPassword resolves from identities[].
+      ensurePasswordIdentity(user);
+      await user.save({ validateBeforeSave: false });
     }
 
     if (!user) {
@@ -156,6 +162,15 @@ export async function login(loginData: any) {
     }
 
     // Check password first to ensure it's a valid login attempt
+    const hasPasswordCredential =
+      (user.identities ?? []).some((i: any) => i?.provider === "password") ||
+      Boolean(user.password);
+    if (!hasPasswordCredential) {
+      throw new ApiError(
+        401,
+        "This account uses Google sign-in and has no password yet. Please sign in with Google, or use Forgot password to set one."
+      );
+    }
     const isPasswordValid = await user.isPasswordCorrect(loginData.password);
     if (!isPasswordValid) {
       throw new ApiError(401, "Invalid password credentials");
@@ -169,6 +184,9 @@ export async function login(loginData: any) {
     const accessToken = user.generateAccessToken();
     const refreshToken = user.generateRefreshToken();
 
+    // Backfill the password identity for pre-existing accounts; the save
+    // below persists it alongside the refresh token.
+    ensurePasswordIdentity(user);
     user.refreshToken = refreshToken;
     await user.save({ validateBeforeSave: false });
 
@@ -186,11 +204,6 @@ export async function login(loginData: any) {
 }
 
 
-/**
- * Logs out a user by removing their persistent refresh token from the database.
- *
- * @param userId - Unique MongoDB ID of the user.
- */
 export async function logoutUser(userId: string) {
   await UserDAO.updateById(userId, {
     $set: { refreshToken: undefined },
@@ -360,20 +373,51 @@ export async function googleAuthOrCreate(idToken: string, client: "web" | "mobil
 }
 
 /**
- * Set a password on the currently-authenticated user. Used by Google-only users
- * who want a password as a backup sign-in method. Idempotent — overwrites.
+ * Set a password on the currently-authenticated user.
+ *
+ * Two modes, chosen by whether the account already has a password:
+ *   • Google-only users (no password yet) → no current password needed.
+ *   • Password users (changing it) → currentPassword is required and verified,
+ *     so a hijacked session alone can't lock the real owner out.
+ * Idempotent for the identity row — overwrites the hash, ensures one entry.
  */
-export async function setPassword(userId: string, password: string) {
+export async function setPassword(userId: string, password: string, currentPassword?: string) {
+  if (!password || password.length < 8) {
+    throw new ApiError(400, "Password must be at least 8 characters.");
+  }
   const user = await User.findById(userId);
   if (!user) throw new ApiError(404, "User not found");
+
+  const hasPasswordCredential =
+    (user.identities ?? []).some((i: any) => i?.provider === "password") ||
+    Boolean(user.password);
+  if (hasPasswordCredential) {
+    if (!currentPassword) {
+      throw new ApiError(400, "Please enter your current password to change it.");
+    }
+    const matches = await user.isPasswordCorrect(currentPassword);
+    if (!matches) {
+      throw new ApiError(400, "Current password is incorrect.");
+    }
+  }
 
   // Pre-save hook will hash this with bcrypt 10.
   user.password = password;
 
   // Ensure a "password" identity row exists so future conflict checks work.
+  ensurePasswordIdentity(user);
+
+  await user.save();
+  return { ok: true };
+}
+
+/**
+ * Append a "password" identity row when missing (new registrations, first
+ * password set). Call before the surrounding save — never saves itself.
+ */
+function ensurePasswordIdentity(user: any) {
   const identities = (user.identities ?? []) as IUserIdentity[];
-  const hasPasswordIdentity = identities.some((i) => i.provider === "password");
-  if (!hasPasswordIdentity) {
+  if (!identities.some((i) => i.provider === "password")) {
     identities.push({
       provider: "password",
       providerId: `pwd-${user._id.toString()}-${Date.now()}`,
@@ -382,9 +426,6 @@ export async function setPassword(userId: string, password: string) {
     });
     user.identities = identities;
   }
-
-  await user.save();
-  return { ok: true };
 }
 
 /**
