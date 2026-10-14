@@ -146,6 +146,14 @@ jobs:
           sudo -n rm -rf /var/cache/nginx/qb_pages/* || true
           echo "page cache purged"
 
+      - name: Purge SEO cache (fresh robots/sitemap after deploy)
+        run: |
+          # qb_seo host-caches /robots.txt + /sitemap*.xml for 1h.
+          # Without this purge, crawlers keep seeing the previous release's
+          # robots/sitemap for up to an hour after every deploy.
+          sudo -n rm -rf /var/cache/nginx/qb_seo/* || true
+          echo "seo cache purged"
+
       - name: Verify running services
         run: |
           cd ${{ env.APP_DIR }}
