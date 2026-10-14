@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeftRight, Bike, ExternalLink, Home, KeyRound, ShieldCheck, Store } from "lucide-react";
 import { useAuthStore } from "@/features/auth/store/authStore";
 import { hasRole } from "@/lib/rbac";
 import { cn } from "@/lib/utils";
+import PasswordDialog from "@/features/auth/components/PasswordDialog";
 
 type PortalId = "admin" | "seller" | "delivery";
 
@@ -22,12 +24,13 @@ const portals: Array<{
  * Sidebar footer shared by all three dashboards. Ends portal confusion:
  * shows where "home" is, and — when the signed-in user holds more than
  * one portal role — offers one-tap switching to their other portals.
- * Also surfaces Password & security (Google-only users add a password here,
- * password users change it). Hidden on small screens where sidebars collapse
- * into a top strip.
+ * Password changes open in a dialog right here (no page navigation, no
+ * current password — the session is the proof of identity). Hidden on
+ * small screens where sidebars collapse into a top strip.
  */
 export default function SidebarFooter({ current }: { current: PortalId }) {
   const user = useAuthStore((state) => state.user);
+  const [passwordOpen, setPasswordOpen] = useState(false);
   const others = portals.filter(
     (portal) => portal.id !== current && hasRole(user, ...portal.roles),
   );
@@ -54,16 +57,18 @@ export default function SidebarFooter({ current }: { current: PortalId }) {
           </div>
         </div>
       )}
-      <Link
-        to="/auth/set-password"
+      <button
+        type="button"
+        onClick={() => setPasswordOpen(true)}
         className={cn(
-          "flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm text-muted-foreground",
+          "flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm text-muted-foreground",
           "transition-colors hover:bg-muted hover:text-foreground",
         )}
       >
         <KeyRound className="h-4 w-4 shrink-0" />
         <span className="truncate">Password &amp; security</span>
-      </Link>
+      </button>
+      <PasswordDialog open={passwordOpen} onOpenChange={setPasswordOpen} />
       <Link
         to="/"
         className={cn(

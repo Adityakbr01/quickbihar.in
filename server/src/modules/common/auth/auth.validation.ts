@@ -66,9 +66,8 @@ export const googleAuthSchema = z.object({
 
 export const setPasswordSchema = z.object({
   password: z.string().min(8, "Password must be at least 8 characters"),
-  // Required when the user already has a password identity;
-  // server enforces this when identities[] already contains
-  // a "password" entry.
+  // Optional legacy field — verified when present, never required. The
+  // endpoint is session-authenticated, so no current-password gate applies.
   currentPassword: z.string().optional(),
 });
 

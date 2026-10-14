@@ -375,11 +375,10 @@ export async function googleAuthOrCreate(idToken: string, client: "web" | "mobil
 /**
  * Set a password on the currently-authenticated user.
  *
- * Two modes, chosen by whether the account already has a password:
- *   • Google-only users (no password yet) → no current password needed.
- *   • Password users (changing it) → currentPassword is required and verified,
- *     so a hijacked session alone can't lock the real owner out.
- * Idempotent for the identity row — overwrites the hash, ensures one entry.
+ * No current-password check: the caller already proved identity with a valid
+ * session JWT to reach this endpoint. Works both ways — Google-only users
+ * adds their first password, password users overwrite it. When a client
+ * still sends currentPassword it is verified when present (back-compat).
  */
 export async function setPassword(userId: string, password: string, currentPassword?: string) {
   if (!password || password.length < 8) {
@@ -388,13 +387,7 @@ export async function setPassword(userId: string, password: string, currentPassw
   const user = await User.findById(userId);
   if (!user) throw new ApiError(404, "User not found");
 
-  const hasPasswordCredential =
-    (user.identities ?? []).some((i: any) => i?.provider === "password") ||
-    Boolean(user.password);
-  if (hasPasswordCredential) {
-    if (!currentPassword) {
-      throw new ApiError(400, "Please enter your current password to change it.");
-    }
+  if (currentPassword) {
     const matches = await user.isPasswordCorrect(currentPassword);
     if (!matches) {
       throw new ApiError(400, "Current password is incorrect.");

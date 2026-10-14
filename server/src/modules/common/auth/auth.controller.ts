@@ -154,8 +154,8 @@ export const googleAuth = asyncHandler(async (req: Request, res: Response) => {
 
 /**
  * POST /api/v1/auth/set-password  (auth required)
- * Add a password (Google-only users) or change it (password users, who must
- * also send their currentPassword for verification).
+ * Set or change the password on the currently-authenticated user. The valid
+ * session is the proof of identity — no current password is required.
  */
 export const setPassword = asyncHandler(async (req: Request, res: Response) => {
   const userId = (req as any).user?._id?.toString();

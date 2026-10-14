@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CheckCircle2, Loader2, ShieldCheck } from "lucide-react";
+import { CheckCircle2, Eye, EyeOff, Loader2, ShieldCheck } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -24,8 +24,6 @@ import {
 import {
   setPasswordSchema,
   SetPasswordValues,
-  changePasswordSchema,
-  ChangePasswordValues,
 } from "@/features/auth/schemas/auth.schema";
 import { useSetPassword } from "@/features/auth/hooks/useAuth";
 import { useAuthStore } from "@/features/auth/store/authStore";
@@ -33,12 +31,9 @@ import { useAuthHydrated } from "@/features/auth/hooks/useAuthHydrated";
 import AuthLayout from "@/features/auth/components/AuthLayout";
 
 /**
- * "Password & security" screen, reachable from every dashboard sidebar.
- * Two modes driven by the account:
- *   • Google-only accounts (hasPassword false) → "Add a password" (no
- *     current password exists, so none is asked).
- *   • Password accounts → "Change password" (current password required and
- *     verified server-side before overwriting).
+ * Standalone set/change password page (same action as the dashboard
+ * PasswordDialog). No current password is asked — the session is the proof
+ * of identity. Password text stays visible with an eye toggle to hide it.
  */
 export default function SetPasswordPage() {
   useEffect(() => { document.title = "Password & Security | QuickBihar Dashboard"; }, []);
@@ -48,10 +43,7 @@ export default function SetPasswordPage() {
   const hasHydrated = useAuthHydrated();
   const { mutate, isPending } = useSetPassword();
   const [done, setDone] = useState(false);
-  // Known password accounts → Change mode (current required). Everyone else
-  // (Google-only, or legacy sessions without the flag) → Add mode where the
-  // current-password field stays optional and the server decides.
-  const hasPassword = user?.hasPassword === true;
+  const [show, setShow] = useState(true);
 
   useEffect(() => {
     if (hasHydrated && !isAuthenticated) {
@@ -59,18 +51,29 @@ export default function SetPasswordPage() {
     }
   }, [hasHydrated, isAuthenticated, navigate]);
 
-  const form = useForm<SetPasswordValues | ChangePasswordValues>({
-    resolver: zodResolver(hasPassword ? changePasswordSchema : setPasswordSchema),
-    defaultValues: { password: "", confirmPassword: "", currentPassword: "" },
+  const form = useForm<SetPasswordValues>({
+    resolver: zodResolver(setPasswordSchema),
+    defaultValues: { password: "", confirmPassword: "" },
   });
 
-  const onSubmit = (values: SetPasswordValues | ChangePasswordValues) => {
-    mutate(values as SetPasswordValues, { onSuccess: () => setDone(true) });
+  const onSubmit = (values: SetPasswordValues) => {
+    mutate(values, { onSuccess: () => setDone(true) });
   };
 
   if (!hasHydrated) {
     return null;
   }
+
+  const eyeButton = (
+    <button
+      type="button"
+      aria-label={show ? "Hide password" : "Show password"}
+      onClick={() => setShow(!show)}
+      className="absolute top-1/2 right-2.5 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
+    >
+      {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+    </button>
+  );
 
   return (
     <AuthLayout>
@@ -80,21 +83,19 @@ export default function SetPasswordPage() {
             {done ? <CheckCircle2 className="h-6 w-6" /> : <ShieldCheck className="h-6 w-6" />}
           </span>
           <CardTitle className="text-2xl font-bold tracking-tight text-foreground">
-            {hasPassword ? "Change password" : "Add a password"}
+            {user?.hasPassword ? "Change password" : "Add a password"}
           </CardTitle>
           <CardDescription className="text-muted-foreground">
-            {hasPassword
-              ? "Enter your current password, then choose a new one."
-              : user?.email
-                ? `Set a password for ${user.email} so you can sign in without Google.`
-                : "Set a password as a backup sign-in method."}
+            {user?.email
+              ? `For ${user.email}. No current password needed — you're already signed in.`
+              : "No current password needed — you're already signed in."}
           </CardDescription>
         </CardHeader>
         <CardContent>
           {done ? (
             <div className="grid gap-4 text-center">
               <p className="text-sm leading-relaxed text-muted-foreground">
-                {hasPassword
+                {user?.hasPassword
                   ? "Password changed. Use your new password next time you sign in."
                   : "Password set. You can now sign in with either Google or your email and password."}
               </p>
@@ -114,46 +115,21 @@ export default function SetPasswordPage() {
               >
                 <FormField
                   control={form.control}
-                  name="currentPassword"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-muted-foreground">
-                        Current password
-                        {!hasPassword && (
-                          <span className="ml-1 font-normal opacity-70">
-                            (only if you already have one)
-                          </span>
-                        )}
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          type="password"
-                          autoComplete="current-password"
-                          placeholder={
-                            hasPassword
-                              ? "Enter current password"
-                              : "Leave blank for Google-only accounts"
-                          }
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
                   name="password"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-muted-foreground">New password</FormLabel>
                       <FormControl>
-                        <Input
-                          type="password"
-                          autoComplete="new-password"
-                          placeholder="At least 8 characters"
-                          {...field}
-                        />
+                        <div className="relative">
+                          <Input
+                            type={show ? "text" : "password"}
+                            autoComplete="new-password"
+                            placeholder="At least 8 characters"
+                            className="pr-10"
+                            {...field}
+                          />
+                          {eyeButton}
+                        </div>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -168,12 +144,16 @@ export default function SetPasswordPage() {
                         Confirm new password
                       </FormLabel>
                       <FormControl>
-                        <Input
-                          type="password"
-                          autoComplete="new-password"
-                          placeholder="Repeat password"
-                          {...field}
-                        />
+                        <div className="relative">
+                          <Input
+                            type={show ? "text" : "password"}
+                            autoComplete="new-password"
+                            placeholder="Repeat password"
+                            className="pr-10"
+                            {...field}
+                          />
+                          {eyeButton}
+                        </div>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -190,8 +170,6 @@ export default function SetPasswordPage() {
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Saving…
                     </>
-                  ) : hasPassword ? (
-                    "Change password"
                   ) : (
                     "Save password"
                   )}
