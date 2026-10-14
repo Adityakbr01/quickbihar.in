@@ -27,9 +27,9 @@ import { NoIndexHead } from "@/src/components/seo/SeoHead";
  * Reset-password confirmation screen.
  *
  * Arrives via the deep link in the reset email:
- *   QuickBihar://auth/reset-password?token=...
- * Validates the new password, POSTs /auth/reset-password with the
- * token, then routes the user to Sign In.
+ *   QuickBihar://auth/reset-password-confirm?token=...
+ * (route = this file's expo-router path). Validates the new password,
+ * POSTs /auth/reset-password with the token, then routes to Sign In.
  */
 export default function ResetPasswordConfirmScreen() {
   const insets = useSafeAreaInsets();

@@ -1,4 +1,5 @@
 import { resend, RESEND_FROM } from "../config/resend.config";
+import { ENV } from "../config/env.config";
 
 export class MailService {
   static async sendApplicationStatus(email: string, status: string, reason?: string) {
@@ -79,12 +80,19 @@ export class MailService {
   }
 
   /**
-   * Send a password-reset link to the given email. The reset URL is built by
-   * the client because the email recipient might be opening the link on a
-   * different device (mobile vs web). The token alone is sent — the recipient
-   * chooses the surface.
+   * Send a password-reset email with real clickable links (not the raw token).
+   * The web button targets the dashboard reset page
+   * (/auth/reset-password?token=…); the app button targets the Expo deep link
+   * (/auth/reset-password-confirm?token=…). A plain-text URL fallback is
+   * included for email clients that strip buttons. Tokens expire in 15 min.
    */
   static async sendResetPasswordLink(email: string, token: string) {
+    // Keep in sync with dash-web/src/App.tsx (/auth/reset-password) and
+    // mobile/app/auth/reset-password-confirm.tsx (QuickBihar:// deep link).
+    const dashboardBase = (ENV.DASHBOARD_URL || "https://dashboard.quickbihar.in").replace(/\/+$/, "");
+    const encoded = encodeURIComponent(token);
+    const webUrl = `${dashboardBase}/auth/reset-password?token=${encoded}`;
+    const appUrl = `QuickBihar://auth/reset-password-confirm?token=${encoded}`;
     try {
       const { data, error } = await resend.emails.send({
         from: RESEND_FROM,
@@ -94,10 +102,15 @@ export class MailService {
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
             <h2>Reset your password</h2>
             <p>We received a request to reset the password for your Quick Bihar account.</p>
-            <p>Open this link on the device where you want to set your new password (web or mobile):</p>
             <p style="margin: 20px 0;">
-              <code style="display:inline-block;background:#f4f4f4;padding:10px;border-radius:6px;">${token}</code>
+              <a href="${webUrl}" style="display:inline-block;padding:12px 18px;background:#2563eb;color:#fff;text-decoration:none;border-radius:6px;">Reset password on web</a>
             </p>
+            <p>On the mobile app? Open this link on your phone:</p>
+            <p style="margin: 12px 0;">
+              <a href="${appUrl}" style="display:inline-block;padding:12px 18px;background:#16a34a;color:#fff;text-decoration:none;border-radius:6px;">Open in Quick Bihar app</a>
+            </p>
+            <p style="color:#666;font-size:13px;">If the buttons don't work, copy this link into your browser:</p>
+            <p style="color:#666;font-size:13px;word-break:break-all;">${webUrl}</p>
             <p>This link expires in 15 minutes. If you didn't request a password reset, you can safely ignore this email.</p>
           </div>
         `,

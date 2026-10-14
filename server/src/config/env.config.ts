@@ -96,6 +96,10 @@ const envSchema = z.object({
   // doesn't compromise the other. Defaults to REFRESH_TOKEN_SECRET if unset.
   RESET_PASSWORD_JWT_SECRET: optionalString,
 
+  // Public dashboard origin used to build clickable password-reset links.
+  // Falls back to the production dashboard when unset.
+  DASHBOARD_URL: optionalUrl,
+
   // MSG91 — WhatsApp OTP for phone number verification
   MSG91_AUTH_KEY: optionalString,
   MSG91_WHATSAPP_NUMBER: optionalString,

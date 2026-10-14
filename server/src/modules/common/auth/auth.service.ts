@@ -449,8 +449,7 @@ export async function requestPasswordReset(email: string) {
     const token = jwt.sign({ _id: user._id.toString(), aud: "reset" }, getResetSecret(), {
       expiresIn: RESET_JWT_TTL,
     });
-    const link = `${ENV.RESET_PASSWORD_JWT_SECRET ? "" : ""}${token}`; // full URL built by client
-    // We send the token + a base URL hint; the email template renders the link.
+    // The email template builds the clickable web + app links from the token.
     await MailService.sendResetPasswordLink(user.email, token);
   }
 
