@@ -20,17 +20,18 @@ const SITE_BASE = "https://quickbihar.in";
 /** Max URLs per shard (sitemap protocol allows 50k/50MB; 5k keeps responses fast). */
 const SHARD_LIMIT = 5000;
 
-/** Static hub paths included in every sitemap (always indexable, no DB needed). */
+/** Static hub paths included in every sitemap (always indexable, no DB needed).
+ * NOTE: search pages (/clothing/search, /jewelery/search) are intentionally
+ * excluded — they are thin query shells, always noindex, never in sitemap.
+ * NOTE: /clothing/home is excluded — it  canonical-consolidates to / (root);
+ * only the canonical (/) belongs in the sitemap. */
 const STATIC_PATHS = [
     "/",
-    "/clothing/home",
-    "/clothing/search",
     "/top-selling",
     "/malls",
     "/food",
     "/jewelery",
     "/jewelery/collections",
-    "/jewelery/search",
 ];
 
 /* ── Internal helpers ── */
@@ -115,7 +116,13 @@ export async function buildStaticSitemap(): Promise<string> {
     return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>`;
 }
 
-/** Product shard — gated indexable products only, newest first. */
+/** Product shard — ONE canonical URL per product, newest first.
+ * - CLOTHING → /product/:slug
+ * - JEWELERY → /jewelery/product/:slug (slug, never Mongo _id — IDs are
+ *   non-descriptive, split link equity, and caused GSC "Crawled - currently
+ *   not indexed" duplicates when both variants were emitted).
+ * Legacy /jewelery/product/:_id URLs are NOT in the sitemap; they canonical
+ * to the slug version in the storefront (see user-web prerender/SeoRouter). */
 export async function buildProductsSitemap(): Promise<string> {
     const products = await Product.find({
         isActive: true,
@@ -128,19 +135,13 @@ export async function buildProductsSitemap(): Promise<string> {
         .lean();
     const urls = products
         .filter(isSitemapProduct)
-        .flatMap((product: any) => {
-            const rows = [
-                `  <url>\n    <loc>${escapeXml(`${SITE_BASE}/product/${product.slug}`)}</loc>\n    <lastmod>${toLastmod(product.updatedAt)}</lastmod>\n    <changefreq>weekly</changefreq>\n  </url>`,
-            ];
-            // Jewellery canonical is /jewelery/product/:id (kept per strategy).
-            // Emit both so the prerendered PDP is discovered even though the
-            // UI never links /product/:slug for jewellery.
-            if (product.vertical === "JEWELERY" && product._id) {
-                rows.push(
-                    `  <url>\n    <loc>${escapeXml(`${SITE_BASE}/jewelery/product/${String(product._id)}`)}</loc>\n    <lastmod>${toLastmod(product.updatedAt)}</lastmod>\n    <changefreq>weekly</changefreq>\n  </url>`
-                );
-            }
-            return rows;
+        .map((product: any) => {
+            const slug = String(product.slug || "").trim();
+            const isJewel = String(product.vertical || "").toUpperCase() === "JEWELERY";
+            const loc = isJewel
+                ? `${SITE_BASE}/jewelery/product/${slug}`
+                : `${SITE_BASE}/product/${slug}`;
+            return `  <url>\n    <loc>${escapeXml(loc)}</loc>\n    <lastmod>${toLastmod(product.updatedAt)}</lastmod>\n    <changefreq>weekly</changefreq>\n  </url>`;
         })
         .join("\n");
     return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>`;
@@ -193,6 +194,9 @@ export function buildRobotsTxt(nodeEnv: string | undefined): string {
         return [
             "User-agent: *",
             "Allow: /",
+            // API is JSON-only — never crawl or index (fixes GSC /api/v1
+            // "Crawled - currently not indexed").
+            "Disallow: /api/",
             "Disallow: /auth/",
             "Disallow: /account/",
             "Disallow: /checkout",
@@ -200,6 +204,11 @@ export function buildRobotsTxt(nodeEnv: string | undefined): string {
             "Disallow: /track-order/",
             "Disallow: /rider",
             "Disallow: /clothing/cart",
+            "Disallow: /clothing/search",
+            "Disallow: /jewelery/search",
+            "Disallow: /jewelery/cart",
+            "Disallow: /jewelery/checkout",
+            "Disallow: /jewelery/account",
             "Disallow: /clothing/search?*",
             "Disallow: /*?*pincode*",
             "Disallow: /*?*lat*",

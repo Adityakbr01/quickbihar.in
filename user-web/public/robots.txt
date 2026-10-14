@@ -1,4 +1,26 @@
 User-agent: *
 Allow: /
 
+Disallow: /api/
+Disallow: /auth/
+Disallow: /account/
+Disallow: /checkout
+Disallow: /order/
+Disallow: /track-order/
+Disallow: /rider
+Disallow: /clothing/cart
+Disallow: /clothing/search
+Disallow: /jewelery/search
+Disallow: /jewelery/cart
+Disallow: /jewelery/checkout
+Disallow: /jewelery/account
+Disallow: /clothing/search?*
+Disallow: /*?*pincode*
+Disallow: /*?*lat*
+Disallow: /*?*lng*
+Disallow: /*?*q=*
+Disallow: /*?*query=*
+Disallow: /*?*categoryId=*
+Disallow: /*?*category=*
+
 Sitemap: https://quickbihar.in/sitemap.xml

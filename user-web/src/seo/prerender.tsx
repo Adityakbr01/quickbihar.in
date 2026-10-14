@@ -261,16 +261,17 @@ export async function prerender(data: { url: string }) {
   if (jewelProductMatch) {
     const id = decodeURIComponent(jewelProductMatch[1]).trim();
     const product =
-      products.find((p) => p._id === id) ||
-      products.find((p) => p.slug === id);
-    // Canonical jewellery PDPs only — clothing must not duplicate here.
-    // products-static.json now carries `vertical`; older JSON falls back to
-    // the Jewellery category label so rebuilds never 404 indexed PDPs.
+      products.find((p) => p.slug === id) ||
+      products.find((p) => p._id === id);
+    // Canonical jewellery PDP is SLUG-based (/jewelery/product/:slug) — never
+    // Mongo _id. Legacy _id URLs render the same content but canonical to the
+    // slug version so GSC "Crawled - currently not indexed" duplicates collapse.
     const isJewel =
       String(product?.vertical || '').toUpperCase() === 'JEWELERY' ||
       String(product?.category || '').toLowerCase().includes('jewel');
     if (product && isJewel && product.images?.[0]?.url && Number(product.price) > 0) {
       const slug = String(product.slug || id);
+      const canonicalPath = `/jewelery/product/${slug}`;
       meta = staticMeta({
         title: `${String(product.title)} | QuickBihar Jewellery`,
         description:
@@ -284,13 +285,13 @@ export async function prerender(data: { url: string }) {
         ]
           .filter(Boolean)
           .join(', '),
-        path: `/jewelery/product/${product._id || slug}`,
+        path: canonicalPath,
         image: product.images?.[0]?.url,
       });
       heading = String(product.title);
       intro = String(product.shortDescription || product.description || meta.description);
       schemas.push(
-        webPageSchema(`/jewelery/product/${product._id || slug}`, meta.title, meta.description),
+        webPageSchema(canonicalPath, meta.title, meta.description),
         breadcrumbSchema([
           { name: 'Home', path: '/' },
           { name: 'Jewellery', path: '/jewelery' },
@@ -308,11 +309,11 @@ export async function prerender(data: { url: string }) {
         .filter((p) => isJewelRow(p) && p.slug !== slug)
         .slice(0, 12)
         .map((p) => ({
-          href: p._id ? `/jewelery/product/${p._id}` : `/product/${p.slug}`,
+          href: `/jewelery/product/${p.slug}`,
           label: String(p.title),
         }));
     } else {
-      meta = { ...homeMeta(), robots: 'noindex, nofollow' };
+      meta = { ...homeMeta('/'), robots: 'noindex, nofollow' };
     }
   } else if (locationHubMatch || locationMatch) {
     const slug = locationHubMatch ? 'buxar' : decodeURIComponent(locationMatch![1]).trim();
@@ -375,25 +376,55 @@ export async function prerender(data: { url: string }) {
     const slug = decodeURIComponent(productMatch[1]).trim();
     const product = products.find((p) => p.slug === slug);
     if (product) {
-      meta = productMeta(product);
-      heading = String(product.title);
-      intro = String(product.shortDescription || product.description || meta.description);
-      schemas.push(
-        webPageSchema(`/product/${slug}`, meta.title, meta.description),
-        breadcrumbSchema([
-          { name: 'Home', path: '/' },
-          { name: String(product.category || 'Fashion'), path: '/clothing/home' },
-          { name: String(product.title) },
-        ]),
-      );
-      const node = productSchema(product, meta.canonical);
-      if (node) schemas.push(node);
+      const isJewelDup =
+        String(product.vertical || '').toUpperCase() === 'JEWELERY' ||
+        String(product.category || '').toLowerCase().includes('jewel');
+      if (isJewelDup) {
+        // Jewellery canonical lives at /jewelery/product/:slug — this
+        // /product/:slug twin exists only as a legacy URL. Point canonical
+        // at the jewelery version so link equity consolidates instead of
+        // splitting across "Crawled - currently not indexed" duplicates.
+        const jewelCanonical = `/jewelery/product/${product.slug}`;
+        meta = {
+          ...productMeta(product),
+          canonical: getCanonicalUrl(jewelCanonical),
+          robots: 'noindex, nofollow',
+        };
+        heading = String(product.title);
+        intro = String(product.shortDescription || product.description || meta.description);
+        schemas.push(
+          webPageSchema(jewelCanonical, meta.title, meta.description),
+          breadcrumbSchema([
+            { name: 'Home', path: '/' },
+            { name: 'Jewellery', path: '/jewelery' },
+            { name: String(product.title) },
+          ]),
+        );
+      } else {
+        meta = productMeta(product);
+        heading = String(product.title);
+        intro = String(product.shortDescription || product.description || meta.description);
+        schemas.push(
+          webPageSchema(`/product/${slug}`, meta.title, meta.description),
+          breadcrumbSchema([
+            { name: 'Home', path: '/' },
+            { name: String(product.category || 'Fashion'), path: '/clothing/home' },
+            { name: String(product.title) },
+          ]),
+        );
+        const node = productSchema(product, meta.canonical);
+        if (node) schemas.push(node);
+      }
       shellLinks = products
         .filter((p) => p.slug !== slug)
         .slice(0, 12)
-        .map((p) => ({ href: `/product/${p.slug}`, label: String(p.title) }));
+        .map((p) => {
+          const jewel = String(p.vertical || '').toUpperCase() === 'JEWELERY' ||
+            String(p.category || '').toLowerCase().includes('jewel');
+          return { href: jewel ? `/jewelery/product/${p.slug}` : `/product/${p.slug}`, label: String(p.title) };
+        });
     } else {
-      meta = { ...homeMeta(), robots: 'noindex, nofollow' };
+      meta = { ...homeMeta('/'), robots: 'noindex, nofollow' };
     }
   } else if (mallMatch) {
     const slug = decodeURIComponent(mallMatch[1]).trim();
@@ -423,31 +454,70 @@ export async function prerender(data: { url: string }) {
     const known = categories.find((c) => c.slug.toLowerCase() === slug);
     const title = String(known?.title || titleizeSlug(slug));
     const description = String(known?.description || '');
-    meta = categoryMeta({ slug, title, isActive: true, description }, Math.max(products.length, 1));
+    // Per-category product match — fixes GSC "Crawled - currently not indexed"
+    // where every /category/* page listed the SAME 18 unrelated products
+    // (mens kurtas + jewellery on a SAREES page). Empty categories (0 matches)
+    // correctly become noindex via isIndexableCategory.
+    const norm = (s: string) =>
+      String(s || '').toLowerCase().replace(/['’]/g, '').replace(/&/g, ' ').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+    const normSlug = norm(slug);
+    const inCategory = products.filter((p) => {
+      const catNorm = norm(String((p as { category?: string }).category || ''));
+      const subNorm = norm(String((p as { subCategory?: string }).subCategory || ''));
+      return (
+        catNorm === normSlug ||
+        subNorm === normSlug ||
+        (normSlug.length > 3 && (subNorm.includes(normSlug) || catNorm.includes(normSlug)))
+      );
+    });
+    meta = categoryMeta({ slug, title, isActive: true, description }, inCategory.length);
     heading = `${title} | Shop Online in Bihar`;
     intro = meta.description;
-    const items = products.slice(0, 20).map((p) => ({
+    const urlFor = (p: StaticProduct) => {
+      const jewel = String(p.vertical || '').toUpperCase() === 'JEWELERY' ||
+        String(p.category || '').toLowerCase().includes('jewel');
+      return getCanonicalUrl(jewel ? `/jewelery/product/${p.slug}` : `/product/${p.slug}`);
+    };
+    const items = inCategory.slice(0, 20).map((p) => ({
       name: String(p.title),
-      url: getCanonicalUrl(`/product/${p.slug}`),
+      url: urlFor(p),
       image: p.images?.[0]?.url,
     }));
     schemas.push(
       webPageSchema(`/category/${slug}`, meta.title, meta.description),
       breadcrumbSchema([{ name: 'Home', path: '/' }, { name: title }]),
     );
-    const list = collectionSchema({ name: title, description: meta.description, canonical: meta.canonical, items });
-    if (list) schemas.push(list);
-    shellLinks = products.slice(0, 12).map((p) => ({ href: `/product/${p.slug}`, label: String(p.title) }));
+    // Only emit CollectionPage when there are real items — empty lists are thin.
+    if (items.length > 0) {
+      const list = collectionSchema({ name: title, description: meta.description, canonical: meta.canonical, items });
+      if (list) schemas.push(list);
+    }
+    shellLinks = inCategory.slice(0, 12).map((p) => ({
+      href: String(p.vertical || '').toUpperCase() === 'JEWELERY'
+        ? `/jewelery/product/${p.slug}` : `/product/${p.slug}`,
+      label: String(p.title),
+    }));
   } else {
     // Static pages
     switch (cleanPath) {
       case '/':
-      case '/clothing/home':
-        meta = homeMeta();
+        // Root self-canonical — fixes GSC split where / claimed canonical
+        // /clothing/home while earning its own clicks/impressions.
+        meta = homeMeta('/');
         heading = 'QuickBihar — Online Shopping in Bihar';
         schemas.push(
           websiteSchema(),
-          webPageSchema('/clothing/home', meta.title, meta.description),
+          webPageSchema('/', meta.title, meta.description),
+          breadcrumbSchema([{ name: 'Home', path: '/' }]),
+        );
+        break;
+      case '/clothing/home':
+        // Duplicate of / — canonical consolidates to root.
+        meta = homeMeta('/');
+        heading = 'QuickBihar — Online Shopping in Bihar';
+        schemas.push(
+          websiteSchema(),
+          webPageSchema('/', meta.title, meta.description),
           breadcrumbSchema([{ name: 'Home', path: '/' }]),
         );
         break;
@@ -549,11 +619,15 @@ export async function prerender(data: { url: string }) {
     ];
     // Collection graph on listing pages (top-selling / home)
     if (cleanPath === '/top-selling' || cleanPath === '/' || cleanPath === '/clothing/home') {
-      const items = products.slice(0, 20).map((p) => ({
-        name: String(p.title),
-        url: getCanonicalUrl(`/product/${p.slug}`),
-        image: p.images?.[0]?.url,
-      }));
+      const items = products.slice(0, 20).map((p) => {
+        const jewel = String(p.vertical || '').toUpperCase() === 'JEWELERY' ||
+          String(p.category || '').toLowerCase().includes('jewel');
+        return {
+          name: String(p.title),
+          url: getCanonicalUrl(jewel ? `/jewelery/product/${p.slug}` : `/product/${p.slug}`),
+          image: p.images?.[0]?.url,
+        };
+      });
       const list = collectionSchema({ name: heading, description: meta.description, canonical: meta.canonical, items });
       if (list) schemas.push(list);
     }
@@ -568,15 +642,23 @@ export async function prerender(data: { url: string }) {
 
   const links = new Set<string>([
     ...STATIC_ROUTES.map((r) => r.path),
-    ...products.map((p) => `/product/${p.slug}`),
+    // Clothing → /product/:slug ; Jewellery → /jewelery/product/:slug (ONE
+    // canonical each — legacy /jewelery/product/:_id and /product/:slug twins
+    // for jewellery are NOT discovered, so they drop from the index).
+    ...products
+      .filter(
+        (p) =>
+          String(p.vertical || '').toUpperCase() !== 'JEWELERY' &&
+          !String(p.category || '').toLowerCase().includes('jewel'),
+      )
+      .map((p) => `/product/${p.slug}`),
     ...products
       .filter(
         (p) =>
           String(p.vertical || '').toUpperCase() === 'JEWELERY' ||
           String(p.category || '').toLowerCase().includes('jewel'),
       )
-      .filter((p) => p._id)
-      .map((p) => `/jewelery/product/${p._id}`),
+      .map((p) => `/jewelery/product/${p.slug}`),
     ...malls.map((m) => `/mall/${m.slug}`),
     ...categories.map((c) => `/category/${c.slug}`),
     ...ALL_BUXAR_PAGES.map((l) =>

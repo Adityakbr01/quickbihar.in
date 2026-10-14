@@ -61,6 +61,14 @@ app.use(express.static("public"));
 // Registers res.ok / res.created / res.nocontent helpers for standardized responses
 app.use(responseExtensions);
 
+// API responses are JSON-only — never index (fixes GSC /api/v1
+// "Crawled - currently not indexed"). Robots Disallow covers discovery;
+// this header covers direct fetches.
+app.use("/api", (_req, res, next) => {
+  res.set("X-Robots-Tag", "noindex, nofollow");
+  next();
+});
+
 // Routes Import
 import authRouter from "./modules/common/auth/auth.router";
 import bannerRouter from "./modules/common/banner/banner.router";
@@ -133,12 +141,14 @@ app.use("/", seoRouter);
 
 
 app.get(["/", "/api", "/api/", "/api/v1", "/api/v1/"], (req, res) => {
+  res.set("X-Robots-Tag", "noindex, nofollow");
   const ip = req.headers["x-forwarded-for"]?.toString() || req.ip || "Unknown";
   const publicIp = ip.replace("::ffff:", "");
   return res.status(200).json(new ApiResponse(200, { ip: publicIp, status: "healthy", version: "v1" }, "QuickBihar API Server is running"));
 });
 
 app.get(["/health", "/api/health", "/api/v1/health"], (req, res) => {
+  res.set("X-Robots-Tag", "noindex, nofollow");
   return res.status(200).json(new ApiResponse(200, { status: "healthy" }, "Server is running"));
 });
 

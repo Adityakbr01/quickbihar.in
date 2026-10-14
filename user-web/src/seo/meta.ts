@@ -126,20 +126,22 @@ export function isIndexableMall(m: IndexableMall | null | undefined): boolean {
 
 /* ── page builders ────────────────────────────────────────────── */
 
-export function homeMeta(): PageMeta {
+export function homeMeta(path: string = '/'): PageMeta {
   return {
     title: seoTitle('QuickBihar — Online Shopping in Bihar | Local Stores, Fast Delivery'),
     description: seoDescription(
       'Shop clothes, ethnic wear, groceries & more from verified local Bihar stores on QuickBihar. 60–120 min hyperlocal delivery in Buxar & Patna.',
     ),
-    canonical: getCanonicalUrl('/clothing/home'),
+    canonical: getCanonicalUrl(path),
     keywords: DEFAULT_KEYWORDS,
     image: DEFAULT_OG_IMAGE,
     robots: 'index, follow',
   };
 }
 
-export function searchMeta(hasQueryParams: boolean): PageMeta {
+export function searchMeta(_hasQueryParams: boolean): PageMeta {
+  // Search pages are thin query shells — always noindex, never in sitemap.
+  // (Fixes thin-content risk; GSC performance shows these get 0 clicks.)
   return {
     title: seoTitle('Search Fashion Online in Bihar | QuickBihar'),
     description: seoDescription(
@@ -148,7 +150,7 @@ export function searchMeta(hasQueryParams: boolean): PageMeta {
     canonical: getCanonicalUrl('/clothing/search'),
     keywords:
       'search clothing Bihar, search products QuickBihar, buy online Patna, buy online Buxar, ethnic wear Bihar',
-    robots: robotsFor(!hasQueryParams),
+    robots: 'noindex, nofollow',
   };
 }
 
@@ -213,13 +215,14 @@ export function jeweleryCollectionsMeta(): PageMeta {
   });
 }
 
-export function jewelerySearchMeta(hasQueryParams: boolean): PageMeta {
+export function jewelerySearchMeta(_hasQueryParams: boolean): PageMeta {
+  // Jewellery search is a thin shell — always noindex, never in sitemap.
   return staticMeta({
     title: 'Search Jewellery Online in Bihar | QuickBihar',
     description: 'Search gold, diamond & fashion jewellery from trusted Bihar jewellers on QuickBihar.',
     keywords: 'search jewellery Bihar, gold pendant Patna, jhumka Buxar, QuickBihar Jewellery',
     path: '/jewelery/search',
-    indexable: !hasQueryParams,
+    indexable: false,
   });
 }
 

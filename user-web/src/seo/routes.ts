@@ -12,17 +12,17 @@ export interface StaticRoute {
   label: string;
 }
 
-/** Indexable static pages (crawlable, prerendered). */
+/** Indexable static pages (crawlable, prerendered).
+ * NOTE: search shells (/clothing/search, /jewelery/search) are intentionally
+ * excluded — thin, always noindex, never in sitemap. */
 export const STATIC_ROUTES: StaticRoute[] = [
   { path: '/', label: 'Home' },
   { path: '/clothing/home', label: 'Home' },
-  { path: '/clothing/search', label: 'Search' },
   { path: '/top-selling', label: 'Top Selling' },
   { path: '/malls', label: 'Malls' },
   { path: '/food', label: 'Food' },
   { path: '/jewelery', label: 'Jewellery' },
   { path: '/jewelery/collections', label: 'Jewellery Collections' },
-  { path: '/jewelery/search', label: 'Jewellery Search' },
   { path: '/locations/bihar/buxar', label: 'Buxar District Delivery Hub' },
   { path: '/locations/bihar/buxar/buxar-city', label: 'Buxar City Delivery' },
   { path: '/locations/bihar/buxar/dumraon', label: 'Dumraon Delivery' },

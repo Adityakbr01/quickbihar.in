@@ -90,6 +90,19 @@ function ProductSeo({ id }: { id: string }) {
   const { data: product } = useProductById(id);
   if (!product) return null;
 
+  const isJewel = String((product as { vertical?: string }).vertical || '').toUpperCase() === 'JEWELERY' ||
+    String(product.category || '').toLowerCase().includes('jewel');
+  if (isJewel) {
+    // Jewellery canonical lives at /jewelery/product/:slug — consolidate.
+    const slug = String((product as { slug?: string }).slug || id);
+    const jewelCanonical = `/jewelery/product/${slug}`;
+    const meta = {
+      ...productMeta(product),
+      canonical: getCanonicalUrl(jewelCanonical),
+      robots: 'noindex, nofollow' as const,
+    };
+    return <SeoHead meta={meta} jsonLd={[]} />;
+  }
   const meta = productMeta(product);
   const jsonLd = [
     productSchema({ ...product, sellerName: sellerNameOf(product) }, meta.canonical),
@@ -311,14 +324,15 @@ export default function SeoRouter() {
   switch (pathname) {
     case '/':
     case '/clothing/home': {
-      const home = homeMeta();
+      // Both consolidate to root canonical (fixes / vs /clothing/home split).
+      const home = homeMeta('/');
       return (
         <SeoHead
           meta={home}
           jsonLd={[
             organizationSchema(),
             websiteSchema(),
-            webPageSchema('/clothing/home', home.title, home.description),
+            webPageSchema('/', home.title, home.description),
             breadcrumbSchema([{ name: 'Home', path: '/' }]),
           ]}
         />
