@@ -21,7 +21,7 @@ mock.module("../modules/common/user/user.dao", () => ({
     UserDAO: {
         findById: mock(() => Promise.resolve({
             _id: VALID_USER_ID,
-            roleId: { _id: "role_id" }
+            roleId: { _id: "role_id", name: "SELLER" }
         }))
     }
 }));
@@ -31,9 +31,10 @@ const mockAuthMiddleware = () => {
     const pass = (req: any, res: any, next: any) => next();
     return {
         verifyJWT: async (req: any, res: any, next: any) => {
-            req.user = { _id: VALID_USER_ID, roleId: { name: "SELLER" } };
+            req.user = { _id: VALID_USER_ID, roleId: { _id: "role_id", name: "SELLER" } };
             next();
         },
+        verifyOptionalJWT: pass,
         checkPermissions: () => pass,
         validateRole: () => pass,
         validatePermission: () => pass,

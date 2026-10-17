@@ -258,7 +258,11 @@ const getRoleByName = mock((name: string) => Promise.resolve({ _id: roleIds[name
 
 mock.module("../modules/common/rbac/rbac.service", () => ({
   getRoleByName,
+  getRoles: mock(() => Promise.resolve([{ _id: "admin_role_id", name: "ADMIN" }])),
+  createPermission: mock((data: any) => Promise.resolve({ _id: "perm_id", code: data?.code, module: data?.module, domain: data?.domain || "GLOBAL" })),
   assignUserToRole: mock(() => Promise.resolve(undefined)),
+  getRolesByUser: mock(() => Promise.resolve([])),
+  getPermissionsByRole: mock(() => Promise.resolve(new Proxy({}, { get: () => true })))
 }));
 
 mock.module("../utils/mail.service", () => ({

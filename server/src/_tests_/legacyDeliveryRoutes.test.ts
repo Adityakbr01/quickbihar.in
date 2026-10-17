@@ -8,21 +8,36 @@ import request from "supertest";
 import { describe, expect, mock, test } from "bun:test";
 
 const pass = (req: any, _res: any, next: any) => {
-  req.user = { _id: "645a2c2b8f8f2b1a2c3d4e5f", roleId: { name: "ADMIN", _id: "ADMIN" } };
+  req.user = {
+    _id: "645a2c2b8f8f2b1a2c3d4e5f",
+    roleId: { name: "ADMIN", _id: "ADMIN" },
+    roles: ["ADMIN", "DELIVERY"]
+  };
   next();
 };
 
-mock.module("../middlewares/auth.middleware", () => ({
+const mockAuth = () => ({
   verifyJWT: pass,
+  verifyOptionalJWT: pass,
   isAdmin: pass,
+  isSuperAdmin: pass,
   isDelivery: pass,
-}));
+  isSeller: pass,
+  isSellerOrAdmin: pass,
+  validateRole: () => pass,
+  validatePermission: () => pass,
+  checkPermissions: () => pass,
+});
+
+mock.module("../middlewares/auth.middleware", mockAuth);
+mock.module("@/middlewares/auth.middleware", mockAuth);
 
 const { default: orderRouter } = await import("../modules/common/order/order.router");
 const { default: deliveryRouter } = await import("../modules/common/delivery/delivery.router");
 
 const app = express();
 app.use(express.json());
+app.use(pass);
 app.use("/orders", orderRouter);
 app.use("/delivery", deliveryRouter);
 

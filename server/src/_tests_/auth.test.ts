@@ -167,8 +167,11 @@ mock.module("../modules/common/user/user.dao", () => ({
 mock.module("../modules/common/rbac/rbac.service", () => ({
     getRoleByName,
     getRole: mock(() => Promise.resolve({ _id: VALID_ID, name: "USER" })),
+    getRoles: mock(() => Promise.resolve([{ _id: VALID_ID, name: "ADMIN" }])),
+    createPermission: mock((data: any) => Promise.resolve({ _id: VALID_ID, code: data.code, module: data.module, domain: data.domain || "GLOBAL" })),
     assignUserToRole,
-    getRolesByUser: mock(() => Promise.resolve([]))
+    getRolesByUser: mock(() => Promise.resolve([])),
+    getPermissionsByRole: mock(() => Promise.resolve(new Proxy({}, { get: () => true })))
 }));
 
 mock.module("../modules/common/seller/seller.model", () => ({

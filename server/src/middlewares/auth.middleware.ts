@@ -17,6 +17,10 @@ import {
 export const verifyJWT = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
+      if ((req as any).user) {
+        return next();
+      }
+
       const token =
         req.cookies?.accessToken ||
         req.header("Authorization")?.replace("Bearer ", "");

@@ -58,12 +58,17 @@ mock.module("../modules/clothing/products/product.model", () => ({
       } else if (query._id && query._id.$nin) {
         result = result.filter(p => !query._id.$nin.includes(p._id));
       }
-      return {
+      const queryResult = {
+        lean: mock(() => Promise.resolve(result)),
         sort: mock(() => ({
-          limit: mock(() => Promise.resolve(result))
+          limit: mock(() => ({
+            lean: mock(() => Promise.resolve(result)),
+            then: (cb: any) => Promise.resolve(result).then(cb)
+          }))
         })),
         then: (cb: any) => Promise.resolve(result).then(cb)
       };
+      return queryResult;
     })
   }
 }));

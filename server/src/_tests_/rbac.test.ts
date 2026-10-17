@@ -30,7 +30,11 @@ mock.module("../config/redis.config", () => ({
 
 const mockAuthMiddleware = () => ({
   verifyJWT: (req: any, res: any, next: any) => {
-    req.user = { _id: "645a2c2b8f8f2b1a2c3d4e5f" };
+    req.user = { _id: "645a2c2b8f8f2b1a2c3d4e5f", roleId: { _id: "admin_role_id", name: "ADMIN" } };
+    next();
+  },
+  verifyOptionalJWT: (req: any, res: any, next: any) => {
+    req.user = { _id: "645a2c2b8f8f2b1a2c3d4e5f", roleId: { _id: "admin_role_id", name: "ADMIN" } };
     next();
   },
   isAdmin: (req: any, res: any, next: any) => next(),
@@ -52,6 +56,21 @@ mock.module("../modules/common/rbac/rbac.middleware", () => ({
 }));
 
 const VALID_ID = "645a2c2b8f8f2b1a2c3d4e5f";
+
+const mockRbacServiceModule = () => ({
+  createPermission: mock((data: any) => Promise.resolve({ _id: VALID_ID, code: data.code, module: data.module, domain: data.domain || "GLOBAL" })),
+  getPermissions: mock(() => Promise.resolve([{ _id: VALID_ID, code: "TEST_PERMISSION" }])),
+  getRoles: mock(() => Promise.resolve([{ _id: VALID_ID, name: "ADMIN" }])),
+  createRole: mock((data: any) => Promise.resolve({ _id: VALID_ID, ...data })),
+  assignUserToRole: mock(() => Promise.resolve()),
+  getUserRoles: mock(() => Promise.resolve([{ roleId: { _id: "admin_role_id", name: "ADMIN" } }])),
+  getRolesByUser: mock(() => Promise.resolve([{ roleId: { _id: "admin_role_id", name: "ADMIN" } }])),
+  getRoleByName: mock(() => Promise.resolve({ _id: "admin_role_id", name: "ADMIN" })),
+  getPermissionsByRole: mock(() => Promise.resolve(new Proxy({}, { get: () => true })))
+});
+mock.module("../modules/common/rbac/rbac.service", mockRbacServiceModule);
+mock.module("@/modules/common/rbac/rbac.service", mockRbacServiceModule);
+
 mock.module("../modules/common/rbac/rbac.model", () => ({
   Permission: {
     create: mock((data) => Promise.resolve({ _id: VALID_ID, ...data })),
@@ -100,8 +119,21 @@ mock.module("../modules/common/user/user.model", () => ({
 
 // ⭐ Delayed imports to ensure env vars are set
 import request from "supertest";
-const { app } = await import("../app");
+import express from "express";
+const { rbacRoutes } = await import("../modules/common/rbac/rbac.routes");
 const rbacService = await import("../modules/common/rbac/rbac.service");
+
+const app = express();
+app.use(express.json());
+app.use((req: any, res: any, next: any) => {
+    req.user = {
+        _id: VALID_ID,
+        roleId: { _id: "admin_role_id", name: "ADMIN" },
+        roles: ["ADMIN"]
+    };
+    next();
+});
+app.use("/api/v1/rbac", rbacRoutes);
 
 describe("RBAC Service Logic", () => {
   test("should create a permission via service", async () => {

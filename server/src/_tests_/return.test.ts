@@ -6,7 +6,7 @@ process.env.REFRESH_TOKEN_SECRET = "test_refresh_secret_long_enough";
 // NOTE: run this file standalone (`bun run test:return`), NOT inside `test:all`.
 // bun's mock.module is process-global; this suite stubs sellerSettlement.service /
 // razorpay / product.dao, which would bleed into sellerSettlement.test.ts if co-run.
-import { beforeEach, describe, expect, mock, test } from "bun:test";
+import { afterAll, beforeEach, describe, expect, mock, test } from "bun:test";
 import { Types } from "mongoose";
 import { ApiError } from "../utils/ApiError";
 
@@ -107,11 +107,28 @@ mock.module("../modules/common/fulfillment/fulfillmentEvent.service", () => ({ r
 mock.module("../modules/common/delivery/riderEligibility", () => ({
     assertRiderCanAcceptOffers: () => undefined, assertRiderCanAcceptCod: () => undefined,
 }));
-mock.module("../modules/common/seller/sellerSettlement.service", () => ({
-    sellerSettlementService: { reverseSubOrderSettlement: reverseSettlement },
-}));
-mock.module("../modules/clothing/products/product.dao", () => ({ restoreStock }));
-mock.module("../utils/razorpay.util", () => ({ razorpay: { payments: { refund: razorpayRefund } } }));
+(globalThis as any).__test_restoreStock = restoreStock;
+(globalThis as any).__test_reverseSettlement = reverseSettlement;
+(globalThis as any).__test_razorpayRefund = razorpayRefund;
+
+const mockProductDao = () => ({
+    restoreStock: (...args: any[]) => (globalThis as any).__test_restoreStock(...args),
+});
+mock.module("../modules/clothing/products/product.dao", mockProductDao);
+mock.module("@/modules/clothing/products/product.dao", mockProductDao);
+
+const mockRazorpay = () => ({
+    razorpay: {
+        payments: {
+            refund: (...args: any[]) => (globalThis as any).__test_razorpayRefund(...args),
+        },
+    },
+});
+mock.module("../utils/razorpay.util", mockRazorpay);
+mock.module("@/utils/razorpay.util", mockRazorpay);
+
+const { sellerSettlementService } = await import("../modules/common/seller/sellerSettlement.service");
+const originalReverseSettlement = sellerSettlementService.reverseSubOrderSettlement;
 
 const { SubOrderService } = await import("../modules/common/order/subOrder.service");
 
@@ -140,11 +157,19 @@ const SELLER = SELLER_ID.toString();
 const ADMIN = new Types.ObjectId().toString();
 
 describe("SubOrderService — return lifecycle (M2)", () => {
+    afterAll(() => {
+        sellerSettlementService.reverseSubOrderSettlement = originalReverseSettlement;
+    });
+
     beforeEach(() => {
         refundShouldThrow = false;
         parentOrder = { _id: ORDER_ID, orderId: "QB-RET", userId: CUSTOMER_ID, status: "DELIVERED", payableAmount: 1000, paymentInfo: { razorpayPaymentId: "pay_1" } };
         subOrder = makeSubOrder();
         returnRequest = makeReturnRequest();
+        (globalThis as any).__test_restoreStock = restoreStock;
+        (globalThis as any).__test_reverseSettlement = reverseSettlement;
+        (globalThis as any).__test_razorpayRefund = razorpayRefund;
+        sellerSettlementService.reverseSubOrderSettlement = reverseSettlement;
         restoreStock.mockClear();
         reverseSettlement.mockClear();
         razorpayRefund.mockClear();

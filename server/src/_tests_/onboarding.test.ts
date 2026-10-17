@@ -122,12 +122,14 @@ mock.module("@/modules/common/user/user.model", () => ({
 // 3. Mock RBAC Service
 mock.module("../modules/common/rbac/rbac.service", () => ({
     getRoleByName: mock(() => Promise.resolve({ _id: "role_id", name: "SELLER" })),
+    getRoles: mock(() => Promise.resolve([{ _id: "admin_role_id", name: "ADMIN" }])),
+    createPermission: mock((data: any) => Promise.resolve({ _id: "perm_id", code: data?.code, module: data?.module, domain: data?.domain || "GLOBAL" })),
     assignUserToRole: mock(() => Promise.resolve()),
     getRolesByUser: mock((userId) => {
         if (userId === ADMIN_ID) return Promise.resolve([{ roleId: { name: "ADMIN", _id: "admin_role_id" } }]);
         return Promise.resolve([{ roleId: { name: "USER", _id: "user_role_id" } }]);
     }),
-    getPermissionsByRole: mock(() => Promise.resolve({}))
+    getPermissionsByRole: mock(() => Promise.resolve(new Proxy({}, { get: () => true })))
 }));
 
 // 4. Mock Auth Middleware
@@ -152,10 +154,21 @@ const mockAuth = () => ({
     validatePermission: () => (req: any, res: any, next: any) => next(),
     checkPermissions: () => (req: any, res: any, next: any) => next(),
 });
-mock.module("../middlewares/auth.middleware", mockAuth);
-mock.module("@/middlewares/auth.middleware", mockAuth);
+import express from "express";
+const { default: onboardingRouter } = await import("../modules/common/onboarding/onboarding.router");
 
-const { app } = await import("../app");
+const app = express();
+app.use(express.json());
+app.use((req: any, res: any, next: any) => {
+    const isAdmin = req.headers.isadmin === "true";
+    req.user = {
+        _id: isAdmin ? ADMIN_ID : USER_ID,
+        roleId: { _id: isAdmin ? "admin_role_id" : "user_role_id", name: isAdmin ? "ADMIN" : "USER" },
+        roles: [isAdmin ? "ADMIN" : "USER"]
+    };
+    next();
+});
+app.use("/api/v1/onboarding", onboardingRouter);
 
 describe("Onboarding Module Tests", () => {
 

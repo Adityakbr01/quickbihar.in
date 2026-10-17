@@ -1,26 +1,28 @@
-import { describe, test, expect, mock, beforeEach } from "bun:test";
+import { describe, test, expect, mock, beforeEach, afterAll } from "bun:test";
 
 let razorpayRefundMock = mock(() => Promise.resolve({ id: "rfnd_cancellation_test_123" }));
 let restoreStockMock = mock(() => Promise.resolve({}));
 let reverseSettlementMock = mock(() => Promise.resolve({}));
 
-mock.module("@/utils/razorpay.util", () => ({
+(globalThis as any).__test_razorpayRefund = razorpayRefundMock;
+(globalThis as any).__test_restoreStock = restoreStockMock;
+(globalThis as any).__test_reverseSettlement = reverseSettlementMock;
+
+const mockRazorpay = () => ({
     razorpay: {
         payments: {
-            refund: razorpayRefundMock,
+            refund: (...args: any[]) => (globalThis as any).__test_razorpayRefund(...args),
         },
     },
-}));
+});
+mock.module("@/utils/razorpay.util", mockRazorpay);
+mock.module("../utils/razorpay.util", mockRazorpay);
 
-mock.module("@/modules/clothing/products/product.dao", () => ({
-    restoreStock: restoreStockMock,
-}));
-
-mock.module("@/modules/common/seller/sellerSettlement.service", () => ({
-    sellerSettlementService: {
-        reverseSubOrderSettlement: reverseSettlementMock,
-    },
-}));
+const mockProductDao = () => ({
+    restoreStock: (...args: any[]) => (globalThis as any).__test_restoreStock(...args),
+});
+mock.module("@/modules/clothing/products/product.dao", mockProductDao);
+mock.module("../modules/clothing/products/product.dao", mockProductDao);
 
 // Set dummy envs
 process.env.RAZORPAY_KEY_ID = "dummy_key";
@@ -28,9 +30,26 @@ process.env.RAZORPAY_KEY_SECRET = "dummy_secret";
 
 import { SubOrderService } from "@/modules/common/order/subOrder.service";
 import { SubOrderStatus } from "@/modules/common/order/subOrder.model";
+import { sellerSettlementService } from "@/modules/common/seller/sellerSettlement.service";
+
+const originalParentOrderOf = (SubOrderService as any).parentOrderOf;
+const originalSyncParentOrderStatus = (SubOrderService as any).syncParentOrderStatus;
+const originalPublishUpdate = (SubOrderService as any).publishUpdate;
+const originalReverseSettlement = sellerSettlementService.reverseSubOrderSettlement;
 
 describe("SubOrderService — Cancellation Auto-Refund", () => {
+    afterAll(() => {
+        (SubOrderService as any).parentOrderOf = originalParentOrderOf;
+        (SubOrderService as any).syncParentOrderStatus = originalSyncParentOrderStatus;
+        (SubOrderService as any).publishUpdate = originalPublishUpdate;
+        sellerSettlementService.reverseSubOrderSettlement = originalReverseSettlement;
+    });
+
     beforeEach(() => {
+        (globalThis as any).__test_razorpayRefund = razorpayRefundMock;
+        (globalThis as any).__test_restoreStock = restoreStockMock;
+        (globalThis as any).__test_reverseSettlement = reverseSettlementMock;
+        sellerSettlementService.reverseSubOrderSettlement = reverseSettlementMock;
         razorpayRefundMock.mockClear();
         restoreStockMock.mockClear();
         reverseSettlementMock.mockClear();
