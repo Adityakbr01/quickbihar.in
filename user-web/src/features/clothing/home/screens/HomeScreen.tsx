@@ -83,9 +83,6 @@ const HomeScreen = ({ rootSlug }: { rootSlug?: string }) => {
             <Suspense fallback={<SectionFallback minHeight={120} />}>
               <MoreDealsHeader {...moreDealsState} />
             </Suspense>
-            <Suspense fallback={<SectionFallback minHeight={160} />}>
-              <HomeDeliveryLocations />
-            </Suspense>
           </div>
         </div>
 
@@ -115,6 +112,10 @@ const HomeScreen = ({ rootSlug }: { rootSlug?: string }) => {
             <MoreDealsGrid {...moreDealsState} />
           </Suspense>
         </div>
+
+        <Suspense fallback={<SectionFallback minHeight={160} />}>
+          <HomeDeliveryLocations />
+        </Suspense>
 
         {isDesktop ? (
           <Suspense fallback={null}>

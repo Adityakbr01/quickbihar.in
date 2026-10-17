@@ -360,6 +360,10 @@ function MainLayout() {
               element={<JeweleryOrderSuccessScreen />}
             />
             <Route
+              path="/jewelery/order-success/:orderId"
+              element={<JeweleryOrderSuccessScreen />}
+            />
+            <Route
               path="/jewelery/wishlist"
               element={<JeweleryWishlistScreen />}
             />

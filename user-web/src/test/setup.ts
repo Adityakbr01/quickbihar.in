@@ -71,3 +71,16 @@ if (typeof window !== 'undefined') {
 
 // React 19 + RTL: silence "not wrapped in act" only via proper act env flag.
 ;(globalThis as Record<string, unknown>).IS_REACT_ACT_ENVIRONMENT = true
+
+vi.mock('@/src/lib/socket', () => ({
+  socketClient: {
+    on: vi.fn(),
+    off: vi.fn(),
+    emit: vi.fn(),
+    connect: vi.fn(),
+    disconnect: vi.fn(),
+  },
+  SocketEvents: {
+    ORDER_STATUS_UPDATE: 'ORDER_STATUS_UPDATE',
+  },
+}))
