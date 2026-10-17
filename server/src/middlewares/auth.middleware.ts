@@ -17,7 +17,7 @@ import {
 export const verifyJWT = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      if ((req as any).user) {
+      if (process.env.NODE_ENV === "test" && (req as any).user) {
         return next();
       }
 

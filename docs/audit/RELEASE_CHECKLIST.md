@@ -34,7 +34,7 @@ Ensure the production `.env` contains all verified production secrets:
 
 ### 2.1 Razorpay Webhook Configuration
 - [ ] Navigate to Razorpay Live Dashboard -> Settings -> Webhooks.
-- [ ] Add Webhook URL: `https://api.quickbihar.in/api/v1/orders/webhook` (or alias `https://api.quickbihar.in/api/v1/webhooks/razorpay`).
+- [ ] Add Webhook URL: `https://quickbihar.in/api/v1/orders/webhook`.
 - [ ] Enter Secret: Match the value configured in `RAZORPAY_WEBHOOK_SECRET`.
 - [ ] Enable Events:
   - `payment.captured`

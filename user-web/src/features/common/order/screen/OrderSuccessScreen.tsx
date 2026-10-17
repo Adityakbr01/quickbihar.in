@@ -71,6 +71,13 @@ const OrderSuccessScreen = () => {
     }
   };
 
+  // COD orders are confirmed immediately but the money is collected on
+  // delivery — never show an online "Payment Successful!" state for them.
+  const isCod =
+    order?.paymentInfo?.razorpayOrderId === "COD" ||
+    order?.paymentMethod === "COD" ||
+    Boolean(order?.subOrders?.some((s: any) => s.packageDetails?.isCod));
+
   const handleShare = async () => {
     if (!order) return;
 
@@ -87,7 +94,7 @@ const OrderSuccessScreen = () => {
         `Item Total: ₹${order.mrpTotal}\n` +
         `Discount: -₹${order.productDiscount + order.discountAmount}\n` +
         `Shipping: ${order.shippingFee === 0 ? "FREE" : "₹" + order.shippingFee}\n\n` +
-        `*Total Paid: ₹${order.payableAmount}*\n\n` +
+        `*${isCod ? "Amount Due on Delivery" : "Total Paid"}: ₹${order.payableAmount}*\n\n` +
         `_Thank you for shopping with Quick Bihar!_`;
 
       const title = `Receipt for Order #${order.orderId}`;
@@ -146,13 +153,15 @@ const OrderSuccessScreen = () => {
             className="mt-5 text-center text-[32px] font-black tracking-[-1px]"
             style={{ color: theme.text }}
           >
-            Payment Successful!
+            {isCod ? "Order Placed Successfully!" : "Payment Successful!"}
           </h2>
           <p
             className="mt-2 mb-8 text-center text-base leading-6"
             style={{ color: theme.secondaryText }}
           >
-            Your order has been placed and is being processed.
+            {isCod
+              ? "Your Cash on Delivery order is confirmed. Pay in cash when it arrives."
+              : "Your order has been placed and is being processed."}
           </p>
         </div>
 
@@ -248,10 +257,17 @@ const OrderSuccessScreen = () => {
           )}
 
           <div
-            className="mt-2.5 flex flex-row justify-between border-t pt-5"
+            className="mt-2.5 flex flex-row items-center justify-between border-t pt-5"
             style={{ borderTopColor: theme.border }}
           >
-            <span className="text-lg font-extrabold" style={{ color: theme.text }}>Total Paid</span>
+            <div>
+              <span className="text-lg font-extrabold" style={{ color: theme.text }}>
+                {isCod ? "Amount Due on Delivery" : "Total Paid"}
+              </span>
+              <p className="mt-0.5 text-xs font-semibold" style={{ color: isCod ? "#f59e0b" : "#10b981" }}>
+                {isCod ? "Payment Method: COD (Pending)" : "Payment Method: Online (Paid)"}
+              </p>
+            </div>
             <span className="text-xl font-black" style={{ color: theme.primary }}>₹{order?.payableAmount}</span>
           </div>
         </div>

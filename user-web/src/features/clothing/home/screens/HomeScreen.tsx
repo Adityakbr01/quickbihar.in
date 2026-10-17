@@ -10,9 +10,7 @@ import { useMoreDealsLogic } from "../sections/useMoreDealsLogic";
 // hero carousel + categories only). Each fallback reserves vertical space to
 // keep CLS at 0 while the chunk loads.
 const TopMallSection = lazy(() => import("../sections/TopMallSection"));
-const TopSellingSection = lazy(
-  () => import("../sections/TopSellingSection"),
-);
+const TopSellingSection = lazy(() => import("../sections/TopSellingSection"));
 const MoreDealsHeader = lazy(() => import("../components/MoreDealsHeader"));
 const MoreDealsFilters = lazy(() =>
   import("../sections/MoreDealsSection").then((m) => ({
@@ -56,7 +54,8 @@ const HomeScreen = ({ rootSlug }: { rootSlug?: string }) => {
     <main className="flex-1">
       {/* Single H1 per page (audit: missing-h1) — visually hidden, crawlable. */}
       <h1 className="sr-only">
-        QuickBihar — Online Clothes Shopping in Buxar, Bihar with 60–120 min Delivery
+        QuickBihar — Online Clothes Shopping in Buxar, Bihar with 60–120 min
+        Delivery
       </h1>
       <div
         className={cn("flex flex-col", isWide && "items-center")}
@@ -77,30 +76,31 @@ const HomeScreen = ({ rootSlug }: { rootSlug?: string }) => {
             <Suspense fallback={<SectionFallback minHeight={320} />}>
               <TopSellingSection />
             </Suspense>
-            <Suspense fallback={<SectionFallback minHeight={160} />}>
-              <HomeDeliveryLocations />
-            </Suspense>
+
             <div className="mt-3 w-full lg:mt-5">
               <TopHomeCarousel placement="home_middle" />
             </div>
             <Suspense fallback={<SectionFallback minHeight={120} />}>
               <MoreDealsHeader {...moreDealsState} />
             </Suspense>
+            <Suspense fallback={<SectionFallback minHeight={160} />}>
+              <HomeDeliveryLocations />
+            </Suspense>
           </div>
         </div>
 
         {/* Filter tabs (sticky on mobile; on desktop the top
               DesktopNavbar is the persistent chrome) */}
-          <div
-            className={cn(
-              "w-full",
-              // z-30: card overlays (discount badge z-10, rating pill)
-              // paint over the bar at equal z-index since they come
-              // later in the DOM — keep the stuck bar strictly above.
-              !isDesktop && "sticky top-0 z-30",
-              isWide && "mx-auto max-w-[1280px] px-6",
-            )}
-          >
+        <div
+          className={cn(
+            "w-full",
+            // z-30: card overlays (discount badge z-10, rating pill)
+            // paint over the bar at equal z-index since they come
+            // later in the DOM — keep the stuck bar strictly above.
+            !isDesktop && "sticky top-0 z-30",
+            isWide && "mx-auto max-w-[1280px] px-6",
+          )}
+        >
           <Suspense fallback={<SectionFallback minHeight={52} />}>
             <MoreDealsFilters {...moreDealsState} />
           </Suspense>

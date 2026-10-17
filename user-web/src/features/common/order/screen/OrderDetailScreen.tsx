@@ -457,7 +457,10 @@ export default function OrderDetailScreen() {
     "clothing",
   );
   const assignedRider = currentSubOrder?.delivery?.riderId || order?.delivery?.partnerUserId;
-  const isCod = order?.paymentInfo?.razorpayOrderId === "COD" || currentSubOrder?.packageDetails?.isCod;
+  const isCod =
+    order?.paymentInfo?.razorpayOrderId === "COD" ||
+    order?.paymentMethod === "COD" ||
+    Boolean(currentSubOrder?.packageDetails?.isCod);
   const totalItemCount = itemsToDisplay.reduce((sum: number, it: any) => sum + (it.quantity || 1), 0);
 
   const isActivelyDelivering = [
@@ -482,7 +485,9 @@ export default function OrderDetailScreen() {
   const getStatusSubtitle = () => {
     switch (currentStatus) {
       case "CONFIRMED":
-        return `Order confirmed on ${dayjs(order.createdAt).format("ddd, DD MMM 'YY")}. Store is preparing your package.`;
+        return isCod
+          ? `Order placed on ${dayjs(order.createdAt).format("ddd, DD MMM 'YY")}. Pay ₹${order.payableAmount || order.totalAmount} on delivery.`
+          : `Order confirmed on ${dayjs(order.createdAt).format("ddd, DD MMM 'YY")}. Store is preparing your package.`;
       case "PROCESSING":
       case "PACKED":
         return "Your items have been packed by the store and are ready for pickup.";
@@ -557,7 +562,7 @@ export default function OrderDetailScreen() {
         </div>
       </div>
 
-      <div className="overflow-auto p-4" style={{ paddingBottom: 60 }}>
+      <div className="overflow-auto p-4 pb-28 md:pb-14">
         {/* Order Meta & ID Row */}
         <div className="mb-3 flex flex-row items-center justify-between px-0.5">
           <button
@@ -974,7 +979,7 @@ export default function OrderDetailScreen() {
                       </div>
                       <p className="mt-[3px] text-[13px] leading-[18px]" style={{ color: theme.secondaryText }}>
                         {idx === 0
-                          ? `Order payment verified and order created.`
+                          ? (isCod ? "Order confirmed. Cash payment to be collected upon delivery." : "Order payment verified and order created.")
                           : idx === 1
                           ? `Seller confirmed & package ready for handover.`
                           : idx === 2
@@ -1246,13 +1251,21 @@ export default function OrderDetailScreen() {
                     <CreditCard size={20} color={theme.text} />
                   )}
                   <span className="text-sm font-semibold" style={{ color: theme.text }}>
-                    Paid By: {isCod ? "Cash on Delivery" : "Online (Razorpay)"}
+                    {isCod ? "Payment Method: Cash on Delivery" : "Paid By: Online (Razorpay)"}
                   </span>
                 </div>
 
-                <div className="rounded-lg bg-[#10b98115] px-2 py-[3px]">
-                  <span className="text-[11px] font-bold" style={{ color: "#10b981" }}>
-                    {isCod ? "COD" : "PAID"}
+                <div
+                  className="rounded-lg px-2.5 py-[3px]"
+                  style={{
+                    backgroundColor: isCod ? "#f59e0b18" : "#10b98118",
+                  }}
+                >
+                  <span
+                    className="text-[11px] font-bold"
+                    style={{ color: isCod ? "#d97706" : "#10b981" }}
+                  >
+                    {isCod ? "PAY ON DELIVERY (PENDING)" : "PAID"}
                   </span>
                 </div>
               </div>

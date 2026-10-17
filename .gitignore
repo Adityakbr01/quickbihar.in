@@ -40,12 +40,14 @@ tmp/
 
 
 # Google and firebase
-# 
-  mobile/google-services.json
-  server/quickbihar-4d3ab-firebase-adminsdk-fbsvc-7612bc0080.json
+mobile/google-services.json
+server/quickbihar-4d3ab-firebase-adminsdk-fbsvc-7612bc0080.json
 
 # SSL & Certificates
 *.pem
 *.key
 *.crt
 vps-nginx/certs/
+
+# Backups may contain API tokens (e.g. MCP config backups)
+*.bak

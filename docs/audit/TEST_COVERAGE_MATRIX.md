@@ -22,17 +22,31 @@
 | **Admin** | Role & Permission Assignment, RBAC Enforcement | `server/src/_tests_/rbac.test.ts` | 5 | **PASS (100%)** |
 | **Admin** | Partner Earnings, Commission Splits, Payouts | `server/src/_tests_/adminPartnerInsights.test.ts` | 20 | **PASS (100%)** |
 | **System** | End-to-End Fulfillment, Order State Machine, Payment Webhook | Integration & Order State Tests | 17 | **PASS (100%)** |
-| **TOTAL** | **Entire Hyperlocal Marketplace Core** | **16 Test Suites** | **83** | **PASS (100%)** |
+| **TOTAL BACKEND** | **Entire Hyperlocal Marketplace Core** | **16 Test Suites** | **83** | **PASS (100%)** |
 
 ---
 
-## 2. Frontend Application Validation Matrix
+## 2. Frontend Automated Unit & Integration Test Suites
 
-| Application | Technology | Typecheck Command | Build Command | Execution Result |
+| Frontend Application | Test Suite Path | Functional Domain Verified | Test Count | Pass Status |
 | :--- | :--- | :--- | :--- | :--- |
-| **`user-web`** | React 19, Vite, TailwindCSS | Native in Vite | `bun run build` | **PASS (96 Static SSG Pages Prerendered, 0 Errors)** |
-| **`dash-web`** | React 19, Vite, TypeScript | `tsc -b` | `bun run build` | **PASS (0 Errors, 3,963 Modules Transformed)** |
-| **`server`** | Bun, Express, TypeScript | Native in Bun | `bun run build` | **PASS (0 Errors, 176 Modules Minified to dist/server.js)** |
+| **`user-web`** | `src/__tests__/cartStore.test.ts` | Cart calculations, multi-storefront module routing, totals, coupon isolation | 7 | **PASS (100%)** |
+| **`user-web`** | `src/__tests__/seoSite.test.ts` | Brand constants, canonical URLs, query/hash normalization, apex origin | 6 | **PASS (100%)** |
+| **`user-web`** | `src/__tests__/validation.test.ts` | Email formats, password complexity scoring, length validation | 9 | **PASS (100%)** |
+| **`dash-web`** | `src/__tests__/rbac.test.ts` | Multi-role parsing, role normalization, admin bypass, permission matching | 11 | **PASS (100%)** |
+| **`dash-web`** | `src/__tests__/authSchema.test.ts` | Sign-in Zod schema, partner phone enforcement, Google OAuth token rules | 9 | **PASS (100%)** |
+| **TOTAL FRONTEND** | **Web Apps (user-web & dash-web)** | **5 Test Suites** | **42** | **PASS (100%)** |
+| **TOTAL PLATFORM** | **Full System (Backend + Frontends)** | **21 Test Suites** | **125** | **PASS (100%)** |
+
+---
+
+## 3. Frontend Application Build & Compilation Matrix
+
+| Application | Technology | Typecheck Command | Test Command | Build Command | Execution Result |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **`user-web`** | React 19, Vite, TailwindCSS | `bun run typecheck` | `bun run test` | `bun run build` | **PASS (96 Static SSG Pages, 22 Tests Pass)** |
+| **`dash-web`** | React 19, Vite, TypeScript | `bun run typecheck` | `bun run test` | `bun run build` | **PASS (3,963 Modules, 20 Tests Pass)** |
+| **`server`** | Bun, Express, TypeScript | Native in Bun | `bun test` | `bun run build` | **PASS (176 Modules Minified, 83 Tests Pass)** |
 
 ---
 

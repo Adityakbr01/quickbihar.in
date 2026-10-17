@@ -135,11 +135,11 @@ mock.module("../modules/common/rbac/rbac.service", () => ({
 // 4. Mock Auth Middleware
 const mockAuth = () => ({
     verifyJWT: (req: any, res: any, next: any) => {
-        req.user = { _id: req.headers.isadmin === "true" ? ADMIN_ID : USER_ID };
+        if (!req.user) req.user = { _id: req.headers.isadmin === "true" ? ADMIN_ID : USER_ID };
         next();
     },
     verifyOptionalJWT: (req: any, res: any, next: any) => {
-        req.user = { _id: req.headers.isadmin === "true" ? ADMIN_ID : USER_ID };
+        if (!req.user) req.user = { _id: req.headers.isadmin === "true" ? ADMIN_ID : USER_ID };
         next();
     },
     isAdmin: (req: any, res: any, next: any) => {
@@ -154,6 +154,9 @@ const mockAuth = () => ({
     validatePermission: () => (req: any, res: any, next: any) => next(),
     checkPermissions: () => (req: any, res: any, next: any) => next(),
 });
+mock.module("../middlewares/auth.middleware", mockAuth);
+mock.module("@/middlewares/auth.middleware", mockAuth);
+
 import express from "express";
 const { default: onboardingRouter } = await import("../modules/common/onboarding/onboarding.router");
 

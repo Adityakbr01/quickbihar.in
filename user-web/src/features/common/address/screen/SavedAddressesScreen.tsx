@@ -149,7 +149,7 @@ const SavedAddressesScreen = () => {
       </div>
 
       <div className="flex w-full max-w-[800px] flex-1 flex-col">
-        <div className="overflow-auto px-4 pt-2 pb-10">
+        <div className="w-full overflow-auto px-4 pt-2 pb-32 md:pb-12">
           {isLoading ? (
             renderSkeletons()
           ) : addresses && addresses.length > 0 ? (
@@ -203,10 +203,11 @@ const SavedAddressesScreen = () => {
           type="button"
           onClick={handleAddAddress}
           aria-label="Add new address"
-          className="absolute right-[30px] bottom-[30px] flex h-16 w-16 cursor-pointer items-center justify-center rounded-full shadow-xl"
+          title="Add new address"
+          className="fixed right-6 bottom-[calc(60px+env(safe-area-inset-bottom)+1.25rem)] md:bottom-8 z-30 flex h-14 w-14 md:h-16 md:w-16 cursor-pointer items-center justify-center rounded-full shadow-2xl transition-transform active:scale-95 hover:brightness-110"
           style={{ backgroundColor: theme.primary }}
         >
-          <AppIcon icon={CirclePlus} size={32} color="#fff" />
+          <AppIcon icon={CirclePlus} size={30} color="#fff" />
         </button>
       )}
 

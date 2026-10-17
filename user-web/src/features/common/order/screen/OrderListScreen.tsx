@@ -79,6 +79,11 @@ const OrderListScreen = () => {
     const isJeweleryOrder =
       orderHasModule(item, "jewelery") && !orderHasModule(item, "clothing");
 
+    const isItemCod =
+      item.paymentInfo?.razorpayOrderId === "COD" ||
+      item.paymentMethod === "COD" ||
+      Boolean(item.subOrders?.some((s: any) => s.packageDetails?.isCod));
+
     return (
       <button
         key={item._id}
@@ -117,16 +122,23 @@ const OrderListScreen = () => {
               {dayjs(item.createdAt).format("DD MMM, YYYY")}
             </p>
           </div>
-          <div
-            className="rounded-lg px-2.5 py-[5px]"
-            style={{ backgroundColor: getStatusColor(item.status) + "15" }}
-          >
-            <span
-              className="text-[10px] font-extrabold tracking-[0.5px] uppercase"
-              style={{ color: getStatusColor(item.status) }}
+          <div className="flex flex-col items-end gap-1">
+            <div
+              className="rounded-lg px-2.5 py-[5px]"
+              style={{ backgroundColor: getStatusColor(item.status) + "15" }}
             >
-              {item.status.replace("_", " ")}
-            </span>
+              <span
+                className="text-[10px] font-extrabold tracking-[0.5px] uppercase"
+                style={{ color: getStatusColor(item.status) }}
+              >
+                {item.status.replace("_", " ")}
+              </span>
+            </div>
+            {isItemCod && item.status !== "DELIVERED" && item.status !== "CANCELLED" && (
+              <span className="rounded-md border border-amber-500/20 bg-amber-500/10 px-2 py-[2px] text-[10px] font-extrabold tracking-[0.4px] text-amber-600 uppercase">
+                COD (Pay on Delivery)
+              </span>
+            )}
           </div>
         </div>
 
@@ -239,7 +251,7 @@ const OrderListScreen = () => {
   );
 
   const renderSkeletons = () => (
-    <div className="overflow-auto px-4 pt-2 pb-8">
+    <div className="overflow-auto px-4 pt-2 pb-32 md:pb-12">
       {[0, 1, 2, 3].map((i) => (
         <OrderCardSkeleton key={i} />
       ))}
@@ -294,7 +306,7 @@ const OrderListScreen = () => {
         ) : orders.length === 0 ? (
           renderEmpty()
         ) : (
-          <div className="overflow-auto px-4 pt-2 pb-8">
+          <div className="overflow-auto px-4 pt-2 pb-32 md:pb-12">
             {orders.map((item) => renderOrderItem(item))}
           </div>
         )}

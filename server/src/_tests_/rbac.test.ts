@@ -30,11 +30,11 @@ mock.module("../config/redis.config", () => ({
 
 const mockAuthMiddleware = () => ({
   verifyJWT: (req: any, res: any, next: any) => {
-    req.user = { _id: "645a2c2b8f8f2b1a2c3d4e5f", roleId: { _id: "admin_role_id", name: "ADMIN" } };
+    if (!req.user) req.user = { _id: "645a2c2b8f8f2b1a2c3d4e5f", roleId: { _id: "admin_role_id", name: "ADMIN" } };
     next();
   },
   verifyOptionalJWT: (req: any, res: any, next: any) => {
-    req.user = { _id: "645a2c2b8f8f2b1a2c3d4e5f", roleId: { _id: "admin_role_id", name: "ADMIN" } };
+    if (!req.user) req.user = { _id: "645a2c2b8f8f2b1a2c3d4e5f", roleId: { _id: "admin_role_id", name: "ADMIN" } };
     next();
   },
   isAdmin: (req: any, res: any, next: any) => next(),

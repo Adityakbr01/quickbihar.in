@@ -47,9 +47,9 @@ export default function JeweleryCheckoutScreen() {
   const bottomPad = 34;
   const width = useWindowWidth();
   const isDesktop = width >= BREAKPOINTS.desktopMin;
-  // Viewport-fixed footer CTA: clears the 60px tab bar + 12px breathing
-  // room on mobile; small offset on desktop where there is no tab bar.
-  const stickyBottom = isDesktop ? 12 : 60 + 12;
+  const stickyBottom = isDesktop
+    ? 0
+    : "calc(60px + env(safe-area-inset-bottom, 0px))";
 
   const {
     items: allItems,

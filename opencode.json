@@ -5,7 +5,7 @@
       "type": "remote",
       "url": "https://app.openseo.so/mcp",
       "headers": {
-        "Authorization": "Bearer oseo_sJsfAUSImMzljBQYjFoVlORCIYaJHfuFXjYBHPgAogaVAHhTwYifpqKbBoHTmzoz"
+        "Authorization": "Bearer {env:OPENSEO_MCP_TOKEN}"
       },
       "oauth": false
     },

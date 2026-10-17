@@ -17,8 +17,22 @@ const pass = (req: any, _res: any, next: any) => {
 };
 
 const mockAuth = () => ({
-  verifyJWT: pass,
-  verifyOptionalJWT: pass,
+  verifyJWT: (req: any, _res: any, next: any) => {
+    if (!req.user) req.user = {
+      _id: "645a2c2b8f8f2b1a2c3d4e5f",
+      roleId: { name: "ADMIN", _id: "ADMIN" },
+      roles: ["ADMIN", "DELIVERY"],
+    };
+    next();
+  },
+  verifyOptionalJWT: (req: any, _res: any, next: any) => {
+    if (!req.user) req.user = {
+      _id: "645a2c2b8f8f2b1a2c3d4e5f",
+      roleId: { name: "ADMIN", _id: "ADMIN" },
+      roles: ["ADMIN", "DELIVERY"],
+    };
+    next();
+  },
   isAdmin: pass,
   isSuperAdmin: pass,
   isDelivery: pass,

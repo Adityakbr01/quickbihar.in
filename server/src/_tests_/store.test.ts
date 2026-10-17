@@ -31,7 +31,7 @@ const mockAuthMiddleware = () => {
     const pass = (req: any, res: any, next: any) => next();
     return {
         verifyJWT: async (req: any, res: any, next: any) => {
-            req.user = { _id: VALID_USER_ID, roleId: { _id: "role_id", name: "SELLER" } };
+            if (!req.user) req.user = { _id: VALID_USER_ID, roleId: { _id: "role_id", name: "SELLER" } };
             next();
         },
         verifyOptionalJWT: pass,

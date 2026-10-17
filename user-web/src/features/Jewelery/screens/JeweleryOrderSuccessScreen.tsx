@@ -197,7 +197,9 @@ export default function JeweleryOrderSuccessScreen() {
                 className="text-xs"
                 style={{ color: colors.warmGray, fontFamily: "DMSans_400Regular" }}
               >
-                Amount Paid
+                {order.paymentMethod === "COD" || order.paymentInfo?.razorpayOrderId === "COD"
+                  ? "Pay on Delivery"
+                  : "Amount Paid"}
               </span>
               <span
                 className="text-[13px]"
@@ -213,13 +215,15 @@ export default function JeweleryOrderSuccessScreen() {
                 className="text-xs"
                 style={{ color: colors.warmGray, fontFamily: "DMSans_400Regular" }}
               >
-                Payment Method
+                Payment Status
               </span>
               <span
                 className="text-[13px]"
                 style={{ color: colors.ink, fontFamily: "DMSans_500Medium" }}
               >
-                {order.paymentMethod === "COD" ? "Cash on Delivery" : "Online Secured"}
+                {order.paymentMethod === "COD" || order.paymentInfo?.razorpayOrderId === "COD"
+                  ? "Cash on Delivery (Pending Delivery)"
+                  : "Online Secured (Paid)"}
               </span>
             </div>
           </div>

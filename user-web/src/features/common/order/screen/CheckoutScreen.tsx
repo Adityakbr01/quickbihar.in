@@ -34,14 +34,15 @@ import { goBack, goTo, replaceTo } from "@/src/utils/navigation";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
 import { PhoneMissingBanner } from "../components/PhoneMissingBanner";
 import { cn } from "@/src/lib/utils";
-import { BOTTOM_TAB_BAR_HEIGHT } from "@/src/utils/responsive";
-import { useSafeAreaInsets } from "@/src/hooks/useSafeAreaInsets";
+import { useIsDesktop } from "@/src/utils/responsive";
 
 const CheckoutScreen = () => {
   const theme = useTheme() as any;
   const navigate = useNavigate();
-  const insets = useSafeAreaInsets();
-  const footerBottom = BOTTOM_TAB_BAR_HEIGHT + 12 + (insets?.bottom ?? 0);
+  const isDesktop = useIsDesktop();
+  const footerBottom = isDesktop
+    ? 0
+    : "calc(60px + env(safe-area-inset-bottom, 0px))";
 
   const {
     items: allItems,
@@ -386,6 +387,14 @@ const CheckoutScreen = () => {
     }
   };
 
+  // A single guard used by the CTA: in-flight submission, quote state, or an
+  // empty clothing cart (e.g. every line belongs to the jewelery bag).
+  const isPlaceOrderDisabled =
+    isProcessingPayment ||
+    isQuoteLoading ||
+    Boolean(quoteError) ||
+    items.length === 0;
+
   if (!isAuthenticated) {
     return (
       <div
@@ -451,7 +460,7 @@ const CheckoutScreen = () => {
         <div className="w-11" />
       </div>
 
-      <div className="overflow-auto" style={{ paddingBottom: 160 }}>
+      <div className="overflow-auto pb-48 md:pb-32">
         {/* Phone capture banner — sellers call to confirm orders, so
             users without a phone on file are nudged to add one before
             they can complete checkout. */}
@@ -1052,49 +1061,44 @@ const CheckoutScreen = () => {
 
       {/* Footer — viewport-fixed so the tab bar never covers the CTA */}
       <div
-        className="fixed right-0 left-0 z-40 p-6"
+        className="fixed right-0 left-0 z-40 border-t backdrop-blur-md px-4 py-3 md:px-6 md:py-4 transition-all"
         style={{
           bottom: footerBottom,
-          backgroundColor: theme.background + "D0",
+          backgroundColor: theme.background + "EE",
+          borderColor: theme.border,
         }}
       >
-        <button
-          type="button"
-          onClick={handlePlaceOrder}
-          disabled={
-            isProcessingPayment || isQuoteLoading || Boolean(quoteError)
-          }
-          className="h-16 w-full overflow-hidden rounded-[20px]"
-          style={{
-            backgroundColor: theme.primary,
-            opacity:
-              isProcessingPayment || isQuoteLoading || Boolean(quoteError)
-                ? 0.5
-                : 1,
-            cursor:
-              isProcessingPayment || isQuoteLoading || Boolean(quoteError)
-                ? "not-allowed"
-                : "pointer",
-          }}
-        >
-          {isProcessingPayment ? (
-            <div className="flex h-full flex-1 flex-row items-center justify-center px-6">
-              <span className="h-5 w-5 animate-spin rounded-full border-2 border-white/40 border-t-white" />
-            </div>
-          ) : (
-            <div className="flex h-full flex-1 flex-row items-center justify-center px-6">
-              <span className="text-lg font-black text-white">
-                ₹{totalPayable.toLocaleString()}
-              </span>
-              <div className="mx-4 h-6 w-px bg-white/30" />
-              <span className="text-lg font-extrabold tracking-[0.5px] text-white">
-                {paymentMethod === "COD"
-                  ? "Place COD Order"
-                  : "Pay & Place Order"}
-              </span>
-            </div>
-          )}
-        </button>
+        <div className="mx-auto w-full max-w-[768px]">
+          <button
+            type="button"
+            onClick={handlePlaceOrder}
+            disabled={isPlaceOrderDisabled}
+            className="h-14 md:h-16 w-full overflow-hidden rounded-[20px] shadow-lg transition-transform active:scale-[0.99]"
+            style={{
+              backgroundColor: theme.primary,
+              opacity: isPlaceOrderDisabled ? 0.5 : 1,
+              cursor: isPlaceOrderDisabled ? "not-allowed" : "pointer",
+            }}
+          >
+            {isProcessingPayment ? (
+              <div className="flex h-full flex-1 flex-row items-center justify-center px-6">
+                <span className="h-5 w-5 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+              </div>
+            ) : (
+              <div className="flex h-full flex-1 flex-row items-center justify-center px-6">
+                <span className="text-base md:text-lg font-black text-white">
+                  ₹{totalPayable.toLocaleString()}
+                </span>
+                <div className="mx-3 md:mx-4 h-5 md:h-6 w-px bg-white/30" />
+                <span className="text-base md:text-lg font-extrabold tracking-[0.5px] text-white">
+                  {paymentMethod === "COD"
+                    ? "Place COD Order"
+                    : "Pay & Place Order"}
+                </span>
+              </div>
+            )}
+          </button>
+        </div>
       </div>
 
       {/* Custom Alert Dialog */}

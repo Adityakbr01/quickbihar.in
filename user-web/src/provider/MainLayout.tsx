@@ -20,6 +20,7 @@ import { normalizeExpoPathForWeb } from "@/src/utils/navigation";
 import DesktopNavbar from "@/src/features/clothing/home/components/DesktopNavbar";
 import JeweleryDesktopNavbar from "@/src/features/Jewelery/components/JeweleryDesktopNavbar";
 import BottomTabBar from "@/src/components/common/BottomTabBar";
+import ScrollRestoration from "@/src/components/common/ScrollRestoration";
 
 // Core shopping home — eager (first paint).
 import ClothingHomeScreen from "@/src/features/clothing/home/screens/HomeScreen";
@@ -51,6 +52,10 @@ const CategoryDetailScreen = lazy(
 );
 const AccountMain = lazy(
   () => import("@/src/features/common/account/screens/AccountMain"),
+);
+const ProfileInfoScreen = lazy(
+  () =>
+    import("@/src/features/common/profileInfo/screen/ProfileInfoScreen"),
 );
 const AddressFormScreen = lazy(
   () => import("@/src/features/common/address/screen/AddressFormScreen"),
@@ -137,7 +142,6 @@ const JeweleryWishlistScreen = lazy(
 const LocationDetailScreen = lazy(
   () => import("@/src/features/common/locations/screens/LocationDetailScreen"),
 );
-
 /** Minimal route-loading fallback (lazy chunks). */
 function RouteLoader() {
   return (
@@ -221,6 +225,7 @@ function MainLayout() {
       style={{ flex: 1, backgroundColor: theme.background, minHeight: "100vh" }}
     >
       <ThemedChrome />
+      <ScrollRestoration />
       <SeoRouter />
       <SocketListenerMount />
       <>
@@ -281,6 +286,13 @@ function MainLayout() {
               element={<AddressFormScreen />}
             />
             <Route path="/account/orders" element={<OrderListScreen />} />
+            <Route path="/account/orders/:id" element={<OrderDetailScreen />} />
+            <Route
+              path="/account/profile-info"
+              element={<ProfileInfoScreen />}
+            />
+            <Route path="/account/profile" element={<ProfileInfoScreen />} />
+            <Route path="/profile" element={<ProfileInfoScreen />} />
             <Route path="/account/wishlist" element={<WishlistScreen />} />
             <Route
               path="/account/notifications"
@@ -288,8 +300,12 @@ function MainLayout() {
             />
 
             {/* Orders */}
-            <Route path="/checkout" element={<CheckoutScreen />} />
+            <Route path="/orders" element={<OrderListScreen />} />
+            <Route path="/order/:id" element={<OrderDetailScreen />} />
+            <Route path="/orders/:id" element={<OrderDetailScreen />} />
             <Route path="/order-detail" element={<OrderDetailScreen />} />
+            <Route path="/order-detail/:id" element={<OrderDetailScreen />} />
+            <Route path="/checkout" element={<CheckoutScreen />} />
             <Route path="/order-success" element={<OrderSuccessScreen />} />
 
             {/* Other Modules */}

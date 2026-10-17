@@ -41,6 +41,14 @@ export default function JeweleryOrderDetailScreen() {
     [order],
   );
 
+  const isCod = React.useMemo(
+    () =>
+      order?.paymentMethod === "COD" ||
+      order?.paymentInfo?.razorpayOrderId === "COD" ||
+      order?.paymentMethod?.toUpperCase?.() === "CASH ON DELIVERY",
+    [order],
+  );
+
   const fetchOrderDetail = async () => {
     if (!orderId) return;
     try {
@@ -579,7 +587,7 @@ export default function JeweleryOrderDetailScreen() {
                     fontFamily: "DMSans_700Bold",
                   }}
                 >
-                  Total Paid
+                  {isCod ? "Pay on Delivery" : "Total Paid"}
                 </span>
                 <span
                   className="text-[16px]"
