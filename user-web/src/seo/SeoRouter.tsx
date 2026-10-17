@@ -178,7 +178,7 @@ function MallSeo({ slug }: { slug: string }) {
     collectionSchema({ name: `${mall.name} — products`, description: meta.description, canonical: meta.canonical, items }),
     breadcrumbSchema([
       { name: 'Home', path: '/' },
-      { name: 'Malls', path: '/clothing/home' },
+      { name: 'Malls', path: '/malls' },
       { name: String(mall?.name || 'Mall') },
     ]),
   ];

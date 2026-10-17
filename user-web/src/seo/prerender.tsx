@@ -212,7 +212,7 @@ function Shell({
         <h1>{heading}</h1>
         <p>{intro}</p>
         <p>
-          <a href="/clothing/home">Home</a> · <a href="/top-selling">Top Selling</a> ·{' '}
+          <a href="/">Home</a> · <a href="/top-selling">Top Selling</a> ·{' '}
           <a href="/food">Food</a> · <a href="/jewelery">Jewellery</a>
         </p>
         {links.length > 0 ? (
@@ -367,7 +367,11 @@ export async function prerender(data: { url: string }) {
           href: l.slug === 'buxar' ? '/locations/bihar/buxar' : `/locations/bihar/buxar/${l.slug}`,
           label: l.name,
         })),
-        ...products.slice(0, 12).map((p) => ({ href: `/product/${p.slug}`, label: String(p.title) })),
+        ...products.slice(0, 12).map((p) => {
+          const jewel = String(p.vertical || '').toUpperCase() === 'JEWELERY' ||
+            String(p.category || '').toLowerCase().includes('jewel');
+          return { href: jewel ? `/jewelery/product/${p.slug}` : `/product/${p.slug}`, label: String(p.title) };
+        }),
       ];
     } else {
       meta = { ...homeMeta(), robots: 'noindex, nofollow' };
@@ -437,7 +441,7 @@ export async function prerender(data: { url: string }) {
         webPageSchema(`/mall/${slug}`, meta.title, meta.description),
         breadcrumbSchema([
           { name: 'Home', path: '/' },
-          { name: 'Malls', path: '/clothing/home' },
+          { name: 'Malls', path: '/malls' },
           { name: String(mall.name) },
         ]),
       );
@@ -609,7 +613,11 @@ export async function prerender(data: { url: string }) {
     }
     intro = meta.description;
     shellLinks = [
-      ...products.slice(0, 20).map((p) => ({ href: `/product/${p.slug}`, label: String(p.title) })),
+      ...products.slice(0, 20).map((p) => {
+        const jewel = String(p.vertical || '').toUpperCase() === 'JEWELERY' ||
+          String(p.category || '').toLowerCase().includes('jewel');
+        return { href: jewel ? `/jewelery/product/${p.slug}` : `/product/${p.slug}`, label: String(p.title) };
+      }),
       ...malls.map((m) => ({ href: `/mall/${m.slug}`, label: String(m.name) })),
       ...categories.slice(0, 12).map((c) => ({ href: `/category/${c.slug}`, label: String(c.title) })),
       ...ALL_BUXAR_PAGES.slice(0, 12).map((l) => ({

@@ -1,60 +1,4 @@
 {
-  "chain": {
-    "_id": "6aae34012d4e39dc145a5846",
-    "slug": "chain",
-    "title": "Chain",
-    "description": "Gold chains for men and women",
-    "isActive": true
-  },
-  "bridal-set": {
-    "_id": "6aae34012d4e39dc145a5845",
-    "slug": "bridal-set",
-    "title": "Bridal Set",
-    "description": "Complete bridal jewellery sets",
-    "isActive": true
-  },
-  "pendant": {
-    "_id": "6aae34002d4e39dc145a5844",
-    "slug": "pendant",
-    "title": "Pendant",
-    "description": "Standalone pendants",
-    "isActive": true
-  },
-  "bangle": {
-    "_id": "6aae34002d4e39dc145a5843",
-    "slug": "bangle",
-    "title": "Bangle",
-    "description": "Bangles, bracelets and cuffs",
-    "isActive": true
-  },
-  "earrings": {
-    "_id": "6aae34002d4e39dc145a5842",
-    "slug": "earrings",
-    "title": "Earrings",
-    "description": "Jhumkas, studs, hoops and drops",
-    "isActive": true
-  },
-  "ring": {
-    "_id": "6aae34002d4e39dc145a5841",
-    "slug": "ring",
-    "title": "Ring",
-    "description": "Rings for daily wear, gifting and bridal",
-    "isActive": true
-  },
-  "necklace": {
-    "_id": "6aae34002d4e39dc145a5840",
-    "slug": "necklace",
-    "title": "Necklace",
-    "description": "Pendant necklaces, chains and chokers",
-    "isActive": true
-  },
-  "jewellery": {
-    "_id": "6aae34002d4e39dc145a583f",
-    "slug": "jewellery",
-    "title": "Jewellery",
-    "description": "Hallmarked gold, diamond and polki jewellery",
-    "isActive": true
-  },
   "western-dresses-tops": {
     "_id": "6aa0ccbbe23e01d669104371",
     "slug": "western-dresses-tops",
@@ -153,11 +97,67 @@
     "description": "Banarasi, silk, chiffon, and daily-wear sarees from Bihar boutiques.",
     "isActive": true
   },
+  "bangle": {
+    "_id": "6aae34002d4e39dc145a5843",
+    "slug": "bangle",
+    "title": "Bangle",
+    "description": "Bangles, bracelets and cuffs for daily shine — gold bangles with filigree work, diamond tennis bracelets, charm cuffs and pearl strands in certified finishes. Stack them, gift them or wear one signature piece; all bangles are size-graded with free size exchange across Bihar. Shop bangles online with doorstep delivery.",
+    "isActive": true
+  },
+  "bridal-set": {
+    "_id": "6aae34012d4e39dc145a5845",
+    "slug": "bridal-set",
+    "title": "Bridal Set",
+    "description": "Complete bridal jewellery sets for the big day — choker and raani-haar combinations, matching jhumkas, maang tikka and bangles in kundan, polki, gold and diamond looks. Curated heirloom-style sets from trusted Bihar jewellers with certification and secure insured delivery. Shop bridal sets online in Bihar with easy exchanges.",
+    "isActive": true
+  },
+  "chain": {
+    "_id": "6aae34012d4e39dc145a5846",
+    "slug": "chain",
+    "title": "Chain",
+    "description": "Gold chains for men and women — from sturdy daily-wear curb and paperclip chains to elegant pendant chains and mangalsutra-style designs in BIS-hallmarked gold. Every chain is weight-checked, link-tested and shipped with certification across Bihar. Layer them, gift them or wear one every day; find your perfect length and thickness with doorstep delivery in Buxar within 60 to 120 minutes.",
+    "isActive": true
+  },
+  "earrings": {
+    "_id": "6aae34002d4e39dc145a5842",
+    "slug": "earrings",
+    "title": "Earrings",
+    "description": "Earrings for every occasion — temple jhumkas, diamond studs, gold hoops, chandbalis and festive drops from Bihar jewellers. Lightweight, hypoallergenic and secured with push-back or screw closures that survive long wedding days. BIS-hallmarked gold and certified stones, delivered to Buxar doorsteps fast.",
+    "isActive": true
+  },
+  "jewellery": {
+    "_id": "6aae34002d4e39dc145a583f",
+    "slug": "jewellery",
+    "title": "Jewellery",
+    "description": "Hallmarked gold, diamond and polki jewellery from trusted Bihar jewellers — rings, earrings, pendants, necklaces, bangles, chains and complete bridal sets with BIS hallmark and stone certification. Secure insured delivery, easy exchanges and transparent live-rate pricing across Bihar. Shop jewellery online with confidence.",
+    "isActive": true
+  },
   "mens-kurtas-ethnic": {
     "_id": "6aa0ccbbe23e01d66910436d",
     "slug": "mens-kurtas-ethnic",
     "title": "Men's Kurtas & Ethnic",
     "description": "Festive silk kurtas, pajama sets, and royal sherwanis for men.",
+    "isActive": true
+  },
+  "necklace": {
+    "_id": "6aae34002d4e39dc145a5840",
+    "slug": "necklace",
+    "title": "Necklace",
+    "description": "Pendant necklaces, chains and chokers — layered gold necklaces, solitaire drops, mangalsutra designs and statement chokers for weddings and daily wear. Certified metals, adjustable lengths and skin-safe finishes from trusted Bihar jewellers. Shop necklaces online with 60 to 120 minute Buxar delivery.",
+    "isActive": true
+  },
+  "pendant": {
+    "_id": "6aae34002d4e39dc145a5844",
+    "slug": "pendant",
+    "title": "Pendant",
+    "description": "Standalone pendants for every neckline — evil-eye charms, solitaire drops, temple coins, letter lockets and gemstone halos in gold, silver and platinum finishes. Each pendant is skin-safe, tarnish-resistant and certified, strung on sturdy chains or sold solo for your own collection. Order pendants online in Bihar with fast Buxar delivery.",
+    "isActive": true
+  },
+  "ring": {
+    "_id": "6aae34002d4e39dc145a5841",
+    "slug": "ring",
+    "title": "Ring",
+    "description": "Rings for daily wear, gifting and bridal — solitaire engagements, halo cocktail rings, gold bands and charm stacks in certified gold, silver and platinum. Every ring is size-graded with free resizing guidance and ships in a premium gift box. Buy rings online in Bihar with secure delivery.",
     "isActive": true
   },
   "mens-wear": {
