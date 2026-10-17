@@ -101,16 +101,27 @@ function objectIdsFrom(values: any[]) {
  * Starts the background matching loop (idempotent). Polls the matching pool every 10 seconds;
  * repeated calls after the loop is running are no-ops. Errors in a tick are logged, not thrown.
  */
+let intervalId: any = null;
+
 export function start() {
   if (isLoopRunning) return;
   isLoopRunning = true;
 
   console.log("🚀 Starting Rider Matching Engine Polling Loop...");
-  setInterval(() => {
+  intervalId = setInterval(() => {
     processMatchingPool().catch((err) => {
       console.error("[MatchingService] Error in matching loop:", err);
     });
   }, 10000); // Check every 10 seconds
+}
+
+export function stop() {
+  if (intervalId) {
+    clearInterval(intervalId);
+    intervalId = null;
+  }
+  isLoopRunning = false;
+  console.log("🛑 Rider Matching Engine Polling Loop stopped.");
 }
 
 /**

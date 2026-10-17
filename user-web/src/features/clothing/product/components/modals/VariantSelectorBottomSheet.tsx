@@ -379,9 +379,10 @@ export const VariantSelectorBottomSheet = ({
                 </div>
 
                 {/* Low Stock Warning */}
-                {selectedSize &&
-                  sizesForColor.find((v: any) => v.size === selectedSize)
-                    ?.stock! <= 5 && (
+                {Boolean(
+                  selectedSize &&
+                    (sizesForColor.find((v: any) => v.size === selectedSize)?.stock ?? 999) <= 5
+                ) && (
                     <div className="mt-2.5 flex flex-row items-center gap-1.5">
                       <Zap size={14} color={theme.warning} />
                       <span className="text-xs font-semibold" style={{ color: theme.warning }}>

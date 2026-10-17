@@ -8,6 +8,14 @@
         "Authorization": "Bearer oseo_sJsfAUSImMzljBQYjFoVlORCIYaJHfuFXjYBHPgAogaVAHhTwYifpqKbBoHTmzoz"
       },
       "oauth": false
+    },
+    "razorpay": {
+      "type": "remote",
+      "url": "https://mcp.razorpay.com/mcp",
+      "headers": {
+        "Authorization": "Basic {env:RAZORPAY_MCP_TOKEN}"
+      },
+      "oauth": false
     }
   }
 }

@@ -159,7 +159,6 @@ export default defineConfig(({ mode }) => {
         prerenderScript: path.resolve(import.meta.dirname ?? '.', 'src/seo/prerender.tsx'),
         renderTarget: '#root',
       }),
-      // @ts-expect-error vite-plugin-compression ships CJS-style types; callable at runtime
       compressionStatic(),
       brotliStatic(),
       eventLoopCleanup(),

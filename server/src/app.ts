@@ -84,6 +84,7 @@ import productRouter from "./modules/clothing/products/product.router";
 import sizeChartRouter from "./modules/clothing/sizeChart/sizeChart.router";
 import couponRouter from "./modules/common/coupon/coupon.router";
 import orderRouter from "./modules/common/order/order.router";
+import { OrderController } from "./modules/common/order/order.controller";
 import labelRouter from "./modules/common/label/label.router";
 import userRouter from "./modules/common/user/user.router";
 import addressRouter from "./modules/common/savedAddress/savedAddresses.router";
@@ -131,6 +132,7 @@ app.use("/api/v1/coupons", couponRouter);
 app.use("/api/v1/addresses", addressRouter);
 // not tested
 app.use("/api/v1/orders", orderRouter);
+app.post("/api/v1/webhooks/razorpay", OrderController.handleWebhook);
 app.use("/api/v1/labels", labelRouter);
 app.use("/api/v1/payment-methods", paymentMethodRouter);
 app.use("/api/v1/cart", cartRouter);

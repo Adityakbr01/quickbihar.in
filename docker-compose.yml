@@ -92,6 +92,16 @@ services:
       retries: 3
       start_period: 10s
 
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: quickbihar-tunnel
+    restart: unless-stopped
+    command: tunnel --no-autoupdate --url http://server:8000
+    depends_on:
+      - server
+    networks:
+      - quickbihar-network
+
 volumes:
   quickbihar-redis-data:
     name: quickbihar-redis-data

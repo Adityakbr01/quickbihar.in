@@ -776,9 +776,10 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
                 );
               })}
             </div>
-            {selectedSize &&
-              sizesForColor.find((v) => v.size === selectedSize)?.stock! <=
-                5 && (
+            {Boolean(
+              selectedSize &&
+                (sizesForColor.find((v) => v.size === selectedSize)?.stock ?? 999) <= 5
+            ) && (
                 <div className="mt-3 flex flex-row items-center gap-1.5">
                   <Zap size={14} color={theme.warning} />
                   <span

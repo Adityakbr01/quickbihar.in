@@ -484,3 +484,11 @@ export const startNotificationWorker = () => {
   }
   return notificationWorkerInstance;
 };
+
+export const stopNotificationWorker = async () => {
+  if (notificationWorkerInstance) {
+    await notificationWorkerInstance.close();
+    notificationWorkerInstance = null;
+    console.log("🛑 BullMQ Notification Worker closed gracefully.");
+  }
+};

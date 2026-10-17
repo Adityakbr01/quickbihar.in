@@ -77,6 +77,12 @@ graph TD
    - Fixed module mock truncation in `auth.test.ts`, `onboarding.test.ts`, and `adminPartnerInsights.test.ts` so `rbac.service` interface remained fully intact across the entire test process.
 7. **Mobile Scope Clarification:**
    - Standardized `rules.md` and `.agents/rules/rules.md` to establish that the `/mobile` directory is deprecated and completely excluded from deployment and auditing.
+8. **Constant-Time Razorpay Signature Verification:**
+   - Upgraded `verifyRazorpaySignature` and `verifyRazorpayWebhookSignature` in `server/src/utils/razorpay.util.ts` from standard string equality to constant-time `crypto.timingSafeEqual` with buffer length validation.
+9. **Graceful Process Termination:**
+   - Added `stop()` to `matching.service.ts`, `stopNotificationWorker()` to `notification.worker.ts`, and wired `SIGTERM`/`SIGINT` handlers in `server.ts` to cleanly close HTTP, sockets, intervals, and workers upon deployment.
+10. **Frontend Typecheck & Static Prerender Hardening:**
+   - Removed obsolete directive in `user-web/vite.config.ts` and guarded optional chain stock counts in `VariantSelectorBottomSheet.tsx` and `ProductDetailScreen.tsx`. Both web applications pass typecheck with 0 errors.
 
 ---
 
@@ -98,7 +104,31 @@ graph TD
 [X] Partner Dashboard Production Build: 100% PASS
 [X] Webhook and Payment Integrity: VERIFIED
 [X] Legacy Mobile Scoped Out: DOCUMENTED IN RULES.MD
+[X] Local Docker Stack (Redis, Server, Web-Dash, User-Web): 100% UP & HEALTHY
+[X] Cloudflare Tunnel Live Webhook Ingestion: VERIFIED (200 OK on HMAC Valid, 400 on Forged)
+[X] Razorpay Remote MCP Server (https://mcp.razorpay.com/mcp): 100% OPERATIONAL (42 Tools Discovered & Connected)
+[X] Live End-to-End E-Commerce Lifecycle: VERIFIED (Order creation -> Razorpay Order API -> Payment Captured Webhook via Tunnel -> Atomic Inventory Deduction -> SubOrder Split -> Seller Confirmation -> Order Confirmed in DB)
 ```
+
+### Verified Live End-to-End Order Transactions:
+
+#### Transaction Run 1:
+- **Order ID:** `QB-2656393532` (Amount: ₹939 / 93900 paise)
+- **Razorpay Order ID:** `order_Tp1hoarTcEkicF`
+- **Payment ID:** `pay_live_smoke_1792251265747`
+- **Webhook Ingestion:** Routed externally via Cloudflare Tunnel (`https://encounter-sand-industrial-explained.trycloudflare.com/api/v1/orders/webhook`), signed with `testWebhookSecret` (HTTP 200 OK).
+- **SubOrder:** `QB-2656393532-S1` generated for Seller `6a9c2739a9693d1c9e7603da`.
+- **Inventory Check:** Variant SKU `SHIRT-NVY-M` stock atomically decremented from 25 to 24.
+- **Seller Confirmation:** Seller confirmed sub-order via `/api/v1/orders/sub-orders/:id/seller-confirm`, advancing parent order to `CONFIRMED`.
+
+#### Transaction Run 2 (Audited via Razorpay Remote MCP Server):
+- **Order ID:** `QB-1711718606` (Amount: ₹939 / 93900 paise)
+- **Razorpay Order ID:** `order_Tp1xl1YVcvipHW`
+- **Razorpay MCP Verification:** Queried `https://mcp.razorpay.com/mcp` using `fetch_order` tool; confirmed status: `created`, currency: `INR`, amount: `93900` paise.
+- **Webhook Ingestion:** Received via Cloudflare Tunnel with valid HMAC signature (HTTP 200 OK).
+- **Payment ID:** `pay_reaudit_1792252172149`
+- **SubOrder:** `QB-1711718606-S1` generated for Seller `6a9c2739a9693d1c9e7603da`.
+- **Seller Confirmation:** Seller phone-confirmed; Parent Order status verified as `CONFIRMED` in MongoDB Atlas.
 
 ### Final Release Sequence:
 1. **User Action:** Review code changes and commit to Git manually (`git status`, `git add .`, `git commit -m "..."`).

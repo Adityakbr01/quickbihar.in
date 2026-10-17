@@ -5,7 +5,7 @@ import { ENV } from "./config/env.config";
 import { socketService } from "./modules/common/socket/socket.service";
 import { seedRbac, seedAdmin, seedAppConfig, seedRefundPolicies, seedSizeCharts, syncProductVerticals } from "./seed/seed";
 import * as matchingService from "./modules/common/delivery/matching.service";
-import { startNotificationWorker } from "./modules/common/notification/notification.worker";
+import { startNotificationWorker, stopNotificationWorker } from "./modules/common/notification/notification.worker";
 
 const port = ENV.PORT;
 const httpServer = createServer(app);
@@ -36,3 +36,16 @@ connectDB()
   .catch((err) => {
     console.log("MONGO db connection failed !!! ", err);
   });
+
+const shutdown = async (signal: string) => {
+  console.log(`\n🛑 Received ${signal}. Initiating graceful shutdown...`);
+  matchingService.stop();
+  await stopNotificationWorker().catch((err) => console.error("Error closing notification worker:", err));
+  httpServer.close(() => {
+    console.log("HTTP server closed.");
+  });
+  process.exit(0);
+};
+
+process.on("SIGTERM", () => shutdown("SIGTERM"));
+process.on("SIGINT", () => shutdown("SIGINT"));

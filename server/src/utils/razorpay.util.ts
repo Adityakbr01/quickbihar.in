@@ -14,6 +14,14 @@ export const razorpay = new Razorpay({
  * @param signature Razorpay Signature
  * @returns boolean
  */
+const safeCompare = (a: string, b: string): boolean => {
+    if (!a || !b) return false;
+    const bufA = Buffer.from(a);
+    const bufB = Buffer.from(b);
+    if (bufA.length !== bufB.length) return false;
+    return crypto.timingSafeEqual(bufA, bufB);
+};
+
 export const verifyRazorpaySignature = (
     orderId: string,
     paymentId: string,
@@ -26,7 +34,7 @@ export const verifyRazorpaySignature = (
         .update(body.toString())
         .digest("hex");
 
-    return expectedSignature === signature;
+    return safeCompare(expectedSignature, signature);
 };
 
 /**
@@ -47,5 +55,5 @@ export const verifyRazorpayWebhookSignature = (
         .update(body)
         .digest("hex");
 
-    return expectedSignature === signature;
+    return safeCompare(expectedSignature, signature);
 };
