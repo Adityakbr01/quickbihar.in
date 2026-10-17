@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite --host",
     "generate:manifest": "node ./scripts/generate-manifest.mjs",
-    "build": "npm run generate:manifest && vite build",
+    "build": "npm run generate:manifest && vite build && node ./scripts/verify-dist.mjs",
     "typecheck": "tsc -b",
     "lint": "oxlint",
     "preview": "vite preview",

@@ -265,6 +265,19 @@ jobs:
           curl -s -o /dev/null -D - https://quickbihar.in/ | grep -i "x-cache-status\|HTTP/" || true
           echo "--- 2nd request (expect HIT) ---"
           curl -s -o /dev/null -D - https://quickbihar.in/ | grep -i "x-cache-status\|HTTP/" || true
+          echo "--- hard gate: homepage body must be non-empty (0-byte html once blanked prod) ---"
+          HOMEPAGE_BYTES=$(curl -s https://quickbihar.in/ | wc -c)
+          echo "homepage bytes: $HOMEPAGE_BYTES"
+          if [ "$HOMEPAGE_BYTES" -lt 5000 ]; then
+            echo "FATAL: homepage served $HOMEPAGE_BYTES bytes (<5000). Origin dist is corrupt — check .gz artifacts and container files."
+            exit 1
+          fi
+          GZIP_BYTES=$(curl -s -H "Accept-Encoding: gzip" --output /tmp/home.gz -w "%{size_download}" https://quickbihar.in/)
+          echo "homepage gz bytes: $GZIP_BYTES"
+          if [ "$GZIP_BYTES" -lt 2000 ]; then
+            echo "FATAL: gz-served homepage only $GZIP_BYTES bytes (<2000). gzip_static artifacts in the image are empty."
+            exit 1
+          fi
           echo "--- backend API ---"
           curl -s -o /dev/null -w "api status: %{http_code}\n" https://quickbihar.in/api/v1/ || true
           echo "--- sitemap product URLs (should match live catalog) ---"

@@ -14,7 +14,6 @@ import react, { reactCompilerPreset } from '@vitejs/plugin-react'
 import babel from '@rolldown/plugin-babel'
 import { defineConfig, loadEnv, type Plugin } from 'vite'
 import tailwindcss from '@tailwindcss/vite'
-import compression from 'vite-plugin-compression'
 import { vitePrerenderPlugin } from 'vite-prerender-plugin'
 import path from 'node:path'
 import http from 'node:http'
@@ -22,7 +21,7 @@ import https from 'node:https'
 import { MessagePort } from 'node:worker_threads'
 import { readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { brotliCompressSync, constants } from 'node:zlib'
+import { brotliCompressSync, constants, gzipSync } from 'node:zlib'
 
 
 // React 18/19 scheduler keeps a Node MessagePort open → unref it so
@@ -51,13 +50,24 @@ if (MessagePort && MessagePort.prototype) {
  * plugin keeps a module-level mtime cache — the second instance sees every
  * file as already compressed and silently emits zero .br files (verified in
  * dist). Runs after the gzip plugin; skips its .gz outputs via the filter.
+ *
+ * Historical note: vite-plugin-compression was removed for gzip too and both
+ * codecs run as these synchronous closeBundle passes. Root cause (verified
+ * 2026-10-17): Rollup/rolldown call `closeBundle` hooks in REVERSE plugin
+ * order, so `eventLoopCleanup` (its `setTimeout(() => process.exit(0), 100)`)
+ * ran FIRST while the plugin's async Promise.all compression was still
+ * writing — the build then exited mid-write and shipped 0-byte .gz files.
+ * Cloudflare always requests origin with `Accept-Encoding: gzip`, nginx
+ * `gzip_static on` served the empty .gz, and the site rendered blank.
+ * Synchronous codecs make every artifact deterministic before any exit.
  */
-function brotliStatic(threshold = 1024): Plugin {
-  const filter = /\.(js|css|html|svg|json)$/i
+function compressionStatic(threshold = 1024): Plugin {
+  const textFilter = /\.(js|mjs|json|css|html)$/i
   return {
-    name: 'brotli-static',
+    name: 'compression-static',
     apply: 'build',
     closeBundle() {
+      let compressed = 0
       const walk = (dir: string): void => {
         for (const entry of readdirSync(dir)) {
           const full = join(dir, entry)
@@ -65,16 +75,48 @@ function brotliStatic(threshold = 1024): Plugin {
             walk(full)
             continue
           }
-          if (!filter.test(full) || full.endsWith('.br')) continue
+          if (!textFilter.test(full) || full.endsWith('.gz') || full.endsWith('.br')) continue
           const size = statSync(full).size
           if (size < threshold) continue
-          const compressed = brotliCompressSync(readFileSync(full), {
-            params: { [constants.BROTLI_PARAM_QUALITY]: 11 },
-          })
-          writeFileSync(`${full}.br`, compressed)
+          writeFileSync(
+            `${full}.gz`,
+            gzipSync(readFileSync(full), { level: constants.Z_BEST_COMPRESSION }),
+          )
+          compressed += 1
         }
       }
       walk('dist')
+      console.log(`compression-static: wrote ${compressed} .gz files`)
+    },
+  }
+}
+
+function brotliStatic(threshold = 1024): Plugin {
+  const filter = /\.(js|css|html|svg|json)$/i
+  return {
+    name: 'brotli-static',
+    apply: 'build',
+    closeBundle() {
+      let compressed = 0
+      const walk = (dir: string): void => {
+        for (const entry of readdirSync(dir)) {
+          const full = join(dir, entry)
+          if (statSync(full).isDirectory()) {
+            walk(full)
+            continue
+          }
+          if (!filter.test(full) || full.endsWith('.br') || full.endsWith('.gz')) continue
+          const compressedSize = statSync(full).size
+          if (compressedSize < threshold) continue
+          const brotli = brotliCompressSync(readFileSync(full), {
+            params: { [constants.BROTLI_PARAM_QUALITY]: 11 },
+          })
+          writeFileSync(`${full}.br`, brotli)
+          compressed += 1
+        }
+      }
+      walk('dist')
+      console.log(`brotli-static: wrote ${compressed} .br files`)
     },
   }
 }
@@ -118,7 +160,7 @@ export default defineConfig(({ mode }) => {
         renderTarget: '#root',
       }),
       // @ts-expect-error vite-plugin-compression ships CJS-style types; callable at runtime
-      compression({ algorithm: 'gzip', threshold: 1024 }),
+      compressionStatic(),
       brotliStatic(),
       eventLoopCleanup(),
     ],
