@@ -49,7 +49,11 @@ export const BUXAR_DISTRICT_HUB: BuxarLocation = {
     "saree in Buxar",
     "kurti delivery Buxar",
     "men clothing Buxar",
-    "बक्सर में ऑनलाइन कपड़े"
+    "बक्सर में ऑनलाइन कपड़े",
+    "बक्सर ऑनलाइन शॉपिंग",
+    "बक्सर कपड़ा दुकान",
+    "Buxar readymade kapde",
+    "cash on delivery clothes Buxar"
   ],
   faqs: [
     {
@@ -138,10 +142,19 @@ export const BUXAR_LOCATIONS: BuxarLocation[] = [
     subdivision: "Dumraon",
     block: "Dumraon",
     pins: ["802119", "802120", "802133", "802136"],
-    localities: ["Dumraon Town", "Purana Bhojpur", "Dumraon Textiles", "Ariaon", "Dumari"],
-    deliveryTime: "Same-Day Delivery",
+    localities: [
+      "Dumraon Town",
+      "Purana Bhojpur",
+      "Naya Bhojpur",
+      "Station Road Dumraon",
+      "Dumraon Raj Campus",
+      "Dumraon Textiles",
+      "Ariaon",
+      "Dumari"
+    ],
+    deliveryTime: "60–120 Min Express & Same-Day Delivery",
     metaDescription:
-      "Order stylish women's clothing, men's wear & kids fashion online in Dumraon. Fast delivery to Purana Bhojpur, Dumraon Textiles & nearby areas. Cash on Delivery available.",
+      "Buy sarees, kurtis, suits, jeans & kids wear online in Dumraon (802119). 60-120 min fast delivery to Purana Bhojpur, Station Road & nearby areas. Cash on Delivery available.",
     keywords: [
       "online shopping Dumraon",
       "clothes delivery Dumraon",
@@ -149,23 +162,40 @@ export const BUXAR_LOCATIONS: BuxarLocation[] = [
       "saree store Dumraon",
       "fashion Dumraon 802119",
       "Dumraon me kapde online",
-      "Purana Bhojpur clothes delivery"
+      "Purana Bhojpur clothes delivery",
+      "डुमरांव में ऑनलाइन कपड़े",
+      "डुमरांव ऑनलाइन शॉपिंग",
+      "डुमरांव कपड़ा दुकान",
+      "Dumraon readymade kapde",
+      "Dumraon cash on delivery clothes",
+      "clothes shop in Dumraon",
+      "Station Road Dumraon shopping"
     ],
     faqs: [
       {
         question: "Is same-day clothes delivery available in Dumraon?",
         answer:
-          "Yes, orders placed in Dumraon town and Purana Bhojpur are delivered on the same day."
+          "Yes, orders placed in Dumraon town, Purana Bhojpur, and Station Road are delivered in 60 to 120 minutes or same-day."
+      },
+      {
+        question: "Can I order clothes on Cash on Delivery (COD) in Dumraon?",
+        answer:
+          "Yes, Cash on Delivery (COD) as well as UPI and card payments are accepted on all orders across Dumraon PIN 802119."
       },
       {
         question: "Which PIN codes are served in Dumraon subdivision?",
         answer:
-          "We deliver across PIN codes 802119, 802120, 802133, and 802136."
+          "We deliver across PIN codes 802119 (Dumraon Town & Purana Bhojpur), 802120, 802133, and 802136."
       },
       {
         question: "डुमरांव में साड़ी और कुर्ती ऑनलाइन कैसे मंगाएं?",
         answer:
-          "QuickBihar पर Dumraon (802119) का PIN डालें, साड़ी-कुर्ती चुनें और Cash on Delivery पर same-day डिलीवरी पाएं।"
+          "QuickBihar पर Dumraon (802119) का PIN डालें, साड़ी-कुर्ती चुनें और Cash on Delivery पर 60–120 मिनट में घर बैठे डिलीवरी पाएं।"
+      },
+      {
+        question: "डुमरांव में कपड़ा बदलने (Exchange/Return) की सुविधा है?",
+        answer:
+          "हाँ, अगर साइज फिट नहीं होता तो QuickBihar पर आसान रिटर्न और साइज एक्सचेंज की सुविधा उपलब्ध है।"
       }
     ]
   },

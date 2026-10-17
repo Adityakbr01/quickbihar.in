@@ -43,6 +43,16 @@ export class OrderController {
         );
     });
 
+    static handleWebhook = asyncHandler(async (req, res) => {
+        const signature = (req.headers["x-razorpay-signature"] as string) || "";
+        const rawBody = (req as any).rawBody || JSON.stringify(req.body);
+
+        const result = await orderService.handleWebhook(rawBody, signature, req.body);
+        return res.status(200).json(
+            new ApiResponse(200, result, "Webhook processed successfully")
+        );
+    });
+
     static getMyOrders = asyncHandler(async (req, res) => {
         const result = await orderService.getMyOrders((req as any).user._id);
 

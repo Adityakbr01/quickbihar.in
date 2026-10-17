@@ -286,11 +286,12 @@ const CheckoutScreen = () => {
       return;
     }
 
-    // Block order if address phone is not verified
-    if (!selectedAddress.isPhoneVerified) {
+    // Anti-RTO & Anti-Fraud Security Gate:
+    // Require phone verification only for Cash on Delivery (COD) orders
+    if (paymentMethod === "COD" && !selectedAddress.isPhoneVerified) {
       showAlert(
-        "Phone Verification Required",
-        "Please verify the phone number on your delivery address via WhatsApp OTP before placing your order.",
+        "Verification Required for Cash on Delivery",
+        "To prevent unverified deliveries and ensure seller confirmation, Cash on Delivery requires phone verification via WhatsApp OTP.",
         [
           { text: "Cancel", style: "cancel" },
           {
@@ -325,12 +326,9 @@ const CheckoutScreen = () => {
         return;
       }
 
-      // 2. Open Razorpay Checkout
+      // 2. Open Razorpay Checkout (Prepaid orders bypass WhatsApp OTP seamlessly)
       const options = {
         description: "Payment for Order " + order.orderId,
-        // Razorpay `image` (checkout logo) is optional; omitted rather than
-        // shipping a broken placeholder URL. Wire to appConfig.logoUrl when a
-        // hosted brand logo is available.
         currency: razorpayOrder.currency,
         key: RAZORPAY_CONFIG.KEY_ID,
         amount: razorpayOrder.amount,
@@ -338,8 +336,8 @@ const CheckoutScreen = () => {
         order_id: razorpayOrder.id,
         prefill: {
           email: user?.email || "",
-          contact: selectedAddress.phone || "",
-          name: user?.fullName || "",
+          contact: selectedAddress.phone || user?.phone || "",
+          name: selectedAddress.fullName || user?.fullName || "",
         },
         theme: { color: theme.primary },
       };
@@ -535,25 +533,29 @@ const CheckoutScreen = () => {
                         className="text-[11px] font-semibold"
                         style={{ color: "#ea580c" }}
                       >
-                        Phone not verified
+                        {paymentMethod === "COD"
+                          ? "Phone not verified (required for COD)"
+                          : "Phone unverified"}
                       </span>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => setOtpSheetVisible(true)}
-                      className="rounded-md border px-2 py-[2.5px]"
-                      style={{
-                        backgroundColor: theme.primary + "18",
-                        borderColor: theme.primary + "44",
-                      }}
-                    >
-                      <span
-                        className="text-[11px] font-bold"
-                        style={{ color: theme.primary }}
+                    {paymentMethod === "COD" && (
+                      <button
+                        type="button"
+                        onClick={() => setOtpSheetVisible(true)}
+                        className="rounded-md border px-2 py-[2.5px]"
+                        style={{
+                          backgroundColor: theme.primary + "18",
+                          borderColor: theme.primary + "44",
+                        }}
                       >
-                        Verify Now
-                      </span>
-                    </button>
+                        <span
+                          className="text-[11px] font-bold"
+                          style={{ color: theme.primary }}
+                        >
+                          Verify Now
+                        </span>
+                      </button>
+                    )}
                   </div>
                 )}
               </div>

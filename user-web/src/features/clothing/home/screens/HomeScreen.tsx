@@ -25,6 +25,9 @@ const MoreDealsGrid = lazy(() =>
   })),
 );
 const DesktopFooter = lazy(() => import("../components/DesktopFooter"));
+const HomeDeliveryLocations = lazy(
+  () => import("../components/HomeDeliveryLocations"),
+);
 
 function SectionFallback({ minHeight }: { minHeight: number }) {
   return (
@@ -73,6 +76,9 @@ const HomeScreen = ({ rootSlug }: { rootSlug?: string }) => {
             </Suspense>
             <Suspense fallback={<SectionFallback minHeight={320} />}>
               <TopSellingSection />
+            </Suspense>
+            <Suspense fallback={<SectionFallback minHeight={160} />}>
+              <HomeDeliveryLocations />
             </Suspense>
             <div className="mt-3 w-full lg:mt-5">
               <TopHomeCarousel placement="home_middle" />

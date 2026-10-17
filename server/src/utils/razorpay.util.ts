@@ -28,3 +28,24 @@ export const verifyRazorpaySignature = (
 
     return expectedSignature === signature;
 };
+
+/**
+ * Verifies Razorpay Webhook signature
+ * @param body raw body Buffer or string
+ * @param signature Razorpay webhook signature header
+ * @returns boolean
+ */
+export const verifyRazorpayWebhookSignature = (
+    body: string | Buffer,
+    signature: string,
+    secret?: string
+): boolean => {
+    const webhookSecret = secret || ENV.RAZORPAY_WEBHOOK_SECRET;
+    if (!webhookSecret || !signature) return false;
+    const expectedSignature = crypto
+        .createHmac("sha256", webhookSecret)
+        .update(body)
+        .digest("hex");
+
+    return expectedSignature === signature;
+};

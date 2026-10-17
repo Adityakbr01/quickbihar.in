@@ -183,14 +183,6 @@ function buildHeadElements(meta: PageMeta, schemas: Thing[]): Set<HeadElement> {
  * - React createRoot replaces #root on commit, removing both.
  *   Shell/client mismatch is fine (no hydration — full client render).
  */
-function BootLoader() {
-  return (
-    <div id="qb-boot" aria-hidden="true">
-      <div className="qb-ring" />
-    </div>
-  );
-}
-
 /* ── lightweight crawlable shell (no App providers — never hangs) ─ */
 
 function Shell({
@@ -198,36 +190,105 @@ function Shell({
   heading,
   intro,
   links,
+  breadcrumbs,
 }: {
   meta: PageMeta;
   heading: string;
   intro: string;
   links: Array<{ href: string; label: string }>;
+  breadcrumbs?: Array<{ name: string; path?: string }>;
 }) {
   return (
-    <>
-      <BootLoader />
-      <div id="qb-seo-shell" style={{ display: 'none' }} aria-hidden="true">
-      <main>
-        <h1>{heading}</h1>
-        <p>{intro}</p>
-        <p>
-          <a href="/">Home</a> · <a href="/top-selling">Top Selling</a> ·{' '}
-          <a href="/food">Food</a> · <a href="/jewelery">Jewellery</a>
+    <div
+      id="qb-seo-shell"
+      style={{
+        fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+        maxWidth: "1200px",
+        margin: "0 auto",
+        padding: "16px 20px",
+        color: "#1e293b",
+        backgroundColor: "#ffffff",
+      }}
+    >
+      <header style={{ borderBottom: "1px solid #e2e8f0", paddingBottom: "14px", marginBottom: "16px" }}>
+        <nav aria-label="Breadcrumb Navigation" style={{ fontSize: "13px", marginBottom: "8px" }}>
+          <a href="/" style={{ color: "#4f46e5", fontWeight: 600, textDecoration: "none" }}>QuickBihar</a>
+          {breadcrumbs && breadcrumbs.length > 0 ? (
+            breadcrumbs.map((b, i) => (
+              <span key={b.name + i}>
+                {" "}&rsaquo;{" "}
+                {b.path ? (
+                  <a href={b.path} style={{ color: "#4f46e5", textDecoration: "none" }}>{b.name}</a>
+                ) : (
+                  <span style={{ color: "#64748b" }}>{b.name}</span>
+                )}
+              </span>
+            ))
+          ) : (
+            <span>
+              {" "}&rsaquo;{" "}
+              <a href="/locations/bihar/buxar" style={{ color: "#4f46e5", textDecoration: "none" }}>Buxar District</a>
+              {" "}&rsaquo;{" "}
+              <a href="/locations/bihar/buxar/dumraon" style={{ color: "#4f46e5", textDecoration: "none" }}>Dumraon</a>
+            </span>
+          )}
+        </nav>
+        <h1 style={{ fontSize: "22px", fontWeight: 800, margin: "0 0 8px 0", color: "#0f172a", lineHeight: "1.3" }}>
+          {heading}
+        </h1>
+        <p style={{ fontSize: "14px", color: "#475569", margin: "0 0 12px 0", lineHeight: "1.5" }}>
+          {intro}
         </p>
+        <nav aria-label="Main Navigation" style={{ fontSize: "13px", display: "flex", flexWrap: "wrap", gap: "10px" }}>
+          <a href="/" style={{ color: "#4f46e5", fontWeight: 600 }}>Home</a>
+          <a href="/locations/bihar/buxar" style={{ color: "#4f46e5", fontWeight: 600 }}>Buxar District</a>
+          <a href="/locations/bihar/buxar/dumraon" style={{ color: "#4f46e5", fontWeight: 600 }}>Dumraon Hub</a>
+          <a href="/top-selling" style={{ color: "#4f46e5" }}>Top Selling</a>
+          <a href="/malls" style={{ color: "#4f46e5" }}>Shopping Malls</a>
+          <a href="/jewelery" style={{ color: "#4f46e5" }}>Jewellery</a>
+          <a href="/food" style={{ color: "#4f46e5" }}>Food Delivery</a>
+        </nav>
+      </header>
+
+      <main>
         {links.length > 0 ? (
-          <ul>
-            {links.slice(0, 40).map((l) => (
-              <li key={l.href}>
-                <a href={l.href}>{l.label}</a>
-              </li>
-            ))}
-          </ul>
+          <section style={{ marginTop: "16px" }}>
+            <h2 style={{ fontSize: "16px", fontWeight: 700, margin: "0 0 10px 0", color: "#334155" }}>
+              Trending Stores, Categories &amp; Delivery Locations
+            </h2>
+            <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexWrap: "wrap", gap: "8px" }}>
+              {links.slice(0, 40).map((l) => (
+                <li key={l.href}>
+                  <a
+                    href={l.href}
+                    style={{
+                      display: "inline-block",
+                      padding: "6px 12px",
+                      backgroundColor: "#f8fafc",
+                      border: "1px solid #e2e8f0",
+                      borderRadius: "8px",
+                      fontSize: "12px",
+                      color: "#1e293b",
+                      textDecoration: "none",
+                      fontWeight: 500,
+                    }}
+                  >
+                    {l.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </section>
         ) : null}
-        <p style={{ display: 'none' }}>{meta.description}</p>
+        <p style={{ fontSize: "13px", color: "#64748b", marginTop: "16px", lineHeight: "1.4" }}>
+          {meta.description}
+        </p>
       </main>
-      </div>
-    </>
+
+      <footer style={{ marginTop: "28px", borderTop: "1px solid #e2e8f0", paddingTop: "14px", fontSize: "12px", color: "#94a3b8" }}>
+        <p>&copy; {new Date().getFullYear()} QuickBihar. Local Fashion, Clothing &amp; Daily Essentials with Fast Doorstep Delivery across Dumraon, Buxar &amp; Bihar.</p>
+      </footer>
+    </div>
   );
 }
 
@@ -247,6 +308,7 @@ export async function prerender(data: { url: string }) {
   let heading = 'QuickBihar — Online Shopping in Bihar';
   let intro = meta.description;
   let shellLinks: Array<{ href: string; label: string }> = [];
+  let shellBreadcrumbs: Array<{ name: string; path?: string }> = [];
 
   const productMatch = cleanPath.match(/^\/product\/([^/]+)$/);
   const mallMatch = cleanPath.match(/^\/mall\/([^/]+)$/);
@@ -362,6 +424,13 @@ export async function prerender(data: { url: string }) {
         location.faqs.map((f) => ({ question: f.question, answer: f.answer })),
       );
       if (faq) schemas.push(faq);
+      shellBreadcrumbs =
+        location.slug === 'buxar'
+          ? [{ name: 'Buxar District Hub', path: pagePath }]
+          : [
+              { name: 'Buxar District', path: '/locations/bihar/buxar' },
+              { name: `${location.name} Delivery` },
+            ];
       shellLinks = [
         ...ALL_BUXAR_PAGES.filter((l) => l.slug !== location.slug).map((l) => ({
           href: l.slug === 'buxar' ? '/locations/bihar/buxar' : `/locations/bihar/buxar/${l.slug}`,
@@ -643,7 +712,15 @@ export async function prerender(data: { url: string }) {
 
   let html = '';
   try {
-    html = renderToString(<Shell meta={meta} heading={heading} intro={intro} links={shellLinks} />);
+    html = renderToString(
+      <Shell
+        meta={meta}
+        heading={heading}
+        intro={intro}
+        links={shellLinks}
+        breadcrumbs={shellBreadcrumbs}
+      />,
+    );
   } catch (err) {
     console.warn(`[SSG] render failed for ${url}:`, err instanceof Error ? err.message : err);
   }

@@ -234,10 +234,12 @@ export default function JeweleryCheckoutScreen() {
       return;
     }
 
-    if (!selectedAddress.isPhoneVerified) {
+    // Anti-RTO & Anti-Fraud Security Gate:
+    // Require phone verification only for Cash on Delivery (COD) orders
+    if (paymentMethod === "COD" && !selectedAddress.isPhoneVerified) {
       showAlert(
-        "Phone Verification Required",
-        "Please verify the phone number on your delivery address via WhatsApp OTP before placing your order.",
+        "Verification Required for Cash on Delivery",
+        "To prevent unverified deliveries, Cash on Delivery requires phone verification via WhatsApp OTP.",
         [
           { text: "Cancel", style: "cancel" },
           { text: "Verify Now", style: "default", onPress: () => setOtpSheetVisible(true) },
@@ -270,8 +272,8 @@ export default function JeweleryCheckoutScreen() {
         order_id: razorpayOrder.id,
         prefill: {
           email: user?.email || "",
-          contact: selectedAddress.phone || "",
-          name: user?.fullName || "",
+          contact: selectedAddress.phone || user?.phone || "",
+          name: selectedAddress.fullName || user?.fullName || "",
         },
         theme: { color: colors.gold },
       };

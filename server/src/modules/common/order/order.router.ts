@@ -5,6 +5,9 @@ import { legacyParentDeliveryGone } from "@/modules/common/delivery/legacyDelive
 
 const router = Router();
 
+// Public webhook route (verified via HMAC SHA256 signature, not user JWT)
+router.post("/webhook", OrderController.handleWebhook);
+
 router.use(verifyJWT);
 
 // Admin Routes

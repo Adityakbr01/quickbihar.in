@@ -6,10 +6,11 @@ import * as appConfigService from "@/modules/common/appConfig/appConfig.service"
 import { orderDAO } from "./order.dao";
 import { DeliveryStatus, OrderStatus } from "./order.type";
 import { Order } from "./order.model";
-import { razorpay, verifyRazorpaySignature } from "@/utils/razorpay.util";
+import { razorpay, verifyRazorpaySignature, verifyRazorpayWebhookSignature } from "@/utils/razorpay.util";
 import { socketService } from "@/modules/common/socket/socket.service";
 import * as notificationService from "@/modules/common/notification/notification.service";
 import { User } from "@/modules/common/user/user.model";
+import { SavedAddress } from "@/modules/common/savedAddress/savedAddresses.model";
 import { SocketEvents } from "@/constants/socketEvents";
 import { Seller } from "@/modules/common/seller/seller.model";
 import { SellerEarning, SellerNotification } from "@/modules/common/seller/sellerPanel.model";
@@ -230,6 +231,35 @@ export class OrderService {
             longitude: shippingLongitude,
         };
 
+        if (isCod) {
+            // Anti-RTO & Anti-Fraud Security Gate:
+            // COD orders require a verified phone number to prevent fake orders and unverified delivery attempts.
+            const user = await User.findById(userId).select("phone isPhoneVerified").lean();
+            const cleanPhone = (p?: string) => (p || "").replace(/\D/g, "").slice(-10);
+            const shippingPhone = cleanPhone(normalizedShippingAddress.phone);
+
+            const isUserPhoneMatch = Boolean(user?.isPhoneVerified && cleanPhone(user.phone) === shippingPhone);
+            let isAddressPhoneVerified = isUserPhoneMatch;
+
+            if (!isAddressPhoneVerified) {
+                const verifiedAddress = await SavedAddress.findOne({
+                    userId: toObjectId(userId),
+                    phone: normalizedShippingAddress.phone,
+                    isPhoneVerified: true,
+                }).lean();
+                if (verifiedAddress) {
+                    isAddressPhoneVerified = true;
+                }
+            }
+
+            if (!isAddressPhoneVerified) {
+                throw new ApiError(
+                    403,
+                    "Mobile number verification via WhatsApp OTP is required to place Cash on Delivery (COD) orders."
+                );
+            }
+        }
+
         console.log(`[OrderService] Initiating ${isCod ? "COD" : "online"} order for user: ${userId}`);
         const quote = await orderPricingService.buildQuote(userId, data);
         console.log(
@@ -320,6 +350,42 @@ export class OrderService {
         };
     }
 
+    async confirmPaidOrder(razorpayOrderId: string, razorpayPaymentId: string, razorpaySignature?: string) {
+        // Find Order
+        const order = await orderDAO.findByRazorpayOrderId(razorpayOrderId);
+        if (!order) {
+            throw new ApiError(404, "Order not found");
+        }
+
+        if (order.status !== OrderStatus.PENDING_PAYMENT) {
+            console.log(`[OrderService] Order ${order.orderId} is already ${order.status}, skipping duplicate confirmation`);
+            return maskOrderForCustomer(order);
+        }
+
+        // Secure inventory BEFORE confirming. If anything is out of stock we must not
+        // leave a CONFIRMED order with captured payment and no fulfillable items (M1),
+        // so we auto-refund the payment and fail the order instead.
+        try {
+            await this.deductOrderStock(order);
+        } catch (stockError) {
+            await this.refundAndFailOrder(order, razorpayPaymentId);
+            throw stockError;
+        }
+
+        // Stock secured — move order into PENDING_SELLER_CONFIRMATION (Phase 9).
+        const updatedOrder = await orderDAO.updateStatus(
+            order._id.toString(),
+            OrderStatus.PENDING_SELLER_CONFIRMATION,
+            razorpayPaymentId,
+            razorpaySignature
+        );
+
+        // Run post-payment pipeline
+        await this.finalizePendingConfirmation(order);
+
+        return maskOrderForCustomer(updatedOrder);
+    }
+
     async verifyPayment(data: any) {
         const { razorpayOrderId, razorpayPaymentId, razorpaySignature } = data;
 
@@ -329,47 +395,37 @@ export class OrderService {
             throw new ApiError(400, "Invalid payment signature");
         }
 
-        // 2. Find Order
-        const order = await orderDAO.findByRazorpayOrderId(razorpayOrderId);
-        if (!order) {
-            throw new ApiError(404, "Order not found");
+        return await this.confirmPaidOrder(razorpayOrderId, razorpayPaymentId, razorpaySignature);
+    }
+
+    async handleWebhook(rawBody: string | Buffer, signature: string, payload: any) {
+        const isValid = verifyRazorpayWebhookSignature(rawBody, signature);
+        if (!isValid) {
+            throw new ApiError(400, "Invalid webhook signature");
         }
 
-        if (order.status !== OrderStatus.PENDING_PAYMENT) {
-            throw new ApiError(400, `Order is already ${order.status}`);
+        const event = payload?.event;
+        console.log(`[OrderService] Received Razorpay Webhook event: ${event}`);
+
+        if (event === "order.paid" || event === "payment.captured") {
+            const paymentEntity = payload?.payload?.payment?.entity;
+            const orderEntity = payload?.payload?.order?.entity;
+
+            const razorpayOrderId = orderEntity?.id || paymentEntity?.order_id;
+            const razorpayPaymentId = paymentEntity?.id;
+
+            if (razorpayOrderId && razorpayPaymentId) {
+                try {
+                    const result = await this.confirmPaidOrder(razorpayOrderId, razorpayPaymentId);
+                    return { status: "processed", orderId: razorpayOrderId, result };
+                } catch (err: any) {
+                    console.error(`[OrderService] Webhook processing error for order ${razorpayOrderId}:`, err);
+                    return { status: "error", message: err.message };
+                }
+            }
         }
 
-        // 3. Secure inventory BEFORE confirming. If anything is out of stock we must not
-        //    leave a CONFIRMED order with captured payment and no fulfillable items (M1),
-        //    so we auto-refund the payment and fail the order instead.
-        try {
-            await this.deductOrderStock(order);
-        } catch (stockError) {
-            await this.refundAndFailOrder(order, razorpayPaymentId);
-            throw stockError;
-        }
-
-        // 4. Stock secured — move order into PENDING_SELLER_CONFIRMATION (Phase 9).
-        //    The seller(s) must call the customer to confirm before the order advances
-        //    to CONFIRMED. Sub-orders are created in the same pending state by
-        //    finalizePendingConfirmation, which also generates the pickup/delivery
-        //    OTPs up front so the seller can read them on the call.
-        const updatedOrder = await orderDAO.updateStatus(
-            order._id.toString(),
-            OrderStatus.PENDING_SELLER_CONFIRMATION,
-            razorpayPaymentId,
-            razorpaySignature
-        );
-
-        // 5. Run the post-payment pipeline: coupons, sub-orders, emissions — but in
-        //    pending mode, so the seller can still see the order in their "pending
-        //    confirmation" queue.
-        await this.finalizePendingConfirmation(order);
-
-        // Customer never sees PENDING_SELLER_CONFIRMATION — payment success is the
-        // "order confirmed" moment for the buyer. The seller panel still surfaces
-        // the pending state for the call-and-confirm workflow.
-        return maskOrderForCustomer(updatedOrder);
+        return { status: "ignored", event };
     }
 
     // Compensation for a captured online payment we can no longer fulfil (M1): refund the
