@@ -12,7 +12,12 @@ import { goBack } from "@/src/utils/navigation";
 import { getOrderByIdRequest } from "../api/order.api";
 import { useSocketStore } from "@/src/store/useSocketStore";
 import { SocketEvents } from "@/src/constants/socketEvents";
-import { filterOrderItemsByModule } from "../lib/orderModule";
+import {
+  filterOrderItemsByModule,
+  isJeweleryProduct,
+  isJeweleryValue,
+  resolveOrderItemModule,
+} from "../lib/orderModule";
 import { cn } from "@/src/lib/utils";
 
 const ORDER_STEP_STAGES = [
@@ -173,23 +178,9 @@ export default function OrderDetailScreen() {
   useEffect(() => {
     if (order && order.orderId) {
       const isJeweleryOrder =
-        String(order.module || "").toLowerCase() === "jewelery" ||
-        String(order.module || "").toLowerCase() === "jewellery" ||
-        String(order.vertical || "").toLowerCase() === "jewelery" ||
-        String(order.vertical || "").toLowerCase() === "jewellery" ||
-        order.items?.some((i: any) => {
-          const p = typeof i.productId === "object" ? i.productId : null;
-          const v = String(i.vertical || p?.vertical || "").toLowerCase();
-          const m = String(i.module || p?.module || "").toLowerCase();
-          return (
-            v === "jewelery" ||
-            v === "jewellery" ||
-            m === "jewelery" ||
-            m === "jewellery" ||
-            Boolean(i.jeweleryDetails) ||
-            Boolean(p?.jeweleryDetails)
-          );
-        });
+        isJeweleryValue(order.module) ||
+        isJeweleryValue(order.vertical) ||
+        order.items?.some((i: any) => resolveOrderItemModule(i) === "jewelery");
 
       if (isJeweleryOrder) {
         replaceTo(navigate, {
@@ -224,15 +215,6 @@ export default function OrderDetailScreen() {
     }
     return null;
   }, [currentSubOrder, order]);
-
-  // Phase 9 — pickup OTP (rider shares it with the seller at store pickup).
-  // Generated up front when the sub-order is created (finalizePendingConfirmation).
-  const pickupOtp = useMemo(() => {
-    if (currentSubOrder?.delivery?.pickupOtp) {
-      return String(currentSubOrder.delivery.pickupOtp);
-    }
-    return null;
-  }, [currentSubOrder]);
 
   // Determine current active step index for progress bar
   const currentStatus = (currentSubOrder?.status || order?.status || "CONFIRMED").toUpperCase();
@@ -333,19 +315,10 @@ export default function OrderDetailScreen() {
       // detail screen can't render jewelery products.
       const vertical = prod?.vertical || item.vertical;
       const isJewelery =
-        vertical === "JEWELERY" ||
-        String(vertical || "").toLowerCase() === "jewelery" ||
-        String(vertical || "").toLowerCase() === "jewellery" ||
-        item.module === "jewelery" ||
-        item.module === "jewellery" ||
-        prod?.module === "jewelery" ||
-        prod?.module === "jewellery" ||
-        Boolean(prod?.jeweleryDetails) ||
-        Boolean(item.jeweleryDetails) ||
-        order?.module === "jewelery" ||
-        order?.vertical === "JEWELERY" ||
-        String(order?.module || "").toLowerCase() === "jewelery" ||
-        String(order?.vertical || "").toLowerCase() === "jewelery";
+        resolveOrderItemModule(item) === "jewelery" ||
+        isJeweleryProduct(prod) ||
+        isJeweleryValue(order?.module) ||
+        isJeweleryValue(order?.vertical);
 
       if (isJewelery) {
         goTo(navigate, {
@@ -756,10 +729,9 @@ export default function OrderDetailScreen() {
           );
         })}
 
-        {/* Phase 9 — Prominent Delivery + Pickup OTP card.
-            Generated up front when the sub-order is created; NOT sent via SMS.
+        {/* Delivery OTP card.
             The customer shows the delivery OTP to the rider on arrival. */}
-        {(deliveryOtp || pickupOtp) &&
+        {deliveryOtp &&
           currentStatus !== "DELIVERED" &&
           currentStatus !== "CANCELLED" && (
             <div
@@ -773,62 +745,34 @@ export default function OrderDetailScreen() {
                 <div className="flex flex-row items-center gap-1.5">
                   <ShieldCheck size={18} color="#15803d" />
                   <span className="text-[15px] font-extrabold" style={{ color: "#15803d" }}>
-                    Verification OTPs
+                    Delivery OTP
                   </span>
                 </div>
                 <div className="rounded-full bg-[#bbf7d0] px-2 py-[3px]">
                   <span className="text-[11px] font-bold" style={{ color: "#166534" }}>
-                    Show to delivery person
+                    Share at delivery
                   </span>
                 </div>
               </div>
 
-              {deliveryOtp && (
-                <div className="mb-3">
-                  <p className="mb-1.5 text-xs font-bold" style={{ color: "#0f172a", marginTop: 0 }}>
-                    Delivery OTP (for delivery at your door)
-                  </p>
-                  <div className="my-1.5 flex flex-row items-center justify-center gap-2">
-                    {deliveryOtp.split("").map((digit: string, i: number) => (
-                      <div
-                        key={i}
-                        className="flex h-12 w-[42px] items-center justify-center rounded-xl border-[1.5px] bg-white"
-                        style={{ borderColor: "#4ade80" }}
-                      >
-                        <span className="text-[22px] font-black" style={{ color: "#15803d" }}>
-                          {digit}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
+              <div>
+                <div className="my-2 flex flex-row items-center justify-center gap-2">
+                  {deliveryOtp.split("").map((digit: string, i: number) => (
+                    <div
+                      key={i}
+                      className="flex h-12 w-[42px] items-center justify-center rounded-xl border-[1.5px] bg-white shadow-sm"
+                      style={{ borderColor: "#4ade80" }}
+                    >
+                      <span className="text-[22px] font-black" style={{ color: "#15803d" }}>
+                        {digit}
+                      </span>
+                    </div>
+                  ))}
                 </div>
-              )}
+              </div>
 
-              {pickupOtp && (
-                <div>
-                  <p className="mb-1.5 text-xs font-bold" style={{ color: "#0f172a", marginTop: 0 }}>
-                    Pickup OTP (rider uses at the store)
-                  </p>
-                  <div className="my-1.5 flex flex-row items-center justify-center gap-2">
-                    {pickupOtp.split("").map((digit: string, i: number) => (
-                      <div
-                        key={i}
-                        className="flex h-12 w-[42px] items-center justify-center rounded-xl border-[1.5px] bg-white"
-                        style={{ borderColor: "#4ade80" }}
-                      >
-                        <span className="text-[22px] font-black" style={{ color: "#15803d" }}>
-                          {digit}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              <p className="mt-3 text-center text-xs leading-4" style={{ color: "#64748b" }}>
-                {deliveryOtp
-                  ? "Share the delivery OTP only when the rider arrives at your door with your package."
-                  : "The seller will share the delivery OTP with you on their confirmation call."}
+              <p className="mt-2 text-center text-xs leading-4" style={{ color: "#166534" }}>
+                Share this OTP with the delivery partner when they arrive at your door with your package.
               </p>
             </div>
           )}

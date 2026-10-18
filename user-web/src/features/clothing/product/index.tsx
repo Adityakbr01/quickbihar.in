@@ -55,6 +55,7 @@ import { useAuthStore } from "@/src/features/common/auth/store/authStore";
 import * as Haptics from "@/lib/haptics";
 import WishlistHeart from "@/src/components/common/WishlistHeart";
 import { goBack, goTo, replaceTo } from "@/src/utils/navigation";
+import { isJeweleryProduct } from "@/src/features/common/order/lib/orderModule";
 
 import {
   useSizeChart,
@@ -93,13 +94,7 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
   useEffect(() => {
     if (product) {
       const prodAny = product as any;
-      const isJewelery =
-        prodAny.vertical === "JEWELERY" ||
-        String(prodAny.vertical || "").toLowerCase() === "jewelery" ||
-        String(prodAny.vertical || "").toLowerCase() === "jewellery" ||
-        prodAny.module === "jewelery" ||
-        prodAny.module === "jewellery" ||
-        Boolean(prodAny.jeweleryDetails);
+      const isJewelery = isJeweleryProduct(prodAny);
 
       if (isJewelery) {
         replaceTo(navigate, {

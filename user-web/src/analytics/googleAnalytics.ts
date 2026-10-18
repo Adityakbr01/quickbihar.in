@@ -202,7 +202,22 @@ export function resolveProductCatalog(product: unknown): GaCatalog {
   try {
     const p = product as Record<string, unknown> | null;
     if (!p || typeof p !== "object") return "clothing";
-    if (p.jeweleryDetails) return "jewellery";
+    const jd = p.jeweleryDetails as Record<string, unknown> | undefined;
+    if (
+      jd &&
+      typeof jd === "object" &&
+      Boolean(
+        jd.metalType ||
+          jd.purity ||
+          jd.gemstone ||
+          jd.weightGrams ||
+          jd.stoneWeightCt ||
+          jd.certNo ||
+          jd.hallmark,
+      )
+    ) {
+      return "jewellery";
+    }
     const fromVertical =
       normalizeCatalogToken(p.vertical) || normalizeCatalogToken(p.module);
     if (fromVertical) return fromVertical;

@@ -102,7 +102,7 @@ const OrderListScreen = () => {
             });
           }
         }}
-        className="mb-2.5 block w-full rounded-2xl border p-3.5 text-left transition-colors hover:border-neutral-400"
+        className="mb-3 block w-full cursor-pointer rounded-2xl border p-4 text-left transition-all hover:border-neutral-400 hover:shadow-sm"
         style={{
           backgroundColor: theme.tertiaryBackground,
           borderColor: theme.border,
@@ -143,69 +143,86 @@ const OrderListScreen = () => {
           </div>
         </div>
 
-        <div
-          className="mb-3 flex flex-row items-center gap-2.5 rounded-xl border p-2.5"
-          style={{
-            backgroundColor: theme.background,
-            borderColor: theme.border,
-          }}
-          onClick={(e) => {
-            const firstItem = item.items?.[0];
+        {/* Products in this order */}
+        <div className="mb-3 space-y-2">
+          {item.items?.map((orderItem: any, idx: number) => {
             const prod =
-              firstItem?.productId && typeof firstItem.productId === "object"
-                ? firstItem.productId
+              orderItem?.productId && typeof orderItem.productId === "object"
+                ? orderItem.productId
                 : null;
+            const imgSrc =
+              orderItem?.image ||
+              prod?.images?.[0]?.url ||
+              (typeof prod?.images?.[0] === "string" ? prod?.images?.[0] : null) ||
+              prod?.thumbnail ||
+              prod?.mainImage;
             const rawProdId =
-              prod?.slug || prod?._id || firstItem?.productId || firstItem?._id;
+              prod?.slug || prod?._id || orderItem?.productId || orderItem?._id;
             const prodId = typeof rawProdId === "object" ? rawProdId?._id : rawProdId;
             const prodIdStr = prodId ? String(prodId) : "";
-            if (prodIdStr && prodIdStr !== "[object Object]") {
-              e.stopPropagation();
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              if (isJeweleryOrder) {
-                goTo(navigate, {
-                  pathname: "/jewelery/product/[id]" as any,
-                  params: { id: prodIdStr },
-                });
-              } else {
-                goTo(navigate, {
-                  pathname: "/product/[id]" as any,
-                  params: { id: prodIdStr },
-                });
-              }
-            }
-          }}
-        >
-          <div
-            className="flex h-11 w-11 items-center justify-center rounded-xl"
-            style={{ backgroundColor: theme.secondaryBackground }}
-          >
-            <Package size={24} color={theme.primary} />
-          </div>
-          <div className="ml-0.5 min-w-0 flex-1">
-            <p
-              className={cn("line-clamp-1 text-[13px] font-semibold hover:underline")}
-              style={{ color: theme.text }}
-            >
-              {item.items?.[0]?.title || `${item.items.length} items`}
-            </p>
-            <p className="text-[11px]" style={{ color: theme.secondaryText }}>
-              {item.items.length} {item.items.length === 1 ? "item" : "items"} · Tap to view product
-            </p>
-          </div>
-          {item.items.length > 1 && (
-            <div
-              className="flex h-9 w-9 items-center justify-center rounded-full"
-              style={{ backgroundColor: theme.secondaryBackground }}
-            >
-              <span
-                className="text-xs font-extrabold"
-                style={{ color: theme.primary }}
+
+            return (
+              <div
+                key={idx}
+                className="flex flex-row items-center gap-3 rounded-xl border p-2.5 transition-colors hover:opacity-95"
+                style={{
+                  backgroundColor: theme.background,
+                  borderColor: theme.border,
+                }}
+                onClick={(e) => {
+                  if (prodIdStr && prodIdStr !== "[object Object]") {
+                    e.stopPropagation();
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    if (isJeweleryOrder) {
+                      goTo(navigate, {
+                        pathname: "/jewelery/product/[id]" as any,
+                        params: { id: prodIdStr },
+                      });
+                    } else {
+                      goTo(navigate, {
+                        pathname: "/product/[id]" as any,
+                        params: { id: prodIdStr },
+                      });
+                    }
+                  }
+                }}
               >
-                +{item.items.length - 1}
-              </span>
-            </div>
-          )}
+                {imgSrc ? (
+                  <img
+                    src={imgSrc}
+                    alt={orderItem?.title || "Product"}
+                    className="h-12 w-12 shrink-0 rounded-lg object-cover border"
+                    style={{ borderColor: theme.border }}
+                    onError={(e) => {
+                      (e.currentTarget as HTMLElement).style.display = "none";
+                    }}
+                  />
+                ) : (
+                  <div
+                    className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg"
+                    style={{ backgroundColor: theme.secondaryBackground }}
+                  >
+                    <Package size={22} color={theme.primary} />
+                  </div>
+                )}
+                <div className="min-w-0 flex-1">
+                  <p
+                    className={cn("line-clamp-1 text-[13px] font-bold hover:underline")}
+                    style={{ color: theme.text }}
+                  >
+                    {orderItem?.title || "Product"}
+                  </p>
+                  <p className="mt-0.5 text-[11px]" style={{ color: theme.secondaryText }}>
+                    {orderItem.size && <span>Size: {orderItem.size} • </span>}
+                    {orderItem.color && <span>{orderItem.color} • </span>}
+                    <span>Qty: {orderItem.quantity || 1}</span>
+                    <span className="font-semibold" style={{ color: theme.text }}> · ₹{(orderItem.price || 0).toLocaleString()}</span>
+                  </p>
+                </div>
+                <ChevronRight size={14} color={theme.secondaryText} className="shrink-0" />
+              </div>
+            );
+          })}
         </div>
 
         <div
@@ -227,9 +244,6 @@ const OrderListScreen = () => {
             </p>
           </div>
           <div className="flex flex-row items-center">
-            {/* {["CONFIRMED", "PROCESSING", "SHIPPED"].includes(item.status.toUpperCase()) && (
-              <button ...>Track</button>
-            )} */}
             <div
               className="flex h-9 flex-row items-center gap-1 rounded-full px-3.5"
               style={{ backgroundColor: theme.primary + "18" }}

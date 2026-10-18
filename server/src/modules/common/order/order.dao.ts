@@ -51,10 +51,14 @@ export class OrderDAO {
             const items = order.items || [];
             const hasJeweleryItem = items.some((it: any) => {
                 const prod = it.productId;
+                const jd = prod?.jeweleryDetails || it?.jeweleryDetails;
+                const hasJdFields = Boolean(
+                    jd && (jd.metalType || jd.purity || jd.gemstone || jd.weightGrams || jd.stoneWeightCt || jd.certNo)
+                );
                 return (
                     it.vertical === "JEWELERY" ||
                     prod?.vertical === "JEWELERY" ||
-                    Boolean(prod?.jeweleryDetails)
+                    hasJdFields
                 );
             });
 
