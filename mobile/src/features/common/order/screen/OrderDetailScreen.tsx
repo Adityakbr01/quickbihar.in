@@ -28,7 +28,12 @@ import { getOrderByIdRequest } from "../api/order.api";
 import { useSocketStore } from "@/src/store/useSocketStore";
 import { SocketEvents } from "@/src/constants/socketEvents";
 import { createOrderDetailStyles } from "../style/OrderDetailScreen.style";
-import { filterOrderItemsByModule } from "../lib/orderModule";
+import {
+  filterOrderItemsByModule,
+  isJeweleryProduct,
+  isJeweleryValue,
+  resolveOrderItemModule,
+} from "../lib/orderModule";
 
 const ORDER_STEP_STAGES = [
   { key: "CONFIRMED", label: "Order Placed", shortLabel: "Confirmed" },
@@ -190,23 +195,9 @@ export default function OrderDetailScreen() {
   useEffect(() => {
     if (order && order.orderId) {
       const isJeweleryOrder =
-        String(order.module || "").toLowerCase() === "jewelery" ||
-        String(order.module || "").toLowerCase() === "jewellery" ||
-        String(order.vertical || "").toLowerCase() === "jewelery" ||
-        String(order.vertical || "").toLowerCase() === "jewellery" ||
-        order.items?.some((i: any) => {
-          const p = typeof i.productId === "object" ? i.productId : null;
-          const v = String(i.vertical || p?.vertical || "").toLowerCase();
-          const m = String(i.module || p?.module || "").toLowerCase();
-          return (
-            v === "jewelery" ||
-            v === "jewellery" ||
-            m === "jewelery" ||
-            m === "jewellery" ||
-            Boolean(i.jeweleryDetails) ||
-            Boolean(p?.jeweleryDetails)
-          );
-        });
+        isJeweleryValue(order.module) ||
+        isJeweleryValue(order.vertical) ||
+        order.items?.some((i: any) => resolveOrderItemModule(i) === "jewelery");
 
       if (isJeweleryOrder) {
         router.replace({
@@ -247,15 +238,6 @@ export default function OrderDetailScreen() {
     }
     return null;
   }, [currentSubOrder, order]);
-
-  // Phase 9 — pickup OTP (rider shares it with the seller at store pickup).
-  // Generated up front when the sub-order is created (finalizePendingConfirmation).
-  const pickupOtp = useMemo(() => {
-    if (currentSubOrder?.delivery?.pickupOtp) {
-      return String(currentSubOrder.delivery.pickupOtp);
-    }
-    return null;
-  }, [currentSubOrder]);
 
   // Determine current active step index for progress bar
   const currentStatus = (currentSubOrder?.status || order?.status || "CONFIRMED").toUpperCase();
@@ -345,19 +327,10 @@ export default function OrderDetailScreen() {
       // detail screen can't render jewelery products.
       const vertical = prod?.vertical || item.vertical;
       const isJewelery =
-        vertical === "JEWELERY" ||
-        String(vertical || "").toLowerCase() === "jewelery" ||
-        String(vertical || "").toLowerCase() === "jewellery" ||
-        item.module === "jewelery" ||
-        item.module === "jewellery" ||
-        prod?.module === "jewelery" ||
-        prod?.module === "jewellery" ||
-        Boolean(prod?.jeweleryDetails) ||
-        Boolean(item.jeweleryDetails) ||
-        order?.module === "jewelery" ||
-        order?.vertical === "JEWELERY" ||
-        String(order?.module || "").toLowerCase() === "jewelery" ||
-        String(order?.vertical || "").toLowerCase() === "jewelery";
+        resolveOrderItemModule(item) === "jewelery" ||
+        isJeweleryProduct(prod) ||
+        isJeweleryValue(order?.module) ||
+        isJeweleryValue(order?.vertical);
 
       if (isJewelery) {
         const rawId = prod?._id || prodId || item.productId;
@@ -691,72 +664,39 @@ export default function OrderDetailScreen() {
           );
         })}
 
-        {/* Phase 9 — Prominent Delivery + Pickup OTP card.
-            Generated up front when the sub-order is created; NOT sent via SMS.
+        {/* Delivery OTP card.
             The customer shows the delivery OTP to the rider on arrival. */}
-        {(deliveryOtp || pickupOtp) &&
+        {deliveryOtp &&
           currentStatus !== "DELIVERED" &&
           currentStatus !== "CANCELLED" && (
             <View style={styles.otpCard}>
               <View style={styles.otpHeader}>
                 <View style={styles.otpTitleContainer}>
                   <Ionicons name="shield-checkmark" size={18} color="#15803d" />
-                  <Text style={styles.otpTitle}>Verification OTPs</Text>
+                  <Text style={styles.otpTitle}>Delivery OTP</Text>
                 </View>
                 <View style={styles.otpBadge}>
-                  <Text style={styles.otpBadgeText}>Show to delivery person</Text>
+                  <Text style={styles.otpBadgeText}>Share at delivery</Text>
                 </View>
               </View>
 
-              {deliveryOtp && (
-                <View style={{ marginBottom: 12 }}>
-                  <Text
-                    style={[
-                      styles.otpSubtitle,
-                      { marginTop: 0, marginBottom: 6, fontWeight: "700", color: "#0f172a" },
-                    ]}
-                  >
-                    Delivery OTP (for delivery at your door)
-                  </Text>
-                  <View style={styles.otpCodeRow}>
-                    {deliveryOtp.split("").map((digit: string, i: number) => (
-                      <View key={i} style={styles.otpDigitBox}>
-                        <Text style={styles.otpDigitText}>{digit}</Text>
-                      </View>
-                    ))}
-                  </View>
+              <View>
+                <View style={styles.otpCodeRow}>
+                  {deliveryOtp.split("").map((digit: string, i: number) => (
+                    <View key={i} style={styles.otpDigitBox}>
+                      <Text style={styles.otpDigitText}>{digit}</Text>
+                    </View>
+                  ))}
                 </View>
-              )}
-
-              {pickupOtp && (
-                <View>
-                  <Text
-                    style={[
-                      styles.otpSubtitle,
-                      { marginTop: 0, marginBottom: 6, fontWeight: "700", color: "#0f172a" },
-                    ]}
-                  >
-                    Pickup OTP (rider uses at the store)
-                  </Text>
-                  <View style={styles.otpCodeRow}>
-                    {pickupOtp.split("").map((digit: string, i: number) => (
-                      <View key={i} style={styles.otpDigitBox}>
-                        <Text style={styles.otpDigitText}>{digit}</Text>
-                      </View>
-                    ))}
-                  </View>
-                </View>
-              )}
+              </View>
 
               <Text
                 style={[
                   styles.otpSubtitle,
-                  { marginTop: 12, color: "#64748b" },
+                  { marginTop: 12, color: "#166534" },
                 ]}
               >
-                {deliveryOtp
-                  ? "Share the delivery OTP only when the rider arrives at your door with your package."
-                  : "The seller will share the delivery OTP with you on their confirmation call."}
+                Share this OTP with the delivery partner when they arrive at your door with your package.
               </Text>
             </View>
           )}

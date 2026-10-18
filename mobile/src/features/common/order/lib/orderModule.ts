@@ -4,9 +4,29 @@ function norm(value: unknown): string {
   return String(value || "").toLowerCase();
 }
 
-function isJeweleryValue(value: unknown): boolean {
+export function isJeweleryValue(value: unknown): boolean {
   const v = norm(value);
   return v === "jewelery" || v === "jewellery";
+}
+
+export function hasJeweleryDetails(obj: any): boolean {
+  const jd = obj?.jeweleryDetails;
+  if (!jd || typeof jd !== "object") return false;
+  return Boolean(
+    jd.metalType ||
+      jd.purity ||
+      jd.gemstone ||
+      jd.weightGrams ||
+      jd.stoneWeightCt ||
+      jd.certNo ||
+      jd.hallmark,
+  );
+}
+
+export function isJeweleryProduct(prod: any): boolean {
+  if (!prod || typeof prod !== "object") return false;
+  if (isJeweleryValue(prod.vertical) || isJeweleryValue(prod.module)) return true;
+  return hasJeweleryDetails(prod);
 }
 
 /**
@@ -27,7 +47,7 @@ export function resolveOrderItemModule(item: any): CartModule {
     prod?.vertical,
   ];
   if (candidates.some(isJeweleryValue)) return "jewelery";
-  if (item?.jeweleryDetails || prod?.jeweleryDetails) return "jewelery";
+  if (hasJeweleryDetails(item) || hasJeweleryDetails(prod)) return "jewelery";
   return "clothing";
 }
 

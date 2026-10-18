@@ -280,41 +280,48 @@ export class SocketService {
   }
 
   emitToUser(userId: string, event: string, data: any) {
-    if (!this.io) return;
-    this.io.to(`user:${userId}`).emit(event, data);
-    this.io.to(`user_${userId}`).emit(event, data);
-    const socketIds = this.userSockets.get(userId);
-    if (socketIds) {
-      socketIds.forEach((id) => {
-        this.io?.to(id).emit(event, data);
-      });
-    }
+    if (!this.io || !userId) return;
+    const socketIds = this.userSockets.get(userId) || [];
+    this.io.to([`user:${userId}`, `user_${userId}`, ...socketIds]).emit(event, data);
   }
 
   emitToAdmins(event: string, data: any) {
     if (!this.io) return;
-    this.io.to("admin").emit(event, data);
-    this.io.to("admins").emit(event, data);
+    this.io.to(["admin", "admins"]).emit(event, data);
   }
 
   emitToOrderRoom(orderId: string, event: string, data: any) {
     if (!this.io) return;
-    this.io.to(`order:${orderId}`).emit(event, data);
-    this.io.to(`order_${orderId}`).emit(event, data);
+    this.io.to([`order:${orderId}`, `order_${orderId}`]).emit(event, data);
   }
 
   emitToSubOrderRoom(subOrderId: string, event: string, data: any) {
     if (!this.io) return;
-    this.io.to(`suborder:${subOrderId}`).emit(event, data);
-    this.io.to(`suborder_${subOrderId}`).emit(event, data);
+    this.io.to([`suborder:${subOrderId}`, `suborder_${subOrderId}`]).emit(event, data);
   }
 
   emitToRoom(room: string, event: string, data: any) {
     if (!this.io) return;
-    this.io.to(room).emit(event, data);
+    const targets = [room];
     if (room.includes(":")) {
-      this.io.to(room.replace(":", "_")).emit(event, data);
+      targets.push(room.replace(":", "_"));
     }
+    this.io.to(targets).emit(event, data);
+  }
+
+  emitToRooms(rooms: string[], event: string, data: any) {
+    if (!this.io || !rooms.length) return;
+    const allRooms = new Set<string>();
+    rooms.forEach((room) => {
+      if (!room) return;
+      allRooms.add(room);
+      if (room.includes(":")) {
+        allRooms.add(room.replace(":", "_"));
+      } else if (room.includes("_")) {
+        allRooms.add(room.replace("_", ":"));
+      }
+    });
+    this.io.to(Array.from(allRooms)).emit(event, data);
   }
 
   emitToAll(event: string, data: any) {

@@ -164,10 +164,8 @@ export async function listForUser(user: any, query: any = {}) {
  * @param payload - Normalized event payload.
  */
 function emitRooms(rooms: string[], payload: any) {
-  rooms.forEach((room) => {
-    socketService.emitToRoom(room, "fulfillment_event", payload);
-  });
-  socketService.emitToRoom("admins", "fulfillment_event", payload);
+  const targetRooms = unique([...rooms, "admin", "admins"]);
+  socketService.emitToRooms(targetRooms, "fulfillment_event", payload);
 }
 
 /**

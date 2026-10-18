@@ -20,11 +20,18 @@ export default function SocketListenerProvider({ children }: { children: React.R
     webSocketClient.connect(token);
 
     // Listen to real-time order status updates
-    const handleOrderStatusUpdate = (data: { subOrderId: string; status: string; message: string }) => {
+    const handleOrderStatusUpdate = (data: { subOrderId?: string; orderId?: string; status: string; message: string }) => {
       console.log("[SocketListener] Received order status update:", data);
       
-      // Premium visual notification
-      toast.info(`Sub-Order Update: ${data.subOrderId}`, {
+      const title = data.subOrderId
+        ? `Sub-Order Update: ${data.subOrderId}`
+        : `Order Update: ${data.orderId || "Order"}`;
+
+      const toastId = `order-status-${data.subOrderId || data.orderId || "global"}`;
+
+      // Visual notification with deduplication
+      toast.info(title, {
+        id: toastId,
         description: data.message,
         duration: 5000,
       });

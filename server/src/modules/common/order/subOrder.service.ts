@@ -318,19 +318,22 @@ export class SubOrderService {
             newParentStatus = OrderStatus.PROCESSING;
         }
 
+        const existingOrder = await Order.findById(parentOrderId);
+        if (!existingOrder) return;
+        const previousStatus = existingOrder.status;
+
         const parentUpdate: Record<string, any> = { status: newParentStatus };
         if (newParentStatus === OrderStatus.REFUNDED) {
             parentUpdate.refundedAt = new Date();
         }
         await Order.findByIdAndUpdate(parentOrderId, parentUpdate);
 
-        // Notify user
-        const order = await Order.findById(parentOrderId);
-        if (order) {
-            socketService.emitToUser(order.userId.toString(), SocketEvents.ORDER_STATUS_UPDATE, {
-                orderId: order.orderId,
+        // Notify user only when parent order status actually changed
+        if (previousStatus !== newParentStatus) {
+            socketService.emitToUser(existingOrder.userId.toString(), SocketEvents.ORDER_STATUS_UPDATE, {
+                orderId: existingOrder.orderId,
                 status: newParentStatus,
-                message: `Your order QB-${order.orderId} status has changed to ${newParentStatus}`
+                message: `Your order ${existingOrder.orderId} status has changed to ${newParentStatus}`
             });
         }
     }

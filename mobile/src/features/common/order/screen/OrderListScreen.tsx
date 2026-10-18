@@ -10,6 +10,7 @@ import { FlashList } from "@shopify/flash-list";
 import { useRouter } from "expo-router";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
+import { Image } from "expo-image";
 import { OrderCardSkeleton } from "../components/OrderCardSkeleton";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { getMyOrdersRequest } from "../api/order.api";
@@ -135,17 +136,45 @@ const OrderListScreen = () => {
       </View>
 
       <View style={styles.itemsPreview}>
-        <View style={styles.itemThumb}>
-          <MaterialCommunityIcons
-            name="package-variant-closed"
-            size={24}
-            color={theme.primary}
-          />
+        {(() => {
+          const firstItem = item.items?.[0];
+          const prod =
+            firstItem?.productId && typeof firstItem.productId === "object"
+              ? firstItem.productId
+              : null;
+          const imgSrc =
+            firstItem?.image ||
+            prod?.images?.[0]?.url ||
+            (typeof prod?.images?.[0] === "string" ? prod?.images?.[0] : null) ||
+            prod?.thumbnail ||
+            prod?.mainImage;
+
+          return imgSrc ? (
+            <Image
+              source={{ uri: imgSrc }}
+              style={{ width: 44, height: 44, borderRadius: 10, marginRight: 10 }}
+              contentFit="cover"
+            />
+          ) : (
+            <View style={styles.itemThumb}>
+              <MaterialCommunityIcons
+                name="package-variant-closed"
+                size={24}
+                color={theme.primary}
+              />
+            </View>
+          );
+        })()}
+        <View style={{ flex: 1 }}>
+          <Text style={[styles.itemsText, { fontWeight: "700" }]} numberOfLines={1}>
+            {item.items?.[0]?.title || `${item.items.length} items`}
+          </Text>
+          <Text style={{ fontSize: 11, color: theme.secondaryText, marginTop: 2 }}>
+            {item.items.length} {item.items.length === 1 ? "item" : "items"}
+            {item.items?.[0]?.size ? ` · Size: ${item.items[0].size}` : ""}
+            {item.items?.[0]?.color ? ` · ${item.items[0].color}` : ""}
+          </Text>
         </View>
-        <Text style={styles.itemsText} numberOfLines={1}>
-          {item.items.length} {item.items.length === 1 ? "item" : "items"} in
-          this order
-        </Text>
         {item.items.length > 1 && (
           <View style={styles.moreCount}>
             <Text style={styles.moreText}>+{item.items.length - 1}</Text>
