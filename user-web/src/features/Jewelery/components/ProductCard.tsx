@@ -4,7 +4,6 @@ import { Link, useNavigate } from "react-router-dom";
 import { goTo } from "@/src/utils/navigation";
 import React from "react";
 import { cn } from "@/src/lib/utils";
-import { useWindowWidth } from "@/src/utils/responsive";
 
 import { useCart } from "@/src/features/Jewelery/context/CartContext";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";

@@ -32,7 +32,6 @@ export default function JeweleryOrderDetailScreen() {
 
   const [order, setOrder] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Jewellery catalogue shows jewellery lines only (order totals stay
   // order-level — they reflect what was actually paid).
@@ -76,12 +75,6 @@ export default function JeweleryOrderDetailScreen() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orderId]);
-
-  const handleRefresh = async () => {
-    setIsRefreshing(true);
-    await fetchOrderDetail();
-    setIsRefreshing(false);
-  };
 
   const handleShare = async () => {
     if (!order) return;

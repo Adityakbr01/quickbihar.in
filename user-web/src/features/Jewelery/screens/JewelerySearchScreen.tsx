@@ -43,19 +43,21 @@ function dismissKeyboard() {
 export default function JewelerySearchScreen() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const initialQuery = searchParams.get("query") || searchParams.get("q") || "";
+  const urlQuery = searchParams.get("query") || searchParams.get("q");
+  const initialQuery = urlQuery || "";
   const colors = useColors();
   const [query, setQuery] = useState(initialQuery);
   const [debounced, setDebounced] = useState(initialQuery.trim());
   const topPad = 16;
 
-  useEffect(() => {
-    const urlQuery = searchParams.get("query") || searchParams.get("q");
-    if (urlQuery !== null && urlQuery !== query) {
-      setQuery(urlQuery);
-      setDebounced(urlQuery.trim());
-    }
-  }, [searchParams]);
+  // Adopt a new URL query into the box (render-phase adjustment — the old
+  // effect version re-fired on every searchParams identity change).
+  const [adoptedUrlQuery, setAdoptedUrlQuery] = useState(urlQuery);
+  if (urlQuery !== null && urlQuery !== adoptedUrlQuery) {
+    setAdoptedUrlQuery(urlQuery);
+    setQuery(urlQuery);
+    setDebounced(urlQuery.trim());
+  }
 
   useEffect(() => {
     const t = setTimeout(() => setDebounced(query.trim()), 400);

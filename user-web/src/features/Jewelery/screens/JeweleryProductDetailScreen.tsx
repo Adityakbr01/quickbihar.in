@@ -14,7 +14,6 @@ import { useCart } from "@/src/features/Jewelery/context/CartContext";
 import { useColors } from "@/src/features/Jewelery/hooks/useColors";
 import {
   BREAKPOINTS,
-  useStickyBarBottomOffset,
   useWindowWidth,
 } from "@/src/utils/responsive";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
@@ -50,9 +49,6 @@ export default function JeweleryProductDetailScreen() {
   const colors = useColors();
   const { addToCart, toggleWishlist, isWishlisted, cartItems } = useCart();
   const [addedToCart, setAddedToCart] = useState(false);
-  // Mobile web tab bar is fixed-position and overlays the viewport bottom —
-  // lift the sticky bar above it (0 on desktop, no visual diff).
-  const stickyBarOffset = useStickyBarBottomOffset();
   const windowWidth = useWindowWidth();
   const isDesktop = windowWidth >= BREAKPOINTS.desktopMin;
 
@@ -108,7 +104,14 @@ export default function JeweleryProductDetailScreen() {
   };
 
   const isInCart = Boolean(
-    product && cartItems.some((item) => item.product.id === product.id)
+    product &&
+      cartItems.some(
+        (item) =>
+          item.product.id === product.id ||
+          (product._raw as any)?._id?.toString() === item.product.id ||
+          item.sku === (product._raw as any)?.sku ||
+          (product._raw?.variants || []).some((v: any) => v.sku === item.sku),
+      ),
   );
 
   // GA4 view_item — fires once per loaded piece. Uses the real server

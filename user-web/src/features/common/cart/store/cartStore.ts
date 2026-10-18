@@ -215,7 +215,6 @@ export const useCartStore = create<CartState>()(
 
       addItem: async (product, sku, quantity = 1, module: CartModule = "clothing") => {
         if (quantity <= 0) return;
-        if (get().isLoading) return;
 
         const { isAuthenticated } = useAuthStore.getState();
         const { items } = get();
@@ -249,11 +248,11 @@ export const useCartStore = create<CartState>()(
             sku,
             quantity,
             module,
-            productTitle: product.title,
+            productTitle: product.title || product.name || "Product",
             price: itemPrice,
             taxAmount, // Save tax per unit
             originalPrice: product.originalPrice || product.price,
-            image: product.images?.[0]?.url || product.image,
+            image: product.images?.[0]?.url || (typeof product.images?.[0] === 'string' ? product.images[0] : "") || product.image?.uri || product.image || "",
             selectedSize: variant?.size,
             selectedColor: variant?.color,
             availableStock: typeof stock === 'number' ? stock : undefined,

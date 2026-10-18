@@ -17,11 +17,9 @@ export default function JeweleryOrdersScreen() {
   const colors = useColors();
   const navigate = useNavigate();
   const topPad = useTopPad();
-  const bottomPad = 34;
 
   const [orders, setOrders] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const fetchOrders = async () => {
     try {
@@ -49,12 +47,6 @@ export default function JeweleryOrdersScreen() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  const handleRefresh = async () => {
-    setIsRefreshing(true);
-    await fetchOrders();
-    setIsRefreshing(false);
-  };
 
   const getStatusBadge = (status: string) => {
     const s = (status || "PENDING").toUpperCase();

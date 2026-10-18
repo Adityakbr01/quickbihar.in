@@ -63,11 +63,6 @@ export function SeoHead({ meta, jsonLd }: SeoHeadProps) {
   );
 }
 
-/** Absolute site origin (handy for OG fallbacks). */
-export function siteOrigin(): string {
-  return getSiteOrigin();
-}
-
 /** Drop-in head for private / transactional screens. */
 export function NoIndexHead({ path = '/' }: { path?: string }) {
   return (

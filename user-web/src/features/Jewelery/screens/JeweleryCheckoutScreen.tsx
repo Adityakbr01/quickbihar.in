@@ -44,7 +44,6 @@ export default function JeweleryCheckoutScreen() {
   const colors = useColors();
   const navigate = useNavigate();
   const topPad = useTopPad();
-  const bottomPad = 34;
   const width = useWindowWidth();
   const isDesktop = width >= BREAKPOINTS.desktopMin;
   const stickyBottom = isDesktop
@@ -75,9 +74,8 @@ export default function JeweleryCheckoutScreen() {
 
   useEffect(() => {
     fetchShippingConfig();
-  }, []);
+  }, [fetchShippingConfig]);
 
-  const [addresses, setAddresses] = useState<any[]>([]);
   const [selectedAddress, setSelectedAddress] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
@@ -173,6 +171,10 @@ export default function JeweleryCheckoutScreen() {
     };
     fetchQuote();
     return () => { cancelled = true; };
+    // buildOrderData is intentionally omitted: re-running the quote on
+    // paymentMethod toggles would re-fetch identical pricing (the server
+    // quote ignores paymentMethod), only toggling the CTA's loading state.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedAddress, items]);
 
   const fetchAddresses = async () => {
@@ -180,7 +182,6 @@ export default function JeweleryCheckoutScreen() {
       setIsLoading(true);
       const response = await getAddressesRequest();
       const addrList = response.data || [];
-      setAddresses(addrList);
       const defaultAddr =
         addrList.find((a: any) => a.isDefault && a.isPhoneVerified) ||
         addrList.find((a: any) => a.isPhoneVerified) ||

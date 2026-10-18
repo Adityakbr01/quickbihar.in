@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const addToCartSchema = z.object({
-    productId: z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid Product ID"),
+    productId: z.string().min(1, "Product ID is required"),
     sku: z.string().min(1, "SKU is required"),
     quantity: z.number().int().positive().default(1),
 });
@@ -12,7 +12,7 @@ export const updateQuantitySchema = z.object({
 });
 export const syncCartSchema = z.object({
     items: z.array(z.object({
-        productId: z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid Product ID"),
+        productId: z.string().min(1, "Product ID is required"),
         sku: z.string().min(1, "SKU is required"),
         quantity: z.number().int().positive(),
     })),

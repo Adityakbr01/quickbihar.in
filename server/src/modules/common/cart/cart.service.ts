@@ -60,7 +60,7 @@ export async function getCart(userId: string) {
         const product = item.productId;
         if (!product) return null;
 
-        const variant = product.variants.find((v: any) => v.sku === item.sku);
+        const variant = (product.variants || []).find((v: any) => v.sku === item.sku);
 
         // Calculate GST-inclusive price
         const basePrice = product.price;
@@ -73,16 +73,19 @@ export async function getCart(userId: string) {
         subtotal += itemPrice * item.quantity;
         totalTax += itemTax * item.quantity;
 
+        const effectiveStock = variant?.stock ?? product.totalStock ?? 10;
+
         return {
             ...item.toObject(),
+            productId: typeof product._id === 'object' ? product._id.toString() : (product._id || product.id || String(item.productId)),
             module: resolveItemModule(item),
             productTitle: product.title,
             price: itemPrice,
-            image: product.images[0]?.url,
+            image: product.images?.[0]?.url || (typeof product.image === 'string' ? product.image : ""),
             selectedSize: variant?.size,
             selectedColor: variant?.color,
-            stockStatus: variant ? (variant.stock >= item.quantity ? "IN_STOCK" : "LOW_STOCK") : "OUT_OF_STOCK",
-            availableStock: variant?.stock || 0,
+            stockStatus: variant ? (variant.stock >= item.quantity ? "IN_STOCK" : "LOW_STOCK") : (effectiveStock >= item.quantity ? "IN_STOCK" : "OUT_OF_STOCK"),
+            availableStock: effectiveStock,
             sellerId: product.sellerId,
             storeId: product.storeId,
         };
@@ -119,11 +122,28 @@ export async function getCart(userId: string) {
  */
 export async function addToCart(userId: string, productId: string, sku: string, quantity: number = 1) {
     // 1. Verify Product and Stock
-    const product = await ProductDAO.findById(productId);
+    let product: any = null;
+    const isObjectId = productId && productId.length === 24 && /^[0-9a-fA-F]{24}$/.test(productId);
+    if (isObjectId) {
+        product = await ProductDAO.findById(productId);
+    }
+    if (!product) {
+        product = await ProductDAO.findBySlug(productId);
+    }
     if (!product) throw new ApiError(404, "Product not found");
 
-    const variant = product.variants.find(v => v.sku === sku);
-    if (!variant) throw new ApiError(404, "Specific variant (SKU) not found");
+    let variant = product.variants?.find((v: any) => v.sku === sku);
+    if (!variant && product.variants?.length) {
+        variant = product.variants.find((v: any) => (v.stock || 0) > 0) || product.variants[0];
+    }
+    if (!variant) {
+        variant = {
+            sku: sku || `SKU-${product._id}`,
+            stock: product.totalStock ?? 10,
+            price: product.price,
+            size: "Standard",
+        };
+    }
 
     if (variant.stock < quantity) {
         throw new ApiError(400, `Only ${variant.stock} items available in stock`);
@@ -139,7 +159,8 @@ export async function addToCart(userId: string, productId: string, sku: string, 
 
     // 3. Update Items Logic
     const module = moduleFromVertical((product as any).vertical);
-    const existingItem = cart.items.find(item => item.sku === sku);
+    const effectiveSku = variant.sku;
+    const existingItem = cart.items.find(item => item.sku === effectiveSku);
     if (existingItem) {
         const newQuantity = existingItem.quantity + quantity;
         if (variant.stock < newQuantity) {
@@ -149,7 +170,7 @@ export async function addToCart(userId: string, productId: string, sku: string, 
         // Heal pre-module lines stamped before the module field existed.
         if (!existingItem.module) existingItem.module = module;
     } else {
-        cart.items.push({ productId: productId as any, sku, quantity, module });
+        cart.items.push({ productId: product._id as any, sku: effectiveSku, quantity, module });
     }
 
     return await cartDAO.updateItems(userId, cart.items);

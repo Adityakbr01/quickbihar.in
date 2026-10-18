@@ -1,7 +1,7 @@
 import { ChevronLeft, ChevronRight, Mail } from "lucide-react";
 import { WhatsappIcon } from "@/src/components/common/BrandIcons";
 import * as Haptics from "@/lib/haptics";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { cn } from "@/src/lib/utils";
 
 import {
@@ -27,13 +27,13 @@ export const HelpSupportSheet: React.FC<HelpSupportSheetProps> = ({
 }) => {
   const colors = useColors();
   const [channel, setChannel] = useState<Channel | null>(null);
-
-  // Reset channel selection each time the sheet opens.
-  useEffect(() => {
-    if (visible) {
-      setChannel(null);
-    }
-  }, [visible]);
+  // Reset channel selection each time the sheet opens (render-phase
+  // adjustment — skips a wasted effect-driven re-render).
+  const [prevVisible, setPrevVisible] = useState(visible);
+  if (visible !== prevVisible) {
+    setPrevVisible(visible);
+    if (visible) setChannel(null);
+  }
 
   const openChannel = (faq: Faq) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);

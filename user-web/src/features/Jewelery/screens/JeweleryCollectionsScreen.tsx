@@ -8,7 +8,7 @@ import { cn } from "@/src/lib/utils";
 import { ProductCard } from "@/src/features/Jewelery/components/ProductCard";
 import { useJeweleryCategories, useJeweleryProducts } from "@/src/features/Jewelery/hooks/useJeweleryCatalog";
 import { useColors } from "@/src/features/Jewelery/hooks/useColors";
-import { resolveJeweleryCollectionImage } from "@/src/features/Jewelery/screens/JeweleryHomeScreen";
+import { resolveJeweleryCollectionImage } from "@/src/features/Jewelery/data/collectionImages";
 
 function Spinner({ color, size = 20 }: { color: string; size?: number }) {
   return (

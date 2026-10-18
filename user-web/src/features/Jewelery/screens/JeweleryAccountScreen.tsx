@@ -173,7 +173,6 @@ export default function JeweleryAccountScreen() {
   const navigate = useNavigate();
   const colors = useColors();
   const topPad = useTopPad();
-  const bottomPad = 34;
   const { user } = useAuth();
   const { wishlist } = useCart();
   const setPasswordSheetVisible = useAccountStore(

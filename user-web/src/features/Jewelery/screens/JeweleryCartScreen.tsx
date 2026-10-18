@@ -36,9 +36,6 @@ export default function JeweleryCartScreen() {
   const { isAuthenticated } = useAuthStore();
   const width = useWindowWidth();
   const isDesktop = width >= BREAKPOINTS.desktopMin;
-  const clothingCount = useCartStore(
-    (s) => filterItemsByModule(s.items, "clothing").length,
-  );
   // Viewport-fixed checkout bar: clears the mobile tab bar + safe-area insets
   const stickyBottom = isDesktop ? 0 : "calc(60px + env(safe-area-inset-bottom))";
   const totalQty = cartItems.reduce((s, i) => s + i.quantity, 0);
@@ -122,30 +119,6 @@ export default function JeweleryCartScreen() {
               Browse Collections →
             </span>
           </button>
-          {clothingCount > 0 && (
-            <div
-              className="mt-4 flex flex-col items-center gap-2 rounded-[2px] border p-4 text-center max-w-sm"
-              style={{
-                backgroundColor: colors.champagne,
-                borderColor: colors.gold,
-              }}
-            >
-              <span
-                className="text-[13px]"
-                style={{ color: colors.ink, fontFamily: "DMSans_500Medium" }}
-              >
-                You have {clothingCount} item{clothingCount !== 1 ? "s" : ""} in your Clothing Bag
-              </span>
-              <button
-                type="button"
-                onClick={() => goTo(navigate, "/clothing/cart")}
-                className="cursor-pointer text-xs font-bold underline"
-                style={{ color: colors.gold }}
-              >
-                Go to Clothing Bag →
-              </button>
-            </div>
-          )}
         </div>
       ) : (
         <>

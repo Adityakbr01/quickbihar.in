@@ -27,13 +27,11 @@ export default function JeweleryOrderSuccessScreen() {
 
   const { orderId } = useRouteParams<{ orderId?: string }>();
   const [order, setOrder] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
     if (orderId) {
-      setIsLoading(true);
       getOrderByIdRequest(orderId)
         .then((res) => {
           setOrder(res.data);
@@ -65,8 +63,7 @@ export default function JeweleryOrderSuccessScreen() {
             });
           }
         })
-        .catch(() => {})
-        .finally(() => setIsLoading(false));
+        .catch(() => {});
     }
   }, [orderId, navigate]);
 

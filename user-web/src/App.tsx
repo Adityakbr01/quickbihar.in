@@ -5,6 +5,8 @@ import { HelmetProvider } from "react-helmet-async";
 import { BrowserRouter } from "react-router-dom";
 import { QueryProvider } from "./provider/QueryProvider";
 import { ThemeProvider } from "./theme/Provider/ThemeProvider";
+import { AuthProvider } from "./features/Jewelery/context/AuthContext";
+import { CartProvider } from "./features/Jewelery/context/CartContext";
 import MainLayout from "./provider/MainLayout";
 import RouteTracker from "./analytics/RouteTracker";
 import { initGA4 } from "./analytics/googleAnalytics";
@@ -29,7 +31,11 @@ export default function App() {
           <RouteTracker />
           <QueryProvider>
             <ThemeProvider>
-              <MainLayout />
+              <AuthProvider>
+                <CartProvider>
+                  <MainLayout />
+                </CartProvider>
+              </AuthProvider>
             </ThemeProvider>
           </QueryProvider>
         </BrowserRouter>

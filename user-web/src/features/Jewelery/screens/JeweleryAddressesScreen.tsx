@@ -15,10 +15,9 @@ export default function JeweleryAddressesScreen() {
   const colors = useColors();
   const navigate = useNavigate();
   const topPad = useTopPad();
-  const bottomPad = 34;
   const { returnTo } = useRouteParams<{ returnTo?: string }>();
 
-  const { data: addresses, isLoading, refetch } = useAddresses();
+  const { data: addresses, isLoading } = useAddresses();
   const { deleteAddress, setDefaultAddress } = useAddressActions();
 
   const [alertConfig, setAlertConfig] = useState<{
