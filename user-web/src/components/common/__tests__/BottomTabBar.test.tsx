@@ -143,6 +143,48 @@ describe("BottomTabBar vertical detection", () => {
       expect(isClothingTabBar(container)).toBe(true);
       expect(isJeweleryTabBar(container)).toBe(false);
     });
+
+    it("GLOBAL FIX: /account/addresses renders Clothing tabs, not Jewellery", () => {
+      const container = renderTabBar("/account/addresses");
+      expect(isClothingTabBar(container)).toBe(true);
+      expect(isJeweleryTabBar(container)).toBe(false);
+    });
+
+    it("GLOBAL FIX: /account/orders renders Clothing tabs, not Jewellery", () => {
+      const container = renderTabBar("/account/orders");
+      expect(isClothingTabBar(container)).toBe(true);
+      expect(isJeweleryTabBar(container)).toBe(false);
+    });
+
+    it("GLOBAL FIX: /orders renders Clothing tabs, not Jewellery", () => {
+      const container = renderTabBar("/orders");
+      expect(isClothingTabBar(container)).toBe(true);
+      expect(isJeweleryTabBar(container)).toBe(false);
+    });
+
+    it("GLOBAL FIX: /order/:id renders Clothing tabs, not Jewellery", () => {
+      const container = renderTabBar("/order/ord-123");
+      expect(isClothingTabBar(container)).toBe(true);
+      expect(isJeweleryTabBar(container)).toBe(false);
+    });
+
+    it("GLOBAL FIX: /account renders Clothing tabs, not Jewellery", () => {
+      const container = renderTabBar("/account");
+      expect(isClothingTabBar(container)).toBe(true);
+      expect(isJeweleryTabBar(container)).toBe(false);
+    });
+
+    it("GLOBAL FIX: /profile renders Clothing tabs, not Jewellery", () => {
+      const container = renderTabBar("/profile");
+      expect(isClothingTabBar(container)).toBe(true);
+      expect(isJeweleryTabBar(container)).toBe(false);
+    });
+
+    it("GLOBAL FIX: /checkout renders Clothing tabs, not Jewellery", () => {
+      const container = renderTabBar("/checkout");
+      expect(isClothingTabBar(container)).toBe(true);
+      expect(isJeweleryTabBar(container)).toBe(false);
+    });
   });
 
   describe("Jewellery routes render the Jewellery tab bar", () => {

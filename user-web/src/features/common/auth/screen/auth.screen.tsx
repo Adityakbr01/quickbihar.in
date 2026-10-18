@@ -58,13 +58,13 @@ export default function AuthScreen() {
         {
           onError: (err: any) => {
             setApiError(
-              err?.message || "Google sign-in failed. Please try again."
+              err?.message || "Google sign-in failed. Please try again.",
             );
           },
-        }
+        },
       );
     },
-    [googleAuth]
+    [googleAuth],
   );
 
   return (
@@ -90,37 +90,18 @@ export default function AuthScreen() {
       />
 
       {/* Main Container Card */}
-      <div
-        className="relative z-10 flex w-full max-w-[420px] flex-col items-center rounded-3xl border p-8 sm:p-10 shadow-2xl backdrop-blur-md transition-all duration-300"
-        style={{
-          backgroundColor: isDark
-            ? "rgba(22, 22, 24, 0.85)"
-            : "rgba(255, 255, 255, 0.92)",
-          borderColor: isDark
-            ? "rgba(255, 255, 255, 0.12)"
-            : "rgba(0, 0, 0, 0.08)",
-          boxShadow: isDark
-            ? "0 25px 50px -12px rgba(0, 0, 0, 0.6), 0 0 40px -10px rgba(201, 160, 90, 0.12)"
-            : "0 25px 50px -12px rgba(0, 0, 0, 0.08), 0 0 30px -10px rgba(128, 195, 20, 0.1)",
-        }}
-      >
+      <div className="relative z-10 flex w-full max-w-[420px] flex-col items-center rounded-3xl border-none p-8 sm:p-10 transition-all duration-300">
         {/* ── 1. LOGO ── */}
         <div className="relative mb-4 flex items-center justify-center">
           <div
             className="absolute h-24 w-24 rounded-full blur-lg opacity-40"
             style={{ backgroundColor: "#C9A05A" }}
           />
-          <div
-            className="relative flex h-[76px] w-[76px] items-center justify-center rounded-2xl p-1.5 shadow-md transition-transform hover:scale-105"
-            style={{
-              backgroundColor: isDark ? "#121214" : "#FFFFFF",
-              border: `1.5px solid ${isDark ? "#C9A05A" : "#80C314"}`,
-            }}
-          >
+          <div className="relative flex h-32 w-32 items-center justify-center rounded-2xl p-1.5 transition-transform hover:scale-105">
             <img
               src={splashIcon}
               alt={`${APP_NAME} logo`}
-              className="h-[56px] w-[56px] rounded-xl object-contain"
+              className="h-full w-full rounded-xl object-contain"
             />
           </div>
         </div>
@@ -173,14 +154,6 @@ export default function AuthScreen() {
             onError={(msg) => setApiError(msg)}
             disabled={googlePending}
           />
-
-          <div
-            className="mt-4 flex items-center justify-center gap-1.5 text-center text-xs leading-[17px]"
-            style={{ color: theme.secondaryText }}
-          >
-            <LockIcon />
-            <span>Secured by Google — we never see your password.</span>
-          </div>
         </div>
 
         {/* Footer info */}

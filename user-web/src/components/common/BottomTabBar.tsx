@@ -22,7 +22,6 @@ import {
   RoleEnum,
   useAuthStore,
 } from "@/src/features/common/auth/store/authStore";
-import { useModuleStore } from "@/src/store/useModuleStore";
 import { useColors as useJeweleryColors } from "@/src/features/Jewelery/hooks/useColors";
 import { BREAKPOINTS, useWindowWidth } from "@/src/utils/responsive";
 import { cn } from "@/src/lib/utils";
@@ -158,7 +157,6 @@ export const BottomTabBar: React.FC = () => {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const { user, isAuthenticated } = useAuthStore();
-  const { currentModule } = useModuleStore();
   const [pressedTab, setPressedTab] = useState<string | null>(null);
 
   const isDesktop = width >= BREAKPOINTS.desktopMin;
@@ -182,29 +180,12 @@ export const BottomTabBar: React.FC = () => {
     return null;
   }
 
-  // Determine current active routes from the URL first — the persisted
-  // module in the store can be stale (e.g. user was on jewelery, then opened
-  // /clothing/home directly), which previously sent clothing taps to
-  // /jewelery/search and /jewelery/cart.
-  //
-  // Clothing product detail (/product/:id) and mall detail (/mall/:slug)
-  // routes are not nested under /clothing, so they must be included here.
-  // Otherwise a stale jewelery module in the store would incorrectly render
-  // the Jewellery tab bar on clothing product/mall pages.
-  const isJeweleryPath =
-    pathname.startsWith("/jewelery") || pathname.startsWith("/jewelry");
-  const isClothingPath =
-    pathname.startsWith("/clothing") ||
-    pathname.startsWith("/(tabs)/clothing") ||
-    pathname.startsWith("/product") ||
-    pathname.startsWith("/mall") ||
-    pathname.startsWith("/category") ||
-    pathname.startsWith("/top-selling") ||
-    pathname.startsWith("/malls");
-
+  // In QuickBihar, all Jewelry routes start with /jewelery or /jewelry.
+  // Every other route (/clothing, /product, /mall, /category, /top-selling,
+  // /malls, /locations, /orders, /account, /addresses, /profile, /cart,
+  // /checkout, etc.) belongs to the Clothing/Common catalog.
   const isJewelery =
-    isJeweleryPath ||
-    (!isClothingPath && currentModule.id === "jewelery");
+    pathname.startsWith("/jewelery") || pathname.startsWith("/jewelry");
 
   const pressTab = (route: string) => {
     try {
@@ -271,12 +252,24 @@ export const BottomTabBar: React.FC = () => {
     if (pathname === tabRoute) return true;
     if (
       tabRoute === "/clothing/home" &&
-      (pathname === "/" || pathname === "/clothing/home" || pathname === "/clothing")
+      (pathname === "/" ||
+        pathname === "/clothing/home" ||
+        pathname === "/clothing" ||
+        pathname.startsWith("/product/") ||
+        pathname.startsWith("/mall/") ||
+        pathname.startsWith("/category/") ||
+        pathname.startsWith("/top-selling") ||
+        pathname.startsWith("/malls") ||
+        pathname.startsWith("/locations/"))
     )
       return true;
     if (
       tabRoute === "/clothing/cart" &&
-      (pathname === "/clothing/cart" || pathname === "/cart" || pathname === "/bag")
+      (pathname === "/clothing/cart" ||
+        pathname === "/cart" ||
+        pathname === "/bag" ||
+        pathname.startsWith("/checkout") ||
+        pathname.startsWith("/order-success"))
     )
       return true;
     if (
@@ -290,6 +283,9 @@ export const BottomTabBar: React.FC = () => {
         pathname === "/account" ||
         pathname.startsWith("/account/") ||
         pathname.startsWith("/orders") ||
+        pathname.startsWith("/order") ||
+        pathname.startsWith("/addresses") ||
+        pathname.startsWith("/address") ||
         pathname.startsWith("/profile"))
     )
       return true;

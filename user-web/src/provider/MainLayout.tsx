@@ -203,12 +203,30 @@ function ThemedChrome() {
   return null;
 }
 
+function ModuleSync() {
+  const location = useLocation();
+  const setModule = useModuleStore((s) => s.setModule);
+
+  useEffect(() => {
+    const isJewelery =
+      location.pathname === "/jewelery" ||
+      location.pathname.startsWith("/jewelery/") ||
+      location.pathname === "/jewelry" ||
+      location.pathname.startsWith("/jewelry/");
+    setModule(isJewelery ? "jewelery" : "clothing");
+  }, [location.pathname, setModule]);
+
+  return null;
+}
+
 function MainLayout() {
   const theme = useTheme();
   const location = useLocation();
   const isJeweleryRoute =
     location.pathname === "/jewelery" ||
-    location.pathname.startsWith("/jewelery/");
+    location.pathname.startsWith("/jewelery/") ||
+    location.pathname === "/jewelry" ||
+    location.pathname.startsWith("/jewelry/");
   // Auth flows are full-screen tasks — no navbars behind them.
   const isAuthRoute =
     location.pathname === "/auth" ||
@@ -220,6 +238,7 @@ function MainLayout() {
       style={{ flex: 1, backgroundColor: theme.background, minHeight: "100vh" }}
     >
       <ThemedChrome />
+      <ModuleSync />
       <ScrollRestoration />
       <SeoRouter />
       <SocketListenerMount />
