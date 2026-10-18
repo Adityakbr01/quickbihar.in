@@ -124,12 +124,6 @@ export default function RoleLoginForm({ theme }: RoleLoginFormProps) {
   const hasHydrated = useAuthHydrated();
   const BadgeIcon = config.icon;
 
-  useEffect(() => {
-    if (hasHydrated && isAuthenticated && config.isAuthorized(user)) {
-      navigate(config.alreadyAuthedRedirect, { replace: true });
-    }
-  }, [hasHydrated, isAuthenticated, user, navigate, config]);
-
   // Pick the right hooks for this role.
   const { mutate: login, isPending: isLoggingIn } =
     theme === "admin"

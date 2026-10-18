@@ -72,7 +72,7 @@ const writePersistedToken = (token: string) => {
   }
 };
 
-const clearPersistedAuth = async () => {
+export const clearPersistedAuth = async () => {
   if (typeof window === "undefined") return;
   // 1. Reset the in-memory Zustand store. Without this, the dashboard keeps
   //    seeing isAuthenticated=true from the in-memory state even after
@@ -113,6 +113,55 @@ const clearPersistedAuth = async () => {
     } catch {}
   }
 };
+
+let refreshPromise: Promise<string> | null = null;
+
+/**
+ * Execute silent token refresh using the httpOnly refreshToken cookie.
+ * Deduplicates concurrent calls to return the same in-flight promise.
+ */
+export async function executeTokenRefresh(): Promise<string> {
+  if (refreshPromise) {
+    return refreshPromise;
+  }
+
+  refreshPromise = (async () => {
+    try {
+      const response = await axios.post(
+        `${axiosInstance.defaults.baseURL}/auth/refresh-token`,
+        {},
+        { withCredentials: true },
+      );
+
+      const newToken: string = response.data?.data?.accessToken;
+      const refreshedUser = response.data?.data?.user;
+      if (!newToken) throw new Error("No access token in refresh response");
+
+      try {
+        const { useAuthStore } = await import(
+          "@/features/auth/store/authStore"
+        );
+        const { setAuth } = useAuthStore.getState();
+        const currentUser = useAuthStore.getState().user;
+        if (refreshedUser) {
+          setAuth(refreshedUser, newToken);
+        } else if (currentUser) {
+          setAuth(currentUser, newToken);
+        }
+      } catch {
+        // Non-fatal: writePersistedToken still keeps localStorage in sync.
+      }
+
+      writePersistedToken(newToken);
+      axiosInstance.defaults.headers.common["Authorization"] = `Bearer ${newToken}`;
+      return newToken;
+    } finally {
+      refreshPromise = null;
+    }
+  })();
+
+  return refreshPromise;
+}
 
 axiosInstance.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
@@ -218,19 +267,7 @@ axiosInstance.interceptors.response.use(
         isRefreshing = true;
 
         try {
-          // The refresh token rides along as an httpOnly cookie (withCredentials);
-          // no body needed. Use a bare axios call to skip these interceptors.
-          const response = await axios.post(
-            `${axiosInstance.defaults.baseURL}/auth/refresh-token`,
-            {},
-            { withCredentials: true },
-          );
-
-          const newToken: string = response.data?.data?.accessToken;
-          if (!newToken) throw new Error("No access token in refresh response");
-
-          writePersistedToken(newToken);
-          axiosInstance.defaults.headers.common["Authorization"] = `Bearer ${newToken}`;
+          const newToken = await executeTokenRefresh();
           originalRequest.headers = {
             ...originalRequest.headers,
             Authorization: `Bearer ${newToken}`,

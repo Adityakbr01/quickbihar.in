@@ -83,3 +83,5 @@ export const JeweleryTryOnScreen = () => {
     </div>
   );
 };
+
+export default JeweleryTryOnScreen;

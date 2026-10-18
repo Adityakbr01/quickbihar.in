@@ -14,6 +14,14 @@ interface GoogleSignInButtonProps {
 
 const GIS_SRC = "https://accounts.google.com/gsi/client";
 
+let globalGsiInitializedClientId: string | null = null;
+let globalGsiCallback: ((response: { credential?: string }) => void) | null = null;
+
+export function _resetGsiSingletonForTesting() {
+  globalGsiInitializedClientId = null;
+  globalGsiCallback = null;
+}
+
 /**
  * Google Sign-In button for Web platform using Google Identity Services (GIS).
  * Does not rely on native Google Play Services, ensuring full functionality
@@ -31,6 +39,10 @@ export const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({
   const [gisReady, setGisReady] = useState(false);
   const [pressed, setPressed] = useState(false);
   const gisMountRef = useRef<any>(null);
+  const onSuccessRef = useRef(onSuccess);
+  const onErrorRef = useRef(onError);
+  onSuccessRef.current = onSuccess;
+  onErrorRef.current = onError;
 
   // Web build has no app.json extra block — client ID comes from env.
   const google: any = {};
@@ -66,26 +78,37 @@ export const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({
     document.head.appendChild(script);
   }, [onError]);
 
-  // 2. Initialize GIS when ready
+  // 2. Initialize GIS when ready (singleton per clientId, never re-initializes on ordinary renders)
   useEffect(() => {
     if (!gisReady || !webClientId || typeof window === "undefined") return;
     const googleAuth = (window as any).google?.accounts?.id;
     if (!googleAuth) return;
 
-    try {
-      googleAuth.initialize({
-        client_id: webClientId,
-        callback: (response: { credential?: string }) => {
-          setLoading(false);
-          if (response?.credential) {
-            onSuccess(response.credential);
-          } else {
-            onError?.("Google sign-in did not return credentials.");
-          }
-        },
-        cancel_on_tap_outside: true,
-      });
+    globalGsiCallback = (response: { credential?: string }) => {
+      setLoading(false);
+      if (response?.credential) {
+        onSuccessRef.current(response.credential);
+      } else {
+        onErrorRef.current?.("Google sign-in did not return credentials.");
+      }
+    };
 
+    if (globalGsiInitializedClientId !== webClientId) {
+      try {
+        googleAuth.initialize({
+          client_id: webClientId,
+          callback: (response: { credential?: string }) => {
+            globalGsiCallback?.(response);
+          },
+          cancel_on_tap_outside: true,
+        });
+        globalGsiInitializedClientId = webClientId;
+      } catch (err: any) {
+        console.warn("[GoogleSignInButton.web] GIS init failed:", err);
+      }
+    }
+
+    try {
       // If hidden mount node is available, render Google's real button
       // so users can click or tap it directly
       if (gisMountRef.current) {
@@ -101,9 +124,9 @@ export const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({
         });
       }
     } catch (err: any) {
-      console.warn("[GoogleSignInButton.web] GIS init failed:", err);
+      console.warn("[GoogleSignInButton.web] GIS render failed:", err);
     }
-  }, [gisReady, webClientId, mode, onSuccess, onError]);
+  }, [gisReady, webClientId, mode]);
 
   const handlePress = () => {
     if (loading || disabled) return;

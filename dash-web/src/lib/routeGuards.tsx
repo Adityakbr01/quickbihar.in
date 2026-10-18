@@ -1,7 +1,8 @@
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuthStore } from "@/features/auth/store/authStore";
 import { useAuthHydrated } from "@/features/auth/hooks/useAuthHydrated";
+import { executeTokenRefresh } from "@/lib/axios";
 
 const AUTH_STORAGE_KEY = "admin-auth-storage";
 
@@ -44,7 +45,7 @@ export function isTokenValid(token?: string | null): boolean {
   }
 }
 
-function useStoredSession() {
+export function useStoredSession() {
   const hasHydrated = useAuthHydrated();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const token = useAuthStore((s) => s.token);
@@ -60,11 +61,51 @@ export function ProtectedRoute({
   loginTo: string;
   children: ReactNode;
 }) {
-  const { hasHydrated, authed } = useStoredSession();
-  if (!hasHydrated || !authed) {
-    if (!hasHydrated) return <div className="min-h-screen bg-background" />;
+  const hasHydrated = useAuthHydrated();
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const token = useAuthStore((s) => s.token);
+  const clearAuth = useAuthStore((s) => s.clearAuth);
+
+  const [refreshStatus, setRefreshStatus] = useState<"idle" | "refreshing" | "failed">("idle");
+
+  const validToken = isTokenValid(token || readStoredToken());
+
+  useEffect(() => {
+    let mounted = true;
+    if (hasHydrated && isAuthenticated && !validToken && refreshStatus === "idle") {
+      setRefreshStatus("refreshing");
+      executeTokenRefresh()
+        .then(() => {
+          if (mounted) setRefreshStatus("idle");
+        })
+        .catch((err: any) => {
+          if (!mounted) return;
+          const status = err?.response?.status;
+          if (status === 401 || status === 403 || err?.message === "No access token in refresh response") {
+            try {
+              clearAuth();
+            } catch {}
+          }
+          setRefreshStatus("failed");
+        });
+    }
+    return () => {
+      mounted = false;
+    };
+  }, [hasHydrated, isAuthenticated, validToken, refreshStatus, clearAuth]);
+
+  if (!hasHydrated || refreshStatus === "refreshing") {
+    return <div className="min-h-screen bg-background" />;
+  }
+
+  if (!isAuthenticated) {
     return <Navigate to={loginTo} replace />;
   }
+
+  if (!validToken) {
+    return <Navigate to={`${loginTo}?expired=true`} replace />;
+  }
+
   return <>{children}</>;
 }
 

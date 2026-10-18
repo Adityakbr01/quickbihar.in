@@ -75,6 +75,9 @@ const gsiTextFrom = (label: string) => {
 
 const GIS_SRC = "https://accounts.google.com/gsi/client";
 
+let globalGsiInitializedClientId: string | null = null;
+let globalGsiCallback: ((response: { credential?: string }) => void) | null = null;
+
 export default function GoogleSignInButton({
   onSuccess,
   onError,
@@ -146,26 +149,40 @@ export default function GoogleSignInButton({
     document.head.appendChild(script);
   }, []);
 
-  // ── 2. Initialize GIS + render official Google button directly into mount ──
+  // ── 2. Initialize GIS (singleton) + render official Google button directly into mount ──
   useEffect(() => {
     if (!gsiReady || !clientId || !gisMountRef.current || !window.google?.accounts?.id) {
       return;
     }
 
-    try {
-      window.google.accounts.id.initialize({
-        client_id: clientId,
-        callback: (response) => {
-          setBusy(false);
-          if (response?.credential) {
-            onSuccessRef.current(response.credential);
-          } else {
-            onErrorRef.current?.("Google sign-in did not return a credential.");
-          }
-        },
-        cancel_on_tap_outside: true,
-      });
+    globalGsiCallback = (response) => {
+      setBusy(false);
+      if (response?.credential) {
+        onSuccessRef.current(response.credential);
+      } else {
+        onErrorRef.current?.("Google sign-in did not return a credential.");
+      }
+    };
 
+    // Google's GIS SDK logs [GSI_LOGGER] warnings if initialize() is called multiple times.
+    // Guard globally across renders and component remounts so initialize is only invoked once per clientId.
+    if (globalGsiInitializedClientId !== clientId) {
+      try {
+        window.google.accounts.id.initialize({
+          client_id: clientId,
+          callback: (response) => {
+            globalGsiCallback?.(response);
+          },
+          cancel_on_tap_outside: true,
+        });
+        globalGsiInitializedClientId = clientId;
+      } catch (err) {
+        console.error("[GoogleSignInButton] Failed to initialize GIS button:", err);
+        onErrorRef.current?.("Failed to initialize Google Sign-In.");
+      }
+    }
+
+    try {
       // Clear any prior children in the mount node
       gisMountRef.current.innerHTML = "";
 
@@ -185,8 +202,7 @@ export default function GoogleSignInButton({
 
       setRendered(true);
     } catch (err) {
-      console.error("[GoogleSignInButton] Failed to initialize GIS button:", err);
-      onErrorRef.current?.("Failed to initialize Google Sign-In.");
+      console.error("[GoogleSignInButton] Failed to render GIS button:", err);
     }
   }, [gsiReady, clientId, variant, label]);
 

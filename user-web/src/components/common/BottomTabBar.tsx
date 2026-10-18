@@ -186,9 +186,21 @@ export const BottomTabBar: React.FC = () => {
   // module in the store can be stale (e.g. user was on jewelery, then opened
   // /clothing/home directly), which previously sent clothing taps to
   // /jewelery/search and /jewelery/cart.
-  const isJeweleryPath = pathname.startsWith("/jewelery");
+  //
+  // Clothing product detail (/product/:id) and mall detail (/mall/:slug)
+  // routes are not nested under /clothing, so they must be included here.
+  // Otherwise a stale jewelery module in the store would incorrectly render
+  // the Jewellery tab bar on clothing product/mall pages.
+  const isJeweleryPath =
+    pathname.startsWith("/jewelery") || pathname.startsWith("/jewelry");
   const isClothingPath =
-    pathname.startsWith("/clothing") || pathname.startsWith("/(tabs)/clothing");
+    pathname.startsWith("/clothing") ||
+    pathname.startsWith("/(tabs)/clothing") ||
+    pathname.startsWith("/product") ||
+    pathname.startsWith("/mall") ||
+    pathname.startsWith("/category") ||
+    pathname.startsWith("/top-selling") ||
+    pathname.startsWith("/malls");
 
   const isJewelery =
     isJeweleryPath ||

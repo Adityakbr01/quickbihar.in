@@ -12,7 +12,7 @@ describe("HomeDeliveryLocations — Regression", () => {
     expect(screen.getByText("Fast Delivery in Buxar & Bihar")).toBeInTheDocument();
     expect(
       screen.getByText(
-        "Order fashion & clothing online with doorstep delivery across 26+ PIN codes",
+        "Order fashion & clothing online with doorstep delivery across 26+ PIN codes in Buxar district.",
       ),
     ).toBeInTheDocument();
   });
@@ -46,7 +46,7 @@ describe("HomeDeliveryLocations — Regression", () => {
     renderWithProviders(<HomeDeliveryLocations />);
 
     const link = screen.getByRole("link", {
-      name: /Explore Buxar District Delivery Hub/i,
+      name: /Explore all Buxar District delivery hubs/i,
     });
     expect(link).toHaveAttribute("href", "/locations/bihar/buxar");
   });
