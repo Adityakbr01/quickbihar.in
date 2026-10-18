@@ -23,24 +23,24 @@ import BottomTabBar from "@/src/components/common/BottomTabBar";
 import ScrollRestoration from "@/src/components/common/ScrollRestoration";
 
 // Core shopping home — eager (first paint).
-import ClothingHomeScreen from "@/src/features/clothing/home/screens/HomeScreen";
+import ClothingHomeScreen from "@/src/features/clothing/home";
 
 // Everything else — route-split (lazy) so the entry chunk stays lean.
 // React Query dedupes data; SeoRouter + prerender cover SEO for these routes.
 const ClothingSearchScreen = lazy(
-  () => import("@/src/features/clothing/search/screens/ClothingSearchScreen"),
+  () => import("@/src/features/clothing/search"),
 );
 const TopSellingScreen = lazy(
-  () => import("@/src/features/clothing/home/screens/TopSellingScreen"),
+  () => import("@/src/features/clothing/home/top-selling"),
 );
 const MallDetailScreen = lazy(
-  () => import("@/src/features/clothing/home/screens/MallDetailScreen"),
+  () => import("@/src/features/clothing/home/mall-detail"),
 );
 const MallsListScreen = lazy(
-  () => import("@/src/features/clothing/home/screens/MallsListScreen"),
+  () => import("@/src/features/clothing/home/malls-list"),
 );
 const ProductDetailScreen = lazy(
-  () => import("@/src/features/clothing/product/screen/ProductDetailScreen"),
+  () => import("@/src/features/clothing/product"),
 );
 const CategoryDetailScreen = lazy(
   () => import("@/src/features/common/category/screens/CategoryDetailScreen"),
@@ -91,48 +91,48 @@ const AuthScreen = lazy(
 
 // Jewelery Screens (lazy — separate module bundle)
 const JeweleryHomeScreen = lazy(
-  () => import("@/src/features/Jewelery/screens/JeweleryHomeScreen"),
+  () => import("@/src/features/Jewelery/home"),
 );
 const JeweleryCartScreen = lazy(
-  () => import("@/src/features/Jewelery/screens/JeweleryCartScreen"),
+  () => import("@/src/features/Jewelery/cart"),
 );
 const JeweleryCheckoutScreen = lazy(
-  () => import("@/src/features/Jewelery/screens/JeweleryCheckoutScreen"),
+  () => import("@/src/features/Jewelery/checkout"),
 );
 const JeweleryCollectionsScreen = lazy(
-  () => import("@/src/features/Jewelery/screens/JeweleryCollectionsScreen"),
+  () => import("@/src/features/Jewelery/collections"),
 );
 const JeweleryProductDetailScreen = lazy(
-  () => import("@/src/features/Jewelery/screens/JeweleryProductDetailScreen"),
+  () => import("@/src/features/Jewelery/product-detail"),
 );
 const JeweleryAccountScreen = lazy(
-  () => import("@/src/features/Jewelery/screens/JeweleryAccountScreen"),
+  () => import("@/src/features/Jewelery/account"),
 );
 const JeweleryAddressFormScreen = lazy(
-  () => import("@/src/features/Jewelery/screens/JeweleryAddressFormScreen"),
+  () => import("@/src/features/Jewelery/address-form"),
 );
 const JeweleryAddressesScreen = lazy(
-  () => import("@/src/features/Jewelery/screens/JeweleryAddressesScreen"),
+  () => import("@/src/features/Jewelery/addresses"),
 );
 const JeweleryOrderDetailScreen = lazy(
-  () => import("@/src/features/Jewelery/screens/JeweleryOrderDetailScreen"),
+  () => import("@/src/features/Jewelery/order-detail"),
 );
 const JeweleryOrderSuccessScreen = lazy(
-  () => import("@/src/features/Jewelery/screens/JeweleryOrderSuccessScreen"),
+  () => import("@/src/features/Jewelery/order-success"),
 );
 const JeweleryOrdersScreen = lazy(
-  () => import("@/src/features/Jewelery/screens/JeweleryOrdersScreen"),
+  () => import("@/src/features/Jewelery/orders"),
 );
 const JewelerySearchScreen = lazy(
-  () => import("@/src/features/Jewelery/screens/JewelerySearchScreen"),
+  () => import("@/src/features/Jewelery/search"),
 );
 const JeweleryTryOnScreen = lazy(() =>
-  import("@/src/features/Jewelery/screens/JeweleryTryOnScreen").then((m) => ({
+  import("@/src/features/Jewelery/try-on").then((m) => ({
     default: m.JeweleryTryOnScreen,
   })),
 );
 const JeweleryWishlistScreen = lazy(
-  () => import("@/src/features/Jewelery/screens/JeweleryWishlistScreen"),
+  () => import("@/src/features/Jewelery/wishlist"),
 );
 const LocationDetailScreen = lazy(
   () => import("@/src/features/common/locations/screens/LocationDetailScreen"),

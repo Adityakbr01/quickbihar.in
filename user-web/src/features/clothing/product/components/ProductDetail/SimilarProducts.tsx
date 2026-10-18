@@ -2,7 +2,7 @@ import React from "react";
 import { Star } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { goTo } from "@/src/utils/navigation";
-import { IProduct } from "../../../types/product.types";
+import { IProduct } from "../../types/product.types";
 
 interface SimilarProductsProps {
   products: IProduct[];

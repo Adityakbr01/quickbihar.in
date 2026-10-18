@@ -5,8 +5,8 @@ import { Routes, Route } from "react-router-dom";
 import { renderWithProviders } from "@/src/test/test-utils";
 import OrderSuccessScreen from "@/src/features/common/order/screen/OrderSuccessScreen";
 import OrderDetailScreen from "@/src/features/common/order/screen/OrderDetailScreen";
-import JeweleryOrderSuccessScreen from "@/src/features/Jewelery/screens/JeweleryOrderSuccessScreen";
-import JeweleryOrderDetailScreen from "@/src/features/Jewelery/screens/JeweleryOrderDetailScreen";
+import JeweleryOrderSuccessScreen from "@/src/features/Jewelery/order-success";
+import JeweleryOrderDetailScreen from "@/src/features/Jewelery/order-detail";
 import * as orderApi from "@/src/features/common/order/api/order.api";
 
 // Mock LazyLottie to avoid canvas/svg issues in jsdom

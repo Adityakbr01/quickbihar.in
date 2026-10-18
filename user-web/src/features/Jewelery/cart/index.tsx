@@ -14,10 +14,6 @@ import { useTopPad } from "@/src/hooks/useTopPad";
 import { useCart } from "@/src/features/Jewelery/context/CartContext";
 import { useColors } from "@/src/features/Jewelery/hooks/useColors";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
-import {
-  filterItemsByModule,
-  useCartStore,
-} from "@/src/features/common/cart/store/cartStore";
 import { trackBeginCheckout } from "@/src/analytics/googleAnalytics";
 
 function resolveImgSrc(source: any): string {

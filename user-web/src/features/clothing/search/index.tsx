@@ -7,16 +7,16 @@ import * as Haptics from "@/lib/haptics";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import FilterBar, {
   SortOption,
-} from "@/src/features/clothing/search/components/FilterBar";
+} from "./components/FilterBar";
 import {
   SearchFilters,
   useSearchProducts,
-} from "@/src/features/clothing/search/hooks/useSearchProducts";
-import { categoriesData } from "@/src/features/clothing/home/lib/data";
-import SearchHeader from "@/src/features/clothing/search/components/SearchHeader";
-import RecentSearches from "@/src/features/clothing/search/components/RecentSearches";
-import TrendingSection from "@/src/features/clothing/search/components/TrendingSection";
-import SearchResults from "@/src/features/clothing/search/components/SearchResults";
+} from "./hooks/useSearchProducts";
+import { categoriesData } from "../home/lib/data";
+import SearchHeader from "./components/SearchHeader";
+import RecentSearches from "./components/RecentSearches";
+import TrendingSection from "./components/TrendingSection";
+import SearchResults from "./components/SearchResults";
 import { cn } from "@/src/lib/utils";
 import { trackSearchResults } from "@/src/analytics/googleAnalytics";
 

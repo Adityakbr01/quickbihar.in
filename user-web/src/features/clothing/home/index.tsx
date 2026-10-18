@@ -2,29 +2,29 @@ import HomeCategories from "@/src/features/common/category/components/HomeCatego
 import { cn } from "@/src/lib/utils";
 import { BREAKPOINTS, useWindowWidth } from "@/src/utils/responsive";
 import { Suspense, lazy, useCallback, useState } from "react";
-import HomeHeader from "../components/HomeHeader";
-import TopHomeCarousel from "../components/TopHomeCarousel";
-import { useMoreDealsLogic } from "../sections/useMoreDealsLogic";
+import HomeHeader from "./components/HomeHeader";
+import TopHomeCarousel from "./components/TopHomeCarousel";
+import { useMoreDealsLogic } from "./sections/useMoreDealsLogic";
 
 // Below-fold sections — lazy so the entry chunk stays lean (first paint is
 // hero carousel + categories only). Each fallback reserves vertical space to
 // keep CLS at 0 while the chunk loads.
-const TopMallSection = lazy(() => import("../sections/TopMallSection"));
-const TopSellingSection = lazy(() => import("../sections/TopSellingSection"));
-const MoreDealsHeader = lazy(() => import("../components/MoreDealsHeader"));
+const TopMallSection = lazy(() => import("./sections/TopMallSection"));
+const TopSellingSection = lazy(() => import("./sections/TopSellingSection"));
+const MoreDealsHeader = lazy(() => import("./components/MoreDealsHeader"));
 const MoreDealsFilters = lazy(() =>
-  import("../sections/MoreDealsSection").then((m) => ({
+  import("./sections/MoreDealsSection").then((m) => ({
     default: m.MoreDealsFilters,
   })),
 );
 const MoreDealsGrid = lazy(() =>
-  import("../sections/MoreDealsSection").then((m) => ({
+  import("./sections/MoreDealsSection").then((m) => ({
     default: m.MoreDealsGrid,
   })),
 );
-const DesktopFooter = lazy(() => import("../components/DesktopFooter"));
+const DesktopFooter = lazy(() => import("./components/DesktopFooter"));
 const HomeDeliveryLocations = lazy(
-  () => import("../components/HomeDeliveryLocations"),
+  () => import("./components/HomeDeliveryLocations"),
 );
 
 function SectionFallback({ minHeight }: { minHeight: number }) {

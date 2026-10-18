@@ -1,15 +1,21 @@
-import React from "react";
+import React, { act } from "react";
+import "@testing-library/jest-dom/vitest";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { screen, waitFor, fireEvent } from "@testing-library/react";
 import { renderWithProviders, LocationDisplay } from "@/src/test/test-utils";
 import { ProductCard } from "@/src/features/Jewelery/components/ProductCard";
-import JeweleryProductDetailScreen from "@/src/features/Jewelery/screens/JeweleryProductDetailScreen";
-import JeweleryCartScreen from "@/src/features/Jewelery/screens/JeweleryCartScreen";
+import JeweleryProductDetailScreen from "@/src/features/Jewelery/product-detail";
+import JeweleryCartScreen from "@/src/features/Jewelery/cart";
 import EmptyCart from "@/src/features/common/cart/components/EmptyCart";
 import { CartProvider } from "@/src/features/Jewelery/context/CartContext";
 import { useCartStore, filterItemsByModule } from "@/src/features/common/cart/store/cartStore";
 import { Route, Routes } from "react-router-dom";
 import type { Product } from "@/src/features/Jewelery/data/products";
+
+// Mock LazyLottie to avoid HTMLCanvasElement getContext warnings in JSDOM
+vi.mock("@/src/components/common/LazyLottie", () => ({
+  default: () => <div data-testid="lottie-mock" />,
+}));
 
 vi.mock("@/lib/haptics", () => ({
   notificationAsync: vi.fn(),
@@ -123,7 +129,9 @@ describe("Jewellery Add to Bag & Cart Flow", () => {
     const addButton = screen.getByRole("button", { name: /add to bag/i });
     expect(addButton).toBeInTheDocument();
 
-    fireEvent.click(addButton);
+    await act(async () => {
+      fireEvent.click(addButton);
+    });
 
     await waitFor(() => {
       expect(screen.getByText(/added ✓/i)).toBeInTheDocument();
@@ -156,7 +164,9 @@ describe("Jewellery Add to Bag & Cart Flow", () => {
     const addBtn = screen.getByRole("button", { name: /add to bag/i });
     expect(addBtn).toBeInTheDocument();
 
-    fireEvent.click(addBtn);
+    await act(async () => {
+      fireEvent.click(addBtn);
+    });
 
     await waitFor(() => {
       expect(screen.getByText(/go to cart →/i)).toBeInTheDocument();
@@ -167,7 +177,10 @@ describe("Jewellery Add to Bag & Cart Flow", () => {
     expect(jeweleryItems[0].productId).toBe(mockJeweleryProduct.id);
 
     // Clicking 'Go to Cart →' navigates to /jewelery/cart
-    fireEvent.click(screen.getByText(/go to cart →/i));
+    await act(async () => {
+      fireEvent.click(screen.getByText(/go to cart →/i));
+    });
+
     await waitFor(() => {
       expect(screen.getByTestId("jewelery-cart-page")).toBeInTheDocument();
     });
@@ -181,7 +194,9 @@ describe("Jewellery Add to Bag & Cart Flow", () => {
     );
 
     const addButton = screen.getByRole("button", { name: /add to bag/i });
-    fireEvent.click(addButton);
+    await act(async () => {
+      fireEvent.click(addButton);
+    });
 
     await waitFor(() => {
       expect(screen.getByText(/added ✓/i)).toBeInTheDocument();
@@ -214,7 +229,9 @@ describe("Jewellery Add to Bag & Cart Flow", () => {
 
     // Increment quantity
     const plusBtn = screen.getByLabelText(/increase quantity/i);
-    fireEvent.click(plusBtn);
+    await act(async () => {
+      fireEvent.click(plusBtn);
+    });
 
     await waitFor(() => {
       expect(screen.getByText("2")).toBeInTheDocument();
@@ -222,7 +239,9 @@ describe("Jewellery Add to Bag & Cart Flow", () => {
 
     // Remove item
     const removeBtn = screen.getByLabelText(/remove item/i);
-    fireEvent.click(removeBtn);
+    await act(async () => {
+      fireEvent.click(removeBtn);
+    });
 
     await waitFor(() => {
       expect(screen.getByText(/your cart is quiet/i)).toBeInTheDocument();

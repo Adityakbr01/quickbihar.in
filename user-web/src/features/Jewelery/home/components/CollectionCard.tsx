@@ -1,0 +1,71 @@
+import { Link } from "react-router-dom";
+import React from "react";
+import { cn } from "@/src/lib/utils";
+import type { CollectionCardProps } from "../types/home.types";
+
+function resolveSrc(source: any): string | undefined {
+  if (!source) return undefined;
+  if (typeof source === "string") return source;
+  if (typeof source === "object" && typeof source.uri === "string") return source.uri;
+  return source as any;
+}
+
+export function CollectionCard({
+  collection,
+  large = false,
+  style,
+}: CollectionCardProps) {
+  const src = resolveSrc(collection.image);
+
+  return (
+    <Link
+      to="/jewelery/collections"
+      aria-label={collection.name}
+      className={cn(
+        "relative cursor-pointer overflow-hidden rounded-[2px] text-left transition-opacity active:opacity-92",
+        large ? "h-[320px]" : "h-[152px]",
+      )}
+      style={style}
+    >
+      {src ? (
+        <img
+          src={src}
+          alt={`${collection.name} jewellery collection - Shop Online in Bihar`}
+          title={`${collection.name} | QuickBihar Jewellery`}
+          className="absolute inset-0 h-full w-full object-cover"
+          loading="lazy"
+          decoding="async"
+        />
+      ) : null}
+      <div className="absolute inset-0" style={{ backgroundColor: "rgba(26,22,20,0.28)" }} />
+      <div className="absolute right-0 bottom-0 left-0 flex flex-col gap-0.5 p-3.5">
+        <span
+          className="leading-[30px]"
+          style={{
+            color: "#F7F3EC",
+            fontFamily: "CormorantGaramond_500Medium_Italic",
+            fontSize: large ? 26 : 20,
+          }}
+        >
+          {collection.name}
+        </span>
+        {collection.pieceCount > 0 && (
+          <span
+            className="text-[11px] tracking-[0.3px]"
+            style={{ color: "rgba(247,243,236,0.7)", fontFamily: "DMSans_400Regular" }}
+          >
+            {collection.pieceCount} pieces
+          </span>
+        )}
+        <div className="mt-1">
+          <span
+            className="text-[11px] tracking-[1px]"
+            style={{ color: "#D4A85A", fontFamily: "DMSans_400Regular" }}
+          >
+            Explore →
+          </span>
+        </div>
+      </div>
+    </Link>
+  );
+}

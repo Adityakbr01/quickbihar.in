@@ -2,7 +2,7 @@ import React from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { screen, waitFor, fireEvent } from "@testing-library/react";
 import { renderWithProviders, LocationDisplay } from "@/src/test/test-utils";
-import JeweleryOrdersScreen from "@/src/features/Jewelery/screens/JeweleryOrdersScreen";
+import JeweleryOrdersScreen from "@/src/features/Jewelery/orders";
 import { orderHasModule, resolveOrderItemModule } from "@/src/features/common/order/lib/orderModule";
 
 vi.mock("@/src/features/common/order/api/order.api", () => ({

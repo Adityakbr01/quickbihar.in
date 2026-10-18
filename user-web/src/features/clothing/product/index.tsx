@@ -33,22 +33,22 @@ import {
   useProductReviews,
   useCreateProductReview,
   useVoteHelpfulReview,
-} from "../hooks/useProducts";
+} from "./hooks/useProducts";
 import { useQueryClient } from "@tanstack/react-query";
 import { socketClient } from "@/src/lib/socket";
 import { SocketEvents } from "@/src/constants/socketEvents";
 import { Link, useNavigate } from "react-router-dom";
 
-import { IProduct } from "../types/product.types";
+import { IProduct } from "./types/product.types";
 import Carousel from "@/src/components/common/EmblaCarousel";
 
 // --- Imports from modular structure ---
-import { ExpandableSection } from "./ProductDetail/components/ExpandableSection";
-import { RatingBar } from "./ProductDetail/components/RatingBar";
-import { SimilarProducts } from "./ProductDetail/components/SimilarProducts";
-import ProductDetailSkeleton from "./ProductDetail/components/ProductDetailSkeleton";
-import SizeChartModal from "../components/modals/SizeChartModal";
-import { WriteReviewModal } from "../components/modals/WriteReviewModal";
+import { ExpandableSection } from "./components/ProductDetail/ExpandableSection";
+import { RatingBar } from "./components/ProductDetail/RatingBar";
+import { SimilarProducts } from "./components/ProductDetail/SimilarProducts";
+import ProductDetailSkeleton from "./components/ProductDetail/ProductDetailSkeleton";
+import SizeChartModal from "./components/modals/SizeChartModal";
+import { WriteReviewModal } from "./components/modals/WriteReviewModal";
 import { useWishlistStore } from "@/src/features/common/wishlist/store/wishlistStore";
 import { useCartStore } from "@/src/features/common/cart/store/cartStore";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
