@@ -280,7 +280,7 @@ const AddressFormScreen = () => {
 
   return (
     <div
-      className="flex min-h-screen w-full flex-col items-center pb-[30px]"
+      className="flex min-h-screen w-full flex-col items-center pb-32 md:pb-12"
       style={{ backgroundColor: theme.background }}
     >
       {/* Top app bar (same style as Notifications & Saved Addresses) */}

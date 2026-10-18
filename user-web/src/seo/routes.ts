@@ -20,7 +20,6 @@ export const STATIC_ROUTES: StaticRoute[] = [
   { path: '/clothing/home', label: 'Home' },
   { path: '/top-selling', label: 'Top Selling' },
   { path: '/malls', label: 'Malls' },
-  { path: '/food', label: 'Food' },
   { path: '/jewelery', label: 'Jewellery' },
   { path: '/jewelery/collections', label: 'Jewellery Collections' },
   { path: '/locations/bihar/buxar', label: 'Buxar District Delivery Hub' },

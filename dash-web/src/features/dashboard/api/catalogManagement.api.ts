@@ -151,7 +151,7 @@ export interface ProductVariantPayload {
   sku?: string;
 }
 
-export type ProductVertical = "CLOTHING" | "FOOD" | "JEWELERY";
+export type ProductVertical = "CLOTHING" | "JEWELERY";
 
 export interface JeweleryDetailsPayload {
   metalType?: string;
@@ -197,13 +197,6 @@ export interface AdminProduct {
   totalStock?: number;
   vertical?: ProductVertical;
   jeweleryDetails?: JeweleryDetailsPayload;
-  foodDetails?: {
-    vegNonVeg?: string;
-    shelfLife?: string;
-    ingredients?: string[];
-    servingSize?: string;
-    calories?: number;
-  };
   sizeChartId?: string | AdminSizeChart;
   isGstApplicable?: boolean;
   gstPercentage?: number;
@@ -271,13 +264,6 @@ export interface ProductPayload {
   variants: ProductVariantPayload[];
   vertical?: ProductVertical;
   jeweleryDetails?: JeweleryDetailsPayload;
-  foodDetails?: {
-    vegNonVeg?: string;
-    shelfLife?: string;
-    ingredients?: string[];
-    servingSize?: string;
-    calories?: number;
-  };
   details?: {
     sku?: string;
     fit?: string;
@@ -490,7 +476,6 @@ const productFormData = (payload: ProductPayload, images?: File[]) => {
   appendOptional(formData, "variants", payload.variants);
   appendOptional(formData, "vertical", payload.vertical);
   appendOptional(formData, "jeweleryDetails", payload.jeweleryDetails);
-  appendOptional(formData, "foodDetails", payload.foodDetails);
   appendOptional(formData, "details", payload.details);
   appendOptional(formData, "tags", payload.tags);
   appendOptional(formData, "seo", payload.seo);

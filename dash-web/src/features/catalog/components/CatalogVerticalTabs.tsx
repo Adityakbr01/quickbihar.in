@@ -18,7 +18,8 @@ export function CatalogVerticalTabs({ value, onChange, disabled }: CatalogVertic
       <div
         role="tablist"
         aria-label="Product catalog"
-        className="grid grid-cols-3 gap-1 rounded-lg border border-border bg-muted p-1"
+        className="grid gap-1 rounded-lg border border-border bg-muted p-1"
+        style={{ gridTemplateColumns: `repeat(${CATALOG_VERTICALS.length}, minmax(0, 1fr))` }}
       >
         {CATALOG_VERTICALS.map((tab) => {
           const active = tab.value === value;

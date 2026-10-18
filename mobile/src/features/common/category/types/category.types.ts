@@ -11,7 +11,7 @@ export interface Category {
     isVisibleOnHome?: boolean;
     homePosition?: number;
     parentId?: string;
-    vertical?: "CLOTHING" | "FOOD" | "JEWELERY" | "GLOBAL" | string;
+    vertical?: "CLOTHING" | "JEWELERY" | "GLOBAL" | string;
     createdAt: string;
     updatedAt: string;
 }

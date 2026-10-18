@@ -54,7 +54,7 @@ export class OrderController {
     });
 
     static getMyOrders = asyncHandler(async (req, res) => {
-        const result = await orderService.getMyOrders((req as any).user._id);
+        const result = await orderService.getMyOrders((req as any).user._id, req.query);
 
         return res.status(200).json(
             new ApiResponse(200, result, "Orders fetched successfully")

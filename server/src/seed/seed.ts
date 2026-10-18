@@ -746,7 +746,7 @@ export const seedRbac = async () => {
 
 export const syncProductVerticals = async () => {
     try {
-        console.log("🌱 Synchronizing Product Verticals (CLOTHING, JEWELERY, FOOD)...");
+        console.log("🌱 Synchronizing Product Verticals (CLOTHING, JEWELERY)...");
         // Update all jewellery products in database so vertical is set to JEWELERY
         await Product.updateMany(
             {
@@ -756,17 +756,6 @@ export const syncProductVerticals = async () => {
                 ],
             },
             { $set: { vertical: "JEWELERY" } }
-        );
-
-        // Update all food products in database so vertical is set to FOOD
-        await Product.updateMany(
-            {
-                $or: [
-                    { category: { $regex: /food|grocery|beverage|snack|sweet/i } },
-                    { subCategory: { $regex: /food|grocery|beverage|snack|sweet/i } },
-                ],
-            },
-            { $set: { vertical: "FOOD" } }
         );
 
         // Update all jewellery categories in database so vertical is set to JEWELERY

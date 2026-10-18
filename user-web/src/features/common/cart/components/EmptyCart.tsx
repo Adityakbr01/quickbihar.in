@@ -6,16 +6,23 @@ import LazyLottie from "@/src/components/common/LazyLottie";
 import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 
 import { ShoppingBag } from "lucide-react";
+import {
+  filterItemsByModule,
+  useCartStore,
+} from "@/src/features/common/cart/store/cartStore";
 
 const cartLottie = "/lottie/shoppingCart.json";
 
 const EmptyCart = () => {
   const theme = useTheme() as any;
   const navigate = useNavigate();
+  const jeweleryCount = useCartStore(
+    (s) => filterItemsByModule(s.items, "jewelery").length,
+  );
 
   const handleShopNow = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    goTo(navigate, "/(tabs)/clothing/home" as any);
+    goTo(navigate, "/clothing/home" as any);
   };
 
   return (
@@ -46,6 +53,31 @@ const EmptyCart = () => {
         <ShoppingBag size={18} color="#fff" />
         <span className="text-[15px] font-extrabold text-white">Continue Shopping</span>
       </button>
+
+      {jeweleryCount > 0 && (
+        <div
+          className="mt-6 flex max-w-sm flex-col items-center gap-2 rounded-2xl border p-4 text-center"
+          style={{
+            backgroundColor: theme.tertiaryBackground,
+            borderColor: theme.border,
+          }}
+        >
+          <span
+            className="text-[13px] font-semibold"
+            style={{ color: theme.text }}
+          >
+            You have {jeweleryCount} item{jeweleryCount !== 1 ? "s" : ""} in your Jewellery Bag
+          </span>
+          <button
+            type="button"
+            onClick={() => goTo(navigate, "/jewelery/cart")}
+            className="cursor-pointer text-xs font-bold underline"
+            style={{ color: theme.primary }}
+          >
+            Go to Jewellery Bag →
+          </button>
+        </div>
+      )}
     </div>
   );
 };

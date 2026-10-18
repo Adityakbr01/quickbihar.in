@@ -214,6 +214,9 @@ export const useCartStore = create<CartState>()(
       discountAmount: 0,
 
       addItem: async (product, sku, quantity = 1, module: CartModule = "clothing") => {
+        if (quantity <= 0) return;
+        if (get().isLoading) return;
+
         const { isAuthenticated } = useAuthStore.getState();
         const { items } = get();
         const previousItems = items;
@@ -225,8 +228,10 @@ export const useCartStore = create<CartState>()(
         let newItems = [...items];
 
         if (existingItem) {
+          const maxStock = existingItem.availableStock;
+          const updatedQty = maxStock ? Math.min(existingItem.quantity + quantity, maxStock) : existingItem.quantity + quantity;
           newItems = items.map((item) =>
-            item.sku === sku ? { ...item, quantity: item.quantity + quantity } : item
+            item.sku === sku ? { ...item, quantity: updatedQty } : item
           );
         } else {
           const variant = product.variants?.find((v: any) => v.sku === sku);
@@ -237,6 +242,7 @@ export const useCartStore = create<CartState>()(
           const gstPercent = product.gstPercentage || 0;
           const itemPrice = Math.round(isGst ? basePrice * (1 + gstPercent / 100) : basePrice);
           const taxAmount = Math.round(itemPrice - basePrice);
+          const stock = variant?.stock ?? product.totalStock ?? product.stock;
 
           const newItem: CartItem = {
             productId: typeof product._id === 'object' ? product._id.toString() : (product._id || product.id),
@@ -250,6 +256,8 @@ export const useCartStore = create<CartState>()(
             image: product.images?.[0]?.url || product.image,
             selectedSize: variant?.size,
             selectedColor: variant?.color,
+            availableStock: typeof stock === 'number' ? stock : undefined,
+            stockStatus: typeof stock === 'number' && stock <= 0 ? "OUT_OF_STOCK" : typeof stock === 'number' && stock <= 3 ? "LOW_STOCK" : "IN_STOCK",
             sellerId: product.sellerId || product.seller?._id || product.seller,
             storeId: product.storeId || product.store?._id || product.store,
           };
@@ -272,6 +280,7 @@ export const useCartStore = create<CartState>()(
           itemCount: newItems.length,
           subtotal: newSubtotal,
           totalTax: newTotalTax,
+          isLoading: true,
           error: null,
         });
         if (get().appliedCoupons.length > 0) await get().revalidateCoupon();
@@ -282,6 +291,7 @@ export const useCartStore = create<CartState>()(
         if (!isAuthenticated) {
           const guestAddedLine = get().items.find((i) => i.sku === sku);
           if (guestAddedLine) trackAddToCartLine({ ...guestAddedLine, quantity });
+          set({ isLoading: false });
           return;
         }
 
@@ -308,6 +318,8 @@ export const useCartStore = create<CartState>()(
           });
           if (get().appliedCoupons.length > 0) await get().revalidateCoupon();
           throw error;
+        } finally {
+          set({ isLoading: false });
         }
       },
 
@@ -405,8 +417,18 @@ export const useCartStore = create<CartState>()(
       },
 
       updateQuantity: async (sku, quantity) => {
+        if (quantity < 1) {
+          return get().removeItem(sku);
+        }
+
         const { isAuthenticated } = useAuthStore.getState();
         const { items } = get();
+        const targetItem = items.find((item) => item.sku === sku);
+        if (!targetItem) return;
+
+        const maxStock = targetItem.availableStock;
+        const validQuantity = maxStock ? Math.min(quantity, maxStock) : quantity;
+
         const previousItems = items;
         const previousSubtotal = get().subtotal;
         const previousTotalTax = get().totalTax;
@@ -418,7 +440,7 @@ export const useCartStore = create<CartState>()(
         // the AnimatedPrice counters and the "You saved" line reflect the
         // new value on the very next paint.
         const newItems = items.map((item) =>
-          item.sku === sku ? { ...item, quantity } : item,
+          item.sku === sku ? { ...item, quantity: validQuantity } : item,
         );
         const newSubtotal = Math.round(
           newItems.reduce((acc, item) => acc + (item.price || 0) * item.quantity, 0),

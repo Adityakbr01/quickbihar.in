@@ -29,7 +29,6 @@ const STATIC_PATHS = [
     "/",
     "/top-selling",
     "/malls",
-    "/food",
     "/jewelery",
     "/jewelery/collections",
 ];

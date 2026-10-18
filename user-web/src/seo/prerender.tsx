@@ -25,7 +25,6 @@ import categoriesCatalog from '../data/categories-static.json';
 import { SITE_LANGUAGE, SITE_NAME, getCanonicalUrl } from './site';
 import {
   categoryMeta,
-  foodMeta,
   homeMeta,
   jeweleryCollectionsMeta,
   jeweleryMeta,
@@ -48,7 +47,6 @@ import {
   mallSchema,
   organizationSchema,
   productSchema,
-  restaurantSchema,
   storeSchema,
   webPageSchema,
   websiteSchema,
@@ -246,7 +244,6 @@ function Shell({
           <a href="/top-selling" style={{ color: "#4f46e5" }}>Top Selling</a>
           <a href="/malls" style={{ color: "#4f46e5" }}>Shopping Malls</a>
           <a href="/jewelery" style={{ color: "#4f46e5" }}>Jewellery</a>
-          <a href="/food" style={{ color: "#4f46e5" }}>Food Delivery</a>
         </nav>
       </header>
 
@@ -623,18 +620,6 @@ export async function prerender(data: { url: string }) {
         if (mallList) schemas.push(mallList);
         break;
       }
-      case '/food':
-        meta = foodMeta();
-        heading = 'Order Food Online in Bihar';
-        schemas.push(
-          restaurantSchema(meta.canonical),
-          webPageSchema('/food', meta.title, meta.description),
-          breadcrumbSchema([
-            { name: 'Home', path: '/' },
-            { name: 'Food', path: '/food' },
-          ]),
-        );
-        break;
       case '/jewelery':
         meta = jeweleryMeta();
         heading = 'Buy Jewellery Online in Bihar';

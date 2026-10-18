@@ -31,7 +31,7 @@ export interface SellerApplicationPayload {
   documents: OnboardingDocument[];
   details: {
     businessName: string;
-    sellerType: "CLOTHING" | "FOOD" | "JEWELERY";
+    sellerType: "CLOTHING" | "JEWELERY";
     gstNumber?: string;
     bankDetails?: {
       accountNumber: string;

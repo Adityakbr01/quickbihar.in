@@ -8,7 +8,7 @@
  * never need to import anything from seo/.
  *
  * Static routes  → meta builders from `./meta` + vertical entities
- *                  (JewelryStore, Restaurant, FAQPage, CollectionPage)
+ *                  (JewelryStore, FAQPage, CollectionPage)
  * Dynamic routes → hooks (React Query deduplicates with screens,
  *                  so NO extra API calls are made)
  * Private routes → <NoIndexHead /> (auth / cart / checkout / account)
@@ -20,7 +20,6 @@ import { isNoIndexPath } from './routes';
 import { getCanonicalUrl } from './site';
 import {
   categoryMeta,
-  foodMeta,
   homeMeta,
   jeweleryCollectionsMeta,
   jeweleryMeta,
@@ -42,7 +41,6 @@ import {
   mallSchema,
   organizationSchema,
   productSchema,
-  restaurantSchema,
   storeSchema,
   webPageSchema,
   websiteSchema,
@@ -361,23 +359,6 @@ export default function SeoRouter() {
 
     case '/malls':
       return <MallsSeo />;
-
-    case '/food': {      const food = foodMeta();
-      return (
-        <SeoHead
-          meta={food}
-          jsonLd={[
-            organizationSchema(),
-            restaurantSchema(food.canonical),
-            webPageSchema('/food', food.title, food.description),
-            breadcrumbSchema([
-              { name: 'Home', path: '/' },
-              { name: 'Food', path: '/food' },
-            ]),
-          ]}
-        />
-      );
-    }
 
     case '/jewelery': {
       const jewel = jeweleryMeta();

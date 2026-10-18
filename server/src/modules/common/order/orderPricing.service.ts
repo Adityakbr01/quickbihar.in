@@ -347,6 +347,7 @@ export class OrderPricingService {
                 storeId: toObjectId(rawStoreId),
                 sellerSubtotal: itemSubtotal,
                 settlementStatus: "PENDING",
+                vertical: ((product as any).vertical || ((product as any).jeweleryDetails ? "JEWELERY" : "CLOTHING")) as "CLOTHING" | "JEWELERY",
                 basePrice,
                 taxAmount,
                 isGstApplicable: product.isGstApplicable,

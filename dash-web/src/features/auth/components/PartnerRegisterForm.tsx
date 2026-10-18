@@ -62,7 +62,7 @@ export default function PartnerRegisterForm({ mode }: { mode: PartnerMode }) {
     phone: user?.phone || "",
     // Seller fields
     businessName: "",
-    sellerType: "CLOTHING" as "CLOTHING" | "FOOD" | "JEWELERY",
+    sellerType: "CLOTHING" as "CLOTHING" | "JEWELERY",
     gstNumber: "",
     // Rider fields
     vehicleType: "",
@@ -728,7 +728,6 @@ function SellerFields({
             className={selectClass}
           >
             <option value="CLOTHING">Clothing & Apparel</option>
-            <option value="FOOD">Food & Grocery</option>
             <option value="JEWELERY">Jewelry & Luxury</option>
           </select>
         </div>

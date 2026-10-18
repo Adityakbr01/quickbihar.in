@@ -26,9 +26,9 @@ export default function JeweleryOrdersScreen() {
   const fetchOrders = async () => {
     try {
       setIsLoading(true);
-      const res = await getMyOrdersRequest();
-      // Jewellery catalogue shows jewellery orders only — clothing
-      // orders live in the clothing order history.
+      const res = await getMyOrdersRequest({ vertical: "JEWELERY" });
+      // Dual protection: backend filters by vertical, and client confirms
+      // jewellery module identity to guarantee zero cross-vertical leakage.
       setOrders((res.data || []).filter((o: any) => orderHasModule(o, "jewelery")));
     } catch (e) {
       console.error("Failed to fetch jewelry orders:", e);
@@ -117,7 +117,7 @@ export default function JeweleryOrdersScreen() {
           type="button"
           onClick={() => {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            goBack(navigate, "/jewelery/(tabs)/profile");
+            goBack(navigate, "/jewelery/profile");
           }}
           aria-label="Go back"
           className="flex h-9 w-9 cursor-pointer items-center justify-center"
@@ -148,7 +148,7 @@ export default function JeweleryOrdersScreen() {
         <Package size={16} color={colors.gold} />
       </div>
 
-      <div className="overflow-auto p-4" style={{ paddingBottom: bottomPad + 40 }}>
+      <div className="overflow-auto p-4 pb-32 md:pb-16">
         {isLoading ? (
           <div className="flex flex-col items-center justify-center gap-3 py-[60px]">
             <span
@@ -179,7 +179,7 @@ export default function JeweleryOrdersScreen() {
                     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                     goTo(navigate, {
                       pathname: "/jewelery/orders/[id]" as any,
-                      params: { id: order.orderId },
+                      params: { id: order.orderId || order._id },
                     });
                   }}
                   className="w-full cursor-pointer rounded-[3px] border p-4 text-left shadow-sm"
@@ -238,7 +238,28 @@ export default function JeweleryOrdersScreen() {
                   />
 
                   {/* Items Preview */}
-                  <div className="flex flex-row items-center gap-3">
+                  <div
+                    className="flex flex-row items-center gap-3 cursor-pointer rounded p-1 hover:bg-black/5"
+                    onClick={(e) => {
+                      const firstItem = order.items?.[0];
+                      const prod =
+                        firstItem?.productId && typeof firstItem.productId === "object"
+                          ? firstItem.productId
+                          : null;
+                      const rawProdId =
+                        prod?.slug || prod?._id || firstItem?.productId || firstItem?._id;
+                      const prodId = typeof rawProdId === "object" ? rawProdId?._id : rawProdId;
+                      const prodIdStr = prodId ? String(prodId) : "";
+                      if (prodIdStr && prodIdStr !== "[object Object]") {
+                        e.stopPropagation();
+                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        goTo(navigate, {
+                          pathname: "/jewelery/product/[id]" as any,
+                          params: { id: prodIdStr },
+                        });
+                      }
+                    }}
+                  >
                     <div
                       className="flex h-9 w-9 items-center justify-center rounded-full"
                       style={{ backgroundColor: colors.champagne }}
@@ -247,7 +268,7 @@ export default function JeweleryOrdersScreen() {
                     </div>
                     <div className="min-w-0 flex-1">
                       <span
-                        className="mb-[2px] block truncate text-[15px]"
+                        className="mb-[2px] block truncate text-[15px] hover:underline"
                         style={{
                           color: colors.ink,
                           fontFamily: "CormorantGaramond_500Medium_Italic",
@@ -352,7 +373,7 @@ export default function JeweleryOrdersScreen() {
               type="button"
               onClick={() => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                replaceTo(navigate, "/jewelery/(tabs)/collections" as any);
+                replaceTo(navigate, "/jewelery/collections" as any);
               }}
               className="flex cursor-pointer flex-row items-center justify-center gap-2 rounded-[2px] px-6 py-[14px]"
               style={{ backgroundColor: colors.gold }}

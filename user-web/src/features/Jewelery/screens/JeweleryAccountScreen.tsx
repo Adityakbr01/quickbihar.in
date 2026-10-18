@@ -10,6 +10,7 @@ import { JEWELERY_MODULE_CONFIG, APP_COUNTRY_CODE, APP_NAME, SUPPORT_WHATSAPP_IN
 import { useAuth } from "@/src/features/Jewelery/context/AuthContext";
 import { useCart } from "@/src/features/Jewelery/context/CartContext";
 import { getMyOrdersRequest } from "@/src/features/common/order/api/order.api";
+import { orderHasModule } from "@/src/features/common/order/lib/orderModule";
 import { logoutRequest } from "@/src/features/common/auth/api/auth.api";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
 import { useCartStore } from "@/src/features/common/cart/store/cartStore";
@@ -203,10 +204,12 @@ export default function JeweleryAccountScreen() {
   const TERMINAL_ORDER_STATUS = ["DELIVERED", "CANCELLED", "REFUNDED", "REJECTED", "FAILED"];
   const { data: ordersResp } = useQuery({
     queryKey: ["jewelery-account-orders"],
-    queryFn: getMyOrdersRequest,
+    queryFn: () => getMyOrdersRequest({ vertical: "JEWELERY" }),
     enabled: !!user,
   });
-  const realOrders: any[] = (ordersResp as any)?.data ?? [];
+  const realOrders: any[] = ((ordersResp as any)?.data ?? []).filter((o: any) =>
+    orderHasModule(o, "jewelery"),
+  );
   const activeOrders = realOrders.filter(
     (o) => !TERMINAL_ORDER_STATUS.includes(o.status),
   );
@@ -268,7 +271,7 @@ export default function JeweleryAccountScreen() {
         )}
       </div>
 
-      <div className="overflow-auto" style={{ paddingBottom: bottomPad + 24 }}>
+      <div className="flex-1 pb-[calc(60px+env(safe-area-inset-bottom)+2.5rem)] md:pb-16">
         {user ? (
           /* ── SIGNED IN ─────────────────────────── */
           <>
@@ -361,7 +364,7 @@ export default function JeweleryAccountScreen() {
                 {
                   label: "Wishlist",
                   value: String(wishlist.length),
-                  onPress: () => goTo(navigate, "/jewelery/(tabs)/wishlist" as any),
+                  onPress: () => goTo(navigate, "/jewelery/wishlist" as any),
                 },
               ].map((s, i) => (
                 <React.Fragment key={s.label}>
@@ -437,12 +440,17 @@ export default function JeweleryAccountScreen() {
               <MenuItem icon={Heart}
                 label="Wishlist"
                 sub="Pieces you've saved"
-                route="/jewelery/(tabs)/wishlist"
+                route="/jewelery/wishlist"
               />
               <MenuItem icon={MapPin}
                 label="Saved Addresses"
                 sub="Manage delivery addresses"
                 route="/jewelery/addresses"
+              />
+              <MenuItem icon={User}
+                label="Profile Information"
+                sub="Personal details and contact info"
+                route="/jewelery/profile-info"
               />
               <MenuItem icon={Key}
                 label="Password & Email Setup"

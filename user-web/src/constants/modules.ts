@@ -1,6 +1,6 @@
 import type { LucideIcon } from "lucide-react";
-import { Shirt, Sparkles, Sandwich } from "lucide-react";
-export type ModuleId = "clothing" | "food" | "jewelery";
+import { Shirt, Sparkles } from "lucide-react";
+export type ModuleId = "clothing" | "jewelery";
 
 export interface AppModule {
   id: ModuleId;
@@ -27,13 +27,5 @@ export const APP_MODULES: AppModule[] = [
     iconName: Sparkles,
     badgeColor: "#D97706",
     route: "/jewelery",
-  },
-  {
-    id: "food",
-    name: "Food",
-    label: "Food",
-    iconName: Sandwich,
-    badgeColor: "#E11D48",
-    route: "/food",
   },
 ];

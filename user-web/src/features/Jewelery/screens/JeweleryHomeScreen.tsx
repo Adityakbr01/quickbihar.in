@@ -83,7 +83,7 @@ function AnnouncementBar() {
       style={{ backgroundColor: bg }}
     >
       <span
-        className="px-4 text-center text-[10px] tracking-[0.8px]"
+        className="px-4 text-nowrap text-center text-[8px] tracking-[0.8px]"
         style={{ color: textColor, fontFamily: "DMSans_400Regular" }}
       >
         Free shipping above {APP_CURRENCY}
@@ -332,6 +332,7 @@ function NewArrivals() {
 }
 
 function OccasionsSection() {
+  const navigate = useNavigate();
   const colors = useColors();
   return (
     <div className="p-5" style={{ backgroundColor: colors.ivory }}>
@@ -347,9 +348,10 @@ function OccasionsSection() {
               borderWidth: 1,
               backgroundColor: "transparent",
             }}
-            onClick={() =>
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-            }
+            onClick={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              goTo(navigate, `/jewelery/search?query=${encodeURIComponent(o.label)}` as any);
+            }}
           >
             <o.icon size={13} color={colors.gold} />
             <span
@@ -369,6 +371,7 @@ function OccasionsSection() {
 }
 
 function HeritageSection() {
+  const navigate = useNavigate();
   const colors = useColors();
   return (
     <div style={{ backgroundColor: colors.pearl }}>
@@ -402,13 +405,16 @@ function HeritageSection() {
         <button
           type="button"
           className="cursor-pointer self-start"
-          onClick={() => {}}
+          onClick={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            goTo(navigate, "/jewelery/collections" as any);
+          }}
         >
           <span
             className="text-xs tracking-[1px]"
             style={{ color: colors.gold, fontFamily: "DMSans_400Regular" }}
           >
-            Read Our Story →
+            Explore Our Craft →
           </span>
         </button>
       </div>
@@ -537,6 +543,7 @@ function TestimonialsSection() {
 }
 
 function GiftingSection() {
+  const navigate = useNavigate();
   const colors = useColors();
   return (
     <div
@@ -573,6 +580,10 @@ function GiftingSection() {
           borderWidth: 1,
           backgroundColor: "transparent",
         }}
+        onClick={() => {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          goTo(navigate, "/jewelery/collections" as any);
+        }}
       >
         <span
           className="text-xs tracking-[1px]"
@@ -595,8 +606,8 @@ function FaqSection() {
         className="mt-1 text-[13px] leading-5"
         style={{ color: colors.warmGray, fontFamily: "DMSans_300Light" }}
       >
-        BIS-hallmarked gold, Cash on Delivery and home delivery in Buxar, Bihar —
-        बक्सर में सोने के गहने ऑनलाइन ऑर्डर करें।
+        BIS-hallmarked gold, Cash on Delivery and home delivery in Buxar, Bihar
+        — बक्सर में सोने के गहने ऑनलाइन ऑर्डर करें।
       </p>
       <div className="mt-4 flex flex-col gap-2">
         {FAQS.map((f, idx) => {
@@ -626,7 +637,10 @@ function FaqSection() {
               {isOpen ? (
                 <p
                   className="px-4 pb-4 text-[13px] leading-6"
-                  style={{ color: colors.warmGray, fontFamily: "DMSans_300Light" }}
+                  style={{
+                    color: colors.warmGray,
+                    fontFamily: "DMSans_300Light",
+                  }}
                 >
                   {f.a}
                 </p>
@@ -825,10 +839,11 @@ export default function JeweleryHomeScreen() {
     >
       {/* Single H1 per page (audit: missing-h1) — matches prerender shell. */}
       <h1 className="sr-only">
-        Buy Jewellery Online in Buxar, Bihar — BIS-Hallmarked Gold with Home Delivery | QuickBihar
+        Buy Jewellery Online in Buxar, Bihar — BIS-Hallmarked Gold with Home
+        Delivery | QuickBihar
       </h1>
       <Header />
-      <div className="overflow-y-auto" style={{ paddingBottom: 110 }}>
+      <div className="flex-1 pb-[calc(60px+env(safe-area-inset-bottom)+2rem)] md:pb-16">
         <AnnouncementBar />
         <HeroCarousel items={heroItems} />
         <BrandPillars />

@@ -849,26 +849,6 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id, initialProduct 
                 ))}
             </View>
 
-            {/* Food Specifications if present */}
-            {dp.foodDetails && (
-              <View style={[s.specsTable, { marginTop: 10 }]}>
-                {[
-                  { k: "Food Type", v: dp.foodDetails.vegNonVeg },
-                  { k: "Shelf Life", v: dp.foodDetails.shelfLife },
-                  { k: "Serving Size", v: dp.foodDetails.servingSize },
-                  { k: "Calories", v: dp.foodDetails.calories ? `${dp.foodDetails.calories} kcal` : undefined },
-                  { k: "Ingredients", v: dp.foodDetails.ingredients?.join(", ") },
-                ]
-                  .filter((x) => Boolean(x.v))
-                  .map((spec, i) => (
-                    <View key={i} style={[s.specTableRow, { borderBottomColor: theme.border }]}>
-                      <Text style={[s.specKey, { color: theme.secondaryText }]}>{spec.k}</Text>
-                      <Text style={[s.specVal, { color: theme.text }]}>{spec.v}</Text>
-                    </View>
-                  ))}
-              </View>
-            )}
-
             {/* Jewelry Specifications if present */}
             {dp.jeweleryDetails && (
               <View style={[s.specsTable, { marginTop: 10 }]}>

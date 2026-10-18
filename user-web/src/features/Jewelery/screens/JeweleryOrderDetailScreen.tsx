@@ -87,6 +87,10 @@ export default function JeweleryOrderDetailScreen() {
     if (!order) return;
     // Share only this catalogue's pieces.
     const shareItems = jeweleryItems;
+    const isCod =
+      order.paymentInfo?.razorpayOrderId === "COD" ||
+      order.paymentMethod === "COD" ||
+      Boolean(order.subOrders?.some((s: any) => s.packageDetails?.isCod));
     try {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       const itemsText = shareItems
@@ -104,7 +108,7 @@ export default function JeweleryOrderDetailScreen() {
         `Order #${order.orderId}\n` +
         `Status: ${order.status}\n\n` +
         `Items:\n${itemsText}\n\n` +
-        `Total Paid: ${APP_CURRENCY}${(order.payableAmount || 0).toLocaleString("en-IN")}\n` +
+        `${isCod ? "Pay on Delivery:" : "Total Paid:"} ${APP_CURRENCY}${(order.payableAmount || 0).toLocaleString("en-IN")}\n` +
         `Thank you for acquiring our fine jewellery.`;
       if (navigator.share) {
         await navigator.share({ title, text });
@@ -120,12 +124,13 @@ export default function JeweleryOrderDetailScreen() {
       item.productId && typeof item.productId === "object"
         ? item.productId
         : null;
-    const prodId = prod?.slug || prod?._id || item.productId || item._id;
-    if (prodId && typeof prodId === "string") {
+    const rawId = prod?.slug || prod?._id || item.productId || item._id;
+    const prodId = typeof rawId === "object" ? rawId?._id : rawId;
+    if (prodId) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       goTo(navigate, {
         pathname: "/jewelery/product/[id]" as any,
-        params: { id: prodId },
+        params: { id: String(prodId) },
       });
     }
   };

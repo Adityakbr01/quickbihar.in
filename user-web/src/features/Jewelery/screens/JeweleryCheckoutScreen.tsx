@@ -760,13 +760,12 @@ export default function JeweleryCheckoutScreen() {
 
       {/* Footer CTA */}
       <div
-        className="fixed inset-x-0 z-40 px-5 pt-3.5"
+        className="fixed inset-x-0 z-40 px-5 pt-3.5 pb-3.5 shadow-[0_-4px_12px_rgba(0,0,0,0.06)]"
         style={{
           bottom: stickyBottom,
           backgroundColor: colors.ivory,
           borderTopColor: colors.midGray,
           borderTopWidth: 1,
-          paddingBottom: bottomPad + 16,
         }}
       >
         <button

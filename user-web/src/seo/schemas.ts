@@ -20,7 +20,6 @@ import type {
   Organization,
   PostalAddress,
   Product,
-  Restaurant,
   ShoppingCenter,
   Thing,
   WebPage,
@@ -296,21 +295,6 @@ export function jewelryStoreSchema(canonical: string): JewelryStore {
     priceRange: '₹₹₹',
     paymentAccepted: ['Cash', 'Credit Card', 'Debit Card', 'UPI'],
     currenciesAccepted: 'INR',
-    address: hubAddress(),
-  };
-}
-
-/** QuickBihar Food ordering entity (local restaurants, hyperlocal delivery). */
-export function restaurantSchema(canonical: string): Restaurant {
-  return {
-    '@type': 'Restaurant',
-    '@id': `${getSiteOrigin()}/food#restaurant`,
-    name: `${SITE_NAME} Food`,
-    url: canonical,
-    description: `${SITE_NAME} Food — order from local restaurants & kitchens in Bihar. Hot, fast hyperlocal delivery to your doorstep.`,
-    servesCuisine: ['Bihari', 'North Indian', 'Biryani', 'Chinese', 'Snacks'],
-    priceRange: '₹',
-    telephone: SITE_CONTACT_PHONE,
     address: hubAddress(),
   };
 }

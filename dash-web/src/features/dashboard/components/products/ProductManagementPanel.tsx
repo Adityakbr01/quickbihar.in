@@ -32,7 +32,6 @@ import {
 } from "../../api/catalogManagement.api";
 import { CatalogVerticalTabs } from "@/features/catalog/components/CatalogVerticalTabs";
 import {
-  FOOD_TYPES,
   toCatalogVertical,
   type CatalogVertical,
 } from "@/features/catalog/lib/catalogVerticals";
@@ -141,7 +140,6 @@ export function ProductManagementPanel({
             >
               <option value="">All verticals</option>
               <option value="CLOTHING">Clothing</option>
-              <option value="FOOD">Food</option>
               <option value="JEWELERY">Jewelry</option>
             </select>
             <Button
@@ -475,13 +473,6 @@ function ProductForm({
   );
   const [certNo, setCertNo] = useState(product?.jeweleryDetails?.certNo || "");
   const [certUrl, setCertUrl] = useState(product?.jeweleryDetails?.certUrl || "");
-  const [vegNonVeg, setVegNonVeg] = useState(product?.foodDetails?.vegNonVeg || "");
-  const [shelfLife, setShelfLife] = useState(product?.foodDetails?.shelfLife || "");
-  const [ingredients, setIngredients] = useState((product?.foodDetails?.ingredients || []).join(", "));
-  const [servingSize, setServingSize] = useState(product?.foodDetails?.servingSize || "");
-  const [calories, setCalories] = useState(
-    product?.foodDetails?.calories != null ? String(product.foodDetails.calories) : "",
-  );
   const [description, setDescription] = useState(product?.description || "");
   const [shortDescription, setShortDescription] = useState(
     product?.shortDescription || "",
@@ -724,16 +715,6 @@ function ProductForm({
                 certUrl: optionalValue(certUrl),
               }
             : undefined,
-        foodDetails:
-          vertical === "FOOD"
-            ? {
-                vegNonVeg: vegNonVeg || undefined,
-                shelfLife: optionalValue(shelfLife),
-                ingredients: splitCsv(ingredients),
-                servingSize: optionalValue(servingSize),
-                calories: numericOrUndefined(calories),
-              }
-            : undefined,
         description: optionalValue(description),
         shortDescription: optionalValue(shortDescription),
         price: Number(price),
@@ -902,7 +883,7 @@ function ProductForm({
           <ProductField
             label="Catalog"
             required
-            helper="Clothing, Jewelry or Food — each shows its own tailored section below."
+            helper="Clothing or Jewelry — each shows its own tailored section below."
           >
             <CatalogVerticalTabs value={vertical} onChange={setVertical} />
           </ProductField>
@@ -1030,59 +1011,6 @@ function ProductForm({
               <span>Hallmarked</span>
               <Switch checked={hallmark} onCheckedChange={setHallmark} />
             </div>
-          </div>
-        )}
-
-        {vertical === "FOOD" && (
-          <div className="grid gap-3 md:grid-cols-4">
-            <ProductField label="Veg / Non-Veg" helper="Food type.">
-              <select
-                value={vegNonVeg}
-                onChange={(event) => setVegNonVeg(event.target.value)}
-                className={selectClass}
-              >
-                <option value="">Select type</option>
-                {FOOD_TYPES.map((item) => (
-                  <option key={item} value={item}>
-                    {item}
-                  </option>
-                ))}
-              </select>
-            </ProductField>
-            <ProductField label="Shelf Life" helper="e.g. 6 months.">
-              <Input
-                value={shelfLife}
-                onChange={(event) => setShelfLife(event.target.value)}
-                placeholder="6 months"
-                className={inputClass}
-              />
-            </ProductField>
-            <ProductField label="Ingredients" helper="Comma separated.">
-              <Input
-                value={ingredients}
-                onChange={(event) => setIngredients(event.target.value)}
-                placeholder="Wheat, Sugar, Ghee"
-                className={inputClass}
-              />
-            </ProductField>
-            <ProductField label="Serving Size" helper="e.g. 100g.">
-              <Input
-                value={servingSize}
-                onChange={(event) => setServingSize(event.target.value)}
-                placeholder="100g"
-                className={inputClass}
-              />
-            </ProductField>
-            <ProductField label="Calories" helper="Per serving.">
-              <Input
-                value={calories}
-                onChange={(event) => setCalories(event.target.value)}
-                placeholder="450"
-                type="number"
-                min="0"
-                className={inputClass}
-              />
-            </ProductField>
           </div>
         )}
 

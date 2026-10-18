@@ -38,13 +38,10 @@ function Stars({ rating }: { rating: number }) {
 export function ProductCard({ product, style }: ProductCardProps) {
   const navigate = useNavigate();
   const colors = useColors();
-  // Live viewport width — a module-level Dimensions.get() goes stale on
-  // resize/device-emulation/rotation and makes grid cards overflow the page.
-  const windowWidth = useWindowWidth();
-  const cardWidth = (windowWidth - 48) / 2;
   const { toggleWishlist, isWishlisted, addToCart } = useCart();
   const wishlisted = isWishlisted(product.id);
   const [justAdded, setJustAdded] = React.useState(false);
+  const [isAdding, setIsAdding] = React.useState(false);
   const addedTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
   React.useEffect(
@@ -67,12 +64,18 @@ export function ProductCard({ product, style }: ProductCardProps) {
 
   const handleAddToCart = async (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (isAdding) return;
+    setIsAdding(true);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    const ok = await addToCart(product);
-    if (!ok) return;
-    setJustAdded(true);
-    if (addedTimer.current) clearTimeout(addedTimer.current);
-    addedTimer.current = setTimeout(() => setJustAdded(false), 1500);
+    try {
+      const ok = await addToCart(product);
+      if (!ok) return;
+      setJustAdded(true);
+      if (addedTimer.current) clearTimeout(addedTimer.current);
+      addedTimer.current = setTimeout(() => setJustAdded(false), 1500);
+    } finally {
+      setIsAdding(false);
+    }
   };
 
   const handlePress = () => {
@@ -94,8 +97,11 @@ export function ProductCard({ product, style }: ProductCardProps) {
           handlePress();
         }
       }}
-      className={cn("mb-4 cursor-pointer overflow-hidden rounded-[2px] transition-opacity active:opacity-92")}
-      style={{ backgroundColor: colors.pearl, width: cardWidth, ...style }}
+      className={cn(
+        "mb-4 cursor-pointer overflow-hidden rounded-[2px] transition-opacity active:opacity-92",
+        !style?.width && "w-[calc(50%-0.5rem)] md:w-[calc(33.333%-0.67rem)] lg:w-[calc(25%-0.75rem)]",
+      )}
+      style={{ backgroundColor: colors.pearl, ...style }}
     >
       {/* Crawlable anchors (audit: no-outgoing-links) — outer div keeps UX. */}
       <div className="relative aspect-[3/4]">
@@ -207,7 +213,11 @@ export function ProductCard({ product, style }: ProductCardProps) {
         <button
           type="button"
           onClick={handleAddToCart}
-          className="mt-1.5 cursor-pointer rounded-[1px] border py-[7px] text-center transition-colors active:opacity-90"
+          disabled={isAdding}
+          className={cn(
+            "mt-1.5 cursor-pointer rounded-[1px] border py-[7px] text-center transition-colors active:opacity-90",
+            isAdding && "cursor-not-allowed opacity-60",
+          )}
           style={{
             borderColor: colors.gold,
             backgroundColor:
@@ -218,7 +228,7 @@ export function ProductCard({ product, style }: ProductCardProps) {
             className="text-[10px] tracking-[1.5px]"
             style={{ color: justAdded ? colors.ink : colors.gold, fontFamily: "DMSans_400Regular" }}
           >
-            {justAdded ? "Added ✓" : "Add to Bag"}
+            {isAdding ? "Adding..." : justAdded ? "Added ✓" : "Add to Bag"}
           </span>
         </button>
       </div>

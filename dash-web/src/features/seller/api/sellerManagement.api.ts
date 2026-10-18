@@ -188,7 +188,7 @@ export interface SellerProduct {
   images?: Array<{ url: string; fileId: string }>;
   variants: ProductVariantPayload[];
   totalStock?: number;
-  vertical?: "CLOTHING" | "FOOD" | "JEWELERY";
+  vertical?: "CLOTHING" | "JEWELERY";
   jeweleryDetails?: {
     metalType?: string;
     purity?: string;
@@ -201,13 +201,6 @@ export interface SellerProduct {
     wastagePct?: number;
     certNo?: string;
     certUrl?: string;
-  };
-  foodDetails?: {
-    vegNonVeg?: string;
-    shelfLife?: string;
-    ingredients?: string[];
-    servingSize?: string;
-    calories?: number;
   };
   sizeChartId?: string | SellerSizeChart;
   isGstApplicable?: boolean;
@@ -271,7 +264,7 @@ export interface SellerProductPayload {
   isGstApplicable?: boolean;
   gstPercentage?: number;
   variants: ProductVariantPayload[];
-  vertical?: "CLOTHING" | "FOOD" | "JEWELERY";
+  vertical?: "CLOTHING" | "JEWELERY";
   jeweleryDetails?: {
     metalType?: string;
     purity?: string;
@@ -284,13 +277,6 @@ export interface SellerProductPayload {
     wastagePct?: number;
     certNo?: string;
     certUrl?: string;
-  };
-  foodDetails?: {
-    vegNonVeg?: string;
-    shelfLife?: string;
-    ingredients?: string[];
-    servingSize?: string;
-    calories?: number;
   };
   details?: {
     sku?: string;
@@ -738,7 +724,6 @@ const productFormData = (payload: Partial<SellerProductPayload>, images?: File[]
   appendOptional(formData, "variants", payload.variants);
   appendOptional(formData, "vertical", payload.vertical);
   appendOptional(formData, "jeweleryDetails", payload.jeweleryDetails);
-  appendOptional(formData, "foodDetails", payload.foodDetails);
   appendOptional(formData, "details", payload.details);
   appendOptional(formData, "tags", payload.tags);
   appendOptional(formData, "seo", payload.seo);

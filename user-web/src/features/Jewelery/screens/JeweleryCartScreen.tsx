@@ -14,6 +14,10 @@ import { useTopPad } from "@/src/hooks/useTopPad";
 import { useCart } from "@/src/features/Jewelery/context/CartContext";
 import { useColors } from "@/src/features/Jewelery/hooks/useColors";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
+import {
+  filterItemsByModule,
+  useCartStore,
+} from "@/src/features/common/cart/store/cartStore";
 import { trackBeginCheckout } from "@/src/analytics/googleAnalytics";
 
 function resolveImgSrc(source: any): string {
@@ -30,12 +34,13 @@ export default function JeweleryCartScreen() {
   const { cartItems, cartCount, removeFromCart, updateQuantity, cartTotal } =
     useCart();
   const { isAuthenticated } = useAuthStore();
-  const bottomPad = 34;
   const width = useWindowWidth();
   const isDesktop = width >= BREAKPOINTS.desktopMin;
-  // Viewport-fixed checkout bar: clears the 60px tab bar + 12px breathing
-  // room on mobile; small offset on desktop where there is no tab bar.
-  const stickyBottom = isDesktop ? 12 : 60 + 12;
+  const clothingCount = useCartStore(
+    (s) => filterItemsByModule(s.items, "clothing").length,
+  );
+  // Viewport-fixed checkout bar: clears the mobile tab bar + safe-area insets
+  const stickyBottom = isDesktop ? 0 : "calc(60px + env(safe-area-inset-bottom))";
   const totalQty = cartItems.reduce((s, i) => s + i.quantity, 0);
 
   const handleCheckout = () => {
@@ -117,13 +122,34 @@ export default function JeweleryCartScreen() {
               Browse Collections →
             </span>
           </button>
+          {clothingCount > 0 && (
+            <div
+              className="mt-4 flex flex-col items-center gap-2 rounded-[2px] border p-4 text-center max-w-sm"
+              style={{
+                backgroundColor: colors.champagne,
+                borderColor: colors.gold,
+              }}
+            >
+              <span
+                className="text-[13px]"
+                style={{ color: colors.ink, fontFamily: "DMSans_500Medium" }}
+              >
+                You have {clothingCount} item{clothingCount !== 1 ? "s" : ""} in your Clothing Bag
+              </span>
+              <button
+                type="button"
+                onClick={() => goTo(navigate, "/clothing/cart")}
+                className="cursor-pointer text-xs font-bold underline"
+                style={{ color: colors.gold }}
+              >
+                Go to Clothing Bag →
+              </button>
+            </div>
+          )}
         </div>
       ) : (
         <>
-          <div
-            className="overflow-y-auto pb-4"
-            style={{ paddingBottom: 16 + 96 }}
-          >
+          <div className="overflow-y-auto pb-[calc(60px+env(safe-area-inset-bottom)+120px)] lg:pb-32">
             {/* Cart items */}
             {cartItems.map(({ product, quantity }) => (
               <div
@@ -316,7 +342,7 @@ export default function JeweleryCartScreen() {
               backgroundColor: colors.ivory,
               borderTopColor: colors.midGray,
               borderTopWidth: 1,
-              paddingBottom: bottomPad + 16,
+              paddingBottom: 14,
             }}
           >
             <div>

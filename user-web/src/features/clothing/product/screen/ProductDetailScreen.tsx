@@ -60,7 +60,11 @@ import {
   useSizeChart,
   useSizeCharts,
 } from "@/src/features/clothing/sizeChart/hooks/useSizeCharts";
-import { useStickyBarBottomOffset } from "@/src/utils/responsive";
+import {
+  BREAKPOINTS,
+  useStickyBarBottomOffset,
+  useWindowWidth,
+} from "@/src/utils/responsive";
 import { trackViewItem } from "@/src/analytics/googleAnalytics";
 
 interface ProductDetailProps {
@@ -136,6 +140,8 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
   // Mobile web tab bar is fixed-position and overlays the viewport bottom —
   // lift the sticky action bar above it (0 on desktop, no visual diff).
   const stickyBarOffset = useStickyBarBottomOffset();
+  const windowWidth = useWindowWidth();
+  const isDesktop = windowWidth >= BREAKPOINTS.desktopMin;
 
   const queryClient = useQueryClient();
 
@@ -251,14 +257,6 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
       : 0;
 
   // Responsive gallery: fills screen width, caps height on tablets/desktop.
-  const [windowWidth, setWindowWidth] = useState(() =>
-    typeof window !== "undefined" ? window.innerWidth : 1200,
-  );
-  useEffect(() => {
-    const onResize = () => setWindowWidth(window.innerWidth);
-    window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
-  }, []);
   const galleryWidth = windowWidth;
   const galleryHeight = Math.min(windowWidth * 1.2, 560);
 
@@ -318,9 +316,10 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
       return;
     }
 
+    if (isAddingToCart) return;
+
     if (!selectedSize && sizesForColor.length > 0) {
-      // Haptic-only validation — the size selector is right here on
-      // screen, no popup needed.
+      // Haptic validation — size selection required
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       return;
     }
@@ -329,10 +328,10 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
     const sku = variant?.sku || "default-sku";
 
     try {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       await addItem(dp, sku, 1, "clothing");
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch {
-      // silent — haptics already signalled error
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     }
   };
 
@@ -962,48 +961,6 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
                 ))}
             </div>
 
-            {/* Food Specifications if present */}
-            {dp.foodDetails && (
-              <div className="mt-2.5">
-                {[
-                  { k: "Food Type", v: dp.foodDetails.vegNonVeg },
-                  { k: "Shelf Life", v: dp.foodDetails.shelfLife },
-                  { k: "Serving Size", v: dp.foodDetails.servingSize },
-                  {
-                    k: "Calories",
-                    v: dp.foodDetails.calories
-                      ? `${dp.foodDetails.calories} kcal`
-                      : undefined,
-                  },
-                  {
-                    k: "Ingredients",
-                    v: dp.foodDetails.ingredients?.join(", "),
-                  },
-                ]
-                  .filter((x) => Boolean(x.v))
-                  .map((spec, i) => (
-                    <div
-                      key={i}
-                      className="flex flex-row border-b py-2.5"
-                      style={{ borderBottomColor: theme.border }}
-                    >
-                      <span
-                        className="flex-[0.4] text-[13px] font-medium"
-                        style={{ color: theme.secondaryText }}
-                      >
-                        {spec.k}
-                      </span>
-                      <span
-                        className="flex-[0.6] text-[13px] font-semibold"
-                        style={{ color: theme.text }}
-                      >
-                        {spec.v}
-                      </span>
-                    </div>
-                  ))}
-              </div>
-            )}
-
             {/* Jewelry Specifications if present */}
             {dp.jeweleryDetails && (
               <div className="mt-2.5">
@@ -1623,7 +1580,14 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
         )}
 
         {/* Bottom spacer — clears the fixed action bar + tab bar */}
-        <div style={{ height: 100 + stickyBarOffset }} />
+        <div
+          className="h-[120px] lg:h-[80px]"
+          style={{
+            paddingBottom: isDesktop
+              ? 0
+              : "calc(60px + env(safe-area-inset-bottom))",
+          }}
+        />
       </div>
 
       {/* ═══════════════════════════════════════════
@@ -1636,7 +1600,7 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
         style={{
           backgroundColor: theme.background,
           borderTopColor: theme.border,
-          bottom: stickyBarOffset + 10,
+          bottom: isDesktop ? 0 : "calc(60px + env(safe-area-inset-bottom))",
           width: "100%",
         }}
       >

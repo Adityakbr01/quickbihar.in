@@ -121,11 +121,10 @@ function ownerIdOf(product: any): string {
     return s.toString();
 }
 
-function inferVertical(category?: string, subCategory?: string, vertical?: string): "CLOTHING" | "FOOD" | "JEWELERY" {
-    if (vertical && ["CLOTHING", "FOOD", "JEWELERY"].includes(vertical)) return vertical as any;
+function inferVertical(category?: string, subCategory?: string, vertical?: string): "CLOTHING" | "JEWELERY" {
+    if (vertical && ["CLOTHING", "JEWELERY"].includes(vertical)) return vertical as any;
     const text = `${category || ""} ${subCategory || ""}`.toLowerCase();
     if (/jewel|necklace|ring|earring|pendant|bangle/i.test(text)) return "JEWELERY";
-    if (/food|grocery|beverage|snack|sweet/i.test(text)) return "FOOD";
     return "CLOTHING";
 }
 

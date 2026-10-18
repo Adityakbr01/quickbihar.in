@@ -115,7 +115,7 @@ const AccountMain = () => {
       style={{ backgroundColor: (theme as any).background }}
     >
       <div className="w-full max-w-[800px]">
-        <div className="overflow-y-auto pb-10">
+        <div className="pb-[calc(60px+env(safe-area-inset-bottom)+2rem)] md:pb-12">
           <AccountHeader
             theme={theme}
             name={user?.fullName || "Guest"}

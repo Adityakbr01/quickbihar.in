@@ -8,7 +8,7 @@
 
 ## What this is
 
-This is the developer documentation for the `quickbihar.in` monorepo — a hyperlocal multi-vertical commerce platform. The currently-live verticals are `clothing` and `jewelery` (live since Sep 2026); `food` is scaffolded but not production-ready.
+This is the developer documentation for the `quickbihar.in` monorepo — a hyperlocal multi-vertical commerce platform. The live verticals are `clothing` and `jewelery` (both live since Sep 2026).
 
 The platform is built as three apps:
 

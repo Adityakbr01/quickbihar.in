@@ -101,7 +101,7 @@ export default function JeweleryAddressesScreen() {
     if (returnTo) {
       replaceTo(navigate, returnTo as any);
     } else {
-      goBack(navigate, "/jewelery/(tabs)/profile");
+      goBack(navigate, "/jewelery/profile");
     }
   };
 
@@ -175,7 +175,7 @@ export default function JeweleryAddressesScreen() {
       </div>
 
       {/* Main Content */}
-      <div className="overflow-auto p-4" style={{ paddingBottom: bottomPad + 70 }}>
+      <div className="overflow-auto p-4 pb-36 md:pb-16">
         {isLoading ? (
           <div className="flex flex-col items-center justify-center gap-3 py-[60px]">
             <span
@@ -419,13 +419,12 @@ export default function JeweleryAddressesScreen() {
           type="button"
           onClick={handleAddAddress}
           aria-label="Add address"
-          className="absolute right-5 flex h-[52px] w-[52px] cursor-pointer items-center justify-center rounded-full shadow-lg"
+          className="fixed right-6 bottom-[calc(60px+env(safe-area-inset-bottom)+1.25rem)] md:bottom-8 z-30 flex h-14 w-14 cursor-pointer items-center justify-center rounded-full shadow-2xl transition-transform active:scale-95 hover:brightness-110"
           style={{
             backgroundColor: colors.gold,
-            bottom: bottomPad + 16,
           }}
         >
-          <Plus size={22} color={colors.onBrand} />
+          <Plus size={26} color={colors.onBrand} />
         </button>
       )}
 

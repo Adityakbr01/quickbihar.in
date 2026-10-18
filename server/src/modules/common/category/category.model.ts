@@ -66,7 +66,7 @@ const categorySchema = new Schema<ICategory>(
         },
         vertical: {
             type: String,
-            enum: ["CLOTHING", "FOOD", "JEWELERY", "GLOBAL"],
+            enum: ["CLOTHING", "JEWELERY", "GLOBAL"],
             default: "CLOTHING",
             index: true,
         },

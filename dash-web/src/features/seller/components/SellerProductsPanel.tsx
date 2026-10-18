@@ -55,7 +55,6 @@ import {
 } from "./SellerHelpers";
 import { CatalogVerticalTabs } from "@/features/catalog/components/CatalogVerticalTabs";
 import {
-  FOOD_TYPES,
   JEWELERY_PURITIES,
   toCatalogVertical,
   type CatalogVertical,
@@ -419,16 +418,6 @@ function ProductDialog({
                 wastagePct: numberValue(form, "jeweleryWastagePct"),
                 certNo: text(form, "jeweleryCertNo") || undefined,
                 certUrl: text(form, "jeweleryCertUrl") || undefined,
-              }
-            : undefined,
-        foodDetails:
-          vertical === "FOOD"
-            ? {
-                vegNonVeg: text(form, "foodVegNonVeg") || undefined,
-                shelfLife: text(form, "foodShelfLife") || undefined,
-                ingredients: list(text(form, "foodIngredients")),
-                servingSize: text(form, "foodServingSize") || undefined,
-                calories: numberValue(form, "foodCalories"),
               }
             : undefined,
         price: sPrice || 0,
@@ -880,56 +869,6 @@ function ProductDialog({
                   />
                   Hallmarked
                 </label>
-              </div>
-            </section>
-          )}
-
-          {vertical === "FOOD" && (
-            <section className="grid gap-3 rounded-lg border border-border bg-muted p-3">
-              <div className="text-sm font-medium text-foreground">Food Details</div>
-              <div className="grid gap-3 md:grid-cols-2">
-                <label className={labelClass}>
-                  Veg / Non-Veg
-                  <select
-                    name="foodVegNonVeg"
-                    defaultValue={product?.foodDetails?.vegNonVeg || ""}
-                    className={selectClass}
-                  >
-                    <option value="">Select type</option>
-                    {FOOD_TYPES.map((item) => (
-                      <option key={item} value={item}>
-                        {item}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <Field
-                  name="foodShelfLife"
-                  label="Shelf Life"
-                  defaultValue={product?.foodDetails?.shelfLife}
-                  optional
-                  helper="e.g. 6 months."
-                />
-                <Field
-                  name="foodIngredients"
-                  label="Ingredients"
-                  defaultValue={(product?.foodDetails?.ingredients || []).join(", ")}
-                  optional
-                  helper="Comma separated."
-                />
-                <Field
-                  name="foodServingSize"
-                  label="Serving Size"
-                  defaultValue={product?.foodDetails?.servingSize}
-                  optional
-                />
-                <Field
-                  name="foodCalories"
-                  label="Calories"
-                  type="number"
-                  defaultValue={product?.foodDetails?.calories ?? ""}
-                  optional
-                />
               </div>
             </section>
           )}

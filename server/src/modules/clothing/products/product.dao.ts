@@ -296,7 +296,7 @@ export async function findSimilar(
     limit = 10
 ) {
     const safeLimit = Math.min(50, Math.max(1, Number(limit) || 10));
-    const safeVertical = vertical && ["CLOTHING", "FOOD", "JEWELERY"].includes(vertical) ? vertical : "CLOTHING";
+    const safeVertical = vertical && ["CLOTHING", "JEWELERY"].includes(vertical) ? vertical : "CLOTHING";
     const orConditions: any[] = [];
 
     if (category) {

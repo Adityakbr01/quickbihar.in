@@ -12,7 +12,7 @@
  *   when the prerendered script tag is missing (dev mode / client nav).
  */
 
-import { foodMeta, homeMeta, jeweleryMeta, searchMeta, staticMeta, topSellingMeta } from './meta';
+import { homeMeta, jeweleryMeta, searchMeta, staticMeta, topSellingMeta } from './meta';
 import { SITE_NAME, SITE_ORIGIN, getCanonicalUrl, getSiteOrigin } from './site';
 import { createCompositeGraph, organizationSchema } from './schemas';
 
@@ -48,13 +48,6 @@ export const SEO_CONFIG = {
     keywords: 'top selling Bihar, trending fashion Bihar, bestsellers Patna, QuickBihar',
     path: '/top-selling',
     build: topSellingMeta,
-  },
-  food: {
-    title: 'Order Food Online in Bihar | QuickBihar Food',
-    description: 'Order from local restaurants & kitchens in Bihar. Hot, fast hyperlocal delivery.',
-    keywords: 'order food Bihar, food delivery Buxar, food delivery Patna, QuickBihar Food',
-    path: '/food',
-    build: foodMeta,
   },
   jewelery: {
     title: 'Buy Jewellery Online in Bihar | QuickBihar Jewellery',

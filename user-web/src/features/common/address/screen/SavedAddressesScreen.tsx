@@ -87,7 +87,7 @@ const SavedAddressesScreen = () => {
 
   const handleBack = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => null);
-    goBack(navigate, "/(tabs)/clothing/home");
+    goBack(navigate, "/account");
   };
 
   const renderSkeletons = () => (
@@ -100,7 +100,7 @@ const SavedAddressesScreen = () => {
 
   return (
     <div
-      className="relative flex min-h-screen w-full flex-col items-center pb-[30px]"
+      className="relative flex min-h-screen w-full flex-col items-center pb-36 md:pb-16"
       style={{ backgroundColor: theme.background }}
     >
       {/* Top app bar (same language as Notifications) */}

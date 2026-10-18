@@ -41,7 +41,7 @@ const OrderListScreen = () => {
   const fetchOrders = async () => {
     try {
       setIsLoading(true);
-      const response = await getMyOrdersRequest();
+      const response = await getMyOrdersRequest({ vertical: "CLOTHING" });
       // Clothing catalogue shows clothing orders only — jewellery orders
       // live in the jewellery order history.
       setOrders((response.data || []).filter((o: any) => orderHasModule(o, "clothing")));
@@ -89,19 +89,20 @@ const OrderListScreen = () => {
         key={item._id}
         type="button"
         onClick={() => {
+          const targetId = item.orderId || item._id;
           if (isJeweleryOrder) {
             goTo(navigate, {
               pathname: "/jewelery/orders/[id]" as any,
-              params: { id: item.orderId },
+              params: { id: targetId },
             });
           } else {
             goTo(navigate, {
               pathname: "/order/[id]" as any,
-              params: { id: item.orderId },
+              params: { id: targetId },
             });
           }
         }}
-        className="mb-2.5 block w-full rounded-2xl border p-3.5 text-left"
+        className="mb-2.5 block w-full rounded-2xl border p-3.5 text-left transition-colors hover:border-neutral-400"
         style={{
           backgroundColor: theme.tertiaryBackground,
           borderColor: theme.border,
@@ -113,7 +114,7 @@ const OrderListScreen = () => {
               className="text-[15px] font-extrabold tracking-[-0.3px]"
               style={{ color: theme.text }}
             >
-              Order #{item.orderId}
+              Order #{item.orderId || item._id}
             </p>
             <p
               className="mt-1 text-xs font-medium"
@@ -148,6 +149,32 @@ const OrderListScreen = () => {
             backgroundColor: theme.background,
             borderColor: theme.border,
           }}
+          onClick={(e) => {
+            const firstItem = item.items?.[0];
+            const prod =
+              firstItem?.productId && typeof firstItem.productId === "object"
+                ? firstItem.productId
+                : null;
+            const rawProdId =
+              prod?.slug || prod?._id || firstItem?.productId || firstItem?._id;
+            const prodId = typeof rawProdId === "object" ? rawProdId?._id : rawProdId;
+            const prodIdStr = prodId ? String(prodId) : "";
+            if (prodIdStr && prodIdStr !== "[object Object]") {
+              e.stopPropagation();
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              if (isJeweleryOrder) {
+                goTo(navigate, {
+                  pathname: "/jewelery/product/[id]" as any,
+                  params: { id: prodIdStr },
+                });
+              } else {
+                goTo(navigate, {
+                  pathname: "/product/[id]" as any,
+                  params: { id: prodIdStr },
+                });
+              }
+            }
+          }}
         >
           <div
             className="flex h-11 w-11 items-center justify-center rounded-xl"
@@ -155,13 +182,17 @@ const OrderListScreen = () => {
           >
             <Package size={24} color={theme.primary} />
           </div>
-          <p
-            className={cn("ml-0.5 line-clamp-1 flex-1 text-[13px] font-semibold")}
-            style={{ color: theme.secondaryText }}
-          >
-            {item.items.length} {item.items.length === 1 ? "item" : "items"} in
-            this order
-          </p>
+          <div className="ml-0.5 min-w-0 flex-1">
+            <p
+              className={cn("line-clamp-1 text-[13px] font-semibold hover:underline")}
+              style={{ color: theme.text }}
+            >
+              {item.items?.[0]?.title || `${item.items.length} items`}
+            </p>
+            <p className="text-[11px]" style={{ color: theme.secondaryText }}>
+              {item.items.length} {item.items.length === 1 ? "item" : "items"} · Tap to view product
+            </p>
+          </div>
           {item.items.length > 1 && (
             <div
               className="flex h-9 w-9 items-center justify-center rounded-full"

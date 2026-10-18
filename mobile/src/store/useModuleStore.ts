@@ -40,6 +40,9 @@ export const useModuleStore = create<ModuleState>()(
       name: "active-app-module-v1",
       storage: createJSONStorage(() => AsyncStorage),
       onRehydrateStorage: () => (state) => {
+        if (state && !APP_MODULES.some((m) => m.id === state.currentModuleId)) {
+          state.setModule("clothing");
+        }
         state?.setHydrated(true);
       },
     }

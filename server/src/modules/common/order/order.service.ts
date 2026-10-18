@@ -286,6 +286,12 @@ export class OrderService {
                 receipt: `receipt_${Date.now()}`,
             });
 
+        // Determine primary order vertical from items
+        const isJeweleryOrder = (quote.processedItems || []).some(
+            (item: any) => item.vertical === "JEWELERY"
+        );
+        const orderVertical = isJeweleryOrder ? "JEWELERY" : "CLOTHING";
+
         const order = await orderDAO.create({
             userId: new Types.ObjectId(userId) as any,
             items: quote.processedItems as any,
@@ -306,6 +312,7 @@ export class OrderService {
             couponCode: quote.couponCodes[0] || "",
             couponCodes: quote.couponCodes,
             couponDiscounts: quote.appliedCouponsInfo,
+            vertical: orderVertical,
             // Persist PENDING_PAYMENT for both paths; COD is promoted to CONFIRMED below only
             // after stock is secured, so the DB never holds a confirmed order without inventory.
             status: OrderStatus.PENDING_PAYMENT,
@@ -811,8 +818,8 @@ export class OrderService {
         }
     }
 
-    async getMyOrders(userId: string) {
-        const orders = await orderDAO.findByUserId(userId);
+    async getMyOrders(userId: string, query: any = {}) {
+        const orders = await orderDAO.findByUserId(userId, query);
         return Array.isArray(orders) ? orders.map((o) => maskOrderForCustomer(o)) : orders;
     }
 

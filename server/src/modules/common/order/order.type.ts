@@ -109,6 +109,7 @@ export interface IOrderItem {
     longitude?: number;
     taxAmount?: number;
     basePrice?: number;
+    vertical?: "CLOTHING" | "JEWELERY";
 }
 
 export interface IShippingAddress {
@@ -155,6 +156,7 @@ export interface IOrder extends Document {
     couponCode?: string;
     couponCodes?: string[];
     couponDiscounts?: Array<{ code: string; sellerId?: any; discountAmount: number }>;
+    vertical?: "CLOTHING" | "JEWELERY";
     createdAt: Date;
     updatedAt: Date;
 }

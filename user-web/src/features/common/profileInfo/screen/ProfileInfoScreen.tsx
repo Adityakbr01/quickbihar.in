@@ -4,7 +4,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as Haptics from "@/lib/haptics";
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import { useNavigate } from "react-router-dom";
+import { ChevronLeft, User } from "lucide-react";
 import { cn } from "@/src/lib/utils";
+import { goBack, goTo } from "@/src/utils/navigation";
 
 import { useProfile } from "../hooks/useProfile";
 import { ProfileFormValues, profileSchema } from "../schema/profile.schema";
@@ -17,6 +20,7 @@ import PhoneOtpSheet from "@/src/features/common/address/components/PhoneOtpShee
 
 const ProfileInfoScreen = () => {
   const theme = useTheme();
+  const navigate = useNavigate();
   const { profile, isLoading, updateProfile, updateAvatar, isUpdating } = useProfile();
   const userFromStore = useAuthStore((state) => state.user);
   const [isEditing, setIsEditing] = useState(false);
@@ -130,12 +134,84 @@ const ProfileInfoScreen = () => {
     );
   }
 
+  if (!displayUser && !isLoading) {
+    return (
+      <div
+        className="flex min-h-screen flex-1 flex-col"
+        style={{ backgroundColor: theme.background }}
+      >
+        <div className="mx-auto flex w-full max-w-[800px] flex-row items-center gap-2 px-3 pt-2 pb-3">
+          <button
+            type="button"
+            onClick={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => null);
+              goBack(navigate, "/account");
+            }}
+            aria-label="Go back"
+            className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full"
+            style={{ backgroundColor: theme.secondaryBackground }}
+          >
+            <ChevronLeft size={22} color={theme.text} />
+          </button>
+          <div className="flex-1 px-1">
+            <h1 className="text-[20px] font-extrabold tracking-[-0.4px]" style={{ color: theme.text }}>
+              Profile Information
+            </h1>
+          </div>
+        </div>
+        <div className="flex flex-1 flex-col items-center justify-center px-6 py-16 text-center">
+          <div
+            className="mb-4 flex h-16 w-16 items-center justify-center rounded-full"
+            style={{ backgroundColor: `${theme.primary}18` }}
+          >
+            <User size={32} color={theme.primary} />
+          </div>
+          <h2 className="mb-2 text-xl font-bold" style={{ color: theme.text }}>
+            Sign in to view your profile
+          </h2>
+          <p className="mb-6 max-w-sm text-sm" style={{ color: theme.secondaryText }}>
+            Sign in or create an account to view and edit your profile details, manage orders, and save addresses.
+          </p>
+          <button
+            type="button"
+            onClick={() => goTo(navigate, "/auth")}
+            className="cursor-pointer rounded-full px-6 py-2.5 text-sm font-bold text-white shadow-md transition-opacity hover:opacity-90"
+            style={{ backgroundColor: theme.primary }}
+          >
+            Sign In / Register
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       className={cn("min-h-full flex-1")}
       style={{ backgroundColor: theme.background }}
     >
-      <div className="overflow-auto">
+      {/* Top App Bar */}
+      <div className="mx-auto flex w-full max-w-[800px] flex-row items-center gap-2 px-3 pt-2 pb-3">
+        <button
+          type="button"
+          onClick={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => null);
+            goBack(navigate, "/account");
+          }}
+          aria-label="Go back"
+          className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full"
+          style={{ backgroundColor: theme.secondaryBackground }}
+        >
+          <ChevronLeft size={22} color={theme.text} />
+        </button>
+        <div className="flex-1 px-1">
+          <h1 className="text-[20px] font-extrabold tracking-[-0.4px]" style={{ color: theme.text }}>
+            Profile Information
+          </h1>
+        </div>
+      </div>
+
+      <div className="overflow-auto pb-32 md:pb-16">
         <div className="overflow-hidden rounded-b-[30px] pb-10">
           <div className="flex flex-col items-center pt-2.5">
             <ProfileAvatar
@@ -151,25 +227,29 @@ const ProfileInfoScreen = () => {
                 className="text-2xl font-extrabold"
                 style={{ color: theme.text }}
               >
-                {displayUser?.fullName}
+                {displayUser?.fullName || "QuickBihar User"}
               </span>
-              <span
-                className="mt-1 text-base"
-                style={{ color: theme.secondaryText }}
-              >
-                @{displayUser?.username}
-              </span>
-              <div
-                className="mt-2.5 rounded-full px-3 py-1"
-                style={{ backgroundColor: theme.primary + "20" }}
-              >
+              {displayUser?.username && (
                 <span
-                  className="text-xs font-bold uppercase"
-                  style={{ color: theme.primary }}
+                  className="mt-1 text-base"
+                  style={{ color: theme.secondaryText }}
                 >
-                  {roleLabel}
+                  @{displayUser.username}
                 </span>
-              </div>
+              )}
+              {roleLabel ? (
+                <div
+                  className="mt-2.5 rounded-full px-3 py-1"
+                  style={{ backgroundColor: theme.primary + "20" }}
+                >
+                  <span
+                    className="text-xs font-bold uppercase"
+                    style={{ color: theme.primary }}
+                  >
+                    {roleLabel}
+                  </span>
+                </div>
+              ) : null}
             </div>
           </div>
         </div>
@@ -203,12 +283,14 @@ const ProfileInfoScreen = () => {
             />
           )}
 
-          <p
-            className="mt-[30px] text-center text-xs"
-            style={{ color: theme.tertiaryText }}
-          >
-            QuickBihar ID: {displayUser?._id}
-          </p>
+          {displayUser?._id && (
+            <p
+              className="mt-[30px] text-center text-xs"
+              style={{ color: theme.tertiaryText }}
+            >
+              QuickBihar ID: {displayUser._id}
+            </p>
+          )}
         </div>
       </div>
 

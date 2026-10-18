@@ -17,8 +17,8 @@ import { useLocation, useNavigationType } from "react-router-dom";
  */
 const STORAGE_KEY = "qb:web:scroll-positions";
 const MAX_ENTRIES = 60;
-const RESTORE_TRIES = 10;
-const RESTORE_INTERVAL_MS = 60;
+const RESTORE_TRIES = 25;
+const RESTORE_INTERVAL_MS = 80;
 
 type ScrollStore = Record<string, number>;
 
@@ -44,6 +44,12 @@ export default function ScrollRestorationManager() {
   const navigationType = useNavigationType();
 
   useEffect(() => {
+    if (typeof window !== "undefined" && "scrollRestoration" in window.history) {
+      window.history.scrollRestoration = "manual";
+    }
+  }, []);
+
+  useEffect(() => {
     if (navigationType === "POP") {
       const target = readStore()[location.key];
       if (typeof target !== "number" || target <= 0) return;
@@ -54,18 +60,26 @@ export default function ScrollRestorationManager() {
       const attempt = () => {
         if (cancelled) return;
         window.scrollTo(0, target);
-        const reached = Math.abs((window.scrollY ?? 0) - target) < 2;
-        const docTaller =
-          (document.documentElement?.scrollHeight ?? 0) >= target;
-        if (!reached && docTaller && tries < RESTORE_TRIES) {
+        const reached = Math.abs((window.scrollY ?? 0) - target) < 4;
+        if (!reached && tries < RESTORE_TRIES) {
           tries += 1;
           window.setTimeout(attempt, RESTORE_INTERVAL_MS);
         }
       };
+
       attempt();
+
+      let observer: ResizeObserver | null = null;
+      if (typeof ResizeObserver !== "undefined" && document.body) {
+        observer = new ResizeObserver(() => {
+          if (!cancelled) attempt();
+        });
+        observer.observe(document.body);
+      }
 
       return () => {
         cancelled = true;
+        if (observer) observer.disconnect();
       };
     }
 

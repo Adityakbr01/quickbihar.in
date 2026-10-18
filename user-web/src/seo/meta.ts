@@ -180,19 +180,6 @@ export function mallsMeta(): PageMeta {
   };
 }
 
-export function foodMeta(): PageMeta {
-  return {
-    title: seoTitle('Order Food Online in Bihar | QuickBihar Food'),
-    description: seoDescription(
-      'Order from local restaurants & kitchens in Bihar on QuickBihar Food. Hot, fast hyperlocal delivery to your doorstep.',
-    ),
-    canonical: getCanonicalUrl('/food'),
-    keywords: 'order food Bihar, food delivery Buxar, food delivery Patna, QuickBihar Food',
-    image: DEFAULT_OG_IMAGE,
-    robots: 'index, follow',
-  };
-}
-
 export function jeweleryMeta(): PageMeta {
   return {
     title: seoTitle('Buy Jewellery Online in Bihar | QuickBihar Jewellery'),

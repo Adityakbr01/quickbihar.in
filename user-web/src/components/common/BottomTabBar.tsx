@@ -72,10 +72,37 @@ const JeweleryTabBar: React.FC<{
     },
   ];
 
-  const isActive = (route: string) =>
-    route === "/jewelery"
-      ? pathname === "/jewelery" || pathname === "/jewelery/"
-      : pathname === route || pathname.startsWith(`${route}/`);
+  const isActive = (route: string) => {
+    if (route === "/jewelery") {
+      return pathname === "/jewelery" || pathname === "/jewelery/";
+    }
+    if (route === "/jewelery/cart") {
+      return (
+        pathname === "/jewelery/cart" ||
+        pathname === "/jewelry/cart" ||
+        pathname.startsWith("/jewelery/cart/")
+      );
+    }
+    if (route === "/jewelery/account") {
+      return (
+        pathname === "/jewelery/account" ||
+        pathname.startsWith("/jewelery/account/") ||
+        pathname.startsWith("/jewelery/orders") ||
+        pathname.startsWith("/jewelery/addresses") ||
+        pathname.startsWith("/jewelery/profile") ||
+        pathname.startsWith("/jewelery/wishlist")
+      );
+    }
+    return pathname === route || pathname.startsWith(`${route}/`);
+  };
+
+  const handleTabPress = (route: string) => {
+    if (isActive(route)) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+    onPress(route);
+  };
 
   return (
     <nav
@@ -91,7 +118,7 @@ const JeweleryTabBar: React.FC<{
           <button
             key={tab.name}
             type="button"
-            onClick={() => onPress(tab.route)}
+            onClick={() => handleTabPress(tab.route)}
             onMouseDown={() => setPressedTab(tab.name)}
             onMouseUp={() => setPressedTab(null)}
             onMouseLeave={() => setPressedTab(null)}
@@ -135,7 +162,9 @@ export const BottomTabBar: React.FC = () => {
   const [pressedTab, setPressedTab] = useState<string | null>(null);
 
   const isDesktop = width >= BREAKPOINTS.desktopMin;
-  const cartCount = useCartStore((s) => s.items.length);
+  const cartCount = useCartStore(
+    (s) => filterItemsByModule(s.items, "clothing").length,
+  );
 
   const roleName = getRoleName(user?.role);
   const isRider =
@@ -158,17 +187,12 @@ export const BottomTabBar: React.FC = () => {
   // /clothing/home directly), which previously sent clothing taps to
   // /jewelery/search and /jewelery/cart.
   const isJeweleryPath = pathname.startsWith("/jewelery");
-  const isFoodPath =
-    pathname.startsWith("/food") || pathname.startsWith("/(tabs)/food");
   const isClothingPath =
     pathname.startsWith("/clothing") || pathname.startsWith("/(tabs)/clothing");
 
   const isJewelery =
     isJeweleryPath ||
-    (!isClothingPath && !isFoodPath && currentModule.id === "jewelery");
-  const isFood =
-    isFoodPath ||
-    (!isClothingPath && !isJeweleryPath && currentModule.id === "food");
+    (!isClothingPath && currentModule.id === "jewelery");
 
   const pressTab = (route: string) => {
     try {
@@ -184,7 +208,7 @@ export const BottomTabBar: React.FC = () => {
     return <JeweleryTabBar pathname={pathname} onPress={pressTab} />;
   }
 
-  const homeRoute = isFood ? "/food" : "/clothing/home";
+  const homeRoute = "/clothing/home";
   const searchRoute = "/clothing/search";
   const cartRoute = "/clothing/cart";
   const accountRoute = "/clothing/account";
@@ -231,6 +255,35 @@ export const BottomTabBar: React.FC = () => {
     });
   }
 
+  const isTabActive = (tabRoute: string) => {
+    if (pathname === tabRoute) return true;
+    if (
+      tabRoute === "/clothing/home" &&
+      (pathname === "/" || pathname === "/clothing/home" || pathname === "/clothing")
+    )
+      return true;
+    if (
+      tabRoute === "/clothing/cart" &&
+      (pathname === "/clothing/cart" || pathname === "/cart" || pathname === "/bag")
+    )
+      return true;
+    if (
+      tabRoute === "/clothing/search" &&
+      (pathname === "/clothing/search" || pathname === "/search")
+    )
+      return true;
+    if (
+      tabRoute === "/clothing/account" &&
+      (pathname === "/clothing/account" ||
+        pathname === "/account" ||
+        pathname.startsWith("/account/") ||
+        pathname.startsWith("/orders") ||
+        pathname.startsWith("/profile"))
+    )
+      return true;
+    return false;
+  };
+
   const handlePress = (tab: (typeof tabs)[0]) => {
     try {
       (Haptics as any)?.impactAsync?.(
@@ -238,23 +291,12 @@ export const BottomTabBar: React.FC = () => {
       );
     } catch {}
 
-    if (tab.name === "account" && !isAuthenticated) {
-      goTo(navigate, tab.route as any);
+    if (isTabActive(tab.route)) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
       return;
     }
-    goTo(navigate, tab.route as any);
-  };
 
-  const isTabActive = (tabRoute: string) => {
-    if (pathname === tabRoute) return true;
-    if (
-      tabRoute === "/clothing/home" &&
-      (pathname === "/" || pathname === "/clothing/home")
-    )
-      return true;
-    if (tabRoute === "/jewelery" && pathname === "/jewelery") return true;
-    if (tabRoute === "/food" && pathname === "/food") return true;
-    return false;
+    goTo(navigate, tab.route as any);
   };
 
   return (

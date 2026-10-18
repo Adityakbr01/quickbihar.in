@@ -20,7 +20,7 @@ const newsletterSubscriberSchema = new Schema<INewsletterSubscriber>(
         },
         vertical: {
             type: String,
-            enum: ["CLOTHING", "FOOD", "JEWELERY"],
+            enum: ["CLOTHING", "JEWELERY"],
             default: "JEWELERY",
         },
         source: { type: String, default: "home-newsletter" },

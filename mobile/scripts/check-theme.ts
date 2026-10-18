@@ -38,7 +38,6 @@ for (const f of [
   "app/locations/[...slug].tsx",
   "app/instant-delivery.tsx",
   "src/features/common/trackOrder/components/TrackingInfoCard.tsx",
-  "src/features/Food/screens/FoodHomeScreen.tsx",
   "src/features/clothing/home/components/MoreDealsHeader.tsx",
   "src/features/common/auth/components/GoogleSignInButton.tsx",
   "src/features/common/auth/components/GoogleSignInButton.web.tsx",

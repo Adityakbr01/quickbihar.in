@@ -15,7 +15,7 @@ export interface ICategory extends Document {
     isFeatured: boolean;
     isVisibleOnHome?: boolean;
     homePosition?: number;
-    vertical?: "CLOTHING" | "FOOD" | "JEWELERY" | "GLOBAL";
+    vertical?: "CLOTHING" | "JEWELERY" | "GLOBAL";
     seo?: {
         metaTitle?: string;
         metaDescription?: string;

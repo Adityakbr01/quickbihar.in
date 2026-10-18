@@ -39,10 +39,24 @@ const allowedCorsOrigins = Array.from(
   new Set([...productionDomains, ...envCors])
 );
 
+// Dev-only: phone/browser testing over Wi-Fi hits Vite/Expo dev servers on
+// LAN IPs (10.x, 172.16–31.x, 192.168.x) and localhost, and those IPs change
+// with DHCP. Production ignores this and still requires an exact match.
+const devLanOriginPattern =
+  /^https?:\/\/(?:(?:10|127)\.\d{1,3}\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3}|172\.(?:1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3}|localhost)(?::\d+)?$/;
+
+const isAllowedDevLanOrigin = (origin: string) =>
+  ENV.NODE_ENV !== "production" && devLanOriginPattern.test(origin);
+
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || allowedCorsOrigins.includes("*") || allowedCorsOrigins.includes(origin)) {
+      if (
+        !origin ||
+        allowedCorsOrigins.includes("*") ||
+        allowedCorsOrigins.includes(origin) ||
+        isAllowedDevLanOrigin(origin)
+      ) {
         callback(null, true);
         return;
       }

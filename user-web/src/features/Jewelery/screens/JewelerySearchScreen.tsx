@@ -1,6 +1,6 @@
 import { Search, X } from "lucide-react";
 import * as Haptics from "@/lib/haptics";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 
 import { ProductCard } from "@/src/features/Jewelery/components/ProductCard";
@@ -42,10 +42,20 @@ function dismissKeyboard() {
 
 export default function JewelerySearchScreen() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const initialQuery = searchParams.get("query") || searchParams.get("q") || "";
   const colors = useColors();
-  const [query, setQuery] = useState("");
-  const [debounced, setDebounced] = useState("");
+  const [query, setQuery] = useState(initialQuery);
+  const [debounced, setDebounced] = useState(initialQuery.trim());
   const topPad = 16;
+
+  useEffect(() => {
+    const urlQuery = searchParams.get("query") || searchParams.get("q");
+    if (urlQuery !== null && urlQuery !== query) {
+      setQuery(urlQuery);
+      setDebounced(urlQuery.trim());
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     const t = setTimeout(() => setDebounced(query.trim()), 400);
@@ -204,7 +214,7 @@ export default function JewelerySearchScreen() {
           </span>
         </div>
       ) : (
-        <div className="overflow-y-auto">
+        <div className="flex-1 pb-[calc(60px+env(safe-area-inset-bottom)+2rem)] md:pb-16">
           <div className="flex flex-col gap-3 p-4">
             <span
               className="text-xs"

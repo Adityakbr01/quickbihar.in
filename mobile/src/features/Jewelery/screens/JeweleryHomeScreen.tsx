@@ -28,10 +28,12 @@ import {
 import { CollectionCard } from "@/src/features/Jewelery/components/CollectionCard";
 import { HeroCarousel } from "@/src/features/Jewelery/components/HeroCarousel";
 import { ProductCard } from "@/src/features/Jewelery/components/ProductCard";
+import { occasions } from "@/src/features/Jewelery/data/collections";
 import {
-  occasions,
-} from "@/src/features/Jewelery/data/collections";
-import { useJeweleryBestsellers, useJeweleryCategories, useJeweleryNewArrivals } from "@/src/features/Jewelery/hooks/useJeweleryCatalog";
+  useJeweleryBestsellers,
+  useJeweleryCategories,
+  useJeweleryNewArrivals,
+} from "@/src/features/Jewelery/hooks/useJeweleryCatalog";
 import type { Collection } from "@/src/features/Jewelery/data/collections";
 import { useColors } from "@/src/features/Jewelery/hooks/useColors";
 import { TextInput } from "@/src/theme/components/TextInput";
@@ -210,21 +212,42 @@ function SectionHeader({
 }
 
 const JEWELERY_COLLECTION_IMAGES: Record<string, string> = {
-  jewellery: "https://ik.imagekit.io/k2n57ywshu/categories/jewelry/jewelry_collection_showcase_1789811067982_KRVoN6-Ls6.jpg",
-  necklace: "https://ik.imagekit.io/k2n57ywshu/products/jewelry/jewelry_pear_ruby_pendant_1789811050387_6l5vvgrn4r.jpg",
+  jewellery:
+    "https://ik.imagekit.io/k2n57ywshu/categories/jewelry/jewelry_collection_showcase_1789811067982_KRVoN6-Ls6.jpg",
+  necklace:
+    "https://ik.imagekit.io/k2n57ywshu/products/jewelry/jewelry_pear_ruby_pendant_1789811050387_6l5vvgrn4r.jpg",
   ring: "https://ik.imagekit.io/k2n57ywshu/products/jewelry/jewelry_solitaire_diamond_ring_1789811055760_0Iahnr6TDz.jpg",
-  earrings: "https://ik.imagekit.io/k2n57ywshu/products/jewelry/jewelry_peacock_temple_jhumkas_1789811057899_dLFgtSO4C.jpg",
-  bangle: "https://ik.imagekit.io/k2n57ywshu/products/jewelry/jewelry_royal_gold_bangles_1789811053311_o1ORm92lY.jpg",
-  pendant: "https://ik.imagekit.io/k2n57ywshu/products/jewelry/jewelry_laxmi_temple_coin_pendant_1789811062952_VSOBuVmmqn.jpg",
-  "bridal-set": "https://ik.imagekit.io/k2n57ywshu/products/jewelry/jewelry_royal_kundan_bridal_set_1789811060450_aFO15AgH_J.jpg",
-  chain: "https://ik.imagekit.io/k2n57ywshu/products/jewelry/jewelry_solid_gold_curb_chain_1789811065544_yPAVEqRfy.jpg",
+  earrings:
+    "https://ik.imagekit.io/k2n57ywshu/products/jewelry/jewelry_peacock_temple_jhumkas_1789811057899_dLFgtSO4C.jpg",
+  bangle:
+    "https://ik.imagekit.io/k2n57ywshu/products/jewelry/jewelry_royal_gold_bangles_1789811053311_o1ORm92lY.jpg",
+  pendant:
+    "https://ik.imagekit.io/k2n57ywshu/products/jewelry/jewelry_laxmi_temple_coin_pendant_1789811062952_VSOBuVmmqn.jpg",
+  "bridal-set":
+    "https://ik.imagekit.io/k2n57ywshu/products/jewelry/jewelry_royal_kundan_bridal_set_1789811060450_aFO15AgH_J.jpg",
+  chain:
+    "https://ik.imagekit.io/k2n57ywshu/products/jewelry/jewelry_solid_gold_curb_chain_1789811065544_yPAVEqRfy.jpg",
 };
 
 export function resolveJeweleryCollectionImage(c: any): string {
-  const slug = (c?.slug || c?.title?.toLowerCase()?.replace(/\s+/g, "-") || "").trim();
+  const slug = (
+    c?.slug ||
+    c?.title?.toLowerCase()?.replace(/\s+/g, "-") ||
+    ""
+  ).trim();
   const raw = c?.image || "";
-  if (!raw || raw.includes("ethnic") || raw.includes("shirts") || raw.includes("kurtis") || raw.includes("jeans") || raw.includes("kids") || raw.includes("sarees")) {
-    return JEWELERY_COLLECTION_IMAGES[slug] || JEWELERY_COLLECTION_IMAGES.jewellery;
+  if (
+    !raw ||
+    raw.includes("ethnic") ||
+    raw.includes("shirts") ||
+    raw.includes("kurtis") ||
+    raw.includes("jeans") ||
+    raw.includes("kids") ||
+    raw.includes("sarees")
+  ) {
+    return (
+      JEWELERY_COLLECTION_IMAGES[slug] || JEWELERY_COLLECTION_IMAGES.jewellery
+    );
   }
   return raw;
 }
@@ -293,7 +316,10 @@ function NewArrivals() {
           keyExtractor={(i) => i.id}
           contentContainerStyle={styles.horizontalList}
           renderItem={({ item }) => (
-            <ProductCard product={item} style={{ width: 164, marginRight: 12 }} />
+            <ProductCard
+              product={item}
+              style={{ width: 164, marginRight: 12 }}
+            />
           )}
         />
       )}
@@ -563,7 +589,9 @@ function GiftingSection() {
 function NewsletterSection() {
   const colors = useColors();
   const [email, setEmail] = React.useState("");
-  const [status, setStatus] = React.useState<"idle" | "loading" | "done" | "error">("idle");
+  const [status, setStatus] = React.useState<
+    "idle" | "loading" | "done" | "error"
+  >("idle");
   const [message, setMessage] = React.useState("");
   const [focused, setFocused] = React.useState(false);
 

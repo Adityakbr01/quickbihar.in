@@ -23,6 +23,12 @@ const orderItemSchema = new Schema(
         warehouseName: { type: String },
         latitude: { type: Number },
         longitude: { type: Number },
+        vertical: {
+            type: String,
+            enum: ["CLOTHING", "JEWELERY"],
+            default: "CLOTHING",
+            index: true,
+        },
     },
     { _id: false }
 );
@@ -162,6 +168,12 @@ const orderSchema = new Schema<IOrder>(
                 discountAmount: { type: Number, required: true },
             }
         ],
+        vertical: {
+            type: String,
+            enum: ["CLOTHING", "JEWELERY"],
+            default: "CLOTHING",
+            index: true,
+        },
     },
     {
         timestamps: true,

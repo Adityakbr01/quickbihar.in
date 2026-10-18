@@ -106,7 +106,7 @@ export default function JeweleryWishlistScreen() {
           </button>
         </div>
       ) : (
-        <div className="overflow-y-auto p-4">
+        <div className="flex-1 p-4 pb-[calc(60px+env(safe-area-inset-bottom)+2rem)] md:pb-16">
           <div className="flex flex-row flex-wrap justify-between gap-2">
             {wishlistIds.map((id) => (
               <WishlistRow key={id} id={id} cached={cachedProducts[id]} />

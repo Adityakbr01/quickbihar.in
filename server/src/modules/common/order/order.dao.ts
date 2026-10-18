@@ -32,10 +32,36 @@ export class OrderDAO {
         return await Order.findByIdAndUpdate(id, updateData, { returnDocument: 'after' }).populate(orderPopulate);
     }
 
-    async findByUserId(userId: string) {
-        return await Order.find({ userId })
+    async findByUserId(userId: string, query: any = {}) {
+        const rawVertical = query.vertical || query.module;
+        const filter: any = { userId };
+
+        const orders = await Order.find(filter)
             .populate(orderPopulate)
             .sort({ createdAt: -1 });
+
+        if (!rawVertical || !Array.isArray(orders)) {
+            return orders;
+        }
+
+        const normalized = String(rawVertical).toUpperCase().trim();
+        const isJeweleryTarget = normalized === "JEWELERY" || normalized === "JEWELRY";
+
+        return orders.filter((order: any) => {
+            const items = order.items || [];
+            const hasJeweleryItem = items.some((it: any) => {
+                const prod = it.productId;
+                return (
+                    it.vertical === "JEWELERY" ||
+                    prod?.vertical === "JEWELERY" ||
+                    Boolean(prod?.jeweleryDetails)
+                );
+            });
+
+            const isOrderJewelery = order.vertical === "JEWELERY" || hasJeweleryItem;
+
+            return isJeweleryTarget ? isOrderJewelery : !isOrderJewelery;
+        });
     }
 
     async findAll(query: any = {}) {

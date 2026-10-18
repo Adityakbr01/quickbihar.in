@@ -90,7 +90,7 @@ export default function JeweleryCollectionsScreen() {
         </button>
       </div>
 
-      <div className="overflow-y-auto">
+      <div className="flex-1">
         {/* Collections hero grid */}
         <div className="p-5" style={{ backgroundColor: colors.pearl }}>
           <span
@@ -189,7 +189,7 @@ export default function JeweleryCollectionsScreen() {
         </div>
 
         {/* Product grid */}
-        <div className="p-4" style={{ backgroundColor: colors.ivory }}>
+        <div className="p-4 pb-[calc(60px+env(safe-area-inset-bottom)+2rem)] md:pb-16" style={{ backgroundColor: colors.ivory }}>
           <div className="flex flex-row flex-wrap justify-between gap-2">
             {isLoading ? (
               <div className="flex flex-1 justify-center py-10">

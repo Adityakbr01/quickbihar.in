@@ -11,7 +11,7 @@ import { cn } from "@/src/lib/utils";
 /**
  * Catalog switcher pill — shows WHERE the tap goes (next catalog's icon +
  * name), so users instantly understand it. One tap cycles
- * Clothing <-> Jewelry (Food hidden for now). Persists via useModuleStore.
+ * Clothing <-> Jewelry. Persists via useModuleStore.
  */
 export const ModuleSwitcherButton: React.FC<{ compact?: boolean }> = ({
   compact = false,
@@ -21,11 +21,9 @@ export const ModuleSwitcherButton: React.FC<{ compact?: boolean }> = ({
   const { currentModule, setModule } = useModuleStore();
   const isNavigating = useRef(false);
   const [pressed, setPressed] = useState(false);
-  // Food module hidden for now — switcher cycles Clothing <-> Jewelry only.
-  const visibleModules = APP_MODULES.filter((m) => m.id !== "food");
-  const currentIndex = visibleModules.findIndex((m) => m.id === currentModule.id);
+  const currentIndex = APP_MODULES.findIndex((m) => m.id === currentModule.id);
   const nextModule =
-    visibleModules[(currentIndex + 1 + visibleModules.length) % visibleModules.length];
+    APP_MODULES[(currentIndex + 1 + APP_MODULES.length) % APP_MODULES.length];
   const nextLabel = nextModule?.label ?? "next catalog";
   const NextIcon = nextModule?.iconName ?? Sparkles;
 

@@ -17,7 +17,7 @@ export const SUPPORT_EMAIL = APP_GENERAL_SUPPORT_EMAIL;
 
 // Module-Specific Vertical Configuration Interface
 export interface ModuleVerticalConfig {
-  id: "clothing" | "jewelery" | "food";
+  id: "clothing" | "jewelery";
   name: string;
   brandName: string;
   slogan: string;
@@ -31,7 +31,7 @@ export interface ModuleVerticalConfig {
 
 // Vertical Module Configs with Dedicated Support Numbers & Email Contacts
 export const MODULE_CONFIGS: Record<
-  "clothing" | "jewelery" | "food",
+  "clothing" | "jewelery",
   ModuleVerticalConfig
 > = {
   clothing: {
@@ -58,24 +58,11 @@ export const MODULE_CONFIGS: Record<
     freeShippingThreshold: 5000,
     returnPolicyDays: 30,
   },
-  food: {
-    id: "food",
-    name: "Food & Delicacies",
-    brandName: "QUICKBIHAR EATS",
-    slogan: "Fresh & Local Flavors Delivered",
-    tagline: "Authentic local delicacies and fresh food from top sellers",
-    supportEmail: "food-support@quickbihar.in",
-    supportPhone: "+91 98765 43213",
-    whatsappPhone: "+91 98765 43213",
-    freeShippingThreshold: 499,
-    returnPolicyDays: 0,
-  },
 };
 
 // Convenient Named Exports per Vertical
 export const CLOTHING_MODULE_CONFIG = MODULE_CONFIGS.clothing;
 export const JEWELERY_MODULE_CONFIG = MODULE_CONFIGS.jewelery;
-export const FOOD_MODULE_CONFIG = MODULE_CONFIGS.food;
 
 // Web Admin Dashboard
 // The mobile app does not ship an in-app admin panel — admins reach the

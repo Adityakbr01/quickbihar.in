@@ -30,11 +30,6 @@ import ClothingHomeScreen from "@/src/features/clothing/home/screens/HomeScreen"
 const ClothingSearchScreen = lazy(
   () => import("@/src/features/clothing/search/screens/ClothingSearchScreen"),
 );
-const FoodHomeScreen = lazy(() =>
-  import("@/src/features/Food/screens/FoodHomeScreen").then((m) => ({
-    default: m.FoodHomeScreen,
-  })),
-);
 const TopSellingScreen = lazy(
   () => import("@/src/features/clothing/home/screens/TopSellingScreen"),
 );
@@ -258,9 +253,15 @@ function MainLayout() {
             />
 
             {/* Clothing & Main Routes */}
+            <Route
+              path="/clothing"
+              element={<Navigate to="/clothing/home" replace />}
+            />
             <Route path="/clothing/home" element={<ClothingHomeScreen />} />
             <Route path="/clothing/search" element={<ClothingSearchScreen />} />
             <Route path="/clothing/cart" element={<CartContent />} />
+            <Route path="/cart" element={<CartContent />} />
+            <Route path="/bag" element={<CartContent />} />
             <Route path="/clothing/account" element={<AccountMain />} />
             <Route path="/clothing/checkout" element={<CheckoutScreen />} />
             <Route path="/clothing/rider" element={<RiderWorkspaceScreen />} />
@@ -307,9 +308,12 @@ function MainLayout() {
             <Route path="/order-detail/:id" element={<OrderDetailScreen />} />
             <Route path="/checkout" element={<CheckoutScreen />} />
             <Route path="/order-success" element={<OrderSuccessScreen />} />
+            <Route
+              path="/order-success/:orderId"
+              element={<OrderSuccessScreen />}
+            />
 
             {/* Other Modules */}
-            <Route path="/food" element={<FoodHomeScreen />} />
             <Route path="/rider" element={<RiderWorkspaceScreen />} />
             <Route path="/Onboarding" element={<OnboardingScreen />} />
 
@@ -319,10 +323,16 @@ function MainLayout() {
             {/* Jewelery Module */}
             <Route path="/jewelery" element={<JeweleryHomeScreen />} />
             <Route
+              path="/jewelry"
+              element={<Navigate to="/jewelery" replace />}
+            />
+            <Route
               path="/jewelery/collections"
               element={<JeweleryCollectionsScreen />}
             />
             <Route path="/jewelery/cart" element={<JeweleryCartScreen />} />
+            <Route path="/jewelry/cart" element={<JeweleryCartScreen />} />
+            <Route path="/jewelery/bag" element={<JeweleryCartScreen />} />
             <Route
               path="/jewelery/checkout"
               element={<JeweleryCheckoutScreen />}
@@ -332,10 +342,45 @@ function MainLayout() {
               path="/jewelery/account"
               element={<JeweleryAccountScreen />}
             />
-            {/* Mobile profile tab renders the same account screen */}
+            <Route
+              path="/jewelery/account/orders"
+              element={<JeweleryOrdersScreen />}
+            />
+            <Route
+              path="/jewelery/account/orders/:id"
+              element={<JeweleryOrderDetailScreen />}
+            />
+            <Route
+              path="/jewelery/account/addresses"
+              element={<JeweleryAddressesScreen />}
+            />
+            <Route
+              path="/jewelery/account/address-form"
+              element={<JeweleryAddressFormScreen />}
+            />
+            <Route
+              path="/jewelery/account/profile-info"
+              element={<ProfileInfoScreen />}
+            />
+            <Route
+              path="/jewelery/account/profile"
+              element={<ProfileInfoScreen />}
+            />
+            <Route
+              path="/jewelery/account/wishlist"
+              element={<JeweleryWishlistScreen />}
+            />
+            <Route
+              path="/jewelery/account/notifications"
+              element={<NotificationScreen />}
+            />
+            <Route
+              path="/jewelery/profile-info"
+              element={<ProfileInfoScreen />}
+            />
             <Route
               path="/jewelery/profile"
-              element={<JeweleryAccountScreen />}
+              element={<ProfileInfoScreen />}
             />
             <Route
               path="/jewelery/addresses"
@@ -347,7 +392,15 @@ function MainLayout() {
             />
             <Route path="/jewelery/orders" element={<JeweleryOrdersScreen />} />
             <Route
+              path="/jewelery/order/:id"
+              element={<JeweleryOrderDetailScreen />}
+            />
+            <Route
               path="/jewelery/order-detail"
+              element={<JeweleryOrderDetailScreen />}
+            />
+            <Route
+              path="/jewelery/order-detail/:id"
               element={<JeweleryOrderDetailScreen />}
             />
             {/* Mobile dynamic route /jewelery/orders/[id] */}

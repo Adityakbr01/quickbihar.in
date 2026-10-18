@@ -49,13 +49,12 @@ mobile/app/
 ├── checkout.tsx          ← ★ checkout screen
 ├── order-success.tsx     ← order placed confirmation
 ├── track-order/[id].tsx  ← live order tracking (socket)
-├── food/                 ← ⚠️ PLACEHOLDER (koi real feature nahi)
 └── jewelery/             ← ✅ LIVE (real catalog/cart/auth, Sec: Jewelery status)
 ```
 
 - `(tabs)` — parentheses waala folder **route group** hai (URL mein nahi aata, sirf layout ke liye).
 - `[id]` — dynamic segment (jaise `/product/123`).
-- `food/` **placeholder** hai — confuse mat ho. `jewelery/` live jewelry storefront hai.
+- `jewelery/` live jewelry storefront hai.
 
 ---
 
@@ -87,7 +86,6 @@ mobile/src/
     │                        profileInfo, refundPolicy, trackOrder, wishlist
     ├── Delivery/          ← rider components + screens
     ├── Onboarding/
-    ├── Food/              ← ⚠️ placeholder
     └── Jewelery/          ← ✅ LIVE (catalog, cart, wishlist, checkout, one-tap auth)
 ```
 
@@ -228,7 +226,7 @@ Detail: [11_Order_System.md](./../features/orders.md), [12_Payment_System.md](./
 `mobile/src/store/` mein Zustand stores:
 - **toast store** — global toast messages
 - **socket store** — socket connection state
-- **module switcher** — clothing/food/jewelery vertical switch (UI level)
+- **module switcher** — clothing/jewelery vertical switch (UI level)
 
 Data fetching **React Query** se (server state), UI state **Zustand** se. `QueryProvider` (`src/provider/`) root layout mein wrap hota hai.
 
@@ -244,7 +242,6 @@ Data fetching **React Query** se (server state), UI state **Zustand** se. `Query
 
 ## RISKS
 
-- ⚠️ **food placeholder** — isme real feature nahi. Naye dev ko lag sakta hai yeh working hai. (Jewelery Sep 2026 se live hai — Sec: Jewelery status.)
 - ⚠️ **Web vs native differences** — token storage (SecureStore vs localStorage), refresh token (body vs cookie), push (native FCM vs skip on Expo Go). Platform-specific bugs yahi se aate hain.
 - ⚠️ **GPS pin mandatory** — customer agar address pin na kare toh order fail. UX pe dhyan.
 - ⚠️ **Expo Go pe push kaam nahi karta** — dev build zaroori push testing ke liye.
@@ -253,7 +250,6 @@ Data fetching **React Query** se (server state), UI state **Zustand** se. `Query
 
 ## IMPROVEMENTS
 
-- food placeholder ko clearly "coming soon" mark karna (ya remove karna jab tak build na ho).
 - Push notification testing ke liye proper dev build documentation.
 - `common`/`clothing` seam ko generalize karna (abhi clothing hardcoded jagah-jagah).
 
@@ -267,7 +263,7 @@ Data fetching **React Query** se (server state), UI state **Zustand** se. `Query
 - Auth: clothing jaisa one-tap Google (`app/jewelery/auth/sign-in.tsx`); sign-up/forgot/reset/otp → sign-in redirect.
 - Icons: single system `@expo/vector-icons` (`components/common/AppIcon.tsx`); company info `src/constants/app.constants.ts` se.
 - Server: `vertical=JEWELERY` + strict `jeweleryDetails` validation + 8 seeded categories (`bun run seed:jewelry`).
-- Dash-web: shared `features/catalog/` tabs (Clothing | Jewelry | Food) admin + seller panels me.
+- Dash-web: shared `features/catalog/` tabs (Clothing | Jewelry) admin + seller panels me.
 
 ---
 

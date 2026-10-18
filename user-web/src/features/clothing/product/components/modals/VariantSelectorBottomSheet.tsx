@@ -159,15 +159,17 @@ export const VariantSelectorBottomSheet = ({
       return;
     }
 
+    if (isAddingToCart) return;
+
     const variant = selectedVariant || product.variants?.[0];
     const sku = variant?.sku || "default-sku";
 
     try {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       await addItem(product, sku, 1, "clothing");
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       onClose();
     } catch {
-      // silent — haptics already fired
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     }
   };
 

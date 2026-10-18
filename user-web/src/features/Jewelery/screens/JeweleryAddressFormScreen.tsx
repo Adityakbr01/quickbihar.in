@@ -763,7 +763,7 @@ export default function JeweleryAddressFormScreen() {
               }}
             />
           </div>
-          <div style={{ height: 16 }} />
+          <div style={{ height: 120 }} />
         </div>
 
         {/* Footer CTA — viewport-fixed above the tab bar */}

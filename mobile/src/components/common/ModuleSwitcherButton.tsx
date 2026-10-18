@@ -10,7 +10,7 @@ import { APP_MODULES } from "@/src/constants/modules";
 /**
  * Catalog switcher pill — shows WHERE the tap goes (next catalog's icon +
  * name), so users instantly understand it. One tap cycles
- * Clothing → Jewelry → Food. Persists via useModuleStore.
+ * Clothing → Jewelry. Persists via useModuleStore.
  */
 export const ModuleSwitcherButton: React.FC = () => {
   const theme = useTheme();

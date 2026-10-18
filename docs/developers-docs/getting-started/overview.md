@@ -13,9 +13,8 @@ QuickBihar ek **hyperlocal multi-vertical e-commerce platform** hai. Simple shab
 "Multi-vertical" ka matlab: platform ek se zyada business types (verticals) support karne ke liye design kiya gaya hai:
 - 👕 **Clothing** (apparel) — **LIVE hai**, poora working hai.
 - 💍 **Jewelery** — **LIVE hai** (Sep 2026): real catalog, cart, wishlist, checkout, one-tap auth.
-- 🍔 **Food** — abhi sirf placeholder/scaffold hai (screens hain par backend logic nahi).
 
-> ✅ **Update (Sep 2026):** Jewelery ab clothing wale shared commerce flow par live hai (`vertical=JEWELERY`, strict BIS validation, 8 seeded categories, dash-web catalog tabs). Sirf **food** placeholder bacha hai.
+> ✅ **Update (Sep 2026):** Jewelery ab clothing wale shared commerce flow par live hai (`vertical=JEWELERY`, strict BIS validation, 8 seeded categories, dash-web catalog tabs). Dono live verticals (clothing, jewelery) shared `common` + per-vertical seam par chalte hain.
 
 ---
 
@@ -176,7 +175,7 @@ Agar aap yeh 5 cheezein samajh lo, toh aap 80% system samajh gaye:
 
 ## RISKS — Is level pe kya dhyan rakhein
 
-- ⚠️ **Multi-vertical me sirf food bacha hai.** Jewelery Sep 2026 se production-ready hai (clothing ke saath). Sirf food placeholder hai.
+- ⚠️ **Naya vertical add karte waqt** per-vertical folders pattern follow karo (`common` code touch na karo) — dekho 28_Add_New_Business_Type.md.
 - ⚠️ **Single VPS deployment.** Abhi ek hi self-hosted VPS pe sab chalta hai (koi horizontal scaling nahi). Detail: 17_Deployment.md.
 
 ---

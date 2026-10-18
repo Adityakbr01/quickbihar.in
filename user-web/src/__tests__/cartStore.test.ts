@@ -148,4 +148,55 @@ describe("Cart Domain Calculations", () => {
       expect(coverage[0].lineSubtotal).toBe(998);
     });
   });
+
+  describe("Cross-Module Bottom Tab Badge Count Partitioning", () => {
+    it("ensures clothing badge only reflects clothing items and jewellery badge only reflects jewellery items", () => {
+      const mixedCart = [sampleClothingItem, sampleJeweleryItem];
+
+      const clothingBadgeCount = filterItemsByModule(mixedCart, "clothing").length;
+      const jeweleryBadgeCount = filterItemsByModule(mixedCart, "jewelery").length;
+
+      expect(clothingBadgeCount).toBe(1);
+      expect(jeweleryBadgeCount).toBe(1);
+    });
+
+    it("displays 0 on jewellery badge when only clothing items are in cart", () => {
+      const clothingOnlyCart = [sampleClothingItem, unclassifiedItem];
+
+      const clothingCount = filterItemsByModule(clothingOnlyCart, "clothing").length;
+      const jeweleryCount = filterItemsByModule(clothingOnlyCart, "jewelery").length;
+
+      expect(clothingCount).toBe(2);
+      expect(jeweleryCount).toBe(0);
+    });
+
+    it("displays 0 on clothing badge when only jewellery items are in cart", () => {
+      const jeweleryOnlyCart = [sampleJeweleryItem];
+
+      const clothingCount = filterItemsByModule(jeweleryOnlyCart, "clothing").length;
+      const jeweleryCount = filterItemsByModule(jeweleryOnlyCart, "jewelery").length;
+
+      expect(clothingCount).toBe(0);
+      expect(jeweleryCount).toBe(1);
+    });
+  });
+
+  describe("Cart Subtotal & Tax Separation", () => {
+    it("calculates distinct totals for clothing and jewellery checkouts independently", () => {
+      const mixedCart = [sampleClothingItem, sampleJeweleryItem];
+
+      const clothingTotals = totalsForItems(filterItemsByModule(mixedCart, "clothing"));
+      const jeweleryTotals = totalsForItems(filterItemsByModule(mixedCart, "jewelery"));
+
+      // Clothing: 2 * 499 = 998, tax = 2 * 25 = 50
+      expect(clothingTotals.subtotal).toBe(998);
+      expect(clothingTotals.totalTax).toBe(50);
+      expect(clothingTotals.itemCount).toBe(1);
+
+      // Jewelery: 1 * 2499 = 2499, tax = 1 * 75 = 75
+      expect(jeweleryTotals.subtotal).toBe(2499);
+      expect(jeweleryTotals.totalTax).toBe(75);
+      expect(jeweleryTotals.itemCount).toBe(1);
+    });
+  });
 });

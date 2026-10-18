@@ -119,7 +119,7 @@ const CategoryDetailScreen: React.FC<CategoryDetailScreenProps> = ({ slug }) => 
           </Link>
           <span style={{ color: theme.secondaryText }}>›</span>
           <Link
-            to="/(tabs)/clothing/home"
+            to="/clothing/home"
             className="font-medium transition-colors hover:underline"
             style={{ color: theme.secondaryText }}
           >
@@ -132,14 +132,14 @@ const CategoryDetailScreen: React.FC<CategoryDetailScreenProps> = ({ slug }) => 
         </nav>
 
         {/* Category Header Banner */}
-        <div className="mb-6 rounded-2xl border p-4 md:p-6" style={{ backgroundColor: theme.secondaryBackground, borderColor: theme.border }}>
+        <div className="mb-4 rounded-2xl border p-4 md:p-6" style={{ backgroundColor: theme.secondaryBackground, borderColor: theme.border }}>
           <div className="flex flex-col gap-1.5 md:flex-row md:items-center md:justify-between">
             <div>
               <h1 className="text-xl font-black tracking-tight md:text-3xl" style={{ color: theme.text }}>
                 {category.title}
               </h1>
               {!!category.description && (
-                <p className="mt-1 max-w-2xl text-xs md:text-sm leading-5" style={{ color: theme.secondaryText }}>
+                <p className="mt-1 max-w-2xl text-xs md:text-sm leading-5 font-medium" style={{ color: theme.secondaryText }}>
                   {category.description}
                 </p>
               )}
@@ -153,6 +153,36 @@ const CategoryDetailScreen: React.FC<CategoryDetailScreenProps> = ({ slug }) => 
               </span>
             </div>
           </div>
+        </div>
+
+        {/* Category Navigation Pills */}
+        <div className="mb-6 flex flex-row items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+          {[
+            { slug: "mens-wear", title: "Men's Wear" },
+            { slug: "ethnic-wear", title: "Ethnic Wear" },
+            { slug: "womens-wear", title: "Women's Wear" },
+            { slug: "sarees", title: "Sarees" },
+            { slug: "jeans", title: "Jeans" },
+            { slug: "kurtis-suits", title: "Kurtis & Suits" },
+            { slug: "shirts-t-shirts", title: "Shirts & T-Shirts" },
+            { slug: "kids-wear", title: "Kids Wear" },
+          ].map((cat) => {
+            const isActive = cat.slug === slug || cat.slug === category.slug;
+            return (
+              <Link
+                key={cat.slug}
+                to={`/category/${cat.slug}`}
+                className="shrink-0 rounded-full border px-4 py-1.5 text-xs font-bold transition-all hover:opacity-90 active:scale-95"
+                style={{
+                  backgroundColor: isActive ? theme.primary : theme.secondaryBackground,
+                  borderColor: isActive ? theme.primary : theme.border,
+                  color: isActive ? "#ffffff" : theme.text,
+                }}
+              >
+                {cat.title}
+              </Link>
+            );
+          })}
         </div>
 
         {/* Product Grid */}
@@ -183,7 +213,7 @@ const CategoryDetailScreen: React.FC<CategoryDetailScreenProps> = ({ slug }) => 
               New collection items are being added soon. Check out other trending categories on QuickBihar.
             </p>
             <Link
-              to={toWebPath("/(tabs)/clothing/home")}
+              to="/clothing/home"
               className="mt-4 text-xs font-bold underline hover:opacity-80"
               style={{ color: theme.primary }}
             >

@@ -138,7 +138,7 @@ modules/
 - Agar koi cheez **har business type** ke liye same hai (order kaise place hota hai, payment kaise hota hai, rider kaise match hota hai) → **`common/`**.
 - Agar koi cheez **sirf clothing** ke liye specific hai (size charts, apparel variants) → **`clothing/`**.
 
-Naya vertical (jaise food) add karte time yeh distinction hi aapko bachaayegi. Dekho 28_Add_New_Business_Type.md.
+Naya vertical add karte time yeh distinction hi aapko bachaayegi. Dekho 28_Add_New_Business_Type.md.
 
 ### `modules/common/` ke 23 folders
 
@@ -303,7 +303,6 @@ mobile/
 │   ├── checkout.tsx          ← ★ checkout screen
 │   ├── order-success.tsx
 │   ├── track-order/[id].tsx  ← live order tracking
-│   ├── food/                 ← ⚠️ placeholder only
 │   └── jewelery/             ← ✅ LIVE storefront (real catalog/cart/auth)
 └── src/
     ├── api/
@@ -329,7 +328,6 @@ mobile/
         │                        profileInfo, refundPolicy, trackOrder, wishlist
         ├── Delivery/          ← rider components + screens
         ├── Onboarding/        ← onboarding slides
-        ├── Food/              ← ⚠️ placeholder screen
         └── Jewelery/          ← ✅ LIVE (catalog, cart, wishlist, checkout, one-tap auth)
 ```
 
@@ -349,7 +347,7 @@ Detail: [05_Mobile_App.md](./../apps/mobile-app.md).
 
 ### ⚠️ Mobile mein kya dhyan rakhein
 
-- `food/` folder **placeholder** hai — isme koi real feature nahi. Confuse mat ho. (`jewelery/` Sep 2026 se live hai.)
+- `jewelery/` Sep 2026 se live hai — real catalog/cart/auth storefront.
 - Token storage: mobile mein **SecureStore** use hota hai (web mein localStorage) via `authStorage.ts`.
 
 ---
@@ -374,7 +372,7 @@ Naya backend module?        → server/src/modules/common/<newModule>/
                               (guide: 27_Add_New_Module.md)
 Naya dashboard screen?      → web/src/features/<domain>/components/
 Naya mobile screen?         → mobile/app/<route>.tsx + mobile/src/features/
-Naya vertical (food)?       → dono common + clothing pattern follow karo
+Naya vertical?               → dono common + clothing pattern follow karo
                               (guide: 28_Add_New_Business_Type.md)
 ```
 

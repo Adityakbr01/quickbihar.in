@@ -17,7 +17,7 @@ export const createProductObjectSchema = z.object({
      isGstApplicable: z.preprocess((val) => val === "true" || val === true, z.boolean()).default(false),
      gstPercentage: z.coerce.number().default(0),
      
-     vertical: z.enum(["CLOTHING", "FOOD", "JEWELERY"]).optional().default("CLOTHING"),
+     vertical: z.enum(["CLOTHING", "JEWELERY"]).optional().default("CLOTHING"),
      
      // Support for both JSON string (multipart) and object
     variants: z.preprocess(
@@ -45,17 +45,6 @@ export const createProductObjectSchema = z.object({
              sku: z.string().optional(),
          })
      ).optional(),
-
-    foodDetails: z.preprocess(
-        (val) => typeof val === "string" ? JSON.parse(val) : val,
-        z.object({
-            vegNonVeg: z.enum(["VEG", "NON_VEG", "EGG"]).optional(),
-            shelfLife: z.string().optional(),
-            ingredients: z.array(z.string()).optional(),
-            servingSize: z.string().optional(),
-            calories: z.coerce.number().optional(),
-        })
-    ).optional(),
 
     jeweleryDetails: z.preprocess(
         (val) => typeof val === "string" ? JSON.parse(val) : val,

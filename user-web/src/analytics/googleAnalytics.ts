@@ -22,8 +22,8 @@ export const GA_MEASUREMENT_ID_FALLBACK = "G-VXLCL1EE0J";
 
 export const GA_CURRENCY = "INR";
 
-/** GA catalog values used to distinguish the three marketplace verticals. */
-export type GaCatalog = "clothing" | "jewellery" | "food";
+/** GA catalog values used to distinguish the marketplace verticals. */
+export type GaCatalog = "clothing" | "jewellery";
 
 export interface GaItem {
   item_id: string;
@@ -191,20 +191,18 @@ function normalizeCatalogToken(value: unknown): GaCatalog | null {
   if (!v) return null;
   if (v === "jewelery" || v === "jewellery" || v === "jewelry") return "jewellery";
   if (v === "clothing" || v === "fashion" || v === "apparel") return "clothing";
-  if (v === "food" || v === "eats") return "food";
   return null;
 }
 
 /**
  * Resolve the GA catalog for a server product (IProduct shape). Uses real
- * product data — jeweleryDetails / foodDetails / vertical — never guesses.
+ * product data — jeweleryDetails / vertical — never guesses.
  */
 export function resolveProductCatalog(product: unknown): GaCatalog {
   try {
     const p = product as Record<string, unknown> | null;
     if (!p || typeof p !== "object") return "clothing";
     if (p.jeweleryDetails) return "jewellery";
-    if (p.foodDetails) return "food";
     const fromVertical =
       normalizeCatalogToken(p.vertical) || normalizeCatalogToken(p.module);
     if (fromVertical) return fromVertical;
@@ -228,7 +226,6 @@ export function resolveCatalogFromPath(pathname: string): GaCatalog | undefined 
   const p = (pathname || "").toLowerCase();
   if (p === "/" || p === "") return undefined;
   if (p.startsWith("/jewelery") || p.startsWith("/jewelry")) return "jewellery";
-  if (p.startsWith("/food")) return "food";
   return "clothing";
 }
 

@@ -81,7 +81,7 @@ const productSchema = new Schema(
 
         vertical: {
             type: String,
-            enum: ["CLOTHING", "FOOD", "JEWELERY"],
+            enum: ["CLOTHING", "JEWELERY"],
             default: "CLOTHING",
             index: true,
         },
@@ -94,14 +94,6 @@ const productSchema = new Schema(
             sleeve: String,
             washCare: String,
             sku: String,
-        },
-
-        foodDetails: {
-            vegNonVeg: { type: String, enum: ["VEG", "NON_VEG", "EGG"] },
-            shelfLife: String,
-            ingredients: [String],
-            servingSize: String,
-            calories: Number,
         },
 
         jeweleryDetails: {

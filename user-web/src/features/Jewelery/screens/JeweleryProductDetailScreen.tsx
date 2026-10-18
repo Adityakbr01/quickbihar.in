@@ -12,7 +12,11 @@ import type { Product as JeweleryProduct } from "@/src/features/Jewelery/data/pr
 import { useJeweleryProduct, useSimilarJewelery } from "@/src/features/Jewelery/hooks/useJeweleryCatalog";
 import { useCart } from "@/src/features/Jewelery/context/CartContext";
 import { useColors } from "@/src/features/Jewelery/hooks/useColors";
-import { useStickyBarBottomOffset } from "@/src/utils/responsive";
+import {
+  BREAKPOINTS,
+  useStickyBarBottomOffset,
+  useWindowWidth,
+} from "@/src/utils/responsive";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
 import {
   useCreateProductReview,
@@ -49,6 +53,8 @@ export default function JeweleryProductDetailScreen() {
   // Mobile web tab bar is fixed-position and overlays the viewport bottom —
   // lift the sticky bar above it (0 on desktop, no visual diff).
   const stickyBarOffset = useStickyBarBottomOffset();
+  const windowWidth = useWindowWidth();
+  const isDesktop = windowWidth >= BREAKPOINTS.desktopMin;
 
   const { data: product, isLoading } = useJeweleryProduct(id);
   const { data: related = [] } = useSimilarJewelery(id, 4);
@@ -176,7 +182,7 @@ export default function JeweleryProductDetailScreen() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col overflow-hidden" style={{ backgroundColor: colors.ivory }}>
+    <div className="relative flex min-h-screen flex-col" style={{ backgroundColor: colors.ivory }}>
       {/* Back button overlay */}
       <div
         className="absolute right-4 left-4 z-10 flex flex-row justify-between"
@@ -209,7 +215,7 @@ export default function JeweleryProductDetailScreen() {
         </button>
       </div>
 
-      <div className="overflow-auto">
+      <div className="flex-1">
         {/* Image carousel */}
         <ImageCarousel images={product.images} productName={product.name} />
 
@@ -661,7 +667,14 @@ export default function JeweleryProductDetailScreen() {
             </div>
           )}
 
-          <div style={{ height: 100 + stickyBarOffset }} />
+          <div
+            className="h-[120px] lg:h-[80px]"
+            style={{
+              paddingBottom: isDesktop
+                ? 0
+                : "calc(60px + env(safe-area-inset-bottom))",
+            }}
+          />
         </div>
       </div>
 
@@ -675,7 +688,7 @@ export default function JeweleryProductDetailScreen() {
           borderTopColor: colors.midGray,
           borderTopWidth: 1,
           paddingBottom: 12,
-          bottom: stickyBarOffset,
+          bottom: isDesktop ? 0 : "calc(60px + env(safe-area-inset-bottom))",
         }}
       >
         <button
@@ -725,7 +738,7 @@ export default function JeweleryProductDetailScreen() {
             isInCart
               ? () => {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  goTo(navigate, "/jewelery/(tabs)/cart" as any);
+                  goTo(navigate, "/jewelery/cart");
                 }
               : handleAddToCart
           }

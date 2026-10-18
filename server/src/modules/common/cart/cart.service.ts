@@ -6,7 +6,7 @@ import { type CartModule } from "./cart.model";
 
 /**
  * Maps a product vertical to the storefront cart module that owns it.
- * Only JEWELERY gets its own bag; everything else (CLOTHING, FOOD,
+ * Only JEWELERY gets its own bag; everything else (CLOTHING,
  * legacy products without a vertical) lives in the clothing cart.
  */
 export function moduleFromVertical(vertical?: string): CartModule {

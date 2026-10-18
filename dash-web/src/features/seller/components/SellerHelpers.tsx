@@ -362,7 +362,6 @@ export function ListFilters({
         >
           <option value="">All catalogs</option>
           <option value="CLOTHING">Clothing</option>
-          <option value="FOOD">Food</option>
           <option value="JEWELERY">Jewelry</option>
         </select>
       )}

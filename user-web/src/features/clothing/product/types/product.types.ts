@@ -120,13 +120,6 @@ export interface IProduct {
     occasion?: string;
     fabricCare?: string;
   };
-  foodDetails?: {
-    vegNonVeg?: "VEG" | "NON_VEG" | "EGG";
-    shelfLife?: string;
-    ingredients?: string[];
-    servingSize?: string;
-    calories?: number;
-  };
   jeweleryDetails?: {
     metalType?: string;
     purity?: string;

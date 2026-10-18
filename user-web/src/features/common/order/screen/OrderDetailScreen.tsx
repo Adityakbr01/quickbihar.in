@@ -324,8 +324,10 @@ export default function OrderDetailScreen() {
       item.productId && typeof item.productId === "object"
         ? item.productId
         : null;
-    const prodId = prod?.slug || prod?._id || item.productId || item._id;
-    if (prodId && typeof prodId === "string") {
+    const rawId = prod?.slug || prod?._id || item.productId || item._id;
+    const prodId = typeof rawId === "object" ? rawId?._id : rawId;
+    const prodIdStr = prodId ? String(prodId) : "";
+    if (prodIdStr && prodIdStr !== "[object Object]") {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       // Jewelery lines open the jewelery detail screen — the clothing
       // detail screen can't render jewelery products.
@@ -346,20 +348,15 @@ export default function OrderDetailScreen() {
         String(order?.vertical || "").toLowerCase() === "jewelery";
 
       if (isJewelery) {
-        const rawId = prod?._id || prodId || item.productId;
-        const jeweleryId =
-          typeof rawId === "object" ? rawId?._id : rawId;
-        if (jeweleryId) {
-          goTo(navigate, {
-            pathname: "/jewelery/product/[id]" as any,
-            params: { id: String(jeweleryId) },
-          });
-          return;
-        }
+        goTo(navigate, {
+          pathname: "/jewelery/product/[id]" as any,
+          params: { id: prodIdStr },
+        });
+        return;
       }
       goTo(navigate, {
         pathname: "/product/[id]" as any,
-        params: { id: prodId },
+        params: { id: prodIdStr },
       });
     }
   };

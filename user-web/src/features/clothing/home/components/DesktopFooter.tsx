@@ -40,7 +40,6 @@ export const DesktopFooter = () => {
         { label: "Shopping Malls", href: "/malls" },
         { label: "Jewellery Store", href: "/jewelery" },
         { label: "Jewellery Collections", href: "/jewelery/collections" },
-        { label: "Food Delivery", href: "/food" },
       ],
     },
     {

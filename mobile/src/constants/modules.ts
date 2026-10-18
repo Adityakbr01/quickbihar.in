@@ -1,4 +1,4 @@
-export type ModuleId = "clothing" | "food" | "jewelery";
+export type ModuleId = "clothing" | "jewelery";
 
 export interface AppModule {
   id: ModuleId;
@@ -25,13 +25,5 @@ export const APP_MODULES: AppModule[] = [
     iconName: "sparkles-outline",
     badgeColor: "#D97706",
     route: "/jewelery",
-  },
-  {
-    id: "food",
-    name: "Food",
-    label: "Food",
-    iconName: "fast-food-outline",
-    badgeColor: "#E11D48",
-    route: "/food",
   },
 ];

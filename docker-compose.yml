@@ -5,6 +5,8 @@ services:
     image: redis:alpine
     container_name: quickbihar-redis
     restart: unless-stopped
+    ports:
+      - "127.0.0.1:6379:6379"
     volumes:
       - quickbihar-redis-data:/data
     networks:

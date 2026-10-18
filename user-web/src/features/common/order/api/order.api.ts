@@ -86,8 +86,8 @@ export const verifyPaymentRequest = async (data: VerifyPaymentData) => {
   return response.data;
 };
 
-export const getMyOrdersRequest = async () => {
-  const response = await axiosInstance.get("/orders/me");
+export const getMyOrdersRequest = async (params?: { vertical?: string; module?: string }) => {
+  const response = await axiosInstance.get("/orders/me", { params });
   return response.data;
 };
 

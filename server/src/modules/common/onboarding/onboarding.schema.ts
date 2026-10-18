@@ -43,8 +43,8 @@ export const applyOnboardingSchema = z.discriminatedUnion("type", [
         details: z.object({
             phone: z.string().trim().regex(/^\+?\d{10,15}$/, "Valid 10 to 15 digit mobile number is required").optional(),
             businessName: z.string().min(1, "Business name is required"),
-            sellerType: z.enum([DomainEnum.CLOTHING, DomainEnum.FOOD, DomainEnum.JEWELERY] as const, {
-                message: "Invalid seller type (must be CLOTHING, FOOD, or JEWELERY)",
+            sellerType: z.enum([DomainEnum.CLOTHING, DomainEnum.JEWELERY] as const, {
+                message: "Invalid seller type (must be CLOTHING or JEWELERY)",
             }),
             gstNumber: z.string().optional(),
             bankDetails: bankDetailsSchema.optional(),
