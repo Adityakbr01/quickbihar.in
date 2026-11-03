@@ -50,7 +50,7 @@
     "vite-plugin-compression": "^0.5.1",
     "vite-prerender-plugin": "^0.5.14",
     "web-haptics": "^0.0.6",
-    "zod": "^4.6.5",
+    "zod": "^4.6.7",
     "zustand": "^5.0.15"
   },
   "devDependencies": {
