@@ -2,8 +2,7 @@ import { Package, Search } from "lucide-react";
 import * as Haptics from "@/lib/haptics";
 import { useNavigate } from "react-router-dom";
 import { goTo } from "@/src/utils/navigation";
-import React, { useMemo, useState } from "react";
-import { cn } from "@/src/lib/utils";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 
 import { ProductCard } from "@/src/features/Jewelery/components/ProductCard";
 import { useJeweleryCategories, useJeweleryProducts } from "@/src/features/Jewelery/hooks/useJeweleryCatalog";
@@ -56,6 +55,29 @@ export default function JeweleryCollectionsScreen() {
     () => (pages?.pages ?? []).flatMap((pg) => pg.data),
     [pages]
   );
+
+  // Infinite scroll — prefetch the next page ~400px before the user reaches
+  // the last row, so there is never a manual "Load More" tap.
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (
+          entries[0]?.isIntersecting &&
+          hasNextPage &&
+          !isFetchingNextPage &&
+          !isLoading
+        ) {
+          fetchNextPage();
+        }
+      },
+      { rootMargin: "400px" },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [hasNextPage, isFetchingNextPage, isLoading, fetchNextPage, filtered.length]);
 
   return (
     <div
@@ -213,26 +235,13 @@ export default function JeweleryCollectionsScreen() {
             </div>
           )}
           {hasNextPage && !isLoading && (
-            <button
-              type="button"
-              onClick={() => fetchNextPage()}
-              disabled={isFetchingNextPage}
-              className={cn(
-                "flex w-full cursor-pointer items-center justify-center py-4",
-                isFetchingNextPage && "opacity-60",
-              )}
+            <div
+              ref={sentinelRef}
+              className="flex w-full items-center justify-center py-4"
+              aria-hidden={!isFetchingNextPage}
             >
-              {isFetchingNextPage ? (
-                <Spinner color={colors.gold} />
-              ) : (
-                <span
-                  className="text-xs tracking-[1px]"
-                  style={{ color: colors.gold, fontFamily: "DMSans_500Medium" }}
-                >
-                  LOAD MORE
-                </span>
-              )}
-            </button>
+              {isFetchingNextPage && <Spinner color={colors.gold} />}
+            </div>
           )}
         </div>
       </div>
