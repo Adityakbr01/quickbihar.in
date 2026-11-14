@@ -206,6 +206,8 @@ function Shell({
         padding: "16px 20px",
         color: "#1e293b",
         backgroundColor: "#ffffff",
+        // VISIBLE to WRS and users pre-hydration — fixes "Crawled - currently not indexed"
+        // React createRoot will replace #root on commit
       }}
     >
       <header style={{ borderBottom: "1px solid #e2e8f0", paddingBottom: "14px", marginBottom: "16px" }}>

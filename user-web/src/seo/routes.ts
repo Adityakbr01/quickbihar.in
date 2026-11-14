@@ -17,7 +17,6 @@ export interface StaticRoute {
  * excluded — thin, always noindex, never in sitemap. */
 export const STATIC_ROUTES: StaticRoute[] = [
   { path: '/', label: 'Home' },
-  { path: '/clothing/home', label: 'Home' },
   { path: '/top-selling', label: 'Top Selling' },
   { path: '/malls', label: 'Malls' },
   { path: '/jewelery', label: 'Jewellery' },

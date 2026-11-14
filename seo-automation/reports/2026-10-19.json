@@ -1,0 +1,69 @@
+{
+  "run_id": "qb-seo-20261019-001",
+  "date": "2026-10-19",
+  "timezone": "Asia/Kolkata",
+  "overall_status": "ISSUES_FOUND",
+  "scheduler_status": "NOT_CONFIGURED",
+  "checks_run": {
+    "live_site_http": true,
+    "robots_txt": true,
+    "sitemap_index": true,
+    "sub_sitemaps": 5,
+    "prerender_html_inspection": 5,
+    "repository_code_review": true,
+    "structured_data_validation": true,
+    "meta_tags_verification": true,
+    "internal_linking_analysis": true,
+    "gsc_api": false,
+    "ga4_api": false,
+    "open_seo_mvp": false,
+    "lighthouse": false
+  },
+  "data_freshness": {
+    "live_site": "2026-10-19",
+    "repository": "2026-10-19",
+    "gsc_historical": "2026-10-14",
+    "ga4_historical": null,
+    "open_seo_mvp": null
+  },
+  "availability": {
+    "checked_urls": 12,
+    "all_200": true,
+    "redirect_chains": 0,
+    "mixed_protocol": 0
+  },
+  "crawl_indexability": {
+    "sitemap_total_urls": 93,
+    "static_routes_defined": 18,
+    "category_pages_in_sitemap": 29,
+    "category_pages_in_static_routes": 0,
+    "clothing_home_duplicate": true
+  },
+  "technical_seo": {
+    "metadata_coverage": "good",
+    "canonical_consistency": "good",
+    "structured_data_valid": true,
+    "robots_txt_valid": true,
+    "sitemap_valid": true,
+    "shell_display_none": true,
+    "duplicate_shell_links": true
+  },
+  "gsc_status": "BLOCKED",
+  "ga4_status": "BLOCKED",
+  "performance_status": "NOT_RUN",
+  "findings_count": 11,
+  "proposals_created": 11,
+  "proposals_pending": 11,
+  "proposals_approved": 0,
+  "proposals_rejected": 0,
+  "limitations": [
+    "GSC/GA4 data unavailable",
+    "OpenSEO MVP not inspected",
+    "Category page prerender status unverified",
+    "Product page spot-check only",
+    "No performance measurements",
+    "No full crawl simulation",
+    "Historical GSC data may be stale",
+    "Scheduler not configured"
+  ]
+}

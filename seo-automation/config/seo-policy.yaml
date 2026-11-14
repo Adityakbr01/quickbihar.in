@@ -1,0 +1,48 @@
+site:
+  base_url: "https://quickbihar.in"
+  timezone: "Asia/Kolkata"
+  crawl:
+    mode: "read_only"
+    max_urls: 500
+    max_requests_per_second: 1
+    respect_robots_txt: true
+    include_query_parameters: false
+    exclude_private_routes: true
+
+reporting:
+  comparison_window_days: 28
+  preserve_history: true
+  markdown: true
+  json_summary: true
+
+integrations:
+  open_seo_mvp:
+    enabled: true
+    discover_capabilities_before_use: true
+  google_search_console:
+    enabled: true
+    credentials_source: "secret_manager_or_environment"
+  google_analytics_4:
+    enabled: true
+    credentials_source: "secret_manager_or_environment"
+
+approval:
+  mode: "proposal_only"
+  auto_publish: false
+  auto_merge: false
+  auto_deploy: false
+  human_approval_required_for:
+    - canonical_changes
+    - robots_changes
+    - redirects
+    - url_changes
+    - page_deletion
+    - production_changes
+    - analytics_tracking_changes
+
+notifications:
+  enabled: false
+  alert_on:
+    - P0
+    - P1
+    - failed_daily_run
