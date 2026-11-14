@@ -120,7 +120,7 @@ export default function JeweleryOrderSuccessScreen() {
       {/* Main Content */}
       <div
         className="flex flex-1 flex-col items-center justify-center px-7"
-        style={{ paddingBottom: 140 }}
+        style={{ paddingBottom: isDesktop ? 140 : 80 }}
       >
         <div
           className="mb-6 flex h-20 w-20 items-center justify-center rounded-full border"

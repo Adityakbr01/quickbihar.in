@@ -174,7 +174,7 @@ export default function JeweleryAddressesScreen() {
       </div>
 
       {/* Main Content */}
-      <div className="overflow-auto p-4 pb-36 md:pb-16">
+      <div className="overflow-auto p-4 pb-24 md:pb-16">
         {isLoading ? (
           <div className="flex flex-col items-center justify-center gap-3 py-[60px]">
             <span

@@ -466,7 +466,7 @@ export default function RiderWorkspaceScreen() {
   return (
     <>
       <div className="flex-1" style={{ backgroundColor: theme.background }}>
-        <div className="mx-auto w-full max-w-3xl p-[18px] pb-[118px]">
+        <div className="mx-auto w-full max-w-3xl p-[18px] pb-14">
           <RiderHeader styles={styles} theme={theme} profile={profile} isOnline={isOnline} busy={busy} onToggleOnline={toggleOnline} />
           <RiderTabs styles={styles} theme={theme} activeTab={activeTab} onTabChange={setActiveTab} />
 

@@ -140,19 +140,6 @@ export function ImageCarousel({ images, productName }: ImageCarouselProps) {
           ))}
         </div>
 
-        {/* Counter badge */}
-        <div
-          className="absolute top-3.5 right-3.5 flex flex-row items-center rounded-xl px-2 py-1"
-          style={{ backgroundColor: `${colors.ink}8C` }}
-        >
-          <ImageIcon size={10} color={colors.onBrand} />
-          <span
-            className="ml-1 text-[10px] font-semibold"
-            style={{ color: colors.onBrand }}
-          >
-            {activeIndex + 1}/{safeImages.length}
-          </span>
-        </div>
 
         {/* Left / right arrows */}
         {activeIndex > 0 && (

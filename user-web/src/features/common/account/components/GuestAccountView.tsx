@@ -49,7 +49,7 @@ export default function GuestAccountView() {
       className="min-h-screen w-full"
       style={{ backgroundColor: theme.background }}
     >
-      <div className="mx-auto w-full max-w-md px-4 pb-28 pt-4">
+      <div className="mx-auto w-full max-w-md px-4 pb-8 pt-4">
         <h1
           className="px-1 text-[20px] font-extrabold tracking-[-0.5px]"
           style={{ color: theme.text }}

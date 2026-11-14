@@ -59,7 +59,7 @@ export const HomeScreen = ({ rootSlug }: { rootSlug?: string }) => {
       </h1>
       <div
         className={cn("flex flex-col", isWide && "items-center")}
-        style={{ paddingBottom: isDesktop ? 24 : 100 }}
+        style={{ paddingBottom: isDesktop ? 24 : 40 }}
       >
         {/* Everything before the filter tabs */}
         <div className="w-full overflow-hidden">

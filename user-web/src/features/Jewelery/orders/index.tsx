@@ -140,7 +140,7 @@ export default function JeweleryOrdersScreen() {
         <Package size={16} color={colors.gold} />
       </div>
 
-      <div className="overflow-auto p-4 pb-32 md:pb-16">
+      <div className="overflow-auto p-4 pb-8 md:pb-16">
         {isLoading ? (
           <div className="flex flex-col items-center justify-center gap-3 py-[60px]">
             <span

@@ -1,4 +1,10 @@
-import React, { useState, useMemo, useCallback, useEffect, useRef } from "react";
+import React, {
+  useState,
+  useMemo,
+  useCallback,
+  useEffect,
+  useRef,
+} from "react";
 import type { LucideIcon } from "lucide-react";
 import {
   ArrowLeft,
@@ -41,6 +47,7 @@ import { Link, useNavigate } from "react-router-dom";
 
 import { IProduct } from "./types/product.types";
 import Carousel from "@/src/components/common/EmblaCarousel";
+import ShareSheet from "@/src/components/common/ShareSheet";
 
 // --- Imports from modular structure ---
 import { ExpandableSection } from "./components/ProductDetail/ExpandableSection";
@@ -53,7 +60,6 @@ import { useWishlistStore } from "@/src/features/common/wishlist/store/wishlistS
 import { useCartStore } from "@/src/features/common/cart/store/cartStore";
 import { useAuthStore } from "@/src/features/common/auth/store/authStore";
 import * as Haptics from "@/lib/haptics";
-import WishlistHeart from "@/src/components/common/WishlistHeart";
 import { goBack, goTo, replaceTo } from "@/src/utils/navigation";
 import { isJeweleryProduct } from "@/src/features/common/order/lib/orderModule";
 import { getCanonicalUrl } from "@/src/seo/site";
@@ -62,11 +68,7 @@ import {
   useSizeChart,
   useSizeCharts,
 } from "@/src/features/clothing/sizeChart/hooks/useSizeCharts";
-import {
-  BREAKPOINTS,
-  useStickyBarBottomOffset,
-  useWindowWidth,
-} from "@/src/utils/responsive";
+import { BREAKPOINTS, useWindowWidth } from "@/src/utils/responsive";
 import { trackViewItem } from "@/src/analytics/googleAnalytics";
 
 interface ProductDetailProps {
@@ -125,6 +127,7 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
   const [showSizeChart, setShowSizeChart] = useState(false);
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [carouselIndex, setCarouselIndex] = useState(0);
+  const [shareSheetOpen, setShareSheetOpen] = useState(false);
 
   const wishlistItems = useWishlistStore((state) => state.items);
   const toggleWishlist = useWishlistStore((state) => state.toggleItem);
@@ -133,9 +136,6 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
   const wishlistId = (product as any)?._id || id;
   const isWishlisted = wishlistItems.includes(wishlistId);
   const { isAuthenticated } = useAuthStore();
-  // Mobile web tab bar is fixed-position and overlays the viewport bottom —
-  // lift the sticky action bar above it (0 on desktop, no visual diff).
-  const stickyBarOffset = useStickyBarBottomOffset();
   const windowWidth = useWindowWidth();
   const isDesktop = windowWidth >= BREAKPOINTS.desktopMin;
 
@@ -267,27 +267,27 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
     });
   }, [dp.deliveryInfo?.estimatedDays]);
 
+  // Always share the canonical product URL so the recipient can open
+  // and buy this exact product.
+  const shareProductUrl = getCanonicalUrl(`/product/${dp.slug || id}`);
+  const shareProductText = `Check out ${dp.title} at ₹${dp.price} on QuickBihar! 🛍️`;
+
   const handleShare = useCallback(async () => {
-    // Always share the canonical product URL so the recipient can open
-    // and buy this exact product.
-    const productUrl = getCanonicalUrl(`/product/${dp.slug || id}`);
-    const text = `Check out ${dp.title} at ₹${dp.price} on QuickBihar! 🛍️`;
-    const message = `${text}\n${productUrl}`;
     try {
       if (typeof navigator !== "undefined" && (navigator as any).share) {
-        await (navigator as any).share({ title: dp.title, text, url: productUrl });
+        await (navigator as any).share({
+          title: dp.title,
+          text: shareProductText,
+          url: shareProductUrl,
+        });
         return;
       }
     } catch (error) {
-      // User dismissed the native share sheet — nothing to copy.
+      // User dismissed the native share sheet — nothing else to do.
       if ((error as any)?.name === "AbortError") return;
     }
-    try {
-      if (typeof navigator !== "undefined" && navigator.clipboard) {
-        await navigator.clipboard.writeText(message);
-      }
-    } catch {}
-  }, [dp.title, dp.price, dp.slug, id]);
+    setShareSheetOpen(true);
+  }, [dp.title, shareProductText, shareProductUrl]);
 
   const addItem = useCartStore((state) => state.addItem);
   const isAddingToCart = useCartStore((state) => state.isLoading);
@@ -459,27 +459,6 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
               <ArrowLeft size={20} color={isDark ? "#ffffff" : "#111827"} />
             </button>
             <div className="flex flex-row items-center gap-2.5">
-              <WishlistHeart
-                isWishlisted={isWishlisted}
-                onToggle={() => toggleWishlist(wishlistId, product)}
-                size={20}
-                activeColor="#FF3B30"
-                inactiveColor={isDark ? "#ffffff" : "#111827"}
-                style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 20,
-                  borderWidth: 1,
-                  justifyContent: "center",
-                  alignItems: "center",
-                  backgroundColor: isDark
-                    ? "rgba(30, 30, 32, 0.85)"
-                    : "rgba(255, 255, 255, 0.9)",
-                  borderColor: isDark
-                    ? "rgba(255, 255, 255, 0.15)"
-                    : "rgba(0, 0, 0, 0.08)",
-                }}
-              />
               <button
                 type="button"
                 onClick={handleShare}
@@ -563,34 +542,13 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
           className="px-4 pt-4 pb-3"
           style={{ backgroundColor: theme.background }}
         >
-          {/* Breadcrumb trail (visible match for BreadcrumbList JSON-LD) */}
-          <nav
-            className="mb-2 flex flex-row items-center"
-            aria-label="Breadcrumb"
-          >
-            <Link
-              to="/"
-              className="text-xs"
-              style={{ color: theme.secondaryText }}
-            >
-              Home
-            </Link>
-            <span className="text-xs" style={{ color: theme.secondaryText }}>
-              {"  ›  "}
-            </span>
-            <span
-              className="flex-1 truncate text-xs"
-              style={{ color: theme.secondaryText }}
-            >
-              {dp.title}
-            </span>
-          </nav>
           {/* Brand */}
           <p
             className="mb-1 text-[15px] font-extrabold tracking-wide"
             style={{ color: theme.text }}
           >
             {dp.brand || "Brand"}
+            {/* Add brand badge and verfied bade any One */}
           </p>
 
           {/* Title */}
@@ -784,20 +742,21 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
             </div>
             {Boolean(
               selectedSize &&
-                (sizesForColor.find((v) => v.size === selectedSize)?.stock ?? 999) <= 5
+              (sizesForColor.find((v) => v.size === selectedSize)?.stock ??
+                999) <= 5,
             ) && (
-                <div className="mt-3 flex flex-row items-center gap-1.5">
-                  <Zap size={14} color={theme.warning} />
-                  <span
-                    className="text-xs font-semibold"
-                    style={{ color: theme.warning }}
-                  >
-                    Only{" "}
-                    {sizesForColor.find((v) => v.size === selectedSize)?.stock}{" "}
-                    left! Order soon
-                  </span>
-                </div>
-              )}
+              <div className="mt-3 flex flex-row items-center gap-1.5">
+                <Zap size={14} color={theme.warning} />
+                <span
+                  className="text-xs font-semibold"
+                  style={{ color: theme.warning }}
+                >
+                  Only{" "}
+                  {sizesForColor.find((v) => v.size === selectedSize)?.stock}{" "}
+                  left! Order soon
+                </span>
+              </div>
+            )}
           </div>
         )}
 
@@ -1587,14 +1546,7 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
         )}
 
         {/* Bottom spacer — clears the fixed action bar + tab bar */}
-        <div
-          className="h-[120px] lg:h-[80px]"
-          style={{
-            paddingBottom: isDesktop
-              ? 0
-              : "calc(60px + env(safe-area-inset-bottom))",
-          }}
-        />
+        <div className="h-[120px] lg:h-[80px]" />
       </div>
 
       {/* ═══════════════════════════════════════════
@@ -1725,6 +1677,14 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
           await createReviewMutation.mutateAsync(reviewData);
         }}
         productTitle={dp.title}
+        theme={theme}
+      />
+      <ShareSheet
+        visible={shareSheetOpen}
+        onClose={() => setShareSheetOpen(false)}
+        title={dp.title || "QuickBihar product"}
+        url={shareProductUrl}
+        text={shareProductText}
         theme={theme}
       />
     </>

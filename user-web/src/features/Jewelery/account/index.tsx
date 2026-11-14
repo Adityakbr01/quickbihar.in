@@ -270,7 +270,7 @@ export default function JeweleryAccountScreen() {
         )}
       </div>
 
-      <div className="flex-1 pb-[calc(60px+env(safe-area-inset-bottom)+2.5rem)] md:pb-16">
+      <div className="flex-1 pb-10 md:pb-16">
         {user ? (
           /* ── SIGNED IN ─────────────────────────── */
           <>

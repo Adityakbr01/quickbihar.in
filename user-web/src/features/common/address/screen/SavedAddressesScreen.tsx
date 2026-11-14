@@ -100,7 +100,7 @@ const SavedAddressesScreen = () => {
 
   return (
     <div
-      className="relative flex min-h-screen w-full flex-col items-center pb-36 md:pb-16"
+      className="relative flex min-h-screen w-full flex-col items-center pb-24 md:pb-16"
       style={{ backgroundColor: theme.background }}
     >
       {/* Top app bar (same language as Notifications) */}

@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowRight, Award, Camera, Check, CircleCheck, Gift, Heart, PenLine, RefreshCw, ShoppingBag, Star, ThumbsUp, Truck } from "lucide-react";
+import { ArrowLeft, ArrowRight, Award, Camera, Check, CircleCheck, Gift, Heart, PenLine, RefreshCw, Share2, ShoppingBag, Star, ThumbsUp, Truck } from "lucide-react";
 import * as Haptics from "@/lib/haptics";
 import { useNavigate } from "react-router-dom";
 import { goTo, useRouteParams } from "@/src/utils/navigation";
@@ -24,6 +24,8 @@ import {
 } from "@/src/features/clothing/product/hooks/useProducts";
 import { WriteReviewModal } from "@/src/features/clothing/product/components/modals/WriteReviewModal";
 import { useModuleTheme } from "@/src/theme/useModuleTheme";
+import ShareSheet from "@/src/components/common/ShareSheet";
+import { getCanonicalUrl } from "@/src/seo/site";
 import { trackViewItem } from "@/src/analytics/googleAnalytics";
 
 function Stars({ rating, count }: { rating: number; count: number }) {
@@ -49,6 +51,7 @@ export default function JeweleryProductDetailScreen() {
   const colors = useColors();
   const { addToCart, toggleWishlist, isWishlisted, cartItems } = useCart();
   const [addedToCart, setAddedToCart] = useState(false);
+  const [shareSheetOpen, setShareSheetOpen] = useState(false);
   const windowWidth = useWindowWidth();
   const isDesktop = windowWidth >= BREAKPOINTS.desktopMin;
 
@@ -161,6 +164,30 @@ export default function JeweleryProductDetailScreen() {
   const tryOnConfig = product.tryOn;
   const canTryOn = Boolean(tryOnConfig?.modelUrl);
 
+  // Canonical product URL (slug-based) so recipients land on this exact piece.
+  const shareProductUrl = getCanonicalUrl(
+    `/jewelery/product/${(product._raw as any)?.slug || product.id}`,
+  );
+  const shareProductText = `Check out ${product.name} at ${APP_CURRENCY}${product.price.toLocaleString("en-IN")} on QuickBihar! 🛍️`;
+
+  const handleShare = async () => {
+    try {
+      if (typeof navigator !== "undefined" && (navigator as any).share) {
+        await (navigator as any).share({
+          title: product.name,
+          text: shareProductText,
+          url: shareProductUrl,
+        });
+        return;
+      }
+    } catch (error) {
+      // User dismissed the native share sheet — nothing else to do.
+      if ((error as any)?.name === "AbortError") return;
+    }
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setShareSheetOpen(true);
+  };
+
   const handleAddToCart = async () => {
     // Haptics come from the bridge (success/error) — don't pre-fire here.
     const ok = await addToCart(product);
@@ -200,22 +227,18 @@ export default function JeweleryProductDetailScreen() {
         >
           <ArrowLeft size={18} color={colors.ink} />
         </button>
-        <button
-          type="button"
-          onClick={() => {
-            if (!useAuthStore.getState().isAuthenticated) {
-              navigate("/auth");
-              return;
-            }
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            toggleWishlist(product);
-          }}
-          aria-label="Toggle wishlist"
-          className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border"
-          style={{ backgroundColor: colors.card, borderColor: colors.midGray, borderWidth: 1 }}
-        >
-          <Heart size={18} color={wishlisted ? colors.gold : colors.ink} />
-        </button>
+        <div className="flex flex-row items-center gap-2.5">
+          <button
+            type="button"
+            onClick={handleShare}
+            aria-label="Share product"
+            className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border"
+            style={{ backgroundColor: colors.card, borderColor: colors.midGray, borderWidth: 1 }}
+          >
+            <Share2 size={18} color={colors.ink} />
+          </button>
+       
+        </div>
       </div>
 
       <div className="flex-1">
@@ -670,14 +693,7 @@ export default function JeweleryProductDetailScreen() {
             </div>
           )}
 
-          <div
-            className="h-[120px] lg:h-[80px]"
-            style={{
-              paddingBottom: isDesktop
-                ? 0
-                : "calc(60px + env(safe-area-inset-bottom))",
-            }}
-          />
+          <div className="h-[120px] lg:h-[80px]" />
         </div>
       </div>
 
@@ -795,6 +811,15 @@ export default function JeweleryProductDetailScreen() {
         }}
         productTitle={product.name}
         authRoute="/jewelery/auth/sign-in"
+        theme={modalTheme}
+      />
+
+      <ShareSheet
+        visible={shareSheetOpen}
+        onClose={() => setShareSheetOpen(false)}
+        title={product.name}
+        url={shareProductUrl}
+        text={shareProductText}
         theme={modalTheme}
       />
     </div>

@@ -374,7 +374,7 @@ export default function JeweleryCheckoutScreen() {
         <Shield size={16} color={colors.gold} />
       </div>
 
-      <div className="overflow-y-auto" style={{ paddingBottom: 160 }}>
+      <div className="overflow-y-auto" style={{ paddingBottom: isDesktop ? 160 : 112 }}>
         {/* Phone missing banner */}
         {Boolean(isAuthenticated && !user?.phone) && <PhoneMissingBanner />}
 

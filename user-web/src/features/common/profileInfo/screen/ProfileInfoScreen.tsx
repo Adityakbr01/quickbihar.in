@@ -211,7 +211,7 @@ const ProfileInfoScreen = () => {
         </div>
       </div>
 
-      <div className="overflow-auto pb-32 md:pb-16">
+      <div className="overflow-auto pb-8 md:pb-16">
         <div className="overflow-hidden rounded-b-[30px] pb-10">
           <div className="flex flex-col items-center pt-2.5">
             <ProfileAvatar

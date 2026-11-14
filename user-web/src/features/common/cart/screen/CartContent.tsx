@@ -158,7 +158,7 @@ const CartContent = () => {
       >
         <CartHeader productsCount={productsCount} totalUnits={totalUnits} />
 
-        <div className="flex-1 overflow-y-auto pb-[220px]">
+        <div className="flex-1 overflow-y-auto pb-[160px]">
           {items.map((item) => (
             <CartItem
               key={item.sku}

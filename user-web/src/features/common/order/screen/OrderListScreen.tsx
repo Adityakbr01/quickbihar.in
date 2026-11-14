@@ -296,7 +296,7 @@ const OrderListScreen = () => {
   );
 
   const renderSkeletons = () => (
-    <div className="overflow-auto px-4 pt-2 pb-32 md:pb-12">
+    <div className="overflow-auto px-4 pt-2 pb-8 md:pb-12">
       {[0, 1, 2, 3].map((i) => (
         <OrderCardSkeleton key={i} />
       ))}
@@ -351,7 +351,7 @@ const OrderListScreen = () => {
         ) : orders.length === 0 ? (
           renderEmpty()
         ) : (
-          <div className="overflow-auto px-4 pt-2 pb-32 md:pb-12">
+          <div className="overflow-auto px-4 pt-2 pb-8 md:pb-12">
             {orders.map((item) => renderOrderItem(item))}
           </div>
         )}

@@ -118,7 +118,7 @@ export default function JeweleryCartScreen() {
         </div>
       ) : (
         <>
-          <div className="overflow-y-auto pb-[calc(60px+env(safe-area-inset-bottom)+120px)] lg:pb-32">
+          <div className="overflow-y-auto pb-[120px] lg:pb-32">
             {/* Cart items */}
             {cartItems.map(({ product, quantity }) => (
               <div

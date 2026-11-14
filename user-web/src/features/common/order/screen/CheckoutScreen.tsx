@@ -460,7 +460,7 @@ const CheckoutScreen = () => {
         <div className="w-11" />
       </div>
 
-      <div className="overflow-auto pb-48 md:pb-32">
+      <div className="overflow-auto pb-24 md:pb-32">
         {/* Phone capture banner — sellers call to confirm orders, so
             users without a phone on file are nudged to add one before
             they can complete checkout. */}

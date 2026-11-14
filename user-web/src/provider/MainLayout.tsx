@@ -249,7 +249,14 @@ function MainLayout() {
           <DesktopNavbar />
         )}
         <Suspense fallback={<RouteLoader />}>
-          <Routes>
+          <div
+            className={
+              isAuthRoute
+                ? undefined
+                : "max-lg:pb-[calc(60px+env(safe-area-inset-bottom))]"
+            }
+          >
+            <Routes>
             <Route path="/" element={<RootRedirect />} />
             {/* Legacy Expo URLs: "/(tabs)/clothing/home" -> "/clothing/home" */}
             <Route
@@ -454,6 +461,7 @@ function MainLayout() {
             {/* Catch-all: normalize legacy Expo paths, else module home */}
             <Route path="*" element={<LegacyRedirect />} />
           </Routes>
+          </div>
         </Suspense>
         <BottomTabBar />
       </>

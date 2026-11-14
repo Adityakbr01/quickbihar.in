@@ -37,7 +37,7 @@ export default function JeweleryHomeScreen() {
         Delivery | QuickBihar
       </h1>
       <Header />
-      <div className="flex-1 pb-[calc(60px+env(safe-area-inset-bottom)+2rem)] md:pb-16">
+      <div className="flex-1 pb-8 md:pb-16">
         <AnnouncementBar />
         <HeroCarousel items={heroItems} />
         <BrandPillars />

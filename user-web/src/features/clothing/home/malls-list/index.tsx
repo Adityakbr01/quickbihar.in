@@ -127,7 +127,7 @@ const MallsListScreen: React.FC = () => {
           <div
             className={cn(
               "grid grid-cols-1 gap-4 px-4 md:grid-cols-2 lg:grid-cols-3",
-              isDesktop ? "pb-6" : "pb-28",
+              isDesktop ? "pb-6" : "pb-12",
             )}
           >
             {malls.map((mall: any) => (

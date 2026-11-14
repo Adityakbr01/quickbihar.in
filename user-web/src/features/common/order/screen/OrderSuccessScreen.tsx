@@ -141,7 +141,7 @@ const OrderSuccessScreen = () => {
         <Share2 size={22} color={theme.text} />
       </button>
 
-      <div className="overflow-auto px-5 pt-10 pb-[60px]">
+      <div className="overflow-auto px-5 pt-10 pb-8">
         <div className="flex flex-col items-center">
           <LazyLottie source={successConfetti}
             autoPlay

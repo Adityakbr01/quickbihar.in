@@ -115,7 +115,7 @@ const AccountMain = () => {
       style={{ backgroundColor: (theme as any).background }}
     >
       <div className="w-full max-w-[800px]">
-        <div className="pb-[calc(60px+env(safe-area-inset-bottom)+2rem)] md:pb-12">
+        <div className="pb-8 md:pb-12">
           <AccountHeader
             theme={theme}
             name={user?.fullName || "Guest"}
@@ -195,7 +195,7 @@ const AccountMain = () => {
 
           {/* Logout Section */}
           <div
-            className="relative mb-[60px] mt-8"
+            className="relative mt-8"
             style={isLoggingOut ? { opacity: 0.7 } : undefined}
           >
             <AccountOption

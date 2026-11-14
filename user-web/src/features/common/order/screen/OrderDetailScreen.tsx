@@ -532,7 +532,7 @@ export default function OrderDetailScreen() {
         </div>
       </div>
 
-      <div className="overflow-auto p-4 pb-28 md:pb-14">
+      <div className="overflow-auto p-4 pb-8 md:pb-14">
         {/* Order Meta & ID Row */}
         <div className="mb-3 flex flex-row items-center justify-between px-0.5">
           <button

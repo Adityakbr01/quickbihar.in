@@ -187,19 +187,19 @@ const CategoryDetailScreen: React.FC<CategoryDetailScreenProps> = ({ slug }) => 
 
         {/* Product Grid */}
         {productsQuery.isLoading ? (
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 md:gap-4 lg:grid-cols-5 xl:grid-cols-6 pb-28 md:pb-16">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 md:gap-4 lg:grid-cols-5 xl:grid-cols-6 pb-8 md:pb-16">
             {Array.from({ length: 12 }).map((_, i) => (
               <ProductCardSkeleton key={i} />
             ))}
           </div>
         ) : products.length > 0 ? (
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 md:gap-4 lg:grid-cols-5 xl:grid-cols-6 pb-28 md:pb-16">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 md:gap-4 lg:grid-cols-5 xl:grid-cols-6 pb-8 md:pb-16">
             {products.map((item) => (
               <ProductCard key={item._id} item={item} />
             ))}
           </div>
         ) : (
-          <div className="flex min-h-[40vh] flex-col items-center justify-center p-8 text-center pb-28 md:pb-16">
+          <div className="flex min-h-[40vh] flex-col items-center justify-center p-8 text-center pb-8 md:pb-16">
             <div
               className="mb-4 flex h-14 w-14 items-center justify-center rounded-full"
               style={{ backgroundColor: theme.secondaryBackground }}
