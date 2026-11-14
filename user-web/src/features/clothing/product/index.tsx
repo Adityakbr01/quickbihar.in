@@ -56,6 +56,7 @@ import * as Haptics from "@/lib/haptics";
 import WishlistHeart from "@/src/components/common/WishlistHeart";
 import { goBack, goTo, replaceTo } from "@/src/utils/navigation";
 import { isJeweleryProduct } from "@/src/features/common/order/lib/orderModule";
+import { getCanonicalUrl } from "@/src/seo/site";
 
 import {
   useSizeChart,
@@ -267,15 +268,26 @@ const ProductDetailScreen: React.FC<ProductDetailProps> = ({ id }) => {
   }, [dp.deliveryInfo?.estimatedDays]);
 
   const handleShare = useCallback(async () => {
+    // Always share the canonical product URL so the recipient can open
+    // and buy this exact product.
+    const productUrl = getCanonicalUrl(`/product/${dp.slug || id}`);
     const text = `Check out ${dp.title} at ₹${dp.price} on QuickBihar! 🛍️`;
+    const message = `${text}\n${productUrl}`;
     try {
       if (typeof navigator !== "undefined" && (navigator as any).share) {
-        await (navigator as any).share({ text });
-      } else if (navigator.clipboard) {
-        await navigator.clipboard.writeText(text);
+        await (navigator as any).share({ title: dp.title, text, url: productUrl });
+        return;
+      }
+    } catch (error) {
+      // User dismissed the native share sheet — nothing to copy.
+      if ((error as any)?.name === "AbortError") return;
+    }
+    try {
+      if (typeof navigator !== "undefined" && navigator.clipboard) {
+        await navigator.clipboard.writeText(message);
       }
     } catch {}
-  }, [dp.title, dp.price]);
+  }, [dp.title, dp.price, dp.slug, id]);
 
   const addItem = useCartStore((state) => state.addItem);
   const isAddingToCart = useCartStore((state) => state.isLoading);
