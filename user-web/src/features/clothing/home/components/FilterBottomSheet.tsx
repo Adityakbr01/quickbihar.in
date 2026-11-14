@@ -137,7 +137,10 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
     return categoryGroups.find((g) => g.title === selectedParentTab) || null;
   }, [categoryGroups, selectedParentTab]);
 
-  const pillBase = "flex cursor-pointer flex-row items-center gap-1.5 rounded-full border-[1.5px] px-4 py-2.5 text-[13px] font-semibold";
+  // whitespace-nowrap keeps labels on one line; grow + justify-center makes
+  // pills stretch to fill each row edge-to-edge instead of leaving ragged
+  // gaps on narrow screens.
+  const pillBase = "flex grow cursor-pointer flex-row items-center justify-center gap-1.5 whitespace-nowrap rounded-full border-[1.5px] px-4 py-2.5 text-[13px] font-semibold";
 
   const footer = (
     <div className="flex flex-row gap-3">
@@ -163,7 +166,7 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
   return (
     <AppSheet visible={visible} onClose={onClose} title={title} footer={footer} label={title}>
         {/* Search bar */}
-        <div className="mx-6 mb-1">
+        <div className="mx-4 mb-1">
           <div
             className="flex flex-row items-center gap-2 rounded-full border px-3.5 py-2"
             style={{ backgroundColor: theme.secondaryBackground, borderColor: theme.border }}
@@ -188,7 +191,7 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
 
         {/* Active selection pills summary strip */}
         {tempOptions.length > 0 && (
-          <div className="mx-6 my-1">
+          <div className="mx-4 my-1">
             <div className="flex flex-row items-center gap-1.5 overflow-x-auto" style={{ scrollbarWidth: "none" }}>
               <span className="mr-0.5 text-[11px] font-semibold" style={{ color: theme.tertiaryText }}>
                 Selected:
@@ -198,8 +201,8 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
                   key={item}
                   type="button"
                   onClick={() => handleToggleOption(item)}
-                  className="flex cursor-pointer flex-row items-center gap-1 rounded-xl border px-2.5 py-1"
-                  style={{ backgroundColor: theme.primary + "22", borderColor: theme.primary }}
+                  className="flex shrink-0 cursor-pointer flex-row items-center gap-1 whitespace-nowrap rounded-xl border px-2.5 py-1"
+                  style={{ backgroundColor: theme.primary.slice(0, 7) + "22", borderColor: theme.primary }}
                 >
                   <span className="text-[11px] font-semibold" style={{ color: theme.primary }}>
                     {item}
@@ -223,7 +226,7 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
                 </p>
               </div>
             ) : (
-              <div className="flex flex-row flex-wrap gap-3 px-6 py-2">
+              <div className="flex flex-row flex-wrap gap-2.5 px-4 py-2">
                 {searchResults.map((option) => {
                   const isSelected = tempOptions.includes(option.title);
                   return (
@@ -268,11 +271,11 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
                     Select Category
                   </p>
                 </div>
-                <div className="flex flex-row gap-2 overflow-x-auto px-6" style={{ scrollbarWidth: "none" }}>
+                <div className="flex flex-row gap-2 overflow-x-auto px-4" style={{ scrollbarWidth: "none" }}>
                   <button
                     type="button"
                     onClick={() => setSelectedParentTab("All")}
-                    className="cursor-pointer rounded-[20px] border-[1.5px] px-4 py-2 text-[13px]"
+                    className="shrink-0 cursor-pointer whitespace-nowrap rounded-[20px] border-[1.5px] px-3.5 py-2 text-[13px]"
                     style={{
                       borderColor: selectedParentTab === "All" ? theme.primary : theme.border,
                       backgroundColor: selectedParentTab === "All" ? theme.primary : theme.secondaryBackground,
@@ -294,10 +297,10 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
                         key={group.id}
                         type="button"
                         onClick={() => setSelectedParentTab(group.title)}
-                        className="flex cursor-pointer flex-row items-center gap-1.5 rounded-[20px] border-[1.5px] px-3.5 py-2 text-[13px]"
+                        className="flex shrink-0 cursor-pointer flex-row items-center gap-1.5 whitespace-nowrap rounded-[20px] border-[1.5px] px-3 py-2 text-[13px]"
                         style={{
-                          borderColor: isActiveTab ? theme.primary : hasSelection ? theme.primary + "88" : theme.border,
-                          backgroundColor: isActiveTab ? theme.primary : hasSelection ? theme.primary + "15" : theme.secondaryBackground,
+                          borderColor: isActiveTab ? theme.primary : hasSelection ? theme.primary.slice(0, 7) + "88" : theme.border,
+                          backgroundColor: isActiveTab ? theme.primary : hasSelection ? theme.primary.slice(0, 7) + "15" : theme.secondaryBackground,
                           color: isActiveTab ? "#fff" : theme.text,
                           fontWeight: isActiveTab ? 700 : 600,
                         }}
@@ -325,7 +328,7 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
 
               {/* Step 2: Subcategory Content View */}
               {selectedParentTab !== "All" && currentGroup ? (
-                <div className="mt-1 px-6">
+                <div className="mt-1 px-4">
                   {/* Subcategory Header */}
                   <div
                     className="mb-2 flex flex-row items-center justify-between border-b py-2"
@@ -343,13 +346,14 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
                     </div>
                   </div>
 
-                  {/* Subcategory Pills Grid */}
-                  <div className="flex flex-row flex-wrap gap-3 pt-1">
+                  {/* Subcategory Pills — "All in" spans full width as the
+                      category-level action; sub pills grow to fill rows. */}
+                  <div className="flex flex-col gap-2.5 pt-1">
                     {/* Category-wide option: "All in [Category]" */}
                     <button
                       type="button"
                       onClick={() => handleToggleOption(currentGroup.title)}
-                      className={cn(pillBase, "rounded-full px-4 py-2.5")}
+                      className={cn(pillBase, "w-full rounded-full px-4 py-2.5")}
                       style={{
                         borderColor: tempOptions.includes(currentGroup.title) ? theme.primary : theme.border,
                         backgroundColor: tempOptions.includes(currentGroup.title) ? theme.primary : theme.secondaryBackground,
@@ -363,33 +367,37 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
                     </button>
 
                     {/* Individual Subcategories */}
-                    {currentGroup.subCategories.map((sub) => {
-                      const isSelected = tempOptions.includes(sub.title);
-                      return (
-                        <button
-                          key={sub.id}
-                          type="button"
-                          onClick={() => handleToggleOption(sub.title)}
-                          className={cn(pillBase, "rounded-full px-4 py-2.5")}
-                          style={{
-                            borderColor: isSelected ? theme.primary : theme.border,
-                            backgroundColor: isSelected ? theme.primary : theme.secondaryBackground,
-                            color: isSelected ? "#fff" : theme.text,
-                          }}
-                        >
-                          {sub.icon && (
-                            <AppIcon icon={sub.icon} size={15} color={isSelected ? "#fff" : theme.text} />
-                          )}
-                          {sub.title}
-                          {isSelected && <Check size={14} color="#fff" />}
-                        </button>
-                      );
-                    })}
+                    {currentGroup.subCategories.length > 0 && (
+                      <div className="flex flex-row flex-wrap gap-2.5">
+                        {currentGroup.subCategories.map((sub) => {
+                          const isSelected = tempOptions.includes(sub.title);
+                          return (
+                            <button
+                              key={sub.id}
+                              type="button"
+                              onClick={() => handleToggleOption(sub.title)}
+                              className={cn(pillBase, "rounded-full px-4 py-2.5")}
+                              style={{
+                                borderColor: isSelected ? theme.primary : theme.border,
+                                backgroundColor: isSelected ? theme.primary : theme.secondaryBackground,
+                                color: isSelected ? "#fff" : theme.text,
+                              }}
+                            >
+                              {sub.icon && (
+                                <AppIcon icon={sub.icon} size={15} color={isSelected ? "#fff" : theme.text} />
+                              )}
+                              {sub.title}
+                              {isSelected && <Check size={14} color="#fff" />}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
                 </div>
               ) : (
                 /* "All Categories" Tab View — Grouped Cards */
-                <div className="mt-1 flex flex-col gap-4 px-6">
+                <div className="mt-1 flex flex-col gap-4 px-4">
                   {categoryGroups.map((group) => (
                     <div
                       key={group.id}
@@ -414,7 +422,7 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
                         <button
                           type="button"
                           onClick={() => handleToggleOption(group.title)}
-                          className="cursor-pointer rounded-lg border px-2 py-1 text-[11px] font-semibold"
+                          className="shrink-0 cursor-pointer whitespace-nowrap rounded-lg border px-2 py-1 text-[11px] font-semibold"
                           style={{
                             borderColor: tempOptions.includes(group.title) ? theme.primary : theme.border,
                             backgroundColor: tempOptions.includes(group.title) ? theme.primary : "transparent",
@@ -434,7 +442,7 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
                                 key={sub.id}
                                 type="button"
                                 onClick={() => handleToggleOption(sub.title)}
-                                className="flex cursor-pointer flex-row items-center gap-1 rounded-[20px] border px-3 py-1.5 text-xs font-semibold"
+                                className="flex cursor-pointer flex-row items-center gap-1 whitespace-nowrap rounded-[20px] border px-3 py-1.5 text-xs font-semibold"
                                 style={{
                                   borderColor: isSelected ? theme.primary : theme.border,
                                   backgroundColor: isSelected ? theme.primary : theme.background,
@@ -459,7 +467,7 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
             </div>
           ) : (
             /* Case 3: Fallback / Simple List (Gender, etc.) */
-            <div className="flex flex-row flex-wrap gap-3 px-6 py-2">
+            <div className="flex flex-row flex-wrap gap-2.5 px-4 py-2">
               {options.map((option) => {
                 const isSelected = tempOptions.includes(option.title);
                 return (

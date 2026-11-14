@@ -2,7 +2,7 @@ import { useTheme } from "@/src/theme/Provider/ThemeProvider";
 import { BREAKPOINTS, useWindowWidth } from "@/src/utils/responsive";
 import { ChevronDown, CircleX, Search, Zap } from "lucide-react";
 import { AppIcon } from "@/src/components/common/AppIcon";
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useRef } from "react";
 import { DealProductCard } from "../components/DealProductCard";
 import { DealProductSkeleton } from "../components/DealProductSkeleton";
 import { FilterBottomSheet } from "../components/FilterBottomSheet";
@@ -177,21 +177,21 @@ export const MoreDealsFilters = ({
                 <AppIcon
                   icon={filter.icon}
                   size={14}
-                  // Active pill bg is lime primary (#80c314): near-black
-                  // icon/text keeps ≥4.5:1 (white on lime is ~2.1:1).
-                  color={isActive ? "#142000" : theme.iconColor}
+                  // Active pill gets white icon/text per design direction
+                  // (green bg → white text).
+                  color={isActive ? "#fff" : theme.iconColor}
                 />
               )}
               <span
                 className="text-[13px] font-semibold"
-                style={{ color: isActive ? "#142000" : theme.text }}
+                style={{ color: isActive ? "#fff" : theme.text }}
               >
                 {filter.displayTitle}
               </span>
               {isDropdown && (
                 <ChevronDown
                   size={14}
-                  color={isActive ? "#142000" : theme.iconColor}
+                  color={isActive ? "#fff" : theme.iconColor}
                 />
               )}
             </button>
@@ -249,6 +249,25 @@ export const MoreDealsGrid = ({
   const winW = useWindowWidth();
   const isDesktop = propIsDesktop ?? winW >= BREAKPOINTS.desktopMin;
 
+  // Infinite scroll — IntersectionObserver on a sentinel below the grid.
+  // Prefetches the next page ~600px before the user reaches the last row,
+  // so content is ready with no manual "Load More" click.
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting && hasNextPage && !isFetchingNextPage) {
+          fetchNextPage();
+        }
+      },
+      { rootMargin: "600px" },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
   return (
     <div
       className={cn(
@@ -303,27 +322,19 @@ export const MoreDealsGrid = ({
         </div>
       )}
 
-      {hasNextPage && (
-        <button
-          type="button"
-          onClick={() => fetchNextPage()}
-          disabled={isFetchingNextPage}
-          className="w-full cursor-pointer p-5 text-center"
-        >
-          {isFetchingNextPage ? (
-            <span
-              className="mx-auto block h-5 w-5 animate-spin rounded-full border-2 border-t-transparent"
-              style={{
-                borderColor: `${theme.primary}40`,
-                borderTopColor: theme.primary,
-              }}
-            />
-          ) : (
-            <span className="font-semibold" style={{ color: theme.primary }}>
-              Load More
-            </span>
-          )}
-        </button>
+      {/* Infinite-scroll sentinel — next page auto-loads before the user
+          reaches the end; only the loading spinner is visible. */}
+      <div ref={sentinelRef} />
+      {isFetchingNextPage && (
+        <div className="flex w-full items-center justify-center py-5">
+          <span
+            className="block h-5 w-5 animate-spin rounded-full border-2"
+            style={{
+              borderColor: `${theme.primary.slice(0, 7)}40`,
+              borderTopColor: theme.primary.slice(0, 7),
+            }}
+          />
+        </div>
       )}
 
       {activeDropdownType && (
